@@ -341,6 +341,11 @@ private fun ProjectDumper.dump(kotlinFacetConfiguration: KotlinFacetConfiguratio
     prop("IsTestModule") { isTestModule.toString() }
     prop("Kind") { kind.toString() }
     prop("LanguageLevel") { languageLevel?.toString() }
+
+    // The Kotlin plugin invokes this workaround in several places including where it is read by JPS build.
+    // It doesn't look like we need to do it when opening a project, but we need to refresh them before
+    // dumping them since they are not automatically restored when the project is re-opened.
+    updateMergedArguments()
     mergedCompilerArguments?.let { mergedCompilerArguments ->
       head("MergedCompilerArguments") { null }
       dump(mergedCompilerArguments)

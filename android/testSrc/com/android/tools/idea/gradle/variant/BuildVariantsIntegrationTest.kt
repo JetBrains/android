@@ -20,6 +20,9 @@ import com.android.testutils.AssumeUtil.assumeNotWindows
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
+import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
+import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariants
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -37,11 +40,14 @@ import com.android.tools.idea.testing.switchVariant
 import com.google.common.base.Charsets
 import com.google.common.io.Files.asCharSource
 import com.google.common.truth.Expect
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -50,7 +56,7 @@ import org.junit.runners.JUnit4
 import java.io.File
 import java.nio.file.Files
 
-private val NOT_SET = "n/a"
+private const val NOT_SET = "n/a"
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -68,16 +74,18 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
 
       switchVariant(project, ":app", "debug")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      // TODO(b/184824343): Re-enable when fixed.
-      // expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
@@ -86,16 +94,18 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariants_Kapt() {
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
     openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
 
       switchVariant(project, ":app", "debug")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
-      // TODO(b/184824343): Re-enable when fixed.
-      // expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
       expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
@@ -109,8 +119,10 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     val symlinkPath = File(path.path + suffix)
     Files.createSymbolicLink(symlinkPath.toPath(), path.toPath())
     openPreparedProject("project$suffix") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
     }
   }
@@ -120,17 +132,20 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
       val basicDebugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "basicRelease")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicRelease")
       expect.thatModuleVariantIs(project, ":lib", "release")
 
       switchVariant(project, ":app", "basicDebug")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
       expect.that(project.saveAndDump()).isEqualTo(basicDebugSnapshot)
@@ -143,6 +158,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
@@ -151,13 +167,15 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib1", "release", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "release", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib3", "release", abi = "x86")
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
@@ -172,6 +190,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.DEPENDENT_NATIVE_MODULES, "project")
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
@@ -180,13 +199,15 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchAbi(project, ":app", "armeabi-v7a")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "armeabi-v7a")
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "armeabi-v7a")
       expect.thatModuleVariantIs(project, ":lib3", "debug", abi = "armeabi-v7a")
 
       switchAbi(project, ":app", "x86")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug", abi = "x86")
       expect.thatModuleVariantIs(project, ":lib1", "debug", abi = NOT_SET)
       expect.thatModuleVariantIs(project, ":lib2", "debug", abi = "x86")
@@ -199,14 +220,17 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariantsWithFeatureModules() {
     prepareGradleProject(TestProjectPaths.DYNAMIC_APP_WITH_VARIANTS, "project")
     openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "fl1AbDebug")
       expect.thatModuleVariantIs(project, ":feature1", "fl1AbDebug")
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl1AbDimFl1Debug")
       switchVariant(project, ":app", "fl2AbRelease")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "fl2AbRelease")
       expect.thatModuleVariantIs(project, ":feature1", "fl2AbRelease")
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2AbDimFl1Release")
       switchVariant(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":dependsOnFeature1", "fl2XyDimFl2Debug")
       expect.thatModuleVariantIs(project, ":app", "fl2XyDebug")
       expect.thatModuleVariantIs(project, ":feature1", "fl2XyDebug")
@@ -217,9 +241,11 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun testSwitchVariantsWithDependentModules_fromLib() {
     prepareGradleProject(TestProjectPaths.DEPENDENT_MODULES, "project")
     openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       expect.thatModuleVariantIs(project, ":lib", "debug")
       switchVariant(project, ":lib", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "basicDebug")
       // TODO(b/166244122): Consider propagating variant selection in both directions (even though it might not yield the correct results).
       expect.thatModuleVariantIs(project, ":lib", "release")
@@ -231,6 +257,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "project")
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
@@ -238,12 +265,14 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":library1", "release")
       expect.thatModuleVariantIs(project, ":library2", "release")
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
@@ -256,6 +285,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { project ->
       switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, "TestCompositeLib1:lib", "release")
     }
@@ -265,13 +295,16 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun `sync after switching variants`() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
 
       switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       val releaseSnapshot = project.saveAndDump()
 
       project.requestSyncAndWait()
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
       expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
@@ -282,46 +315,132 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
   fun `switch reopen and switch back`() {
     prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
     val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "release")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       debugSnapshot to project.saveAndDump()
     }
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/184824343): Re-enable when fixed.
-      // expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
     }
   }
 
   @Test
-  fun `switch reopen and switch back with Kotlin and Kapt`() {
-    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
-    val (debugSnapshot, _) = openPreparedProject("project") { project ->
+  fun `switch switch back and reopen`() {
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       val debugSnapshot = project.saveAndDump()
 
       switchVariant(project, ":app", "release")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      val releaseSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+      debugSnapshot to releaseSnapshot
+    }
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+
+      switchVariant(project, ":app", "release")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "release")
+      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+    }
+  }
+
+  @Test
+  fun `switch reopen and switch back with Kotlin and Kapt`() {
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    val (debugSnapshot, releaseSnapshot) = openPreparedProject("project") { project ->
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "debug")
+      val debugSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "release")
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       debugSnapshot to project.saveAndDump()
     }
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
-      // TODO(b/184824343): expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
+      expect.that(project.saveAndDump()).isEqualTo(releaseSnapshot)
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.that(project.saveAndDump()).isEqualTo(debugSnapshot)
+    }
+  }
+
+  @Test
+  fun `switch variant and abi with cmake`() {
+    assumeNotWindows()
+    val projectDir = prepareGradleProject(TestProjectPaths.HELLO_JNI, "project")
+    projectDir.resolve(".idea").deleteRecursively()
+    val (firstSnapshot, secondSnapshot) = openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "x86")
+      val firstSnapshot = project.saveAndDump()
+
+      switchVariant(project, ":app", "x86Debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
+      firstSnapshot to project.saveAndDump()
+    }
+    openPreparedProject("project") { project ->
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "x86")
+      expect.that(project.saveAndDump()).isEqualTo(secondSnapshot)
+
+      switchAbi(project, ":app", "arm64-v8a")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "x86Debug", abi = "arm64-v8a")
+
+      switchVariant(project, ":app", "arm7Debug")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "arm64-v8a")
+
+      switchAbi(project, ":app", "x86")
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
+      expect.thatModuleVariantIs(project, ":app", "arm7Debug", abi = "x86")
+      expect.that(project.saveAndDump()).isEqualTo(firstSnapshot)
     }
   }
 
@@ -353,6 +472,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
     openPreparedProject("project") { project ->
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
@@ -361,6 +481,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchVariant(project, ":app", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "release")
@@ -368,6 +489,7 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchVariant(project, ":app2", "release")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app2", "release")
       expect.thatModuleVariantIs(project, ":library1", "release")
@@ -375,13 +497,15 @@ class BuildVariantsIntegrationTest : GradleIntegrationTest {
 
       switchVariant(project, ":app2", "debug")
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "release")
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
       expect.thatModuleVariantIs(project, ":library2", "debug")
 
       switchVariant(project, ":app", "debug")
-      // TODO(b/184824343): expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      expect.consistentConfigurationOf(project)
       expect.thatModuleVariantIs(project, ":app", "debug")
       expect.thatModuleVariantIs(project, ":app2", "debug")
       expect.thatModuleVariantIs(project, ":library1", "debug")
@@ -402,6 +526,24 @@ private fun Module.selectedNdkModelAbi(): String? = NdkModuleModel.get(this)?.se
 private fun Module.selectedFacetVariant(): String? = AndroidFacet.getInstance(this)?.properties?.SELECTED_BUILD_VARIANT
 private fun Module.selectedNdkFacetVariant(): String? = NdkFacet.getInstance(this)?.selectedVariantAbi?.variant
 private fun Module.selectedNdkFacetAbi(): String? = NdkFacet.getInstance(this)?.selectedVariantAbi?.abi
+
+private fun Expect.consistentConfigurationOf(project: Project) {
+  val facetVariants = project.getSelectedVariantAndAbis()
+  val projectStructure = ProjectDataManager.getInstance()
+    .getExternalProjectData(project, GradleConstants.SYSTEM_ID, project.basePath!!)
+    ?.externalProjectStructure
+  val modelVariants = projectStructure?.getSelectedVariants()
+  withMessage("Variants and ABI configured in facets").that(facetVariants).isEqualTo(modelVariants)
+
+  val variants =
+    (projectStructure?.let { find(it, AndroidGradleProjectResolver.CACHED_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS) }
+      ?.data
+      ?.data
+      ?.map {it.getSelectedVariants()}.orEmpty() + listOfNotNull(modelVariants))
+
+  withMessage("Stored variants are unique").that(variants).containsNoDuplicates()
+}
+
 private fun Expect.thatModuleVariantIs(project: Project, gradlePath: String, variant: String, abi: String? = null) {
   val module = project.gradleModule(gradlePath)
   withMessage("Selected variant in AndroidModuleModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)

@@ -45,20 +45,20 @@ class SelectedVariantCollector(project: Project) {
     }
     return SelectedVariant(moduleId, properties.SELECTED_BUILD_VARIANT, null, variantDetails)
   }
+}
 
-  private fun getSelectedVariantDetails(androidModel: AndroidModuleModel, ndkModel: NdkModuleModel?): VariantDetails? {
-    val selectedVariant = try {
-      androidModel.selectedVariant
-    }
-    catch (e: Exception) {
-      Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
-      return null
-    }
-    return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, ndkModel?.selectedAbi)
+fun getSelectedVariantDetails(androidModel: AndroidModuleModel, ndkModel: NdkModuleModel?): VariantDetails? {
+  val selectedVariant = try {
+    androidModel.selectedVariant
   }
+  catch (e: Exception) {
+    Logger.getInstance(SelectedVariantCollector::class.java).error("Selected variant is not available for: ${androidModel.moduleName}", e)
+    return null
+  }
+  return createVariantDetailsFrom(androidModel.androidProject.flavorDimensions, selectedVariant, ndkModel?.selectedAbi)
+}
 
-  private fun Module.getModuleId(): String? {
-    val gradleProjectPath = getGradleProjectPath() ?: return null
-    return Modules.createUniqueModuleId(gradleProjectPath.projectRoot, gradleProjectPath.gradleProjectPath)
-  }
+private fun Module.getModuleId(): String? {
+  val gradleProjectPath = getGradleProjectPath() ?: return null
+  return Modules.createUniqueModuleId(gradleProjectPath.projectRoot, gradleProjectPath.gradleProjectPath)
 }

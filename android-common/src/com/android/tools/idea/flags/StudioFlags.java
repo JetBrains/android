@@ -633,6 +633,11 @@ public final class StudioFlags {
     "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
     "new variant selection (which is less parallelizable process).", false);
 
+  public static final Flag<Boolean> GRADLE_SYNC_ENABLE_CACHED_VARIANTS = Flag.create(
+    GRADLE_IDE, "gradle.sync.enable.cached.variants", "Enables caching of build variants",
+    "Enables caching of build variant data so that the IDE does not always run Gradle when switching between build variants. " +
+    "While faster this mode may be incompatible with some plugins.", true);
+
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
 

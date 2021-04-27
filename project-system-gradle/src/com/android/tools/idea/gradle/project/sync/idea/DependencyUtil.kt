@@ -245,7 +245,7 @@ private fun IdeLibrary.isModuleLevel(modulePath: String) = try {
  *
  *
  */
-private fun computeModuleIdForLibraryTarget(
+fun computeModuleIdForLibraryTarget(
   library: IdeModuleLibrary,
   projectData: ProjectData,
   compositeData: CompositeBuildData?

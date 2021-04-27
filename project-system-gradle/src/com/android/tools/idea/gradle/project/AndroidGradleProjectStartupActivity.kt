@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
+import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
+import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
 import com.android.tools.idea.gradle.project.upgrade.maybeRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.upgrade.shouldForcePluginUpgrade
@@ -161,19 +163,23 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 
+  val moduleVariants = project.getSelectedVariantAndAbis()
+
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
       .mapNotNull { it.externalProjectPath }
       .toSet()
-      .map {
-        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, it)
+      .map { externalProjectPath ->
+        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)
         if (externalProjectInfo != null && externalProjectInfo.lastImportTimestamp != externalProjectInfo.lastSuccessfulImportTimestamp) {
           requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
           return
         }
-        externalProjectInfo?.externalProjectStructure ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
+        externalProjectInfo?.findAndSetupSelectedCachedVariantData(moduleVariants)
+        ?: run { requestSync("DataNode<ProjectData> not found for $externalProjectPath. Variants: $moduleVariants"); return }
       }
+
 
   if (projectDataNodes.isEmpty()) {
     requestSync("No linked projects found")
@@ -243,7 +249,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
 
     fun AndroidModuleModel.validate() =
-      // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
+    // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
       // depend on the state of the project information.
       !shouldForcePluginUpgrade(project, modelVersion, GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()))
 
