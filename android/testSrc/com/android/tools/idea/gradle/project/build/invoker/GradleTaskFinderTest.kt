@@ -50,11 +50,6 @@ class GradleTaskFinderTest : PlatformTestCase() {
     taskFinder = GradleTaskFinder.getInstance()
   }
 
-  fun testCreateBuildTaskWithTopLevelModule() {
-    val task = taskFinder.createBuildTask(":", "assemble")
-    assertEquals(":assemble", task)
-  }
-
   fun testFindTasksToExecuteWhenLastSyncSuccessful_noModules() {
     setupTestProjectFromAndroidModel(project, projectDir, rootModule())
     val tasksPerProject = taskFinder.findTasksToExecute(modules, BuildMode.ASSEMBLE, TestCompileType.NONE)
