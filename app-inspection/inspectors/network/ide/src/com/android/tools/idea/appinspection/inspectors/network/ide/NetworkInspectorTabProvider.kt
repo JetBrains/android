@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSourceImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -36,7 +35,7 @@ import javax.swing.Icon
 class NetworkInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "studio.network.inspection"
   override val displayName = "Network Inspector"
-  override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
+  override val icon: Icon = StudioIcons.Shell.Menu.NETWORK_INSPECTOR
   override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
     AppInspectorJar("network-inspector.jar",
                     developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
