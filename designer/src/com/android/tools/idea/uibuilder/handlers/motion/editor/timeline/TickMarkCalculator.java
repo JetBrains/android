@@ -99,7 +99,7 @@ public class TickMarkCalculator {
 
   public int floatToPosition(float value) {
     int draw_width = mCanvasWidth - ins_left - ins_right;
-    int ix = (int) (draw_width * (value - -minx) / (maxx - minx) + ins_left);
+    int ix = (int) (draw_width * (value + minx) / (maxx - minx) + ins_left);
     return ix;
   }
 
