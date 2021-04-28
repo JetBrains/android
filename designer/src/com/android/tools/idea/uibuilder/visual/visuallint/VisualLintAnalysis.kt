@@ -40,12 +40,11 @@ private fun analyzeBounds(renderResult: RenderResult): List<RenderErrorModel.Iss
 }
 
 private fun findBoundIssues(root: ViewInfo, issues: MutableList<RenderErrorModel.Issue>) {
-  val bottom = root.bottom
-  val top = root.top
-  val left = root.left
-  val right = root.right
+  val rootWidth = root.right - root.left
+  val rootHeight = root.bottom - root.top
   for (child in root.children) {
-    if (child.bottom > bottom || child.top < top || child.left < left || child.right > right) {
+    // Bounds of children are defined relative to their parent
+    if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
       issues.add(RenderErrorModel.Issue.builder().setSummary("$child is not fully visible in layout").build())
     }
     findBoundIssues(child, issues)
