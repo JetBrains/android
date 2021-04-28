@@ -57,18 +57,6 @@ class ViewAndroidWindow(
 
   private var bytes = event.screenshot.bytes.toByteArray()
 
-  private var loggedInitialRender = false
-
-  private fun logInitialRender(imageType: ImageType) {
-    if (loggedInitialRender) return
-    when (imageType) {
-      ImageType.SKP -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ImageType.BITMAP_AS_REQUESTED -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
-      ImageType.UNKNOWN -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE)
-    }
-    loggedInitialRender = true
-  }
-
   override fun copyFrom(other: AndroidWindow) {
     super.copyFrom(other)
     if (other is ViewAndroidWindow) {
@@ -83,7 +71,7 @@ class ViewAndroidWindow(
         when (imageType) {
           ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes)
           ImageType.SKP, ImageType.SKP_PENDING -> processSkp(bytes, skiaParser, project, scale)
-          else -> logInitialRender(ImageType.UNKNOWN) // Shouldn't happen
+          else -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
         }
       }
       catch (ex: Exception) {
@@ -117,7 +105,7 @@ class ViewAndroidWindow(
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
-      logInitialRender(ImageType.SKP)
+      logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ViewNode.writeDrawChildren { drawChildren ->
         ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(this)
       }
@@ -147,7 +135,7 @@ class ViewAndroidWindow(
       root.drawChildren().add(DrawViewImage(image, root))
       root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
     }
-    logInitialRender(ImageType.BITMAP_AS_REQUESTED)
+    logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
   private fun getViewTree(

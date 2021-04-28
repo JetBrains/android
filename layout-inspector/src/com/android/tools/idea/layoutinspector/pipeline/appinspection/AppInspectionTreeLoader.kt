@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A [TreeLoader] that uses data from the [AppInspectionInspectorClient] to fetch a view tree from an API 29+ device, and parses it into
@@ -32,7 +33,7 @@ import com.intellij.openapi.project.Project
 class AppInspectionTreeLoader(
   private val project: Project,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
-  private val skiaParser: SkiaParser) : TreeLoader {
+  @VisibleForTesting var skiaParser: SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
       val treeLoader = ViewInspectorTreeLoader(

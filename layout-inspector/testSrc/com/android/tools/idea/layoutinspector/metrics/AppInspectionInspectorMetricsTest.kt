@@ -15,20 +15,35 @@
  */
 package com.android.tools.idea.layoutinspector.metrics
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.app.inspection.AppInspection.CreateInspectorResponse
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewBounds
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRect
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentMatchers.anyDouble
+import org.mockito.Mockito.`when`
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
@@ -94,5 +109,81 @@ class AppInspectionInspectorMetricsTest {
 
       assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     }
+  }
+
+  @Test
+  fun testInitialRenderLogging() {
+    val getUsages = { usageTrackerRule.testTracker.usages
+      .filter { it.studioEvent.dynamicLayoutInspectorEvent.type == DynamicLayoutInspectorEventType.INITIAL_RENDER } }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    var rootId = 1L
+    val skiaParser = mock<SkiaParser>().also {
+      `when`(it.getViewTree(any(), any(), anyDouble(), any())).thenAnswer { SkiaViewNode(rootId, listOf()) }
+    }
+    (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
+
+    // Load the tree with root id 1. The subsequent refreshImages() should generate an initial load event.
+    val (window, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
+                                                                                    ResourceLookup(inspectorRule.project))!!
+    window!!.refreshImages(1.0)
+    assertThat(getUsages()).hasSize(1)
+
+    // A further refreshImages() shouldn't generate another event.
+    window.refreshImages(1.0)
+    assertThat(getUsages()).hasSize(1)
+
+    // Load a new window with root id 2. This still shouldn't generate another event.
+    rootId = 2
+    val (window2, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
+                                                                                     ResourceLookup(inspectorRule.project))!!
+    window2!!.refreshImages(1.0)
+    assertThat(getUsages()).hasSize(1)
+
+    // Now disconnect and reconnect. This should generate another event.
+    inspectorRule.processNotifier.fireDisconnected(MODERN_PROCESS)
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
+    val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
+                                                                                    ResourceLookup(inspectorRule.project))!!
+    window3!!.refreshImages(1.0)
+    assertThat(getUsages()).hasSize(2)
+  }
+
+  private fun createFakeData(
+    rootId: Long,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP)
+    : ViewLayoutInspectorClient.Data {
+    val viewLayoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply {
+      ViewString(1, "en-us")
+      ViewString(2, "com.example")
+      ViewString(3, "MyViewClass1")
+
+      appContextBuilder.apply {
+        apiLevel = 29
+        configurationBuilder.apply {
+          countryCode = 1
+        }
+      }
+
+      rootView = ViewNode {
+        id = rootId
+        packageName = 2
+        className = 3
+        bounds = ViewBounds(ViewRect(100, 200))
+      }
+
+      screenshotBuilder.apply {
+        type = screenshotType
+        bytes = ByteString.copyFrom(byteArrayOf(1, 2, 3))
+      }
+    }.build()
+
+    return ViewLayoutInspectorClient.Data(
+      11,
+      listOf(123, 456),
+      viewLayoutEvent,
+      null
+    )
   }
 }
