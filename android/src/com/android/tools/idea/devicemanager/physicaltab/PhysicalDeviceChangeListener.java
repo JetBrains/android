@@ -101,6 +101,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceConnected(@NotNull IDevice device) {
+    Logger.getInstance(PhysicalDeviceChangeListener.class).info(device + " connected");
     buildPhysicalDevice(device);
   }
 
@@ -110,6 +111,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
   @WorkerThread
   @Override
   public void deviceDisconnected(@NotNull IDevice device) {
+    Logger.getInstance(PhysicalDeviceChangeListener.class).info(device + " disconnected");
     buildPhysicalDevice(device);
   }
 
@@ -123,6 +125,7 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
       return;
     }
 
+    Logger.getInstance(PhysicalDeviceChangeListener.class).info(device + " state changed to " + device.getState());
     buildPhysicalDevice(device);
   }
 

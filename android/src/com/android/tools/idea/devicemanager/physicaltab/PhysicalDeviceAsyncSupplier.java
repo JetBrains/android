@@ -101,7 +101,16 @@ final class PhysicalDeviceAsyncSupplier {
       throw new IllegalArgumentException();
     }
 
-    return Arrays.asList(bridge.getDevices());
+    Collection<IDevice> devices = Arrays.asList(bridge.getDevices());
+
+    if (bridge.hasInitialDeviceList()) {
+      Logger.getInstance(PhysicalDeviceAsyncSupplier.class).info(devices.toString());
+    }
+    else {
+      Logger.getInstance(PhysicalDeviceAsyncSupplier.class).warn("ADB does not have the initial device list");
+    }
+
+    return devices;
   }
 
   @UiThread
