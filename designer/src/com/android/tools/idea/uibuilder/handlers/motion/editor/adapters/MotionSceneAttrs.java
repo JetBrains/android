@@ -310,6 +310,12 @@ public class MotionSceneAttrs {
     public static final String ATTR_TOUCH_ANCHOR_SIDE = "touchAnchorSide";
     public static final String ATTR_MOVE_WHEN_SCROLL_AT_TOP = "moveWhenScrollAtTop";
     public static final String ATTR_ON_TOUCH_UP = "onTouchUp";
+    public static final String ATTR_SPRING_MASS = "springMass";
+    public static final String ATTR_SPRING_STIFFNESS = "springStiffness";
+    public static final String ATTR_SPRING_DAMPING = "springDamping";
+    public static final String ATTR_SPRING_STOP_THRESHOLD = "springStopThreshold";
+    public static final String ATTR_SPRING_BOUNDARY = "springBoundary";
+
   }
 
   public static class MotionLayout {
