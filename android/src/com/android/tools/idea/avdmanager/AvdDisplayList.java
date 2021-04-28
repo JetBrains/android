@@ -16,13 +16,10 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Density;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.android.tools.idea.util.Targets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
@@ -494,7 +491,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       new AvdColumnInfo("Target") {
         @Override
         public @NotNull String valueOf(@NotNull AvdInfo info) {
-          return targetString(info.getAndroidVersion(), info.getTag());
+          return Targets.toString(info.getAndroidVersion(), info.getTag());
         }
       },
       new AvdColumnInfo("CPU/ABI") {
@@ -505,17 +502,6 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       },
       new SizeOnDiskColumn(myTable),
       myActionsColumnRenderer);
-  }
-
-  @VisibleForTesting
-  static @NotNull String targetString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
-    StringBuilder resultBuilder = new StringBuilder(32);
-    resultBuilder.append("Android ");
-    resultBuilder.append(SdkVersionInfo.getVersionStringSanitized(version.getFeatureLevel()));
-    if (!tag.equals(SystemImage.DEFAULT_TAG)) {
-      resultBuilder.append(" (").append(tag.getDisplay()).append(")");
-    }
-    return resultBuilder.toString();
   }
 
   private void refreshErrorCheck() {

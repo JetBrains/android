@@ -16,11 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab
 
 import com.android.resources.Density
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.IdDisplay
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorNotificationPanel
@@ -67,7 +63,6 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.StringJoiner
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.AbstractAction
 import javax.swing.BoxLayout
@@ -444,13 +439,5 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
       }
       return thisClassPair
     }
-
-    fun getTargetString(version: AndroidVersion, tag: IdDisplay): String = StringJoiner(" ").apply {
-      add("Android")
-      add(SdkVersionInfo.getVersionStringSanitized(version.featureLevel))
-      if (tag != SystemImage.DEFAULT_TAG) {
-        add(tag.display)
-      }
-    }.toString()
   }
 }

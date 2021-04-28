@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.google.common.util.concurrent.Futures;
 import java.time.Clock;
 import java.time.Instant;
@@ -43,6 +44,7 @@ public final class BuilderServiceTest {
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 3"));
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("86UX00F4R");
+    Mockito.when(myDevice.getVersion()).thenReturn(new AndroidVersion(30, "S"));
 
     myService = new BuilderService(Clock.fixed(TIME, ZoneId.of("America/Los_Angeles")));
   }
@@ -61,9 +63,10 @@ public final class BuilderServiceTest {
       .setLastOnlineTime(TIME)
       .setName("Google Pixel 3")
       .setOnline(true)
+      .setTarget("Android 12 Preview")
       .build();
 
-    assertEquals(device, future.get(32, TimeUnit.MILLISECONDS));
+    assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));
   }
 
   @Test
@@ -75,8 +78,9 @@ public final class BuilderServiceTest {
     Object device = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
       .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
       .build();
 
-    assertEquals(device, future.get(32, TimeUnit.MILLISECONDS));
+    assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));
   }
 }

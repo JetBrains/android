@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.util.Targets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -86,6 +87,7 @@ final class BuilderService {
       .setLastOnlineTime(time)
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
       .setOnline(online)
+      .setTarget(Targets.toString(device.getVersion()))
       .build();
   }
 }
