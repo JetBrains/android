@@ -349,7 +349,7 @@ public class GradleBuildInvoker {
     executeTasks(path, gradleTasks, myOneTimeGradleOptions);
   }
 
-  public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
+  private void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
     executeTasks(buildFilePath, gradleTasks, myOneTimeGradleOptions);
   }
 
@@ -363,6 +363,7 @@ public class GradleBuildInvoker {
     tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
   }
 
+  @VisibleForTesting
   public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
     executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
   }
