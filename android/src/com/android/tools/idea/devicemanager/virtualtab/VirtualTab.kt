@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
 import com.intellij.ui.layout.LCFlags
 import com.intellij.ui.layout.panel
 import javax.swing.event.DocumentEvent
@@ -24,7 +24,7 @@ import javax.swing.event.DocumentListener
 import javax.swing.text.BadLocationException
 import javax.swing.text.Document
 
-class VirtualTab(project: Project, toolWindow: ToolWindow) {
+class VirtualTab(project: Project) {
   val avdDisplayList = VirtualDisplayList(project)
   val preconfiguredDisplayList = PreconfiguredDisplayList(project, avdList = avdDisplayList)
 
@@ -60,11 +60,13 @@ class VirtualTab(project: Project, toolWindow: ToolWindow) {
     row {
       avdDisplayList(grow, push)
     }
-    row {
-      label("Recommended configurations")
-    }
-    row {
-      preconfiguredDisplayList(grow, push)
+    if (StudioFlags.ENABLE_DEVICE_MANAGER_VIRTUAL_RECOMMENDED_CONFIGURATIONS.get()) {
+      row {
+        label("Recommended configurations")
+      }
+      row {
+        preconfiguredDisplayList(grow, push)
+      }
     }
   }
 }

@@ -1255,6 +1255,11 @@ public final class StudioFlags {
     "Enables the device groups tab in the new Device Manager",
     false
   );
+  public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_VIRTUAL_RECOMMENDED_CONFIGURATIONS = Flag.create(
+    DEVICE_MANAGER, "enable.device.manager.virtual.recommended.configurations", "Enable recommended configurations",
+    "Enables the recommended configurations section of the virtual tab in the new Device Manager",
+    false
+  );
   // endregion
 
   //region Suggested Import(s)
