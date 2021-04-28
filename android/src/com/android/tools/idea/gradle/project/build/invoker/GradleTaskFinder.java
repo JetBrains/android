@@ -24,7 +24,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePa
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
@@ -35,6 +34,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
@@ -160,10 +160,10 @@ public class GradleTaskFinder {
     return !GradleSyncState.getInstance(project).lastSyncFailed();
   }
 
-  private void findAndAddGradleBuildTasks(@NotNull Module module,
-                                          @NotNull BuildMode buildMode,
-                                          @NotNull Set<String> tasks,
-                                          @NotNull TestCompileType testCompileType) {
+  private static void findAndAddGradleBuildTasks(@NotNull Module module,
+                                                 @NotNull BuildMode buildMode,
+                                                 @NotNull Set<String> tasks,
+                                                 @NotNull TestCompileType testCompileType) {
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     if (gradleFacet == null) {
       return;
@@ -258,16 +258,16 @@ public class GradleTaskFinder {
       if (javaFacet != null && javaFacet.getConfiguration().BUILDABLE) {
         String gradleTaskName = javaFacet.getGradleTaskName(buildMode);
         if (gradleTaskName != null) {
-          tasks.add(createBuildTask(gradlePath, gradleTaskName));
+          tasks.add(GradleUtil.createFullTaskName(gradlePath, gradleTaskName));
         }
         if (TestCompileType.UNIT_TESTS.equals(testCompileType) || TestCompileType.ALL.equals(testCompileType)) {
-          tasks.add(createBuildTask(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
+          tasks.add(GradleUtil.createFullTaskName(gradlePath, JavaFacet.TEST_CLASSES_TASK_NAME));
         }
       }
     }
   }
 
-  private void addAssembleTasksForTargetVariants(@NotNull Set<String> tasks, @NotNull Module testOnlyModule) {
+  private static void addAssembleTasksForTargetVariants(@NotNull Set<String> tasks, @NotNull Module testOnlyModule) {
     AndroidModuleModel testAndroidModel = AndroidModuleModel.get(testOnlyModule);
 
     if (testAndroidModel == null ||
@@ -302,10 +302,10 @@ public class GradleTaskFinder {
     return Logger.getInstance(GradleTaskFinder.class);
   }
 
-  private void addAfterSyncTasksForTestArtifacts(@NotNull Set<String> tasks,
-                                                 @NotNull String gradlePath,
-                                                 @NotNull TestCompileType testCompileType,
-                                                 @NotNull AndroidModuleModel androidModel) {
+  private static void addAfterSyncTasksForTestArtifacts(@NotNull Set<String> tasks,
+                                                        @NotNull String gradlePath,
+                                                        @NotNull TestCompileType testCompileType,
+                                                        @NotNull AndroidModuleModel androidModel) {
     IdeVariant variant = androidModel.getSelectedVariant();
     Collection<IdeBaseArtifact> testArtifacts = testCompileType.getArtifacts(variant);
     for (IdeBaseArtifact artifact : testArtifacts) {
@@ -315,9 +315,9 @@ public class GradleTaskFinder {
     }
   }
 
-  private void addAfterSyncTasks(@NotNull Set<String> tasks,
-                                 @NotNull String gradlePath,
-                                 @NotNull AndroidFacetProperties properties) {
+  private static void addAfterSyncTasks(@NotNull Set<String> tasks,
+                                        @NotNull String gradlePath,
+                                        @NotNull AndroidFacetProperties properties) {
     // Make sure all the generated sources, unpacked aars and mockable jars are in place. They are usually up to date, since we
     // generate them at sync time, so Gradle will just skip those tasks. The generated files can be missing if this is a "Rebuild
     // Project" run or if the user cleaned the project from the command line. The mockable jar is necessary to run unit tests, but the
@@ -327,19 +327,10 @@ public class GradleTaskFinder {
     }
   }
 
-  private void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
+  private static void addTaskIfSpecified(@NotNull Set<String> tasks, @NotNull String gradlePath, @Nullable String gradleTaskName) {
     if (isNotEmpty(gradleTaskName)) {
-      String buildTask = createBuildTask(gradlePath, gradleTaskName);
+      String buildTask = GradleUtil.createFullTaskName(gradlePath, gradleTaskName);
       tasks.add(buildTask);
     }
-  }
-
-  @NotNull
-  public String createBuildTask(@NotNull String gradleProjectPath, @NotNull String taskName) {
-    if (gradleProjectPath.endsWith(SdkConstants.GRADLE_PATH_SEPARATOR)) {
-      // Prevent double colon when dealing with root module (e.g. "::assemble");
-      return gradleProjectPath + taskName;
-    }
-    return gradleProjectPath + SdkConstants.GRADLE_PATH_SEPARATOR + taskName;
   }
 }

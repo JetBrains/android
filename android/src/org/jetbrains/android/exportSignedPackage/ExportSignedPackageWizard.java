@@ -27,11 +27,11 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -286,7 +286,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       }
       taskNames = getTaskNamesFromSelectedVariant(buildVariants, selectedVariant.getName(), selectedTaskName);
     }
-    return ContainerUtil.map(taskNames, name -> GradleTaskFinder.getInstance().createBuildTask(gradleProjectPath, name));
+    return ContainerUtil.map(taskNames, name -> GradleUtil.createFullTaskName(gradleProjectPath, name));
   }
 
   @NotNull
