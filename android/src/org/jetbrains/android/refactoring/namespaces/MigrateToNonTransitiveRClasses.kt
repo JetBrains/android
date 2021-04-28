@@ -105,7 +105,7 @@ class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
     val pluginVersion = pluginInfo?.pluginVersion ?: GradleVersion(7,0,0)
 
     // Android Gradle Plugin version less than 4.2.0 is not supported.
-    if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, false)) {
+    if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, true)) {
       Messages.showErrorDialog(
         project,
         AndroidBundle.message("android.refactoring.migrateto.nontransitiverclass.error.old.agp.message"),
@@ -180,8 +180,8 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   }
 
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
-    val shouldRecommendPluginUpgrade = gradleVersion.isAtLeast(4, 2, 0,"alpha", 0, false) &&
-                                       !gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, false)
+    val shouldRecommendPluginUpgrade = gradleVersion.isAtLeast(4, 2, 0,"alpha", 0, true) &&
+                                       !gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, true)
     val hasUncommittedChanges = doesProjectHaveUncommittedChanges()
     if (hasUncommittedChanges || shouldRecommendPluginUpgrade) {
       val panel = JBPanel<JBPanel<*>>(VerticalLayout(5))
@@ -236,11 +236,11 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
       val propertiesFile = myProject.getProjectProperties(createIfNotExists = true)
       if (propertiesFile != null) {
         when {
-          gradleVersion.isAtLeast(7, 0, 0) -> {
+          gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, true) -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
           }
-          gradleVersion.isAtLeast(4, 2, 0) -> {
+          gradleVersion.isAtLeast(4, 2, 0, "alpha", 0, true) -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
@@ -262,7 +262,6 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
       }
       syncBeforeFinishingRefactoring(myProject, GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES, listener)
     }
-
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
