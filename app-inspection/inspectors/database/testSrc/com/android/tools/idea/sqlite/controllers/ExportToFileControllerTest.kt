@@ -54,6 +54,7 @@ import com.android.tools.idea.sqlite.model.ExportRequest.ExportTableRequest
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId.FileSqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId.LiveSqliteDatabaseId
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.createSqliteStatement
 import com.android.tools.idea.sqlite.model.isInMemoryDatabase
@@ -67,7 +68,6 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Destination
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Outcome
@@ -87,10 +87,14 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.guava.asListenableFuture
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -418,8 +422,11 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     val queryIssuedLatch = CountDownLatch(1)
     `when`(connection.query(any())).thenAnswer {
       queryIssuedLatch.countDown()
-      CountDownLatch(1).await() // never released giving us time to cancel the job
-      mock<ListenableFuture<SqliteResultSet>>() // never returned, so irrelevant what the value is
+      CoroutineScope(taskExecutor.asCoroutineDispatcher()).async<List<SqliteRow>> {
+        CompletableDeferred<SqliteResultSet>().await() // never going to complete, giving us time to cancel the job
+        fail() // we never expect to get past the above line
+        mock()
+      }.asListenableFuture()
     }
 
     val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("srcDb")))
