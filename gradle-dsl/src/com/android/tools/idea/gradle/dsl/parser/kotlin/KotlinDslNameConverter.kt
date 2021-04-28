@@ -31,7 +31,6 @@ import kotlin.jvm.JvmDefault
 
 import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
@@ -91,10 +90,10 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
       if (e.value.property.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.semantics) {
-          VAR, VWO -> return ExternalNameInfo(e.key.first, ASSIGNMENT)
-          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, METHOD)
+          VAR, VWO -> return ExternalNameInfo(e.key.name, ASSIGNMENT)
+          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.name, METHOD)
           VAL -> when (e.value.property.type) {
-            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.key.first, AUGMENTED_ASSIGNMENT)
+            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.key.name, AUGMENTED_ASSIGNMENT)
             else -> Unit
           }
           else -> Unit
@@ -116,7 +115,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   override fun modelDescriptionForParent(externalName: String, context: GradleDslElement): ModelPropertyDescription? {
     val map = context.getExternalToModelMap(this)
     for (e in map.entries) {
-      if (e.key.first == externalName) return e.value.property
+      if (e.key.name == externalName) return e.value.property
     }
     return null
   }

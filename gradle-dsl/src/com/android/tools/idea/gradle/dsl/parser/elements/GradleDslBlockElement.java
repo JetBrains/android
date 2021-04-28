@@ -19,10 +19,11 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import java.util.Map;
 import java.util.Objects;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +33,6 @@ import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APP
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.RESET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
@@ -87,18 +87,18 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
 
   private ModelEffectDescription getModelEffect(@NotNull GradleDslElement element) {
     String name = element.getName();
-    Map<Pair<String,Integer>,ModelEffectDescription> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
+    @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
     ExternalNameSyntax syntax = element.getExternalSyntax();
     if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
-      ModelEffectDescription value = nameMapper.get(new Pair<>(name, (Integer) null));
+      ModelEffectDescription value = nameMapper.get(new SurfaceSyntaxDescription(name, null));
       if (value != null) {
         return value;
       }
     }
     else {
-      for (Map.Entry<Pair<String, Integer>,ModelEffectDescription> entry : nameMapper.entrySet()) {
-        String entryName = entry.getKey().getFirst();
-        Integer arity = entry.getKey().getSecond();
+      for (Map.Entry<SurfaceSyntaxDescription, ModelEffectDescription> entry : nameMapper.entrySet()) {
+        String entryName = entry.getKey().name;
+        Integer arity = entry.getKey().arity;
         // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
         //  whether or not the arity is compatible.
         if (entryName.equals(name) && !Objects.equals(arity, property)) {
