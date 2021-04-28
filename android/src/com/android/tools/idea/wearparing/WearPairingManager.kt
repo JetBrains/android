@@ -157,13 +157,8 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       }
     }
 
-    // Add "paired phone/wear" (if not added already), so they will be shown as "disconnected"
-    pairedPhoneDevice?.apply {
-      deviceTable.putIfAbsent(deviceID, this)
-    }
-    pairedWearDevice?.apply {
-      deviceTable.putIfAbsent(deviceID, this)
-    }
+    addDisconnectedPairedDeviceIfMissing(pairedPhoneDevice, deviceTable)
+    addDisconnectedPairedDeviceIfMissing(pairedWearDevice, deviceTable)
 
     // Broadcast data to listeners
     val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
@@ -208,6 +203,18 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private fun isPaired(deviceID: String): Boolean = (deviceID == pairedPhoneDevice?.deviceID || deviceID == pairedWearDevice?.deviceID)
+
+  private suspend fun addDisconnectedPairedDeviceIfMissing(device: PairingDevice?, deviceTable: HashMap<String, PairingDevice>) {
+    val deviceID = device?.deviceID ?: return
+    if (!deviceTable.contains(deviceID)) {
+      if (device.isEmulator) {
+         removePairedDevices() // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+      }
+      else {
+        deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
+      }
+    }
+  }
 }
 
 private const val GMS_PACKAGE = "com.google.android.gms"
