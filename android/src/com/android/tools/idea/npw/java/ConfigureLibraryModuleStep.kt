@@ -54,7 +54,7 @@ class ConfigureLibraryModuleStep(
       labelFor("Language:", languageCombo)
       languageCombo(growX)
     }
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       verticalGap()
 
       row {
