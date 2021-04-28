@@ -36,9 +36,11 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorSection;
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider;
 import com.android.tools.idea.uibuilder.property.support.NlTwoStateBooleanControlTypeProvider;
+import com.android.tools.idea.uibuilder.property.ui.EasingCurvePanel;
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel;
 import com.android.tools.idea.uibuilder.property.ui.TransformsPanel;
-import com.android.tools.idea.uibuilder.property.ui.EasingCurvePanel;
+import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidget;
+import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidgetModel;
 import com.android.tools.property.panel.api.EditorProvider;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.property.panel.api.InspectorBuilder;
@@ -64,9 +66,9 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
@@ -169,7 +171,7 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
 
     private void addSubtitle(InspectorPanel inspector, String s, InspectorLineModel titleLine) {
       JComponent component = new JLabel(s);
-      component.setBorder(new EmptyBorder(8, 8, 8, 8));
+      component.setBorder(JBUI.Borders.empty(8));
       inspector.addComponent(component, titleLine);
     }
 
@@ -261,6 +263,12 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
           boolean showConstraintWidget = subTagName.equals(MotionSceneAttrs.Tags.LAYOUT);
           SubTagAttributesModel subModel = new SubTagAttributesModel(model, subTagName);
           addPropertyTable(inspector, selection, subTagName, subModel, true, true, showConstraintWidget);
+          if (MotionSceneAttrs.Tags.ON_SWIPE.equals(subTagName) && StudioFlags.NELE_ON_SWIPE_PANEL.get()) {
+            InspectorLineModel titleModel = inspector.addExpandableTitle("OnSwipe Behaviour", true, Collections.emptyList());
+            SpringWidgetModel springModel = new MotionLayoutSpringModel(model);
+            JPanel springPanel = SpringWidget.panelWithUI(springModel);
+            inspector.addComponent(springPanel, titleModel);
+          }
         }
       }
     }
