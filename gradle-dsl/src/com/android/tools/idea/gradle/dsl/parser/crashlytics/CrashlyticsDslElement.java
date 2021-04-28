@@ -30,26 +30,23 @@ import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class CrashlyticsDslElement extends GradleDslBlockElement {
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelMap = Stream.of(new Object[][] {
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelMap = Stream.of(new Object[][] {
     {"enableNdk", property, ENABLE_NDK, VAR}
   }).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelMap = Stream.of(new Object[][] {
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelMap = Stream.of(new Object[][] {
     {"enableNdk", property, ENABLE_NDK, VAR},
     {"enableNdk", exactly(1), ENABLE_NDK, SET}
   }).collect(toModelMap());
 
-  @NotNull
   @Override
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelMap;
     }

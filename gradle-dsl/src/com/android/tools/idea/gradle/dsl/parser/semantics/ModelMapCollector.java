@@ -25,9 +25,8 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public final class ModelMapCollector {
-  @NotNull
-  public static Collector<Object[], ?, ImmutableMap<Pair<String, Integer>, ModelEffectDescription>> toModelMap() {
-    Function<Object[], Pair<String,Integer>> k = data -> {
+  public static @NotNull Collector<Object[], ?, ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription>> toModelMap() {
+    Function<Object[], SurfaceSyntaxDescription> k = data -> {
       String name = (String) data[0];
       Integer arity = (Integer) data[1];
       SemanticsDescription description = (SemanticsDescription) data[3];
@@ -41,7 +40,7 @@ public final class ModelMapCollector {
           throw new RuntimeException("Dsl setup problem for " + name + ": method/semantics description mismatch");
         }
       }
-      return new Pair<>(name, arity);
+      return new SurfaceSyntaxDescription(name, arity);
     };
     Function<Object[], ModelEffectDescription> v = data -> {
       String name = (String)data[0];
