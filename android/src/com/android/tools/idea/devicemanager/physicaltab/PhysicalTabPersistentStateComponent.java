@@ -97,6 +97,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "name", nameAttribute = "")
     private @Nullable String name;
 
+    @OptionTag(tag = "target", nameAttribute = "")
+    private @Nullable String target;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
     }
@@ -105,16 +108,19 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       serialNumber = device.getSerialNumber();
       lastOnlineTime = device.getLastOnlineTime();
       name = device.getName();
+      target = device.getTarget();
     }
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
       assert name != null;
+      assert target != null;
 
       return new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
         .setLastOnlineTime(lastOnlineTime)
         .setName(name)
+        .setTarget(target)
         .build();
     }
 
@@ -124,6 +130,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
       hashCode = 31 * hashCode + Objects.hashCode(name);
+      hashCode = 31 * hashCode + Objects.hashCode(target);
 
       return hashCode;
     }
@@ -138,7 +145,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       return Objects.equals(serialNumber, device.serialNumber) &&
              Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
-             Objects.equals(name, device.name);
+             Objects.equals(name, device.name) &&
+             Objects.equals(target, device.target);
     }
   }
 }

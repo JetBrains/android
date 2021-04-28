@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager.virtualtab.columns;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
-import com.android.tools.idea.devicemanager.virtualtab.VirtualDisplayList;
+import com.android.tools.idea.util.Targets;
 import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +41,7 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
       .setCpuArchitecture(avdInfo.getCpuArch())
       .setName(avdInfo.getDisplayName())
       .setOnline(AvdManagerConnection.getDefaultAvdManagerConnection().isAvdRunning(avdInfo))
-      .setTarget(VirtualDisplayList.Companion.getTargetString(avdInfo.getAndroidVersion(), avdInfo.getTag()))
+      .setTarget(Targets.toString(avdInfo.getAndroidVersion(), avdInfo.getTag()))
       .build();
 
     return super.getTableCellRendererComponent(table, virtualDevice, selected, focused, viewRowIndex, viewColumnIndex);
