@@ -33,10 +33,11 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.ProjectRule
 import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.plugins.groovy.lang.resolve.valid
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -44,9 +45,11 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.argThat
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
 
 /**
  * Unit tests for [DdmlibTestRunListenerAdapter].
@@ -56,6 +59,9 @@ class DdmlibTestRunListenerAdapterTest {
   @get:Rule
   val projectRule = ProjectRule()
 
+  @get:Rule
+  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+
   @Mock
   lateinit var mockDevice: IDevice
   @Mock
@@ -63,7 +69,6 @@ class DdmlibTestRunListenerAdapterTest {
 
   @Before
   fun setup() {
-    MockitoAnnotations.initMocks(this)
     `when`(mockDevice.serialNumber).thenReturn("mockDeviceSerialNumber")
     `when`(mockDevice.avdName).thenReturn("mockDeviceAvdName")
     `when`(mockDevice.version).thenReturn(AndroidVersion(29))
@@ -75,6 +80,11 @@ class DdmlibTestRunListenerAdapterTest {
       arg.copy(startTimestampMillis = 0, endTimestampMillis = 0) == it.copy(startTimestampMillis = 0, endTimestampMillis = 0)
     }
     return arg
+  }
+
+  private fun device(id: String = "mockDeviceSerialNumber",
+                     name: String = "mockDeviceAvdName"): AndroidDevice {
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
   }
 
   @Test
@@ -473,8 +483,20 @@ class DdmlibTestRunListenerAdapterTest {
                                              eq(AndroidTestSuite("exampleTestSuite", "exampleTestSuite", 2, AndroidTestSuiteResult.PASSED)))
   }
 
-  private fun device(id: String = "mockDeviceSerialNumber",
-                     name: String = "mockDeviceAvdName"): AndroidDevice {
-    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(29))
+  @Test
+  fun runCancelledByProcessHandler() {
+    val processHandler = mock<ProcessHandler>()
+    val adapter = DdmlibTestRunListenerAdapter(mockDevice, mockListener).apply {
+      processTerminated(ProcessEvent(processHandler))
+    }
+
+    inOrder(mockListener, processHandler).apply {
+      verify(mockListener).onTestSuiteScheduled(eq(device()))
+      verify(processHandler).removeProcessListener(eq(adapter))
+      verify(mockListener).onTestSuiteFinished(
+        eq(device()),
+        eq(AndroidTestSuite("", "", 0, AndroidTestSuiteResult.CANCELLED)))
+      verifyNoMoreInteractions()
+    }
   }
 }

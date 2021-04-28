@@ -18,7 +18,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -32,6 +31,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.Andro
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
@@ -129,6 +130,12 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   @UiThread
   fun addDevice(device: AndroidDevice) {
     myModel.addDeviceColumn(device)
+    refreshTable()
+  }
+
+  @UiThread
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
+    myModel.myRootAggregationRow.setTestSuiteResultForDevice(device, result)
     refreshTable()
   }
 
@@ -1162,23 +1169,64 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
  */
 private class AggregationRow(override val packageName: String = "",
                              override val className: String = "") : AndroidTestResults, FilterableTreeNode() {
+
+  private val myTestSuiteResult: MutableMap<String, AndroidTestSuiteResult> = mutableMapOf()
+
+  /**
+   * Sets the test suite result of the given device.
+   */
+  fun setTestSuiteResultForDevice(device: AndroidDevice, result: AndroidTestSuiteResult) {
+    myTestSuiteResult[device.id] = result
+  }
+
   override val methodName: String = ""
-  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = getResultStats(device).getSummaryResult()
-  override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
+
+  override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult {
+    val result = myTestSuiteResult[device.id]
+    return if (result != null) {
+      when (result) {
+        AndroidTestSuiteResult.PASSED -> AndroidTestCaseResult.PASSED
+        AndroidTestSuiteResult.FAILED -> AndroidTestCaseResult.FAILED
+        AndroidTestSuiteResult.ABORTED,
+        AndroidTestSuiteResult.CANCELLED -> AndroidTestCaseResult.CANCELLED
+      }
+    } else {
+      getResultStats(device).getSummaryResult()
+    }
+  }
+
+  override fun getTestResultSummary(): AndroidTestCaseResult {
+    return when {
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.FAILED } -> {
+        AndroidTestCaseResult.FAILED
+      }
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.CANCELLED ||
+                                     it == AndroidTestSuiteResult.ABORTED } -> {
+        AndroidTestCaseResult.CANCELLED
+      }
+      else -> {
+        getResultStats().getSummaryResult()
+      }
+    }
+  }
+
   override fun getTestResultSummaryText(): String {
     val stats = getResultStats()
     return "${stats.passed + stats.skipped}/${stats.total}"
   }
+
   override fun getResultStats(): AndroidTestResultStats {
     return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats()?.plus(acc) ?: acc
-    }?:AndroidTestResultStats()
+    }
   }
+
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
-    }?:AndroidTestResultStats()
+    }
   }
+
   override fun getLogcat(device: AndroidDevice): String {
     return allChildren.fold("") { acc, result ->
       val logcat = (result as? AndroidTestResults)?.getLogcat(device)
@@ -1191,7 +1239,7 @@ private class AggregationRow(override val packageName: String = "",
           "${acc}\n${logcat}"
         }
       }
-    }?:""
+    }
   }
 
   override fun getStartTime(device: AndroidDevice): Long? {
@@ -1218,12 +1266,15 @@ private class AggregationRow(override val packageName: String = "",
       }
     }
   }
+
   override fun getTotalDuration(): Duration {
     return Duration.ofMillis(allChildren.map {
       (it as? AndroidTestResults)?.getTotalDuration()?.toMillis() ?: 0
     }.sum())
   }
+
   override fun getErrorStackTrace(device: AndroidDevice): String = ""
+
   override fun getBenchmark(device: AndroidDevice): BenchmarkOutput {
     return allChildren.fold(BenchmarkOutput.Empty) { acc, result ->
       val benchmark = (result as? AndroidTestResults)?.getBenchmark(device) ?: BenchmarkOutput.Empty
@@ -1236,7 +1287,9 @@ private class AggregationRow(override val packageName: String = "",
       }
     }
   }
+
   override fun getRetentionInfo(device: AndroidDevice): File? = null
+
   override fun getRetentionSnapshot(device: AndroidDevice): File? = null
 
   /**

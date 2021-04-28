@@ -166,7 +166,9 @@ class AndroidTestApplicationLaunchTask(
       // Use testsuite's AndroidTestResultListener if one is attached to the process handler, otherwise use the default one.
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
       return if (androidTestResultListener != null) {
-        DdmlibTestRunListenerAdapter(device, androidTestResultListener)
+        DdmlibTestRunListenerAdapter(device, androidTestResultListener).also {
+          processHandler.addProcessListener(it)
+        }
       } else {
         AndroidTestListener(printer)
       }
