@@ -71,7 +71,8 @@ object TabletModelsProvider: VisualizationModelsProvider {
     for (device in tablets) {
       for (orientation in orientations) {
         val config = defaultConfig.clone()
-        config.setEffectiveDevice(device, device.getState(orientation.shortDisplayValue))
+        config.setDevice(device, false)
+        config.deviceState = device.getState(orientation.shortDisplayValue)
         var label = device.displayName
         val size = device.getScreenSize(orientation)
         if (size != null) {
