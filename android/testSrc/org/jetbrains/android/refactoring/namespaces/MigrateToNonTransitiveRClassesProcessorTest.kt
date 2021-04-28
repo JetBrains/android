@@ -610,6 +610,17 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
   }
 
+  fun testAlphaOrRcVersionOfAgp() {
+    MigrateToNonTransitiveRClassesProcessor.forEntireProject(project, GradleVersion.tryParse("4.2.0-rc01")!!).run()
+    val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo(
+      """
+        android.experimental.nonTransitiveAppRClass=true
+        android.nonTransitiveRClass=true
+      """.trimIndent()
+    )
+  }
+
   fun testWholeProjectUsageView() {
     val refactoringProcessor = MigrateToNonTransitiveRClassesProcessor.forEntireProject(project,
                                                                                         GradleVersion.tryParse("7.0.0")!!)
