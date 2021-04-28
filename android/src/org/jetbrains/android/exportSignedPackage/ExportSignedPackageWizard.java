@@ -19,13 +19,20 @@ package org.jetbrains.android.exportSignedPackage;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardClosed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigning;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardGradleSigningFailed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigning;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardIntellijSigningFailed;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOkAction;
+import static org.jetbrains.android.exportSignedPackage.SigningWizardUsageTrackerUtilsKt.trackWizardOpen;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.sdklib.BuildToolInfo;
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
+import com.android.tools.idea.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -37,6 +44,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.SigningWizardEvent;
 import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeBundle;
@@ -149,6 +157,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     if (!commitCurrentStep()) {
       return;
     }
+    trackWizardOkAction(myProject);
     super.doOKAction();
 
     assert myFacet != null;
@@ -160,9 +169,26 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     }
   }
 
+  @Override
+  public void doCancelAction() {
+    trackWizardClosed(myProject);
+    super.doCancelAction();
+  }
+
+  @Override
+  public void show() {
+    trackWizardOpen(myProject);
+    super.show();
+  }
+
   private void buildAndSignIntellijProject() {
     CompilerManager.getInstance(myProject).make(myCompileScope, (aborted, errors, warnings, compileContext) -> {
-      if (aborted || errors != 0) {
+      if (aborted) {
+        trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_COMPILE_ABORTED);
+        return;
+      }
+      if (errors != 0) {
+        trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_COMPILE_ERRORS);
         return;
       }
 
@@ -183,12 +209,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         GradleFacet gradleFacet = GradleFacet.getInstance(myFacet.getModule());
         if (gradleFacet == null) {
           getLog().error("Unable to get gradle project information for module: " + myFacet.getModule().getName());
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_FACET);
           return;
         }
         String gradleProjectPath = gradleFacet.getConfiguration().GRADLE_PROJECT_PATH;
         String rootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(myFacet.getModule());
         if (StringUtil.isEmpty(rootProjectPath)) {
           getLog().error("Unable to get gradle root project path for module: " + myFacet.getModule().getName());
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_MODULE_ROOT_PATH);
           return;
         }
 
@@ -196,12 +224,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
         if (androidModel == null) {
           getLog().error("Unable to obtain Android project model. Did the last Gradle sync complete successfully?");
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_ANDROID_MODEL);
           return;
         }
 
         // should have been set by previous steps
         if (myBuildVariants == null) {
           getLog().error("Unable to find required information. Please check the previous steps are completed.");
+          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_NO_VARIANTS_SELECTED);
           return;
         }
         List<String> gradleTasks = getGradleTasks(gradleProjectPath, androidModel, myBuildVariants, myTargetType);
@@ -217,9 +247,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
         List<Module> modules = ImmutableList.of(myFacet.getModule());
+        SigningWizardEvent.SigningTargetType targetType;
+        boolean isKeyExported = false;
         if (myTargetType.equals(BUNDLE)) {
+          targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_BUNDLE;
           File exportedKeyFile = null;
           if (myExportPrivateKey) {
+            isKeyExported = true;
             exportedKeyFile = generatePrivateKeyPath();
             try {
               myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
@@ -236,6 +270,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
             }
             catch (Exception e) {
               getLog().error("Something went wrong with the encryption tool", e);
+              trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
               return;
             }
           }
@@ -243,11 +278,14 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                                                             modules,
                                                             "Generate Signed Bundle",
                                                             myBuildVariants, exportedKeyFile, myApkPath));
+
         }
         else {
+          targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
           gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
         gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties, OutputBuildActionUtil.create(modules));
+        trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
@@ -486,6 +524,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       showErrorInDispatchThread(e.getMessage());
     }
     if (destFile == null) {
+      trackWizardIntellijSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_CANNOT_CREATE_APK);
       return;
     }
 
@@ -494,6 +533,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       String message = AndroidBuildCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
       if (message != null) {
         showErrorInDispatchThread(message);
+        trackWizardIntellijSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ZIP_ALIGN_ERROR);
         return;
       }
     }
@@ -512,6 +552,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           "android.artifact.building.cannot.find.zip.align.error"), title);
       }
 
+      trackWizardIntellijSigning(myProject);
       if (RevealFileAction.isSupported()) {
         if (Messages.showOkCancelDialog(project, AndroidBundle.message("android.export.package.success.message", apkFile.getName()),
                                         title, RevealFileAction.getActionName(), IdeBundle.message("action.close"),
