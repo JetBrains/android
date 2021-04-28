@@ -24,10 +24,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ModelMapCollector {
   public static @NotNull Collector<Object[], ?, ExternalToModelMap> toModelMap() {
-    Function<Object[], SurfaceSyntaxDescription> k = data -> {
-      String name = (String) data[0];
-      Integer arity = (Integer) data[1];
-      SemanticsDescription description = (SemanticsDescription) data[3];
+    Function<Object[], SurfaceSyntaxDescription> surfaceSyntaxDescriptionGetter = data -> {
+      String name = (String)data[0];
+      Integer arity = (Integer)data[1];
+      SemanticsDescription description = (SemanticsDescription)data[3];
       if (Objects.equals(arity, ArityHelper.property)) {
         if (!(description instanceof PropertySemanticsDescription)) {
           throw new RuntimeException("Dsl setup problem for " + name + ": property/semantics description mismatch");
@@ -40,7 +40,7 @@ public final class ModelMapCollector {
       }
       return new SurfaceSyntaxDescription(name, arity);
     };
-    Function<Object[], ModelEffectDescription> v = data -> {
+    Function<Object[], ModelEffectDescription> modelEffectDescriptionGetter = data -> {
       String name = (String)data[0];
       Object propertyDescriptionDesignator = data[2];
       SemanticsDescription sd = (SemanticsDescription)data[3];
@@ -56,9 +56,12 @@ public final class ModelMapCollector {
       }
       return new ModelEffectDescription(mpd, sd);
     };
+    Function<Object[], VersionConstraint> versionConstraintGetter = data -> data.length == 4 ? null : (VersionConstraint)data[4];
     return Collector.of(
       (Supplier<LinkedHashSet<ExternalToModelMap.Entry>>)LinkedHashSet::new,
-      (s, o) -> s.add(new ExternalToModelMap.Entry(k.apply(o), v.apply(o))),
+      (s, o) -> s.add(new ExternalToModelMap.Entry(
+        surfaceSyntaxDescriptionGetter.apply(o), modelEffectDescriptionGetter.apply(o), versionConstraintGetter.apply(o))
+      ),
       (a, b) -> { a.addAll(b); return a; },
       ExternalToModelMap::new
     );

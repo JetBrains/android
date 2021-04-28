@@ -18,15 +18,22 @@ package com.android.tools.idea.gradle.dsl.parser.semantics;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ExternalToModelMap {
   public static class Entry {
-    public final SurfaceSyntaxDescription surfaceSyntaxDescription;
-    public final ModelEffectDescription modelEffectDescription;
+    @NotNull public final SurfaceSyntaxDescription surfaceSyntaxDescription;
+    @NotNull public final ModelEffectDescription modelEffectDescription;
+    @Nullable public final VersionConstraint versionConstraint;
 
-    Entry(SurfaceSyntaxDescription surfaceSyntaxDescription, ModelEffectDescription modelEffectDescription) {
+    Entry(
+      @NotNull SurfaceSyntaxDescription surfaceSyntaxDescription,
+      @NotNull ModelEffectDescription modelEffectDescription,
+      @Nullable VersionConstraint versionConstraint
+    ) {
       this.surfaceSyntaxDescription = surfaceSyntaxDescription;
       this.modelEffectDescription = modelEffectDescription;
+      this.versionConstraint = versionConstraint;
     }
   }
 
