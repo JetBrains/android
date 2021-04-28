@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.IInstrumentationResultParser.StatusKeys.DDMLIB_LOGCAT
 import com.android.ddmlib.testrunner.ITestRunListener
@@ -25,19 +26,22 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.ClassUtil
 import java.io.File
 
 /**
- * An adapter to translate [ITestRunListener] callback methods into [AndroidTestResultListener].
+ * An adapter to translate [ITestRunListener] and [ProcessListener] callback methods into [AndroidTestResultListener].
  */
 class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
-                                   private val listener: AndroidTestResultListener) : ITestRunListener {
+                                   private val listener: AndroidTestResultListener) : ITestRunListener, ProcessListener {
 
   companion object {
     private val logger = Logger.getInstance(DdmlibTestRunListenerAdapter::class.java)
@@ -75,11 +79,15 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     listener.onTestSuiteScheduled(myDevice)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunStarted(runName: String, testCount: Int) {
     myTestSuite = AndroidTestSuite(runName, runName, testCount)
     listener.onTestSuiteStarted(myDevice, myTestSuite)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testStarted(testId: TestIdentifier) {
     val fullyQualifiedTestMethodName = "${testId.className}#${testId.testName}"
     val testCaseRunCount = myTestCaseRunCount.compute(fullyQualifiedTestMethodName) { _, currentValue ->
@@ -95,6 +103,8 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     listener.onTestCaseStarted(myDevice, myTestSuite, testCase)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testFailed(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.FAILED
@@ -102,17 +112,23 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     myTestSuite.result = AndroidTestSuiteResult.FAILED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testAssumptionFailure(testId: TestIdentifier, trace: String) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.SKIPPED
     testCase.errorStackTrace = trace
   }
 
+  @Synchronized
+  @AnyThread
   override fun testIgnored(testId: TestIdentifier) {
     val testCase = myTestCases.getValue(testId)
     testCase.result = AndroidTestCaseResult.SKIPPED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testEnded(testId: TestIdentifier, testMetrics: MutableMap<String, String>) {
     val testCase = myTestCases.getValue(testId)
     if (!testCase.result.isTerminalState) {
@@ -125,19 +141,29 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
     listener.onTestCaseFinished(myDevice, myTestSuite, testCase)
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunFailed(errorMessage: String) {
     myTestSuite.result = AndroidTestSuiteResult.ABORTED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunStopped(elapsedTime: Long) {
     myTestSuite.result = AndroidTestSuiteResult.CANCELLED
   }
 
+  @Synchronized
+  @AnyThread
   override fun testRunEnded(elapsedTime: Long, runMetrics: MutableMap<String, String>) {
     // Ddmlib calls testRunEnded() callback if the target app process has crashed or
     // killed manually. (For example, if you click "stop" run button from Android Studio,
     // it kills the app process. Thus, we update test results to cancelled for all
     // pending tests.)
+    if (!this::myTestSuite.isInitialized) {
+      myTestSuite = AndroidTestSuite("", "", 0, AndroidTestSuiteResult.CANCELLED)
+    }
+
     for (testCase in myTestCases.values) {
       if (!testCase.result.isTerminalState) {
         testCase.result = AndroidTestCaseResult.CANCELLED
@@ -177,6 +203,27 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
         }
         match = match.next()
       }
+    }
+  }
+
+  @Synchronized
+  @AnyThread
+  override fun startNotified(event: ProcessEvent) {}
+
+  @Synchronized
+  @AnyThread
+  override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {}
+
+  @Synchronized
+  @AnyThread
+  override fun processTerminated(event: ProcessEvent) {
+    event.processHandler.removeProcessListener(this)
+
+    // If the process is terminated even before "am instrument" command is issued,
+    // call testRunEnded callback manually here to notify TestMatrix view that
+    // this scheduled test execution has been cancelled.
+    if (!this::myTestSuite.isInitialized) {
+      testRunEnded(0, mutableMapOf())
     }
   }
 }
