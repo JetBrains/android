@@ -76,6 +76,10 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
     eggs.forEach { Disposer.dispose(it) }
     eggs.clear()
   }
+
+  fun getStats(): Stats {
+    return Stats("Clutch ${this.hashCode()}", eggs.map { ReadyState(it.getLoadedCount(), classesToPreload.size) })
+  }
 }
 
 /**
@@ -147,8 +151,23 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   }
 
   @Synchronized
+  fun getStats(): List<Stats> {
+    return storage.map { it.getStats() }
+  }
+
+  @Synchronized
   fun destroy() {
     storage.forEach { it.destroy() }
     storage.clear()
   }
 }
+
+/**
+ * Represents the current preloading [progress] (number of classes) out of full [toDo] number.
+ */
+data class ReadyState(val progress: Int, val toDo: Int)
+
+/**
+ * Represents [ReadyState] stats for all eggs in a Clutch identified by [label]
+ */
+data class Stats(val label: String, val states: List<ReadyState>)
