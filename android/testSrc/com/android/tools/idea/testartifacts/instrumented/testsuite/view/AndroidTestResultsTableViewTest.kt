@@ -29,6 +29,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.Location
@@ -47,7 +48,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.dualView.TreeTableView
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -60,7 +60,8 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.isNull
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
+import org.mockito.quality.Strictness
 import java.awt.event.MouseEvent
 import java.io.File
 import java.time.Duration
@@ -80,15 +81,48 @@ class AndroidTestResultsTableViewTest {
     .around(EdtRule())
     .around(disposableRule)
 
+  @get:Rule
+  val mockitoJunitRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
+
   @Mock lateinit var mockListener: AndroidTestResultsTableListener
   @Mock lateinit var mockJavaPsiFacade: JavaPsiFacade
   @Mock lateinit var mockTestArtifactSearchScopes: TestArtifactSearchScopes
   @Mock lateinit var mockLogger: AndroidTestSuiteLogger
 
-  @Before
-  fun setup() {
-    MockitoAnnotations.initMocks(this)
+  // Workaround for Kotlin nullability check.
+  // ArgumentMatchers.argThat returns null for interface types.
+  private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
+    ArgumentMatchers.argThat(matcher)
+    return object : AndroidTestResults {
+      override val methodName: String = ""
+      override val className: String = ""
+      override val packageName: String = ""
+      override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
+      override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+      override fun getTestResultSummaryText(): String = ""
+      override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
+      override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
+      override fun getLogcat(device: AndroidDevice): String = ""
+      override fun getStartTime(device: AndroidDevice): Long? = null
+      override fun getDuration(device: AndroidDevice): Duration? = null
+      override fun getTotalDuration(): Duration = Duration.ZERO
+      override fun getErrorStackTrace(device: AndroidDevice): String = ""
+      override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
+      override fun getRetentionInfo(device: AndroidDevice): File? = null
+      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
+    }
   }
+
+  private fun device(id: String, name: String): AndroidDevice {
+    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
+  }
+
+  private fun TreeTableView.getItem(index: Int): AndroidTestResults {
+    return getValueAt(index, 0) as AndroidTestResults
+  }
+
+  private val TreeTableView.selectedObject: AndroidTestResults?
+    get() = selection?.firstOrNull() as? AndroidTestResults
 
   @Test
   fun initialTable() {
@@ -753,38 +787,22 @@ class AndroidTestResultsTableViewTest {
     assertThat(tableView.selectedObject?.getFullTestCaseName()).isEqualTo("package1.class1.method1")
   }
 
-  // Workaround for Kotlin nullability check.
-  // ArgumentMatchers.argThat returns null for interface types.
-  private fun argThat(matcher: (AndroidTestResults) -> Boolean): AndroidTestResults {
-    ArgumentMatchers.argThat(matcher)
-    return object : AndroidTestResults {
-      override val methodName: String = ""
-      override val className: String = ""
-      override val packageName: String = ""
-      override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
-      override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
-      override fun getTestResultSummaryText(): String = ""
-      override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
-      override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
-      override fun getLogcat(device: AndroidDevice): String = ""
-      override fun getStartTime(device: AndroidDevice): Long? = null
-      override fun getDuration(device: AndroidDevice): Duration? = null
-      override fun getTotalDuration(): Duration = Duration.ZERO
-      override fun getErrorStackTrace(device: AndroidDevice): String = ""
-      override fun getBenchmark(device: AndroidDevice): BenchmarkOutput = BenchmarkOutput.Empty
-      override fun getRetentionInfo(device: AndroidDevice): File? = null
-      override fun getRetentionSnapshot(device: AndroidDevice): File? = null
-    }
-  }
+  @Test
+  fun setTestSuiteResult() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
 
-  private fun device(id: String, name: String): AndroidDevice {
-    return AndroidDevice(id, name, name, AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28))
-  }
+    table.addDevice(device1)
 
-  private fun TreeTableView.getItem(index: Int): AndroidTestResults {
-    return getValueAt(index, 0) as AndroidTestResults
-  }
+    // No test cases are finished yet.
+    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.SCHEDULED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.SCHEDULED)
 
-  private val TreeTableView.selectedObject: AndroidTestResults?
-    get() = selection?.firstOrNull() as? AndroidTestResults
+    // Test cancelled.
+    table.setTestSuiteResultForDevice(device1, AndroidTestSuiteResult.CANCELLED)
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.CANCELLED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.CANCELLED)
+  }
 }
