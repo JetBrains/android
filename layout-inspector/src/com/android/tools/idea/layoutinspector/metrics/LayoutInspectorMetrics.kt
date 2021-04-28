@@ -29,6 +29,9 @@ class LayoutInspectorMetrics private constructor(
   private val process: ProcessDescriptor?,
   private val stats: SessionStatistics?,
 ) {
+
+  private var loggedInitialRender = false
+
   companion object {
     fun create(project: Project) = LayoutInspectorMetrics(project, null, null)
     fun create(project: Project, process: ProcessDescriptor, stats: SessionStatistics) = LayoutInspectorMetrics(project, process, stats)
@@ -37,6 +40,12 @@ class LayoutInspectorMetrics private constructor(
   fun logEvent(
     eventType: DynamicLayoutInspectorEventType,
   ) {
+    when(eventType) {
+      DynamicLayoutInspectorEventType.INITIAL_RENDER,
+      DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
+      DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS -> if (loggedInitialRender) return else loggedInitialRender = true
+      else -> {} // continue
+    }
     val builder = AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
       dynamicLayoutInspectorEventBuilder.apply {
