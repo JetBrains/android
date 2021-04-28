@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -26,9 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
 public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
 
@@ -69,10 +68,6 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
     if (ndkModuleModel != null) {
       return false; // Some external native project is already linked to this module.
-    }
-
-    if (GradleBuildModel.get(module) == null) {
-      return false; // This should never for an fully synced module, but checking for just in case.
     }
 
     return true;
