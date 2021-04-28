@@ -20,11 +20,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.AnActionListener;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 
 public class LastActionTracker implements Disposable, AnActionListener {
 
@@ -62,7 +60,7 @@ public class LastActionTracker implements Disposable, AnActionListener {
   }
 
   @Override
-  public void beforeActionPerformed(@NotNull AnAction action, @NotNull DataContext dataContext, @NotNull AnActionEvent event) {
+  public void beforeActionPerformed(@NotNull AnAction action, @NotNull AnActionEvent event) {
     String actionId = getActionId(action);
     myCurrentActionId = actionId;
     myCurrentActionStartNano = System.nanoTime();
@@ -77,7 +75,7 @@ public class LastActionTracker implements Disposable, AnActionListener {
   }
 
   @Override
-  public void afterActionPerformed(@NotNull AnAction action, @NotNull DataContext dataContext, @NotNull AnActionEvent event) {
+  public void afterActionPerformed(@NotNull AnAction action, @NotNull AnActionEvent event) {
     String actionId = getActionId(action);
 
     myListeners.forEach(l -> l.actionFinished(actionId, getCurrentDurationMs()));
