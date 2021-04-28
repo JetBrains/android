@@ -72,7 +72,7 @@ public class TimelineStructure {
   int floatToPosition(float value) {
     int draw_width = mTimeLineWidth - mTimeLineInsetLeft - mTimeLineInsetRight;
     int ix = (int) (
-      draw_width * (value - -mTimeLineMinValue) / (mTimeLineMaxValue - mTimeLineMinValue)
+      draw_width * (value + mTimeLineMinValue) / (mTimeLineMaxValue - mTimeLineMinValue)
         + mTimeLineInsetLeft);
     return ix;
   }
