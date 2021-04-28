@@ -1,5 +1,6 @@
 package org.jetbrains.jps.android;
 
+import com.intellij.openapi.util.io.FileFilters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.builders.AdditionalRootsProviderService;
 import org.jetbrains.jps.builders.BuildTarget;
@@ -41,6 +42,6 @@ public class AndroidAdditionalRootProviderService extends AdditionalRootsProvide
   }
 
   private static void addRoot(List<JavaSourceRootDescriptor> result, ModuleBuildTarget buildTarget, final File file) {
-    result.add(new JavaSourceRootDescriptor(file, buildTarget, true, false, "", Collections.<File>emptySet()));
+    result.add(new JavaSourceRootDescriptor(file, buildTarget, true, false, "", Collections.<File>emptySet(), FileFilters.EVERYTHING));
   }
 }
