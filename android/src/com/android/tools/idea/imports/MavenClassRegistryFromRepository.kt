@@ -48,7 +48,7 @@ class MavenClassRegistryFromRepository(private val indexRepository: GMavenIndexR
     val shortName = className.substring(index + 1)
     val packageName = if (index == -1) "" else className.substring(0, index)
 
-    val foundArtifacts = lookup.fqcnMap[shortName] ?: return emptyList()
+    val foundArtifacts = lookup.classNameMap[shortName] ?: return emptyList()
 
     if (packageName.isEmpty()) return foundArtifacts
 
@@ -245,9 +245,9 @@ data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
  */
 data class LookupData(
   /**
-   * A map from fully qualified class names to the corresponding [MavenClassRegistryBase.Library]s
+   * A map from simple class names to the corresponding [MavenClassRegistryBase.Library]s
    */
-  val fqcnMap: Map<String, List<MavenClassRegistryBase.Library>>,
+  val classNameMap: Map<String, List<MavenClassRegistryBase.Library>>,
   /**
    * A map from non-KTX libraries to the associated KTX libraries.
    */
