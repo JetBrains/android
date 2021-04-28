@@ -93,7 +93,7 @@ class ConfigureDynamicModuleStep(
       fusingCheckbox()
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
       row {
         gradleKtsCheck()
       }
