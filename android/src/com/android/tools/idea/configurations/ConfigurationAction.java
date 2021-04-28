@@ -17,7 +17,6 @@ package com.android.tools.idea.configurations;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
@@ -32,7 +31,6 @@ import icons.AndroidIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import javax.swing.*;
 import java.io.File;
 import java.util.List;
@@ -63,10 +61,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
-    final DataContext dataContext = e.getDataContext();
     // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
     // this event to monitor invoked actions.
-    manager.fireBeforeActionPerformed(this, dataContext, e);
+    manager.fireBeforeActionPerformed(this, e);
 
     tryUpdateConfiguration();
     updatePresentation(e.getPresentation());
