@@ -39,7 +39,6 @@ import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEF
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.util.ifTrue
 import org.jetbrains.plugins.groovy.util.removeUserData
 import java.lang.ref.SoftReference
 import java.util.Collections
@@ -125,10 +124,16 @@ class Preloader(
       preloader.join()
     } catch (ignore: Exception) { }
   }
+
+  /**
+   * Returns the number of currently loaded classes for the underlying [ModuleClassLoader]. Intended to be used for debugging and
+   * diagnostics.
+   */
+  fun getLoadedCount(): Int = classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
 }
 
 private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
-private val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
+val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
 
 /**
  * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
+import com.android.tools.idea.flags.StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -263,6 +265,9 @@ internal fun composeProvider(surface: NlDesignSurface,
         add(SceneLayer(it.surface, it, false).apply {
           isShowOnHover = true
         })
+        NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
+          add(ClassLoadingDebugLayer(surface.models.first().facet.module))
+        }
       }.build()
     }
     .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
