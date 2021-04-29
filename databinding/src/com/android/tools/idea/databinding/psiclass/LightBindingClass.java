@@ -402,7 +402,7 @@ public class LightBindingClass extends AndroidLightClassBase {
       // different if root tag names are not consistent across layout configurations.
       String rootTag = myConfig.getRootType();
 
-      PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(rootTag, this);
+      PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(xmlData, rootTag, this);
       if (type != null) {
         LightMethodBuilder rootMethod = createPublicMethod("getRoot", type);
         outPsiMethods.add(new LightDataBindingMethod(xmlRootTag, getManager(), rootMethod, this, JavaLanguage.INSTANCE));
@@ -567,7 +567,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
     String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
-    PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(viewIdData, this);
+    PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(myConfig.getTargetLayout().getData(), viewIdData, this);
     if (type == null) {
       return null;
     }

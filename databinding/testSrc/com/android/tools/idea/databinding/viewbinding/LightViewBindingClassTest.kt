@@ -16,6 +16,8 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.SdkConstants
+import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
@@ -133,6 +135,9 @@ class LightViewBindingClassTest {
   // ViewBinding logic breaks from DataBinding logic around view stubs. See also: b/142533358
   @Test
   fun correctTypeGeneratedForViewStubs() {
+    // View binding version should be returned even if data binding is enabled for the facet. See also: b/186306088
+    LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
+
     fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <ViewStub

@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding.util
 import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.index.BindingLayoutType
+import com.android.tools.idea.databinding.index.BindingXmlData
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
@@ -55,9 +55,9 @@ object LayoutBindingTypeUtil {
    * Convert a view tag (e.g. &lt;TextView... /&gt;) to its PSI type, if possible, or return `null` otherwise.
    */
   @JvmStatic
-  fun resolveViewPsiType(viewIdData: ViewIdData, context: PsiElement): PsiType? {
+  fun resolveViewPsiType(xmlData: BindingXmlData, viewIdData: ViewIdData, context: PsiElement): PsiType? {
     val androidFacet = context.androidFacet ?: return null
-    val viewClassName = getViewClassName(viewIdData, androidFacet) ?: return null
+    val viewClassName = getViewClassName(xmlData, viewIdData, androidFacet) ?: return null
     return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
   }
 
@@ -65,9 +65,9 @@ object LayoutBindingTypeUtil {
    * Convert a view name (e.g. "TextView") to its PSI type, if possible, or return `null` otherwise.
    */
   @JvmStatic
-  fun resolveViewPsiType(viewTag: String, context: PsiElement): PsiType? {
+  fun resolveViewPsiType(xmlData: BindingXmlData, viewTag: String, context: PsiElement): PsiType? {
     val androidFacet = context.androidFacet ?: return null
-    val viewClassName = getViewClassName(viewTag, null, androidFacet) ?: return null
+    val viewClassName = getViewClassName(xmlData, viewTag, null, androidFacet) ?: return null
     return if (viewClassName.isNotEmpty()) PsiType.getTypeByName(viewClassName, context.project, context.resolveScope) else null
   }
 
@@ -75,33 +75,31 @@ object LayoutBindingTypeUtil {
    * Receives a [ViewIdData] and returns the name of the View class that is implied by it. May return null if it cannot find anything
    * reasonable (e.g. it is a merge but does not have data binding)
    */
-  private fun getViewClassName(viewIdData: ViewIdData, facet: AndroidFacet): String? {
-    return getViewClassName(viewIdData.viewName, viewIdData.layoutName, facet)
+  private fun getViewClassName(xmlData: BindingXmlData, viewIdData: ViewIdData, facet: AndroidFacet): String? {
+    return getViewClassName(xmlData, viewIdData.viewName, viewIdData.layoutName, facet)
   }
 
-  private fun getViewClassName(viewName: String, layoutName: String?, facet: AndroidFacet): String? {
-    if (viewName.indexOf('.') == -1) {
+  private fun getViewClassName(xmlData: BindingXmlData, viewName: String, layoutName: String?, facet: AndroidFacet): String? {
+    return if (viewName.indexOf('.') == -1) {
       when {
-        VIEW_PACKAGE_ELEMENTS.contains(viewName) -> return SdkConstants.VIEW_PKG_PREFIX + viewName
-        SdkConstants.WEB_VIEW == viewName -> return SdkConstants.ANDROID_WEBKIT_PKG + viewName
-        SdkConstants.VIEW_MERGE == viewName -> return getViewClassNameFromMergeTag(layoutName, facet)
-        SdkConstants.VIEW_INCLUDE == viewName -> return getViewClassNameFromIncludeTag(layoutName, facet)
+        VIEW_PACKAGE_ELEMENTS.contains(viewName) -> SdkConstants.VIEW_PKG_PREFIX + viewName
+        SdkConstants.WEB_VIEW == viewName -> SdkConstants.ANDROID_WEBKIT_PKG + viewName
+        SdkConstants.VIEW_MERGE == viewName -> getViewClassNameFromMergeTag(layoutName, facet)
+        SdkConstants.VIEW_INCLUDE == viewName -> getViewClassNameFromIncludeTag(layoutName, facet)
         SdkConstants.VIEW_STUB == viewName -> {
-          val mode = DataBindingUtil.getDataBindingMode(facet)
-          if (mode != DataBindingMode.NONE) {
-            return mode.viewStubProxy
-          }
-          else {
-            return SdkConstants.CLASS_VIEWSTUB
+          when (xmlData.layoutType) {
+            BindingLayoutType.PLAIN_LAYOUT -> SdkConstants.CLASS_VIEWSTUB
+            BindingLayoutType.DATA_BINDING_LAYOUT ->
+              DataBindingUtil.getDataBindingMode(facet).viewStubProxy.takeIf { it.isNotBlank() } ?: SdkConstants.CLASS_VIEWSTUB
           }
         }
         // <fragment> tags are ignored by data binding / view binding compiler
-        SdkConstants.TAG_FRAGMENT == viewName -> return null
-        else -> return SdkConstants.WIDGET_PKG_PREFIX + viewName
+        SdkConstants.TAG_FRAGMENT == viewName -> null
+        else -> SdkConstants.WIDGET_PKG_PREFIX + viewName
       }
     }
     else {
-      return viewName
+      viewName
     }
   }
 
@@ -132,7 +130,7 @@ object LayoutBindingTypeUtil {
 
     if (indexEntry.data.layoutType == BindingLayoutType.PLAIN_LAYOUT && !resourceFacet.isViewBindingEnabled()) {
       // If including a non-binding layout, we just use its root tag as the type for this tag (e.g. FrameLayout, TextView)
-      return getViewClassName(indexEntry.data.rootTag, null, resourceFacet)
+      return getViewClassName(indexEntry.data, indexEntry.data.rootTag, null, resourceFacet)
     }
     return getQualifiedBindingName(resourceFacet, indexEntry)
   }
