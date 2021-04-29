@@ -790,7 +790,7 @@ class LightBindingClassTest {
   }
 
   @Test
-  fun viewProxyClassGeneratedForViewStubs() {
+  fun viewStubProxyClassGeneratedForViewStubs() {
     fixture.addFileToProject("res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
