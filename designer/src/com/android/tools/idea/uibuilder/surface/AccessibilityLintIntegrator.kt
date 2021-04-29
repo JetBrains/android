@@ -171,12 +171,29 @@ class NlAtfIssue(
 
   override val summary: String
     get() =
-      when (result.mCategory) {
-        CONTENT_LABELING -> "Content labels missing or ambiguous"
-        TOUCH_TARGET_SIZE -> "Touch size too small"
-        LOW_CONTRAST -> "Low contrast"
-        else -> "Accessibility Issue"
+      when (result.mSourceClass) {
+        "SpeakableTextPresentCheck" -> "No speakable text present"
+        "EditableContentDescCheck" -> "Editable text view with contentDescription"
+        "TouchTargetSizeCheck" -> "Touch target size too small"
+        "DuplicateSpeakableTextCheck" -> "Duplicate speakable text present"
+        "TextContrastCheck" -> "Insufficient text color contrast ratio"
+        "ClickableSpanCheck" -> "Accessibility issue with clickable span"
+        "DuplicateClickableBoundsCheck" -> "Duplicated clickable Views"
+        "RedundantDescriptionCheck" -> "Item labelled with type or state"
+        "ImageContrastCheck" -> "Insufficient image color contrast ratio"
+        "ClassNameCheck" -> "Accessibility Issue"
+        "TraversalOrderCheck" -> "Unpredictable traversal behavior"
+        "LinkPurposeUnclearCheck" -> "Unclear text in link"
+        else -> {
+          when (result.mCategory) {
+            CONTENT_LABELING -> "Content labels missing or ambiguous"
+            TOUCH_TARGET_SIZE -> "Touch target size too small"
+            LOW_CONTRAST -> "Insufficient color contrast ratio"
+            else -> "Accessibility Issue"
+          }
+        }
       }
+
 
   override val description: String
     get() {
