@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
-import com.android.tools.idea.databinding.LayoutBindingPackageFactory
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.intellij.openapi.project.Project
