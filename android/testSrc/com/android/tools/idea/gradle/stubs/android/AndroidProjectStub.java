@@ -36,6 +36,7 @@ import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.builder.model.VariantBuildInformation;
 import com.android.builder.model.ViewBindingOptions;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl;
@@ -393,12 +394,12 @@ public class AndroidProjectStub implements AndroidProject {
 
   @NotNull
   public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
-    return ModelCache.create().androidProjectFrom(androidProject);
+    return ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get()).androidProjectFrom(androidProject);
   }
 
   @NotNull
   public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
-    ModelCache modelCache = ModelCache.create();
+    ModelCache modelCache = ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get());
     GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
     IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
     return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion));

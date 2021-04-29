@@ -17,25 +17,21 @@
 
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.AndroidProjectTypes
-import com.android.SdkConstants
 import com.android.build.OutputFile
-import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.NativeAndroidProject
 import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.TestOptions
 import com.android.builder.model.Variant
+import com.android.builder.model.v2.models.AndroidDsl
+import com.android.builder.model.v2.models.GlobalLibraryMap
+import com.android.builder.model.v2.models.Versions
+import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidProject
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
@@ -44,12 +40,23 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.repository.GradleVersion
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableSortedSet
-import java.io.File
 
 interface ModelCache {
 
   fun variantFrom(androidProject: IdeAndroidProject, variant: Variant, modelVersion: GradleVersion?): IdeVariantImpl
+  fun variantFrom(
+    androidProject: IdeAndroidProject,
+    variant: com.android.builder.model.v2.ide.Variant,
+    modelVersion: GradleVersion?,
+    variantDependencies: VariantDependencies,
+    libraryMap: GlobalLibraryMap
+  ): IdeVariantImpl
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl
+  fun androidProjectFrom(
+    project: com.android.builder.model.v2.models.AndroidProject,
+    androidVersion: Versions,
+    androidDsl: AndroidDsl
+  ): IdeAndroidProjectImpl
   fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl
@@ -62,6 +69,26 @@ interface ModelCache {
     @JvmStatic
     fun create(buildFolderPaths: BuildFolderPaths): ModelCache  {
       return modelCacheV1Impl(buildFolderPaths)
+    }
+
+    @JvmStatic
+    fun create(buildFolderPaths: BuildFolderPaths, syncOptions: SyncActionOptions): ModelCache  {
+      return if (syncOptions.flags.studioFlagUseV2BuilderModels) {
+        modelCacheV2Impl(buildFolderPaths)
+      }
+      else {
+        modelCacheV1Impl(buildFolderPaths)
+      }
+    }
+
+    @JvmStatic
+    fun create(useV2BuilderModels: Boolean): ModelCache {
+      return if (useV2BuilderModels) {
+        modelCacheV2Impl(BuildFolderPaths())
+      }
+      else {
+        modelCacheV1Impl(BuildFolderPaths())
+      }
     }
 
     @JvmStatic

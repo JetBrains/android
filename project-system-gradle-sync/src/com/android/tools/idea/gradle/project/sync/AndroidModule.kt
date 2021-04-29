@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.ide.Variant
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
@@ -78,6 +79,7 @@ class AndroidModule internal constructor(
   /** All configured variant names if supported by the AGP version. */
   val allVariantNames: Set<String>?,
   val defaultVariantName: String?,
+  val v2Variants: List<Variant>?,
   private val prefetchedVariants: List<IdeVariant>?,
   /** Old V1 model. It's only set if [nativeModule] is not set. */
   private val nativeAndroidProject: IdeNativeAndroidProject?,
