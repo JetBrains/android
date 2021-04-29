@@ -277,7 +277,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     for (String line : lines) {
       LogCatMessage logCatMessage = myFormatter.tryParseMessage(line);
       if (logCatMessage != null) {
-        pidSet.add(Integer.toString(logCatMessage.getPid()));
+        pidSet.add(Integer.toString(logCatMessage.getHeader().getPid()));
       }
     }
 
