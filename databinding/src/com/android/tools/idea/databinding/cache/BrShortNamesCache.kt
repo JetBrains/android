@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.databinding.cache
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
+import com.android.tools.idea.databinding.project.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.databinding.psiclass.LightBrClass
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField

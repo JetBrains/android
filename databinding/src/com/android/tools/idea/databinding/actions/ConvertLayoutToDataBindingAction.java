@@ -22,7 +22,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider;
+import com.android.tools.idea.databinding.project.LayoutBindingEnabledFacetsProvider;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
