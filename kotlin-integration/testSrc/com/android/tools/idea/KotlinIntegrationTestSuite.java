@@ -28,6 +28,6 @@ public class KotlinIntegrationTestSuite extends IdeaTestSuiteBase {
 
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
-    unzipIntoOfflineMavenRepo("tools/adt/idea/kotlin-integration/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/kotlin-integration/test_deps.manifest");
   }
 }

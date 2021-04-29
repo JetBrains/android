@@ -90,7 +90,7 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
       LOG.warning("Could not prepare extra-large project: " + e);
     }
 
-    unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
     unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
   }

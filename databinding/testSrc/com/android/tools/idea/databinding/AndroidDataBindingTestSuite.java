@@ -30,7 +30,7 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
 
   static {
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
-    unzipIntoOfflineMavenRepo("tools/adt/idea/databinding/testapp_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/databinding/testapp_deps.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
   }

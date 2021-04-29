@@ -38,7 +38,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.databinding.AndroidDataBindingTestSuite",
     test_data = [
-        ":testapp_deps.zip",
+        ":testapp_deps",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
@@ -97,4 +97,5 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
     ],
+    use_zip = False,
 )
