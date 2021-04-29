@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
@@ -43,7 +44,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrM
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
-import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 import static com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt.maybeTrimForParent;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.*;
@@ -52,6 +52,10 @@ import static org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes.ML_COMMEN
 import static org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls;
 
 public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDslWriter {
+  public GroovyDslWriter(@NotNull BuildModelContext context) {
+    super(context);
+  }
+
   @Override
   public PsiElement moveDslElement(@NotNull GradleDslElement element) {
     // 1. Get the anchor where we need to move the element to.

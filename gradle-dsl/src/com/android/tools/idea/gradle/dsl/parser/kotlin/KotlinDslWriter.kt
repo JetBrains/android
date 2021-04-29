@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
@@ -60,7 +61,8 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.impl.PsiImplUtil.isWhiteSpaceOrNls
 
-class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
+class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinDslNameConverter, GradleDslWriter {
+
   override fun moveDslElement(element: GradleDslElement): PsiElement? {
     val anchorAfter = element.anchor ?: return null
     val parentPsiElement = when (element.parent) {

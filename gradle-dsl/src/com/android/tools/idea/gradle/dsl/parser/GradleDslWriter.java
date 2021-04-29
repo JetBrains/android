@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,12 @@ public interface GradleDslWriter extends GradleDslNameConverter {
   void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element);
 
   class Adapter implements GradleDslWriter {
+    @NotNull private final BuildModelContext context;
+
+    public Adapter(@NotNull BuildModelContext context) {
+      this.context = context;
+    }
+
     @Override
     public PsiElement moveDslElement(@NotNull GradleDslElement element) { return null; }
 
@@ -107,5 +114,9 @@ public interface GradleDslWriter extends GradleDslNameConverter {
 
     @Override
     public void applyDslPropertiesElement(@NotNull GradlePropertiesDslElement element) { }
+
+    @Override
+    @NotNull
+    public BuildModelContext getContext() { return context; }
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -119,6 +120,11 @@ public interface GradleDslParser extends GradleDslNameConverter {
                                                   @Nullable GradleNameElement nameElement);
 
   class Adapter implements GradleDslParser {
+    @NotNull private final BuildModelContext context;
+    public Adapter(@NotNull BuildModelContext context) {
+      this.context = context;
+    }
+
     @Override
     public void parse() { }
 
@@ -163,5 +169,9 @@ public interface GradleDslParser extends GradleDslNameConverter {
                                                            @Nullable GradleNameElement nameElement) {
       return null;
     }
+
+    @Override
+    @NotNull
+    public BuildModelContext getContext() { return context; }
   }
 }

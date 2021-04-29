@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
@@ -87,8 +89,11 @@ import java.math.BigDecimal
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
  */
-class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
-
+class KotlinDslParser(
+  val psiFile: KtFile,
+  override val internalContext: BuildModelContext,
+  val dslFile: GradleDslFile
+) : KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
   //
   // Methods for GradleDslParser
   //

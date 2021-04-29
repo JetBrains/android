@@ -31,6 +31,7 @@ import static com.intellij.psi.util.PsiTreeUtil.getChildOfType;
 import static com.intellij.psi.util.PsiTreeUtil.getNextSiblingOfType;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -105,7 +106,8 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
   @NotNull private final GroovyFile myPsiFile;
   @NotNull private final GradleDslFile myDslFile;
 
-  public GroovyDslParser(@NotNull GroovyFile file, @NotNull GradleDslFile dslFile) {
+  public GroovyDslParser(@NotNull GroovyFile file, @NotNull BuildModelContext context, @NotNull GradleDslFile dslFile) {
+    super(context);
     myPsiFile = file;
     myDslFile = dslFile;
   }

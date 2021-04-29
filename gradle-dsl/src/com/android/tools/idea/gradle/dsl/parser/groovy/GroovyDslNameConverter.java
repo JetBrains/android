@@ -35,30 +35,31 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
-import java.util.Map;
 import java.util.regex.Pattern;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
+  @NotNull private final BuildModelContext context;
+
+  GroovyDslNameConverter(@NotNull BuildModelContext context) {
+    this.context = context;
+  }
+
   @NotNull
   @Override
   public String psiToName(@NotNull PsiElement element) {
@@ -158,5 +159,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
       }
     }
     return null;
+  }
+
+  @Override
+  public @NotNull BuildModelContext getContext() {
+    return context;
   }
 }

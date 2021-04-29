@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT
@@ -119,4 +120,9 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     }
     return null
   }
+
+  val internalContext: BuildModelContext
+
+  @JvmDefault
+  override fun getContext(): BuildModelContext = internalContext
 }
