@@ -1115,7 +1115,7 @@ public final class StudioFlags {
     COMPOSE, "preview.element.picker.enable",
     "Enable @Preview picker",
     "If enabled, the picker for @Preview elements will be available",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_BLUEPRINT_MODE = Flag.create(
