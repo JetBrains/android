@@ -155,11 +155,13 @@ class ExportToFileDialogViewImpl(
     /** @return a [ValidationInfo] object describing the issue with the path in [locationTextField] if an issue exists. `null` otherwise. */
     fun getValidationError(): ValidationInfo? {
       val path = parseSaveLocationTextFieldPath()
-      if (IOUtils.isValidDestinationFilePath(path)) return null // no error
+      val pathString = locationTextField.text
+      if (IOUtils.isValidDestinationFilePath(path) && !IOUtils.endsWithSeparatorChar(pathString)) return null // no error
 
       /** TODO(161081452): move strings into [DatabaseInspectorBundle] */
       val errorMessage = when {
-        Strings.isBlank(locationTextField.text) -> "Path not defined"
+        Strings.isBlank(pathString) -> "Path not defined"
+        IOUtils.endsWithSeparatorChar(pathString) -> "File name not specified"
         path == null -> "Path is invalid" // trying to parse the path resulted in an error
         path.isDirectory() -> "Path is an existing directory"
         path.parent == null -> "Parent directory not defined"
@@ -297,7 +299,8 @@ class ExportToFileDialogViewImpl(
     val format = selectedFormat()
 
     // validate params
-    if (dstPath == null || !IOUtils.isValidDestinationFilePath(dstPath) || !showConfirmOverwriteDialog(project, dstPath)) return null
+    if (dstPath == null || !IOUtils.isValidDestinationFilePath(dstPath) || IOUtils.endsWithSeparatorChar(saveLocationTextField.text) ||
+        !showConfirmOverwriteDialog(project, dstPath)) return null
 
     // return as ExportInstructions
     return when (params) {
@@ -373,12 +376,18 @@ private object IOUtils {
     }
   }
 
+  /**
+   * Verifies that the path contains an existing parent directory, and a file-name. Since the path is already parsed (as [Path])
+   * the trailing dir separator character will have been removed, so we need to check for that case separately with [endsWithSeparatorChar].
+   */
   fun isValidDestinationFilePath(path: Path?): Boolean =
     path != null &&
     !path.isDirectory() &&
     path.parent != null &&
     path.parent.isDirectory() &&
     path.parent.exists()
+
+  fun endsWithSeparatorChar(path: String) = path.trimEnd().endsWith(File.separatorChar)
 
   /** Resolves "~" in path. If it cannot resolve the home-dir location, it leaves the path as-is. */
   private fun resolveHomeDir(path: Path): Path {

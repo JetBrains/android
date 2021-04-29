@@ -50,6 +50,7 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogViewImpl
 import com.android.tools.idea.sqlite.utils.runWithExportToFileFeatureEnabled
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.ui.ComboBox
@@ -62,6 +63,8 @@ import com.intellij.util.SystemProperties.getUserHome
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.Collections.singletonList
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -171,6 +174,64 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
       // ensure all delimiter options are available
       assertThat(delimiterComboBox.items).containsExactlyElementsIn(Delimiter.values().map { it.displayName })
+
+      treeWalker.actionButton("Cancel").doClick()
+    }
+
+    assertThat(dialog.exitCode).isEqualTo(CANCEL_EXIT_CODE)
+    verifyNoMoreInteractions(dialogListener)
+  }
+
+  fun test_dstPathValidation_validPath() = test_dstPathValidation("/out.zip", true)
+
+  fun test_dstPathValidation_validPathLonger() = test_dstPathValidation(Paths.get(getUserHome(), "out.zip").toString(), true)
+
+  fun test_dstPathValidation_validPathTilde() = test_dstPathValidation("~/out.zip", true)
+
+  fun test_dstPathValidation_emptyPath() = test_dstPathValidation("", false)
+
+  fun test_dstPathValidation_blankPath() = test_dstPathValidation("   ", false)
+
+  fun test_dstPathValidation_noParentDir() = test_dstPathValidation("out.zip", false)
+
+  fun test_dstPathValidation_targetIsExistingDir() = test_dstPathValidation(getUserHome(), false)
+
+  fun test_dstPathValidation_multiplePaths() = test_dstPathValidation(
+    listOf(
+      PathTestCase("", false),
+      PathTestCase(" ", false),
+      PathTestCase("/", false),
+      PathTestCase("/out", true),
+      PathTestCase("/out/", false),
+      PathTestCase("/does-not-exist-path", true),
+      PathTestCase("/does-not-exist-path/", false),
+      PathTestCase("/does-not-exist-path/out", false),
+      PathTestCase(Paths.get(getUserHome(), "out.zip").toString(), true),
+      PathTestCase("", false),
+    )
+  )
+
+  private data class PathTestCase(val path: String, val isValidPath: Boolean)
+
+  private fun test_dstPathValidation(path: String, isValidPath: Boolean) {
+    test_dstPathValidation(singletonList(PathTestCase(path, isValidPath)))
+  }
+
+  private fun test_dstPathValidation(paths: List<PathTestCase>) {
+    val params = ExportDatabaseDialogParams(inFileDatabaseId, Origin.SCHEMA_TREE_CONTEXT_MENU)
+    val dialog = ExportToFileDialogViewImpl(project, params)
+    val dialogListener = mock<ExportToFileDialogView.Listener>()
+    dialog.addListener(dialogListener)
+
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      verify(analyticsTracker).trackExportDialogOpened(params.actionOrigin)
+
+      val treeWalker = TreeWalker(it.rootPane)
+
+      paths.forEach { (dstPath, isValidPath) ->
+        treeWalker.destinationPathTextField().text = dstPath
+        assertWithMessage("Validating: $dstPath").that(treeWalker.actionButton("Export").isEnabled).isEqualTo(isValidPath)
+      }
 
       treeWalker.actionButton("Cancel").doClick()
     }
