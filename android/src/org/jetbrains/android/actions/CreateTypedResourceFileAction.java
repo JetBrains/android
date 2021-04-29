@@ -270,11 +270,6 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     }
 
     @Override
-    public boolean checkInput(String inputString) {
-      return getErrorText(inputString) == null;
-    }
-
-    @Override
     public String getErrorText(String inputString) {
       return myNameValidator.getErrorText(inputString);
     }
