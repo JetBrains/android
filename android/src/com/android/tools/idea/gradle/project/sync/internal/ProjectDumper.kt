@@ -23,8 +23,11 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.android.facet.AndroidFacetProperties
 import java.io.File
@@ -248,6 +251,8 @@ class DumpProjectAction : DumbAwareAction("Dump Project Structure") {
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_dump")
     outputFile.writeText(dump)
+    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
+    VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
     println("Dumped to: file://$outputFile")
   }
 }
