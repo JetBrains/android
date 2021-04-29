@@ -121,6 +121,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
     ExternalNameInfo result = new ExternalNameInfo(modelName, UNKNOWN);
     for (ExternalToModelMap.Entry e : map.getEntrySet()) {
       if (e.modelEffectDescription.property.name.equals(modelName)) {
+        if (e.versionConstraint != null && !e.versionConstraint.isOkWith(getContext().getAgpVersion())) continue;
         SemanticsDescription semantics = e.modelEffectDescription.semantics;
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == AUGMENT_LIST || semantics == OTHER) {
           return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
