@@ -49,7 +49,6 @@ import java.util.Arrays;
 public class IssueView extends JPanel {
 
   private static final int COLLAPSED_ROW_HEIGHT = 30;
-  private static final String SUGGESTED_FIXES = "Suggestion(s)";
   private static final int BORDER_THICKNESS = 1;
   private static final JBColor SELECTED_BG_COLOR = new JBColor(0xf2f2f2, 0x232425);
 
@@ -65,7 +64,6 @@ public class IssueView extends JPanel {
   private JBLabel myErrorTitle;
   private JPanel myFixPanel;
   private JPanel myDetailPanel;
-  private JBLabel mySuggestedFixLabel;
   private boolean myIsExpanded;
   private final int myDisplayPriority;
   private boolean myInitialized;
@@ -110,7 +108,6 @@ public class IssueView extends JPanel {
       myUnselectedBorder = JBUI.Borders.empty(BORDER_THICKNESS);
       myErrorDescription.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
       myErrorTitle.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
-      mySuggestedFixLabel.setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD));
     }
   }
 
@@ -133,10 +130,6 @@ public class IssueView extends JPanel {
     issue.getFixes().forEach(this::createFixEntry);
     if (myFixPanel.getComponentCount() > 0) {
       myFixPanel.setVisible(true);
-      mySuggestedFixLabel.setVisible(true);
-      if (myFixPanel.getComponentCount() > 1) {
-        mySuggestedFixLabel.setText(SUGGESTED_FIXES);
-      }
     }
     else {
       myFixPanel.setVisible(false);
