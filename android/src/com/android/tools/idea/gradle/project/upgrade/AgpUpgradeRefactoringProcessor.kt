@@ -146,7 +146,6 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
-import java.util.Arrays
 import java.util.UUID
 import java.util.function.Supplier
 import javax.swing.AbstractAction
@@ -351,6 +350,7 @@ class AgpUpgradeRefactoringProcessor(
     val elements: MutableSet<PsiElement> = ReferenceOpenHashSet()  // protect against poorly implemented equality
 
     for (usage in usages) {
+      @Suppress("SENSELESS_COMPARISON") // preserve correspondence with BaseRefactoringProcessor
       assert(usage != null) { "Found null element in usages array" }
       if (skipNonCodeUsages() && usage.isNonCodeUsage()) continue
       val element = usage.element
@@ -368,6 +368,7 @@ class AgpUpgradeRefactoringProcessor(
     presentation.targetsNodeText = descriptor.processedElementsHeader
     presentation.isShowReadOnlyStatusAsRed = true
     presentation.isShowCancelButton = true
+    @Suppress("DEPRECATION") // preserve correspondence with BaseRefactoringProcessor
     presentation.usagesString = RefactoringBundle.message("usageView.usagesText")
     var codeUsageCount = 0
     var nonCodeUsageCount = 0
@@ -378,7 +379,7 @@ class AgpUpgradeRefactoringProcessor(
 
     for (usage in usages) {
       if (usage is PsiElementUsage) {
-        val elementUsage = usage
+        @Suppress("UnnecessaryVariable") val elementUsage = usage // preserve correspondence with BaseRefactoringProcessor
         val element = elementUsage.element ?: continue
         val containingFile = element.containingFile
         if (usage is UsageInfo2UsageAdapter && usage.usageInfo.isDynamicUsage) {
@@ -426,8 +427,8 @@ class AgpUpgradeRefactoringProcessor(
     val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements)
       .map {
         when (val action = backFromPreviewAction) {
-          null -> WrappedUsageTarget(it) as UsageTarget
-          else -> WrappedConfigurableUsageTarget(it, action) as UsageTarget
+          null -> WrappedUsageTarget(it)
+          else -> WrappedConfigurableUsageTarget(it, action)
         }
       }
       .toArray(UsageTarget.EMPTY_ARRAY)
@@ -435,6 +436,7 @@ class AgpUpgradeRefactoringProcessor(
     if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
         {
           ApplicationManager.getApplication().runReadAction {
+            @Suppress("UNCHECKED_CAST")
             val usages: Array<Usage> = UsageInfo2UsageAdapter.convert(usageInfos) as Array<Usage>
             convertUsagesRef.set(usages)
           }
@@ -459,7 +461,7 @@ class AgpUpgradeRefactoringProcessor(
     else {
       (usageView as? UsageViewImpl)?.run {
         removeUsagesBulk(this.usages)
-        appendUsagesInBulk(Arrays.asList(*usages))
+        appendUsagesInBulk(listOf(*usages))
         // TODO(xof): switch to Find tab with our existing usageView in it (but it's more complicated than that
         //  because the user might have detached the usageView and it might be visible, floating in a window
         //  somewhere, or arbitrarily minimized).
@@ -844,8 +846,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         when (isUpdatablePluginDependency(new, dep)) {
           YES -> {
             val resultModel = dep.version().resultModel
-            val element = resultModel.rawElement
-            val psiElement = when (element) {
+            val psiElement = when (val element = resultModel.rawElement) {
               null -> return@dep
               // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
               is FakeArtifactElement -> element.realExpression.psiElement
@@ -867,8 +868,7 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
           when (isUpdatablePluginRelatedDependency(new, dep)) {
             YES -> {
               val resultModel = dep.version().resultModel
-              val element = resultModel.rawElement
-              val psiElement = when (element) {
+              val psiElement = when (val element = resultModel.rawElement) {
                 null -> return@dep
                 // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
                 is FakeArtifactElement -> element.realExpression.psiElement
@@ -1073,8 +1073,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
             val minVersion = info(compatibleGradleVersion)
             if (minVersion <= currentVersion) return@dep
             val resultModel = dep.version().resultModel
-            val element = resultModel.rawElement
-            val psiElement = when (element) {
+            val psiElement = when (val element = resultModel.rawElement) {
               null -> return@dep
               // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
               is FakeArtifactElement -> element.realExpression.psiElement
@@ -1129,6 +1128,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
     }
   }
 
+  @Suppress("FunctionName")
   companion object {
     val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
@@ -1307,7 +1307,7 @@ class WellKnownGradlePluginDslUsageInfo(
 
   override fun getDiscriminatingValues() = listOf(plugin.name().toString(), version)
 
-  override fun getTooltipText() = "Update version of ${plugin.name().toString()} to $version"
+  override fun getTooltipText() = "Update version of ${plugin.name()} to $version"
 }
 
 class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
@@ -2086,7 +2086,7 @@ data class PropertiesOperationsRefactoringInfo(
 
     override fun getCommandName(): String = commandNameSupplier.get()
 
-    override fun getShortDescription(): String? = shortDescriptionSupplier?.get()
+    override fun getShortDescription(): String? = shortDescriptionSupplier.get()
 
     override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
       builder.setKind(componentKind)
