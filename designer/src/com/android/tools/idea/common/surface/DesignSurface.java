@@ -1153,7 +1153,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   public final void scrollToVisible(@NotNull SceneView sceneView, boolean forceScroll) {
     Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
-    if (forceScroll || (rectangle != null && !getViewport().getViewRect().intersects(rectangle))) {
+    if (rectangle != null && (forceScroll || !getViewport().getViewRect().intersects(rectangle))) {
       Dimension defaultOffset = getDefaultOffset();
       setScrollPosition(rectangle.x - defaultOffset.width, rectangle.y - defaultOffset.height);
     }
