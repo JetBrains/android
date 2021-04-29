@@ -430,10 +430,8 @@ public class VisualizationForm
       }, AppExecutorUtil.getAppExecutorService()).thenAcceptAsync(models -> {
       if (models == null || isRequestCancelled.get()) {
         unregisterResourceNotification(myFile);
-        myFile = null;
         return;
       }
-      myFile = file.getVirtualFile();
       myWorkBench.showContent();
 
       interruptRendering();
