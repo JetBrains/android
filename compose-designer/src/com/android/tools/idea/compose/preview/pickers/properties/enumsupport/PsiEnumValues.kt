@@ -88,6 +88,11 @@ internal interface ClassConstantEnumValue : BaseClassEnumValue {
 internal const val UI_MODE_TYPE_MASK = 0x0F
 
 /**
+ * Mask for the corresponding bits of possible NIGHT values in the ui mode parameter. I.e: When applied, clears the types bits
+ */
+internal const val UI_MODE_NIGHT_MASK = 0x30
+
+/**
  * Implementation for the 'uiMode' parameter that applies a 'night' flag when the value is selected.
  *
  * E.g: For `UI_MODE_TYPE_NORMAL` in night mode
@@ -225,8 +230,8 @@ internal enum class Device(
   override val resolvedValue: String
 ) : ClassConstantEnumValue {
   DEFAULT("DEFAULT", "Default", ""),
-  NEXUS_7("NEXUS_7", "Nexus 7 (2012)", "id:Nexus 7"),
-  NEXUS_7_2013("NEXUS_7_2013", "Nexus 7", "id:Nexus 7 2013"),
+  NEXUS_7("NEXUS_7", "Nexus 7", "id:Nexus 7"),
+  NEXUS_7_2013("NEXUS_7_2013", "Nexus 7 (2013)", "id:Nexus 7 2013"),
   NEXUS_10("NEXUS_10", "Nexus 10", "name:Nexus 10"),
   PIXEL_C("PIXEL_C", "Pixel C", "id:pixel_c"),
   PIXEL_2("PIXEL_2", "Pixel 2", "id:pixel_2"),
