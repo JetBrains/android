@@ -29,7 +29,6 @@ import com.android.tools.analytics.UsageTracker.cleanAfterTesting
 import com.android.tools.analytics.UsageTracker.setWriterForTest
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection
-import com.android.tools.idea.lint.AndroidLintAllowBackupInspection
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection
 import com.android.tools.idea.lint.AndroidLintAndroidGradlePluginVersionInspection
 import com.android.tools.idea.lint.AndroidLintAnimatorKeepInspection
@@ -67,7 +66,6 @@ import com.android.tools.idea.lint.AndroidLintInvalidVectorPathInspection
 import com.android.tools.idea.lint.AndroidLintInvalidWearFeatureAttributeInspection
 import com.android.tools.idea.lint.AndroidLintLockedOrientationActivityInspection
 import com.android.tools.idea.lint.AndroidLintManifestOrderInspection
-import com.android.tools.idea.lint.AndroidLintMediaCapabilitiesInspection
 import com.android.tools.idea.lint.AndroidLintMenuTitleInspection
 import com.android.tools.idea.lint.AndroidLintMissingApplicationIconInspection
 import com.android.tools.idea.lint.AndroidLintMissingIdInspection
@@ -165,7 +163,6 @@ import com.intellij.codeInspection.QuickFix
 import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.module.ModuleManager
@@ -606,45 +603,6 @@ class AndroidLintTest : AndroidTestCase() {
                   "/res/values/typography.xml", "xml")
   }
 
-  fun testGenBackupDescriptor() {
-    deleteManifest()
-    // setup project files
-    myFixture.copyFileToProject("$globalTestDir/MySqliteHelper.java",
-                                "src/p1/pkg/MySqliteHelper.java")
-    myFixture.copyFileToProject("$globalTestDir/MainActivity.java",
-                                "src/p1/pkg/MainActivity.java")
-    myFixture.copyFileToProject("$globalTestDir/strings.xml", "res/values/strings.xml")
-    // No highlighting test: the error markers are physically present in the PSI File
-    // and confuses the manifest merger, which sees them. (The <caret> tag on the
-    // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
-    doTestWithoutHighlightingWithFix(
-      AndroidLintAllowBackupInspection(),
-      "Generate full-backup-content descriptor",
-      "AndroidManifest.xml", "xml")
-    // also check the generated backup descriptor.
-    myFixture.checkResultByFile("res/xml/backup.xml",
-                                "$globalTestDir/expected.xml", true)
-  }
-
-  fun testGenBackupDescriptor2() {
-    deleteManifest()
-    // This test requires targetSdkVersion=23 to trigger inspection
-    doTestWithFix(AndroidLintAllowBackupInspection(),
-                  "Set fullBackupContent attribute",
-                  "AndroidManifest.xml", "xml")
-  }
-
-  fun testGenEmptyBackupDescriptor() { // In the absence of files that indicate presence of databases or calls to
-    // getSharedPreferences, the quickfix should create an empty backup descriptor
-    // that contains helpful comments.
-    deleteManifest()
-    doTestWithFix(AndroidLintAllowBackupInspection(),
-                  "Set fullBackupContent attribute and generate descriptor",
-                  "AndroidManifest.xml", "xml")
-    myFixture.checkResultByFile("res/xml/backup_descriptor.xml",
-                                "$globalTestDir/expected.xml", true)
-  }
-
   fun testGridLayoutAttribute() {
     doTestWithFix(AndroidLintGridLayoutInspection(),
                   "Update to myns:layout_column",
@@ -824,11 +782,6 @@ class AndroidLintTest : AndroidTestCase() {
     myFixture.checkResultByFile("src/p1/p2/R.java", getGlobalTestDir() + "/R.java", true);
   }
   */
-  fun testAllowBackup() {
-    deleteManifest()
-    doTestWithFix(AndroidLintAllowBackupInspection(),
-                  "Set backup attribute", "AndroidManifest.xml", "xml")
-  }
 
   fun testRemoveByteOrderMarks() {
     doTestWithFix(AndroidLintByteOrderMarkInspection(),
