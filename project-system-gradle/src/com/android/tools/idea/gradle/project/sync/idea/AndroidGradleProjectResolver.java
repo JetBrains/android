@@ -969,7 +969,11 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     boolean parallelSync = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get();
     boolean parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get();
-    GradleSyncStudioFlags studioFlags = new GradleSyncStudioFlags(parallelSync, parallelSyncPrefetchVariants);
+    GradleSyncStudioFlags studioFlags = new GradleSyncStudioFlags(
+      parallelSync,
+      parallelSyncPrefetchVariants,
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get()
+    );
 
     if (projectResolutionMode == ProjectResolutionMode.SyncProjectMode.INSTANCE) {
       // Here we set up the options for the sync and pass them to the AndroidExtraModelProvider which will decide which will use them

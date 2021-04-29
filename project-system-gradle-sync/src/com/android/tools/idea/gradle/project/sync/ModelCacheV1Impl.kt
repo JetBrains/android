@@ -56,6 +56,10 @@ import com.android.builder.model.Variant
 import com.android.builder.model.VariantBuildInformation
 import com.android.builder.model.VectorDrawablesOptions
 import com.android.builder.model.ViewBindingOptions
+import com.android.builder.model.v2.models.AndroidDsl
+import com.android.builder.model.v2.models.GlobalLibraryMap
+import com.android.builder.model.v2.models.VariantDependencies
+import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
@@ -329,7 +333,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
     val isProvided = copyNewProperty(library::isProvided, false)
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided)
-}
+  }
+
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl {
     return IdeMavenCoordinatesImpl(
       groupId = coordinates.groupId,
@@ -442,7 +447,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         artifactAddress = computeAddress(androidLibrary),
         folder = androidLibrary.folder,
         manifest = androidLibrary.manifest.path,
-        compileJarFiles = listOfNotNull(copyNewProperty(androidLibrary::getCompileJarFile)?.path) + androidLibrary.localJars.map { it.path },
+        compileJarFiles = listOfNotNull(
+          copyNewProperty(androidLibrary::getCompileJarFile)?.path) + androidLibrary.localJars.map { it.path },
         runtimeJarFiles = listOf(androidLibrary.jarFile.path) + androidLibrary.localJars.map { it.path },
         resFolder = androidLibrary.resFolder.path,
         resStaticLibrary = copyNewProperty(androidLibrary::getResStaticLibrary),
@@ -648,7 +654,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     }
     return try {
       copy(artifact::getOutputs, ::androidArtifactOutputFrom)
-    } catch (_: RuntimeException) {
+    }
+    catch (_: RuntimeException) {
       // Handle "Invalid main APK outputs".
       emptyList()
     }
@@ -784,7 +791,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       name = variant.name,
       displayName = variant.displayName,
       mainArtifact = copyModel(variant.mainArtifact) {
-        androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType) },
+        androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
+      },
       androidTestArtifact =
       copy(variant::getExtraAndroidArtifacts) {
         androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
@@ -995,8 +1003,9 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   ): Collection<IdeVariantBuildInformation> {
     return if (agpVersion != null && agpVersion.compareIgnoringQualifiers("4.1.0") >= 0) {
       // make deep copy of VariantBuildInformation.
-      project.variantsBuildInformation.map{
-        variantBuildInformation ->  ideVariantBuildInformationFrom(variantBuildInformation, project.projectType) }
+      project.variantsBuildInformation.map { variantBuildInformation ->
+        ideVariantBuildInformationFrom(variantBuildInformation, project.projectType)
+      }
     }
     else emptyList()
     // VariantBuildInformation is not available.
@@ -1035,7 +1044,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
     createIdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
 
-  fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when(this) {
+  fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when (this) {
     AndroidProjectTypes.PROJECT_TYPE_APP -> IdeAndroidProjectType.PROJECT_TYPE_APP
     AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
     AndroidProjectTypes.PROJECT_TYPE_TEST -> IdeAndroidProjectType.PROJECT_TYPE_TEST
@@ -1095,7 +1104,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     val agpFlags: IdeAndroidGradlePluginProjectFlags =
       if (projectFlags != null) {
         androidGradlePluginProjectFlagsFrom(projectFlags)
-      } else {
+      }
+      else {
         createIdeAndroidGradlePluginProjectFlagsImpl()
       }
     return IdeAndroidProjectImpl(
@@ -1133,7 +1143,20 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     override fun variantFrom(androidProject: IdeAndroidProject, variant: Variant, modelVersion: GradleVersion?): IdeVariantImpl =
       variantFrom(androidProject, variant, modelVersion)
 
+    override fun variantFrom(
+      androidProject: IdeAndroidProject,
+      variant: com.android.builder.model.v2.ide.Variant,
+      modelVersion: GradleVersion?,
+      variantDependencies: VariantDependencies,
+      libraryMap: GlobalLibraryMap
+    ): IdeVariantImpl = throw UnsupportedOperationException()
+
     override fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl = androidProjectFrom(project)
+    override fun androidProjectFrom(
+      project: com.android.builder.model.v2.models.AndroidProject,
+      androidVersion: Versions,
+      androidDsl: AndroidDsl
+    ): IdeAndroidProjectImpl = throw UnsupportedOperationException()
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl = androidArtifactOutputFrom(output)
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
