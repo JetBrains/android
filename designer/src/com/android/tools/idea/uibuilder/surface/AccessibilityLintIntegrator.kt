@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.SdkConstants.ATTR_IGNORE
 import com.android.SdkConstants.ATTR_IGNORE_A11Y_LINTS
 import com.android.SdkConstants.TOOLS_URI
+import com.android.resources.ResourceType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
@@ -26,8 +27,12 @@ import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.handlers.IncludeHandler
 import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
@@ -35,6 +40,7 @@ import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
 import java.awt.Desktop
 import java.net.URL
+import java.util.EnumSet
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
@@ -77,6 +83,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   fun createIssue(
     result: ValidatorData.Issue,
     component: NlComponent,
+    model: NlModel,
     eventListener: NlAtfIssue.EventListener? = null) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
       if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
@@ -84,7 +91,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
       }
     }
 
-    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), eventListener))
+    issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), model, eventListener))
   }
 
   /** Handles case where we have ATF issues and include tags. */
@@ -143,6 +150,7 @@ class NlATFIncludeIssue(
 class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: IssueSource,
+  private val model: NlModel,
   private val eventListener: EventListener? = null): Issue() {
 
   /** Event listeners for the ATF issue */
@@ -240,9 +248,39 @@ class NlAtfIssue(
    * For compound fixes, all fixes should be gathered into one single undoable action.
    */
   private fun applyFixWrapper(fix: ValidatorData.Fix) {
-    if (source is NlComponentIssueSource) {
+    if (fix is ValidatorData.SetViewAttributeFix && fix.mSuggestedValue.isEmpty()) {
+      // If the suggested value is an empty string, let the user pick a string
+      // resource as the suggested value
+      applySetViewAttributeFixWithEmptySuggestedValue(model, fix.mViewAttribute)
+    } else if (source is NlComponentIssueSource) {
       NlWriteCommandActionUtil.run(source.component, "Update issue source") {
         applyFixImpl(fix, source.component)
+      }
+    }
+  }
+
+  /**
+   * Let the user to pick a new string resource as the suggested value.
+   */
+  private fun applySetViewAttributeFixWithEmptySuggestedValue (
+    model: NlModel, viewAttribute: ValidatorData.ViewAttribute) {
+    val dialog: ResourcePickerDialog = createResourcePickerDialog(
+      dialogTitle = PICK_A_RESOURCE,
+      currentValue = null,
+      facet = model.facet,
+      resourceTypes = EnumSet.of(ResourceType.STRING),
+      defaultResourceType = null,
+      showColorStateLists = false,
+      showSampleData = false,
+      showThemeAttributes = false,
+      file = null)
+    if (dialog.showAndGet() && (source is NlComponentIssueSource)) {
+      dialog.resourceName?.let {
+        NlWriteCommandActionUtil.run(source.component, "Update issue source") {
+          source.component.setAttribute(viewAttribute.mNamespaceUri,
+                                        viewAttribute.mAttributeName,
+                                        "@string/$it")
+        }
       }
     }
   }
