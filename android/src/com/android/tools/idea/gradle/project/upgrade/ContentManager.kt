@@ -24,9 +24,8 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
-import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
@@ -85,16 +84,69 @@ class ToolWindowModel(
 ) {
 
   val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  val selectedVersion = OptionalValueProperty<GradleVersion>(latestKnownVersion)
+  private var _selectedVersion: GradleVersion? = latestKnownVersion
+  val selectedVersion: GradleVersion?
+    get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
 
-  //TODO introduce single state object describing controls and error instead.
-  val showLoadingState = BoolValueProperty(true)
-  val loadingText = StringValueProperty("Loading")
-  val runTooltip = StringValueProperty()
-  val message = OptionalValueProperty<Pair<Icon, String>>()
-  val runEnabled = BoolValueProperty(true)
-  val showFinishedMessage = BoolValueProperty(false)
+  val uiState = ObjectValueProperty<UIState>(UIState.Loading)
+
+  sealed class UIState{
+    abstract val runEnabled: Boolean
+    abstract val showLoadingState: Boolean
+    abstract val runTooltip: String
+    open val loadingText: String = ""
+    open val errorMessage: Pair<Icon, String>? = null
+
+    object ReadyToRun : UIState() {
+      override val runEnabled = true
+      override val showLoadingState = false
+      override val runTooltip = ""
+    }
+    object Loading : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = true
+      override val runTooltip = ""
+      override val loadingText = "Loading"
+    }
+    object Running : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = true
+      override val runTooltip = ""
+      override val loadingText = "Running"
+    }
+    object AllDone : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = false
+      override val runTooltip = "Nothing to do for this upgrade."
+    }
+    object ProjectFilesNotCleanWarning : UIState() {
+      override val runEnabled = true
+      override val showLoadingState = false
+      override val loadingText = ""
+      override val errorMessage = AllIcons.General.Warning to "Uncommitted changes in build files."
+      override val runTooltip = "There are uncommitted changes in project build files.  Before upgrading, " +
+                                 "you should commit or revert changes to the build files so that changes from the upgrade process " +
+                                 "can be handled separately."
+    }
+    object AgpVersionNotLocatedError : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = false
+      override val loadingText = ""
+      override val errorMessage = AllIcons.General.Error to "Cannot find AGP version in build files."
+      override val runTooltip = "Cannot locate the version specification for the Android Gradle Plugin dependency, " +
+                                "possibly because the project's build files use features not currently support by the " +
+                                "Upgrade Assistant (for example: using constants defined in buildSrc)."
+    }
+    class InvalidVersionError(
+      override val errorMessage: Pair<Icon, String>
+    ) : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = false
+      override val runTooltip: String
+        get() = errorMessage.second
+    }
+  }
 
   val knownVersions = OptionalValueProperty<Set<GradleVersion>>()
   val suggestedVersions = OptionalValueProperty<List<GradleVersion>>()
@@ -143,13 +195,9 @@ class ToolWindowModel(
 
   init {
     refresh()
-    selectedVersion.addListener {
-      loadingText.set("Loading")
-      refresh()
-    }
     connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        loadingText.set("Loading")
+        uiState.set(UIState.Loading)
         refresh(true)
       }
     })
@@ -167,6 +215,22 @@ class ToolWindowModel(
     })
   }
 
+  fun versionValidationFailed(errorMessage: String) {
+    _selectedVersion = null
+    // Clear the tree
+    val root = (treeModel.root as CheckedTreeNode)
+    root.removeAllChildren()
+    treeModel.nodeStructureChanged(root)
+
+    uiState.set(UIState.InvalidVersionError(AllIcons.General.Error to errorMessage))
+  }
+
+  // TODO try use String version on set and in selector. Validate here in the model.
+  fun newVersionSet(newVersion: GradleVersion?) {
+    _selectedVersion = newVersion
+    refresh()
+  }
+
   fun suggestedVersionsList(gMavenVersions: Set<GradleVersion>): List<GradleVersion> = gMavenVersions
     // Make sure the current (if known) and latest known versions are present, whether published or not
     .union(listOfNotNull(current, latestKnownVersion))
@@ -180,19 +244,18 @@ class ToolWindowModel(
     .sortedDescending()
 
   fun refresh(refindPlugin: Boolean = false) {
-    showLoadingState.set(true)
+    val oldState = uiState.get()
+    uiState.set(UIState.Loading)
     // First clear some state
-    runEnabled.set(false)
     val root = (treeModel.root as CheckedTreeNode)
     root.removeAllChildren()
-    showFinishedMessage.set(false)
     treeModel.nodeStructureChanged(root)
 
     if (refindPlugin) {
       current = AndroidPluginInfo.find(project)?.pluginVersion
       suggestedVersions.value = suggestedVersionsList(knownVersions.valueOrNull ?: setOf())
     }
-    val newVersion = selectedVersion.valueOrNull
+    val newVersion = selectedVersion
     // TODO(xof/mlazeba): should we somehow preserve the existing uuid of the processor?
     val newProcessor = newVersion?.let {
       current?.let { current ->
@@ -204,11 +267,9 @@ class ToolWindowModel(
 
     if (newProcessor == null) {
       // Preserve existing message and run button tooltips from newVersion validation.
-      showLoadingState.set(false)
+      uiState.set(oldState)
     }
     else {
-      runTooltip.clear()
-      message.clear()
       val application = ApplicationManager.getApplication()
       if (application.isUnitTestMode) {
         parseAndSetEnabled(newProcessor)
@@ -234,29 +295,17 @@ class ToolWindowModel(
     refreshTree(newProcessor)
     if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
-      runEnabled.set(false)
-      runTooltip.set("Cannot locate the version specification for the Android Gradle Plugin dependency, " +
-                     "possibly because the project's build files use features not currently support by the " +
-                     "Upgrade Assistant (for example: using constants defined in buildSrc)."
-      )
-      message.value = AllIcons.General.Error to "Cannot find AGP version in build files."
+      uiState.set(UIState.AgpVersionNotLocatedError)
     }
     else if (!projectFilesClean) {
-      runEnabled.set(true)
-      runTooltip.set("There are uncommitted changes in project build files.  Before upgrading, " +
-                     "you should commit or revert changes to the build files so that changes from the upgrade process " +
-                     "can be handled separately.")
-      message.value = AllIcons.General.Warning to "Uncommitted changes in build files."
+      uiState.set(UIState.ProjectFilesNotCleanWarning)
     }
     else if ((treeModel.root as? CheckedTreeNode)?.childCount == 0) {
-      runEnabled.set(false)
-      runTooltip.set("Nothing to do for this upgrade.")
-      showFinishedMessage.set(true)
+      uiState.set(UIState.AllDone)
     }
     else {
-      runEnabled.set(true)
+      uiState.set(UIState.ReadyToRun)
     }
-    showLoadingState.set(false)
   }
 
   private fun refreshTree(processor: AgpUpgradeRefactoringProcessor) {
@@ -265,7 +314,6 @@ class ToolWindowModel(
       // this can happen if we call refresh() twice in quick succession: both refreshes clear the tree before either
       // gets here.
       root.removeAllChildren()
-      showFinishedMessage.set(false)
     }
     fun <T : DefaultMutableTreeNode> populateNecessity(
       necessity: AgpUpgradeComponentNecessity,
@@ -284,6 +332,7 @@ class ToolWindowModel(
   }
 
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
+    if (!showPreview) uiState.set(UIState.Running)
     processor.components().forEach { it.isEnabled = false }
     CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
       .forEach { it.processor.isEnabled = true }
@@ -293,6 +342,7 @@ class ToolWindowModel(
     }
     else {
       DumbService.getInstance(processor.project).smartInvokeLater {
+        //TODO (mlazeba/xof): usages view run button should set our state to running again.
         processor.usageView?.close()
         processor.setPreviewUsages(showPreview)
         processor.run()
@@ -414,15 +464,16 @@ class ContentManager(val project: Project) {
     }
 
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
+      // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
       object : DefaultCommonComboBoxModel<GradleVersion>(
-        model.selectedVersion.valueOrNull?.toString() ?: "",
+        model.selectedVersion?.toString() ?: "",
         model.suggestedVersions.valueOrNull ?: emptyList()
       ) {
         init {
-          selectedItem = model.selectedVersion.valueOrNull
+          selectedItem = model.selectedVersion
           myListeners.listen(model.suggestedVersions) { suggestedVersions ->
             removeAllElements()
-            selectedItem = model.selectedVersion.valueOrNull
+            selectedItem = model.selectedVersion
             suggestedVersions.orElse(emptyList()).forEach { addElement(it) }
           }
           placeHolderValue = "Select new version"
@@ -456,20 +507,10 @@ class ContentManager(val project: Project) {
             ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
             val status = editingValidation(editor.item.toString())
             if (status.first == EditingErrorCategory.ERROR) {
-              previewButton.isEnabled = false
-              previewButton.toolTipText = status.second
-              okButton.isEnabled = false
-              okButton.toolTipText = status.second
-              this@View.model.message.value = AllIcons.General.Error to status.second
-              this@View.model.runEnabled.set(false)
-              this@View.model.selectedVersion.clear()
+              this@View.model.versionValidationFailed(status.second)
             }
             else {
-              previewButton.isEnabled = this@View.model.runEnabled.get()
-              previewButton.toolTipText = this@View.model.runTooltip.get()
-              okButton.isEnabled = this@View.model.runEnabled.get()
-              okButton.toolTipText = this@View.model.runTooltip.get()
-              this@View.model.selectedVersion.setNullableValue(GradleVersion.tryParseAndroidGradlePluginVersion(editor.item.toString()))
+              this@View.model.newVersionSet(GradleVersion.tryParseAndroidGradlePluginVersion(editor.item.toString()))
             }
           }
         }
@@ -477,39 +518,53 @@ class ContentManager(val project: Project) {
     }
 
     val refreshButton = JButton("Refresh").apply {
+      isEnabled = !this@View.model.uiState.get().showLoadingState
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        isEnabled = !uiState.showLoadingState
+      }
       addActionListener {
         this@View.model.run {
-          loadingText.set("Loading")
           refresh(true)
         }
       }
     }
     val okButton = JButton("Run selected steps").apply {
-      addActionListener {
-        this@View.model.run {
-          loadingText.set("Running")
-          showLoadingState.set(true)
-          runUpgrade(false)
-        }
+      addActionListener { this@View.model.runUpgrade(false) }
+      this@View.model.uiState.get().let { uiState ->
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.runEnabled
       }
-      myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.runEnabled
+      }
     }
     val previewButton = JButton("Run with preview").apply {
       addActionListener { this@View.model.runUpgrade(true) }
-      myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
+      this@View.model.uiState.get().let { uiState ->
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.runEnabled
+      }
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        toolTipText = uiState.runTooltip
+        isEnabled = uiState.runEnabled
+      }
     }
     val messageLabel = JBLabel().apply {
-      myListeners.listen(this@View.model.message) {
-        val info = this@View.model.message.valueOrNull
-        icon = info?.first
-        text = info?.second
+      this@View.model.uiState.get().let { uiState ->
+        icon = uiState.errorMessage?.first
+        text = uiState.errorMessage?.second
+      }
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        icon = uiState.errorMessage?.first
+        text = uiState.errorMessage?.second
       }
     }
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
       layout = VerticalLayout(0, SwingConstants.LEFT)
       border = JBUI.Borders.empty(10)
-      myListeners.listen(this@View.model.showFinishedMessage) { it -> if (it) refreshDetailsPanel() }
+      myListeners.listen(this@View.model.uiState) { refreshDetailsPanel() }
     }
 
     val content = JBLoadingPanel(BorderLayout(), contentManager).apply {
@@ -527,26 +582,20 @@ class ContentManager(val project: Project) {
       add(treePanel, BorderLayout.WEST)
       add(detailsPanel, BorderLayout.CENTER)
 
-      fun updateState(loading: Boolean) {
-        setLoadingText(this@View.model.loadingText.get())
-        refreshButton.isEnabled = !loading
-        if (loading) {
+      fun updateLoadingState(uiState: ToolWindowModel.UIState) {
+        setLoadingText(uiState.loadingText)
+        if (uiState.showLoadingState) {
           startLoading()
-          detailsPanel.removeAll()
-          okButton.isEnabled = false
-          previewButton.isEnabled = false
         }
         else {
           stopLoading()
-          okButton.isEnabled = model.runEnabled.get()
-          previewButton.isEnabled = model.runEnabled.get()
           upgradeLabel.text = model.current.upgradeLabelText()
           contentManager.getContent(this)?.displayName = model.current.contentDisplayName()
         }
       }
 
-      myListeners.listen(model.showLoadingState, ::updateState)
-      updateState(model.showLoadingState.get())
+      myListeners.listen(model.uiState, ::updateLoadingState)
+      updateLoadingState(model.uiState.get())
     }
 
     init {
@@ -584,7 +633,7 @@ class ContentManager(val project: Project) {
       val label = HtmlLabel().apply { name = "content" }
       setUpAsHtmlLabel(label)
       when {
-        this@View.model.showFinishedMessage.get() -> {
+        this@View.model.uiState.get() is ToolWindowModel.UIState.AllDone -> {
           val sb = StringBuilder()
           sb.append("<div><b>Nothing to do</b></div>")
           sb.append("<p>Project build files are up-to-date for Android Gradle Plugin version ${this@View.model.current}.")

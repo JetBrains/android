@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
@@ -89,7 +90,7 @@ class ContentManagerTest {
   @Test
   fun testToolWindowModelStartsWithLatestAgpVersionSelected() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    assertThat(toolWindowModel.selectedVersion.valueOrNull).isEqualTo(latestAgpVersion)
+    assertThat(toolWindowModel.selectedVersion).isEqualTo(latestAgpVersion)
   }
 
   @Test
@@ -103,15 +104,15 @@ class ContentManagerTest {
   fun testToolWindowModelStartsEnabledWithBuildGradle() {
     addMinimalBuildGradleToProject()
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    assertThat(toolWindowModel.runEnabled.get()).isTrue()
-    assertThat(toolWindowModel.runTooltip.get()).isEmpty()
+    assertThat(toolWindowModel.uiState.get().runEnabled).isTrue()
+    assertThat(toolWindowModel.uiState.get().runTooltip).isEmpty()
   }
 
   @Test
   fun testToolWindowModelStartsDisabledWithNoFiles() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    assertThat(toolWindowModel.runEnabled.get()).isFalse()
-    assertThat(toolWindowModel.runTooltip.get()).contains("buildSrc")
+    assertThat(toolWindowModel.uiState.get().runEnabled).isFalse()
+    assertThat(toolWindowModel.uiState.get().runTooltip).contains("buildSrc")
   }
 
   @Test
@@ -127,28 +128,23 @@ class ContentManagerTest {
       """.trimIndent()
     )
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    assertThat(toolWindowModel.runEnabled.get()).isFalse()
-    assertThat(toolWindowModel.runTooltip.get()).contains("buildSrc")
+    assertThat(toolWindowModel.uiState.get().runEnabled).isFalse()
+    assertThat(toolWindowModel.uiState.get().runTooltip).contains("buildSrc")
   }
 
   @Test
   fun testToolWindowModelIsNotLoading() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    assertThat(toolWindowModel.showLoadingState.get()).isFalse()
+    assertThat(toolWindowModel.uiState.get().showLoadingState).isFalse()
   }
 
   @Test
-  fun testToolWindowModelIsNotEnabledForNullSelectedVersion() {
+  fun testToolWindowModelUIStateOnFailedValidation() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    toolWindowModel.selectedVersion.clear()
-    assertThat(toolWindowModel.runEnabled.get()).isFalse()
-  }
-
-  @Test
-  fun testToolWindowModelIsNotLoadingForNullSelectedVersion() {
-    val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    toolWindowModel.selectedVersion.clear()
-    assertThat(toolWindowModel.showLoadingState.get()).isFalse()
+    toolWindowModel.versionValidationFailed("Validation failed")
+    assertThat(toolWindowModel.uiState.get().errorMessage).isEqualTo(AllIcons.General.Error to "Validation failed")
+    assertThat(toolWindowModel.uiState.get().runEnabled).isFalse()
+    assertThat(toolWindowModel.uiState.get().showLoadingState).isFalse()
   }
 
   @Test
