@@ -87,7 +87,7 @@ public final class GradlePropertiesFile extends GradleDslFile {
   @Override
   @NotNull
   public GradleDslWriter getWriter() {
-    return new GradleDslWriter.Adapter();
+    return new GradleDslWriter.Adapter(getContext());
   }
 
   private static class GradlePropertyElement extends GradleDslSimpleExpression {

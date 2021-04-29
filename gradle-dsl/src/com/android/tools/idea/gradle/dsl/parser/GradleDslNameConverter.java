@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
 
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.intellij.psi.PsiElement;
@@ -118,4 +120,10 @@ public interface GradleDslNameConverter {
    */
   @Nullable
   default ModelPropertyDescription modelDescriptionForParent(@NotNull String externalName, @NotNull GradleDslElement context) { return null; }
+
+  /**
+   * @return the {@link BuildModelContext} associated with the Dsl file this name converter is attached to.
+   */
+  @NotNull
+  BuildModelContext getContext();
 }

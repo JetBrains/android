@@ -19,7 +19,6 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.Projects;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -63,8 +62,6 @@ import com.intellij.psi.PsiManager;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,21 +123,21 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     // Pick the language that should be used by this GradleDslFile, we do this by selecting the parser implementation.
     if (psiFile instanceof GroovyFile) {
       GroovyFile groovyPsiFile = (GroovyFile)psiFile;
-      myGradleDslParser = new GroovyDslParser(groovyPsiFile, this);
-      myGradleDslWriter = new GroovyDslWriter();
+      myGradleDslParser = new GroovyDslParser(groovyPsiFile, context, this);
+      myGradleDslWriter = new GroovyDslWriter(context);
       setPsiElement(groovyPsiFile);
     }
     else if (psiFile instanceof KtFile) {
       KtFile ktFile = (KtFile)psiFile;
-      myGradleDslParser = new KotlinDslParser(ktFile, this);
-      myGradleDslWriter = new KotlinDslWriter();
+      myGradleDslParser = new KotlinDslParser(ktFile, context, this);
+      myGradleDslWriter = new KotlinDslWriter(context);
       setPsiElement(ktFile);
     }
     else {
       // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
       // This means this file will produce an empty model.
-      myGradleDslParser = new GradleDslParser.Adapter();
-      myGradleDslWriter = new GradleDslWriter.Adapter();
+      myGradleDslParser = new GradleDslParser.Adapter(context);
+      myGradleDslWriter = new GradleDslWriter.Adapter(context);
     }
     populateGlobalProperties();
   }
