@@ -20,11 +20,11 @@ import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
@@ -1274,6 +1274,72 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testEditAndApplyLiteralElements400() {
+    writeToBuildFile(TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", true, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace", android.namespace())
+    assertEquals("publishNonDefault", false, android.publishNonDefault())
+    assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
+
+    android.buildToolsVersion().setValue("24.0.0")
+    android.compileSdkVersion().setValue("24")
+    android.defaultPublishConfig().setValue("release")
+    android.generatePureSplits().setValue(false)
+    android.namespace().setValue("com.my.namespace2")
+    android.publishNonDefault().setValue(true)
+    android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp2")
+    android.testNamespace().setValue("com.my.namespace2.test")
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace2", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace2.test", android.testNamespace())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace2", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace2.test", android.testNamespace())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace2", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace2.test", android.testNamespace())
+  }
+
+  @Test
   fun testEditAndApplyIntegerLiteralElements() {
     writeToBuildFile(TestFile.EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -1283,24 +1349,47 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
 
-    android.buildToolsVersion().setValue(22)
     android.compileSdkVersion().setValue(21)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+  }
+
+  @Test
+  fun testEditAndApplyIntegerLiteralElements400() {
+    writeToBuildFile(TestFile.EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue(21)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
   }
 
   @Test
@@ -1369,6 +1458,72 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyLiteralElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    assertMissingProperty("defaultPublishConfig", android.defaultPublishConfig())
+    assertMissingProperty("generatePureSplits", android.generatePureSplits())
+    assertMissingProperty("namespace", android.namespace())
+    assertMissingProperty("publishNonDefault", android.publishNonDefault())
+    assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
+    assertMissingProperty("testNamespace", android.testNamespace())
+
+    android.buildToolsVersion().setValue("24.0.0")
+    android.compileSdkVersion().setValue("24")
+    android.defaultPublishConfig().setValue("release")
+    android.generatePureSplits().setValue(false)
+    android.namespace().setValue("com.my.namespace")
+    android.publishNonDefault().setValue(true)
+    android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp")
+    android.testNamespace().setValue("com.my.namespace.test")
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
+    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
+    assertEquals("generatePureSplits", false, android.generatePureSplits())
+    assertEquals("namespace", "com.my.namespace", android.namespace())
+    assertEquals("publishNonDefault", true, android.publishNonDefault())
+    assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
+    assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
+  }
+
+  @Test
   fun testAddAndApplyIntegerLiteralElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -1391,6 +1546,46 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+  }
+
+  @Test
+  fun testAddAndApplyIntegerLiteralElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue(21)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
+  }
+
+  @Test
+  fun setCompileSdkVersionToReference() {
+    writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
+    val buildModel = gradleBuildModel
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("compileSdkVersion", 29, android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue(ReferenceTo(buildModel.ext().findProperty("sdkVersion")))
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED)
   }
 
   @Test
@@ -1706,12 +1901,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_BLOCK_STATEMENTS_EXPECTED("addAndApplyBlockStatementsExpected"),
     EDIT_AND_APPLY_LITERAL_ELEMENTS("editAndApplyLiteralElements"),
     EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED("editAndApplyLiteralElementsExpected"),
+    EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400("editAndApplyLiteralElementsExpected400"),
     EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS("editAndApplyIntegerLiteralElements"),
     EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("editAndApplyIntegerLiteralElementsExpected"),
+    EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("editAndApplyIntegerLiteralElementsExpected400"),
     ADD_AND_APPLY_LITERAL_ELEMENTS("addAndApplyLiteralElements"),
     ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED("addAndApplyLiteralElementsExpected"),
+    ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyLiteralElementsExpected400"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
+    ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
     REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
     ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),
@@ -1726,6 +1925,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     PARSE_NO_RESCONFIGS_PROPERTY("parseNoResConfigsProperty"),
     DEFAULT_CONFIG_BLOCK_AND_STATEMENT("defaultConfigBlockAndStatement"),
     DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
+    SET_COMPILE_SDK_VERSION_TO_REFERENCE("setCompileSdkVersionToReference"),
+    SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED("setCompileSdkVersionToReferenceExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
