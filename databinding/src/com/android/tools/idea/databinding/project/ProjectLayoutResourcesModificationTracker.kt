@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.project
 
-import com.android.tools.idea.databinding.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
