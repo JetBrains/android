@@ -27,7 +27,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -214,6 +217,8 @@ class DumpProjectDataAction : DumbAwareAction("Dump Project Data Nodes") {
     val dump = data.externalProjectStructure?.dump() ?: return
     val outputFile = File(File(projectPath), sanitizeFileName(project.name) + ".project_data_nodes_dump")
     outputFile.writeText(dump)
+    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
+    VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
     println("Dumped to: file://$outputFile")
   }
 }

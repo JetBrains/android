@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.FileEditorUtil
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -44,8 +45,15 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.util.io.sanitizeFileName
 import java.io.File
 
 fun ProjectDumper.dumpAndroidIdeModel(project: Project) {
@@ -520,4 +528,18 @@ private fun ProjectDumper.dump(testOptions: IdeTestOptions) {
       prop("AnimationsDisabled") { testOptions.animationsDisabled.toString() }
       prop("Execution") { testOptions.execution?.toString() }
     }
+}
+
+class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project!!
+    val dumper = ProjectDumper()
+    dumper.dumpAndroidIdeModel(project)
+    val dump = dumper.toString().trimIndent()
+    val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")
+    outputFile.writeText(dump)
+    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
+    VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
+    println("Dumped to: file://$outputFile")
+  }
 }
