@@ -190,7 +190,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
 
     // Note that uiMode and device, are displayed through a ComboBox option and don't actually display these values
     assertEquals("0", model.properties["", "uiMode"].defaultValue)
-    assertEquals("Default", model.properties["", "device"].defaultValue)
+    assertEquals(" ", model.properties["", "device"].defaultValue)
 
     // We hide the default value of some values when the value's behavior is undefined
     assertEquals(null, model.properties["", "widthDp"].defaultValue)

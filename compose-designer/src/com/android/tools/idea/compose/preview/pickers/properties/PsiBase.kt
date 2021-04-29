@@ -25,19 +25,13 @@ import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_DECORATION
 import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Device
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportWithConstantData
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.FontScale
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UI_MODE_TYPE_MASK
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.PsiEnumProvider
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumSupportProvider
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.NewPropertyItem
@@ -45,7 +39,6 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertiesView
-import com.intellij.util.text.nullize
 import java.util.function.Consumer
 
 private const val PSI_PROPERTIES_VIEW_NAME = "PsiProperties"
@@ -107,50 +100,6 @@ internal class PsiPropertyView(model: PsiPropertyModel) : PropertiesView<PsiProp
         EditorProvider.create(PsiEnumProvider(model.enumSupportValuesProvider), PsiPropertyItemControlTypeProvider)))
     }
   }
-}
-
-class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesProvider) : EnumSupportProvider<PsiPropertyItem> {
-
-  override fun invoke(property: PsiPropertyItem): EnumSupport? =
-    when (property.name) {
-      PARAMETER_UI_MODE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-        val uiMode = stringValue.toIntOrNull()?.let { numberValue ->
-          val uiModeValue = UI_MODE_TYPE_MASK and numberValue
-          UiMode.values().firstOrNull { it.resolvedValue.toIntOrNull() == uiModeValue }
-        }
-        if (uiMode != null) {
-          // First try to parse to a pre-defined uiMode
-          return@EnumSupportWithConstantData uiMode
-        }
-        stringValue.nullize(true)?.let {
-          // Otherwise just show an item with the initial value
-          return@EnumSupportWithConstantData EnumValue.Companion.item(it)
-        }
-        // For the unlikely scenario when there's no value
-        return@EnumSupportWithConstantData UiMode.UNDEFINED
-      }
-      PARAMETER_DEVICE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-        val trimmedValue = stringValue.trim()
-        Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
-          // First try to parse to a pre-defined device
-          return@EnumSupportWithConstantData it
-        }
-        trimmedValue.nullize()?.let {
-          // Show an item with de initial value and make it better to read
-          val readableValue = it.substringAfter(':', it).replace('_', ' ')
-          return@EnumSupportWithConstantData EnumValue.Companion.item(it, readableValue)
-        }
-        // For the scenario when there's no value or it's empty (Default device is an empty string)
-        return@EnumSupportWithConstantData Device.DEFAULT
-      }
-      PARAMETER_GROUP,
-      PARAMETER_LOCALE,
-      PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
-      PARAMETER_FONT_SCALE -> object : EnumSupport {
-        override val values: List<EnumValue> = FontScale.values().toList()
-      }
-      else -> null
-    }
 }
 
 /**

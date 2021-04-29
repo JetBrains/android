@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
 import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
+import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
@@ -123,11 +124,13 @@ private fun parserResolvedCallToPsiPropertyItems(
         PARAMETER_WIDTH,
         PARAMETER_WIDTH_DP,
         PARAMETER_HEIGHT,
-        PARAMETER_HEIGHT_DP -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
-                                                            IntegerNormalValidator)
-        PARAMETER_API_LEVEL -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue,
-                                                            IntegerStrictValidator)
-        else -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        PARAMETER_HEIGHT_DP ->
+          PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerNormalValidator)
+        PARAMETER_API_LEVEL ->
+          PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue, IntegerStrictValidator)
+        PARAMETER_UI_MODE,
+        PARAMETER_DEVICE -> ClassPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
+        else -> PsiCallParameterPropertyItem(project, model, resolvedCall, descriptor, argumentExpression, defaultValue)
       }
     }
   }
@@ -144,7 +147,7 @@ private fun Map<String, String?>.toReadable(): Map<String, String?> = this.mapVa
     PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
     PARAMETER_BACKGROUND_COLOR -> null // We ignore background color, as the default value is set by Studio
     // TODO: Combobox currently doesn't support empty default value, so we set a text, that will fallback to the desired default option.
-    PARAMETER_DEVICE -> entry.value ?: "Default"
+    PARAMETER_DEVICE -> entry.value ?: " "
     else -> entry.value
   }
 }
