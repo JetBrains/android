@@ -8,7 +8,7 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [
-        ":test_deps.zip",
+        ":test_deps",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -91,4 +91,5 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
     ],
+    use_zip = False,
 )

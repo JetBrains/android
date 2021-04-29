@@ -94,7 +94,7 @@ iml_module(
     },
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
-        ":test_deps.zip",
+        ":test_deps",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -188,6 +188,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.10.19:jar",
     ],
+    use_zip = False,
     visibility = ["//visibility:public"],
 )
 
