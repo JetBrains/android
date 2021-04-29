@@ -20,6 +20,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssueSource
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -48,6 +49,8 @@ class NlLayoutScannerTest {
 
   @Mock
   lateinit var mockSurface: NlDesignSurface
+  @Mock
+  lateinit var mockModel: NlModel
 
   @Before
   fun setUp() {
@@ -75,7 +78,9 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE)
+    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
+                           IssueSource.NONE,
+                           mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, true)
 
     LayoutTestCase.assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
@@ -87,7 +92,9 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE)
+    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
+                           IssueSource.NONE,
+                           mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, false)
 
     LayoutTestCase.assertNull(usageTracker.lastTrackedEvent)
@@ -99,7 +106,9 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE)
+    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
+                           IssueSource.NONE,
+                           mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, true)
 
     LayoutTestCase.assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
@@ -111,7 +120,9 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE)
+    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
+                           IssueSource.NONE,
+                           mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, false)
 
     LayoutTestCase.assertNull(usageTracker.lastTrackedEvent)

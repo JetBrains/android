@@ -21,6 +21,7 @@ import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
@@ -40,6 +41,8 @@ class NlAtfIssueTest : LayoutTestCase() {
 
   @Mock
   lateinit var mockEventListener:NlAtfIssue.EventListener
+  @Mock
+  lateinit var mockModel: NlModel
   @Before
   fun setup() {
     MockitoAnnotations.openMocks(this)
@@ -62,7 +65,7 @@ class NlAtfIssueTest : LayoutTestCase() {
       .build()
     val issueSource = IssueSource.NONE
 
-    val atfIssue = NlAtfIssue(result, issueSource)
+    val atfIssue = NlAtfIssue(result, issueSource, mockModel)
 
     assertEquals("Accessibility Issue", atfIssue.summary)
     assertEquals(msg, atfIssue.description)
@@ -87,7 +90,7 @@ class NlAtfIssueTest : LayoutTestCase() {
       .setHelpfulUrl(helpfulLink)
       .build()
 
-    val atfIssue = NlAtfIssue(result, IssueSource.NONE)
+    val atfIssue = NlAtfIssue(result, IssueSource.NONE, mockModel)
 
     assertTrue(atfIssue.description.contains(msg))
     assertTrue(atfIssue.description.contains("""<a href="$helpfulLink">"""))
@@ -97,7 +100,7 @@ class NlAtfIssueTest : LayoutTestCase() {
   @Test
   fun testIgnoreButton() {
     val result = ScannerTestHelper.createTestIssueBuilder().build()
-    val atfIssue = NlAtfIssue(result, TestSource())
+    val atfIssue = NlAtfIssue(result, TestSource(), mockModel)
 
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
@@ -112,7 +115,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder()
       .setSourceClass(srcClass)
       .build()
-    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
@@ -136,7 +139,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder()
       .setSourceClass(srcClass)
       .build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     assertEquals(1, atfIssue.fixes.count())
     atfIssue.fixes.forEach {  ignore ->
@@ -160,7 +163,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
@@ -182,7 +185,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val setAttributeFix = ValidatorData.SetViewAttributeFix(viewAttribute, suggestedValue, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc, mockEventListener)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
     val component = Mockito.mock(NlComponent::class.java)
     atfIssue.applyFixImpl(setAttributeFix, component)
@@ -200,7 +203,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(viewAttribute, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(removeAttributeFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
@@ -215,7 +218,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val removeAttributeFix = ValidatorData.RemoveViewAttributeFix(viewAttribute, fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(removeAttributeFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     val component = Mockito.mock(NlComponent::class.java)
     atfIssue.applyFixImpl(removeAttributeFix, component)
@@ -237,7 +240,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     // Both fix button and ignore button are displayed
     assertEquals(2, atfIssue.fixes.count())
@@ -257,7 +260,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     val compoundFix = ValidatorData.CompoundFix(listOf(setAttributeFix, removeAttributeFix), fixDescription)
 
     val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
-    val atfIssue = NlAtfIssue(result, testSrc)
+    val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
     val component = Mockito.mock(NlComponent::class.java)
     atfIssue.applyFixImpl(compoundFix, component)
