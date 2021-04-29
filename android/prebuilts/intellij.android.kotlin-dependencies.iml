@@ -42,7 +42,6 @@
     <orderEntry type="module" module-name="kotlin.uast.uast-kotlin-idea" exported="" scope="PROVIDED" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-compiler" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-compiler" level="project" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-scripting-jvm" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-script-runtime" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.kotlin-script-util" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="kotlinc.allopen-compiler-plugin" level="project" />
