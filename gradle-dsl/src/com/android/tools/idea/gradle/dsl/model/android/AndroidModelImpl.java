@@ -66,6 +66,8 @@ import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SdkOrPreviewTransform;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -94,6 +96,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
@@ -103,7 +106,7 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls public static final ModelPropertyDescription AIDL_PACKAGED_LIST = new ModelPropertyDescription("mAidlPackagedList", MUTABLE_LIST);
   @NonNls public static final ModelPropertyDescription ASSET_PACKS = new ModelPropertyDescription("mAssetPacks", MUTABLE_SET);
   @NonNls public static final String BUILD_TOOLS_VERSION = "mBuildToolsVersion";
-  @NonNls public static final String COMPILE_SDK_VERSION = "mCompileSdkVersion";
+  @NonNls public static final ModelPropertyDescription COMPILE_SDK_VERSION = new ModelPropertyDescription("mCompileSdkVersion");
   @NonNls public static final String DEFAULT_PUBLISH_CONFIG = "mDefaultPublishConfig";
   @NonNls public static final ModelPropertyDescription DYNAMIC_FEATURES = new ModelPropertyDescription("mDynamicFeatures", MUTABLE_SET);
   @NonNls public static final String FLAVOR_DIMENSIONS = "mFlavorDimensions";
@@ -205,7 +208,10 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   @Override
   public ResolvedPropertyModel compileSdkVersion() {
-    return getModelForProperty(COMPILE_SDK_VERSION);
+    VersionConstraint agp410plus = VersionConstraint.agpFrom("4.1.0");
+    return GradlePropertyModelBuilder.create(myDslElement, COMPILE_SDK_VERSION)
+      .addTransform(new SdkOrPreviewTransform(COMPILE_SDK_VERSION, "compileSdkVersion", "compileSdk", "compileSdkPreview", agp410plus))
+      .buildResolved();
   }
 
   @NotNull

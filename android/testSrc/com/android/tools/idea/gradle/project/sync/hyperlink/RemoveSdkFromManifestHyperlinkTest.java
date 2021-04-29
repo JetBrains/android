@@ -183,7 +183,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       "android {\n" +
       "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
       "    defaultConfig {\n" +
-      "            targetSdkVersion 27\n" +
+      "            targetSdk 27\n" +
       "    }\n" +
       "}\n"
     );
@@ -230,7 +230,7 @@ public class RemoveSdkFromManifestHyperlinkTest extends AndroidGradleTestCase {
       "android {\n" +
       "    compileSdkVersion " + BuildEnvironment.getInstance().getCompileSdkVersion() + "\n" +
       "    defaultConfig {\n" +
-      "            minSdkVersion 21\n" +
+      "            minSdk 21\n" +
       "    }\n" +
       "}\n"
     );

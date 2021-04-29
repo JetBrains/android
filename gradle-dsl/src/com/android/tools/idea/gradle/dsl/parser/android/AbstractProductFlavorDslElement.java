@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -70,8 +71,11 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"isDefault", property, DEFAULT, VAR},
         {"dimension", property, DIMENSION, VAR},
         {"setDimension", exactly(1), DIMENSION, SET},
+        {"maxSdk", property, MAX_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
         {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
+        {"minSdk", property, MIN_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"minSdkPreview", property, MIN_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"minSdkVersion", exactly(1), MIN_SDK_VERSION, SET},
         {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, OTHER}, // ADD
         {"renderscriptTargetApi", property, RENDER_SCRIPT_TARGET_API, VAR},
@@ -80,6 +84,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
         {"resConfigs", atLeast(0), RES_CONFIGS, OTHER}, // FIXME(xof): actually APPENDN fails to handle resConfigs(listOf(...))
         {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"targetSdk", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
         {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
         {"setTestApplicationId", exactly(1), TEST_APPLICATION_ID, SET},
@@ -113,8 +119,14 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"isDefault", exactly(1), DEFAULT, SET},
         {"dimension", property, DIMENSION, VAR},
         {"dimension", exactly(1), DIMENSION, SET},
+        {"maxSdk", property, MAX_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"maxSdk", exactly(1), MAX_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
         {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
         {"maxSdkVersion", exactly(1), MAX_SDK_VERSION, SET},
+        {"minSdk", property, MIN_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"minSdk", exactly(1), MIN_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
+        {"minSdkPreview", property, MIN_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"minSdkPreview", exactly(1), MIN_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
         {"minSdkVersion", property, MIN_SDK_VERSION, VAR},
         {"minSdkVersion", exactly(1), MIN_SDK_VERSION, SET},
         {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, OTHER},
@@ -128,6 +140,10 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
         {"renderscriptNdkModeEnabled", exactly(1), RENDER_SCRIPT_NDK_MODE_ENABLED, SET},
         {"resConfigs", atLeast(0), RES_CONFIGS, OTHER},
         {"resConfig", exactly(1), RES_CONFIGS, OTHER},
+        {"targetSdk", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"targetSdk", exactly(1), TARGET_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
+        {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR, VersionConstraint.agpFrom("4.1.0")},
+        {"targetSdkPreview", exactly(1), TARGET_SDK_VERSION, SET, VersionConstraint.agpFrom("4.1.0")},
         {"targetSdkVersion", property, TARGET_SDK_VERSION, VAR},
         {"targetSdkVersion", exactly(1), TARGET_SDK_VERSION, SET},
         {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
