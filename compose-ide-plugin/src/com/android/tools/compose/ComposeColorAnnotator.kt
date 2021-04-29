@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.ui.ColorIcon
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.uast.UCallExpression
@@ -129,7 +130,7 @@ class ComposeColorAnnotator : Annotator {
  * picker.
  * Currently only updates the value of the Color declaration in the editor if it's using the [ComposeColorConstructor.INT] or
  * [ComposeColorConstructor.LONG].
- * TODO(lukeegan): Implement this for each of the Color parameter combinations
+ * TODO(lukeegan): Implement for ComposeColorConstructor.FLOAT_X4_COLORSPACE Color parameter
  */
 data class ColorIconRenderer(val element: UCallExpression, val color: Color) : GutterIconRenderer() {
   private val ICON_SIZE = 8
@@ -140,8 +141,14 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
 
   override fun getClickAction(): AnAction? {
     val constructorType = getConstructorType(element.valueArguments) ?: return null
-    if (!constructorType.canBeOverwritten()) {
-      return null
+    val project = element.sourcePsi?.project ?: return null
+
+    val setColorTask: (Color) -> Unit = getSetColorTask(constructorType) ?: return null
+
+    val pickerListener = ColorPickerListener { color, _ ->
+      ApplicationManager.getApplication().invokeLater(Runnable {
+        WriteCommandAction.runWriteCommandAction(project, "Change Color", null, Runnable { setColorTask.invoke(color) })
+      }, project.disposed)
     }
     return object : AnAction() {
       override fun actionPerformed(e: AnActionEvent) {
@@ -155,7 +162,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
             .addColorValuePanel().withFocus()
             .addSeparator()
             .addCustomComponent(MaterialColorPaletteProvider)
-            .addColorPickerListener(ColorPickerListener { color, _ -> setColorToAttribute(color) })
+            .addColorPickerListener(pickerListener)
             .focusWhenDisplay(true)
             .setFocusCycleRoot(true)
             .build()
@@ -165,27 +172,53 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
     }
   }
 
-  private fun ComposeColorConstructor.canBeOverwritten(): Boolean {
-    return ComposeColorConstructor.INT == this || ComposeColorConstructor.LONG == this
+  @VisibleForTesting
+  fun getSetColorTask(constructorType: ComposeColorConstructor): ((Color) -> Unit)? {
+    return when(constructorType) {
+      ComposeColorConstructor.INT, ComposeColorConstructor.LONG -> { color -> setColorToAttribute(color) }
+      ComposeColorConstructor.INT_X3 -> { color -> setColorToAttribute(color.red, color.green, color.blue) }
+      ComposeColorConstructor.INT_X4 -> { color -> setColorToAttribute(color.red, color.green, color.blue, color.alpha) }
+      ComposeColorConstructor.FLOAT_X3 -> { color -> setColorToAttribute(color.red / 255f, color.green / 255f, color.blue / 255f) }
+      ComposeColorConstructor.FLOAT_X4 -> { color ->
+        setColorToAttribute(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
+      }
+      ComposeColorConstructor.FLOAT_X4_COLORSPACE -> return null // TODO: support ComposeColorConstructor.FLOAT_X4_COLORSPACE in the future.
+    }
   }
 
-  fun setColorToAttribute(color: Color) {
-    val constructorType = getConstructorType(element.valueArguments) ?: return
-    if (!constructorType.canBeOverwritten()) {
-      return
-    }
-    val runnable =
-      Runnable {
-        val hexString = "0x${(Integer.toHexString(color.rgb)).toUpperCase(Locale.getDefault())}"
-        val firstArgument = element.valueArguments[0].sourcePsi as? KtConstantExpression ?: return@Runnable
-        if ((firstArgument as PsiElement).isValid) {
-          (firstArgument.node?.firstChildNode as? LeafPsiElement)?.replaceWithText(hexString)
-        }
-      }
-    val project = element.sourcePsi?.project ?: return
-    ApplicationManager.getApplication().invokeLater(Runnable {
-      WriteCommandAction.runWriteCommandAction(project, "Change Color", null, runnable)
-    }, project.disposed)
+  private fun setColorToAttribute(color: Color) {
+    val hexString = "0x${(Integer.toHexString(color.rgb)).toUpperCase(Locale.getDefault())}"
+    (element.valueArguments[0].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode(hexString) ?: return
+  }
+
+  private fun setColorToAttribute(red: Int, green: Int, blue: Int) {
+    val valueArguments = element.valueArguments
+    (valueArguments[0].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$red") ?: return
+    (valueArguments[1].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$green") ?: return
+    (valueArguments[2].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$blue") ?: return
+  }
+
+  private fun setColorToAttribute(red: Int, green: Int, blue: Int, alpha: Int) {
+    val valueArguments = element.valueArguments
+    (valueArguments[0].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$red") ?: return
+    (valueArguments[1].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$green") ?: return
+    (valueArguments[2].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$blue") ?: return
+    (valueArguments[3].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("$alpha") ?: return
+  }
+
+  private fun setColorToAttribute(red: Float, green: Float, blue: Float) {
+    val valueArguments = element.valueArguments
+    (valueArguments[0].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${red}f") ?: return
+    (valueArguments[1].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${green}f") ?: return
+    (valueArguments[2].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${blue}f") ?: return
+  }
+
+  private fun setColorToAttribute(red: Float, green: Float, blue: Float, alpha: Float) {
+    val valueArguments = element.valueArguments
+    (valueArguments[0].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${red}f") ?: return
+    (valueArguments[1].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${green}f") ?: return
+    (valueArguments[2].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${blue}f") ?: return
+    (valueArguments[3].sourcePsi as? KtConstantExpression)?.replaceWithTextToFirstChildNode("${alpha}f") ?: return
   }
 }
 
@@ -223,6 +256,14 @@ private fun UExpression.getConstant(): Any? {
   val value = this.uValueOf() ?: return null
   val constant = value.toConstant() ?: return null
   return constant.value
+}
+
+private fun KtConstantExpression.replaceWithTextToFirstChildNode(text: String): Boolean {
+  if (!this.isValid) {
+    return false
+  }
+  (this.node.firstChildNode as? LeafPsiElement)?.replaceWithText(text) ?: return false
+  return true
 }
 
 enum class ComposeColorConstructor {
