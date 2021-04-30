@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.trackgroup.DefaultTrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRendererFactory;
+import com.android.tools.profilers.cpu.AndroidFrameEventTrackRenderer;
 import com.android.tools.profilers.cpu.BufferQueueTrackRenderer;
 import com.android.tools.profilers.cpu.CpuCoreTrackRenderer;
 import com.android.tools.profilers.cpu.CpuFrequencyTrackRenderer;
@@ -65,6 +66,8 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
         return new CpuFrequencyTrackRenderer();
       case RSS_MEMORY:
         return new RssMemoryTrackRenderer();
+      case ANDROID_FRAME_EVENT:
+        return new AndroidFrameEventTrackRenderer();
       case CUSTOM_EVENTS:
         return new CustomEventTrackRenderer();
       default:

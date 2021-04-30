@@ -31,6 +31,7 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
+import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Transport;
@@ -43,6 +44,7 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
@@ -388,6 +390,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (capture.getSystemTraceData() != null) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
       myTrackGroupModels.add(createDisplayTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
+      // Android frame lifecycle. Systrace only.
+      if (!capture.getSystemTraceData().getAndroidFrameLayers().isEmpty()) {
+        capture.getSystemTraceData().getAndroidFrameLayers().forEach(
+          layer -> myTrackGroupModels.add(createFrameLifecycleTrackGroup(layer, getTimeline()))
+        );
+      }
       // CPU per-core usage and event etc. Systrace only.
       myTrackGroupModels.add(createCpuCoresTrackGroup(capture.getMainThreadId(), capture.getSystemTraceData(), getTimeline()));
       // RSS memory counters.
@@ -477,6 +485,23 @@ public class CpuCaptureStage extends Stage<Timeline> {
     display.addTrackModel(TrackModel.newBuilder(bufferQueueTrackModel, ProfilerTrackRendererType.BUFFER_QUEUE, "BufferQueue")
                             .setDefaultTooltipModel(bufferQueueTooltip));
     return display;
+  }
+
+  private static TrackGroupModel createFrameLifecycleTrackGroup(@NotNull TraceProcessor.AndroidFrameEventsResult.Layer layer,
+                                                                @NotNull Timeline timeline) {
+    TrackGroupModel frameLayer = TrackGroupModel.newBuilder()
+      .setTitle("Frame Lifecycle (" + layer.getLayerName() + ")")
+      .setTitleHelpText(AndroidFrameEventTrackModel.getTitleHelpText())
+      .build();
+
+    layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
+      phase -> {
+        AndroidFrameEventTrackModel phaseTrack = new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange());
+        String trackTitle = AndroidFrameEventTrackModel.getDisplayName(phase.getPhaseName());
+        frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle));
+      }
+    );
+    return frameLayer;
   }
 
   private static TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture,

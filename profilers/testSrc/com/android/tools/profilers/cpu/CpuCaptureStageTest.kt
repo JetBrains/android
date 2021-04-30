@@ -178,6 +178,24 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun trackGroupModelsAreSetForPerfettoWithFrameLifecycle() {
+    services.setListBoxOptionsMatcher { option -> option.contains("profilertester") }
+    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                       CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace"), SESSION_ID)
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupModels.size).isEqualTo(5)
+
+    val displayTrackGroup = stage.trackGroupModels[1]
+    assertThat(displayTrackGroup.title).startsWith("Frame Lifecycle")
+    assertThat(displayTrackGroup.size).isEqualTo(4)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Application")
+    assertThat(displayTrackGroup[1].title).isEqualTo("Wait for GPU")
+    assertThat(displayTrackGroup[2].title).isEqualTo("Composition")
+    assertThat(displayTrackGroup[3].title).isEqualTo("Frames on display")
+  }
+
+  @Test
   fun timelineSetsCaptureRange() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
