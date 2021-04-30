@@ -350,10 +350,6 @@ class ToolWindowModel(
     }
   }
 
-  interface ChangeListener : EventListener {
-    fun modelChanged()
-  }
-
   interface StepUiPresentation {
     val pageHeader: String
     val treeText: String
