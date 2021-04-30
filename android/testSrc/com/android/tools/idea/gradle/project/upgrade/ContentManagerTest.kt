@@ -141,8 +141,8 @@ class ContentManagerTest {
   @Test
   fun testToolWindowModelUIStateOnFailedValidation() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
-    toolWindowModel.versionValidationFailed("Validation failed")
-    assertThat(toolWindowModel.uiState.get().errorMessage).isEqualTo(AllIcons.General.Error to "Validation failed")
+    toolWindowModel.newVersionSet("")
+    assertThat(toolWindowModel.uiState.get().errorMessage).isEqualTo(AllIcons.General.Error to "Invalid AGP version format.")
     assertThat(toolWindowModel.uiState.get().runEnabled).isFalse()
     assertThat(toolWindowModel.uiState.get().showLoadingState).isFalse()
   }
@@ -406,27 +406,26 @@ class ContentManagerTest {
     val contentManager = ContentManager(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     val model = ToolWindowModel(project, currentAgpVersion)
-    val view = ContentManager.View(model, toolWindow.contentManager)
-    assertThat(view.editingValidation("").first).isEqualTo(EditingErrorCategory.ERROR)
-    assertThat(view.editingValidation("").second).isEqualTo("Invalid AGP version format.")
-    assertThat(view.editingValidation("2.0.0").first).isEqualTo(EditingErrorCategory.ERROR)
-    assertThat(view.editingValidation("2.0.0").second).isEqualTo("Cannot downgrade AGP version.")
-    assertThat(view.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
-    assertThat(view.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
+    assertThat(model.editingValidation("").first).isEqualTo(EditingErrorCategory.ERROR)
+    assertThat(model.editingValidation("").second).isEqualTo("Invalid AGP version format.")
+    assertThat(model.editingValidation("2.0.0").first).isEqualTo(EditingErrorCategory.ERROR)
+    assertThat(model.editingValidation("2.0.0").second).isEqualTo("Cannot downgrade AGP version.")
+    assertThat(model.editingValidation(currentAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
+    assertThat(model.editingValidation(latestAgpVersion.toString()).first).isEqualTo(EditingErrorCategory.NONE)
     latestAgpVersion.run {
       val newMajorVersion = GradleVersion(major+1, minor, micro)
-      assertThat(view.editingValidation(newMajorVersion.toString()).first).isEqualTo(EditingErrorCategory.ERROR)
-      assertThat(view.editingValidation(newMajorVersion.toString()).second).isEqualTo("Target AGP version is unsupported.")
+      assertThat(model.editingValidation(newMajorVersion.toString()).first).isEqualTo(EditingErrorCategory.ERROR)
+      assertThat(model.editingValidation(newMajorVersion.toString()).second).isEqualTo("Target AGP version is unsupported.")
     }
     latestAgpVersion.run {
       val newMinorVersion = GradleVersion(major, minor+1, micro)
-      assertThat(view.editingValidation(newMinorVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
-      assertThat(view.editingValidation(newMinorVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
+      assertThat(model.editingValidation(newMinorVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
+      assertThat(model.editingValidation(newMinorVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
     latestAgpVersion.run {
       val newPointVersion = GradleVersion(major, minor, micro+1)
-      assertThat(view.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
-      assertThat(view.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
+      assertThat(model.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
+      assertThat(model.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
   }
 }
