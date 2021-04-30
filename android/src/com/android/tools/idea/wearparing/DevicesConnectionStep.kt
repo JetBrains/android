@@ -86,17 +86,24 @@ private val LOG get() = logger<WearPairingManager>()
 
 class DevicesConnectionStep(model: WearDevicePairingModel,
                             val project: Project,
-                            val showFirstStage: Boolean,
-                            val wizardAction: WizardAction) : ModelWizardStep<WearDevicePairingModel>(model, "") {
+                            val wizardAction: WizardAction,
+                            private val isFirstStage: Boolean = true) : ModelWizardStep<WearDevicePairingModel>(model, "") {
   private var runningJob: Job? = null
   private var currentUiHeader = ""
   private var currentUiDescription = ""
+  private val secondStageStep = if (isFirstStage) DevicesConnectionStep(model, project, wizardAction, false) else null
   private lateinit var wizardFacade: ModelWizard.Facade
+  private lateinit var phoneIDevice: IDevice
+  private lateinit var wearIDevice: IDevice
   private val canGoForward = BoolValueProperty()
   private val deviceStateListener = ListenerManager()
   private val bindings = BindingsManager()
   private val mainPanel = JBPanel<JBPanel<*>>(GridBagLayout()).apply {
     border = JBUI.Borders.empty(24, 24, 0, 24)
+  }
+
+  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
+    return if (secondStageStep == null) super.createDependentSteps() else listOf(secondStageStep)
   }
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
@@ -114,20 +121,21 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         return@launch
       }
 
-      if (showFirstStage) {
+      if (isFirstStage) {
         killNonSelectedRunningWearEmulators()
+        phoneIDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
+        wearIDevice = model.selectedWearDevice.launchDeviceIfNeeded()
+        secondStageStep!!.phoneIDevice = phoneIDevice
+        secondStageStep.wearIDevice = wearIDevice
+        LOG.warn("Devices are online")
       }
 
-      val wearDevice = model.selectedWearDevice.launchDeviceIfNeeded()
-      val phoneDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
-
-      LOG.warn("Devices are online")
       prepareErrorListener()
-      if (showFirstStage) {
-        showFirstPhase(model.selectedPhoneDevice.value, phoneDevice, model.selectedWearDevice.value, wearDevice)
+      if (isFirstStage) {
+        showFirstPhase(model.selectedPhoneDevice.value, phoneIDevice, model.selectedWearDevice.value, wearIDevice)
       }
       else {
-        showPairingPhase(phoneDevice, wearDevice)
+        showPairingPhase(phoneIDevice, wearIDevice)
       }
     }
   }
@@ -195,19 +203,24 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice {
     try {
-      val futureDevice = value.launch(project)
-      if (!futureDevice.isDone) {
-        showUiLaunchingDevice(value.displayName)
-      }
+      showUiLaunchingDevice(value.displayName)
 
-      val iDevice = futureDevice.await()
+      var isColdBoot = false
+      val iDevice = value.launch(project).await()
       value.launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
 
-      // Wait for device to be reported Online
-      withTimeoutOrNull(5_000) {
-        while (!value.isOnline()) {
-          delay(200)
-        }
+      // If it was not launched by us, it may still be booting. Wait for "boot complete".
+      while (!iDevice.arePropertiesSet() || iDevice.getProperty("dev.bootcomplete") == null) {
+        LOG.warn("${iDevice.name} not ready yet")
+        isColdBoot = true
+        delay(2000)
+      }
+
+      if (isColdBoot || iDevice.retrieveUpTime() < 200.0) {
+        // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
+        showUiWaitingDeviceStatus()
+        waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty()}
+        waitForCondition(10_000) { iDevice.loadCloudNetworkID().isNotEmpty() }
       }
 
       return iDevice
@@ -371,6 +384,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     progressBottomLabel = message("wear.assistant.device.connection.start.device.bottom.label", deviceName)
   )
 
+  private suspend fun showUiWaitingDeviceStatus() = showUiLaunchingDevice(
+    progressTopLabel = message("wear.assistant.device.connection.connecting.device.top.label"),
+    progressBottomLabel = message("wear.assistant.device.connection.status.device.bottom.label")
+  )
+
   private suspend fun showUiBridgingDevices() = showUiLaunchingDevice(
     progressTopLabel = message("wear.assistant.device.connection.connecting.device.top.label"),
     progressBottomLabel = message("wear.assistant.device.connection.connecting.device.bottom.label")
@@ -515,6 +533,14 @@ suspend fun <T> Future<T>.await(): T {
   }
   @Suppress("BlockingMethodInNonBlockingContext")
   return get() // If isDone() returned true, this call will not block
+}
+
+private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> Boolean) {
+  withTimeoutOrNull(timeMillis) {
+    while (!condition()) {
+      delay(1000)
+    }
+  }
 }
 
 private suspend fun IDevice.isCompanionAppInstalled(): Boolean {
