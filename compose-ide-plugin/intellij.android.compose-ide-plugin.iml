@@ -11,7 +11,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="module-library">
       <library name="compose-compiler-hosted" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compose-compiler-hosted-0.1.0-dev06:27.1.1.0" />

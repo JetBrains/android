@@ -19,7 +19,7 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />

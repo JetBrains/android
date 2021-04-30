@@ -146,7 +146,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />

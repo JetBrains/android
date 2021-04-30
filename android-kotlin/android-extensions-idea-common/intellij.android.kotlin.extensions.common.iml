@@ -19,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
   </component>
 </module>
