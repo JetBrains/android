@@ -19,14 +19,10 @@ import com.android.tools.idea.devicemanager.groupstab.DeviceGroupsTabPanel
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabContent
 import com.android.tools.idea.devicemanager.virtualtab.VirtualTab
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.ui.resourcemanager.RESOURCE_EXPLORER_TOOL_WINDOW_ID
-import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 import javax.swing.JComponent
@@ -36,7 +32,7 @@ const val DEVICE_MANAGER_ID = "Device Manager"
 const val virtualTabName = "Virtual"
 const val deviceGroupsTabName = "Device Groups"
 
-class DeviceManagerFactory : ToolWindowFactory {
+class DeviceManagerFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val virtualTab = VirtualTab(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
@@ -56,29 +52,9 @@ class DeviceManagerFactory : ToolWindowFactory {
     toolWindow.apply {
       setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
       show(null)
-      isShowStripeButton = false
       stripeTitle = "Device Manager"
     }
-
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
   override fun isApplicable(project: Project): Boolean = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()
-}
-
-private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
-
-  override fun stateChanged(toolWindowManager: ToolWindowManager) {
-    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
-    val contentManager = window.contentManager
-    val dialogPanels = contentManager.contents.filter { it.component is DialogPanel }
-    if (!window.isVisible) {
-      contentManager.removeAllContents(true)
-      ResourceManagerTracking.logPanelCloses()
-    } else {
-      dialogPanels.forEach {
-        // TODO(qumeric):
-      }
-    }
-  }
 }
