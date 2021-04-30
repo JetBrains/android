@@ -538,7 +538,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     try {
       requestSyncAndWait();
     }
-    catch (AssertionError expected) {
+    catch (Throwable expected) {
+      // TODO(b/186899123): Update this exception to AssertionFailedError once JUnit has been updated
       // Sync issues are expected.
     }
 
