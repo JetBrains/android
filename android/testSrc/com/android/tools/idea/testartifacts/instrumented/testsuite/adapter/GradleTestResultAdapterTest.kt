@@ -33,6 +33,8 @@ import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.testFramework.ProjectRule
 import org.junit.Before
 import org.junit.Rule
@@ -56,12 +58,20 @@ class GradleTestResultAdapterTest {
   @Mock private lateinit var mockDevice1: IDevice
   @Mock private lateinit var mockListener: AndroidTestResultListener
 
+  private lateinit var reportedAndroidStudioEvent: AndroidStudioEvent.Builder
+
   @Before
   fun setup() {
     `when`(mockDevice1.serialNumber).thenReturn("mockDevice1SerialNumber")
     `when`(mockDevice1.avdName).thenReturn("mockDevice1AvdName")
     `when`(mockDevice1.version).thenReturn(AndroidVersion(29))
     `when`(mockDevice1.isEmulator).thenReturn(true)
+  }
+
+  private fun createAdapter(): GradleTestResultAdapter {
+    return GradleTestResultAdapter(mockDevice1, "testName", null, mockListener) { loggedEvent ->
+      reportedAndroidStudioEvent = loggedEvent
+    }
   }
 
   @Test
@@ -73,14 +83,14 @@ class GradleTestResultAdapterTest {
       AndroidDeviceType.LOCAL_EMULATOR,
       AndroidVersion(29))
 
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+    val adapter = createAdapter()
 
     assertThat(adapter.device).isEqualTo(expectedDevice)
   }
 
   @Test
   fun runTestSuiteWithOneTestCaseAndPassed() {
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+    val adapter = createAdapter()
 
     verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
 
@@ -128,7 +138,7 @@ class GradleTestResultAdapterTest {
 
   @Test
   fun runTestSuiteWithOneTestCaseAndFailed() {
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+    val adapter = createAdapter()
 
     verify(mockListener).onTestSuiteScheduled(eq(adapter.device))
 
@@ -178,10 +188,9 @@ class GradleTestResultAdapterTest {
     })
   }
 
-
   @Test
   fun runTestSuiteWithRetention() {
-    val adapter = GradleTestResultAdapter(mockDevice1, "testName", mockListener)
+    val adapter = createAdapter()
     val iceboxInfoPath = "icebox-info.pb"
     val iceboxSnapshotPath = "icebox-snapshot.tar"
 
@@ -254,7 +263,7 @@ class GradleTestResultAdapterTest {
 
   @Test
   fun gradleTaskFinishedOrCancelledBeforeTestSuiteFinishes() {
-    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+    createAdapter().apply {
       onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
         scheduledTestCaseCount = 1
       }.build())
@@ -288,7 +297,7 @@ class GradleTestResultAdapterTest {
 
   @Test
   fun gradleTaskFinishedOrCancelledBeforeTestSuiteStarts() {
-    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+    createAdapter().apply {
       onGradleTaskFinished()
     }
 
@@ -303,7 +312,7 @@ class GradleTestResultAdapterTest {
 
   @Test
   fun onTestSuiteFinishedIsCalledBeforeTestSuiteEvenStarts() {
-    GradleTestResultAdapter(mockDevice1, "testName", mockListener).apply {
+    createAdapter().apply {
       onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.getDefaultInstance())
     }
 
@@ -312,5 +321,38 @@ class GradleTestResultAdapterTest {
       verify(mockListener).onTestSuiteStarted(any(), any())
       verify(mockListener).onTestSuiteFinished(any(), any())
     }
+  }
+
+  @Test
+  fun testRunEventLogging() {
+    createAdapter().apply {
+      onTestSuiteStarted(TestSuiteResultProto.TestSuiteMetaData.newBuilder().apply {
+        scheduledTestCaseCount = 1
+      }.build())
+      onTestCaseStarted(TestCaseProto.TestCase.newBuilder().apply {
+        testPackage = "com.example.test"
+        testClass = "ExampleTest"
+        testMethod = "testExample"
+      }.build())
+      onTestCaseFinished(TestResultProto.TestResult.newBuilder().apply {
+        testCaseBuilder.apply {
+          testPackage = "com.example.test"
+          testClass = "ExampleTest"
+          testMethod = "testExample"
+        }
+        testStatus = TestStatusProto.TestStatus.PASSED
+      }.build())
+      onTestSuiteFinished(TestSuiteResultProto.TestSuiteResult.newBuilder().apply {
+        testStatus = TestStatusProto.TestStatus.PASSED
+      }.build())
+    }
+
+    assertThat(reportedAndroidStudioEvent.kind).isEqualTo(AndroidStudioEvent.EventKind.TEST_RUN)
+    assertThat(reportedAndroidStudioEvent.category).isEqualTo(AndroidStudioEvent.EventCategory.TESTS)
+    assertThat(reportedAndroidStudioEvent.hasDeviceInfo()).isTrue()
+    assertThat(reportedAndroidStudioEvent.testRun.testInvocationType).isEqualTo(TestRun.TestInvocationType.ANDROID_STUDIO_THROUGH_GRADLE_TEST)
+    assertThat(reportedAndroidStudioEvent.testRun.numberOfTestsExecuted).isEqualTo(1)
+    assertThat(reportedAndroidStudioEvent.testRun.testKind).isEqualTo(TestRun.TestKind.INSTRUMENTATION_TEST)
+    assertThat(reportedAndroidStudioEvent.testRun.testExecution).isEqualTo(TestRun.TestExecution.HOST)
   }
 }

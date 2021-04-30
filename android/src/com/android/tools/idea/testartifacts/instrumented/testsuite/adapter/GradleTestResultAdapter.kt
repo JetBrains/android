@@ -17,6 +17,11 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.findTestLibrariesVersions
+import com.android.tools.idea.stats.toProtoValue
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -28,6 +33,8 @@ import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestStatusProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.TestRun
 import com.intellij.psi.util.ClassUtil
 import java.io.File
 import java.util.UUID
@@ -35,9 +42,13 @@ import java.util.UUID
 /**
  * An adapter to parse instrumentation test result protobuf messages from AGP and forward them to AndroidTestResultListener
  */
-class GradleTestResultAdapter(device: IDevice,
-                              private val testSuiteDisplayName: String,
-                              private val listener: AndroidTestResultListener): TaskOutputProcessorListener {
+class GradleTestResultAdapter(
+  device: IDevice,
+  private val testSuiteDisplayName: String,
+  private val artifact: IdeAndroidArtifact?,
+  private val listener: AndroidTestResultListener,
+  private val logStudioEvent: (AndroidStudioEvent.Builder) -> Unit = UsageTracker::log
+): TaskOutputProcessorListener {
 
   val device: AndroidDevice = convertIDeviceToAndroidDevice(device)
 
@@ -55,7 +66,28 @@ class GradleTestResultAdapter(device: IDevice,
   // yet to be able to group them together across multiple devices.
   private val myTestCaseRunCount: MutableMap<String, Int> = mutableMapOf()
 
+  // A studio event builder to be reported for logging testing feature usage.
+  // This event will be reported when a test suite finishes.
+  private val myStudioEventBuilder = AndroidStudioEvent.newBuilder().apply {
+    category = AndroidStudioEvent.EventCategory.TESTS
+    kind = AndroidStudioEvent.EventKind.TEST_RUN
+    deviceInfo = AndroidStudioUsageTracker.deviceToDeviceInfo(device)
+    productDetails = AndroidStudioUsageTracker.productDetails
+  }
+
+  // A test run event builder to be used for reporting testing feature usages
+  // as part of a Studio event log.
+  private val myTestRunEventBuilder: TestRun.Builder = myStudioEventBuilder.testRunBuilder.apply {
+    testInvocationType = TestRun.TestInvocationType.ANDROID_STUDIO_THROUGH_GRADLE_TEST
+    testKind = TestRun.TestKind.INSTRUMENTATION_TEST
+    testExecution = artifact?.testOptions?.execution.toProtoValue()
+
+    artifact?.let(::findTestLibrariesVersions)?.let { testLibraries = it }
+  }
+
   override fun onTestSuiteStarted(testSuite: TestSuiteResultProto.TestSuiteMetaData) {
+    myTestRunEventBuilder.numberOfTestsExecuted = testSuite.scheduledTestCaseCount
+
     myTestSuite = AndroidTestSuite(
       id = UUID.randomUUID().toString(),
       testSuiteDisplayName,
@@ -104,6 +136,11 @@ class GradleTestResultAdapter(device: IDevice,
   }
 
   override fun onTestSuiteFinished(testSuiteResult: TestSuiteResultProto.TestSuiteResult) {
+    // TODO: UTP currently does not report whether if a test process is crashed or not.
+    //       Once UTP supports it, check the status and set "myTestRunEventBuilder.crashed = true"
+    //       before calling logStudioEvent.
+    logStudioEvent(myStudioEventBuilder)
+
     if (!this::myTestSuite.isInitialized) {
       // Initialize test suite if it hasn't initialized yet.
       // This may happen if UTP fails in setup phase before it starts test task.
