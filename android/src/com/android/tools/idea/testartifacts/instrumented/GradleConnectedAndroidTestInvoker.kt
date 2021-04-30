@@ -104,7 +104,7 @@ class GradleConnectedAndroidTestInvoker(
 
     val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
     val adapters = scheduledDeviceList.map {
-      val adapter = GradleTestResultAdapter(it, taskId, androidTestResultListener)
+      val adapter = GradleTestResultAdapter(it, taskId, androidModuleModel.artifactForAndroidTest, androidTestResultListener)
       adapter.device.id to adapter
     }.toMap()
 
