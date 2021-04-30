@@ -109,6 +109,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp[module]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
     ],
 )
 
