@@ -61,7 +61,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
-import java.util.EventListener
 import javax.swing.BoxLayout
 import javax.swing.Icon
 import javax.swing.JButton
@@ -215,19 +214,32 @@ class ToolWindowModel(
     })
   }
 
-  fun versionValidationFailed(errorMessage: String) {
-    _selectedVersion = null
-    // Clear the tree
-    val root = (treeModel.root as CheckedTreeNode)
-    root.removeAllChildren()
-    treeModel.nodeStructureChanged(root)
+  fun editingValidation(value: String?): Pair<EditingErrorCategory, String> {
+    val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+    val current = current
+    return when {
+      current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version.")
+      parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
+      parsed < current -> Pair(EditingErrorCategory.ERROR, "Cannot downgrade AGP version.")
+      parsed > latestKnownVersion ->
+        if (parsed.major > latestKnownVersion.major)
+          Pair(EditingErrorCategory.ERROR, "Target AGP version is unsupported.")
+        else
+          Pair(EditingErrorCategory.WARNING, "Upgrade to target AGP version is unverified.")
 
-    uiState.set(UIState.InvalidVersionError(AllIcons.General.Error to errorMessage))
+      else -> EDITOR_NO_ERROR
+    }
   }
 
-  // TODO try use String version on set and in selector. Validate here in the model.
-  fun newVersionSet(newVersion: GradleVersion?) {
-    _selectedVersion = newVersion
+  fun newVersionSet(newVersionString: String) {
+    val status = editingValidation(newVersionString)
+    _selectedVersion = if (status.first == EditingErrorCategory.ERROR) {
+      uiState.set(UIState.InvalidVersionError(AllIcons.General.Error to status.second))
+      null
+    }
+    else {
+      GradleVersion.tryParseAndroidGradlePluginVersion(newVersionString)
+    }
     refresh()
   }
 
@@ -442,23 +454,6 @@ class ContentManager(val project: Project) {
 
     val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
-    fun editingValidation(value: String?): Pair<EditingErrorCategory, String> {
-      val parsed = value?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
-      val current = model.current
-      return when {
-        current == null -> Pair(EditingErrorCategory.ERROR, "Unknown current AGP version.")
-        parsed == null -> Pair(EditingErrorCategory.ERROR, "Invalid AGP version format.")
-        parsed < current -> Pair(EditingErrorCategory.ERROR, "Cannot downgrade AGP version.")
-        parsed > model.latestKnownVersion ->
-          if (parsed.major > model.latestKnownVersion.major)
-            Pair(EditingErrorCategory.ERROR, "Target AGP version is unsupported.")
-          else
-            Pair(EditingErrorCategory.WARNING, "Upgrade to target AGP version is unverified.")
-
-        else -> EDITOR_NO_ERROR
-      }
-    }
-
     val versionTextField = CommonComboBox<GradleVersion, CommonComboBoxModel<GradleVersion>>(
       // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
       object : DefaultCommonComboBoxModel<GradleVersion>(
@@ -478,7 +473,7 @@ class ContentManager(val project: Project) {
         // Given the ComponentValidator installation below, one might expect this not to be necessary, but although the
         // ComponentValidator provides the tooltip it appears not to provide the outline highlighting.
         override val editingSupport = object : EditingSupport {
-          override val validation: EditingValidation = ::editingValidation
+          override val validation: EditingValidation = model::editingValidation
           override val completion: EditorCompletion = { model.suggestedVersions.getValueOr(emptyList()).map { it.toString() }}
         }
       }
@@ -490,7 +485,7 @@ class ContentManager(val project: Project) {
       textField.registerActionKey({ hidePopup(); textField.escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
       ComponentValidator(this@View.model.connection).withValidator { ->
         val text = editor.item.toString()
-        val validation = editingValidation(text)
+        val validation = this@View.model.editingValidation(text)
         when (validation.first) {
           EditingErrorCategory.ERROR -> ValidationInfo(validation.second, this)
           EditingErrorCategory.WARNING -> ValidationInfo(validation.second, this).asWarning()
@@ -501,13 +496,7 @@ class ContentManager(val project: Project) {
         object: DocumentAdapter() {
           override fun textChanged(e: DocumentEvent) {
             ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
-            val status = editingValidation(editor.item.toString())
-            if (status.first == EditingErrorCategory.ERROR) {
-              this@View.model.versionValidationFailed(status.second)
-            }
-            else {
-              this@View.model.newVersionSet(GradleVersion.tryParseAndroidGradlePluginVersion(editor.item.toString()))
-            }
+            this@View.model.newVersionSet(editor.item.toString())
           }
         }
       )
