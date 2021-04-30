@@ -17,7 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.AddNewTable;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetTableModel;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
@@ -83,7 +83,7 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanel() throws InterruptedException {
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newAddNewTable);
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newSetTableModel);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -100,7 +100,7 @@ public final class PhysicalDevicePanelTest {
     myComponent.set(Collections.singletonList(offlinePixel5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newAddNewTable);
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newSetTableModel);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -112,7 +112,7 @@ public final class PhysicalDevicePanelTest {
     assertEquals(data, myPanel.getData());
   }
 
-  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newAddNewTable(@NotNull PhysicalDevicePanel panel) {
-    return new CountDownLatchFutureCallback<>(new AddNewTable(panel), myLatch);
+  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetTableModel(@NotNull PhysicalDevicePanel panel) {
+    return new CountDownLatchFutureCallback<>(new SetTableModel(panel), myLatch);
   }
 }
