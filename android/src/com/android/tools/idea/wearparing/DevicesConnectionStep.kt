@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.wearparing
 
-import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.ui.SVGScaledImageProvider
 import com.android.tools.adtui.ui.ScalingImagePanel
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.observable.BindingsManager
@@ -41,24 +41,27 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.commons.lang.time.StopWatch
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.BorderLayout
 import java.awt.Component.LEFT_ALIGNMENT
 import java.awt.Component.TOP_ALIGNMENT
 import java.awt.GridBagConstraints.HORIZONTAL
+import java.awt.GridBagConstraints.LINE_START
 import java.awt.GridBagConstraints.RELATIVE
 import java.awt.GridBagConstraints.REMAINDER
 import java.awt.GridBagConstraints.VERTICAL
@@ -67,6 +70,7 @@ import java.awt.event.ActionEvent
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
 import javax.swing.Box
+import javax.swing.Box.createVerticalStrut
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -99,7 +103,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private val deviceStateListener = ListenerManager()
   private val bindings = BindingsManager()
   private val mainPanel = JBPanel<JBPanel<*>>(GridBagLayout()).apply {
-    border = JBUI.Borders.empty(24, 24, 0, 24)
+    border = empty(24, 24, 0, 24)
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
@@ -111,6 +115,22 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 
   override fun onEntering() {
+    startStepFlow()
+  }
+
+  override fun getComponent(): JComponent = mainPanel
+
+  override fun canGoForward(): ObservableBool = canGoForward
+
+  override fun canGoBack(): Boolean = false
+
+  override fun dispose() {
+    runningJob?.cancel(null)
+    deviceStateListener.releaseAll()
+    bindings.releaseAll()
+  }
+
+  private fun startStepFlow() {
     dispose() // Cancel any previous jobs and error listeners
     model.removePairingOnCancel.set(true)
 
@@ -140,21 +160,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
-  override fun getComponent(): JComponent = mainPanel
-
-  override fun canGoForward(): ObservableBool = canGoForward
-
-  override fun canGoBack(): Boolean = false
-
-  override fun dispose() {
-    runningJob?.cancel(null)
-    deviceStateListener.releaseAll()
-    bindings.releaseAll()
-  }
-
   private suspend fun showFirstPhase(phonePairingDevice: PairingDevice, phoneDevice: IDevice,
                                      wearPairingDevice: PairingDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
+    if (checkWearMayNeedFactoryReset(phoneDevice, wearDevice)) {
+      showUiNeedsFactoryReset(model.selectedWearDevice.value.displayName)
+      return
+    }
     WearPairingManager.removePairedDevices()
     WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
     createDeviceBridge(phoneDevice, wearDevice)
@@ -238,10 +250,9 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         WearPairingManager.removePairedDevices() // Remove pairing, in case we need to kill a paired device and that would show a toast
       }
       forEach {
-        val iDevice = it.launch(project).get() // If device is running, then calling get() will return immediately
-        EmulatorConsole.getConsole(iDevice)?.apply {
-          kill()
-          close()
+        val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+        avdManager.findAvd(it.deviceID)?.apply {
+          avdManager.stopAvd(this)
         }
       }
     }
@@ -279,12 +290,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
           name = "description"
           HtmlLabel.setUpAsHtmlLabel(this)
           text = description
-          border = JBUI.Borders.empty(20, 0, 20, 16)
+          border = empty(20, 0, 20, 16)
         }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 3))
       }
       if (progressTopLabel.isNotEmpty()) {
         add(JBLabel(progressTopLabel).apply {
-          border = JBUI.Borders.empty(4, 0)
+          border = empty(4, 0)
         }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
         add(JProgressBar().apply {
           isIndeterminate = true
@@ -292,13 +303,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
       if (progressBottomLabel.isNotEmpty()) {
         add(JBLabel(progressBottomLabel).apply {
-          border = JBUI.Borders.empty(4, 0)
+          border = empty(4, 0)
           foreground = JBColor.DARK_GRAY
         }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (firstStepLabel.isNotEmpty()) {
         add(JBLabel(firstStepLabel).apply {
-          border = JBUI.Borders.empty(8, 0, 8, 16)
+          border = empty(8, 0, 8, 16)
         }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (buttonLabel.isNotEmpty()) {
@@ -312,7 +323,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       if (additionalStepsLabel.isNotEmpty()) {
         add(JBLabel(additionalStepsLabel).apply {
           alignmentX = LEFT_ALIGNMENT
-          border = JBUI.Borders.empty(4, 0, 0, 16)
+          border = empty(4, 0, 0, 16)
         }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (imagePath.isNotEmpty()) {
@@ -336,7 +347,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       if (showLoadingIcon) {
         add(AsyncProcessIcon("ScanningLabel").apply {
           alignmentY = TOP_ALIGNMENT
-          border = JBUI.Borders.empty(0, 0, 0, 8)
+          border = empty(0, 0, 0, 8)
         })
       }
       if (showLoadingIcon || scanningLabel.isNotEmpty()) {
@@ -354,7 +365,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }, gridConstraint(x = 0, y = 1, weightx = 1.0, fill = HORIZONTAL))
     }
     isOpaque = false
-    border = JBUI.Borders.empty(8, 2, 12, 4)
+    border = empty(8, 2, 12, 4)
   }
 
   private fun createSuccessPanel(successLabel: String): JPanel = JPanel(BorderLayout()).apply {
@@ -369,7 +380,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       font = JBFont.label().asBold()
     }, BorderLayout.CENTER)
 
-    border = JBUI.Borders.empty(32, 0, 0, 0)
+    border = empty(32, 0, 0, 0)
   }
 
   private suspend fun showUiLaunchingDevice(progressTopLabel: String, progressBottomLabel: String) = showUI(
@@ -464,6 +475,49 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     body = createSuccessPanel(message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName))
   )
 
+  private suspend fun showUiNeedsFactoryReset(wearDeviceName: String) {
+    val wipeButton = JButton(message("wear.assistant.factory.reset.button"))
+    val warningPanel = createWarningPanel(message("wear.assistant.factory.reset.subtitle", wearDeviceName)).apply {
+      add(createVerticalStrut(8), gridConstraint(x = 1, y = RELATIVE))
+      add(wipeButton, gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START))
+      border = empty(20, 0, 0, 0)
+    }
+
+    val actionListener: (ActionEvent) -> Unit = {
+      check(runningJob?.isActive != true) // This is an button callback. No job should be running at this point.
+      dispose()
+
+      warningPanel.remove(wipeButton)
+      warningPanel.add(
+        JLabel(message("wear.assistant.factory.reset.progress", wearDeviceName)).addBorder(empty(0, 0, 4, 0)),
+        gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START)
+      )
+      warningPanel.add(JProgressBar().apply {
+        isIndeterminate = true
+      }, gridConstraint(x = 1, y = RELATIVE, fill = HORIZONTAL))
+
+      runningJob = GlobalScope.launch(ioThread) {
+        try {
+          showUI(header = message("wear.assistant.factory.reset.title"), body = warningPanel)
+
+          val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+          avdManager.findAvd(model.selectedWearDevice.valueOrNull?.deviceID ?: "")?.apply {
+            WearPairingManager.removePairedDevices(restartWearGmsCore = false)
+            avdManager.stopAvd(this)
+            waitForCondition(10_000) { model.selectedWearDevice.valueOrNull?.isOnline() != true }
+            avdManager.wipeUserData(this)
+          }
+        }
+        finally {
+          startStepFlow()
+        }
+      }
+    }
+
+    wipeButton.addActionListener(actionListener)
+    showUI(header = message("wear.assistant.factory.reset.title"), body = warningPanel)
+  }
+
   private suspend fun showUiPairingRetry(phoneDevice: IDevice, wearDevice: IDevice) = showUiPairing(
     phoneDevice = phoneDevice,
     scanningLabel = message("wear.assistant.device.connection.pairing.not.detected"),
@@ -488,21 +542,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private fun showDeviceError(errorDevice: PairingDevice) {
     dispose()
     GlobalScope.launch(ioThread) {
-      val body = JPanel().apply {
-        layout = GridBagLayout()
-        add(
-          JBLabel(StudioIcons.Common.WARNING).withBorder(JBUI.Borders.empty(0, 0, 0, 8)),
-          gridConstraint(x = 0, y = 0)
-        )
-        add(
-          JBLabel(message("wear.assistant.device.connection.error", errorDevice.displayName)),
-          gridConstraint(x = 1, y = 0, weightx = 1.0, fill = HORIZONTAL)
-        )
-        add(
-          LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> wizardAction.restart(project) },
-          gridConstraint(x = 1, y = 1, weightx = 1.0, weighty = 1.0, fill = HORIZONTAL)
-        )
-      }
+      val body = createWarningPanel(message("wear.assistant.device.connection.error", errorDevice.displayName))
+      body.add(
+        LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> wizardAction.restart(project) },
+        gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START)
+      )
       showUI(header = currentUiHeader, description = currentUiDescription, body = body)
     }
   }
@@ -521,11 +565,16 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   }
 }
 
+private fun createWarningPanel(errorMessage: String): JPanel = JPanel(GridBagLayout()).apply {
+  add(JBLabel(IconUtil.scale(StudioIcons.Common.WARNING, null, 2f)).withBorder(empty(0, 0, 0, 8)), gridConstraint(x = 0, y = 0))
+  add(JBLabel(errorMessage), gridConstraint(x = 1, y = 0, weightx = 1.0, fill = HORIZONTAL))
+}
+
 suspend fun <T> Future<T>.await(): T {
   // There is no good way to convert a Java Future to a suspendCoroutine
   if (this is CompletionStage<*>) {
     @Suppress("UNCHECKED_CAST")
-    return this.await() as T
+    return this.await()
   }
 
   while (!isDone) {
@@ -556,4 +605,11 @@ private suspend fun devicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Bo
     return wearOutput.isNotBlank()
   }
   return false
+}
+
+private suspend fun checkWearMayNeedFactoryReset(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
+  val phoneCloudID = phoneDevice.loadCloudNetworkID()
+  val wearCloudID = wearDevice.loadCloudNetworkID()
+
+  return wearCloudID.isNotEmpty() && phoneCloudID != wearCloudID
 }

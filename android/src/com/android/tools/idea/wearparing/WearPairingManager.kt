@@ -96,7 +96,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  suspend fun removePairedDevices() {
+  suspend fun removePairedDevices(restartWearGmsCore: Boolean = true) {
     try {
       val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return
       val wearDeviceID = pairedWearDevice?.deviceID ?: return
@@ -109,8 +109,10 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         LOG.warn("[$name] Remove AUTO-forward")
         runCatching { removeForward(5601, 5601) }
       }
-      connectedDevices[wearDeviceID]?.apply {
-        restartGmsCore(this)
+      if (restartWearGmsCore) {
+        connectedDevices[wearDeviceID]?.apply {
+          restartGmsCore(this)
+        }
       }
     }
     catch (ex: Throwable) {
