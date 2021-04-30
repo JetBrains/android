@@ -17,14 +17,19 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.AddNewTable;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.Executor;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +46,7 @@ public final class PhysicalDevicePanelTest {
   private PhysicalDevice myOnlinePixel3;
   private PhysicalDeviceAsyncSupplier mySupplier;
 
-  private Executor myExecutor;
+  private CountDownLatch myLatch;
 
   @Before
   public void initComponent() {
@@ -66,8 +71,8 @@ public final class PhysicalDevicePanelTest {
   }
 
   @Before
-  public void initExecutor() {
-    myExecutor = MoreExecutors.directExecutor();
+  public void initLatch() {
+    myLatch = new CountDownLatch(1);
   }
 
   @After
@@ -76,16 +81,17 @@ public final class PhysicalDevicePanelTest {
   }
 
   @Test
-  public void newPhysicalDevicePanel() {
+  public void newPhysicalDevicePanel() throws InterruptedException {
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newAddNewTable);
 
     // Assert
+    CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
     assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "API", "Type", "Actions")), myPanel.getData());
   }
 
   @Test
-  public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() {
+  public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() throws InterruptedException {
     // Arrange
     PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
       .setSerialNumber("0A071FDD4003ZG")
@@ -94,13 +100,19 @@ public final class PhysicalDevicePanelTest {
     myComponent.set(Collections.singletonList(offlinePixel5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, myExecutor);
+    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newAddNewTable);
 
     // Assert
+    CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
+
     Object data = Arrays.asList(
       Arrays.asList(myOnlinePixel3, "API", "Type", "Actions"),
       Arrays.asList(offlinePixel5, "API", "Type", "Actions"));
 
     assertEquals(data, myPanel.getData());
+  }
+
+  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newAddNewTable(@NotNull PhysicalDevicePanel panel) {
+    return new CountDownLatchFutureCallback<>(new AddNewTable(panel), myLatch);
   }
 }
