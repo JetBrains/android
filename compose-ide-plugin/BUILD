@@ -33,7 +33,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platform-tools",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:licenses",

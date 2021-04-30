@@ -45,7 +45,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
           DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0))
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
 
-        unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+        linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
         unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
 
         // Write Perfgate metadata (e.g. benchmark descriptions).

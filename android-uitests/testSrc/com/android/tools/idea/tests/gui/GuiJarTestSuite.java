@@ -37,7 +37,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static XDisplayRule display = new XDisplayRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
     unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");

@@ -103,7 +103,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/sync-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],
     test_srcs = ["testSrc"],

@@ -32,7 +32,7 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.zip");
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
     unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");

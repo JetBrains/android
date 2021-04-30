@@ -29,7 +29,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/ide-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
