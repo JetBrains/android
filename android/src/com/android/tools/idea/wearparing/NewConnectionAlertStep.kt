@@ -27,6 +27,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.GridBagConstraints
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.NONE
+import java.awt.GridBagConstraints.NORTH
 import java.awt.GridBagConstraints.REMAINDER
 import java.awt.GridBagLayout
 import javax.swing.JComponent
@@ -100,7 +101,8 @@ class NewConnectionAlertStep(
 }
 
 internal fun gridConstraint(
-  x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1): GridBagConstraints =
+  x: Int, y: Int, weightx: Double = 0.0, weighty: Double = 0.0, fill: Int = NONE, gridwidth: Int = 1, anchor: Int = NORTH
+): GridBagConstraints =
   GridBagConstraints().apply {
     this.gridx = x
     this.gridy = y
@@ -108,5 +110,5 @@ internal fun gridConstraint(
     this.weighty = weighty
     this.fill = fill
     this.gridwidth = gridwidth
-    this.anchor = GridBagConstraints.NORTH
+    this.anchor = anchor
   }
