@@ -20,8 +20,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
-import com.android.tools.adtui.stdui.EmptyStatePanel
-import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
@@ -154,8 +152,7 @@ class AppInspectionView @VisibleForTesting constructor(
     }
 
   private val noInspectorsMessage = EmptyStatePanel(
-    AppInspectionBundle.message("select.process"),
-    UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help")
+    AppInspectionBundle.message("select.process"), "https://d.android.com/r/studio-ui/db-inspector-help"
   )
 
   /**
@@ -317,14 +314,15 @@ class AppInspectionView @VisibleForTesting constructor(
       // This happens when trying to launch an inspector on a process/device that no longer exists. In that case, we can safely
       // ignore the attempt. We can count on the UI to be refreshed soon to remove the option.
       withContext(uiDispatcher) {
-        tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", process.name)))
+        tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("process.does.not.exist", process.name), provider.learnMoreUrl))
       }
     }
     catch (e: AppInspectionLaunchException) {
       // This happens if a user is already interacting with an inspector in another window, or if Studio got killed suddenly and
       // the old inspector is still running.
       withContext(uiDispatcher) {
-        tabShell.setComponent(EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", provider.displayName)))
+        tabShell.setComponent(
+          EmptyStatePanel(AppInspectionBundle.message("inspector.launch.error", provider.displayName), provider.learnMoreUrl))
         ideServices.showNotification(
           AppInspectionBundle.message("notification.failed.launch", e.message!!),
           severity = AppInspectionIdeServices.Severity.ERROR,
@@ -333,13 +331,13 @@ class AppInspectionView @VisibleForTesting constructor(
       }
     }
     catch (e: AppInspectionVersionIncompatibleException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
+      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage(), provider.learnMoreUrl)) }
     }
     catch (e: AppInspectionLibraryMissingException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage())) }
+      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage(), provider.learnMoreUrl)) }
     }
     catch (e: AppInspectionAppProguardedException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(appProguardedMessage)) }
+      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(appProguardedMessage, provider.learnMoreUrl)) }
     }
     catch (e: Exception) {
       Logger.getInstance(AppInspectionView::class.java).error(e)
