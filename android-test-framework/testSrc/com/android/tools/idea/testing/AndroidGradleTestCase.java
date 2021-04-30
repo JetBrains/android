@@ -461,7 +461,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       requestConfigurator.consume(request);
       requestSyncAndWait(request);
-    } catch (AssertionError error) {
+    } catch (Throwable error) {
+      // TODO(b/186899123): Update this exception to AssertionFailedError once JUnit has been updated
       return error.getMessage();
     }
 
