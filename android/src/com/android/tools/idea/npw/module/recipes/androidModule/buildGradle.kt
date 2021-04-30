@@ -56,6 +56,7 @@ fun buildGradle(
     targetApi = targetApi,
     useAndroidX = useAndroidX,
     isLibraryProject = isLibraryProject,
+    isDynamicFeature = isDynamicFeature,
     explicitApplicationId = !isLibraryProject,
     applicationId = packageName,
     hasTests = hasTests,

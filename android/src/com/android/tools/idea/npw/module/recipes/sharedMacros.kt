@@ -110,6 +110,7 @@ fun androidConfig(
   targetApi: String,
   useAndroidX: Boolean,
   isLibraryProject: Boolean,
+  isDynamicFeature: Boolean,
   explicitApplicationId: Boolean,
   applicationId: String,
   hasTests: Boolean,
@@ -119,7 +120,17 @@ fun androidConfig(
   cppStandard: CppStandardType
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
-  val applicationIdBlock = renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }
+  val propertiesBlock = if (isDynamicFeature) {
+    toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)
+  }
+  else {
+    """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
+    ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
+    ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
+    versionCode 1
+    versionName "1.0"
+    """
+  }
   val testsBlock = renderIf(hasTests) {
     "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
   }
@@ -160,12 +171,7 @@ fun androidConfig(
     $buildToolsVersionBlock
 
     defaultConfig {
-      $applicationIdBlock
-      ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-      ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
-      versionCode 1
-      versionName "1.0"
-
+      $propertiesBlock
       $testsBlock
       $proguardConsumerBlock
       $cppConfigBlock
