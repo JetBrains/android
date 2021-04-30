@@ -110,6 +110,7 @@ iml_module(
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/utp[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 
@@ -377,6 +378,7 @@ iml_module(
         "//tools/adt/idea/utp[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
     ],
 )
 

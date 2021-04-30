@@ -157,5 +157,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="utp" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>
 </module>
