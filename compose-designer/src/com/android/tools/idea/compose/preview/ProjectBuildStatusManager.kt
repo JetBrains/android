@@ -26,8 +26,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.psi.KtConstantExpression
-import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** The project status */
@@ -58,11 +56,7 @@ private val LOG = Logger.getInstance(ProjectStatus::class.java)
 class ProjectBuildStatusManager(parentDisposable: Disposable, private val editorFile: PsiFile) {
   private val project: Project = editorFile.project
   private val fileChangeDetector = PsiFileChangeDetector.getInstance {
-    if (it is KtStringTemplateExpression || it is KtConstantExpression) {
-      // When live literals is available, filter changes to constants
-      return@getInstance !LiveLiteralsService.getInstance(project).isEnabled
-    }
-    return@getInstance  true
+    !LiveLiteralsService.getInstance(project).isElementManaged(it)
   }
   private val _isBuilding = AtomicBoolean(false)
   var status: ProjectStatus = NotReady

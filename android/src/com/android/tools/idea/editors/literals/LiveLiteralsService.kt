@@ -29,6 +29,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.WeakList
@@ -489,6 +490,12 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
     deploymentReportService.liveLiteralPushed(deviceId, pushId, problems)
+
+  /**
+   * Returns whether the given [PsiElement] is handled by this service. This will be the case when the element is a constant
+   * and the Live Literals are available.
+   */
+  fun isElementManaged(element: PsiElement): Boolean = isAvailable && LiteralsManager.isManaged(element)
 
   override fun dispose() {
     deactivateTracking()
