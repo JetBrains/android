@@ -152,7 +152,7 @@ class AppInspectionView @VisibleForTesting constructor(
     }
 
   private val noInspectorsMessage = EmptyStatePanel(
-    AppInspectionBundle.message("select.process"), "https://d.android.com/r/studio-ui/db-inspector-help"
+    AppInspectionBundle.message("select.process"), "https://d.android.com/r/studio-ui/app-inspector-help"
   )
 
   /**
