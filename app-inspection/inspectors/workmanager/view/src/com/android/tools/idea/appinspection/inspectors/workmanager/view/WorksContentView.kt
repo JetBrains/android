@@ -193,18 +193,22 @@ class WorksContentView(private val tab: WorkManagerInspectorTab,
 
     // Handle data changes from client.
     client.addWorksChangedListener {
+      // If new works are added immediately after old works removed, the table might miss the model change of
+      // being empty. We cache the status of client here to clear selected work and close details view when
+      // all works are removed at any time.
+      val clientNotEmpty = client.lockedWorks { it }.isNotEmpty()
       CoroutineScope(AndroidDispatchers.uiThread).launch {
         if (workSelectionModel.selectedWork != null) {
           val work = client.lockedWorks { works ->
             works.firstOrNull { it.id == workSelectionModel.selectedWork?.id }
           }
-          if (work != null) {
+          if (clientNotEmpty && work != null) {
             // Update existing work changes e.g. State changes from Running to Succeed
             workSelectionModel.setSelectedWork(work, WorkSelectionModel.Context.DEVICE)
           }
           else {
             // Select the first row from the table when the selected work is removed when Table content mode is enabled.
-            if (contentMode == Mode.TABLE && tableView.rowCount > 0) {
+            if (clientNotEmpty && contentMode == Mode.TABLE && tableView.rowCount > 0) {
               workSelectionModel.setSelectedWork(client.lockedWorks { works -> works.getOrNull(tableView.convertRowIndexToModel(0)) },
                                                  WorkSelectionModel.Context.DEVICE)
             }
