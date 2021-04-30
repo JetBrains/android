@@ -39,6 +39,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     AppInspectorJar("backgroundtask-inspection.jar",
                     developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask")
   )
+  override val learnMoreUrl = "https://d.android.com/r/studio-ui/background-task-inspector-help"
 
   override fun isApplicable(): Boolean {
     return StudioFlags.ENABLE_BACKGROUND_TASK_INSPECTOR_TAB.get()

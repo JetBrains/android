@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.appinspection.ide.ui.EmptyStatePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
@@ -166,7 +166,7 @@ class LaunchableInspectorTabLaunchParams(
  */
 class StaticInspectorTabLaunchParams(provider: AppInspectorTabProvider, private val reason: String) : InspectorTabLaunchParams(provider) {
   fun toInfoMessageTab(): JComponent {
-    return EmptyStatePanel(reason)
+    return EmptyStatePanel(reason, provider.learnMoreUrl)
   }
 }
 

@@ -45,6 +45,7 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
                     developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
     ArtifactCoordinate("androidx.work", "work-runtime", MINIMUM_WORKMANAGER_VERSION, ArtifactCoordinate.Type.AAR)
   )
+  override val learnMoreUrl = "https://d.android.com/r/studio-ui/background-task-inspector-help"
 
   override fun isApplicable(): Boolean {
     return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()
