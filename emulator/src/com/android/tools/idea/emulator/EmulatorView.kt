@@ -42,7 +42,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -502,7 +501,7 @@ class EmulatorView(
       override fun actionPerformed(event: AnActionEvent, notification: Notification) {
         notification.expire()
         val action = ActionManager.getInstance().getAction("CheckForUpdate")
-        ActionUtil.performActionDumbAware(action, event)
+        action.actionPerformed(event)
       }
     })
     notification.notify(project)
