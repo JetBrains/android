@@ -10,6 +10,7 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.ide.actions.GotoRelatedSymbolAction
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VirtualFile
@@ -20,8 +21,6 @@ import com.intellij.testFramework.TestActionEvent
 import junit.framework.TestCase
 import org.jetbrains.kotlin.psi.KtClass
 import java.io.File
-import java.util.ArrayList
-import java.util.HashSet
 
 /**
  * Tests of [AndroidGotoRelatedLineMarkerProvider] for Android.
@@ -219,9 +218,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
 
     val action = GotoRelatedSymbolAction()
     val e = TestActionEvent(action)
-    action.beforeActionPerformedUpdate(e)
-    val presentation = e.presentation
-    assertThat(presentation.isEnabled && presentation.isVisible).isTrue()
+    assertThat(ActionUtil.lastUpdateAndCheckDumb(action, e, true)).isTrue()
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
   }
 
