@@ -43,7 +43,7 @@ class VirtualToolbar(
   searchDocumentListener: DocumentListener
 ) {
   private val createAvdAction = CreateAvdAction(avdInfoProvider)
-  private val newButton = JButton("Create new AVD").apply {
+  private val newButton = JButton("Create device").apply {
     addActionListener(createAvdAction)
   }
 
