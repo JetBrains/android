@@ -17,6 +17,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.lang" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="TEST" />
   </component>
 </module>
