@@ -33,7 +33,6 @@ import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -49,18 +48,39 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
 
   private @Nullable JTable myTable;
 
+  @VisibleForTesting
+  static final class AddNewTable implements FutureCallback<List<PhysicalDevice>> {
+    private final @NotNull PhysicalDevicePanel myPanel;
+
+    @VisibleForTesting
+    AddNewTable(@NotNull PhysicalDevicePanel panel) {
+      myPanel = panel;
+    }
+
+    @Override
+    public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
+      assert devices != null;
+      myPanel.addNewTable(myPanel.addOfflineDevices(devices));
+    }
+
+    @Override
+    public void onFailure(@NotNull Throwable throwable) {
+      Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
+    }
+  }
+
   PhysicalDevicePanel(@Nullable Project project) {
     this(PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
          new PhysicalDeviceAsyncSupplier(project),
-         EdtExecutorService.getInstance());
+         AddNewTable::new);
   }
 
   @VisibleForTesting
   PhysicalDevicePanel(@NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Executor executor) {
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newAddNewTable) {
     super(new BorderLayout());
 
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
@@ -69,18 +89,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     add(new JBTable(new PhysicalDeviceTableModel()).getTableHeader(), BorderLayout.NORTH);
     add(new JBLabel("No physical devices added. Connect a device via USB cable.", SwingConstants.CENTER), BorderLayout.CENTER);
 
-    FutureUtils.addCallback(supplier.get(), executor, new FutureCallback<@Nullable List<@NotNull PhysicalDevice>>() {
-      @Override
-      public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
-        assert devices != null;
-        addNewTable(addOfflineDevices(devices));
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable throwable) {
-        Logger.getInstance(PhysicalDevicePanel.class).warn(throwable);
-      }
-    });
+    FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newAddNewTable.apply(this));
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {

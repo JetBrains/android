@@ -22,10 +22,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -62,35 +59,14 @@ public final class PhysicalDeviceChangeListenerTest {
 
     CountDownLatch latch = new CountDownLatch(1);
 
-    FutureCallback<PhysicalDevice> callback = new CountDownLatchAddOrSet(myModel, latch);
+    FutureCallback<PhysicalDevice> callback = new CountDownLatchFutureCallback<>(new AddOrSet(myModel), latch);
     IDeviceChangeListener listener = new PhysicalDeviceChangeListener(myBridge, () -> myService, callback);
 
     // Act
     listener.deviceChanged(myDevice, IDevice.CHANGE_STATE);
 
     // Assert
-    waitFor(latch, Duration.ofMillis(512));
+    CountDownLatchAssert.await(latch, Duration.ofMillis(512));
     Mockito.verify(myModel).addOrSet(physicalDevice);
-  }
-
-  private static final class CountDownLatchAddOrSet extends AddOrSet {
-    private final @NotNull CountDownLatch myLatch;
-
-    private CountDownLatchAddOrSet(@NotNull PhysicalDeviceTableModel model, @NotNull CountDownLatch latch) {
-      super(model);
-      myLatch = latch;
-    }
-
-    @Override
-    public void onSuccess(@Nullable PhysicalDevice device) {
-      super.onSuccess(device);
-      myLatch.countDown();
-    }
-  }
-
-  private static void waitFor(@NotNull CountDownLatch latch, @NotNull Duration duration) throws InterruptedException {
-    if (!latch.await(duration.toMillis(), TimeUnit.MILLISECONDS)) {
-      Assert.fail();
-    }
   }
 }
