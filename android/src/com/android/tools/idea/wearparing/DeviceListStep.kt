@@ -96,8 +96,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
       NewConnectionAlertStep(model, project),
-      DevicesConnectionStep(model, project, true, wizardAction),
-      DevicesConnectionStep(model, project, false, wizardAction)
+      DevicesConnectionStep(model, project, wizardAction),
     )
   }
 
