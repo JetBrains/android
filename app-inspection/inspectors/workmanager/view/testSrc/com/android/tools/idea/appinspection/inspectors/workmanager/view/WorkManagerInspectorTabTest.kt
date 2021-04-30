@@ -428,6 +428,25 @@ class WorkManagerInspectorTabTest {
   }
 
   @Test
+  fun removeSelectedWork_selectBackupWork() = runBlocking {
+    val backupWorkInfo = fakeWorkInfo.toBuilder().setId("backup").build()
+    sendWorkAddedEvent(fakeWorkInfo)
+    sendWorkAddedEvent(backupWorkInfo)
+    lateinit var inspectorTab: WorkManagerInspectorTab
+    launch(uiDispatcher) {
+      inspectorTab = WorkManagerInspectorTab(client, ideServices, scope)
+      inspectorTab.isDetailsViewVisible = true
+      val table = inspectorTab.getTable()
+      table.selectionModel.setSelectionInterval(0, 0)
+      assertThat(inspectorTab.getDetailsView()).isNotNull()
+    }.join()
+    sendWorkRemovedEvent(fakeWorkInfo.id)
+    launch(uiDispatcher) {
+      assertThat(inspectorTab.workSelectionModel.selectedWork).isEqualTo(backupWorkInfo)
+    }.join()
+  }
+
+  @Test
   fun removeAllWorks_detailsViewClosed() = runBlocking {
     sendWorkAddedEvent(fakeWorkInfo)
     lateinit var inspectorTab: WorkManagerInspectorTab
@@ -438,7 +457,11 @@ class WorkManagerInspectorTabTest {
       table.selectionModel.setSelectionInterval(0, 0)
       assertThat(inspectorTab.getDetailsView()).isNotNull()
     }.join()
+    // After removing fakeWorkInfo, the table becomes empty and the details view should be closed.
     sendWorkRemovedEvent(fakeWorkInfo.id)
+    // Adding backupWorkInfo should not select a new work.
+    val backupWorkInfo = fakeWorkInfo.toBuilder().setId("backup").build()
+    sendWorkAddedEvent(backupWorkInfo)
     launch(uiDispatcher) {
       assertThat(inspectorTab.getDetailsView()).isNull()
     }.join()
