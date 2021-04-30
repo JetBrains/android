@@ -646,10 +646,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val projectPath = resolverCtx.projectPath
     SdkSync.getInstance().syncAndroidSdks(projectPath)
     val project = project
-    val settings = resolverCtx.settings
-    if (settings != null) { // In Android Studio we always have settings.
-      validateProjectGradleJdk(settings.javaHome!!)
+
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      // do not confuse IDEA users with warnings and quick fixes that suggest something about Android Studio in pure gradle-java projects (IDEA-266355)
+
+      val settings = resolverCtx.settings
+      if (settings != null) { // In Android Studio we always have settings.
+        // TODO(JetBrains): check if we should move JdkImportCheck to platform (IDEA-268384)
+        validateProjectGradleJdk(settings.javaHome!!)
+      }
     }
+
     displayInternalWarningIfForcedUpgradesAreDisabled()
     project?.getService(AssistantInvoker::class.java)?.expireProjectUpgradeNotifications(project)
     if (IdeInfo.getInstance().isAndroidStudio) {
