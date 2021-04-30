@@ -41,7 +41,6 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
-    boolean deviceManagerEnabled = StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get();
 
     switch (event.getPlace()) {
       case ActionPlaces.TOOLBAR:
@@ -51,10 +50,10 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
         break;
       case ActionPlaces.UNKNOWN:
         // run target menu
-        presentation.setText(deviceManagerEnabled ? "Open Device Manager" : "Open AVD Manager");
+        presentation.setText(redirectToDeviceManager() ? "Open Device Manager" : "Open AVD Manager");
         break;
       default:
-        presentation.setText(deviceManagerEnabled ? "Device Manager" : "AVD Manager");
+        presentation.setText(redirectToDeviceManager() ? "Device Manager" : "AVD Manager");
         break;
     }
 
@@ -72,7 +71,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
-    if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
+    if (redirectToDeviceManager()) {
       openDeviceManager(project);
     }
     else {
@@ -105,6 +104,10 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     if (deviceManager != null) {
       deviceManager.show(null);
     }
+  }
+
+  private static boolean redirectToDeviceManager() {
+    return StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() && StudioFlags.POINT_AVD_MANAGER_TO_DEVICE_MANAGER.get();
   }
 
   @Nullable
