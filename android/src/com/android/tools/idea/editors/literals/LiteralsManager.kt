@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.application.ReadAction
@@ -256,8 +257,13 @@ private open class LiteralReferenceImpl(originalElement: PsiElement,
                                         uniqueIdProvider: PsiElementUniqueIdProvider,
                                         usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
                                         final override val initialConstantValue: Any,
-                                        private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
-  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement)
+                                        private val constantEvaluator: ConstantEvaluator,
+                                        onElementAttached: (PsiElement) -> Unit) : LiteralReference, ModificationTracker {
+  init {
+    onElementAttached(originalElement)
+  }
+
+  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement, onElementAttached)
   override val fileName = originalElement.containingFile.name
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
   override val initialTextRange: TextRange = constantEvaluator.range(originalElement)
@@ -381,7 +387,12 @@ class LiteralsManager(
               element.entries.forEach {
                 if (it is KtLiteralStringTemplateEntry) {
                   savedLiterals.add(
-                    LiteralReferenceImpl(it, uniqueIdProvider, literalUsageReferenceProvider, it.text, PsiTextConstantEvaluator))
+                    LiteralReferenceImpl(it,
+                                         uniqueIdProvider,
+                                         literalUsageReferenceProvider,
+                                         it.text,
+                                         PsiTextConstantEvaluator,
+                                         Companion::markAsManaged))
                 }
               }
             }
@@ -390,7 +401,8 @@ class LiteralsManager(
               savedLiterals.add(
                 LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
                                      KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
-                                     KotlinLiteralTemplateConstantEvaluator))
+                                     KotlinLiteralTemplateConstantEvaluator,
+                                     Companion::markAsManaged))
             }
             return
           }
@@ -398,7 +410,12 @@ class LiteralsManager(
           if (constantType.isInstance(element)) {
             constantEvaluator.evaluate(element)?.let {
               // This is a regular constant, save it.
-              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider, it, constantEvaluator))
+              savedLiterals.add(LiteralReferenceImpl(element,
+                                                     uniqueIdProvider,
+                                                     literalUsageReferenceProvider,
+                                                     it,
+                                                     constantEvaluator,
+                                                     Companion::markAsManaged))
             }
             return
           }
@@ -425,6 +442,21 @@ class LiteralsManager(
       LOG.warn("Only Kotlin is supported for LiveLiterals")
       EmptyLiteralReferenceSnapshot
     }
+
+  companion object {
+    private val MANAGED_KEY: Key<Boolean> = Key.create(Companion::MANAGED_KEY.qualifiedName)
+
+    /**
+     * Returns whether a given element is currently being managed by the [LiteralsManager]. It means that changes on it are
+     * tracked by this service.
+     */
+    internal fun isManaged(element: PsiElement) = element.isValid && element.getCopyableUserData(MANAGED_KEY) != null
+
+    /**
+     * Marks the given element as managed.
+     */
+    private fun markAsManaged(element: PsiElement) = element.putCopyableUserData(MANAGED_KEY, true)
+  }
 }
 
 /**
