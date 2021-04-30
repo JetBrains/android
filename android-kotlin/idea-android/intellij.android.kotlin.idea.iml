@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" />
+    <orderEntry type="module" module-name="intellij.android.kotlin-dependencies" scope="PROVIDED" />
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
