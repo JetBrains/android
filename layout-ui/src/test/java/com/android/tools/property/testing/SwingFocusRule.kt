@@ -226,8 +226,6 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun isFocusTransferEnabled(): Boolean = true
 
-    override fun setTypeaheadEnabled(enabled: Boolean) {}
-
     override fun runOnOwnContext(context: DataContext, runnable: Runnable) = runnable.run()
 
     override fun getLastFocusedFor(frame: Window?): Component? = null
