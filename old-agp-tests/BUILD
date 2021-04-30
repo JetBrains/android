@@ -33,7 +33,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-5.3.1",
         "//tools/base/build-system:gradle-distrib-5.5",
         "//tools/base/build-system:gradle-distrib-6.5",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:3.3.2.zip",
         "//tools/base/build-system/previous-versions:3.5.0.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",

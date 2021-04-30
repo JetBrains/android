@@ -15,7 +15,7 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],

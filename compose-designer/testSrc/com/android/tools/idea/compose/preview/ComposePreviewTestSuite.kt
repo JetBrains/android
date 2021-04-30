@@ -26,7 +26,7 @@ class ComposePreviewTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
       unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
-      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+      linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip")
     }
   }

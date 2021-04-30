@@ -62,7 +62,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     ],

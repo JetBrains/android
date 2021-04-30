@@ -47,7 +47,7 @@ iml_module(
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/nav/safeargs/testData",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:studio_repo.zip",
+        "//tools/base/build-system:studio_repo",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

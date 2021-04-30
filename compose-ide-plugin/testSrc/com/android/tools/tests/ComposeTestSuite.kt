@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 class ComposeTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+      linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip")
     }
   }
