@@ -30,7 +30,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.SYNC_ISSUE;
-import static com.android.tools.idea.gradle.project.sync.idea.issues.GradleWrapperImportCheck.validateGradleWrapper;
 import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.displayForceUpdatesDisabledMessage;
 import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
@@ -853,10 +852,14 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
     syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
 
-    JdkImportCheck.validateJdk();
-    validateGradleWrapper(resolverCtx.getProjectPath());
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      // do not confuse IDEA users with warnings and quick fixes that suggest something about Android Studio in pure gradle-java projects (IDEA-266355)
 
-    displayInternalWarningIfForcedUpgradesAreDisabled();
+      // TODO: check if we should move JdkImportCheck to platform (IDEA-268384)
+      JdkImportCheck.validateJdk();
+      displayInternalWarningIfForcedUpgradesAreDisabled();
+    }
+
     expireProjectUpgradeNotifications(myProjectFinder.findProject(resolverCtx));
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
