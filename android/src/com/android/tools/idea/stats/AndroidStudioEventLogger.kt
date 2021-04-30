@@ -18,6 +18,7 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.FileUsage
+import com.google.wireless.android.sdk.stats.VfsRefresh
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
@@ -30,6 +31,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     when (group.id) {
       "file.types.usage" -> logFileUsage(data)
+      "vfs" -> logVfsEvent(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
   }
@@ -45,5 +47,17 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["plugin_type"] as? String)?.let { pluginType = it }
       }.build()
     })
+  }
+
+  private fun logVfsEvent(eventId: String, data: Map<String, Any>) {
+    if (!eventId.equals("refreshed")) { // eventId as declared in com.intellij.openapi.vfs.newvfs.RefreshProgress
+      return
+    }
+
+    (data["duration_ms"] as? Long)?.let { durationMs ->
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.VFS_REFRESH)
+                         .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs)))
+    }
   }
 }
