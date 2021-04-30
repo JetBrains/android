@@ -176,9 +176,6 @@ studio_plugin(
             "//tools/adt/idea/inspectors-common/api-ide:intellij.android.inspectors-common.api-ide",
             "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui",
         ],
-        "jps/android-jps-plugin.jar": [
-            "//tools/adt/idea/jps-plugin:intellij.android.jps",
-        ],
         "layoutlib-loader.jar": [
             "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader",
         ],
