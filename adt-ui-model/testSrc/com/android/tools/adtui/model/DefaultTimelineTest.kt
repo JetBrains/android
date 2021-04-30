@@ -28,8 +28,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 1.0)
     timeline.viewRange.set(0.0, 1.0)
     timeline.zoomIn()
-    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.25)
-    assertThat(timeline.viewRange.max).isWithin(DELTA).of(0.75)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.125)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(0.875)
   }
 
   @Test
@@ -43,27 +43,27 @@ class DefaultTimelineTest {
   @Test
   fun zoomOut() {
     timeline.dataRange.set(0.0, 5.0)
-    timeline.viewRange.set(1.0, 2.0)
+    timeline.viewRange.set(1.0, 2.5)
     timeline.zoomOut()
-    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.5)
-    assertThat(timeline.viewRange.max).isWithin(DELTA).of(2.5)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.75)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(2.75)
   }
 
   @Test
   fun zoomOut_DataRangeLowerBound() {
     timeline.dataRange.set(0.0, 5.0)
-    timeline.viewRange.set(0.5, 2.5)
+    timeline.viewRange.set(0.5, 3.5)
     timeline.zoomOut()
     assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.0)
-    assertThat(timeline.viewRange.max).isWithin(DELTA).of(3.5)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(4.0)
   }
 
   @Test
   fun zoomOut_DataRangeUpperBound() {
     timeline.dataRange.set(0.0, 5.0)
-    timeline.viewRange.set(2.5, 4.5)
+    timeline.viewRange.set(1.75, 4.75)
     timeline.zoomOut()
-    assertThat(timeline.viewRange.min).isWithin(DELTA).of(1.5)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(1.25)
     assertThat(timeline.viewRange.max).isWithin(DELTA).of(5.0)
   }
 

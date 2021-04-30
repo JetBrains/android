@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * A default implementation of {@link Timeline}.
  */
 public class DefaultTimeline implements Timeline {
-  private static final double DEFAULT_ZOOM_RATIO = 0.5;
+  private static final double DEFAULT_ZOOM_RATIO = 0.75;
 
   private final Range myDataRange = new Range();
   private final Range myViewRange = new Range();
