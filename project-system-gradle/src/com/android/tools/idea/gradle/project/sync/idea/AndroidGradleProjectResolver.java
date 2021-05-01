@@ -839,13 +839,15 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     simulateRegisteredSyncError();
 
-    syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
+    String projectPath = resolverCtx.getProjectPath();
+    syncAndroidSdks(SdkSync.getInstance(), projectPath);
 
-    JdkImportCheck.validateJdk();
-    validateGradleWrapper(resolverCtx.getProjectPath());
+    Project project = myProjectFinder.findProject(resolverCtx);
+    JdkImportCheck.validateProjectGradleJdk(project, projectPath);
+    validateGradleWrapper(projectPath);
 
     displayInternalWarningIfForcedUpgradesAreDisabled();
-    expireProjectUpgradeNotifications(myProjectFinder.findProject(resolverCtx));
+    expireProjectUpgradeNotifications(project);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
