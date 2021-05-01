@@ -495,15 +495,9 @@ def _android_studio_os(ctx, platform, out):
         _stamp_platform_plugin(ctx, platform, platform_zip, plugin, stamp)
         overrides += [(platform_prefix, stamp)]
 
-    res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
-    files += [(platform.base_path + d, f) for (d, f) in res]
-
     dev01 = ctx.actions.declare_file(ctx.attr.name + ".dev01." + platform.name)
     ctx.actions.write(dev01, "")
     files += [(platform.base_path + "license/dev01_license.txt", dev01)]
-
-    module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
-    files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
     so_jars = [("%s%s" % (platform.base_path, jar), f) for (jar, f) in ctx.attr.searchable_options.searchable_options]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
@@ -576,10 +570,6 @@ _android_studio = rule(
     attrs = {
         "platform": attr.label(),
         "jre": attr.label(),
-        "modules": attr.label_list(),
-        "jars": attr.string_list(),
-        "resources": attr.label_list(),
-        "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
         "searchable_options": attr.label(),
         "version_micro": attr.int(),
@@ -635,18 +625,9 @@ _android_studio = rule(
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
 def android_studio(
         name,
-        modules = {},
-        resources = {},
         **kwargs):
-    jars, modules_list = _dict_to_lists(modules)
-    resources_dirs, resources_list = _dict_to_lists(resources)
-
     _android_studio(
         name = name,
-        modules = modules_list,
-        jars = jars,
-        resources = resources_list,
-        resources_dirs = resources_dirs,
         compress = _is_release(),
         **kwargs
     )
