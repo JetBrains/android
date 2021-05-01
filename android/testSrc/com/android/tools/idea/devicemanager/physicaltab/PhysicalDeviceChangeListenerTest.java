@@ -51,11 +51,7 @@ public final class PhysicalDeviceChangeListenerTest {
   @Test
   public void deviceChanged() throws InterruptedException {
     // Arrange
-    PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
-    Mockito.when(myService.build(myDevice)).thenReturn(Futures.immediateFuture(physicalDevice));
+    Mockito.when(myService.build(myDevice)).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -67,6 +63,6 @@ public final class PhysicalDeviceChangeListenerTest {
 
     // Assert
     CountDownLatchAssert.await(latch, Duration.ofMillis(512));
-    Mockito.verify(myModel).addOrSet(physicalDevice);
+    Mockito.verify(myModel).addOrSet(TestPhysicalDevices.GOOGLE_PIXEL_3);
   }
 }

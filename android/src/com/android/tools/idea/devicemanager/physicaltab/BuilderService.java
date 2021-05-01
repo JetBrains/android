@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.util.Targets;
@@ -82,12 +83,15 @@ final class BuilderService {
       time = mySerialNumberToOnlineTimeMap.remove(serialNumber);
     }
 
+    AndroidVersion version = device.getVersion();
+
     return new PhysicalDevice.Builder()
       .setSerialNumber(serialNumber)
       .setLastOnlineTime(time)
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
       .setOnline(online)
-      .setTarget(Targets.toString(device.getVersion()))
+      .setTarget(Targets.toString(version))
+      .setApi(version.getApiString())
       .build();
   }
 }

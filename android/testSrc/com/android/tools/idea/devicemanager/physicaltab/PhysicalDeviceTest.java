@@ -34,27 +34,42 @@ public final class PhysicalDeviceTest {
     Object device1 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber1")
       .setLastOnlineTime(time1)
+      .setName("Google Pixel 3")
       .setOnline(true)
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     Object device2 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber2")
       .setLastOnlineTime(time2)
+      .setName("Google Pixel 3")
       .setOnline(true)
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     Object device3 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber3")
       .setLastOnlineTime(time1)
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     Object device4 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber4")
       .setLastOnlineTime(time2)
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     Object device5 = new PhysicalDevice.Builder()
       .setSerialNumber("serialNumber5")
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     List<Object> devices = Arrays.asList(device5, device4, device2, device1, device3);

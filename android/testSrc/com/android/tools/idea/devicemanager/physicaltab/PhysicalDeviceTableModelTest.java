@@ -26,7 +26,6 @@ import java.util.List;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -35,26 +34,25 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceTableModelTest {
-  private static final @NotNull PhysicalDevice OFFLINE_PIXEL_3 = new PhysicalDevice.Builder()
-    .setSerialNumber("86UX00F4R")
-    .build();
-
   @Test
   public void newPhysicalDeviceTableModel() {
     // Arrange
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setSerialNumber("0A071FDD4003ZG")
       .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
+      .setName("Google Pixel 5")
       .setOnline(true)
+      .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
-    List<PhysicalDevice> devices = Arrays.asList(OFFLINE_PIXEL_3, onlinePixel5);
+    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5);
 
     // Act
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
   }
 
   @Test
@@ -62,19 +60,22 @@ public final class PhysicalDeviceTableModelTest {
     // Arrange
     TableModelListener listener = Mockito.mock(TableModelListener.class);
 
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(OFFLINE_PIXEL_3));
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     model.addTableModelListener(listener);
 
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setSerialNumber("0A071FDD4003ZG")
+      .setName("Google Pixel 5")
       .setOnline(true)
+      .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     // Act
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -82,31 +83,31 @@ public final class PhysicalDeviceTableModelTest {
   public void addOrSetModelRowIndexDoesntEqualNegativeOne() {
     // Arrange
     TableModelListener listener = Mockito.mock(TableModelListener.class);
+    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.GOOGLE_PIXEL_5);
 
-    PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
-      .setSerialNumber("0A071FDD4003ZG")
-      .build();
-
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Arrays.asList(OFFLINE_PIXEL_3, offlinePixel5));
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
     model.addTableModelListener(listener);
 
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
       .setSerialNumber("0A071FDD4003ZG")
+      .setName("Google Pixel 5")
       .setOnline(true)
+      .setTarget("Android 11.0")
+      .setApi("30")
       .build();
 
     // Act
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, OFFLINE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
   public void getRowCount() {
     // Arrange
-    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(OFFLINE_PIXEL_3));
+    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     // Act
     int count = model.getRowCount();
@@ -118,12 +119,12 @@ public final class PhysicalDeviceTableModelTest {
   @Test
   public void getValueAt() {
     // Arrange
-    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(OFFLINE_PIXEL_3));
+    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     // Act
     Object value = model.getValueAt(0, 0);
 
     // Assert
-    assertEquals(OFFLINE_PIXEL_3, value);
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, value);
   }
 }

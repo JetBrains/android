@@ -105,7 +105,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return "API";
+        return myDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
         return "Type";
       case ACTIONS_MODEL_COLUMN_INDEX:

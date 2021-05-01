@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
+import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.intellij.ide.ui.laf.darcula.DarculaTableSelectedCellHighlightBorder;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
@@ -45,7 +46,10 @@ public final class DeviceTableCellRendererTest {
 
     Device device = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
+      .setName("Google Pixel 3")
       .setOnline(true)
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     // Act
@@ -64,18 +68,14 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Device device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
-    assertEquals(device.getIcon(), renderer.getIconLabel().getIcon());
-    assertEquals(device.getName(), renderer.getNameLabel().getText());
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
     assertNull(renderer.getOnlineLabel().getIcon());
-    assertEquals(device.getTarget(), renderer.getLine2Label().getText());
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
   }
 
   @Test
@@ -84,12 +84,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, true, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
 
     // Assert
     assertEquals(myTable.getSelectionBackground(), renderer.getPanel().getBackground());
@@ -101,12 +97,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
     assertEquals(myTable.getBackground(), renderer.getPanel().getBackground());
@@ -120,12 +112,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", border);
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
     assertEquals(border, renderer.getPanel().getBorder());
@@ -139,12 +127,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.focusSelectedCellHighlightBorder", border);
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, true, true, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, true, 0, 0);
 
     // Assert
     assertEquals(border, renderer.getPanel().getBorder());
@@ -155,12 +139,8 @@ public final class DeviceTableCellRendererTest {
     // Arrange
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, true, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, true, 0, 0);
 
     // Assert
     assertEquals(UIManager.getBorder("Table.focusCellHighlightBorder"), renderer.getPanel().getBorder());
@@ -172,12 +152,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, true, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
 
     // Assert
     assertEquals(myTable.getSelectionForeground(), renderer.getNameLabel().getForeground());
@@ -189,12 +165,8 @@ public final class DeviceTableCellRendererTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
 
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     // Act
-    renderer.getTableCellRendererComponent(myTable, device, false, false, 0, 0);
+    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
     assertEquals(myTable.getForeground(), renderer.getNameLabel().getForeground());

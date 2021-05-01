@@ -31,16 +31,12 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   private final @NotNull String mySerialNumber;
   private final @Nullable Instant myLastOnlineTime;
+  private final @NotNull String myApi;
 
   public static final class Builder extends Device.Builder {
     private @Nullable String mySerialNumber;
     private @Nullable Instant myLastOnlineTime;
-
-    // TODO Initialize myName and myTarget properly
-    public Builder() {
-      myName = "Physical Device";
-      myTarget = "Target";
-    }
+    private @Nullable String myApi;
 
     public @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
       mySerialNumber = serialNumber;
@@ -52,18 +48,23 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
-    @NotNull Builder setName(@NotNull String name) {
+    public @NotNull Builder setName(@NotNull String name) {
       myName = name;
       return this;
     }
 
-    public @NotNull Builder setOnline(@SuppressWarnings("SameParameterValue") boolean online) {
+    public @NotNull Builder setOnline(boolean online) {
       myOnline = online;
       return this;
     }
 
-    @NotNull Builder setTarget(@NotNull String target) {
+    public @NotNull Builder setTarget(@NotNull String target) {
       myTarget = target;
+      return this;
+    }
+
+    public @NotNull Builder setApi(@NotNull String api) {
+      myApi = api;
       return this;
     }
 
@@ -80,6 +81,9 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     mySerialNumber = builder.mySerialNumber;
 
     myLastOnlineTime = builder.myLastOnlineTime;
+
+    assert builder.myApi != null;
+    myApi = builder.myApi;
   }
 
   @NotNull String getSerialNumber() {
@@ -90,19 +94,13 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return myLastOnlineTime;
   }
 
-  @NotNull String toDebugString() {
-    String separator = System.lineSeparator();
-
-    return "serialNumber = " + mySerialNumber + separator
-           + "lastOnlineTime = " + myLastOnlineTime + separator
-           + "name = " + myName + separator
-           + "online = " + myOnline + separator
-           + "target = " + myTarget + separator;
+  @Override
+  public @NotNull Icon getIcon() {
+    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
   }
 
-  @Override
-  protected @NotNull Icon getIcon() {
-    return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
+  @NotNull String getApi() {
+    return myApi;
   }
 
   @Override
@@ -113,6 +111,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
+    hashCode = 31 * hashCode + myApi.hashCode();
 
     return hashCode;
   }
@@ -129,7 +128,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
            myName.equals(device.myName) &&
            myOnline == device.myOnline &&
-           myTarget.equals(device.myTarget);
+           myTarget.equals(device.myTarget) &&
+           myApi.equals(device.myApi);
   }
 
   @Override
