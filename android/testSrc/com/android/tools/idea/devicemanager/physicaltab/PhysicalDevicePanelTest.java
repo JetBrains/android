@@ -16,11 +16,15 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
+import com.android.tools.idea.adb.wireless.WiFiPairingController;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetTableModel;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import javax.swing.AbstractButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -40,6 +45,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDevicePanelTest {
   private PhysicalDevicePanel myPanel;
+  private PairDevicesUsingWiFiService myService;
   private PhysicalTabPersistentStateComponent myComponent;
   private Disposable myListener;
 
@@ -47,6 +53,11 @@ public final class PhysicalDevicePanelTest {
   private PhysicalDeviceAsyncSupplier mySupplier;
 
   private CountDownLatch myLatch;
+
+  @Before
+  public void mockService() {
+    myService = Mockito.mock(PairDevicesUsingWiFiService.class);
+  }
 
   @Before
   public void initComponent() {
@@ -83,7 +94,12 @@ public final class PhysicalDevicePanelTest {
   @Test
   public void newPhysicalDevicePanel() throws InterruptedException {
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newSetTableModel);
+    myPanel = new PhysicalDevicePanel(null,
+                                      project -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      mySupplier,
+                                      this::newSetTableModel);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -100,7 +116,12 @@ public final class PhysicalDevicePanelTest {
     myComponent.set(Collections.singletonList(offlinePixel5));
 
     // Act
-    myPanel = new PhysicalDevicePanel(() -> myComponent, model -> myListener, mySupplier, this::newSetTableModel);
+    myPanel = new PhysicalDevicePanel(null,
+                                      project -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      mySupplier,
+                                      this::newSetTableModel);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -114,5 +135,40 @@ public final class PhysicalDevicePanelTest {
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetTableModel(@NotNull PhysicalDevicePanel panel) {
     return new CountDownLatchFutureCallback<>(new SetTableModel(panel), myLatch);
+  }
+
+  @Test
+  public void initPairUsingWiFiButtonFeatureIsntEnabled() {
+    // Arrange
+    Project project = Mockito.mock(Project.class);
+
+    // Act
+    myPanel = new PhysicalDevicePanel(project, p -> myService, () -> myComponent, model -> myListener, mySupplier, SetTableModel::new);
+
+    // Assert
+    assertNull(myPanel.getPairUsingWiFiButton());
+  }
+
+  @Test
+  public void initPairUsingWiFiButton() {
+    // Arrange
+    Project project = Mockito.mock(Project.class);
+
+    WiFiPairingController controller = Mockito.mock(WiFiPairingController.class);
+
+    Mockito.when(myService.isFeatureEnabled()).thenReturn(true);
+    Mockito.when(myService.createPairingDialogController()).thenReturn(controller);
+
+    // Act
+    myPanel = new PhysicalDevicePanel(project, p -> myService, () -> myComponent, model -> myListener, mySupplier, SetTableModel::new);
+
+    AbstractButton button = myPanel.getPairUsingWiFiButton();
+    assert button != null;
+
+    button.doClick();
+
+    // Assert
+    assertEquals("Pair using Wi-Fi", button.getText());
+    Mockito.verify(controller).showDialog();
   }
 }
