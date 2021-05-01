@@ -43,7 +43,7 @@ class PropertyTextField(
     registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
     registerActionKey({ backTab() }, KeyStrokes.BACKTAB, "backTab")
-    registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
+    registerActionKey({}, KeyStrokes.ESCAPE, "escape", { escape() })
     HelpSupportBinding.registerHelpKeyActions(this, { editorModel.property })
     addFocusListener(TextEditorFocusListener(this, this, editorModel))
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
@@ -119,11 +119,13 @@ class PropertyTextField(
     return true
   }
 
-  private fun escape() {
-    if (escapeInLookup()) {
-      return
+  /** Returns true if it should consume the Escape key event */
+  private fun escape(): Boolean {
+    val inLookup = escapeInLookup()
+    if (!inLookup) {
+      editorModel.escape()
     }
-    editorModel.escape()
+    return inLookup
   }
 
   companion object {
