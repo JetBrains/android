@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.inspections;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -26,7 +25,9 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.XmlRecursiveElementVisitor;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlChildRole;
 import com.intellij.psi.xml.XmlFile;
@@ -82,10 +83,7 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
     }
 
     if (isMyFile(facet, (XmlFile)file)) {
-      // Support attributes defined by @BindingAdapter annotations.
-      DataBindingAnnotationsService bindingAnnotationsService = DataBindingAnnotationsService.getInstance(facet);
-      Set<String> bindingAdapterAttributes = bindingAnnotationsService.getBindingAdapterAttributes();
-      MyVisitor visitor = new MyVisitor(manager, bindingAdapterAttributes, isOnTheFly);
+      MyVisitor visitor = new MyVisitor(manager, isOnTheFly);
       file.accept(visitor);
       return visitor.myResult.toArray(ProblemDescriptor.EMPTY_ARRAY);
     }
@@ -113,13 +111,11 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
 
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
-    private final Set<String> myBindingAdapterAttributes;
     private final boolean myOnTheFly;
     final List<ProblemDescriptor> myResult = new ArrayList<>();
 
-    private MyVisitor(InspectionManager inspectionManager, Set<String> bindingAdapterAttributes, boolean onTheFly) {
+    private MyVisitor(InspectionManager inspectionManager, boolean onTheFly) {
       myInspectionManager = inspectionManager;
-      myBindingAdapterAttributes = bindingAdapterAttributes;
       myOnTheFly = onTheFly;
     }
 
@@ -142,19 +138,21 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
 
           if (attribute.getDescriptor() instanceof AndroidAnyAttributeDescriptor) {
 
-            if (myBindingAdapterAttributes.contains(attribute.getName())) {
-              // Attribute is defined by @BindingAdapter annotation.
-              return;
-            }
-
             final ASTNode node = attribute.getNode();
             assert node != null;
             ASTNode nameNode = XmlChildRole.ATTRIBUTE_NAME_FINDER.findChild(node);
             final PsiElement nameElement = nameNode != null ? nameNode.getPsi() : null;
             if (nameElement != null) {
-              myResult.add(myInspectionManager.createProblemDescriptor(nameElement, AndroidBundle
-                .message("android.inspections.unknown.attribute.message", attribute.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
-                                                                       ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
+              // If here, it means we might have an attribute that is dynamically provided by data binding. We can use
+              // ReferenceProvidersRegistry which ultimately delegates to DataBindingXmlAttributeReferenceContributor, which will return
+              // references if it found any, e.g. those annotated with @BindingAdapter and @BindingMethod.
+              PsiReference[] providers = ReferenceProvidersRegistry.getReferencesFromProviders(attribute);
+              if (providers.length == 0) {
+                myResult.add(myInspectionManager.createProblemDescriptor(
+                  nameElement, AndroidBundle.message("android.inspections.unknown.attribute.message", attribute.getName()), myOnTheFly,
+                  LocalQuickFix.EMPTY_ARRAY,
+                  ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
+              }
             }
           }
         }
