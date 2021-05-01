@@ -100,6 +100,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "target", nameAttribute = "")
     private @Nullable String target;
 
+    @OptionTag(tag = "api", nameAttribute = "")
+    private @Nullable String api;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
     }
@@ -109,18 +112,21 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       lastOnlineTime = device.getLastOnlineTime();
       name = device.getName();
       target = device.getTarget();
+      api = device.getApi();
     }
 
     private @NotNull PhysicalDevice asPhysicalDevice() {
       assert serialNumber != null;
       assert name != null;
       assert target != null;
+      assert api != null;
 
       return new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
         .setLastOnlineTime(lastOnlineTime)
         .setName(name)
         .setTarget(target)
+        .setApi(api)
         .build();
     }
 
@@ -131,6 +137,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
       hashCode = 31 * hashCode + Objects.hashCode(name);
       hashCode = 31 * hashCode + Objects.hashCode(target);
+      hashCode = 31 * hashCode + Objects.hashCode(api);
 
       return hashCode;
     }
@@ -146,7 +153,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       return Objects.equals(serialNumber, device.serialNumber) &&
              Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
              Objects.equals(name, device.name) &&
-             Objects.equals(target, device.target);
+             Objects.equals(target, device.target) &&
+             Objects.equals(api, device.api);
     }
   }
 }

@@ -64,6 +64,7 @@ public final class BuilderServiceTest {
       .setName("Google Pixel 3")
       .setOnline(true)
       .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));
@@ -75,12 +76,6 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
-      .build();
-
-    assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));
+    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(256, TimeUnit.MILLISECONDS));
   }
 }

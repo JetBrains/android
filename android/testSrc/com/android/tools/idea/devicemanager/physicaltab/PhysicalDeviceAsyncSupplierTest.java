@@ -47,12 +47,8 @@ public final class PhysicalDeviceAsyncSupplierTest {
 
     ListenableFuture<AndroidDebugBridge> bridgeFuture = Futures.immediateFuture(bridge);
 
-    PhysicalDevice physicalDevice = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
     BuilderService service = Mockito.mock(BuilderService.class);
-    Mockito.when(service.build(device)).thenReturn(Futures.immediateFuture(physicalDevice));
+    Mockito.when(service.build(device)).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     PhysicalDeviceAsyncSupplier supplier = new PhysicalDeviceAsyncSupplier(null, project -> adb, a -> bridgeFuture, () -> service);
 
@@ -60,6 +56,6 @@ public final class PhysicalDeviceAsyncSupplierTest {
     Future<List<PhysicalDevice>> devicesFuture = supplier.get();
 
     // Assert
-    assertEquals(Collections.singletonList(physicalDevice), devicesFuture.get(256, TimeUnit.MILLISECONDS));
+    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), devicesFuture.get(256, TimeUnit.MILLISECONDS));
   }
 }

@@ -28,11 +28,7 @@ public final class PhysicalTabPersistentStateComponentTest {
   @Test
   public void get() {
     // Arrange
-    PhysicalDevice device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .build();
-
-    Collection<PhysicalDevice> expectedDevices = Collections.singletonList(device);
+    Collection<PhysicalDevice> expectedDevices = Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     PhysicalTabPersistentStateComponent component = new PhysicalTabPersistentStateComponent();
     component.set(expectedDevices);

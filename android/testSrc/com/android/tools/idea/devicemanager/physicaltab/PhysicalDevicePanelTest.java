@@ -74,7 +74,10 @@ public final class PhysicalDevicePanelTest {
     myOnlinePixel3 = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
       .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
+      .setName("Google Pixel 3")
       .setOnline(true)
+      .setTarget("Android 12 Preview")
+      .setApi("S")
       .build();
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);
@@ -103,17 +106,13 @@ public final class PhysicalDevicePanelTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
-    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "API", "Type", "Actions")), myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", "Type", "Actions")), myPanel.getData());
   }
 
   @Test
   public void newPhysicalDevicePanelPersistentStateComponentSuppliesDevice() throws InterruptedException {
     // Arrange
-    PhysicalDevice offlinePixel5 = new PhysicalDevice.Builder()
-      .setSerialNumber("0A071FDD4003ZG")
-      .build();
-
-    myComponent.set(Collections.singletonList(offlinePixel5));
+    myComponent.set(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_5));
 
     // Act
     myPanel = new PhysicalDevicePanel(null,
@@ -126,9 +125,11 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
 
+    // @formatter:off
     Object data = Arrays.asList(
-      Arrays.asList(myOnlinePixel3, "API", "Type", "Actions"),
-      Arrays.asList(offlinePixel5, "API", "Type", "Actions"));
+      Arrays.asList(myOnlinePixel3,                     "S",  "Type", "Actions"),
+      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", "Type", "Actions"));
+    // @formatter:on
 
     assertEquals(data, myPanel.getData());
   }
