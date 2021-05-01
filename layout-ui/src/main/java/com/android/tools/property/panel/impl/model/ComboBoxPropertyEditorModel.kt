@@ -137,6 +137,19 @@ class ComboBoxPropertyEditorModel(
   override val placeHolderValue: String
     get() = property.defaultValue ?: ""
 
+  /**
+   * Returns true if the ComboBox has an uncommitted change to the property.
+   */
+  fun hasPendingChange(): Boolean {
+    if (pendingValueChange && text != pendingValue) {
+      return true
+    }
+    if (value != text) {
+      return true
+    }
+    return false
+  }
+
   fun enterKeyPressed() {
     blockUpdates = true
     try {

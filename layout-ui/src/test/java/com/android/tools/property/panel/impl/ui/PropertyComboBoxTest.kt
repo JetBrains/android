@@ -18,6 +18,8 @@ package com.android.tools.property.panel.impl.ui
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
@@ -44,6 +46,7 @@ import java.awt.event.MouseMotionListener
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JList
+import javax.swing.JPanel
 import javax.swing.plaf.basic.ComboPopup
 import kotlin.test.assertEquals
 
@@ -81,11 +84,18 @@ class PropertyComboBoxTest {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
     val comboBox = createComboBox(property, enumSupport, true)
+    val keyboardConsumer = wrapComboBoxInKeyboardConsumer(comboBox)
     comboBox.editor.text = "gone"
     val ui = createFakeUiForComboBoxEditor(comboBox)
     ui.keyboard.pressAndRelease(KeyEvent.VK_ESCAPE)
+    assertThat(comboBox.editor.text).isEqualTo("visible")
     assertThat(property.value).isEqualTo("visible")
     assertThat(isPopupVisible(comboBox)).isFalse()
+    assertThat(keyboardConsumer.keyCount).isEqualTo(0)
+
+    // ComboBox should not be able to consume Escape key again
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ESCAPE)
+    assertThat(keyboardConsumer.keyCount).isEqualTo(1)
   }
 
   @Test
@@ -149,12 +159,18 @@ class PropertyComboBoxTest {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
     val comboBox = createComboBox(property, enumSupport, true)
+    val keyboardConsumer = wrapComboBoxInKeyboardConsumer(comboBox)
+    comboBox.editor.text = "gone"
     val ui = createFakeUiForComboBoxEditor(comboBox)
     getWrappedComboBox(comboBox).showPopup()
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
     ui.keyboard.pressAndRelease(KeyEvent.VK_ESCAPE)
+    assertThat(comboBox.editor.text).isEqualTo("visible")
     assertThat(property.value).isEqualTo("visible")
     assertThat(isPopupVisible(comboBox)).isFalse()
+    assertThat(keyboardConsumer.keyCount).isEqualTo(0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_ESCAPE)
+    assertThat(keyboardConsumer.keyCount).isEqualTo(1)
   }
 
   @Test
@@ -202,6 +218,11 @@ class PropertyComboBoxTest {
     return comboBox
   }
 
+  private fun wrapComboBoxInKeyboardConsumer(comboBox: PropertyComboBox): MyKeyboardConsumer =
+    MyKeyboardConsumer().apply {
+      add(comboBox)
+    }
+
   private class FakeComboBoxUI : DarculaComboBoxUI() {
     override fun installUI(component: JComponent) {
       @Suppress("UNCHECKED_CAST")
@@ -224,7 +245,7 @@ class PropertyComboBoxTest {
     override fun isPopupVisible(comboBox: JComboBox<*>?): Boolean = popup.isVisible
   }
 
-  private class MyComboPopup(private val comboBox: JComboBox<Any>): ComboPopup {
+  private class MyComboPopup(private val comboBox: JComboBox<Any>) : ComboPopup {
     private var visible = false
     private val list = JBList(comboBox.model)
     private val mouseListener = object : MouseAdapter() {}
@@ -262,5 +283,19 @@ class PropertyComboBoxTest {
     override fun getList(): JList<Any> = list
 
     override fun uninstallingUI() {}
+  }
+
+  /**
+   * Container that may consume ESCAPE keyboard events.
+   */
+  private class MyKeyboardConsumer : JPanel() {
+    private var _keyCount = 0
+
+    val keyCount: Int
+      get() = _keyCount
+
+    init {
+      registerActionKey({ _keyCount++ }, KeyStrokes.ESCAPE, "escape", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    }
   }
 }

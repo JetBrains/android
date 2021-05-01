@@ -17,7 +17,6 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EDITOR_NO_COMPLETIONS
-import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBTextField
@@ -104,6 +103,10 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
 
   fun escapeInLookup(): Boolean {
     return _lookup?.escape() ?: false
+  }
+
+  fun isLookupEnabled(): Boolean {
+    return _lookup?.enabled ?: false
   }
 
   private fun setFromModel() {

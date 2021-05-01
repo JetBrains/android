@@ -71,9 +71,10 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
 
     // Register key stroke navigation for dropdowns (textField is not editable)
+    unregisterKeyboardAction(KeyStrokes.ESCAPE) // Remove existing bindings
     registerActionKey({ enterInPopup() }, KeyStrokes.ENTER, "enter")
     registerActionKey({ enterInPopup() }, KeyStrokes.SPACE, "enter")
-    registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.ESCAPE, "escape")
+    registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape", { wouldConsumeEscape() })
     registerActionKey({ tab { enterInPopup() } }, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
     focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
@@ -87,7 +88,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     // Register key stroke navigation for dropdowns (textField is editable)
     textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     textField.registerActionKey({ space() }, KeyStrokes.TYPED_SPACE, "space")
-    textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
+    textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape", { wouldConsumeEscape() })
     textField.registerActionKey({ tab { enter() } }, KeyStrokes.TAB, "tab")
     textField.registerActionKey({ backtab { enter() } }, KeyStrokes.BACKTAB, "backtab")
     textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
@@ -154,8 +155,13 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.selectAll()
   }
 
+  private fun wouldConsumeEscape(): Boolean {
+    return model.hasPendingChange() || isPopupVisible || textField.isLookupEnabled()
+  }
+
   private fun escape() {
     if (!textField.escapeInLookup()) {
+      // Lookup panel did not consume Escape key, trigger key press in model
       model.escapeKeyPressed()
     }
   }

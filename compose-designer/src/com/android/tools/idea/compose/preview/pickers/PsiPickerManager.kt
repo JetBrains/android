@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview.pickers
 
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyItem
 import com.android.tools.idea.compose.preview.pickers.properties.PsiPropertyModel
@@ -26,6 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.ui.JBUI
 import java.awt.Point
 import javax.swing.BoxLayout
+import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -39,16 +42,16 @@ object PsiPickerManager {
   fun show(location: Point, model: PsiPropertyModel) {
     val disposable = Disposer.newDisposable()
     val popup = createPopup(disposable)
-    val previewPickerPanel = createPreviewPickerPanel(disposable, model)
+    val previewPickerPanel = createPreviewPickerPanel(disposable, popup::close, model)
 
     popup.show(previewPickerPanel, null, location)
   }
 }
 
-private fun createPopup(disposable: Disposable) = LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) },
-                                                                    cancelCallBack = { Disposer.dispose(disposable) })
+private fun createPopup(disposable: Disposable) =
+  LightCalloutPopup(closedCallback = { Disposer.dispose(disposable) }, cancelCallBack = { Disposer.dispose(disposable) })
 
-private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyModel): JPanel {
+private fun createPreviewPickerPanel(disposable: Disposable, closePopupCallBack: () -> Unit, model: PsiPropertyModel): JPanel {
   val propertiesPanel = PropertiesPanel<PsiPropertyItem>(disposable).also { it.addView(PsiPropertyView(model)) }
 
   return JPanel().apply {
@@ -66,5 +69,6 @@ private fun createPreviewPickerPanel(disposable: Disposable, model: PsiPropertyM
     isFocusCycleRoot = true
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = LayoutFocusTraversalPolicy()
+    registerActionKey(closePopupCallBack, KeyStrokes.ESCAPE, name = "close", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }
 }
