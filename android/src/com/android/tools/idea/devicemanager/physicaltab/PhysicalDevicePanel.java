@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
@@ -28,7 +29,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.BorderLayout;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -36,13 +37,20 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.AbstractButton;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
+import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
+  private final @Nullable Project myProject;
+  private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
 
+  private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable JBTable myTable;
 
   @VisibleForTesting
@@ -67,25 +75,49 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   }
 
   PhysicalDevicePanel(@Nullable Project project) {
-    this(PhysicalTabPersistentStateComponent::getInstance,
+    this(project,
+         PairDevicesUsingWiFiService::getInstance,
+         PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
          new PhysicalDeviceAsyncSupplier(project),
          SetTableModel::new);
   }
 
   @VisibleForTesting
-  PhysicalDevicePanel(@NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
+  PhysicalDevicePanel(@Nullable Project project,
+                      @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
+                      @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
                       @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetTableModel) {
-    super(new BorderLayout());
+    super(null);
 
+    myProject = project;
+    myPairDevicesUsingWiFiServiceGetInstance = pairDevicesUsingWiFiServiceGetInstance;
     myPhysicalTabPersistentStateComponentGetInstance = physicalTabPersistentStateComponentGetInstance;
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
 
+    initPairUsingWiFiButton();
     initTable();
-    add(new JBScrollPane(myTable), BorderLayout.CENTER);
+    setLayout();
+
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetTableModel.apply(this));
+  }
+
+  private void initPairUsingWiFiButton() {
+    // TODO(http://b/187102682) Does pairing using Wi-Fi need to work from the Welcome to Android Studio window?
+    if (myProject == null) {
+      return;
+    }
+
+    PairDevicesUsingWiFiService service = myPairDevicesUsingWiFiServiceGetInstance.apply(myProject);
+
+    if (!service.isFeatureEnabled()) {
+      return;
+    }
+
+    myPairUsingWiFiButton = new JButton("Pair using Wi-Fi");
+    myPairUsingWiFiButton.addActionListener(event -> service.createPairingDialogController().showDialog());
   }
 
   private void initTable() {
@@ -93,6 +125,32 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
 
     myTable.setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
     myTable.getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
+  }
+
+  private void setLayout() {
+    Component scrollPane = new JBScrollPane(myTable);
+
+    GroupLayout layout = new GroupLayout(this);
+    Group horizontalGroup = layout.createParallelGroup();
+
+    if (myPairUsingWiFiButton != null) {
+      horizontalGroup.addComponent(myPairUsingWiFiButton);
+    }
+
+    horizontalGroup.addComponent(scrollPane);
+
+    Group verticalGroup = layout.createSequentialGroup();
+
+    if (myPairUsingWiFiButton != null) {
+      verticalGroup.addComponent(myPairUsingWiFiButton);
+    }
+
+    verticalGroup.addComponent(scrollPane);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
   }
 
   private @NotNull List<@NotNull PhysicalDevice> addOfflineDevices(@NotNull List<@NotNull PhysicalDevice> onlineDevices) {
@@ -138,5 +196,10 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     return IntStream.range(0, myTable.getColumnCount())
       .mapToObj(viewColumnIndex -> myTable.getValueAt(viewRowIndex, viewColumnIndex))
       .collect(Collectors.toList());
+  }
+
+  @VisibleForTesting
+  @Nullable AbstractButton getPairUsingWiFiButton() {
+    return myPairUsingWiFiButton;
   }
 }
