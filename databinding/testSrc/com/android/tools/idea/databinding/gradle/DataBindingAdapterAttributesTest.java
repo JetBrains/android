@@ -17,10 +17,7 @@ package com.android.tools.idea.databinding.gradle;
 
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.databinding.TestDataPaths;
@@ -89,26 +86,26 @@ public class DataBindingAdapterAttributesTest {
     int offset = document.getText().indexOf("name}\"");
     int line = document.getLineNumber(offset);
 
-    assertFalse(document.getText().contains("my_binding_attribute"));
+    assertThat(document.getText()).doesNotContain("my_binding_attribute");
 
     WriteCommandAction.runWriteCommandAction(null, () -> {
-      document.insertString(document.getLineEndOffset(line), " my_bind");
+      document.insertString(document.getLineEndOffset(line), " my_bind=\"@{}\"");
       documentManager.commitAllDocuments();
     });
 
-    editor.getCaretModel().moveToOffset(document.getLineEndOffset(line));
-    assertNull(myProjectRule.getFixture().completeBasic()); // null because there is only one completion option
-    assertTrue(document.getText().contains("my_binding_attribute"));
+    editor.getCaretModel().moveToOffset(document.getText().indexOf("my_bind") + "my_bind".length());
+    assertThat(myProjectRule.getFixture().completeBasic()).isNull(); // null because there is only one completion option
+    assertThat(document.getText()).contains("my_binding_attribute");
 
     // The attribute is defined by @BindingAdapter so it shouldn't be marked as unknown
-    assertTrue(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING).isEmpty());
+    assertThat(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING)).isEmpty();
 
     // The next attribute is not defined so it should be marked as a warning
     WriteCommandAction.runWriteCommandAction(null, () -> {
       document.insertString(document.getLineEndOffset(line), " my_not_attribute=\"\"");
       documentManager.commitAllDocuments();
     });
-    assertFalse(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING).isEmpty());
+    assertThat(myProjectRule.getFixture().doHighlighting(HighlightSeverity.WARNING)).isNotEmpty();
 
     // Check that we do not return duplicate attributes (http://b/67408823)
     WriteCommandAction.runWriteCommandAction(null, () -> {
@@ -120,6 +117,6 @@ public class DataBindingAdapterAttributesTest {
       .map(LookupElement::getLookupString)
       .filter("padding"::equals)
       .count();
-    assertEquals(1, paddingCompletions);
+    assertThat(paddingCompletions).isEqualTo(1);
   }
 }
