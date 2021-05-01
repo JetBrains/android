@@ -63,6 +63,9 @@ studio_plugin(
         "//tools/base/deploy/deployer:libjava_version",
         "//tools/vendor/google/game-tools/main:game-tools-protos",
     ],
+    licenses = [
+        "//tools/adt/idea/android/lib:licenses",
+    ],
     modules = {
         "adt-ui.jar": [
             "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
@@ -317,6 +320,9 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:layoutlib",
         "//tools/adt/idea/.idea/libraries:kxml2",
     ],
+    licenses = [
+        "//prebuilts/studio/layoutlib:licenses",
+    ],
     modules = {
         "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
         "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
@@ -363,6 +369,9 @@ studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = ["//tools/vendor/google/firebase:google-api-services-mobilesdk-v1"],
+    licenses = [
+        "//tools/vendor/google/firebase:licenses",
+    ],
     modules = {"firebase.jar": ["//tools/vendor/google/firebase:firebase"]},
     deps = [
         ":com.google.gct.login",
@@ -381,6 +390,9 @@ studio_plugin(
         "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-toolresults-v1beta3-rev20151013-1.20.0",
         "//tools/adt/idea/.idea/libraries:tightvnc",
     ],
+    licenses = [
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
+    ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
     deps = [
         ":com.google.gct.core",
@@ -394,6 +406,9 @@ studio_plugin(
     name = "com.google.appindexing",
     directory = "google-appindexing",
     libs = ["//tools/studio/google/appindexing/lib:fetchasgoogle"],
+    licenses = [
+        "//tools/studio/google/appindexing/lib:licenses",
+    ],
     modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
     deps = [
         ":com.google.gct.login",
@@ -411,6 +426,9 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:samplesindex-v1-1.0-SNAPSHOT",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-debugger",
+    ],
+    licenses = [
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
     ],
     modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
     deps = [
@@ -435,6 +453,9 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-debugger",
     ],
+    licenses = [
+        "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
+    ],
     modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
     deps = [
         ":com.google.gct.login",
@@ -454,6 +475,9 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/google-login-plugin/lib:google-http-client-jackson-1.18.0-rc",
         "//tools/studio/google/cloud/tools/google-login-plugin/lib:google.gdt.eclipse.login.common",
         "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
+    ],
+    licenses = [
+        "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
     ],
     modules = {"google-login-as.jar": ["//tools/studio/google/cloud/tools/google-login-plugin:google-login-as"]},
 )
@@ -480,6 +504,9 @@ studio_plugin(
     libs = [
         "//tools/studio/google/cloud/testing/test-recorder/lib:uiautomatorviewer",
         "//tools/studio/google/cloud/testing/test-recorder/lib:swt",
+    ],
+    licenses = [
+        "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
     ],
     modules = {"test-recorder.jar": ["//tools/studio/google/cloud/testing/test-recorder:test-recorder"]},
     deps = [
@@ -521,20 +548,6 @@ android_studio(
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
     ],
-    resources = {
-        "license": [
-            # TODO: This doesn't cover all used libraries, but it's exactly what ShowLicensesUsedAction is checking.
-            "//tools/adt/idea/android/lib:licenses",
-            "//tools/studio/google/appindexing/lib:licenses",
-            "//tools/studio/google/cloud/testing/firebase-testing/lib:licenses",
-            "//tools/studio/google/cloud/testing/test-recorder/lib:licenses",
-            "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-            # "//tools/studio/google/cloud/tools/core-plugin/lib:licenses", # TODO: contains duplicated licenses with google-login-plugin
-            "//tools/studio/google/cloud/tools/google-login-plugin/lib:licenses",
-            "//tools/vendor/google/firebase:licenses",
-            "//prebuilts/studio/layoutlib:licenses",
-        ],
-    },
     searchable_options = "//tools/adt/idea/searchable-options",
     version_eap = True,
     version_full = "dev build",

@@ -188,12 +188,14 @@ def _studio_plugin_impl(ctx):
         plugin_info = plugin_info,
         module_deps = depset(ctx.attr.modules),
         lib_deps = depset(ctx.attr.libs),
+        licenses = depset(ctx.files.licenses),
     )
 
 _studio_plugin = rule(
     attrs = {
         "modules": attr.label_list(allow_empty = False),
         "libs": attr.label_list(allow_files = True),
+        "licenses": attr.label_list(allow_files = True),
         "jars": attr.string_list(),
         "resources": attr.label_list(allow_files = True),
         "resources_dirs": attr.string_list(),
@@ -508,16 +510,20 @@ def _android_studio_os(ctx, platform, out):
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
     overrides += [(platform_prefix, so_extras)]
 
-    extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
-    _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
-    zips += [(platform_prefix, extras_zip)]
-
+    licenses = []
     for p in ctx.attr.plugins:
         plugin_zip = platform.get(p)[0]
         stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s" % plugin_zip.basename)
         _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp)
         overrides += [(platform_prefix + platform.base_path, stamp)]
         zips += [(platform_prefix + platform.base_path, plugin_zip)]
+        licenses += [p.licenses]
+
+    files += [(platform.base_path + "license/" + f.basename, f) for f in depset([], transitive = licenses).to_list()]
+
+    extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
+    _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
+    zips += [(platform_prefix, extras_zip)]
 
     if platform == MAC or platform == MAC_ARM:
         codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
