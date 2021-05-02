@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.google.common.util.concurrent.Futures;
 import java.time.Clock;
 import java.time.Instant;
@@ -65,6 +66,7 @@ public final class BuilderServiceTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));

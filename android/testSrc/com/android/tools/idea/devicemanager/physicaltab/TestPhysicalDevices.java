@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
+
 public final class TestPhysicalDevices {
   public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
     .setSerialNumber("86UX00F4R")
     .setName("Google Pixel 3")
     .setTarget("Android 12 Preview")
     .setApi("S")
+    .setConnectionType(ConnectionType.USB)
     .build();
 
   public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
@@ -28,6 +31,7 @@ public final class TestPhysicalDevices {
     .setName("Google Pixel 5")
     .setTarget("Android 11.0")
     .setApi("30")
+    .setConnectionType(ConnectionType.USB)
     .build();
 
   private TestPhysicalDevices() {

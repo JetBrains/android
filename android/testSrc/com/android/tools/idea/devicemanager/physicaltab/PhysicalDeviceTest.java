@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,7 @@ public final class PhysicalDeviceTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     Object device2 = new PhysicalDevice.Builder()
@@ -47,6 +49,7 @@ public final class PhysicalDeviceTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     Object device3 = new PhysicalDevice.Builder()
@@ -55,6 +58,7 @@ public final class PhysicalDeviceTest {
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     Object device4 = new PhysicalDevice.Builder()
@@ -63,6 +67,7 @@ public final class PhysicalDeviceTest {
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     Object device5 = new PhysicalDevice.Builder()
@@ -70,6 +75,7 @@ public final class PhysicalDeviceTest {
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     List<Object> devices = Arrays.asList(device5, device4, device2, device1, device3);

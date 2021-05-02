@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
 import java.time.Instant;
@@ -44,6 +45,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5);
@@ -69,6 +71,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     // Act
@@ -94,6 +97,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     // Act
