@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.intellij.ide.ui.laf.darcula.DarculaTableSelectedCellHighlightBorder;
 import com.intellij.ui.table.JBTable;
@@ -50,6 +51,7 @@ public final class DeviceTableCellRendererTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
+      .setConnectionType(ConnectionType.USB)
       .build();
 
     // Act

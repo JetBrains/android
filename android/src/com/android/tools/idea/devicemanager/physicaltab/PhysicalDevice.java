@@ -32,11 +32,13 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private final @NotNull String mySerialNumber;
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull String myApi;
+  private final @NotNull ConnectionType myConnectionType;
 
   public static final class Builder extends Device.Builder {
     private @Nullable String mySerialNumber;
     private @Nullable Instant myLastOnlineTime;
     private @Nullable String myApi;
+    private @Nullable ConnectionType myConnectionType;
 
     public @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
       mySerialNumber = serialNumber;
@@ -68,11 +70,18 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
+    public @NotNull Builder setConnectionType(@NotNull ConnectionType connectionType) {
+      myConnectionType = connectionType;
+      return this;
+    }
+
     @Override
     public @NotNull PhysicalDevice build() {
       return new PhysicalDevice(this);
     }
   }
+
+  public enum ConnectionType {USB, WI_FI}
 
   private PhysicalDevice(@NotNull Builder builder) {
     super(builder);
@@ -84,6 +93,9 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     assert builder.myApi != null;
     myApi = builder.myApi;
+
+    assert builder.myConnectionType != null;
+    myConnectionType = builder.myConnectionType;
   }
 
   @NotNull String getSerialNumber() {
@@ -103,6 +115,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return myApi;
   }
 
+  @NotNull ConnectionType getConnectionType() {
+    return myConnectionType;
+  }
+
   @Override
   public int hashCode() {
     int hashCode = mySerialNumber.hashCode();
@@ -112,6 +128,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myApi.hashCode();
+    hashCode = 31 * hashCode + myConnectionType.hashCode();
 
     return hashCode;
   }
@@ -129,7 +146,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
            myName.equals(device.myName) &&
            myOnline == device.myOnline &&
            myTarget.equals(device.myTarget) &&
-           myApi.equals(device.myApi);
+           myApi.equals(device.myApi) &&
+           myConnectionType.equals(device.myConnectionType);
   }
 
   @Override

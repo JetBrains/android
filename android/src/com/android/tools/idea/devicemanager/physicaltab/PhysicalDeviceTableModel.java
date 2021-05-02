@@ -107,7 +107,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return "Type";
+        return myDevices.get(modelRowIndex).getConnectionType();
       case ACTIONS_MODEL_COLUMN_INDEX:
         // TODO You can probably throw an exception here too
         return "Actions";

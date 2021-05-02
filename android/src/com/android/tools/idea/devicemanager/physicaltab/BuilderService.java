@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.util.Targets;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -92,6 +93,8 @@ final class BuilderService {
       .setOnline(online)
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString())
+      // TODO Figure out how to get the connection type from the IDevice
+      .setConnectionType(ConnectionType.USB)
       .build();
   }
 }
