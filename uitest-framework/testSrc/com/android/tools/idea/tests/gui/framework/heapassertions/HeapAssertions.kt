@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LeakHunter
 import com.intellij.util.PairProcessor
-import com.intellij.util.io.PersistentEnumeratorBase
+import com.intellij.util.io.PersistentEnumeratorCache
 import com.intellij.util.ref.DebugReflectionUtil
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
@@ -140,7 +140,7 @@ private class LeakCollector(val description: String, val enforce: Boolean = fals
       SwingUtilities.isEventDispatchThread() -> UIUtil.dispatchAllInvocationEvents()
       else -> UIUtil.pump()
     }
-    PersistentEnumeratorBase.clearCacheForTests()
+    PersistentEnumeratorCache.clearCacheForTests()
   }
 
   fun registerLeak(leaked: Any, backlink: Any) {
