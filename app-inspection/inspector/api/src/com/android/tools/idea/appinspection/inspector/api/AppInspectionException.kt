@@ -31,6 +31,12 @@ open class AppInspectionConnectionException(message: String): AppInspectionExcep
 class AppInspectionCrashException(message: String): AppInspectionConnectionException(message)
 
 /**
+ * This happens when App Inspection service disposes an inspector because it was replaced
+ * by a different project.
+ */
+class AppInspectorForcefullyDisposedException(message: String) : AppInspectionConnectionException(message)
+
+/**
  * Base class for all service errors.
  */
 abstract class AppInspectionServiceException(message: String, cause: Throwable? = null) : AppInspectionException(message, cause)

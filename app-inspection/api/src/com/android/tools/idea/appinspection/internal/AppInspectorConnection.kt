@@ -21,6 +21,7 @@ import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
 import com.android.tools.app.inspection.AppInspection.RawCommand
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.protobuf.ByteString
@@ -185,9 +186,10 @@ internal class AppInspectorConnection(
       when {
         appInspectionEvent.hasDisposedEvent() -> {
           if (appInspectionEvent.disposedEvent.errorMessage.isNullOrEmpty()) {
-            cleanup("Inspector $inspectorId has been disposed.")
-          } else {
-            cleanup("Inspector $inspectorId has crashed.", crashed = true)
+            cleanup("Inspector $inspectorId has been disposed.") { message -> AppInspectorForcefullyDisposedException(message) }
+          }
+          else {
+            cleanup("Inspector $inspectorId has crashed.") { message -> AppInspectionCrashException(message) }
           }
         }
       }
@@ -294,9 +296,12 @@ internal class AppInspectorConnection(
    * Cleans up inspector connection by unregistering listeners and closing the channel to [commandSender] actor.
    * All futures are completed exceptionally with [exceptionMessage].
    */
-  private fun cleanup(exceptionMessage: String, crashed: Boolean = false) {
+  private fun cleanup(
+    exceptionMessage: String,
+    createException: (String) -> AppInspectionConnectionException = { AppInspectionConnectionException(it) }
+  ) {
     if (isDisposed.compareAndSet(false, true)) {
-      val cause = if (crashed) AppInspectionCrashException(exceptionMessage) else AppInspectionConnectionException(exceptionMessage)
+      val cause = createException(exceptionMessage)
       commandChannel.close(cause)
       scope.cancel(exceptionMessage, cause)
     }
