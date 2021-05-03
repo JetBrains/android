@@ -415,6 +415,10 @@ public final class StudioFlags {
     RESOURCE_REPOSITORY, "trace.updates", "Enable Tracing of Resource Repository Updates",
     "Enables tracing of resource repository updates",
     false);
+  public static final Flag<Integer> RESOURCE_REPOSITORY_TRACE_SIZE = Flag.create(
+    RESOURCE_REPOSITORY, "trace.size", "Maximum Size of Resource Repository Update Trace",
+    "Size of the in-memory cyclic buffer used for tracing of resource repository updates",
+    10000);
   //endregion
 
   //region Run/Debug
