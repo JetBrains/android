@@ -27,6 +27,8 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
+import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
@@ -124,11 +126,12 @@ class ViewAndroidWindow(
       baos.write(buffer, 0, count)
     }
 
-
     val inflatedBytes = baos.toByteArray()
     val width = inflatedBytes.toInt()
     val height = inflatedBytes.sliceArray(4..7).toInt()
-    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(inflatedBytes, 8, inflatedBytes.size - 8), width, height)
+    val bitmapType = BitmapType.fromByteVal(inflatedBytes[8])
+    val image = bitmapType.createImage(ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE), width,
+                                       height)
 
     ViewNode.writeDrawChildren { drawChildren ->
       root.flatten().forEach { it.drawChildren().clear() }

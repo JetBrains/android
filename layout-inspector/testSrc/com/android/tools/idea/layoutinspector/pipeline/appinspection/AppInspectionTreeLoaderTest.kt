@@ -39,13 +39,15 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
+import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
-import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.toBytes
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.ProjectRule
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -66,35 +68,45 @@ class AppInspectionTreeLoaderTest {
   /**
    * Process a target image png file and create the data that normally would have been generated on a target device.
    */
-  private class Screenshot(filename: String) {
+  private class Screenshot(filename: String, bitmapType: BitmapType) {
     val image: BufferedImage
     val bytes: ByteArray
 
     init {
       val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/$filename").readImage()
-      image = LayoutInspectorUtils.createImage565(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
-                                                  origImage.height)
+      val buffer = ByteBuffer.allocate(origImage.width * origImage.height * bitmapType.pixelSize)
+      image = bitmapType.createImage(buffer, origImage.width, origImage.height)
       val graphics = image.graphics
       graphics.drawImage(origImage, 0, 0, null)
-      val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
-                                                      ShortArray(image.width * image.height)) as ShortArray
-      val imageBytes = ArrayList<Byte>(image.width * image.height * 2 + 8)
-      dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-      bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + imageBytes).toByteArray().compress()
+      val imageBytes = ArrayList<Byte>(image.width * image.height * bitmapType.pixelSize + BITMAP_HEADER_SIZE)
+      if (bitmapType == BitmapType.RGB_565) {
+        val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
+                                                        ShortArray(image.width * image.height)) as ShortArray
+        dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
+      }
+      else {
+        val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
+                                                        IntArray(image.width * image.height)) as IntArray
+        dataElements.flatMapTo(imageBytes) { it.toBytes().asIterable() }
+      }
+      bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + bitmapType.byteVal + imageBytes).toByteArray().compress()
     }
   }
 
   @get:Rule
   val projectRule = ProjectRule()
 
-  private val sample = Screenshot("image1.png")
+  private val sample565 = Screenshot("partiallyTransparentImage.png", BitmapType.RGB_565)
+  private val sample8888 = Screenshot("partiallyTransparentImage.png", BitmapType.ABGR_8888)
 
   /**
    * Generate fake data containing hand-crafted layout information that can be used for
    * generating trees.
    */
   private fun createFakeData(
-    screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP)
+    screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP,
+    bitmapType: BitmapType = BitmapType.RGB_565
+  )
     : ViewLayoutInspectorClient.Data {
     val viewLayoutEvent = ViewProtocol.LayoutEvent.newBuilder().apply {
       ViewString(1, "en-us")
@@ -116,7 +128,7 @@ class AppInspectionTreeLoaderTest {
         packageName = 2
         className = 3
         bounds = ViewBounds(
-          ViewRect(sample.image.width, sample.image.height))
+          ViewRect(sample565.image.width, sample565.image.height))
 
         ViewNode {
           id = 2
@@ -153,7 +165,7 @@ class AppInspectionTreeLoaderTest {
 
       screenshotBuilder.apply {
         type = screenshotType
-        bytes = ByteString.copyFrom(sample.bytes)
+        bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
       }
     }.build()
 
@@ -230,7 +242,7 @@ class AppInspectionTreeLoaderTest {
 
     val skiaParser: SkiaParser = mock()
     `when`(
-      skiaParser.getViewTree(eq(sample.bytes), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) }, any(), any()))
+      skiaParser.getViewTree(eq(sample565.bytes), argThat { req -> req.map { it.id }.sorted() == listOf(1L, 2L, 3L, 4L, 5L) }, any(), any()))
       .thenReturn(skiaResponse)
 
     var loggedEvent: DynamicLayoutInspectorEventType? = null
@@ -251,8 +263,8 @@ class AppInspectionTreeLoaderTest {
     assertThat(tree.drawId).isEqualTo(1)
     assertThat(tree.x).isEqualTo(0)
     assertThat(tree.y).isEqualTo(0)
-    assertThat(tree.width).isEqualTo(sample.image.width)
-    assertThat(tree.height).isEqualTo(sample.image.height)
+    assertThat(tree.width).isEqualTo(sample565.image.width)
+    assertThat(tree.height).isEqualTo(sample565.image.height)
     assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
     ViewNode.readDrawChildren { drawChildren -> assertThat((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
     assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
@@ -306,7 +318,7 @@ class AppInspectionTreeLoaderTest {
     val banner = InspectorBanner(projectRule.project)
 
     val skiaParser: SkiaParser = mock()
-    `when`(skiaParser.getViewTree(eq(sample.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
+    `when`(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
     val treeLoader = AppInspectionTreeLoader(
       projectRule.project,
@@ -351,23 +363,26 @@ class AppInspectionTreeLoaderTest {
   fun testCanProcessBitmapScreenshots() {
     val skiaParser: SkiaParser = mock()
     `when`(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
-    var loggedEvent: DynamicLayoutInspectorEventType? = null
     val treeLoader = AppInspectionTreeLoader(
       projectRule.project,
-      // Initial event is only ever logged one time
-      logEvent = { assertThat(loggedEvent).isNull(); loggedEvent = it },
+      logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
       skiaParser
     )
 
-    val data = createFakeData(ViewProtocol.Screenshot.Type.BITMAP)
+    val data = createFakeData(BITMAP)
     val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
 
     val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
-    ImageDiffUtil.assertImageSimilar("image1.png", sample.image, resultImage, 0.01)
+    ImageDiffUtil.assertImageSimilar("image1.png", sample565.image, resultImage, 0.01)
 
-    assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
+    val data2 = createFakeData(BITMAP, bitmapType = BitmapType.ARGB_8888)
+    val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project))!!
+    window2!!.refreshImages(1.0)
+
+    val resultImage2 = ViewNode.readDrawChildren { drawChildren -> (window2.root.drawChildren()[0] as DrawViewImage).image }
+    ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
   }
 }
 

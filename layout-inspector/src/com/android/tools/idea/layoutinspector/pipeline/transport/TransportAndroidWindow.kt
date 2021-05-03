@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -125,7 +126,7 @@ class TransportAndroidWindow(
       baos.write(buffer, 0, count)
     }
 
-    val image = LayoutInspectorUtils.createImage565(ByteBuffer.wrap(baos.toByteArray()), rootView.width, rootView.height)
+    val image = BitmapType.RGB_565.createImage(ByteBuffer.wrap(baos.toByteArray()), rootView.width, rootView.height)
 
     ViewNode.writeDrawChildren { drawChildren ->
       rootView.flatten().forEach { it.drawChildren().clear() }
