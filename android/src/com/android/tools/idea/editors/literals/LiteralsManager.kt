@@ -30,6 +30,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
@@ -121,8 +122,11 @@ private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLitera
  * A reference to a literal constant.
  */
 interface LiteralReference {
+  val containingFile: PsiFile
+
   /** Filename where this literal is declared */
   val fileName: String
+    get() = containingFile.name
 
   /** The initial range for the constant. Can be used for sorting and/or highlighting. */
   val initialTextRange: TextRange
@@ -258,13 +262,13 @@ private open class LiteralReferenceImpl(originalElement: PsiElement,
                                         usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
                                         final override val initialConstantValue: Any,
                                         private val constantEvaluator: ConstantEvaluator,
-                                        onElementAttached: (PsiElement) -> Unit) : LiteralReference, ModificationTracker {
+                                        onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
   init {
-    onElementAttached(originalElement)
+    onElementAttached(originalElement, this)
   }
 
-  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement, onElementAttached)
-  override val fileName = originalElement.containingFile.name
+  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement) { onElementAttached(it, this) }
+  override val containingFile = originalElement.containingFile
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
   override val initialTextRange: TextRange = constantEvaluator.range(originalElement)
   override val uniqueId = uniqueIdProvider.getUniqueId(originalElement)
@@ -444,18 +448,21 @@ class LiteralsManager(
     }
 
   companion object {
-    private val MANAGED_KEY: Key<Boolean> = Key.create(Companion::MANAGED_KEY.qualifiedName)
+    private val MANAGED_KEY: Key<LiteralReference> = Key.create(Companion::MANAGED_KEY.qualifiedName)
 
     /**
-     * Returns whether a given element is currently being managed by the [LiteralsManager]. It means that changes on it are
-     * tracked by this service.
+     * If the element has a [LiteralReference] associated, this will return it.
      */
-    internal fun isManaged(element: PsiElement) = element.isValid && element.getCopyableUserData(MANAGED_KEY) != null
+    internal fun getLiteralReference(element: PsiElement): LiteralReference? {
+      if (!element.isValid) return null
+
+      return element.getCopyableUserData(MANAGED_KEY)
+    }
 
     /**
      * Marks the given element as managed.
      */
-    private fun markAsManaged(element: PsiElement) = element.putCopyableUserData(MANAGED_KEY, true)
+    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY, literalReference)
   }
 }
 
@@ -465,9 +472,11 @@ class LiteralsManager(
 fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
                                                        editor: Editor,
                                                        textAttributesKey: TextAttributesKey,
-                                                       outHighlighters: MutableSet<RangeHighlighter>? = null) {
+                                                       outHighlighters: MutableSet<RangeHighlighter>? = null,
+                                                       referenceFilter: (LiteralReference) -> Boolean = { true }) {
   val highlightManager = HighlightManager.getInstance(project)
   val elements = all.filterIsInstance<LiteralReferenceImpl>()
+    .filter { referenceFilter(it) }
     .mapNotNull { it.element }
     .toTypedArray()
 
