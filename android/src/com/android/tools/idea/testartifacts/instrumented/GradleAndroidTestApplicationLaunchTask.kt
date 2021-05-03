@@ -39,7 +39,8 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
   private val testPackageName: String,
   private val testClassName: String,
   private val testMethodName: String,
-  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : AppLaunchTask() {
+  private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
+  private val retentionConfiguration: RetentionConfiguration) : AppLaunchTask() {
 
   companion object {
     /**
@@ -54,10 +55,11 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       processHandler: ProcessHandler,
       consolePrinter: ConsolePrinter,
       device: IDevice,
-      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
+      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
+      retentionConfiguration: RetentionConfiguration) : GradleAndroidTestApplicationLaunchTask {
         return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
                                                       taskId, waitForDebugger, processHandler, consolePrinter, device, "",
-                                                      "", "", gradleConnectedAndroidTestInvoker)
+                                                      "", "", gradleConnectedAndroidTestInvoker, retentionConfiguration)
     }
 
     /**
@@ -73,10 +75,12 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       consolePrinter: ConsolePrinter,
       device: IDevice,
       testPackageName: String,
-      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
+      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
+      retentionConfiguration: RetentionConfiguration) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
                                                     taskId, waitForDebugger, processHandler, consolePrinter, device,
-                                                    testPackageName, "", "", gradleConnectedAndroidTestInvoker)
+                                                    testPackageName, "", "", gradleConnectedAndroidTestInvoker,
+                                                    retentionConfiguration)
     }
 
     /**
@@ -92,11 +96,12 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       consolePrinter: ConsolePrinter,
       device: IDevice,
       testClassName: String,
-      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
+      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
+      retentionConfiguration: RetentionConfiguration) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel,
                                                     taskId, waitForDebugger,
                                                     processHandler, consolePrinter, device, "", testClassName, "",
-                                                    gradleConnectedAndroidTestInvoker)
+                                                    gradleConnectedAndroidTestInvoker, retentionConfiguration)
     }
 
     /**
@@ -113,10 +118,11 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
       device: IDevice,
       testClassName: String,
       testMethodName: String,
-      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker) : GradleAndroidTestApplicationLaunchTask {
+      gradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker,
+      retentionConfiguration: RetentionConfiguration) : GradleAndroidTestApplicationLaunchTask {
       return GradleAndroidTestApplicationLaunchTask(project, androidModuleModel, taskId,
                                                     waitForDebugger, processHandler, consolePrinter, device, "",
-                                                    testClassName, testMethodName, gradleConnectedAndroidTestInvoker)
+                                                    testClassName, testMethodName, gradleConnectedAndroidTestInvoker, retentionConfiguration)
     }
   }
 
@@ -126,7 +132,7 @@ class GradleAndroidTestApplicationLaunchTask private constructor(
     }
     myGradleConnectedAndroidTestInvoker.schedule(
       project, taskId, processHandler, consolePrinter, androidModuleModel,
-      waitForDebugger, testPackageName, testClassName, testMethodName, device)
+      waitForDebugger, testPackageName, testClassName, testMethodName, device, retentionConfiguration)
     return LaunchResult.success()
   }
 

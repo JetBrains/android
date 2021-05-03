@@ -138,6 +138,21 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    */
   public boolean INCLUDE_GRADLE_EXTRA_OPTIONS = true;
 
+  /*
+   * Configurations for Emulator Snapshot for Test Failures (a.k.a Android Test Retention, Icebox).
+   *
+   * Can be set to yes, no or use gradle settings.
+   */
+  public EnableRetention RETENTION_ENABLED = EnableRetention.NO;
+  /*
+   * Maximum number of snapshots for Emulator Snapshot for Test Failures.
+   */
+  public int RETENTION_MAX_SNAPSHOTS = 2;
+  /*
+   * Compress snapshots or not for Emulator Snapshot for Test Failures.
+   */
+  public boolean RETENTION_COMPRESS_SNAPSHOTS = false;
+
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory, true);
 
@@ -285,13 +300,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Override
   protected LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
-                                                       @NotNull AndroidFacet facet,
-                                                       @NotNull ApplicationIdProvider applicationIdProvider,
-                                                       @NotNull ApkProvider apkProvider,
-                                                       @NotNull LaunchOptions launchOptions) {
+                                                          @NotNull AndroidFacet facet,
+                                                          @NotNull ApplicationIdProvider applicationIdProvider,
+                                                          @NotNull ApkProvider apkProvider,
+                                                          @NotNull LaunchOptions launchOptions) {
     if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE()) {
       return new GradleAndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
-                                                  TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME);
+                                                  TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
+                                                  new RetentionConfiguration(RETENTION_ENABLED, RETENTION_MAX_SNAPSHOTS,
+                                                                             RETENTION_COMPRESS_SNAPSHOTS));
     } else {
       return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
     }

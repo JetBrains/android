@@ -56,6 +56,11 @@ class GradleConnectedAndroidTestInvoker(
   private val gradleTaskManagerFactory: () -> GradleTaskManager = { GradleTaskManager() }
 ) {
 
+  companion object {
+    const val RETENTION_ENABLE_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures"
+    const val RETENTION_COMPRESS_SNAPSHOT_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.compressSnapshots"
+  }
+
   private val scheduledDeviceList: MutableList<IDevice> = mutableListOf()
 
   /**
@@ -71,7 +76,8 @@ class GradleConnectedAndroidTestInvoker(
                testPackageName: String,
                testClassName: String,
                testMethodName: String,
-               device: IDevice) {
+               device: IDevice,
+               retentionConfiguration: RetentionConfiguration) {
     scheduledDeviceList.add(device)
     if (scheduledDeviceList.size == selectedDevices) {
       runGradleTask(project,
@@ -82,7 +88,8 @@ class GradleConnectedAndroidTestInvoker(
                     waitForDebugger,
                     testPackageName,
                     testClassName,
-                    testMethodName)
+                    testMethodName,
+                    retentionConfiguration)
     }
   }
 
@@ -98,7 +105,8 @@ class GradleConnectedAndroidTestInvoker(
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
-    testMethodName: String
+    testMethodName: String,
+    retentionConfiguration: RetentionConfiguration
   ) {
     consolePrinter.stdout("Running tests\n")
 
@@ -154,7 +162,7 @@ class GradleConnectedAndroidTestInvoker(
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName)
+      project, waitForDebugger, testPackageName, testClassName, testMethodName, retentionConfiguration)
 
     backgroundTaskExecutor {
       gradleTaskManagerFactory().executeTasks(
@@ -172,7 +180,8 @@ class GradleConnectedAndroidTestInvoker(
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
-    testMethodName: String
+    testMethodName: String,
+    retentionConfiguration: RetentionConfiguration
   ): GradleExecutionSettings {
     return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
@@ -186,6 +195,13 @@ class GradleConnectedAndroidTestInvoker(
 
       // Enable UTP test results reporting by embedded XML tag in stdout.
       withArgument("-P${GradleAndroidProjectResolverExtension.ENABLE_UTP_TEST_REPORT_PROPERTY}=true")
+
+      if (retentionConfiguration.enabled == EnableRetention.YES) {
+        withArgument("-P${RETENTION_ENABLE_PROPERTY}=${retentionConfiguration.maxSnapshots}")
+        withArgument("-P${RETENTION_COMPRESS_SNAPSHOT_PROPERTY}=${retentionConfiguration.compressSnapshots}")
+      } else if (retentionConfiguration.enabled == EnableRetention.NO) {
+        withArgument("-P${RETENTION_ENABLE_PROPERTY}=0")
+      }
 
       // Add a test filter.
       if (testPackageName != "" || testClassName != "") {

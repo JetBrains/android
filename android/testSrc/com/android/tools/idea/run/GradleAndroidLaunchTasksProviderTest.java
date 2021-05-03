@@ -28,6 +28,7 @@ import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
@@ -100,7 +101,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/0,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
     DebugConnectorTask debugConnectorTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
@@ -142,7 +144,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/1,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
     DebugConnectorTask debugConnectorTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
@@ -182,7 +185,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/2,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
@@ -220,7 +224,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/3,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
@@ -258,7 +263,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*INVALID_TESTING_TYPE*/4,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
@@ -294,7 +300,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/0,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
@@ -330,7 +337,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       /*TESTING_TYPE*/0,
       "PACKAGE_NAME",
       "CLASS_NAME",
-      "METHOD_NAME");
+      "METHOD_NAME",
+      new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 

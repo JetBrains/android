@@ -56,6 +56,7 @@ class GradleAndroidTestApplicationLaunchTaskTest {
   @Mock lateinit var mockAndroidModuleModel: AndroidModuleModel
   @Mock lateinit var mockDevice: IDevice
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
+  val retentionConfiguration = RetentionConfiguration()
 
   @Before
   fun setup() {
@@ -72,7 +73,9 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
-      mockGradleConnectedAndroidTestInvoker)
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration
+    )
 
     val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
@@ -87,7 +90,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq(""),
       eq(""),
-      eq(mockDevice)
+      eq(mockDevice),
+      eq(retentionConfiguration)
     )
   }
 
@@ -102,7 +106,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockPrinter,
       mockDevice,
       "com.example.test",
-      mockGradleConnectedAndroidTestInvoker)
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration)
 
     val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
@@ -117,7 +122,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq("com.example.test"),
       eq(""),
       eq(""),
-      eq(mockDevice)
+      eq(mockDevice),
+      eq(retentionConfiguration)
     )
   }
 
@@ -132,7 +138,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockPrinter,
       mockDevice,
       "com.example.test.TestClass",
-      mockGradleConnectedAndroidTestInvoker)
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration)
 
     val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
@@ -147,7 +154,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq(""),
-      eq(mockDevice)
+      eq(mockDevice),
+      eq(retentionConfiguration)
     )
   }
 
@@ -163,7 +171,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockDevice,
       "com.example.test.TestClass",
       "testMethod",
-      mockGradleConnectedAndroidTestInvoker)
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration)
 
     val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
@@ -178,8 +187,91 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       eq(""),
       eq("com.example.test.TestClass"),
       eq("testMethod"),
-      eq(mockDevice)
+      eq(mockDevice),
+      eq(retentionConfiguration)
     )
+  }
+
+  @Test
+  fun testTaskReturnsSuccessForAllInModuleTestWithRetention() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInModuleTest(
+      mockProject,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      mockDevice,
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration
+    )
+
+    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+
+    assertThat(result.success).isTrue()
+    verify(mockGradleConnectedAndroidTestInvoker).schedule(
+      eq(mockProject),
+      eq("taskId"),
+      eq(mockProcessHandler),
+      eq(mockPrinter),
+      eq(mockAndroidModuleModel),
+      eq(false),
+      eq(""),
+      eq(""),
+      eq(""),
+      eq(mockDevice),
+      eq(retentionConfiguration)
+    )
+  }
+
+  private fun testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration: RetentionConfiguration) {
+    val launchTask = GradleAndroidTestApplicationLaunchTask.allInPackageTest(
+      mockProject,
+      mockAndroidModuleModel,
+      "taskId",
+      /*waitForDebugger*/false,
+      mockProcessHandler,
+      mockPrinter,
+      mockDevice,
+      "com.example.test",
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration)
+
+    val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
+
+    assertThat(result.success).isTrue()
+    verify(mockGradleConnectedAndroidTestInvoker).schedule(
+      eq(mockProject),
+      eq("taskId"),
+      eq(mockProcessHandler),
+      eq(mockPrinter),
+      eq(mockAndroidModuleModel),
+      eq(false),
+      eq("com.example.test"),
+      eq(""),
+      eq(""),
+      eq(mockDevice),
+      eq(retentionConfiguration)
+    )
+  }
+
+  @Test
+  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionEnabled() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
+    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
+  }
+
+  @Test
+  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionDisabled() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.NO, maxSnapshots = 5, compressSnapshots = true)
+    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
+  }
+
+  @Test
+  fun testTaskReturnsSuccessForAllInPackageTestWithRetentionUseGradle() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.USE_GRADLE, maxSnapshots = 5, compressSnapshots = true)
+    testTaskReturnsSuccessForAllInPackageTestWithRetention(retentionConfiguration)
   }
 
   @Test
@@ -194,7 +286,8 @@ class GradleAndroidTestApplicationLaunchTaskTest {
       mockProcessHandler,
       mockPrinter,
       mockDevice,
-      mockGradleConnectedAndroidTestInvoker)
+      mockGradleConnectedAndroidTestInvoker,
+      retentionConfiguration)
 
     val result = launchTask.run(LaunchContext(mockProject, mockExecutor, mockDevice, mockLaunchStatus, mockPrinter, mockHandler))
 
