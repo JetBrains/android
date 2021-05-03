@@ -33,6 +33,7 @@ import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.skia.SkiaParserServerConnection
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
@@ -172,8 +173,8 @@ class TransportTreeLoaderTest {
   @Before
   fun setUp() {
     val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readImage()
-    sampleImage = LayoutInspectorUtils.createImage565(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
-                                                      origImage.height)
+    sampleImage = BitmapType.RGB_565.createImage(ByteBuffer.allocate(origImage.width * origImage.height * 2), origImage.width,
+                                                 origImage.height)
     val graphics = sampleImage.graphics
     graphics.drawImage(origImage, 0, 0, null)
     val deflater = Deflater(Deflater.BEST_SPEED)
