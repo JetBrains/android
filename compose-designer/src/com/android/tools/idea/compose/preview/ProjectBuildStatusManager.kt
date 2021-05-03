@@ -112,6 +112,16 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, private val editor
       }
     })
 
+    LiveLiteralsService.getInstance(project).addOnManagedElementsUpdatedListener(parentDisposable, object: LiveLiteralsService.ManagedElementsUpdatedListener {
+      override fun onChange(file: PsiFile) {
+        // The managed elements for a file have changed. If it's for the file we are monitoring, we need to mark the file as updated
+        // to ensure the new PsiElement filter is applied.
+        if (file.isEquivalentTo(editorFile) && status is Ready) {
+          fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
+        }
+      }
+    })
+
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)
 

@@ -96,6 +96,14 @@ interface PsiFileChangeDetector {
    */
   fun clearMarks(file: PsiFile)
 
+  /**
+   * Same as [markFileAsUpToDate] but it will force recalculating the changes even when the file has not changed at all.
+   */
+  fun forceMarkFileAsUpToDate(file: PsiFile) {
+    clearMarks(file)
+    markFileAsUpToDate(file)
+  }
+
   companion object {
     @JvmStatic
     fun getInstance(elementFilter: (PsiElement) -> Boolean = { true }) = HashPsiFileChangeDetector(elementFilter)
