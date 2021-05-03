@@ -95,7 +95,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -114,7 +114,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager, never()).executeTasks(
       any(),
@@ -128,7 +128,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = false, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[1])
+      mockDevices[1], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -147,7 +147,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = false, testPackageName = "packageName", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -172,7 +172,7 @@ class GradleConnectedAndroidTestInvokerTest {
       gradleConnectedTestInvoker.schedule(
         projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
         waitForDebugger = false, testPackageName = "", testClassName = "testClassName", testMethodName = "",
-        device)
+        device, RetentionConfiguration())
     }
 
     verify(mockGradleTaskManager).executeTasks(
@@ -197,7 +197,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = false, testPackageName = "", testClassName = "testClassName", testMethodName = "testMethodName",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -220,7 +220,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -243,7 +243,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -251,7 +251,59 @@ class GradleConnectedAndroidTestInvokerTest {
       anyString(),
       argThat {
         it?.run {
-          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true")
+          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
+          arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=0")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun retentionEnabledTest() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.YES, maxSnapshots = 5, compressSnapshots = true)
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], retentionConfiguration)
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
+          arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures=5") &&
+          arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.compressSnapshots=true")
+        } ?: false
+      },
+      nullable(String::class.java),
+      any()
+    )
+  }
+
+  @Test
+  fun retentionUseGradleTest() {
+    val retentionConfiguration = RetentionConfiguration(enabled = EnableRetention.USE_GRADLE, maxSnapshots = 5, compressSnapshots = true)
+    val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
+
+    gradleConnectedTestInvoker.schedule(
+      projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
+      waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
+      mockDevices[0], retentionConfiguration)
+
+    verify(mockGradleTaskManager).executeTasks(
+      any(),
+      anyList(),
+      anyString(),
+      argThat {
+        it?.run {
+          arguments.contains("-Pandroid.experimental.androidTest.useUnifiedTestPlatform=true") &&
+          !arguments.contains("-Pandroid.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures")
         } ?: false
       },
       nullable(String::class.java),
@@ -266,7 +318,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
@@ -291,7 +343,7 @@ class GradleConnectedAndroidTestInvokerTest {
     gradleConnectedTestInvoker.schedule(
       projectRule.project, "taskId", mockProcessHandler, mockPrinter, mockAndroidModuleModel,
       waitForDebugger = true, testPackageName = "", testClassName = "", testMethodName = "",
-      mockDevices[0])
+      mockDevices[0], RetentionConfiguration())
 
     verify(mockGradleTaskManager).executeTasks(
       any(),

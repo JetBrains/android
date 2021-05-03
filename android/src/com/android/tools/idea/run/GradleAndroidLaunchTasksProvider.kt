@@ -28,6 +28,7 @@ import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplic
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.classTest
 import com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestApplicationLaunchTask.Companion.methodTest
 import com.android.tools.idea.testartifacts.instrumented.GradleConnectedAndroidTestInvoker
+import com.android.tools.idea.testartifacts.instrumented.RetentionConfiguration
 import com.google.common.collect.Lists
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
@@ -45,7 +46,8 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
                                        testingType: Int,
                                        packageName: String,
                                        className: String,
-                                       methodName: String) : LaunchTasksProvider {
+                                       methodName: String,
+                                       private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
   private val myFacet: AndroidFacet = facet
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
@@ -80,7 +82,8 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
           launchStatus.processHandler,
           consolePrinter,
           device,
-          myGradleConnectedAndroidTestInvoker)
+          myGradleConnectedAndroidTestInvoker,
+          retentionConfiguration)
       }
       TEST_ALL_IN_PACKAGE -> {
         allInPackageTest(
@@ -92,7 +95,8 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
           consolePrinter,
           device,
           PACKAGENAME,
-          myGradleConnectedAndroidTestInvoker)
+          myGradleConnectedAndroidTestInvoker,
+          retentionConfiguration)
       }
       TEST_CLASS -> {
         classTest(
@@ -104,7 +108,8 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
           consolePrinter,
           device,
           CLASSNAME,
-          myGradleConnectedAndroidTestInvoker)
+          myGradleConnectedAndroidTestInvoker,
+          retentionConfiguration)
       }
      TEST_METHOD -> {
        methodTest(
@@ -117,7 +122,8 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
          device,
          CLASSNAME,
          METHODNAME,
-         myGradleConnectedAndroidTestInvoker)
+         myGradleConnectedAndroidTestInvoker,
+         retentionConfiguration)
      } else -> {
       launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $TESTINGTYPE", true)
       null
