@@ -1039,7 +1039,6 @@ class AppInspectionViewTest {
     }
   }
 
-  @Ignore("b/186898731")
   @Test
   fun remembersLastActiveTab() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()

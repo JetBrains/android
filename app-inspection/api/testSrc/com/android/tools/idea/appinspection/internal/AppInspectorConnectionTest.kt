@@ -19,6 +19,8 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionConnectionException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createPayloadChunks
@@ -212,7 +214,7 @@ class AppInspectorConnectionTest {
 
     disposedDeferred.join()
 
-    assertThat(client.awaitForDisposal()).isTrue()
+    assertThat(client.awaitForDisposal()).isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
   }
 
 
@@ -230,7 +232,7 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    assertThat(client.awaitForDisposal()).isTrue()
+    assertThat(client.awaitForDisposal()).isInstanceOf(AppInspectorForcefullyDisposedException::class.java)
   }
 
   @Test
@@ -248,7 +250,7 @@ class AppInspectorConnectionTest {
         .build()
     )
 
-    assertThat(client.awaitForDisposal()).isFalse()
+    assertThat(client.awaitForDisposal()).isInstanceOf(AppInspectionCrashException::class.java)
   }
 
   @Test
@@ -426,7 +428,7 @@ class AppInspectorConnectionTest {
     // Scope cancellation
     val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
     client.scope.cancel()
-    assertThat(client.awaitForDisposal()).isTrue()
+    client.awaitForDisposal()
 
     // Process ended
     val client2 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -436,7 +438,7 @@ class AppInspectorConnectionTest {
         .setIsEnded(true)
         .build()
     )
-    assertThat(client2.awaitForDisposal()).isTrue()
+    client2.awaitForDisposal()
 
     // Crash
     val client3 = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
@@ -450,6 +452,6 @@ class AppInspectorConnectionTest {
         )
         .build()
     )
-    assertThat(client3.awaitForDisposal()).isFalse()
+    assertThat(client3.awaitForDisposal()).isInstanceOf(AppInspectionCrashException::class.java)
   }
 }

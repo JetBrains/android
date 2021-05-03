@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.api
 
 import com.android.annotations.concurrency.WorkerThread
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -57,14 +56,14 @@ interface AppInspectorMessenger {
 /**
  * A convenience function that awaits until the inspector is disposed.
  *
- * This method returns true if the messenger was disposed normally, or false if it was caused by a crash.
+ * This method returns the cause of the disposal or null if the messenger's scope was cancelled normally.
  */
-suspend fun AppInspectorMessenger.awaitForDisposal(): Boolean {
+suspend fun AppInspectorMessenger.awaitForDisposal(): AppInspectionConnectionException? {
   val job = scope.coroutineContext[Job]!!
-  var crashed = false
-  job.invokeOnCompletion { cause ->
-    crashed = (cause is CancellationException && cause.cause is AppInspectionCrashException)
+  var cause: AppInspectionConnectionException? = null
+  job.invokeOnCompletion { exception ->
+    cause = exception?.cause as? AppInspectionConnectionException
   }
   job.join()
-  return !crashed
+  return cause
 }

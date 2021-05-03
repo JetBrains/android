@@ -31,11 +31,13 @@ import com.android.tools.idea.appinspection.ide.appProguardedMessage
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -290,12 +292,12 @@ class AppInspectionView @VisibleForTesting constructor(
         tabShell.putUserData(TAB_KEY, tab)
       }
       launch {
-        val exitNormally = client.awaitForDisposal()
+        val cause = client.awaitForDisposal()
         currentInspectorsJob?.cancel()
-        if (exitNormally) {
+        if (cause is AppInspectorForcefullyDisposedException) {
           stopInspectors()
         }
-        else { // If here, this client was disposed due to crashing
+        else if (cause is AppInspectionCrashException) {
           AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
           // Wait until AFTER we're disposed before showing the notification. This ensures if
           // the user hits restart, which requests launching a new inspector, it won't reuse
