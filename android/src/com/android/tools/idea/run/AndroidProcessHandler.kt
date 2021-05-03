@@ -129,18 +129,14 @@ class AndroidProcessHandler @JvmOverloads constructor(
 
   /**
    * Detaches a given device from target devices. No-op if the given device is not associated with this handler.
+   * If the target device list becomes empty after detaching a given device, it calls [detachProcess].
    */
   @WorkerThread
   fun detachDevice(device: IDevice) {
     myMonitorManager.detachDevice(device)
-  }
-
-  /**
-   * Returns true if there is no devices being monitored.
-   */
-  @AnyThread
-  fun isEmpty(): Boolean {
-    return myMonitorManager.isEmpty()
+    if (myMonitorManager.isEmpty()) {
+      detachProcess()
+    }
   }
 
   /**

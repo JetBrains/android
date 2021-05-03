@@ -235,9 +235,6 @@ class AndroidTestApplicationLaunchTask(
 
           // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
           androidProcessHandler.detachDevice(device)
-          if (androidProcessHandler.isEmpty()) {
-            androidProcessHandler.detachProcess()
-          }
         }
       }
       catch (e: Exception) {
