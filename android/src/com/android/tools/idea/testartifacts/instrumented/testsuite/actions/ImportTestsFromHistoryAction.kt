@@ -29,7 +29,7 @@ import java.io.File
  * instead of the standard IntelliJ SMTestRunnerResultsForm.
  */
 class ImportTestsFromHistoryAction(project: Project, historyXmlFile: File)
-  : ImportTestsFromHistoryAction(null, project, historyXmlFile.name) {
+  : ImportTestsFromHistoryAction(project, historyXmlFile.name) {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val virtualFile = getFile(project) ?: return
