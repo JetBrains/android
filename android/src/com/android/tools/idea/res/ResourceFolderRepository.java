@@ -1085,7 +1085,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   static void startTracing() {
-    FlightRecorder.initialize(500);
+    FlightRecorder.initialize(StudioFlags.RESOURCE_REPOSITORY_TRACE_SIZE.get());
     TRACER.enabled = true;
   }
 
