@@ -101,7 +101,6 @@ class AndroidTestApplicationLaunchTaskTest {
     `when`(mockLaunchContext.consolePrinter).thenReturn(mockPrinter)
     `when`(mockLaunchContext.launchStatus).thenReturn(mockLaunchStatus)
     `when`(mockLaunchStatus.processHandler).thenReturn(mockProcessHandler)
-    `when`(mockProcessHandler.isEmpty()).thenReturn(true)
 
     val launchTask = AndroidTestApplicationLaunchTask(
       "instrumentationTestRunner",
@@ -119,6 +118,5 @@ class AndroidTestApplicationLaunchTaskTest {
 
     verify(mockPrinter).stdout(eq("Running tests\n"))
     verify(mockProcessHandler).detachDevice(eq(mockDevice))
-    verify(mockProcessHandler).detachProcess()
   }
 }

@@ -254,6 +254,24 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminated).isFalse()
   }
 
+  @Test
+  fun ProcessHandlerShouldBeDetachedAfterAllTargetDeviceIsDetached() {
+    val targetDevice = createMockDevice(28)
+
+    handler.addTargetDevice(targetDevice)
+    `when`(mockMonitorManager.isEmpty()).thenReturn(true)
+    handler.detachDevice(targetDevice)
+
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+    inOrder(mockProcessListener).apply {
+      verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(false))
+      verify(mockProcessListener, timeout(1000)).processTerminated(any())
+      verifyNoMoreInteractions()
+    }
+
+    assertThat(handler.isProcessTerminated).isTrue()
+  }
+
   private fun createMockDevice(apiVersion: Int): IDevice {
     val mockDevice = mock(IDevice::class.java)
     `when`(mockDevice.version).thenReturn(AndroidVersion(apiVersion))
