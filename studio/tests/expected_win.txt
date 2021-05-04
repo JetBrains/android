@@ -1010,11 +1010,6 @@ android-studio/plugins/Kotlin/lib/parcelize-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/sam-with-receiver-compiler-plugin-for-ide.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
-android-studio/plugins/android-layoutlib-legacy/lib/android-annotations.jar
-android-studio/plugins/android-layoutlib-legacy/lib/android-layoutlib-legacy.jar
-android-studio/plugins/android-layoutlib-legacy/lib/kxml2-2.3.0.jar
-android-studio/plugins/android-layoutlib-legacy/lib/layoutlib-api.jar
-android-studio/plugins/android-layoutlib-legacy/lib/layoutlib_legacy.jar
 android-studio/plugins/android-layoutlib/lib/android-annotations.jar
 android-studio/plugins/android-layoutlib/lib/android-layoutlib.jar
 android-studio/plugins/android-layoutlib/lib/kxml2-2.3.0.jar
@@ -2192,7 +2187,6 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-Semi
 android-studio/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/fontsInSdk.txt
 android-studio/plugins/android/resources/layoutlib/data/fonts/native/fonts.xml
-android-studio/plugins/android/resources/layoutlib/data/fonts/standard/fonts.xml
 android-studio/plugins/android/resources/layoutlib/data/framework_res.jar
 android-studio/plugins/android/resources/layoutlib/data/icu/icudt66l.dat
 android-studio/plugins/android/resources/layoutlib/data/layoutlib-extensions.jar

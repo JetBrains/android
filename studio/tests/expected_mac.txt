@@ -987,11 +987,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/parcelize-compiler-plugin
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/sam-with-receiver-compiler-plugin-for-ide.jar
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/android-annotations.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/android-layoutlib-legacy.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/kxml2-2.3.0.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/layoutlib-api.jar
-Android Studio Preview.app/Contents/plugins/android-layoutlib-legacy/lib/layoutlib_legacy.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/android-annotations.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/android-layoutlib.jar
 Android Studio Preview.app/Contents/plugins/android-layoutlib/lib/kxml2-2.3.0.jar
@@ -2660,7 +2655,6 @@ Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fon
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-SemiBoldItalic.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/fontsInSdk.txt
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/native/fonts.xml
-Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/standard/fonts.xml
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/framework_res.jar
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/icu/icudt66l.dat
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/layoutlib-extensions.jar

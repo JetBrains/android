@@ -24,9 +24,7 @@
   <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
 
-  <!-- One of the layoutlib plugins is required -->
   <depends optional="true" config-file="layoutlib.xml">com.android.layoutlib</depends>
-  <depends optional="true" config-file="layoutlib-legacy.xml">com.android.layoutlib.legacy</depends>
 
   <depends optional="true" config-file="androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="database-support.xml">com.intellij.database</depends>
@@ -986,7 +984,6 @@
   <extensions defaultExtensionNs="com.android.rendering">
     <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
     <renderErrorContributor implementation="com.android.tools.idea.gradle.rendering.GradleRenderErrorContributor$GradleProvider"/>
-    <renderErrorContributor implementation="com.android.tools.idea.rendering.LayoutlibPluginRenderErrorContributor$LayoutlibPluginProvider"/>
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>

@@ -103,26 +103,14 @@ private fun getResourceDirectoryChild(project: Project, facet: AndroidFacet, chi
 
 /**
  * If a native crash caused by layoutlib is detected, show an error message instead of the design surface in the workbench.
- * This includes a hyperlink that will either switch to layoutlib legacy if the flag is on, or re-enable the design surface
- * and run the {@link Runnable} argument.
+ * This includes a hyperlink that will re-enable the design surface and run the {@link Runnable} argument.
  */
 fun WorkBench<DesignSurface>.handleLayoutlibNativeCrash(runnable: Runnable) {
   val message = "The preview has been disabled following a crash in the rendering engine. If the problem persists, please report the issue."
-  val actionData =
-    if (StudioFlags.NELE_SHOW_LAYOUTLIB_LEGACY.get()) {
-      ActionData("Switch to legacy rendering engine") {
-        Bridge.setNativeCrash(false)
-        PluginManagerCore.disablePlugin("com.android.layoutlib")
-        PluginManagerCore.enablePlugin("com.android.layoutlib.legacy")
-        PluginManagerConfigurable.shutdownOrRestartApp()
-      }
-    }
-    else {
-      ActionData("Re-enable rendering") {
-        Bridge.setNativeCrash(false)
-        showLoading("Loading...")
-        runnable.run()
-      }
-    }
+  val actionData = ActionData("Re-enable rendering") {
+    Bridge.setNativeCrash(false)
+    showLoading("Loading...")
+    runnable.run()
+  }
   loadingStopped(message, actionData)
 }

@@ -265,11 +265,6 @@ public final class StudioFlags {
     "Enable the SceneView left bar that displays the overlay actions.",
     true);
 
-  public static final Flag<Boolean> NELE_SHOW_LAYOUTLIB_LEGACY = Flag.create(
-    NELE, "hide.layoutlib.legacy", "Show the legacy version of Layoutlib.",
-    "Show users ways of reverting to the legacy version of Layoutlib.",
-    false);
-
 
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(

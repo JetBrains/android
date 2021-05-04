@@ -25,11 +25,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.sdk.LoadStatus;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -45,9 +41,6 @@ import java.util.Map;
  * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
 public class LayoutLibrary implements Disposable {
-    public static final String LAYOUTLIB_NATIVE_PLUGIN = "com.android.layoutlib";
-    public static final String LAYOUTLIB_STANDARD_PLUGIN = "com.android.layoutlib.legacy";
-
     /** Link to the layout bridge */
     private final Bridge mBridge;
     /** classloader used to load the jar file */
@@ -72,14 +65,6 @@ public class LayoutLibrary implements Disposable {
     private LayoutLibrary(Bridge bridge,  ClassLoader classLoader) {
         mBridge = bridge;
         mClassLoader = classLoader;
-    }
-
-    public static boolean isNative() {
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-            return true;
-        }
-        IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId(LAYOUTLIB_NATIVE_PLUGIN));
-        return nativePlugin != null && nativePlugin.isEnabled();
     }
 
     // ------ Layout Lib API proxy
