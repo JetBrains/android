@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2016 The Android Open Source Project
+  ~ Copyright (C) 2021 The Android Open Source Project
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-  <name>Designer Tests</name>
-  <id>com.android.tools.idea.designer.tests</id>
+  <id>com.android.tools.design</id>
+  <name>Design Tools</name>
+  <version>1.0</version>
+  <vendor>Google</vendor>
 
-  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <description>Provides a suite of design tools for Android Studio</description>
+
+  <depends>com.intellij.platform.images</depends>
+  <depends>org.jetbrains.android</depends>
+  <depends>org.jetbrains.kotlin</depends>
+
   <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-lang-databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/compose-designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layoutlib.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

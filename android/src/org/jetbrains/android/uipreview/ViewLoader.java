@@ -20,16 +20,13 @@ import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
-import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
-import android.view.Gravity;
 import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -155,9 +152,9 @@ public class ViewLoader {
       if (o != null) {
         return o;
       }
-      return createMockView(className, constructorSignature, constructorArgs);
+      return myLayoutLibrary.createMockView(getShortClassName(className), constructorSignature, constructorArgs);
     }
-    catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchFieldException | NoSuchMethodException e) {
+    catch (InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchMethodException e) {
       throw new ClassNotFoundException(className, e);
     }
   }
@@ -260,35 +257,6 @@ public class ViewLoader {
                       myLogger.getLinkManager().createBuildProjectUrl());
       myLogger.addMessage(problem);
     }
-  }
-
-  @NotNull
-  private MockView createMockView(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs)
-      throws
-          ClassNotFoundException,
-          InvocationTargetException,
-          NoSuchMethodException,
-          InstantiationException,
-          IllegalAccessException,
-          NoSuchFieldException {
-    MockView mockView = (MockView)createNewInstance(MockView.class, constructorSignature, constructorArgs, true);
-    String label = getShortClassName(className);
-    switch (label) {
-      case VIEW_FRAGMENT:
-        label = "<fragment>";
-        // TODO:
-        // Append "\nPick preview layout from the \"Fragment Layout\" context menu"
-        // when used from the layout editor
-        break;
-      case VIEW_INCLUDE:
-        label = "Text";
-        break;
-    }
-
-    mockView.setText(label);
-    mockView.setGravity(Gravity.CENTER);
-
-    return mockView;
   }
 
   @NotNull

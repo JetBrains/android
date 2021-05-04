@@ -6,10 +6,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
+    <orderEntry type="module" module-name="intellij.android.designer" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor" />
+    <orderEntry type="module" module-name="intellij.android.compose-designer" />
+    <orderEntry type="module" module-name="intellij.android.designer.customview" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" />
     <orderEntry type="library" name="layoutlib" level="project" />
   </component>
 </module>

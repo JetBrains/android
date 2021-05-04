@@ -28,6 +28,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
@@ -109,7 +110,6 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/workmanager/model:intellij.android.app-inspection.inspectors.workmanager.model",
             "//tools/adt/idea/app-inspection/inspectors/workmanager/view:intellij.android.app-inspection.inspectors.workmanager.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
-            "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/android:intellij.android.core",
             "//tools/adt/idea/dagger:intellij.android.dagger",
@@ -117,8 +117,6 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
             "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
-            "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
-            "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/emulator:intellij.android.emulator",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
@@ -128,7 +126,6 @@ studio_plugin(
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
             "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
-            "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
             "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
@@ -238,14 +235,13 @@ studio_plugin(
         "android-base-common.jar": [
             "//tools/base/common:studio.android.sdktools.common",
         ],
+        "layoutlib-api.jar": [
+            "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
+        ],
     },
     # List of modules and libraries we expect to be provided by the platform
     provided = [
-        "//tools/adt/idea/.idea/libraries:layoutlib",  # Plugins :com.android.layoutlib.*" are optional
-        "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/android-kotlin:dx",  # TODO
-        "//tools/base/annotations:studio.android.sdktools.android-annotations",
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # Plugins :com.android.layoutlib.*" are optional
     ],
     resources = {
         "resources": [
@@ -314,23 +310,28 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.android.layoutlib",
-    directory = "android-layoutlib",
+    name = "com.android.tools.design",
+    directory = "design-tools",
     libs = [
         "//tools/adt/idea/.idea/libraries:layoutlib",
-        "//tools/adt/idea/.idea/libraries:kxml2",
     ],
     licenses = [
         "//prebuilts/studio/layoutlib:licenses",
     ],
     modules = {
-        "android-layoutlib.jar": ["//tools/adt/idea/layoutlib:intellij.android.layoutlib"],
-        "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
-        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
+        "design-tools.jar": [
+            "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
+            "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
+            "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
+            "//tools/adt/idea/designer:intellij.android.designer",
+            "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
+            "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
+        ],
     },
-    provided = [
-        "//tools/adt/idea/.idea/libraries:kxml2",
-        "//tools/base/annotations:studio.android.sdktools.android-annotations",
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
     ],
 )
 
@@ -338,9 +339,6 @@ studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
-    provided = [
-        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",  # layout plugins are optional.
-    ],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
@@ -516,7 +514,7 @@ android_studio(
         ":org.jetbrains.android",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
-        ":com.android.layoutlib",
+        ":com.android.tools.design",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
         ":com.google.gct.testing",
@@ -639,7 +637,7 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module]",
         "//tools/vendor/google/android-apk[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
-        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
+        "//tools/adt/idea/design-plugin:intellij.android.design-plugin[module]",
         "//tools/vendor/google/android-ndk[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",

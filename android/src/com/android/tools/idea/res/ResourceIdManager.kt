@@ -34,6 +34,7 @@ import com.android.resources.ResourceType.STRING
 import com.android.resources.ResourceType.STYLE
 import com.android.resources.ResourceType.STYLEABLE
 import com.android.tools.idea.experimental.codeanalysis.datastructs.Modifier
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.idea.model.Namespacing
 import com.intellij.openapi.module.Module
 import gnu.trove.TIntObjectHashMap
@@ -207,7 +208,10 @@ class ResourceIdManager private constructor(val module: Module) : ResourceClassG
       toIdMap[STYLE] = TObjectIntHashMap(781)
     }
 
-    loadIdsFromResourceClass(com.android.internal.R::class.java, into = frameworkIds, lookForAttrsInStyleables = true)
+    val rClass = LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.computeSafeIfAny { provider -> provider.frameworkRClass }
+    if (rClass != null) {
+      loadIdsFromResourceClass(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
+    }
 
     return frameworkIds
   }

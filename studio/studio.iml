@@ -10,7 +10,7 @@
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="android-apk" />
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib" />
+    <orderEntry type="module" module-name="intellij.android.design-plugin" />
     <orderEntry type="module" module-name="android-ndk" />
     <orderEntry type="module" module-name="google-cloud-tools-as" />
     <orderEntry type="module" module-name="firebase" />

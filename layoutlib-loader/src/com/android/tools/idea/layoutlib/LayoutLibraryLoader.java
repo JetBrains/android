@@ -24,6 +24,7 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -78,9 +79,8 @@ public class LayoutLibraryLoader {
     String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA).toString());
 
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
-    library =
-      LayoutLibrary.load(new com.android.layoutlib.bridge.Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
-    if (!library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "/icu/icudt66l.dat", enumMap, layoutLog)) {
+    library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
+    if (library == null || !library.init(buildPropMap, new File(fontFolder.getPath()), getNativeLibraryPath(dataPath), dataPath + "/icu/icudt66l.dat", enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;
@@ -115,5 +115,19 @@ public class LayoutLibraryLoader {
     }
 
     return library;
+  }
+
+  /**
+   * Extension point for the Android plugin to have access to layoutlib in a separate plugin.
+   */
+  public static abstract class LayoutLibraryProvider {
+    public static final ExtensionPointName<LayoutLibraryProvider> EP_NAME =
+      new ExtensionPointName<>("com.android.tools.idea.layoutlib.layoutLibraryProvider");
+
+    @NotNull
+    public abstract LayoutLibrary getLibrary();
+
+    @NotNull
+    public abstract Class<?> getFrameworkRClass();
   }
 }

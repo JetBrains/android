@@ -135,5 +135,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
     <orderEntry type="module" module-name="utp" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
   </component>
 </module>

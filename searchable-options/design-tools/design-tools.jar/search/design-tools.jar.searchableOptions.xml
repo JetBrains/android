@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="action" path="ActionManager" hit="Add Action" />
+    <option name="add" path="ActionManager" hit="Add Action" />
+    <option name="add" path="ActionManager" hit="Add Deep Link" />
+    <option name="deep" path="ActionManager" hit="Add Deep Link" />
+    <option name="link" path="ActionManager" hit="Add Deep Link" />
+    <option name="action" path="ActionManager" hit="Add action to the selected item" />
+    <option name="add" path="ActionManager" hit="Add action to the selected item" />
+    <option name="item" path="ActionManager" hit="Add action to the selected item" />
+    <option name="selected" path="ActionManager" hit="Add action to the selected item" />
+    <option name="the" path="ActionManager" hit="Add action to the selected item" />
+    <option name="to" path="ActionManager" hit="Add action to the selected item" />
+    <option name="add" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="deep" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="item" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="link" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="selected" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="the" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="to" path="ActionManager" hit="Add deep link to the selected item" />
+    <option name="assign" path="ActionManager" hit="Assign Start Destination" />
+    <option name="destination" path="ActionManager" hit="Assign Start Destination" />
+    <option name="start" path="ActionManager" hit="Assign Start Destination" />
+    <option name="assign" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="graph" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="navigation" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="of" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="point" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="start" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="the" path="ActionManager" hit="Assign the start point of navigation graph" />
+    <option name="arrange" path="ActionManager" hit="Auto Arrange" />
+    <option name="auto" path="ActionManager" hit="Auto Arrange" />
+    <option name="change" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="device" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="in" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="menu" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="next" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="the" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="to" path="ActionManager" hit="Change to next device in the device menu" />
+    <option name="change" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="device" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="in" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="menu" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="previous" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="the" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="to" path="ActionManager" hit="Change to previous device in the device menu" />
+    <option name="constraint" path="ActionManager" hit="Constraint Layout Help Panel" />
+    <option name="help" path="ActionManager" hit="Constraint Layout Help Panel" />
+    <option name="layout" path="ActionManager" hit="Constraint Layout Help Panel" />
+    <option name="panel" path="ActionManager" hit="Constraint Layout Help Panel" />
+    <option name="constraint" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="create" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="editor" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="for" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="help" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="layout" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="panel" path="ActionManager" hit="Create Help Panel for Constraint Layout Editor" />
+    <option name="create" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="editor" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="for" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="help" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="layout" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="motion" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="panel" path="ActionManager" hit="Create Help Panel for Motion Layout Editor" />
+    <option name="create" path="ActionManager" hit="Create new Sample Data directory" />
+    <option name="data" path="ActionManager" hit="Create new Sample Data directory" />
+    <option name="directory" path="ActionManager" hit="Create new Sample Data directory" />
+    <option name="new" path="ActionManager" hit="Create new Sample Data directory" />
+    <option name="sample" path="ActionManager" hit="Create new Sample Data directory" />
+    <option name="disable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="enable" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="mode" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="night" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="of" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="or" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="preview" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="the" path="ActionManager" hit="Enable or disable the Night mode of preview" />
+    <option name="force" path="ActionManager" hit="Force Refresh Layout" />
+    <option name="layout" path="ActionManager" hit="Force Refresh Layout" />
+    <option name="refresh" path="ActionManager" hit="Force Refresh Layout" />
+    <option name="help" path="ActionManager" hit="Motion Layout Help Panel" />
+    <option name="layout" path="ActionManager" hit="Motion Layout Help Panel" />
+    <option name="motion" path="ActionManager" hit="Motion Layout Help Panel" />
+    <option name="panel" path="ActionManager" hit="Motion Layout Help Panel" />
+    <option name="device" path="ActionManager" hit="Preview Next Device" />
+    <option name="next" path="ActionManager" hit="Preview Next Device" />
+    <option name="preview" path="ActionManager" hit="Preview Next Device" />
+    <option name="device" path="ActionManager" hit="Preview Previous Device" />
+    <option name="preview" path="ActionManager" hit="Preview Previous Device" />
+    <option name="previous" path="ActionManager" hit="Preview Previous Device" />
+    <option name="items" path="ActionManager" hit="Rearrange the items" />
+    <option name="rearrange" path="ActionManager" hit="Rearrange the items" />
+    <option name="the" path="ActionManager" hit="Rearrange the items" />
+    <option name="preview" path="ActionManager" hit="Refresh preview(s)" />
+    <option name="refresh" path="ActionManager" hit="Refresh preview(s)" />
+    <option name="s" path="ActionManager" hit="Refresh preview(s)" />
+    <option name="default" path="ActionManager" hit="Restore Default Layout" />
+    <option name="layout" path="ActionManager" hit="Restore Default Layout" />
+    <option name="restore" path="ActionManager" hit="Restore Default Layout" />
+    <option name="data" path="ActionManager" hit="Sample Data Directory" />
+    <option name="directory" path="ActionManager" hit="Sample Data Directory" />
+    <option name="sample" path="ActionManager" hit="Sample Data Directory" />
+    <option name="help" path="ActionManager" hit="Show Help Panel" />
+    <option name="panel" path="ActionManager" hit="Show Help Panel" />
+    <option name="show" path="ActionManager" hit="Show Help Panel" />
+    <option name="editor" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="for" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="help" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="navigation" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="panel" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="show" path="ActionManager" hit="Show Help Panel for Navigation Editor" />
+    <option name="editor" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="for" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="help" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="hide" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="layout" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="panel" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="show" path="ActionManager" hit="Show/Hide Help Panel for Layout Editor" />
+    <option name="as" path="ActionManager" hit="Store Current Layout as Default" />
+    <option name="current" path="ActionManager" hit="Store Current Layout as Default" />
+    <option name="default" path="ActionManager" hit="Store Current Layout as Default" />
+    <option name="layout" path="ActionManager" hit="Store Current Layout as Default" />
+    <option name="store" path="ActionManager" hit="Store Current Layout as Default" />
+    <option name="design" path="ActionManager" hit="Switch Design Mode" />
+    <option name="mode" path="ActionManager" hit="Switch Design Mode" />
+    <option name="switch" path="ActionManager" hit="Switch Design Mode" />
+    <option name="and" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="blueprint" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="cycling" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="design" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="mode" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="switch" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="the" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="within" path="ActionManager" hit="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint" />
+    <option name="device" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="mode" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="night" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="toggle" path="ActionManager" hit="Toggle Device Night Mode" />
+    <option name="device" path="ActionManager" hit="Toggle Device Orientation" />
+    <option name="orientation" path="ActionManager" hit="Toggle Device Orientation" />
+    <option name="toggle" path="ActionManager" hit="Toggle Device Orientation" />
+    <option name="issue" path="ActionManager" hit="Toggle Issue Panel" />
+    <option name="panel" path="ActionManager" hit="Toggle Issue Panel" />
+    <option name="toggle" path="ActionManager" hit="Toggle Issue Panel" />
+    <option name="and" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="between" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="landscape" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="orientation" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="portrait" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="preview" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="the" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="toggle" path="ActionManager" hit="Toggle the preview orientation between portrait and landscape" />
+    <option name="issue" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="of" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="panel" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="the" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="toggle" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="visibility" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+  </configurable>
+  <configurable id="nele.options" configurable_name="Design Tools">
+    <option name="code" hit="Code" />
+    <option name="compose" hit="Compose files:" />
+    <option name="files" hit="Compose files:" />
+    <option name="default" hit="Default Editor Mode" />
+    <option name="editor" hit="Default Editor Mode" />
+    <option name="mode" hit="Default Editor Mode" />
+    <option name="design" hit="Design" />
+    <option name="design" hit="Design Tools" />
+    <option name="tools" hit="Design Tools" />
+    <option name="drawables" hit="Drawables:" />
+    <option name="files" hit="Other Kotlin files:" />
+    <option name="kotlin" hit="Other Kotlin files:" />
+    <option name="other" hit="Other Kotlin files:" />
+    <option name="e" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="g" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="layout" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="menu" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
+    <option name="design" hit="Show lint icons on design surface" />
+    <option name="icons" hit="Show lint icons on design surface" />
+    <option name="lint" hit="Show lint icons on design surface" />
+    <option name="on" hit="Show lint icons on design surface" />
+    <option name="show" hit="Show lint icons on design surface" />
+    <option name="surface" hit="Show lint icons on design surface" />
+    <option name="split" hit="Split" />
+  </configurable>
+</options>
+
