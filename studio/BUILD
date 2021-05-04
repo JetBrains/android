@@ -335,24 +335,6 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.android.layoutlib.legacy",
-    directory = "android-layoutlib-legacy",
-    libs = [
-        "//prebuilts/studio/layoutlib/data:layoutlib-legacy",
-        "//tools/adt/idea/.idea/libraries:kxml2",
-    ],
-    modules = {
-        "android-layoutlib-legacy.jar": ["//tools/adt/idea/layoutlib-legacy:intellij.android.layoutlib-legacy"],
-        "layoutlib-api.jar": ["//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api"],
-        "android-annotations.jar": ["//tools/base/annotations:studio.android.sdktools.android-annotations"],
-    },
-    provided = [
-        "//tools/adt/idea/.idea/libraries:kxml2",
-        "//tools/base/annotations:studio.android.sdktools.android-annotations",
-    ],
-)
-
-studio_plugin(
     name = "androidx.compose.plugins.idea",
     directory = "android-compose-ide-plugin",
     modules = {"android-compose-ide-plugin.jar": ["//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin"]},
@@ -535,7 +517,6 @@ android_studio(
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.layoutlib",
-        ":com.android.layoutlib.legacy",
         ":androidx.compose.plugins.idea",
         ":com.google.services.firebase",
         ":com.google.gct.testing",

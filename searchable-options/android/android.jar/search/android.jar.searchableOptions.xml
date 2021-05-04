@@ -1406,11 +1406,6 @@
     <option name="profile" hit="Trace Gradle import with profile:" />
     <option name="trace" hit="Trace Gradle import with profile:" />
     <option name="with" hit="Trace Gradle import with profile:" />
-    <option name="engine" hit="Use new Layout Rendering Engine" />
-    <option name="layout" hit="Use new Layout Rendering Engine" />
-    <option name="new" hit="Use new Layout Rendering Engine" />
-    <option name="rendering" hit="Use new Layout Rendering Engine" />
-    <option name="use" hit="Use new Layout Rendering Engine" />
     <option name="dependency" hit="Use new dependency mechanism during Gradle sync" />
     <option name="during" hit="Use new dependency mechanism during Gradle sync" />
     <option name="gradle" hit="Use new dependency mechanism during Gradle sync" />
