@@ -29,4 +29,40 @@ class RemoveImplementationPropertiesRefactoringProcessorTest: UpgradeGradleFileM
 
     verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/DynamicFeature420TemplateExpected"))
   }
+
+  @Test
+  fun testApplicationEverything() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/ApplicationEverything"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/ApplicationEverythingExpected"))
+  }
+
+  @Test
+  fun testDynamicFeatureEverything() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/DynamicFeatureEverything"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/DynamicFeatureEverythingExpected"))
+  }
+
+  @Test
+  fun testLibraryEverything() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/LibraryEverything"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/LibraryEverythingExpected"))
+  }
+
+  @Test
+  fun testTestEverything() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/TestEverything"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("RemoveImplementationProperties/TestEverythingExpected"))
+  }
 }

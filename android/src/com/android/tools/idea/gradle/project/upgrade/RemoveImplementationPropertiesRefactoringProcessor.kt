@@ -118,15 +118,103 @@ val GradleBuildModel.moduleKind: ModuleKind?
   }
 
 enum class ModuleKind(val implementationProperties: GradleBuildModel.() -> List<GradlePropertyModel>) {
-  APP( { listOf() }),
-  LIBRARY( { listOf() }),
-  DYNAMIC_FEATURE( { listOf(
-    android().defaultConfig().applicationId(),
-    android().defaultConfig().targetSdkVersion(),
-    android().defaultConfig().versionCode(),
-    android().defaultConfig().versionName(),
-
-  ) }),
-  TEST( { listOf() }),
+  APP(
+    {
+      listOf(
+        android().aidlPackagedList(),
+        android().targetProjectPath(),
+        android().defaultConfig().consumerProguardFiles()
+      ) +
+      android().buildTypes().map { it.consumerProguardFiles() } +
+      android().productFlavors().map { it.consumerProguardFiles() }
+    }),
+  LIBRARY(
+    {
+      listOf(
+        android().assetPacks(),
+        android().dynamicFeatures(),
+        android().targetProjectPath(),
+        android().defaultConfig().applicationId(),
+        android().defaultConfig().applicationIdSuffix(),
+        android().defaultConfig().maxSdkVersion(),
+        android().defaultConfig().versionCode(),
+        android().defaultConfig().versionName(),
+        android().defaultConfig().versionNameSuffix()
+      ) +
+      android().buildTypes().flatMap {
+        listOf(it.crunchPngs(), it.debuggable(), it.embedMicroApp(), it.applicationIdSuffix(), it.versionNameSuffix())
+      } +
+      android().productFlavors().flatMap {
+        listOf(it.applicationId(), it.applicationIdSuffix(), it.maxSdkVersion(), it.versionCode(), it.versionName(), it.versionNameSuffix())
+      }
+    }),
+  DYNAMIC_FEATURE(
+    {
+      listOf(
+        android().aidlPackagedList(),
+        android().assetPacks(),
+        android().dynamicFeatures(),
+        android().targetProjectPath(),
+        android().defaultConfig().applicationId(),
+        android().defaultConfig().applicationIdSuffix(),
+        android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().maxSdkVersion(),
+        android().defaultConfig().multiDexEnabled(),
+        android().defaultConfig().targetSdkVersion(),
+        android().defaultConfig().versionCode(),
+        android().defaultConfig().versionName(),
+        android().defaultConfig().versionNameSuffix()
+      ) +
+      android().buildTypes().flatMap {
+        listOf(
+          it.debuggable(),
+          it.isDefault(),
+          it.embedMicroApp(),
+          it.consumerProguardFiles(),
+          it.applicationIdSuffix(),
+          it.versionNameSuffix()
+        )
+      } +
+      android().productFlavors().flatMap {
+        listOf(
+          it.isDefault(),
+          it.consumerProguardFiles(),
+          it.applicationId(),
+          it.applicationIdSuffix(),
+          it.multiDexEnabled(),
+          it.versionCode(),
+          it.versionName(),
+          it.versionNameSuffix()
+        )
+      }
+    }),
+  TEST(
+    {
+      listOf(
+        android().aidlPackagedList(),
+        android().assetPacks(),
+        android().dynamicFeatures(),
+        android().defaultConfig().applicationId(),
+        android().defaultConfig().applicationIdSuffix(),
+        android().defaultConfig().consumerProguardFiles(),
+        android().defaultConfig().versionCode(),
+        android().defaultConfig().versionName(),
+        android().defaultConfig().versionNameSuffix(),
+      ) +
+      android().buildTypes().flatMap {
+        listOf(it.isDefault(), it.consumerProguardFiles(), it.embedMicroApp(), it.applicationIdSuffix(), it.versionNameSuffix())
+      } +
+      android().productFlavors().flatMap {
+        listOf(
+          it.isDefault(),
+          it.consumerProguardFiles(),
+          it.applicationId(),
+          it.applicationIdSuffix(),
+          it.versionCode(),
+          it.versionName(),
+          it.versionNameSuffix()
+        )
+      }
+    }),
 }
 
