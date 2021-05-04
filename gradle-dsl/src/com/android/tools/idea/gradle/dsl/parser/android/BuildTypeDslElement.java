@@ -48,7 +48,9 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       data.modelEffectDescription.property, data.modelEffectDescription.semantics
     }),
     Stream.of(new Object[][]{
+      {"isCrunchPngs", property, CRUNCH_PNGS, VAR},
       {"isDebuggable", property, DEBUGGABLE, VAR},
+      {"isDefault", property, DEFAULT, VAR},
       {"isEmbedMicroApp", property, EMBED_MICRO_APP, VAR},
       {"isJniDebuggable", property, JNI_DEBUGGABLE, VAR},
       {"setJniDebuggable", exactly(1), JNI_DEBUGGABLE, SET},
@@ -74,8 +76,12 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       data.modelEffectDescription.property, data.modelEffectDescription.semantics
     }),
     Stream.of(new Object[][]{
+      {"crunchPngs", property, CRUNCH_PNGS, VAR},
+      {"crunchPngs", exactly(1), CRUNCH_PNGS, SET},
       {"debuggable", property, DEBUGGABLE, VAR},
       {"debuggable", exactly(1), DEBUGGABLE, SET},
+      {"isDefault", property, DEFAULT, VAR},
+      {"isDefault", exactly(1), DEFAULT, SET},
       {"embedMicroApp", property, EMBED_MICRO_APP, VAR},
       {"embedMicroApp", exactly(1), EMBED_MICRO_APP, SET},
       {"jniDebuggable", property, JNI_DEBUGGABLE, VAR},

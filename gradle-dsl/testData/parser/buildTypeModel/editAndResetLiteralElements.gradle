@@ -2,7 +2,9 @@ android {
   buildTypes {
     xyz {
       applicationIdSuffix "mySuffix"
+      crunchPngs true
       debuggable true
+      isDefault true
       embedMicroApp false
       jniDebuggable true
       minifyEnabled false

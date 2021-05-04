@@ -3,7 +3,9 @@ android {
     xyz {
       applicationIdSuffix = "mySuffix"
       consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+      crunchPngs = true
       debuggable = true
+      isDefault = true
       embedMicroApp = true
       jniDebuggable = true
       manifestPlaceholders = [activityLabel1: "defaultName1", activityLabel2: "defaultName2"]

@@ -46,6 +46,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     // Make sure adding to the list works.
     android.flavorDimensions().addListValue().setValue("strawberry")
@@ -62,6 +63,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -86,6 +88,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -102,6 +105,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -114,6 +118,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -186,9 +191,11 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(productFlavors).hasSize(2)
     val flavor1 = productFlavors[0]
     assertEquals("name", "flavor1", flavor1.name())
+    assertEquals("default", false, flavor1.isDefault())
     assertEquals("applicationId", "com.example.myapplication.flavor1", flavor1.applicationId())
     val flavor2 = productFlavors[1]
     assertEquals("name", "flavor2", flavor2.name())
+    assertEquals("default", true, flavor2.isDefault())
     assertEquals("applicationId", "com.example.myapplication.flavor2", flavor2.applicationId())
   }
 
@@ -221,6 +228,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
@@ -230,6 +238,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
     android.resourcePrefix().delete()
+    android.targetProjectPath().delete()
 
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
@@ -239,6 +248,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     buildModel.resetState()
 
@@ -250,6 +260,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -265,6 +276,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
     android.compileSdkVersion().setValue("24")
@@ -272,6 +284,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
     android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp2")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -279,6 +292,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
 
     buildModel.resetState()
 
@@ -288,6 +302,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     // Test the fields that also accept an integer value along with the String valye.
     android.buildToolsVersion().setValue(22)
@@ -315,6 +330,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
     android.compileSdkVersion().setValue("24")
@@ -322,6 +338,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
     android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -329,6 +346,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     buildModel.resetState()
 
@@ -338,6 +356,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     // Test the fields that also accept an integer value along with the String value.
     android.buildToolsVersion().setValue(22)
@@ -359,16 +378,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1", ":a2"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
+    android.aidlPackagedList().getListValue("src/main/aidl/foo.aidl")!!.setValue("src/main/aidl/quux.aidl")
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/quux.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    android.assetPacks().getListValue(":a2")!!.setValue(":b2")
+    assertEquals("assetPacks", listOf(":a1", ":b2"), android.assetPacks())
+    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
+    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
-    android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
-    assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
-
     buildModel.resetState()
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1", ":a2"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
   }
@@ -380,15 +406,23 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("aidlPackagedList", android.aidlPackagedList())
+    assertMissingProperty("assetPacks", android.assetPacks())
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
+    android.aidlPackagedList().addListValue().setValue("src/main/aidl/a.aidl")
+    android.assetPacks().addListValue().setValue(":a")
     android.flavorDimensions().addListValue().setValue("xyz")
     android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/a.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.resetState()
+    assertMissingProperty("aidlPackagedList", android.aidlPackagedList())
+    assertMissingProperty("assetPacks", android.assetPacks())
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
   }
@@ -500,6 +534,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     assertEquals("productFlavors", "flavor", productFlavors[0].name())
+    productFlavors[0].isDefault().setValue(true)
+    assertEquals("default", true, productFlavors[0].isDefault())
 
     buildModel.resetState()
     assertThat(android.productFlavors()).isEmpty()
@@ -568,6 +604,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().delete()
     android.compileSdkVersion().delete()
@@ -577,6 +614,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().delete()
     android.publishNonDefault().delete()
     android.resourcePrefix().delete()
+    android.targetProjectPath().delete()
 
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
@@ -586,6 +624,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     applyChanges(buildModel)
     assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
@@ -596,6 +635,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     buildModel.reparse()
     android = buildModel.android()
@@ -845,12 +885,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertThat(productFlavors).hasSize(1)
     var productFlavor = productFlavors[0]
     productFlavor.applicationId().setValue("abc.xyz")
+    productFlavor.isDefault().setValue(true)
 
     productFlavors = android.productFlavors()
     assertThat(productFlavors).hasSize(1)
     productFlavor = productFlavors[0]
     assertEquals("productFlavors", "flavor", productFlavor.name())
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId())
+    assertEquals("productFlavors", true, productFlavor.isDefault())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED)
@@ -860,6 +902,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     productFlavor = productFlavors[0]
     assertEquals("productFlavors", "flavor", productFlavor.name())
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId())
+    assertEquals("productFlavors", true, productFlavor.isDefault())
 
     buildModel.reparse()
     android = buildModel.android()
@@ -870,6 +913,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     productFlavor = productFlavors[0]
     assertEquals("productFlavors", "flavor", productFlavor.name())
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId())
+    assertEquals("productFlavors", true, productFlavor.isDefault())
   }
 
   @Test
@@ -1176,7 +1220,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
-
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
     android.compileSdkVersion().setValue("24")
@@ -1184,6 +1228,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
     android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp2")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -1191,6 +1236,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
@@ -1201,6 +1247,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
 
     buildModel.reparse()
     android = buildModel.android()
@@ -1212,6 +1259,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp2", android.targetProjectPath())
   }
 
   @Test
@@ -1257,6 +1305,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("generatePureSplits", android.generatePureSplits())
     assertMissingProperty("publishNonDefault", android.publishNonDefault())
     assertMissingProperty("resourcePrefix", android.resourcePrefix())
+    assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
     android.compileSdkVersion().setValue("24")
@@ -1264,6 +1313,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
     android.resourcePrefix().setValue("efgh")
+    android.targetProjectPath().setValue(":tpp")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
@@ -1271,6 +1321,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
@@ -1281,6 +1332,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     buildModel.reparse()
     android = buildModel.android()
@@ -1292,6 +1344,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
     assertEquals("resourcePrefix", "efgh", android.resourcePrefix())
+    assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
   }
 
   @Test
@@ -1332,24 +1385,33 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1", ":a2"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
+    android.aidlPackagedList().getListValue("src/main/aidl/foo.aidl")!!.setValue("src/main/aidl/quux.aidl")
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/quux.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    android.assetPacks().getListValue(":a2")!!.setValue(":b2")
+    assertEquals("assetPacks", listOf(":a1", ":b2"), android.assetPacks())
     android.dynamicFeatures().getListValue(":f2")!!.setValue(":g2")
     assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
-
     android.flavorDimensions().getListValue("abi")!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED)
 
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/quux.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1", ":b2"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/quux.aidl", "src/main/aidl/bar.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1", ":b2"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f1", ":g2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz", "version"), android.flavorDimensions())
   }
@@ -1361,8 +1423,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     var android = buildModel.android()
     assertNotNull(android)
 
+    assertMissingProperty("aidlPackagedList", android.aidlPackagedList())
+    assertMissingProperty("assetPacks", android.assetPacks())
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
+
+    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+
+    android.assetPacks().addListValue().setValue(":a1")
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
 
     android.dynamicFeatures().addListValue().setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
@@ -1373,12 +1443,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED)
 
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
   }
