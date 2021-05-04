@@ -327,11 +327,11 @@ public class AndroidAnnotatorUtil {
     @NotNull
     @Override
     public Icon getIcon() {
-      if (myResourceReference != null) {
+      if (myResourceReference != null && myElement.isValid()) {
         AndroidFacet facet = AndroidFacet.getInstance(myElement);
         if (facet != null) {
           ResourceValue value = myResolver.getUnresolvedResource(myResourceReference);
-          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, value, myElement.getProject());
+          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, value, facet.getModule().getProject());
           if (!colors.isEmpty()) {
             MultipleColorIcon icon = new MultipleColorIcon();
             icon.setColors(colors);
@@ -353,15 +353,15 @@ public class AndroidAnnotatorUtil {
       if (myColor != null) {
         return myColor;
       }
-      else if (myElement instanceof XmlTag) {
-        return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
+      if (myElement.isValid()) {
+        if (myElement instanceof XmlTag) {
+          return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
+        }
+        else if (myElement instanceof XmlAttributeValue) {
+          return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
+        }
       }
-      else if (myElement instanceof XmlAttributeValue) {
-        return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
-      }
-      else {
-        return null;
-      }
+      return null;
     }
 
     @Override
