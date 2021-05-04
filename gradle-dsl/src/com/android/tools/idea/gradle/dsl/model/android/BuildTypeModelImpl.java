@@ -31,7 +31,9 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
    * these names are used within the implementation below, and also in the construction of Dsl elements
    * representing the state of {@link BuildTypeDslElement}s.
    */
+  @NonNls public static final String CRUNCH_PNGS = "mCrunchPngs";
   @NonNls public static final String DEBUGGABLE = "mDebuggable";
+  @NonNls public static final String DEFAULT = "mDefault";
   @NonNls public static final String EMBED_MICRO_APP = "mEmbedMicroApp";
   @NonNls public static final String JNI_DEBUGGABLE = "mJniDebuggable";
   @NonNls public static final String MINIFY_ENABLED = "mMinifyEnabled";
@@ -49,6 +51,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
 
   @Override
   @NotNull
+  public ResolvedPropertyModel crunchPngs() {
+    return getModelForProperty(CRUNCH_PNGS);
+  }
+
+  @Override
+  @NotNull
   public ResolvedPropertyModel debuggable() {
     return getModelForProperty(DEBUGGABLE);
   }
@@ -57,6 +65,12 @@ public class BuildTypeModelImpl extends FlavorTypeModelImpl implements BuildType
   @NotNull
   public ResolvedPropertyModel embedMicroApp() {
     return getModelForProperty(EMBED_MICRO_APP);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel isDefault() {
+    return getModelForProperty(DEFAULT);
   }
 
   @Override

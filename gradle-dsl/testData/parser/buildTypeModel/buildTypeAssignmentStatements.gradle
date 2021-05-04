@@ -6,7 +6,9 @@ android {
 }
 android.buildTypes.xyz.applicationIdSuffix = "mySuffix"
 android.buildTypes.xyz.consumerProguardFiles = ['proguard-android.txt', 'proguard-rules.pro']
+android.buildTypes.xyz.crunchPngs = true
 android.buildTypes.xyz.debuggable = true
+android.buildTypes.xyz.isDefault = true
 android.buildTypes.xyz.embedMicroApp = true
 android.buildTypes.xyz.jniDebuggable = true
 android.buildTypes.xyz.manifestPlaceholders = [activityLabel1: "defaultName1", activityLabel2: "defaultName2"]
