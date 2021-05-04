@@ -29,6 +29,7 @@ import com.intellij.openapi.Disposable;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 /**
@@ -58,7 +59,7 @@ public class LayoutLibrary implements Disposable {
     /**
      * Returns a {@link LayoutLibrary} instance using the given {@link Bridge} and {@link ClassLoader}
      */
-    static LayoutLibrary load(Bridge bridge, ClassLoader classLoader) {
+    public static LayoutLibrary load(Bridge bridge, ClassLoader classLoader) {
         return new LayoutLibrary(bridge, classLoader);
     }
 
@@ -204,6 +205,18 @@ public class LayoutLibrary implements Disposable {
      */
     public boolean isRtl(String locale) {
         return mBridge != null && mBridge.isRtl(locale);
+    }
+
+    /**
+     * Returns a mock view displaying the given label. This mock view should be created by passing
+     * the provided arguments to its constructor.
+     */
+    public Object createMockView(String label, Class<?>[] constructorSignature, Object[] constructorArgs)
+      throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (mBridge != null) {
+            return mBridge.createMockView(label, constructorSignature, constructorArgs);
+        }
+        return null;
     }
 
     @VisibleForTesting

@@ -52,8 +52,9 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/.idea/libraries:layoutlib",
+        "//tools/adt/idea/.idea/libraries:layoutlib[test]",
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
+        "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
     ],
 )

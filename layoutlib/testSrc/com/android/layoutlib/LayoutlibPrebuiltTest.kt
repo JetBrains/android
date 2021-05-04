@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutlib
+package com.android.layoutlib
 
 import com.android.layoutlib.bridge.BridgeConstants
 import org.junit.Test

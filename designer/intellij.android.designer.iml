@@ -31,7 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" />
-    <orderEntry type="library" scope="PROVIDED" name="layoutlib" level="project" />
+    <orderEntry type="library" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="intellij.android.compose-common" />
