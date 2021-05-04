@@ -7,4 +7,5 @@ android {
   generatePureSplits true
   publishNonDefault false
   resourcePrefix "abcd"
+  targetProjectPath ":tpp"
 }

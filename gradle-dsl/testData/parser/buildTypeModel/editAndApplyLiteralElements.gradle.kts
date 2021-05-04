@@ -2,7 +2,9 @@ android {
   buildTypes {
     create("xyz") {
       applicationIdSuffix = "mySuffix"
+      isCrunchPngs = true
       isDebuggable = true
+      isDefault = true
       isEmbedMicroApp = false
       isJniDebuggable = true
       isMinifyEnabled = false

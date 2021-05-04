@@ -70,6 +70,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   }
 
   private static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+    {"aidlPackagedList", property, AIDL_PACKAGED_LIST, VAL}, // TODO(xof): was aidlPackageW***eL**t, add support for old version
+    {"assetPacks", property, ASSET_PACKS, VAL}, // TODO(xof): was VAR some time ago
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(b/148657110): type handling of this is tricky
@@ -83,10 +85,14 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"ndkVersion", property, NDK_VERSION, VAR},
     {"setPublishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL}, // no setResourcePrefix: not a VAR
-    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
+    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET},
+    {"targetProjectPath", property, TARGET_PROJECT_PATH, VAR},
+    {"targetProjectPath", exactly(1), TARGET_PROJECT_PATH, SET},
   }).collect(toModelMap());
 
   private static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+    {"aidlPackagedList", property, AIDL_PACKAGED_LIST, VAL},
+    {"assetPacks", property, ASSET_PACKS, VAR},
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
     {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR},
@@ -102,7 +108,9 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"publishNonDefault", property, PUBLISH_NON_DEFAULT, VAR},
     {"publishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL},
-    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET}
+    {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET},
+    {"targetProjectPath", property, TARGET_PROJECT_PATH, VAR},
+    {"targetProjectPath", exactly(1), TARGET_PROJECT_PATH, SET},
   }).collect(toModelMap());
 
   @Override

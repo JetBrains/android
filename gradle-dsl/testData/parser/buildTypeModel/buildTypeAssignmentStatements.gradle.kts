@@ -7,7 +7,9 @@ android {
 android.buildTypes.getByName("xyz").applicationIdSuffix = "mySuffix"
 // can't assign to consumerProguardFiles
 android.buildTypes.getByName("xyz").consumerProguardFiles("proguard-android.txt", "proguard-rules.pro")
+android.buildTypes.getByName("xyz").isCrunchPngs = true
 android.buildTypes.getByName("xyz").isDebuggable = true
+android.buildTypes.getByName("xyz").isDefault = true
 android.buildTypes.getByName("xyz").isEmbedMicroApp = true
 android.buildTypes.getByName("xyz").isJniDebuggable = true
 android.buildTypes.getByName("xyz").manifestPlaceholders = mutableMapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2")
