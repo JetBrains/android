@@ -65,6 +65,9 @@ import com.intellij.execution.process.CapturingProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -787,6 +790,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         myChooseBootRadioButton.setSelected(true);
         return;
       }
+
       // The bottom item in the drop-down was selected. When the user selects this item,
       // we invoke the detailed UI page in the Emulator.
       invokeEmulatorSnapshotControl();
@@ -856,19 +860,28 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       commandLine.addParameters("-ui-only", "snapshot-control");
       commandLine.addParameters("-studio-params", paramFileForEmulator.getAbsolutePath());
 
-      int exitValue;
       try {
-        // Launch the Emulator
-        CapturingProcessHandler process = new CapturingProcessHandler(commandLine);
-        ProcessOutput output = process.runProcess();
-        exitValue = output.getExitCode();
+        // We need to wait for the emulator response, so we create a modal task to block Studio until we have the result of the UI
+        // selection in the emulator.
+        return ProgressManager.getInstance().run(new Task.WithResult<Boolean, ExecutionException>(myProject,
+                                                                                                  "Waiting for Emulator Snapshot Selection",
+                                                                                                  false) {
+          @Override
+          protected Boolean compute(@NotNull ProgressIndicator indicator) throws ExecutionException {
+            int exitValue;
+            // Launch the Emulator
+            CapturingProcessHandler process = new CapturingProcessHandler(commandLine);
+            ProcessOutput output = process.runProcess();
+            exitValue = output.getExitCode();
+            return (exitValue == 0);
+          }
+        });
       }
       catch (ExecutionException execEx) {
         Logger.getInstance(ConfigureAvdOptionsStep.class)
-              .info("Could not launch emulator for snapshot control", execEx);
+          .info("Could not launch emulator for snapshot control", execEx);
         return false;
       }
-      return (exitValue == 0);
     }
 
     /** Read the file from the Emulator that tells us what Snapshot file was chosen.
