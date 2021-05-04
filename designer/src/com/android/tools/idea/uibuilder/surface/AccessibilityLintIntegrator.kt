@@ -294,9 +294,8 @@ class NlAtfIssue(
     if (dialog.showAndGet() && (source is NlComponentIssueSource)) {
       dialog.resourceName?.let {
         NlWriteCommandActionUtil.run(source.component, "Update issue source") {
-          source.component.setAttribute(viewAttribute.mNamespaceUri,
-                                        viewAttribute.mAttributeName,
-                                        "@string/$it")
+          source.component.setAttribute(
+            viewAttribute.mNamespaceUri, viewAttribute.mAttributeName, it)
         }
       }
     }
