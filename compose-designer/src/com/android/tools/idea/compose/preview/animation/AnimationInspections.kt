@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtVisitorVoid
+import org.jetbrains.kotlin.psi.psiUtil.getOrCreateValueArgumentList
 import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.SimpleType
@@ -130,6 +131,6 @@ private class AddLabelFieldQuickFix(updateTransition: KtCallExpression) : LocalQ
   override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
     val psiFactory = KtPsiFactory(project)
     val statementText = "$LABEL_PARAMETER = \"\""
-    (startElement as KtCallExpression).valueArgumentList?.addArgument(psiFactory.createArgument(statementText))
+    (startElement as KtCallExpression).getOrCreateValueArgumentList().addArgument(psiFactory.createArgument(statementText))
   }
 }
