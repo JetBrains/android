@@ -1019,6 +1019,12 @@
     <option name="parallel" hit="Enable test runs across multiple devices in parallel." />
     <option name="runs" hit="Enable test runs across multiple devices in parallel." />
     <option name="test" hit="Enable test runs across multiple devices in parallel." />
+    <option name="android" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="run" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="tests" hit="Run Android Instrumented Tests using Gradle." />
+    <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
   <configurable id="android.live.literals" configurable_name="Live Editing of literals">

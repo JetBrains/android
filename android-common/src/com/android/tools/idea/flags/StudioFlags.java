@@ -915,8 +915,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> UTP_INSTRUMENTATION_TESTING = Flag.create(
     TESTING, "utp.instrumentation.testing", "Run instrumentation tests via UTP",
-    "If enabled, switch to running instrumentation tests via UTP.",
-    false
+    "If enabled, a checkbox to opt-in to running instrumentation tests via UTP feature is displayed in the settings.",
+    true
   );
   //endregion
 
