@@ -34,7 +34,7 @@ private val semanticsSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE, Capabilit
  */
 class ComposeViewNodeCreator(response: GetComposablesResponse) {
   private val stringTable = StringTableImpl(response.stringsList)
-  private val nodes = response.rootsList.map { it.viewId to it.nodesList }.toMap()
+  private val roots = response.rootsList.map { it.viewId to it.nodesList }.toMap()
   private var composeFlags = 0
   private var nodesCreated = false
 
@@ -52,6 +52,13 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
     }
 
   /**
+   * AndroidViews embedded in this Compose application.
+   *
+   * Maps an AndroidView uniqueDrawingId to the [ComposeViewNode] that should be the parent of the Android View.
+   */
+  val androidViews = mutableMapOf<Long, ComposeViewNode>()
+
+  /**
    * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes
    * for any Composable children it may have.
    *
@@ -60,7 +67,8 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
    * [GetComposablesResponse].
    */
   fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
-    val result = nodes[id]?.map { node -> node.convert(shouldInterrupt) }
+    androidViews.clear()
+    val result = roots[id]?.map { node -> node.convert(shouldInterrupt) }
     nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
     return result
   }
@@ -91,6 +99,9 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
 
     composeFlags = composeFlags or flags
     childrenList.mapTo(node.children) { it.convert(shouldInterrupt).apply { parent = node } }
+    if (viewId != 0L) {
+      androidViews[viewId] = node
+    }
     return node
   }
 }

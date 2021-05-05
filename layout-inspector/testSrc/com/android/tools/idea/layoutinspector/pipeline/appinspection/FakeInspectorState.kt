@@ -135,6 +135,11 @@ class FakeInspectorState(
         id = 6
         packageName = 11
         className = 13
+        ViewNode {
+          id = 7
+          packageName = 5
+          className = 6
+        }
       }
     },
     ViewNode {
@@ -245,6 +250,8 @@ class FakeInspectorState(
     ComposableString(5, "Button"),
     ComposableString(6, "Text"),
     ComposableString(7, "DataObjectComposable"),
+    ComposableString(8, "AndroidView"),
+    ComposableString(9, "ComposeNode"),
 
     // parameter names
     // TODO(b/177231212): Test remaining parameter types
@@ -303,6 +310,21 @@ class FakeInspectorState(
         packageHash = 1
         filename = 3
         name = 7
+      }
+
+      ComposableNode {
+        id = -6
+        packageHash = 1
+        filename = 3
+        name = 8
+
+        ComposableNode {
+          id = -7
+          packageHash = 1
+          filename = 3
+          name = 9
+          viewId = 7
+        }
       }
     }
   }
