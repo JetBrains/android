@@ -24,7 +24,7 @@ import com.intellij.util.ui.UIUtil.FontSize;
 import icons.StudioIcons;
 import java.awt.Color;
 import java.awt.Component;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
@@ -32,7 +32,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
@@ -45,14 +44,15 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull JComponent myPanel;
 
   private final @NotNull Class<@NotNull D> myValueClass;
-  private final @NotNull Function<@NotNull Object, @NotNull Border> myGetBorder;
+  private final @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> myGetBorder;
 
   public DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
-    this(valueClass, UIManager::getBorder);
+    this(valueClass, TableCellRenderers::getBorder);
   }
 
   @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull Function<@NotNull Object, @NotNull Border> getBorder) {
+  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass,
+                          @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> getBorder) {
     myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myOnlineLabel = new JBLabel();
@@ -108,34 +108,14 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myLine2Label.setForeground(brighten(foreground));
     myLine2Label.setText(getLine2(device));
 
-    myPanel.setBackground(getBackground(table, selected));
-    myPanel.setBorder(getBorder(selected, focused));
+    myPanel.setBackground(TableCellRenderers.getBackground(table, selected));
+    myPanel.setBorder(myGetBorder.apply(selected, focused));
 
     return myPanel;
   }
 
   protected @NotNull String getLine2(@NotNull D device) {
     return device.getTarget();
-  }
-
-  private static @NotNull Color getBackground(@NotNull JTable table, boolean selected) {
-    if (selected) {
-      return table.getSelectionBackground();
-    }
-
-    return table.getBackground();
-  }
-
-  private @NotNull Border getBorder(boolean selected, boolean focused) {
-    if (!focused) {
-      return myGetBorder.apply("Table.cellNoFocusBorder");
-    }
-
-    if (selected) {
-      return myGetBorder.apply("Table.focusSelectedCellHighlightBorder");
-    }
-
-    return myGetBorder.apply("Table.focusCellHighlightBorder");
   }
 
   private static @NotNull Color getForeground(@NotNull JTable table, boolean selected) {
@@ -172,10 +152,5 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   @VisibleForTesting
   final @NotNull JLabel getLine2Label() {
     return myLine2Label;
-  }
-
-  @VisibleForTesting
-  final @NotNull JComponent getPanel() {
-    return myPanel;
   }
 }

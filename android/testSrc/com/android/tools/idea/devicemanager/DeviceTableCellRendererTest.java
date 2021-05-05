@@ -21,29 +21,24 @@ import static org.junit.Assert.assertNull;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
-import com.intellij.ide.ui.laf.darcula.DarculaTableSelectedCellHighlightBorder;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
-import java.util.function.Function;
 import javax.swing.JTable;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.plaf.BorderUIResource.EmptyBorderUIResource;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
+  private static final Border BORDER = new EmptyBorderUIResource(2, 3, 2, 3);
   private final JTable myTable = new JBTable();
 
   @Test
   public void getTableCellRendererComponentDeviceIsOnline() {
     // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
 
     Device device = new PhysicalDevice.Builder()
       .setSerialNumber("86UX00F4R")
@@ -67,8 +62,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponent() {
     // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
@@ -81,78 +75,9 @@ public final class DeviceTableCellRendererTest {
   }
 
   @Test
-  public void getBackgroundSelected() {
-    // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
-
-    // Act
-    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
-
-    // Assert
-    assertEquals(myTable.getSelectionBackground(), renderer.getPanel().getBackground());
-  }
-
-  @Test
-  public void getBackground() {
-    // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
-
-    // Act
-    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
-
-    // Assert
-    assertEquals(myTable.getBackground(), renderer.getPanel().getBackground());
-  }
-
-  @Test
-  public void getBorderUnfocused() {
-    // Arrange
-    Border border = new EmptyBorderUIResource(2, 3, 2, 3);
-
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", border);
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
-
-    // Act
-    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
-
-    // Assert
-    assertEquals(border, renderer.getPanel().getBorder());
-  }
-
-  @Test
-  public void getBorderSelected() {
-    // Arrange
-    Border border = new DarculaTableSelectedCellHighlightBorder();
-
-    Function<Object, Border> getBorder = mockGetBorder("Table.focusSelectedCellHighlightBorder", border);
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
-
-    // Act
-    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, true, 0, 0);
-
-    // Assert
-    assertEquals(border, renderer.getPanel().getBorder());
-  }
-
-  @Test
-  public void getBorder() {
-    // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
-
-    // Act
-    renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, true, 0, 0);
-
-    // Assert
-    assertEquals(UIManager.getBorder("Table.focusCellHighlightBorder"), renderer.getPanel().getBorder());
-  }
-
-  @Test
   public void getForegroundSelected() {
     // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
@@ -164,22 +89,12 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getForeground() {
     // Arrange
-    Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", new EmptyBorderUIResource(2, 3, 2, 3));
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, getBorder);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
     assertEquals(myTable.getForeground(), renderer.getNameLabel().getForeground());
-  }
-
-  private static @NotNull Function<@NotNull Object, @NotNull Border> mockGetBorder(@NotNull Object key, @NotNull Border border) {
-    @SuppressWarnings("unchecked")
-    Function<Object, Border> getBorder = Mockito.mock(Function.class);
-
-    Mockito.when(getBorder.apply(key)).thenReturn(border);
-
-    return getBorder;
   }
 }
