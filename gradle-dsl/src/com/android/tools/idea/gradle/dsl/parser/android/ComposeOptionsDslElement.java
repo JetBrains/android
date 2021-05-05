@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -40,12 +41,12 @@ public class ComposeOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ComposeOptionsDslElement> COMPOSE_OPTIONS =
     new PropertiesElementDescription<>("composeOptions", ComposeOptionsDslElement.class, ComposeOptionsDslElement::new);
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][]{
     {"kotlinCompilerExtensionVersion", property, KOTLIN_COMPILER_EXTENSION_VERSION, VAR},
     {"kotlinCompilerVersion", property, KOTLIN_COMPILER_VERSION, VAR}
   }).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelMap = Stream.of(new Object[][] {
+  public static final ExternalToModelMap groovyToModelMap = Stream.of(new Object[][] {
     {"kotlinCompilerExtensionVersion", property, KOTLIN_COMPILER_EXTENSION_VERSION, VAR},
     {"kotlinCompilerExtensionVersion", exactly(1), KOTLIN_COMPILER_EXTENSION_VERSION, SET},
     {"kotlinCompilerVersion", property, KOTLIN_COMPILER_VERSION, VAR},
@@ -53,7 +54,7 @@ public class ComposeOptionsDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelMap;
     }

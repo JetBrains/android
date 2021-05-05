@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -39,12 +40,12 @@ public class DependenciesInfoDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DependenciesInfoDslElement> DEPENDENCIES_INFO =
     new PropertiesElementDescription<>("dependenciesInfo", DependenciesInfoDslElement.class, DependenciesInfoDslElement::new);
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][]{
     {"includeInApk", property, INCLUDE_IN_APK, VAR},
     {"includeInBundle", property, INCLUDE_IN_BUNDLE, VAR}
   }).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelMap = Stream.of(new Object[][] {
+  public static final ExternalToModelMap groovyToModelMap = Stream.of(new Object[][] {
     {"includeInApk", property, INCLUDE_IN_APK, VAR},
     {"includeInApk", exactly(1), INCLUDE_IN_APK, SET},
     {"includeInBundle", property, INCLUDE_IN_BUNDLE, VAR},
@@ -52,7 +53,7 @@ public class DependenciesInfoDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelMap;
     }

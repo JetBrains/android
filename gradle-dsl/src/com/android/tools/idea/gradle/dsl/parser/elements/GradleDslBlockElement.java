@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -87,22 +88,25 @@ public class GradleDslBlockElement extends GradlePropertiesDslElement {
 
   private ModelEffectDescription getModelEffect(@NotNull GradleDslElement element) {
     String name = element.getName();
-    @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> nameMapper = getExternalToModelMap(element.getDslFile().getParser());
+    @NotNull ExternalToModelMap nameMapper = getExternalToModelMap(element.getDslFile().getParser());
     ExternalNameSyntax syntax = element.getExternalSyntax();
     if (syntax == ASSIGNMENT || syntax == AUGMENTED_ASSIGNMENT) {
-      ModelEffectDescription value = nameMapper.get(new SurfaceSyntaxDescription(name, null));
-      if (value != null) {
-        return value;
+      for (ExternalToModelMap.Entry entry : nameMapper.getEntrySet()) {
+        String entryName = entry.surfaceSyntaxDescription.name;
+        Integer arity = entry.surfaceSyntaxDescription.arity;
+        if (entryName.equals(name) && Objects.equals(arity, property)) {
+          return entry.modelEffectDescription;
+        }
       }
     }
     else {
-      for (Map.Entry<SurfaceSyntaxDescription, ModelEffectDescription> entry : nameMapper.entrySet()) {
-        String entryName = entry.getKey().name;
-        Integer arity = entry.getKey().arity;
+      for (ExternalToModelMap.Entry entry : nameMapper.getEntrySet()) {
+        String entryName = entry.surfaceSyntaxDescription.name;
+        Integer arity = entry.surfaceSyntaxDescription.arity;
         // TODO(xof): distinguish between semantics based on expressed arities (at the moment we return the first method entry we find,
         //  whether or not the arity is compatible.
         if (entryName.equals(name) && !Objects.equals(arity, property)) {
-          return entry.getValue();
+          return entry.modelEffectDescription;
         }
       }
     }

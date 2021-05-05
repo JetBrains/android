@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -37,20 +38,22 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
   public static final PropertiesElementDescription<DensityDslElement> DENSITY =
     new PropertiesElementDescription<>("density", DensityDslElement.class, DensityDslElement::new);
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap =
+  public static final ExternalToModelMap ktsToModelNameMap =
     Stream.concat(
-      BaseSplitOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
+      BaseSplitOptionsDslElement.ktsToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
+        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics
       }),
       Stream.of(new Object[][]{
         {"setAuto", exactly(1), AUTO, SET},
         {"compatibleScreens", atLeast(0), COMPATIBLE_SCREENS, OTHER}
       })).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap =
+  public static final ExternalToModelMap groovyToModelNameMap =
     Stream.concat(
-      BaseSplitOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
+      BaseSplitOptionsDslElement.groovyToModelNameMap.getEntrySet().stream().map(data -> new Object[]{
+        data.surfaceSyntaxDescription.name, data.surfaceSyntaxDescription.arity,
+        data.modelEffectDescription.property, data.modelEffectDescription.semantics
       }),
       Stream.of(new Object[][]{
         {"auto", property, AUTO, VAR},
@@ -60,7 +63,7 @@ public class DensityDslElement extends BaseSplitOptionsDslElement {
       })).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
