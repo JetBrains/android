@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.ui
 
 import com.android.SdkConstants
-import com.android.internal.annotations.VisibleForTesting
 import com.android.tools.adtui.common.lines3d
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
@@ -29,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.TransactionGuard
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.debugger.readAction
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
