@@ -383,6 +383,9 @@
                         serviceImplementation="org.jetbrains.android.facet.AndroidFacetEditorTab$Provider"/>
     <applicationService serviceInterface="com.android.tools.idea.util.CommonAndroidUtil"
                         serviceImplementation="org.jetbrains.android.util.AndroidUtils"/>
+    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataCollection"/>
+    <applicationService serviceInterface="com.android.tools.idea.diagnostics.crash.ExceptionDataConfiguration"
+                        serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 

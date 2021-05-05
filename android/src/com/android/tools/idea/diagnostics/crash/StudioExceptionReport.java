@@ -18,54 +18,40 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.intellij.execution.filters.CompositeFilter;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
-import com.intellij.idea.IdeaLogger;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public class StudioExceptionReport extends BaseStudioReport {
-  /**
-   * {@link Throwable} classes with messages expected to be useful for debugging and not to contain PII.
-   */
-  private static final ImmutableList<Class<? extends Throwable>> THROWABLE_CLASSES_TO_TRACK_MESSAGES =
-    ImmutableList.of(
-      CompositeFilter.ApplyFilterException.class, // See b/146355865.
-      LinkageError.class,
-      ReflectiveOperationException.class,
-      ArrayIndexOutOfBoundsException.class,
-      ClassCastException.class,
-      IndexOutOfBoundsException.class,
-      NoPiiException.class);
 
   public static final String KEY_EXCEPTION_INFO = "exception_info";
-  private static final String ANDROID_EXCEPTION_TEXT = "com.android.diagnostic.LoggerErrorMessage";
-  private static final ImmutableList<String> LOGGER_CLASSES = ImmutableList.of(Logger.class.getName(), IdeaLogger.class.getName());
 
   @NonNull private final String exceptionInfo;
   private final boolean userReported;
+  @Nullable private final String fullStack;
+  @NonNull private final Map<String,String> logs;
   @Nullable private final PluginId pluginId;
 
   private StudioExceptionReport(@Nullable String version,
                                 @NonNull String exceptionInfo,
                                 boolean userReported,
+                                @Nullable String fullStack,
+                                @NotNull Map<String,String> logs,
                                 @Nullable PluginId pluginId,
                                 @Nullable Map<String, String> productData) {
     super(version, productData, "Exception");
     this.exceptionInfo = exceptionInfo;
     this.userReported = userReported;
+    this.fullStack = fullStack;
+    this.logs = logs;
     this.pluginId = pluginId;
   }
 
@@ -89,7 +75,18 @@ public class StudioExceptionReport extends BaseStudioReport {
       builder.addTextBody("plugin.name", "exceptionWhileReadingNameVersion");
     }
     builder.addTextBody("userReported", userReported ? "1" : "0");
+
     builder.addTextBody(KEY_EXCEPTION_INFO, exceptionInfo);
+
+    if (fullStack != null) {
+      builder.addTextBody("fullStack", fullStack);
+    }
+    // TODO: logs as files
+    logs.forEach((name, logContent) -> {
+      String filename = "log_" + name;
+      builder.addBinaryBody("log_" + name, logContent.getBytes(StandardCharsets.UTF_8), ContentType.TEXT_PLAIN, filename + ".log");
+    });
+
   }
 
   private boolean isKotlinOnStack() {
@@ -118,6 +115,8 @@ public class StudioExceptionReport extends BaseStudioReport {
     private String exceptionInfo;
     private boolean userReported;
     private PluginId pluginId;
+    private Map<String,String> logs;
+    private String fullStack;
 
     @Override
     protected Builder getThis() {
@@ -125,17 +124,20 @@ public class StudioExceptionReport extends BaseStudioReport {
     }
 
     @NonNull
-    public Builder setThrowable(@NonNull Throwable throwable, boolean userReported) {
+    public Builder setThrowable(@NonNull Throwable throwable, boolean userReported, boolean includeLogs) {
       Throwable cause = getRootCause(throwable);
-      this.exceptionInfo = getDescription(cause, userReported);
+      ExceptionDataCollection service = ExceptionDataCollection.getInstance();
+      UploadFields uploadFields = service.getExceptionUploadFields(throwable, userReported, includeLogs);
+      this.exceptionInfo = uploadFields.getDescription();
       this.userReported = userReported;
+      this.logs = uploadFields.getLogs();
       this.pluginId = PluginUtil.getInstance().findPluginId(cause);
       return this;
     }
 
     @Override
     public StudioExceptionReport build() {
-      return new StudioExceptionReport(getVersion(), exceptionInfo, userReported, pluginId, getProductData());
+      return new StudioExceptionReport(getVersion(), exceptionInfo, userReported, fullStack, logs, pluginId, getProductData());
     }
   }
 
@@ -152,93 +154,6 @@ public class StudioExceptionReport extends BaseStudioReport {
 
   @NonNull
   public static String getDescription(@NonNull Throwable t) {
-    return getDescription(t, false);
-  }
-
-  /**
-   * Returns an exception description (similar to {@link Throwables#getStackTraceAsString(Throwable)}} with the exception message
-   * removed in order to strip off any PII. The exception message is include for some specific exceptions where we know that the
-   * message will not have any PII.
-   *
-   * Exception message is not removed if the exception is reported by the user.
-   */
-  @NonNull
-  public static String getDescription(@NonNull Throwable t, boolean userReported) {
-    // Keep the message if the exception is reported by the user.
-    // Note: User-provided exceptions in IntelliJ are not proper Throwable objects.
-    //   All such exceptions are wrapped in IdeaReportingEvent$TextBasedThrowable, for which
-    //   t.getStackTrace() and t.printStackTrace() return different stack traces. t.getStackTrace() gives the
-    //   stack of the object creation, t.printStackTrace() - stack of the wrapped exception.
-    if (userReported || THROWABLE_CLASSES_TO_TRACK_MESSAGES.stream().anyMatch(c -> c.isInstance(t))) {
-      String traceAsString = Throwables.getStackTraceAsString(t);
-      return fixStackTraceStringForLoggerErrorMethod(traceAsString);
-    }
-
-    // Remove the exception message.
-
-    StackTraceElement[] stackTraceElements = t.getStackTrace();
-
-    // Detect if the exception is from Logger.error. If so, change the type to LoggerErrorMessage
-    // and remove the logger frames.
-    int startFrame = 0;
-    if (Objects.equals(t.getClass(), Throwable.class)) {
-      while (startFrame < stackTraceElements.length &&
-             Objects.equals(stackTraceElements[startFrame].getMethodName(), "error") &&
-             LOGGER_CLASSES.contains(stackTraceElements[startFrame].getClassName())) {
-        ++startFrame;
-      }
-    }
-    boolean exceptionFromLoggerErrorMethod = startFrame > 0;
-
-    StringBuilder sb = new StringBuilder(256);
-
-    sb.append(exceptionFromLoggerErrorMethod ? ANDROID_EXCEPTION_TEXT : t.getClass().getName());
-    sb.append(": <elided>\n"); // note: some message is needed for the backend to parse the report properly
-
-    for (int i = startFrame; i < stackTraceElements.length; i++) {
-      StackTraceElement el = stackTraceElements[i];
-      sb.append("\tat ");
-      sb.append(el);
-      sb.append('\n');
-    }
-
-    return sb.toString();
-  }
-
-  /**
-   * Logger.error messages show up as java.lang.Throwable exceptions with a top frame always being
-   *   Logger.error. This method will detect if the exception string is from such method. If so,
-   *   it changes its type to com.android.diagnostic.LoggerErrorMessage and removes the top frame
-   *   (Logger.error frame).
-   */
-  private static String fixStackTraceStringForLoggerErrorMethod(String s) {
-    String[] lines = s.split("\n");
-    if (lines.length <= 2) {
-      return s;
-    }
-    // Message can be multiline. Find the line with the first frame.
-    int indexOfFirstFrame = -1;
-    for (int i = 1; i < lines.length; i++) {
-      if (lines[i].startsWith("\tat ")) {
-        indexOfFirstFrame = i;
-        break;
-      }
-    }
-    final String throwableText = Throwable.class.getName();
-    final String throwableColonText = throwableText + ":";
-    if (indexOfFirstFrame != -1 &&
-        (lines[0].equals(throwableText) || lines[0].startsWith(throwableColonText)) &&
-        lines[indexOfFirstFrame].startsWith("\tat " + Logger.class.getName() + ".error(")) {
-      if (lines[0].equals(throwableText)) {
-        lines[0] = ANDROID_EXCEPTION_TEXT;
-      } else {
-        lines[0] = ANDROID_EXCEPTION_TEXT + lines[0].substring(throwableText.length());
-      }
-      // Remove Logger.error frame and update exception type
-      Stream<String> newLines =
-        Stream.concat(Arrays.stream(lines).limit(indexOfFirstFrame), Arrays.stream(lines).skip(indexOfFirstFrame + 1));
-      return newLines.collect(Collectors.joining("\n"));
-    }
-    return s;
+    return ExceptionDataCollection.getInstance().getDescription(t, true, false);
   }
 }

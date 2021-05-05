@@ -18,7 +18,9 @@ package com.android.tools.idea.diagnostics;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.diagnostics.crash.UploadFields;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
 import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
 import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
@@ -45,6 +47,8 @@ import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.IdePerformanceListener;
+import com.intellij.diagnostic.LogMessage;
+import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
@@ -82,6 +86,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.PreloadingActivity;
+import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -201,6 +206,7 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
   public static final long FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT = 300_000_000;
 
   private static AndroidStudioSystemHealthMonitor ourInstance;
+  private final ExceptionDataCollection myExceptionDataCollection = ExceptionDataCollection.getInstance();
 
   public AndroidStudioSystemHealthMonitor() {
     myProperties = PropertiesComponent.getInstance();
@@ -566,6 +572,20 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
 
   private boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind kind) {
     Throwable t = event.getThrowable();
+
+    if (myExceptionDataCollection.requiresConfirmation(t)) {
+      UploadFields fields = myExceptionDataCollection.getExceptionUploadFields(event.getThrowable(), false, true);
+      List<Attachment> attachments = new ArrayList<>();
+      fields.getLogs().forEach((name, log) -> {
+        Attachment attachment = new Attachment("log_" + name + ".log", log);
+        attachment.setIncluded(true);
+        attachments.add(attachment);
+      });
+      MessagePool.getInstance().addIdeFatalMessage(
+        LogMessage.createEvent(event.getThrowable(), event.getMessage(), attachments.toArray(new Attachment[0]))
+      );
+      return true;
+    }
 
     // track exception count
     if (AnalyticsSettings.getOptedIn()) {

@@ -80,7 +80,7 @@ public class StudioCrashReporterTest {
       UsageTracker.setWriterForTest(usageTracker);
       CrashReport report =
         new StudioExceptionReport.Builder()
-          .setThrowable(new RuntimeException("Test Exception Message"), false)
+          .setThrowable(new RuntimeException("Test Exception Message"), false, false)
           .build();
 
       String content = getSerializedContent(report);
@@ -127,7 +127,7 @@ public class StudioCrashReporterTest {
   public void serializeUserReportedException() throws Exception {
     CrashReport report =
       new StudioExceptionReport.Builder()
-        .setThrowable(ourException, true)
+        .setThrowable(ourException, true, false)
         .build();
 
     String request = getSerializedContent(report);
@@ -138,7 +138,7 @@ public class StudioCrashReporterTest {
   public void serializeNonUserReportedException() throws Exception {
     CrashReport report =
       new StudioExceptionReport.Builder()
-        .setThrowable(ourException, false)
+        .setThrowable(ourException, false, false)
         .build();
 
     String request = getSerializedContent(report);
@@ -155,7 +155,7 @@ public class StudioCrashReporterTest {
       "\tat kotlin.SynchronizedLazyImpl.getValue(Lazy.kt:131)\n";
     StudioExceptionReport report = spy(
       new StudioExceptionReport.Builder()
-        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null), false)
+        .setThrowable(createExceptionFromDesc(exceptionWithKotlinString, null), false, false)
         .build());
 
     doReturn("1.2.3.4").when(report).getKotlinPluginVersionDescription();
@@ -248,7 +248,7 @@ public class StudioCrashReporterTest {
   public static void main(String[] args) {
     GoogleCrashReporter crash = new StudioCrashReporter();
 
-    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException, false).build());
+    submit(crash, new StudioExceptionReport.Builder().setThrowable(ourException, false, false).build());
     submit(
       crash,
       new StudioCrashReport.Builder()
