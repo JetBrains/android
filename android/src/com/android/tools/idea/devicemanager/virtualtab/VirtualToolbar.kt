@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.avdmanager.AvdActionPanel
 import com.android.tools.idea.avdmanager.AvdUiAction
 import com.android.tools.idea.avdmanager.CreateAvdAction
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ui.DocumentAdapter
@@ -68,8 +69,13 @@ class VirtualToolbar(
       newButton().withLeftGap()
       separator()
       refreshButton()
-      helpButton()
-      searchField(growX, pushX)
+      if (StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get()) {
+        helpButton()
+        searchField(growX, pushX)
+      }
+      else {
+        helpButton(pushX)
+      }
     }
   }
 }
