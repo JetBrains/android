@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.android.tools.idea.common.actions;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
@@ -44,6 +45,11 @@ public class ToggleDeviceOrientationAction extends AnAction {
       return;
     }
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    if (surface != null && surface.getConfigurations().stream().allMatch(config -> HardwareConfigHelper.isWear(config.getDevice()))) {
+      // If all devices are wear device, disable this action because the orientation is fixed for wear devices.
+      e.getPresentation().setEnabled(false);
+      return;
+    }
     e.getPresentation().setEnabled(NlSupportedActionsKt.isActionSupported(surface, NlSupportedActions.SWITCH_DEVICE_ORIENTATION));
   }
 
@@ -52,7 +58,10 @@ public class ToggleDeviceOrientationAction extends AnAction {
     DesignSurface surface = e.getRequiredData(DesignerDataKeys.DESIGN_SURFACE);
     surface.getConfigurations()
       .forEach(configuration -> {
-        configuration.getDeviceState();
+        if (HardwareConfigHelper.isWear(configuration.getDevice())) {
+          // Wear device cannot toggle orientation.
+          return;
+        }
         State current = configuration.getDeviceState();
         State flip = configuration.getNextDeviceState(current);
         if (flip != null) {
