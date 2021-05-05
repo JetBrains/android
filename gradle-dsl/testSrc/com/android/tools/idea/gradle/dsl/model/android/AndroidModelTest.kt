@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -1437,6 +1438,48 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddAndApplyListElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    var android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("aidlPackagedList", android.aidlPackagedList())
+    assertMissingProperty("assetPacks", android.assetPacks())
+    assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
+    assertMissingProperty("flavorDimensions", android.flavorDimensions())
+
+    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+
+    android.assetPacks().addListValue().setValue(":a1")
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
+
+    android.dynamicFeatures().addListValue().setValue(":f")
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
+
+    android.flavorDimensions().addListValue().setValue("xyz")
+    assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
+
+    applyChanges(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED_400)
+
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
+    assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
+
+    buildModel.reparse()
+    android = buildModel.android()
+    assertNotNull(android)
+    assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
+    assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
+    assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
+    assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
+  }
+
+  @Test
   fun testAddAndApplyListElements() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
@@ -1679,6 +1722,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
     ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),
     ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED("addAndApplyListElementsExpected"),
+    ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED_400("addAndApplyListElementsExpected400"),
     ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT("addToAndApplyListElementsWithOneArgument"),
     ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_ONE_ARGUMENT_EXPECTED("addToAndApplyListElementsWithOneArgumentExpected"),
     ADD_TO_AND_APPLY_LIST_ELEMENTS_WITH_MULTIPLE_ARGUMENTS("addToAndApplyListElementsWithMultipleArguments"),
