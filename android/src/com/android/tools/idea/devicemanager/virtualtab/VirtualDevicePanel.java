@@ -69,7 +69,7 @@ final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   }
 
   private static boolean showPreconfiguredList() {
-    return StudioFlags.ENABLE_DEVICE_MANAGER_VIRTUAL_RECOMMENDED_CONFIGURATIONS.get();
+    return StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get();
   }
 
   private static final class SearchDocumentListener implements DocumentListener {
