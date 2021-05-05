@@ -25,7 +25,7 @@ public final class AndroidLogcatUtils {
   private AndroidLogcatUtils() {
   }
 
-  public static Key getProcessOutputType(@NotNull Log.LogLevel level) {
+  public static @NotNull Key<?> getProcessOutputType(@NotNull Log.LogLevel level) {
     switch (level) {
       case VERBOSE:
         return AndroidLogcatConstants.VERBOSE;

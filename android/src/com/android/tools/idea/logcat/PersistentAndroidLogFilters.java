@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Persistent storage of logcat filter settings.
@@ -60,13 +62,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
    */
   @XCollection(style = XCollection.Style.v2)
   public List<FilterData> getFilters() {
-    return Lists.newArrayList(Lists.transform(myFilters, new Function<FilterData, FilterData>() {
-      @NotNull
-      @Override
-      public FilterData apply(FilterData filter) {
-        return new FilterData(filter);
-      }
-    }));
+    return myFilters.stream().map(FilterData::new).collect(Collectors.toList());
   }
 
   public void setFilters(List<FilterData> filterEntries) {

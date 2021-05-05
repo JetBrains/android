@@ -203,7 +203,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
 
     @Override
-    public void rootsChanged(ModuleRootEvent event) {
+    public void rootsChanged(@NotNull ModuleRootEvent event) {
       final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(getToolWindowId());
       if (window == null) {
         return;

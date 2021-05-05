@@ -97,7 +97,7 @@ final class ViewListener implements AndroidLogcatService.LogcatListener {
      * Add for test that needs to post a request bypassing addRequestIfNotEmpty
      */
     @TestOnly
-    void addRequest(@NotNull Runnable request, long delayMillis) {
+    void addRequest(@NotNull Runnable request, @SuppressWarnings("SameParameterValue") long delayMillis) {
       myAlarm.addRequest(request, delayMillis);
     }
   }

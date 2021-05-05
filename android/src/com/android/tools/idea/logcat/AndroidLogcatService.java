@@ -280,7 +280,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     private boolean myCancelled;
 
     @Override
-    public void processNewLines(@NotNull String[] lines) {
+    public void processNewLines(@NonNull String[] lines) {
       if (mySupportsEpochFormatModifier) {
         myCancelled = true;
         return;
@@ -396,7 +396,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       if (!oldMessages.isEmpty()) {
         ExecutorService executor = myExecutors.get(device);
         assert executor != null;
-        executor.submit(() -> listenerConnector.processBacklog());
+        executor.submit(listenerConnector::processBacklog);
       }
     }
   }
@@ -478,7 +478,10 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       myExecutors.values().forEach(executor -> {
         try {
           executor.shutdownNow();
-          executor.awaitTermination(5_000, TimeUnit.MILLISECONDS);
+          boolean terminated = executor.awaitTermination(5_000, TimeUnit.MILLISECONDS);
+          if (!terminated) {
+            getLog().info("Timed out shutting down executor");
+          }
         }
         catch (InterruptedException e) {
           getLog().info("Error shutting down executor", e);
