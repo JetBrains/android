@@ -68,6 +68,15 @@ public abstract class TestCompileType {
   public abstract Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant);
 
   @NotNull
+  public String getName() {
+    if (this == ALL) return "All";
+    if (this == ANDROID_TESTS) return "Android tests";
+    if (this == UNIT_TESTS) return "Unit tests";
+    if (this == NONE) return "None";
+    return "(unknown)";
+  }
+
+  @NotNull
   public static TestCompileType get(@Nullable String runConfigurationId) {
     if (runConfigurationId != null) {
       if (isInstrumentationTestConfiguration(runConfigurationId)) {
