@@ -364,4 +364,22 @@ class AppInspectionInspectorClientTest {
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
     assertThat(inspectorRule.inspectorClient.capabilities).containsAllOf(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
   }
+
+  @Test
+  fun testTextViewUnderComposeNode() {
+    val inspectorState = FakeInspectorState(inspectionRule.viewInspector, inspectionRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeComposeTree()
+    val modelUpdatedLatch = ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
+    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+      modelUpdatedLatch.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+    val composeNode = inspectorRule.inspectorModel[-7]!!
+    assertThat(composeNode.parent?.qualifiedName).isEqualTo("AndroidView")
+    assertThat(composeNode.qualifiedName).isEqualTo("ComposeNode")
+    assertThat(composeNode.children.single().qualifiedName).isEqualTo("com.google.android.material.textview.MaterialTextView")
+  }
 }

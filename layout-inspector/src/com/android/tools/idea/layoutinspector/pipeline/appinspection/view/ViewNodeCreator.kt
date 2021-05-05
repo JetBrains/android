@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeViewNodeCreator
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import java.util.EnumSet
 
 /**
  * Helper class which handles the logic of converting a [LayoutInspectorViewProtocol.LayoutEvent] into
@@ -74,8 +73,15 @@ class ViewNodeCreator(
     val children = view.childrenList.map { it.convert(shouldInterrupt) }.toMutableList()
     composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }
     children.forEach { child ->
-      node.children.add(child)
-      child.parent = node
+      val composeParent = composeNodeCreator?.androidViews?.get(child.drawId)
+      if (composeParent != null) {
+        composeParent.children.add(child)
+        child.parent = composeParent
+      }
+      else {
+        node.children.add(child)
+        child.parent = node
+      }
     }
 
     return node
