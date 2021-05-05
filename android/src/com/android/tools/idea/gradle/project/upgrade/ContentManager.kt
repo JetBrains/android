@@ -470,8 +470,11 @@ class ContentManager(val project: Project) {
           placeHolderValue = "Select new version"
         }
 
-        // Given the ComponentValidator installation below, one might expect this not to be necessary, but although the
-        // ComponentValidator provides the tooltip it appears not to provide the outline highlighting.
+        // Given the ComponentValidator installation below, one might expect this not to be necessary,
+        // but the outline highlighting does not work without it.
+        // This is happening because not specifying validation here does not remove validation but just using default 'accept all' one.
+        // This validation is triggered after the ComponentValidator and overrides the outline set by ComponentValidator.
+        // The solution would be either add support of the tooltip to this component validation logic or use a different component.
         override val editingSupport = object : EditingSupport {
           override val validation: EditingValidation = model::editingValidation
           override val completion: EditorCompletion = { model.suggestedVersions.getValueOr(emptyList()).map { it.toString() }}
