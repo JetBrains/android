@@ -128,7 +128,6 @@ import java.awt.image.DirectColorModel
 import java.awt.image.Raster
 import java.awt.image.SinglePixelPackedSampleModel
 import java.lang.Math.PI
-import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -1267,7 +1266,7 @@ class EmulatorView(
     }
 
     private fun scheduleNextLogging() {
-      alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL, ModalityState.any())
+      alarm.addRequest(::logAndReset, STATS_LOG_INTERVAL_MILLIS, ModalityState.any())
     }
 
     private fun logAndReset() {
@@ -1312,9 +1311,9 @@ private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
-                                   32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
+                                           32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
 private const val CACHED_IMAGE_LIVE_TIME_MILLIS = 2000
 
-private val STATS_LOG_INTERVAL = Duration.ofMinutes(2).toMillis()
+private val STATS_LOG_INTERVAL_MILLIS = StudioFlags.EMBEDDED_EMULATOR_STATISTICS_INTERVAL_SECONDS.get().toLong() * 1000
 
 private val LOG = Logger.getInstance(EmulatorView::class.java)
