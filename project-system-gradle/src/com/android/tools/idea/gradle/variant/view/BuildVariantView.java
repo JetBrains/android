@@ -561,6 +561,7 @@ public class BuildVariantView {
       });
 
       setExpandableItemsEnabled(false);
+      new TableSpeedSearch(this);
     }
 
     /**
