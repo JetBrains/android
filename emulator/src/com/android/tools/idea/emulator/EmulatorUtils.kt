@@ -19,8 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Rotation.SkinRotation
-import com.android.tools.idea.uibuilder.surface.layout.horizontal
-import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -115,7 +113,7 @@ internal fun Point.rotated(rotation: SkinRotation): Point {
 }
 
 internal val JPanel.sizeWithoutInsets: Dimension
-  get() = Dimension(width - insets.horizontal, height - insets.vertical)
+  get() = Dimension(width - insets.left - insets.right, height - insets.top - insets.bottom)
 
 val Project.earlyDisposable: Disposable
   get() = (this as? ProjectEx)?.earlyDisposable ?: this
