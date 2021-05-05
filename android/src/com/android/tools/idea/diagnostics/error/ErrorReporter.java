@@ -163,7 +163,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
                                                                  "summary", (String)map.get("summary"));
       StudioExceptionReport exceptionReport =
-        new StudioExceptionReport.Builder().setThrowable(t, false).addProductData(productData).build();
+        new StudioExceptionReport.Builder().setThrowable(t, false, true).addProductData(productData).build();
       StudioCrashReporter.getInstance().submit(exceptionReport);
     }
     else if ("Crashes".equals(type)) {
