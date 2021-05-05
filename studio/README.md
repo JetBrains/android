@@ -18,7 +18,7 @@ If you are using IntelliJ 2020.2 or earlier, create a template JUnit configurati
 
 The official way of updating prebuilts that can be commited to `prebuilts/studio/intellij-sdk` is to get them from the `go/ab` target [here](https://android-build.googleplex.com/builds/branches/git_studio-sdk-master-dev/grid?).
 
-First identify the `<bid>` you want to update to. If you want to know what is the current build checked in into prebuilts you can look at the [METADATA](https://googleplex-android.git.corp.google.com/platform/tools/vendor/google_prebuilts/studio/intellij-sdk/+/refs/heads/studio-master-dev/AI-202/METADATA) file.
+First identify the `<bid>` you want to update to. If you want to know what is the current build checked in into prebuilts you can look at the [METADATA](https://googleplex-android.git.corp.google.com/platform/tools/vendor/google_prebuilts/studio/intellij-sdk/+/refs/heads/studio-main/AI-202/METADATA) file.
 
 Then you can run the following command:
 
@@ -56,7 +56,7 @@ If you want to have an isolated check out to build prebuilts you can checkout a 
 
 
 ```
-repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-master-dev -m studio-sdk.xml
+repo init -u sso://googleplex-android.git.corp.google.com/platform/manifest -b studio-main -m studio-sdk.xml
 repo sync -j10
 ```
 
