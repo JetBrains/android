@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.adtui.actions.ZoomActualAction
+import com.android.tools.adtui.actions.ZoomInAction
+import com.android.tools.adtui.actions.ZoomOutAction
+import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
-import com.android.tools.idea.uibuilder.editor.createZoomControlsGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import javax.swing.JComponent
 
 internal class EmulatorZoomToolbarProvider private constructor(
@@ -31,9 +35,14 @@ internal class EmulatorZoomToolbarProvider private constructor(
     updateToolbar()
   }
 
-  override fun getActionGroups() = object: EditorActionsToolbarActionGroups {
-    override val zoomControlsGroup: ActionGroup?
-      get() = createZoomControlsGroup()
+  override fun getActionGroups() = object : EditorActionsToolbarActionGroups {
+    override val zoomControlsGroup: ActionGroup
+      get() = DefaultActionGroup().apply {
+        add(ZoomInAction.getInstance())
+        add(ZoomOutAction.getInstance())
+        add(ZoomActualAction.getInstance())
+        add(ZoomToFitAction.getInstance())
+      }
   }
 
   companion object {
