@@ -39,6 +39,18 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   private final @NotNull List<@NotNull PhysicalDevice> myDevices;
 
+  /**
+   * Supplies a key for JTable.defaultRenderersByColumnClass and ActionsComponent
+   */
+  static final class Actions {
+    @VisibleForTesting
+    @SuppressWarnings("InstantiationOfUtilityClass")
+    static final Actions INSTANCE = new Actions();
+
+    private Actions() {
+    }
+  }
+
   PhysicalDeviceTableModel() {
     this(Collections.emptyList());
   }
@@ -102,7 +114,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
         return Icon.class;
       case ACTIONS_MODEL_COLUMN_INDEX:
-        return Object.class;
+        return Actions.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -118,8 +130,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case TYPE_MODEL_COLUMN_INDEX:
         return getIcon(myDevices.get(modelRowIndex).getConnectionType());
       case ACTIONS_MODEL_COLUMN_INDEX:
-        // TODO You can probably throw an exception here too
-        return "Actions";
+        return Actions.INSTANCE;
       default:
         throw new AssertionError(modelColumnIndex);
     }

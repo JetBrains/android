@@ -22,6 +22,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetTableModel;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
@@ -110,7 +111,7 @@ public final class PhysicalDevicePanelTest {
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
 
-    Object data = Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", StudioIcons.Common.CIRCLE_GREEN, "Actions"));
+    Object data = Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE));
     assertEquals(data, myPanel.getData());
   }
 
@@ -132,8 +133,8 @@ public final class PhysicalDevicePanelTest {
 
     // @formatter:off
     Object data = Arrays.asList(
-      Arrays.asList(myOnlinePixel3,                     "S",  StudioIcons.Common.CIRCLE_GREEN, "Actions"),
-      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", StudioIcons.Common.CIRCLE_GREEN, "Actions"));
+      Arrays.asList(myOnlinePixel3,                     "S",  StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE),
+      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE));
     // @formatter:on
 
     assertEquals(data, myPanel.getData());

@@ -19,6 +19,7 @@ import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.Disposable;
@@ -124,6 +125,8 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     myTable = new JBTable(new PhysicalDeviceTableModel());
 
     myTable.setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
+    myTable.setDefaultRenderer(Actions.class, new ActionsComponent());
+
     myTable.getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
 
