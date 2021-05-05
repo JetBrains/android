@@ -748,7 +748,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public ClassLoader createUrlClassLoader(@NonNull URL[] urls, @NonNull ClassLoader parent) {
     return UrlClassLoader.build()
       .parent(parent)
-      .files(Arrays.stream(urls).map(it -> Paths.get(it.getPath())).collect(Collectors.toList()))
+      .files(Arrays.stream(urls).map(it -> Paths.get(UrlClassLoader.urlToFilePath(it.getPath()))).collect(Collectors.toList()))
       .get();
   }
 }
