@@ -36,6 +36,15 @@ public class ConfigurationProjectState {
   private boolean myPickTarget = true;
   /** List (in MRU order) of device IDs manually chosen */
   @NotNull private List<String> myDeviceIds = new ArrayList<>();
+  /**
+   * The last device orientation of non-wear devices.
+   * We force set the orientation to wear devices, this makes current selected orientation changed and the last selected orientation
+   * is lost. We save the last selected orientation here, and restore it when next time the user switches device to non-wear devices.
+   *
+   * When this value is null, it means the last selected device is not a wear device.
+   */
+  @Nullable
+  private String myNonWearDeviceLastStateName;
 
   @NotNull
   @Property(surroundWithTag = false)
@@ -75,6 +84,15 @@ public class ConfigurationProjectState {
 
   public void setPickTarget(boolean pickTarget) {
     myPickTarget = pickTarget;
+  }
+
+  @Nullable
+  public String getNonWearDeviceLastStateName() {
+    return myNonWearDeviceLastStateName;
+  }
+
+  public void setNonWearDeviceLastStateName(@Nullable String nonWearDeviceLastState) {
+    myNonWearDeviceLastStateName = nonWearDeviceLastState;
   }
 
   @Nullable

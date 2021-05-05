@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
@@ -22,6 +23,7 @@ import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifi
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -78,17 +80,25 @@ public class OrientationMenuAction extends DropDownAction {
       if (device != null) {
         State currentDeviceState = configuration.getDeviceState();
 
-        List<State> states = device.getAllStates();
-        for (State state : states) {
-          String stateName = state.getName();
-          String title = stateName;
+        // Do not allow to change the orientation of the wear devices.
+        //noinspection SimplifiableConditionalExpression
+        boolean showSetOrientationOptions = StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get() ? !HardwareConfigHelper.isWear(device)
+                                                                                                 : true;
 
-          VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
-          if (better != null) {
-            title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
+        if (showSetOrientationOptions) {
+          List<State> states = device.getAllStates();
+          for (State state : states) {
+            String stateName = state.getName();
+            String title = stateName;
+
+            VirtualFile better = ConfigurationMatcher.getBetterMatch(configuration, null, stateName, null, null);
+            if (better != null) {
+              title = ConfigurationAction.getBetterMatchLabel(stateName, better, configuration.getFile());
+            }
+
+            SetDeviceStateAction action = new SetDeviceStateAction(myRenderContext, title, state, state == currentDeviceState);
+            add(action);
           }
-
-          add(new SetDeviceStateAction(myRenderContext, title, state, state == currentDeviceState));
         }
       }
 
@@ -203,6 +213,11 @@ public class OrientationMenuAction extends DropDownAction {
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       configuration.setDeviceState(myState);
+      if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
+        // Save the last orientation if device is not a wear device.
+        ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
+        projectState.setNonWearDeviceLastStateName(myState.getName());
+      }
     }
   }
 

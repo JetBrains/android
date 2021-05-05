@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.device.DeviceArtPainter;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.util.logging.Logger;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -164,7 +167,12 @@ public class DeviceMenuAction extends DropDownAction {
     // We don't add DeviceGroup.NEXUS because all Nexus devices with small screen size are legacy devices.
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, currentDevice);
-    addDeviceSection(groupedDevices, DeviceGroup.WEAR, currentDevice);
+    if (StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get()) {
+      addWearDeviceSection(groupedDevices, currentDevice);
+    }
+    else {
+      addDeviceSection(groupedDevices, DeviceGroup.WEAR, currentDevice);
+    }
     addDeviceSection(groupedDevices, DeviceGroup.TV, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, currentDevice);
     addCustomDeviceSection(currentDevice);
@@ -182,6 +190,18 @@ public class DeviceMenuAction extends DropDownAction {
       for (final Device device : devices) {
         String label = getLabel(device, isNexus(device));
         add(new SetDeviceAction(myRenderContext, label, device, null, current == device));
+      }
+      addSeparator();
+    }
+  }
+
+  private void addWearDeviceSection(@NotNull Map<DeviceGroup, List<Device>> groupedDevices, @Nullable Device current) {
+    List<Device> devices = groupedDevices.getOrDefault(DeviceGroup.WEAR, Collections.emptyList());
+    if (!devices.isEmpty()) {
+      add(new DeviceCategory(getGroupTitle(DeviceGroup.WEAR), null, getDeviceClassIcon(devices.get(0))));
+      for (final Device device : devices) {
+        String label = getLabel(device, isNexus(device));
+        add(new SetWearDeviceAction(myRenderContext, label, device, null, current == device));
       }
       addSeparator();
     }
@@ -308,7 +328,7 @@ public class DeviceMenuAction extends DropDownAction {
   }
 
   private class SetDeviceAction extends DeviceAction {
-    private final Device myDevice;
+    @NotNull protected final Device myDevice;
 
     public SetDeviceAction(@NotNull ConfigurationHolder renderContext,
                            @NotNull final String title,
@@ -336,7 +356,17 @@ public class DeviceMenuAction extends DropDownAction {
       // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
       // (its default) unless of course there is a different layout that is the best fit for that device.
       Device prevDevice = configuration.getCachedDevice();
-      State prevState = configuration.getDeviceState();
+      State prevState;
+
+      ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
+      String lastNonWearStateName = projectState.getNonWearDeviceLastStateName();
+      if (prevDevice != null && lastNonWearStateName != null) {
+        // Load last state of non-wear device.
+        prevState = prevDevice.getState(lastNonWearStateName);
+      }
+      else {
+        prevState = configuration.getDeviceState();
+      }
       String newState = prevState != null ? prevState.getName() : null;
       if (prevDevice != null && prevState != null && prevState.isDefaultState() &&
           !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
@@ -349,6 +379,8 @@ public class DeviceMenuAction extends DropDownAction {
           }
         }
       }
+      // Save last state of non-wear device.
+      projectState.setNonWearDeviceLastStateName(newState);
 
       if (newState != null) {
         configuration.setDeviceStateName(newState);
@@ -363,6 +395,56 @@ public class DeviceMenuAction extends DropDownAction {
     @Override
     public Device getDevice() {
       return myDevice;
+    }
+  }
+
+  private class SetWearDeviceAction extends SetDeviceAction {
+
+    public SetWearDeviceAction(@NotNull ConfigurationHolder renderContext,
+                               @NotNull final String title,
+                               @NotNull final Device device,
+                               @Nullable Icon defaultIcon,
+                               final boolean select) {
+      super(renderContext, title, device, defaultIcon, select);
+    }
+
+    @Override
+    protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      String newState = null;
+
+      // For wear device, we force setup the device state because the orientation must be specific.
+      // - The square and round are always portrait.
+      // - The chin devices is always landscape.
+      if (myDevice.getChinSize() != 0) {
+        // Chin device must be landscape
+        State state = myDevice.getState(ScreenOrientation.LANDSCAPE.getShortDisplayValue());
+        if (state != null) {
+          newState = state.getName();
+          configuration.setDeviceState(state);
+        }
+        else {
+          Logger.getLogger(DeviceMenuAction.class.getName()).warning("A wear chin device must have landscape state");
+        }
+      }
+      else {
+        // Round and Square device must be PORTRAIT
+        State state = myDevice.getState(ScreenOrientation.PORTRAIT.getShortDisplayValue());
+        if (state != null) {
+          newState = state.getName();
+          configuration.setDeviceState(state);
+        }
+        else {
+          Logger.getLogger(DeviceMenuAction.class.getName()).warning("A wear round or square device must have portrait state");
+        }
+      }
+
+      if (newState != null) {
+        configuration.setDeviceStateName(newState);
+      }
+      if (commit) {
+        configuration.getConfigurationManager().selectDevice(myDevice);
+      }
+      configuration.setDevice(myDevice, true);
     }
   }
 
@@ -417,6 +499,7 @@ public class DeviceMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      // TODO: force set orientation for virtual wear os device
       configuration.setEffectiveDevice(myAvdDevice, myAvdDevice.getDefaultState());
     }
   }

@@ -229,6 +229,11 @@ public final class StudioFlags {
     "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
     true);
 
+  public static final Flag<Boolean> NELE_WEAR_DEVICE_FIXED_ORIENTATION = Flag.create(
+    NELE, "wear.fixed.orientation", "Fixes the orientation of wear os devices.",
+    "For wear device, force using the portrait for square and round devices and landscape for chin devices.",
+    true);
+
   public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
     NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
