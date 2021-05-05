@@ -116,23 +116,24 @@ public class StringResourceTableModel extends AbstractTableModel {
 
           fireTableRowsUpdated(0, myKeys.size() - 1);
         });
-
         break;
+
       case RESOURCE_FOLDER_COLUMN:
         break;
+
       case UNTRANSLATABLE_COLUMN:
         Boolean doNotTranslate = (Boolean)value;
         if (myData.setTranslatable(getKey(row), !doNotTranslate)) {
           fireTableCellUpdated(row, column);
         }
-
         break;
+
       case DEFAULT_VALUE_COLUMN:
         if (getStringResourceAt(row).setDefaultValue((String)value)) {
           fireTableCellUpdated(row, column);
         }
-
         break;
+
       default:
         Locale locale = getLocale(column);
         assert locale != null;
@@ -140,7 +141,6 @@ public class StringResourceTableModel extends AbstractTableModel {
         if (getStringResourceAt(row).putTranslation(locale, (String)value)) {
           fireTableCellUpdated(row, column);
         }
-
         break;
     }
   }
@@ -183,7 +183,7 @@ public class StringResourceTableModel extends AbstractTableModel {
   }
 
   @Override
-  public Class getColumnClass(int column) {
+  public Class<?> getColumnClass(int column) {
     return column == UNTRANSLATABLE_COLUMN ? Boolean.class : String.class;
   }
 
