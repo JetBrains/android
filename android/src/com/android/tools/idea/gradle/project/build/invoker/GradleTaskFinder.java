@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static java.util.Arrays.stream;
+import static java.util.stream.Stream.concat;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBaseArtifact;
@@ -34,11 +34,14 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -46,10 +49,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
@@ -79,14 +85,18 @@ public class GradleTaskFinder {
                                                               @NotNull Module[] testModules,
                                                               @NotNull BuildMode buildMode,
                                                               @NotNull TestCompileType testCompileType) {
-    ListMultimap<Path, String> allTasks = findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-    ListMultimap<Path, String> testedModulesTasks = findTasksToExecute(testModules, buildMode, testCompileType);
+    ListMultimap<Path, String> allTasks = findTasksToExecuteCore(modules, buildMode, TestCompileType.NONE);
+    ListMultimap<Path, String> testedModulesTasks = findTasksToExecuteCore(testModules, buildMode, testCompileType);
 
     // Add testedModulesTasks to allTasks without duplicate
     for (Map.Entry<Path, String> task : testedModulesTasks.entries()) {
       if (!allTasks.values().contains(task.getValue())) {
         allTasks.put(task.getKey(), task.getValue());
       }
+    }
+    if (allTasks.isEmpty()) {
+      notifyNoTaskFound(
+        concat(stream(modules), stream(testModules)).distinct().toArray(Module[]::new), buildMode, testCompileType);
     }
     return allTasks;
   }
@@ -95,17 +105,18 @@ public class GradleTaskFinder {
   public ListMultimap<Path, String> findTasksToExecute(@NotNull Module[] modules,
                                                        @NotNull BuildMode buildMode,
                                                        @NotNull TestCompileType testCompileType) {
-    LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
-    if (ASSEMBLE == buildMode) {
-      if (!canAssembleModules(modules)) {
-        // Just call "assemble" at the top-level. Without a model there are no other tasks we can call.
-        for (Module module : modules) {
-          Path projectRootPath = myRootPathFinder.getProjectRootPath(module);
-          tasks.put(projectRootPath, DEFAULT_ASSEMBLE_TASK_NAME);
-        }
-        return ArrayListMultimap.create(tasks);
-      }
+    ArrayListMultimap<Path, String> result = findTasksToExecuteCore(modules, buildMode, testCompileType);
+    if (result.isEmpty()) {
+      notifyNoTaskFound(modules, buildMode, testCompileType);
     }
+    return result;
+  }
+
+  @NotNull
+  private ArrayListMultimap<Path, String> findTasksToExecuteCore(@NotNull Module[] modules,
+                                                                 @NotNull BuildMode buildMode,
+                                                                 @NotNull TestCompileType testCompileType) {
+    LinkedHashMultimap<Path, String> tasks = LinkedHashMultimap.create();
 
     Set<Module> allModules = new LinkedHashSet<>();
     for (Module module : modules) {
@@ -144,11 +155,6 @@ public class GradleTaskFinder {
       tasks.putAll(keyPath, moduleTasks);
     }
 
-    if (tasks.isEmpty()) {
-      // Unlikely to happen.
-      String format = "Unable to find Gradle tasks for project '%1$s' using BuildMode %2$s";
-      getLogger().info(String.format(format, modules[0].getProject().getName(), buildMode.name()));
-    }
     return ArrayListMultimap.create(tasks);
   }
 
@@ -332,5 +338,38 @@ public class GradleTaskFinder {
       String buildTask = GradleUtil.createFullTaskName(gradlePath, gradleTaskName);
       tasks.add(buildTask);
     }
+  }
+
+  private static final int MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE = 50;
+  private static final int MAX_MODULES_TO_SHOW_IN_NOTIFICATION = 5;
+
+  private void notifyNoTaskFound(@NotNull Module[] modules, @NotNull BuildMode mode, @NotNull TestCompileType type) {
+    if (modules.length == 0) return;
+    Project project = modules[0].getProject();
+
+    String logModuleNames =
+      Arrays.stream(modules)
+        .limit(MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE)
+        .map(GradleProjects::getGradleModulePath)
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(", "))
+      + (modules.length > MAX_MODULES_TO_INCLUDE_IN_LOG_MESSAGE ? "..." : "");
+    String logMessage =
+      String.format("Unable to find Gradle tasks to build: [%s]. Build mode: %s. Tests: %s.", logModuleNames, mode, type.getName());
+    getLogger().warn(logMessage);
+
+    String moduleNames =
+      Arrays.stream(modules)
+        .limit(MAX_MODULES_TO_SHOW_IN_NOTIFICATION)
+        .map(GradleProjects::getGradleModulePath)
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(", "))
+      + (modules.length > 5 ? "..." : "");
+    String message =
+      String.format("Unable to find Gradle tasks to build: [%s]. <br>Build mode: %s. <br>Tests: %s.", moduleNames, mode, type.getName());
+    NotificationGroupManager.getInstance()
+      .getNotificationGroup("Android Gradle Tasks")
+      .createNotification(message, NotificationType.WARNING)
+      .notify(project);
   }
 }
