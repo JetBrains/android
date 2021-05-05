@@ -68,7 +68,7 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.isRightMouseButton
 import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
-internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating"
+internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
 
 class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
