@@ -61,7 +61,6 @@ import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -190,11 +189,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   public boolean configurationTypeIsSupported(@NotNull RunConfiguration runConfiguration) {
     if (!(ProjectSystemUtil.getProjectSystem(runConfiguration.getProject()) instanceof GradleProjectSystem)) {
-      return false;
-    }
-    // Disable "Gradle-aware Make" task for instrumentation tests run via UTP so that APK handling is delegated to AGP
-    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE() &&
-        runConfiguration instanceof AndroidTestRunConfiguration) {
       return false;
     }
     return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
