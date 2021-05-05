@@ -34,7 +34,7 @@ import java.util.Map;
  * An entry in the "Colors and Fonts" settings section for Android Logcat settings.
  */
 public final class AndroidLogcatColorPage implements ColorSettingsPage {
-  private static final Map<String, TextAttributesKey> ADDITIONAL_HIGHLIGHT_DESCRIPTORS = new HashMap<String, TextAttributesKey>();
+  private static final Map<String, TextAttributesKey> ADDITIONAL_HIGHLIGHT_DESCRIPTORS = new HashMap<>();
   private static final String DEMO_TEXT = "Logcat:\n" +
                                           "<verbose>02-02 18:52:57.132: VERBOSE/ProtocolEngine(24): DownloadRate 104166 bytes per sec. Downloaded Bytes 5643/34714</verbose>\n" +
                                           "<debug>08-03 13:31:16.196: DEBUG/dalvikvm(2227): HeapWorker thread shutting down</debug>\n" +
@@ -72,14 +72,12 @@ public final class AndroidLogcatColorPage implements ColorSettingsPage {
   }
 
   @Override
-  @NotNull
-  public AttributesDescriptor[] getAttributeDescriptors() {
+  @NotNull public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
     return ATTRIBUTES_DESCRIPTORS;
   }
 
   @Override
-  @NotNull
-  public ColorDescriptor[] getColorDescriptors() {
+  @NotNull public ColorDescriptor @NotNull [] getColorDescriptors() {
     return ColorDescriptor.EMPTY_ARRAY;
   }
 

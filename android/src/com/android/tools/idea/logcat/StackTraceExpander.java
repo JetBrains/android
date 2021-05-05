@@ -59,9 +59,9 @@ class StackTraceExpander {
   @NotNull private final String myStackTracePrefix;
   @NotNull private final String myCauseLinePrefix;
 
-  private List<String> myProcessedLines = new ArrayList<String>();
-  private List<String> myCurrentStack = new ArrayList<String>();
-  private List<String> myPreviousStack = new ArrayList<String>();
+  private final List<String> myProcessedLines = new ArrayList<>();
+  private List<String> myCurrentStack = new ArrayList<>();
+  private List<String> myPreviousStack = new ArrayList<>();
 
   /**
    * True if we've started parsing lines that match the {@link #EXCEPTION_LINE_PATTERN} and
@@ -91,9 +91,6 @@ class StackTraceExpander {
    * Given a line of output, detect if it's part of a stack trace and, if so, process it. This
    * allows us to keep track of context about outer exceptions as well as prepend lines with
    * prefix indentation. Lines not part of a stack trace are left unmodified.
-   *
-   * Every time after calling this method, you should check {@link #getProcessedLines()} for the
-   * result of processing this line. This list will be cleared every time you call this method.
    *
    * You should process each line of logcat output through this method and echo the result out to
    * the console.

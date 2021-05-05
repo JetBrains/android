@@ -30,8 +30,6 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -39,8 +37,6 @@ import java.util.Set;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +64,7 @@ final class EditLogFilterDialog extends DialogWrapper {
   private EditorTextField myFilterNameField;
   private RegexFilterComponent myLogMessageField;
   private RegexFilterComponent myTagField;
-  private TextFieldWithAutoCompletion myPidField;
+  private TextFieldWithAutoCompletion<String> myPidField;
   private RegexFilterComponent myPackageNameField;
   private JComboBox<LogLevel> myLogLevelCombo;
   private JPanel myLogMessageFieldWrapper;
@@ -163,18 +159,15 @@ final class EditLogFilterDialog extends DialogWrapper {
     myLogLevelCombo.setModel(new EnumComboBoxModel<>(LogLevel.class));
     myLogLevelCombo.setRenderer(SimpleListCellRenderer.create(
       "", value -> StringUtil.capitalize(StringUtil.toLowerCase(value.getStringValue()))));
-    myLogLevelCombo.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        if (myActiveFilter == null) {
-          return;
-        }
-
-        LogLevel selectedItem = (LogLevel)myLogLevelCombo.getSelectedItem();
-        assert selectedItem != null;
-
-        myActiveFilter.setLogLevel(selectedItem.getStringValue());
+    myLogLevelCombo.addActionListener(e -> {
+      if (myActiveFilter == null) {
+        return;
       }
+
+      LogLevel selectedItem = (LogLevel)myLogLevelCombo.getSelectedItem();
+      assert selectedItem != null;
+
+      myActiveFilter.setLogLevel(selectedItem.getStringValue());
     });
 
 
@@ -208,25 +201,22 @@ final class EditLogFilterDialog extends DialogWrapper {
     myFilterNameField.getDocument().addDocumentListener(l);
     myPidField.getDocument().addDocumentListener(l);
 
-    RegexFilterComponent.Listener rl = new RegexFilterComponent.Listener() {
-      @Override
-      public void filterChanged(RegexFilterComponent filter) {
-        if (myActiveFilter == null) {
-          return;
-        }
+    RegexFilterComponent.Listener rl = filter -> {
+      if (myActiveFilter == null) {
+        return;
+      }
 
-        if (filter == myTagField) {
-          myActiveFilter.setLogTagPattern(filter.getFilter());
-          myActiveFilter.setLogTagIsRegex(filter.isRegex());
-        }
-        else if (filter == myLogMessageField) {
-          myActiveFilter.setLogMessagePattern(filter.getFilter());
-          myActiveFilter.setLogMessageIsRegex(filter.isRegex());
-        }
-        else if (filter == myPackageNameField) {
-          myActiveFilter.setPackageNamePattern(filter.getFilter());
-          myActiveFilter.setPackageNameIsRegex(filter.isRegex());
-        }
+      if (filter == myTagField) {
+        myActiveFilter.setLogTagPattern(filter.getFilter());
+        myActiveFilter.setLogTagIsRegex(filter.isRegex());
+      }
+      else if (filter == myLogMessageField) {
+        myActiveFilter.setLogMessagePattern(filter.getFilter());
+        myActiveFilter.setLogMessageIsRegex(filter.isRegex());
+      }
+      else if (filter == myPackageNameField) {
+        myActiveFilter.setPackageNamePattern(filter.getFilter());
+        myActiveFilter.setPackageNameIsRegex(filter.isRegex());
       }
     };
     myTagField.addRegexListener(rl);
@@ -235,17 +225,14 @@ final class EditLogFilterDialog extends DialogWrapper {
   }
 
   private void initFiltersList() {
-    myFiltersList.addListSelectionListener(new ListSelectionListener() {
-      @Override
-      public void valueChanged(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) {
-          return;
-        }
-
-        int i = myFiltersList.getSelectedIndex();
-        myActiveFilter = (i == -1) ? null : myFilters.get(i);
-        resetFieldEditors();
+    myFiltersList.addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return;
       }
+
+      int i = myFiltersList.getSelectedIndex();
+      myActiveFilter = (i == -1) ? null : myFilters.get(i);
+      resetFieldEditors();
     });
 
     myFiltersListModel = new CollectionListModel<>();
@@ -377,7 +364,7 @@ final class EditLogFilterDialog extends DialogWrapper {
       final String pidStr = myPidField.getText().trim();
       final Integer pid = !pidStr.isEmpty() ? Integer.parseInt(pidStr) : null;
 
-      if (pid == null || pid.intValue() >= 0) {
+      if (pid == null || pid >= 0) {
         validPid = true;
       }
     }

@@ -116,6 +116,7 @@ public final class DefaultAndroidLogcatFilter implements AndroidLogcatFilter {
     }
 
     // TODO: If we're always checking against an int pid anyway, why let myPid be a string?
+    //noinspection RedundantIfStatement
     if ((myPid != null && !myPid.isEmpty()) && !myPid.equals(Integer.toString(pid))) {
       return false;
     }

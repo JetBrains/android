@@ -37,7 +37,7 @@ final class DeviceAndSearchPanel extends JPanel {
   private final Component myEditFiltersComboBox;
 
   DeviceAndSearchPanel(@NotNull DevicePanel devicePanel, @NotNull AndroidLogcatView logcatView) {
-    AndroidLogConsole console = (AndroidLogConsole)logcatView.getLogConsole();
+    AndroidLogConsole console = logcatView.getLogConsole();
     RegexFilterComponent component = (RegexFilterComponent)console.getTextFilterComponent();
 
     myDeviceComboBox = devicePanel.getDeviceComboBox();
@@ -59,7 +59,7 @@ final class DeviceAndSearchPanel extends JPanel {
   private LayoutManager createWideLayout() {
     GroupLayout layout = new GroupLayout(this);
 
-    int minimumWidth = new ComboBox().getMinimumSize().width;
+    int minimumWidth = new ComboBox<String>().getMinimumSize().width;
     int preferredWidth = myEditFiltersComboBox.getPreferredSize().width;
 
     Group horizontalGroup = layout.createSequentialGroup()
@@ -91,7 +91,7 @@ final class DeviceAndSearchPanel extends JPanel {
   private LayoutManager createNarrowLayout() {
     GroupLayout layout = new GroupLayout(this);
 
-    int minimumWidth = new ComboBox().getMinimumSize().width;
+    int minimumWidth = new ComboBox<String>().getMinimumSize().width;
     int preferredWidth = myEditFiltersComboBox.getPreferredSize().width;
 
     Group horizontalGroup = layout.createParallelGroup()

@@ -40,9 +40,9 @@ import java.util.List;
  * set of actions. This class customizes that list of actions to be relevant for logcat.
  */
 public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostProcessor {
-  @NotNull
   @Override
-  public AnAction[] postProcess(@NotNull ConsoleView console, @NotNull AnAction[] actions) {
+  @NotNull
+  public AnAction @NotNull [] postProcess(@NotNull ConsoleView console, AnAction @NotNull [] actions) {
     if (!(console instanceof ConsoleViewImpl)) {
       return actions;
     }
@@ -55,9 +55,9 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     return processActions((AndroidLogConsole)consoleImpl.getParent(), actions);
   }
 
-  @NotNull
   @Override
-  public AnAction[] postProcessPopupActions(@NotNull ConsoleView console, @NotNull AnAction[] actions) {
+  @NotNull
+  public AnAction @NotNull [] postProcessPopupActions(@NotNull ConsoleView console, AnAction @NotNull [] actions) {
     if (!(console instanceof ConsoleViewImpl)) {
       return actions;
     }
@@ -90,6 +90,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
 
       // remove the scroll to end action, we'll add it back at the top
       if (a instanceof ScrollToTheEndToolbarAction) {
+        @SuppressWarnings("DialogTitleCapitalization")
         String message = "Scroll to the end. Clicking on a particular line stops scrolling and keeps that line visible.";
         a.getTemplatePresentation().setDescription(message);
         a.getTemplatePresentation().setText(message);

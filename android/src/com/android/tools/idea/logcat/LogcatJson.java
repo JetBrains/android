@@ -17,7 +17,6 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * A utility class for converting a {@link LogCatMessage} to and from a Json string.
