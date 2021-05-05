@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.internal.annotations.VisibleForTesting;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
@@ -28,6 +27,7 @@ import java.awt.RenderingHints;
 import java.awt.font.TextLayout;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * The Overlay Layer to be displayed on top of the layout preview

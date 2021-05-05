@@ -40,7 +40,6 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -135,7 +134,7 @@ import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
  * Class that finds {@link RenderErrorModel.Issue}s in a {@link RenderResult}.
  */
 public class RenderErrorContributor {
-  private static final String RENDER_SESSION_IMPL_FQCN = RenderSessionImpl.class.getCanonicalName();
+  private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
   private static final Key<CachedValue<Set<String>>> VIEWS_CACHE_KEY =
     new Key<>(RenderErrorContributor.class.getName() + ".VIEWS_CACHE");
 
