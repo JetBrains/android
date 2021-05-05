@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +80,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
-    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
+    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR, VersionConstraint.agpBefore("4.1.0")},
+    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAL, VersionConstraint.agpFrom("4.1.0")},
     {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
