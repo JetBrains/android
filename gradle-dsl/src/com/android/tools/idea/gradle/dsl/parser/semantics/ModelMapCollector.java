@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
-import static com.google.common.collect.ImmutableMap.toImmutableMap;
-
-import com.google.common.collect.ImmutableMap;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public final class ModelMapCollector {
-  public static @NotNull Collector<Object[], ?, ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription>> toModelMap() {
+  public static @NotNull Collector<Object[], ?, ExternalToModelMap> toModelMap() {
     Function<Object[], SurfaceSyntaxDescription> k = data -> {
       String name = (String) data[0];
       Integer arity = (Integer) data[1];
@@ -58,6 +56,11 @@ public final class ModelMapCollector {
       }
       return new ModelEffectDescription(mpd, sd);
     };
-    return toImmutableMap(k, v);
+    return Collector.of(
+      (Supplier<LinkedHashSet<ExternalToModelMap.Entry>>)LinkedHashSet::new,
+      (s, o) -> s.add(new ExternalToModelMap.Entry(k.apply(o), v.apply(o))),
+      (a, b) -> { a.addAll(b); return a; },
+      ExternalToModelMap::new
+    );
   }
 }

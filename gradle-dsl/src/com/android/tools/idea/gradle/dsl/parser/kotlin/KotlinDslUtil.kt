@@ -868,10 +868,10 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
 
   val oldName = nameElement.namedPsiElement ?: return
 
-  val modelProperties = element.parent?.getExternalToModelMap(writer)?.values
-  if (modelProperties != null) {
-    for (value in modelProperties) {
-      if (value.property.name == nameElement.originalName) {
+  val modelEntries = element.parent?.getExternalToModelMap(writer)?.entrySet
+  if (modelEntries != null) {
+    for (entry in modelEntries) {
+      if (entry.modelEffectDescription.property.name == nameElement.originalName) {
         Logger.getInstance(KotlinDslWriter::class.java)
           .error(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
       }

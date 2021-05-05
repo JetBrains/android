@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -36,11 +37,11 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class ViewBindingDslElement extends GradleDslBlockElement {
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isEnabled", property, ENABLED, VAR}
   }).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     {"enabled", property, ENABLED, VAR},
     {"enabled", exactly(1), ENABLED, SET}
   }).collect(toModelMap());
@@ -48,7 +49,7 @@ public class ViewBindingDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("viewBinding", ViewBindingDslElement.class, ViewBindingDslElement::new);
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

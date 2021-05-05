@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
@@ -52,12 +53,12 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   //
   // It is also a bit odd in that in Groovy the java block need not be explicitly present -- sourceCompatibility and targetCompatibility
   // properties set at top-level are treated as altering the java block properties.  (I think).
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
   }).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     // some versions of Gradle support setting these properties in Groovy through the standard setter method at top level.  We handle
     // that manually in addParsedElement/setParsedElement in order not to write out syntax that the project does not
     // understand.
@@ -68,7 +69,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
   }).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

@@ -86,14 +86,14 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
     val map = context.getExternalToModelMap(this)
     val defaultResult = ExternalNameInfo(modelName, UNKNOWN)
     var result : ExternalNameInfo? = null
-    for (e in map.entries) {
-      if (e.value.property.name == modelName ) {
+    for (e in map.entrySet) {
+      if (e.modelEffectDescription.property.name == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
-        when (e.value.semantics) {
-          VAR, VWO -> return ExternalNameInfo(e.key.name, ASSIGNMENT)
-          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.name, METHOD)
-          VAL -> when (e.value.property.type) {
-            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.key.name, AUGMENTED_ASSIGNMENT)
+        when (e.modelEffectDescription.semantics) {
+          VAR, VWO -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT)
+          SET, ADD_AS_LIST, AUGMENT_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD)
+          VAL -> when (e.modelEffectDescription.property.type) {
+            MUTABLE_SET, MUTABLE_LIST -> return ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT)
             else -> Unit
           }
           else -> Unit
@@ -114,8 +114,8 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   @JvmDefault
   override fun modelDescriptionForParent(externalName: String, context: GradleDslElement): ModelPropertyDescription? {
     val map = context.getExternalToModelMap(this)
-    for (e in map.entries) {
-      if (e.key.name == externalName) return e.value.property
+    for (e in map.entrySet) {
+      if (e.surfaceSyntaxDescription.name == externalName) return e.modelEffectDescription.property
     }
     return null
   }

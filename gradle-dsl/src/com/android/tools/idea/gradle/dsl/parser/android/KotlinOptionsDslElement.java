@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
@@ -39,14 +40,14 @@ public class KotlinOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<KotlinOptionsDslElement> KOTLIN_OPTIONS =
     new PropertiesElementDescription<>("kotlinOptions", KotlinOptionsDslElement.class, KotlinOptionsDslElement::new);
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> modelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap modelNameMap = Stream.of(new Object[][]{
     {"freeCompilerArgs", property, FREE_COMPILER_ARGS, VAR},
     {"jvmTarget", property, JVM_TARGET, VAR},
     {"useIR", property, USE_IR, VAR},
   }).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter || converter instanceof GroovyDslNameConverter) {
       return modelNameMap;
     }

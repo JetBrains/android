@@ -29,9 +29,9 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -549,8 +549,8 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   }
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return ImmutableMap.of();
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    return ExternalToModelMap.empty;
   }
 
   @Nullable

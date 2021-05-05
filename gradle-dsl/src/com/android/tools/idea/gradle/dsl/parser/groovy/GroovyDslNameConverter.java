@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
@@ -115,19 +116,20 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public ExternalNameInfo externalNameForParent(@NotNull String modelName, @NotNull GradleDslElement context) {
-    @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> map = context.getExternalToModelMap(this);
+    @NotNull ExternalToModelMap map = context.getExternalToModelMap(this);
     ExternalNameInfo result = new ExternalNameInfo(modelName, UNKNOWN);
-    for (Map.Entry<SurfaceSyntaxDescription, ModelEffectDescription> e : map.entrySet()) {
-      if (e.getValue().property.name.equals(modelName)) {
-        SemanticsDescription semantics = e.getValue().semantics;
+    for (ExternalToModelMap.Entry e : map.getEntrySet()) {
+      if (e.modelEffectDescription.property.name.equals(modelName)) {
+        SemanticsDescription semantics = e.modelEffectDescription.semantics;
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == AUGMENT_LIST || semantics == OTHER) {
-          return new ExternalNameInfo(e.getKey().name, METHOD);
+          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, METHOD);
         }
-        if (semantics == VAL && (e.getValue().property.type == MUTABLE_SET || e.getValue().property.type == MUTABLE_LIST)) {
-          return new ExternalNameInfo(e.getKey().name, AUGMENTED_ASSIGNMENT);
+        if (semantics == VAL && (e.modelEffectDescription.property.type == MUTABLE_SET ||
+                                 e.modelEffectDescription.property.type == MUTABLE_LIST)) {
+          return new ExternalNameInfo(e.surfaceSyntaxDescription.name, AUGMENTED_ASSIGNMENT);
         }
         if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
-          result = new ExternalNameInfo(e.getKey().name, ASSIGNMENT);
+          result = new ExternalNameInfo(e.surfaceSyntaxDescription.name, ASSIGNMENT);
         }
       }
     }
@@ -149,10 +151,10 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
   @Nullable
   @Override
   public ModelPropertyDescription modelDescriptionForParent(@NotNull String externalName, @NotNull GradleDslElement context) {
-    @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> map = context.getExternalToModelMap(this);
-    for (Map.Entry<SurfaceSyntaxDescription, ModelEffectDescription> e : map.entrySet()) {
-      if (e.getKey().name.equals(externalName)) {
-        return e.getValue().property;
+    @NotNull ExternalToModelMap map = context.getExternalToModelMap(this);
+    for (ExternalToModelMap.Entry e : map.getEntrySet()) {
+      if (e.surfaceSyntaxDescription.name.equals(externalName)) {
+        return e.modelEffectDescription.property;
       }
     }
     return null;

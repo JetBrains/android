@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockElement {
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAL},
     {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
     {"arguments", property, ARGUMENTS, VAL},
@@ -53,7 +54,7 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
     {"targets", atLeast(0), TARGETS, AUGMENT_LIST}
   }).collect(toModelMap());
 
-  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
     {"abiFilters", atLeast(0), ABI_FILTERS, AUGMENT_LIST},
     {"arguments", property, ARGUMENTS, VAR},
@@ -67,7 +68,7 @@ public abstract class AbstractBuildOptionsDslElement extends GradleDslBlockEleme
   }).collect(toModelMap());
 
   @Override
-  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }
