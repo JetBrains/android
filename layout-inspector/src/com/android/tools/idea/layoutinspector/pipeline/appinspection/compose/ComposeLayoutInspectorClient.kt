@@ -120,12 +120,15 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
   }
 
   val parametersCache = ComposeParametersCache(this, model)
+  var lastGeneration = 0
 
-  suspend fun getComposeables(rootViewId: Long): GetComposablesResponse {
+  suspend fun getComposeables(rootViewId: Long, newGeneration: Int): GetComposablesResponse {
+    lastGeneration = newGeneration
     val response = messenger.sendCommand {
       getComposablesCommand = GetComposablesCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         skipSystemComposables = TreeSettings.skipSystemNodesInAgent
+        generation = lastGeneration
       }.build()
     }
     return response.getComposablesResponse
@@ -137,6 +140,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
         this.rootViewId = rootViewId
         this.composableId = composableId
         skipSystemComposables = TreeSettings.skipSystemNodesInAgent
+        generation = lastGeneration
       }.build()
     }
     return response.getParametersResponse
@@ -147,6 +151,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
       getAllParametersCommand = GetAllParametersCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         skipSystemComposables = TreeSettings.skipSystemNodesInAgent
+        generation = lastGeneration
       }.build()
     }
     return response.getAllParametersResponse
@@ -162,6 +167,7 @@ class ComposeLayoutInspectorClient(model: InspectorModel, private val messenger:
       getParameterDetailsCommand = GetParameterDetailsCommand.newBuilder().apply {
         this.rootViewId = rootViewId
         skipSystemComposables = TreeSettings.skipSystemNodesInAgent
+        generation = lastGeneration
         this.startIndex = startIndex
         this.maxElements = maxElements
         referenceBuilder.apply {

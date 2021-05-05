@@ -214,7 +214,7 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id)
+    val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
     fireTreeEvent(Data(
       generation,
       currRoots,

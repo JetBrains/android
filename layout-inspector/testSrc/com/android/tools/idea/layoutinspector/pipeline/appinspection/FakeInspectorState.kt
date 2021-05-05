@@ -575,6 +575,7 @@ class FakeInspectorState(
       GetParameterDetailsCommand.newBuilder().apply {
         rootViewId = 1L
         referenceBuilder.apply {
+          generation = 2
           composableId = -5L
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
@@ -592,6 +593,7 @@ class FakeInspectorState(
       GetParameterDetailsCommand.newBuilder().apply {
         rootViewId = 1L
         referenceBuilder.apply {
+          generation = 2
           composableId = -5L
           kind = LayoutInspectorComposeProtocol.ParameterReference.Kind.NORMAL
           parameterIndex = 1
@@ -608,6 +610,7 @@ class FakeInspectorState(
 
     parameterDetailsCommands[
       GetParameterDetailsCommand.newBuilder().apply {
+        generation = 2
         rootViewId = 1L
         referenceBuilder.apply {
           composableId = -5L
