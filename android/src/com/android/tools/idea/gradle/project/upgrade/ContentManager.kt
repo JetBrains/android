@@ -508,7 +508,7 @@ class ContentManager(val project: Project) {
 
     val detailsPanel = JBPanel<JBPanel<*>>().apply {
       layout = VerticalLayout(0, SwingConstants.LEFT)
-      border = JBUI.Borders.empty(10)
+      border = JBUI.Borders.empty(20)
       myListeners.listen(this@View.model.showFinishedMessage) { it -> if (it) refreshDetailsPanel() }
     }
 
