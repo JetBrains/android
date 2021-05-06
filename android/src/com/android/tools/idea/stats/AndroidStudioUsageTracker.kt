@@ -29,7 +29,10 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.base.Charsets
 import com.google.common.base.Strings
+import com.google.common.hash.Hashing
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.ComposeSampleEvent
@@ -65,9 +68,14 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 import java.util.ArrayList
+import java.util.Calendar
+import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.Objects
+import java.util.TimeZone
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -77,6 +85,10 @@ import java.util.concurrent.TimeUnit
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
+
+  private const val DAYS_IN_LEAP_YEAR = 366
+  private const val DAYS_IN_NON_LEAP_YEAR = 365
+  private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -216,10 +228,59 @@ object AndroidStudioUsageTracker {
   }
 
   private fun processUserSentiment() {
-    if (!AnalyticsSettings.shouldRequestUserSentiment()) {
+    if (!shouldRequestUserSentiment()) {
       return
     }
     requestUserSentiment()
+  }
+
+  @VisibleForTesting
+  fun shouldRequestUserSentiment(): Boolean {
+    if (!AnalyticsSettings.optedIn) {
+      return false
+    }
+
+    val lastSentimentAnswerDate = AnalyticsSettings.lastSentimentAnswerDate
+    val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
+    val now = AnalyticsSettings.dateProvider.now()
+
+    var daysInYear = DAYS_IN_NON_LEAP_YEAR
+    if (GregorianCalendar().isLeapYear(now.year + 1900)) {
+      daysInYear = DAYS_IN_LEAP_YEAR
+    }
+
+    if (lastSentimentAnswerDate != null) {
+      val calendar = Calendar.getInstance()
+      calendar.time = now
+      calendar.add(Calendar.DATE, -daysInYear)
+      val lastYear = calendar.time
+      if (lastSentimentAnswerDate.after(lastYear)) {
+        return false
+      }
+    }
+
+    // If we should ask the question based on dates, and asked but not answered then we should always prompt, even if this is
+    // not the magic date for that user.
+    if (lastSentimentQuestionDate != null) {
+      val calendar = Calendar.getInstance()
+      calendar.time = now
+      calendar.add(Calendar.DATE, -DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
+      val startOfWaitForRequest = calendar.time
+      return !lastSentimentQuestionDate.after(startOfWaitForRequest)
+    }
+
+    val startOfYear = GregorianCalendar(now.year + 1900, 0, 1)
+    startOfYear.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
+
+    // Otherwise, only request on the magic date for the user, to spread user sentiment data throughout the year.
+    var daysSinceJanFirst = ChronoUnit.DAYS.between(startOfYear.toInstant(), now.toInstant())
+    var offset =
+      Math.abs(
+        Hashing.farmHashFingerprint64()
+          .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
+          .asLong()
+      ) % daysInYear
+    return daysSinceJanFirst == offset
   }
 
   /**
