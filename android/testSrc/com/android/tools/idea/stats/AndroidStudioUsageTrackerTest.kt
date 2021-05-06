@@ -28,6 +28,8 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperim
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
+import com.android.tools.idea.stats.AndroidStudioUsageTracker.FeatureSurveyCompleted
+import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldInvokeFeatureSurvey
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
@@ -211,6 +213,49 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     } finally {
       AnalyticsSettings.dateProvider = DateProvider.SYSTEM
     }
+  }
+
+  fun testShouldInvokeFeatureSurvey() {
+    // opted out user should not request user sentiment
+    AnalyticsSettings.dateProvider = StubDateProvider(2020, 4, 18)
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = false
+    })
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    // First time requested should return true, second time false
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+    })
+    FeatureSurveyCompleted("featureSurvey", -5, -5)
+    assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    // Test before general interval elapses
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+    })
+    FeatureSurveyCompleted("featureSurvey", 5, 5)
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    // Test before general interval elapses
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+    })
+    FeatureSurveyCompleted("featureSurvey", -5, 5)
+    assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
+
+    // Test after both intervals elapse
+    AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+      userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+      optedIn = true
+    })
+    FeatureSurveyCompleted("featureSurvey1", -5, -5)
+    assertTrue(shouldInvokeFeatureSurvey("featureSurvey2"))
   }
 
   companion object {

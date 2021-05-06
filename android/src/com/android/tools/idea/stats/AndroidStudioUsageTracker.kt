@@ -19,6 +19,9 @@ import com.android.ddmlib.IDevice
 import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.AnalyticsSettings.nextFeatureSurveyDate
+import com.android.tools.analytics.AnalyticsSettings.nextFeatureSurveyDateMap
+import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
@@ -72,12 +75,14 @@ import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.ArrayList
 import java.util.Calendar
+import java.util.Date
 import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.Objects
 import java.util.TimeZone
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 /**
  * Tracks Android Studio specific metrics
@@ -89,6 +94,8 @@ object AndroidStudioUsageTracker {
   private const val DAYS_IN_LEAP_YEAR = 366
   private const val DAYS_IN_NON_LEAP_YEAR = 365
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
+
+  private var isFeatureSurveyPending = false
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -236,36 +243,24 @@ object AndroidStudioUsageTracker {
 
   @VisibleForTesting
   fun shouldRequestUserSentiment(): Boolean {
-    if (!AnalyticsSettings.optedIn) {
+    if (!optedIn) {
       return false
     }
 
     val lastSentimentAnswerDate = AnalyticsSettings.lastSentimentAnswerDate
     val lastSentimentQuestionDate = AnalyticsSettings.lastSentimentQuestionDate
+
     val now = AnalyticsSettings.dateProvider.now()
 
-    var daysInYear = DAYS_IN_NON_LEAP_YEAR
-    if (GregorianCalendar().isLeapYear(now.year + 1900)) {
-      daysInYear = DAYS_IN_LEAP_YEAR
-    }
-
-    if (lastSentimentAnswerDate != null) {
-      val calendar = Calendar.getInstance()
-      calendar.time = now
-      calendar.add(Calendar.DATE, -daysInYear)
-      val lastYear = calendar.time
-      if (lastSentimentAnswerDate.after(lastYear)) {
-        return false
-      }
+    if (isWithinPastYear(now, lastSentimentAnswerDate)) {
+      return false
     }
 
     // If we should ask the question based on dates, and asked but not answered then we should always prompt, even if this is
     // not the magic date for that user.
     if (lastSentimentQuestionDate != null) {
-      val calendar = Calendar.getInstance()
-      calendar.time = now
-      calendar.add(Calendar.DATE, -DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
-      val startOfWaitForRequest = calendar.time
+      val startOfWaitForRequest =
+        daysFromNow(now, -DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN)
       return !lastSentimentQuestionDate.after(startOfWaitForRequest)
     }
 
@@ -273,13 +268,13 @@ object AndroidStudioUsageTracker {
     startOfYear.timeZone = TimeZone.getTimeZone(ZoneOffset.UTC)
 
     // Otherwise, only request on the magic date for the user, to spread user sentiment data throughout the year.
-    var daysSinceJanFirst = ChronoUnit.DAYS.between(startOfYear.toInstant(), now.toInstant())
-    var offset =
-      Math.abs(
+    val daysSinceJanFirst = ChronoUnit.DAYS.between(startOfYear.toInstant(), now.toInstant())
+    val offset =
+      abs(
         Hashing.farmHashFingerprint64()
           .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
           .asLong()
-      ) % daysInYear
+      ) % daysInYear(now)
     return daysSinceJanFirst == offset
   }
 
@@ -411,6 +406,75 @@ object AndroidStudioUsageTracker {
       ChannelStatus.BETA -> SoftwareLifeCycleChannel.BETA
       ChannelStatus.RELEASE -> SoftwareLifeCycleChannel.STABLE
       else -> SoftwareLifeCycleChannel.UNKNOWN_LIFE_CYCLE_CHANNEL
+    }
+  }
+
+
+  // Determines whether the specified feature survey should be invoked.
+  // If so, sets the isFeatureSurveyPending flag to true.
+  fun shouldInvokeFeatureSurvey(name: String): Boolean {
+    if (!optedIn || isFeatureSurveyPending) {
+      return false
+    }
+
+    val now = AnalyticsSettings.dateProvider.now()
+
+    // Is it too early to invoke any feature survey?
+    nextFeatureSurveyDate?.let {
+      if (now.before(it)) {
+        return false
+      }
+    }
+
+    // Is it too early to invoke this specific feature survey?
+    nextFeatureSurveyDateMap?.let { map ->
+      map[name]?.let {
+        if (now.before(it)) {
+          return false
+        }
+      }
+    }
+
+    isFeatureSurveyPending = true
+
+    return true
+  }
+
+  // Indicates that a feature survey has been responded to, and the countdowns until
+  // the next feature survey should be updated
+  fun FeatureSurveyCompleted(name: String, generalInterval: Int, specificInterval: Int) {
+    isFeatureSurveyPending = false
+    val now = AnalyticsSettings.dateProvider.now()
+
+    nextFeatureSurveyDate = daysFromNow(now, generalInterval)
+
+    val map = nextFeatureSurveyDateMap ?: mutableMapOf()
+    map[name] = daysFromNow(now, specificInterval)
+    nextFeatureSurveyDateMap = map
+  }
+
+  private fun isWithinPastYear(now: Date, date: Date?): Boolean {
+    return isBeforeDayCount(now, date, -daysInYear(now))
+  }
+
+  private fun isBeforeDayCount(now: Date, date: Date?, days: Int): Boolean {
+    date ?: return false
+    val newDate = daysFromNow(now, days)
+    return date.after(newDate)
+  }
+
+  private fun daysFromNow(now: Date, days: Int): Date {
+    val calendar = Calendar.getInstance()
+    calendar.time = now
+    calendar.add(Calendar.DATE, days)
+    return calendar.time
+  }
+
+  private fun daysInYear(now: Date): Int {
+    return if (GregorianCalendar().isLeapYear(now.year + 1900)) {
+      DAYS_IN_LEAP_YEAR
+    } else {
+      DAYS_IN_NON_LEAP_YEAR
     }
   }
 
