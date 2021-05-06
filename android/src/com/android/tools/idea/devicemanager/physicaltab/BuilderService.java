@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.util.DeviceUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.ddms.DeviceNameProperties;
@@ -93,8 +94,7 @@ final class BuilderService {
       .setOnline(online)
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString())
-      // TODO Figure out how to get the connection type from the IDevice
-      .setConnectionType(ConnectionType.USB)
+      .setConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB)
       .build();
   }
 }
