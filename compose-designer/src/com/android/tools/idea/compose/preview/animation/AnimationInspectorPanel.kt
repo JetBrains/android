@@ -215,8 +215,18 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   fun updateTransitionStates(animation: ComposeAnimation, states: Set<Any>, callback: () -> Unit) {
     animationTabs[animation]?.let { tab ->
       tab.updateStateComboboxes(states.toTypedArray())
-      val maxIndex = tab.endStateComboBox.itemCount - 1
-      tab.endStateComboBox.selectedIndex = 1.coerceIn(0, maxIndex)
+      val transition = animation.animationObject
+      transition::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
+        it.isAccessible = true
+        it.invoke(transition)?.let { state ->
+          tab.startStateComboBox.selectedItem = state
+        }
+      }
+      // Try to select an end state different than the start state.
+      if (tab.startStateComboBox.selectedIndex == tab.endStateComboBox.selectedIndex && tab.endStateComboBox.itemCount > 1) {
+        tab.endStateComboBox.selectedIndex = (tab.startStateComboBox.selectedIndex + 1) % tab.endStateComboBox.itemCount
+      }
+
       // Call updateAnimationStartAndEndStates directly here to set the initial animation states in PreviewAnimationClock
       updateAnimationStatesExecutor.execute {
         // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
@@ -350,7 +360,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
    */
   private inner class AnimationTab(val animation: ComposeAnimation, val tabTitle: String) : JPanel(TabularLayout("Fit,*,Fit", "Fit,*")) {
 
-    private val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
+    val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
     val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
 
     /**
