@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.benchmark
 
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
@@ -32,8 +34,8 @@ import com.intellij.openapi.project.Project
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 
 enum class BenchmarkModuleType(val title: String) {
-  MICROBENCHMARK("Microbenchmark"),
   MACROBENCHMARK("Macrobenchmark"),
+  MICROBENCHMARK("Microbenchmark"),
 }
 
 class NewBenchmarkModuleModel(
@@ -48,18 +50,18 @@ class NewBenchmarkModuleModel(
   moduleParent = moduleParent,
   wizardContext = NEW_MODULE
 ) {
-  val benchmarkModuleType = ObjectValueProperty<BenchmarkModuleType>(BenchmarkModuleType.MICROBENCHMARK)
+  val benchmarkModuleType = ObjectValueProperty<BenchmarkModuleType>(MACROBENCHMARK)
   val targetModule = OptionalValueProperty<Module>()
 
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe
       get() = { td: TemplateData ->
         when (benchmarkModuleType.get()) {
-          BenchmarkModuleType.MICROBENCHMARK -> generateBenchmarkModule(
+          MICROBENCHMARK -> generateBenchmarkModule(
             moduleData = td as ModuleTemplateData,
             useGradleKts = useGradleKts.get()
           )
-          BenchmarkModuleType.MACROBENCHMARK -> generateMacrobenchmarkModule(
+          MACROBENCHMARK -> generateMacrobenchmarkModule(
             moduleData = td as ModuleTemplateData,
             useGradleKts = useGradleKts.get(),
             targetModule = targetModule.value,
@@ -70,8 +72,8 @@ class NewBenchmarkModuleModel(
 
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = when (benchmarkModuleType.get()) {
-      BenchmarkModuleType.MICROBENCHMARK -> RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
-      BenchmarkModuleType.MACROBENCHMARK -> RenderLoggingEvent.MACROBENCHMARK_LIBRARY_MODULE
+      MICROBENCHMARK -> RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
+      MACROBENCHMARK -> RenderLoggingEvent.MACROBENCHMARK_LIBRARY_MODULE
     }
 }
 

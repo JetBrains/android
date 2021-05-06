@@ -36,13 +36,12 @@ class NewBenchmarkModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String = message("android.wizard.module.new.benchmark.module.description")
     override fun toString(): String = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
-      ChooseBenchmarkModuleTypeStep(
+      ConfigureBenchmarkModuleStep(
         model = NewBenchmarkModuleModel(
           project = project,
           moduleParent = moduleParent,
           projectSyncInvoker = projectSyncInvoker,
         ),
-        title = name,
       )
   }
 }

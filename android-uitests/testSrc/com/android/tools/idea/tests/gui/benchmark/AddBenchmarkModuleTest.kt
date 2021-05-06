@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.benchmark
 
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.wizard.template.Language.Java
@@ -40,7 +41,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Microbenchmark module and click next.
+   * 4. Select Microbenchmark as the benchmark module type.
    * 5. Select Java as the source language.
    * 6. Complete the wizard and wait for the build to complete.
    * Verify:
@@ -61,8 +62,8 @@ class AddBenchmarkModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToChooseBenchmarkModuleType()
-      .clickNextToMicrobenchmarkModule()
+      .clickNextToBenchmarkModule()
+      .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
@@ -93,7 +94,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Microbenchmark module and click next.
+   * 4. Select Microbenchmark as the benchmark module type.
    * 5. Select Kotlin as the source language.
    * 6. Complete the wizard and wait for the build to complete.
    * Verify:
@@ -112,8 +113,8 @@ class AddBenchmarkModuleTest {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToChooseBenchmarkModuleType()
-      .clickNextToMicrobenchmarkModule()
+      .clickNextToBenchmarkModule()
+      .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()
@@ -144,7 +145,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Macrobenchmark module and click next.
+   * 4. Select Macrobenchmark as the benchmark module type.
    * 5. Select Java as the source language.
    * 6. Complete the wizard and wait for the build to complete.
    * Verify:
@@ -166,8 +167,8 @@ class AddBenchmarkModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToChooseBenchmarkModuleType()
-      .clickNextToMacrobenchmarkModule()
+      .clickNextToBenchmarkModule()
+      .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
       .enterPackageName("com.example.macrobenchmark")
       .selectTargetApplicationModule("SimpleAndroidxApplication.app")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)
@@ -206,7 +207,7 @@ class AddBenchmarkModuleTest {
    * 1. Import simple application project
    * 2. Go to File -> New module to open the new module dialog wizard.
    * 3. Choose Benchmark Module and click next.
-   * 4. Select Macrobenchmark module and click next.
+   * 4. Select Macrobenchmark as the benchmark module type.
    * 5. Select Java as the source language.
    * 6. Complete the wizard and wait for the build to complete.
    * Verify:
@@ -228,8 +229,8 @@ class AddBenchmarkModuleTest {
 
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
-      .clickNextToChooseBenchmarkModuleType()
-      .clickNextToMacrobenchmarkModule()
+      .clickNextToBenchmarkModule()
+      .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
       .enterPackageName("com.example.macrobenchmark")
       .selectTargetApplicationModule("SimpleAndroidxApplication.app")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)

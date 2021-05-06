@@ -19,6 +19,7 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.flags.junit.RestoreFlagRule
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
 import com.android.tools.idea.wizard.template.Language
@@ -276,8 +277,8 @@ class NewKtsModuleTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     guiTest.ideFrame().invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(guiTest.ideFrame())
-      .clickNextToChooseBenchmarkModuleType()
-      .clickNextToMicrobenchmarkModule()
+      .clickNextToBenchmarkModule()
+      .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
       .setUseKtsBuildFiles(true)
