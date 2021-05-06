@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -87,7 +88,8 @@ public final class GradleProjects {
 
   /**
    * Returns the gradle path of a module, for example ":app" or ":lib:mylib". In the case of a module from a project included in the
-   * composite build, the returned Gradle path is prefixed by the included project name, i.e. included_project:libs:mylib .
+   * composite build, the returned Gradle path is prefixed by the included project name, i.e. included_project:libs:mylib or just
+   * included_project for an included build root project.
    * @param module the give module
    * @return the gradle path or {@code null} if not a gradle module or can't find the path.
    */
@@ -96,12 +98,14 @@ public final class GradleProjects {
     if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
       return null;
     }
-    String linkedProjectId = ExternalSystemModulePropertyManager.getInstance(module).getLinkedProjectId();
+    ExternalSystemModulePropertyManager moduleProperties = ExternalSystemModulePropertyManager.getInstance(module);
+    String linkedProjectId = moduleProperties.getLinkedProjectId();
     if (linkedProjectId == null) {
       return null;
     }
+    boolean isRootProject = Objects.equals(moduleProperties.getRootProjectPath(), moduleProperties.getLinkedProjectPath());
 
-    return linkedProjectId.contains(":") ? linkedProjectId : ":";
+    return isRootProject ? ":" : linkedProjectId;
   }
 
   /**

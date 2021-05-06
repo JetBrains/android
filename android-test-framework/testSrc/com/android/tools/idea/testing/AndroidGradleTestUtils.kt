@@ -1173,6 +1173,7 @@ interface GradleIntegrationTest {
   /**
    * The base testData directory to be used in tests.
    */
+  @JvmDefault
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
     val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
