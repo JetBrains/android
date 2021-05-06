@@ -15,54 +15,74 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
+import com.android.tools.idea.npw.benchmark.BenchmarkModuleType;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
+import javax.swing.JRadioButton;
 import javax.swing.JRootPane;
+import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
-public class ConfigureMacrobenchmarkModuleStepFixture<W extends AbstractWizardFixture>
-  extends AbstractWizardStepFixture<ConfigureMacrobenchmarkModuleStepFixture, W> {
+public class ConfigureBenchmarkModuleStepFixture<W extends AbstractWizardFixture>
+  extends AbstractWizardStepFixture<ConfigureBenchmarkModuleStepFixture, W> {
 
-  ConfigureMacrobenchmarkModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
-    super(ConfigureMacrobenchmarkModuleStepFixture.class, wizard, target);
+  ConfigureBenchmarkModuleStepFixture(@NotNull W wizard, @NotNull JRootPane target) {
+    super(ConfigureBenchmarkModuleStepFixture.class, wizard, target);
+  }
+
+  public ConfigureBenchmarkModuleStepFixture<W> selectBenchmarkType(@NotNull BenchmarkModuleType type) {
+    findRadioButtonWithText(type.getTitle()).select();
+    return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> enterModuleName(@NotNull String text) {
+  public ConfigureBenchmarkModuleStepFixture<W> enterModuleName(@NotNull String text) {
     findTextFieldWithLabel("Module name").setText(text);
     return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> enterPackageName(@NotNull String text) {
+  public ConfigureBenchmarkModuleStepFixture<W> enterPackageName(@NotNull String text) {
     findTextFieldWithLabel("Package name").setText(text);
     return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> selectTargetApplicationModule(@NotNull String targetModuleName) {
+  public ConfigureBenchmarkModuleStepFixture<W> selectTargetApplicationModule(@NotNull String targetModuleName) {
     findComboBoxWithLabel("Target application module").selectItem(targetModuleName);
     return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {
+  public ConfigureBenchmarkModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {
     findComboBoxWithLabel("Language").selectItem(language.toString());
     return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
+  public ConfigureBenchmarkModuleStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
     new ApiLevelComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Minimum SDK", JComboBox.class))
       .selectApiLevel(minSdkApi);
     return this;
   }
 
   @NotNull
-  public ConfigureMacrobenchmarkModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
+  public ConfigureBenchmarkModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
     selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
     return this;
+  }
+
+  @NotNull
+  private JRadioButtonFixture findRadioButtonWithText(@NotNull String label) {
+    JRadioButton radioButton = robot().finder().find(new GenericTypeMatcher<JRadioButton>(JRadioButton.class, true) {
+      @Override
+      protected boolean isMatching(@NotNull JRadioButton component) {
+        return component.getText().equals(label);
+      }
+    });
+    return new JRadioButtonFixture(robot(), radioButton);
   }
 }
