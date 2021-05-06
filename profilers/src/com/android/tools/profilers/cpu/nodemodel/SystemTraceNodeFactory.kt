@@ -28,8 +28,10 @@ class SystemTraceNodeFactory {
   private val canonicalMap = mutableMapOf<String, CanonicalNodeId>()
   private val nodeMap = mutableMapOf<CanonicalNodeId, SystemTraceNodeModel>()
 
-  // Pattern to match names with the format Letters Number. Eg: Frame 1234
-  private val ID_GROUP = Pattern.compile("^([A-Za-z\\s]*)(\\d+)")
+  companion object {
+    // Pattern to match names with the format Letters Number. Eg: Frame 1234, Choreographer#doFrame 1234.
+    private val ID_GROUP = Pattern.compile("^([A-Za-z\\s#]*)(\\d+)")
+  }
 
   fun getNode(name: String): SystemTraceNodeModel {
     val canonicalId = canonicalMap.getOrPut(name) { computeCanonicalId(name) }
