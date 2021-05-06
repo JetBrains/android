@@ -3784,7 +3784,7 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
-    RUN_CONFIGURATION             : app.main
+    RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : testModulePerSourceSet.app.main
         Module                        : testModulePerSourceSet.app.main
