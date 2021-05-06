@@ -24,21 +24,14 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
-import com.android.tools.idea.appinspection.ide.LaunchableInspectorTabLaunchParams
-import com.android.tools.idea.appinspection.ide.StaticInspectorTabLaunchParams
+import com.android.tools.idea.appinspection.ide.InspectorJarTarget
+import com.android.tools.idea.appinspection.ide.InspectorTabJarTargets
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
-import com.android.tools.idea.appinspection.ide.appProguardedMessage
+import com.android.tools.idea.appinspection.ide.APP_PROGUARDED_MESSAGE
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.appinspection.ide.toEmptyStatePanelIfSingleUnresolvedInspector
 import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionLaunchException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorForcefullyDisposedException
-import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
+import com.android.tools.idea.appinspection.inspector.api.*
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
@@ -233,7 +226,7 @@ class AppInspectionView @VisibleForTesting constructor(
       inspectorTabs.removeAll { tab ->
         (!tab.provider.supportsOffline() || !tab.isComponentSet).also { notSupportOffline ->
           if (notSupportOffline) {
-            tab.getUserData(TAB_KEY)?.messenger?.scope?.cancel()
+            tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() }
             Disposer.dispose(tab)
           }
         }
@@ -244,7 +237,7 @@ class AppInspectionView @VisibleForTesting constructor(
       // informed of a new, running process. In this case, clear all tabs to make way for all new
       // tabs for the new process.
       inspectorTabs.forEach { tab ->
-        tab.getUserData(TAB_KEY)?.messenger?.scope?.cancel()
+        tab.getUserData(TAB_KEY)?.messengers?.forEach { it.scope.cancel() }
         Disposer.dispose(tab)
       }
       inspectorTabs.clear()
@@ -270,42 +263,53 @@ class AppInspectionView @VisibleForTesting constructor(
 
   private fun CoroutineScope.launchInspectorForTab(
     process: ProcessDescriptor,
-    params: LaunchableInspectorTabLaunchParams,
+    tabTargets: InspectorTabJarTargets,
     tabShell: AppInspectorTabShell,
     force: Boolean
   ) = launch {
-    val provider = params.provider
+    val provider = tabTargets.provider
     try {
-      val client = apiServices.launchInspector(
-        LaunchParameters(
-          process,
-          provider.inspectorId,
-          params.jar,
-          project.name,
-          (provider.inspectorLaunchParams as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
-          force
-        )
-      )
+      val messengers = provider.launchConfigs
+        .map { config ->
+          (tabTargets.targets[config.id] as? InspectorJarTarget.Resolved)?.let { resolvedTarget ->
+            apiServices.launchInspector(
+              LaunchParameters(
+                process,
+                config.id,
+                resolvedTarget.jar,
+                project.name,
+                (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+                force
+              )
+            )
+          }
+        }
+
       withContext(uiDispatcher) {
-        val tab = provider.createTab(project, ideServices, process, client, tabShell)
+        val tab = provider.createTab(project, ideServices, process, messengers, tabShell)
         tabShell.setComponent(tab.component)
         tabShell.putUserData(TAB_KEY, tab)
       }
-      launch {
-        val cause = client.awaitForDisposal()
-        currentInspectorsJob?.cancel()
-        if (cause is AppInspectorForcefullyDisposedException) {
-          stopInspectors()
+      messengers
+        .filterNotNull()
+        .forEach { messenger ->
+          launch {
+            val cause = messenger.awaitForDisposal()
+            currentInspectorsJob?.cancel()
+            if (cause is AppInspectorForcefullyDisposedException) {
+              // TODO(b/188934519): A failure in one inspector tab shouldn't stop others
+              stopInspectors()
+            }
+            else if (cause is AppInspectionCrashException) {
+              AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
+              // Wait until AFTER we're disposed before showing the notification. This ensures if
+              // the user hits restart, which requests launching a new inspector, it won't reuse
+              // the existing client. (Users probably would never hit restart fast enough but it's
+              // possible to trigger in tests.)
+              showCrashNotification(provider.displayName)
+            }
+          }
         }
-        else if (cause is AppInspectionCrashException) {
-          AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-          // Wait until AFTER we're disposed before showing the notification. This ensures if
-          // the user hits restart, which requests launching a new inspector, it won't reuse
-          // the existing client. (Users probably would never hit restart fast enough but it's
-          // possible to trigger in tests.)
-          showCrashNotification(provider.displayName)
-        }
-      }
     }
     catch (e: CancellationException) {
       // We don't log but rethrow cancellation exceptions because they are expected as part of the operation. For example: the service
@@ -339,7 +343,7 @@ class AppInspectionView @VisibleForTesting constructor(
       withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage(), provider.learnMoreUrl)) }
     }
     catch (e: AppInspectionAppProguardedException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(appProguardedMessage, provider.learnMoreUrl)) }
+      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl)) }
     }
     catch (e: Exception) {
       Logger.getInstance(AppInspectionView::class.java).error(e)
@@ -352,29 +356,30 @@ class AppInspectionView @VisibleForTesting constructor(
       val launchSupport = AppInspectorTabLaunchSupport(getTabProviders, apiServices, project, artifactService)
 
       // Triage the applicable inspector tab providers into those that can be launched, and those that can't.
-      val applicableTabs = try {
-        launchSupport.getApplicableTabLaunchParams(process)
+      val tabTargetsList = try {
+        launchSupport.getInspectorTabJarTargets(process)
       }
       catch (e: AppInspectionProcessNoLongerExistsException) {
         // Process died before we got a chance to connect, so we won't be launching any inspector tabs this time.
         emptyList()
       }
 
-      val launchableInspectors = applicableTabs
-        .filterIsInstance<LaunchableInspectorTabLaunchParams>()
-        .associateWith { AppInspectorTabShell(it.provider) }
-      val deadInspectorTabs = applicableTabs
-        .filterIsInstance<StaticInspectorTabLaunchParams>()
-        .map { AppInspectorTabShell(it.provider).also { shell -> shell.setComponent(it.toInfoMessageTab()) } }
-
-      launchableInspectors.forEach { (params, tab) -> launchInspectorForTab(process, params, tab, force) }
+      val tabs = tabTargetsList.map { tabTargets ->
+        val emptyState = tabTargets.toEmptyStatePanelIfSingleUnresolvedInspector()
+        val shell = AppInspectorTabShell(tabTargets.provider)
+        if (emptyState != null) {
+          shell.setComponent(emptyState)
+        }
+        else {
+          launchInspectorForTab(process, tabTargets, shell, force)
+        }
+        shell
+      }
 
       withContext(uiDispatcher)
       {
         inspectorTabs.clear()
-        (launchableInspectors.values + deadInspectorTabs).sorted().forEach { tab ->
-          inspectorTabs.add(tab)
-        }
+        tabs.sorted().forEach { tab -> inspectorTabs.add(tab) }
         updateUi()
         fireTabsChangedListener()
       }

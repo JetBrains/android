@@ -15,26 +15,28 @@
  */
 package com.android.tools.idea.appinspection.ide
 
+import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.ide.ui.EmptyStatePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchConfig
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
-import javax.swing.JComponent
 
 /**
  * This class plays a supporting role to the launch of inspector tabs in [AppInspectionView].
  *
  * It handles the querying and filtering of inspector tabs based on their compatibility with the library, as well as the
- * resolving of inspector jars from maven. And returns a [AppInspectorTabLaunchParams] for each applicable tab provider.
+ * resolving of inspector jars from maven. And returns an [InspectorTabJarTargets] for each applicable tab provider.
  */
 class AppInspectorTabLaunchSupport(
   private val getTabProviders: () -> Collection<AppInspectorTabProvider>,
@@ -44,94 +46,62 @@ class AppInspectorTabLaunchSupport(
 ) {
 
   /**
-   * This function goes through all library [AppInspectorTabProvider]s, queries the AppInspectionService to perform compatibility checks,
-   * and then returns a list of [AppInspectorTabLaunchParams]. The result is used by AppInspectionView to launch the inspectors and create
-   * their UI tabs.
+   * Given a target [process], and using [getTabProviders], return a mapping of each tab provider to a list of one or
+   * more jar targets that contain an inspector which can be deployed against the app.
    *
-   * This function returns a list of [AppInspectorTabLaunchParams], one for each applicable tab provider. Each could be either a
-   * [LaunchableInspectorTabLaunchParams] or [StaticInspectorTabLaunchParams]. The former contains all of the information necessary to
-   * launch a live inspector while the latter contains the appropriate info message to be displayed in its tab.
+   * The returned list will contain one entry per tab, although each entry itself can contain one or more jar targets.
+   * It is expected that most inspector tabs will only use a single inspector, but in practice they can use any number
+   * of them.
+   *
+   * See also: [InspectorJarTarget]
    */
-  private suspend fun getApplicableLibraryInspectors(process: ProcessDescriptor): List<InspectorTabLaunchParams> {
-    val applicableTabProviders = getTabProviders()
-                                   .filter {
-                                     provider -> provider.isApplicable() && provider.inspectorLaunchParams is LibraryInspectorLaunchParams
-                                   }
-                                   .takeIf { it.isNotEmpty() } ?: return emptyList()
+  suspend fun getInspectorTabJarTargets(process: ProcessDescriptor): List<InspectorTabJarTargets> {
+    return getTabProviders()
+      .filter { provider -> provider.isApplicable() }
+      .map { provider ->
+        val (frameworkConfigs, libraryConfigs)
+          = provider.launchConfigs.partition { config -> config.params is FrameworkInspectorLaunchParams }
+
+        InspectorTabJarTargets(provider, frameworkConfigs.getFrameworkJarTargets() + libraryConfigs.getLibraryJarTargets(process, provider))
+      }
+  }
+
+  private fun List<AppInspectorLaunchConfig>.getFrameworkJarTargets(): Map<String, InspectorJarTarget> {
+    assert(all { config -> config.params is FrameworkInspectorLaunchParams })
+    // Framework inspector jars are always resolvable because they are bundled with Studio
+    return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar) }
+  }
+
+  private suspend fun List<AppInspectorLaunchConfig>.getLibraryJarTargets(
+    process: ProcessDescriptor,
+    provider: AppInspectorTabProvider
+  ): Map<String, InspectorJarTarget> {
+    assert(all { config -> config.params is LibraryInspectorLaunchParams })
 
     if (StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()) {
-      // If in dev mode, launch with the provided development inspector jar.
-      return applicableTabProviders
-        .map {
-          LaunchableInspectorTabLaunchParams(it, it.inspectorLaunchParams.inspectorAgentJar)
+      return associate { config -> config.id to InspectorJarTarget.Resolved(config.params.inspectorAgentJar) }
+    }
+
+    val coords = map { config -> (config.params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate }
+    val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(coords)
+
+    return mapIndexed { i, config ->
+      config.id to when (compatibilityResponse[i].status) {
+        LibraryCompatbilityInfo.Status.COMPATIBLE -> {
+          val coord = coords[i]
+          val path = artifactService.getOrResolveInspectorArtifact(coord, project)
+          if (path != null) {
+            InspectorJarTarget.Resolved(path.toAppInspectorJar())
+          }
+          else {
+            InspectorJarTarget.Unresolved(coord.toUnresolvedInspectorMessage())
+          }
         }
-    }
-
-    // Build a map of ArtifactCoordinate -> AppInspectorTabProvider for easy reverse lookup in the following code.
-    val artifactToProvider = applicableTabProviders.associateBy {
-      (it.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate
-    }
-
-    // Send list of potential inspectors to AppInspectionService and check their compatibility. Filter out incompatible ones.
-    val targetLibraries = applicableTabProviders
-      .map { provider -> (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate }
-    val compatibilityResponse = apiServices.attachToProcess(process, project.name).getLibraryVersions(targetLibraries)
-
-    // Partition libraries based on compatibility.
-    val (compatibleLibraries, incompatibleLibraries) = compatibilityResponse.partition {
-      it.status == LibraryCompatbilityInfo.Status.COMPATIBLE
-    }
-
-    // The inspectors for these compatible libraries need to be resolved.
-    val resolvableInfos = compatibleLibraries.map {
-      InspectorJarContext(artifactToProvider[it.libraryCoordinate]!!, it.getTargetLibraryCoordinate())
-    }
-
-    // Show a static info message for these incompatible inspectors.
-    val incompatibleInspectorTabs = incompatibleLibraries.map {
-      val appInspectorTabProvider = artifactToProvider[it.libraryCoordinate]!!
-      val message =
-        if (it.status == LibraryCompatbilityInfo.Status.APP_PROGUARDED) appProguardedMessage
-        else appInspectorTabProvider.toIncompatibleVersionMessage()
-      StaticInspectorTabLaunchParams(appInspectorTabProvider, message)
-    }
-
-    return processCompatibleLibraries(resolvableInfos) + incompatibleInspectorTabs
-  }
-
-  private suspend fun processCompatibleLibraries(
-    resolvableLibraries: List<InspectorJarContext>
-  ): List<InspectorTabLaunchParams> {
-    val artifacts = resolvableLibraries.associateWith {
-      artifactService.getOrResolveInspectorArtifact(it.targetLibrary, project)
-    }
-
-    // Partition the artifacts based on whether they were resolved or not.
-    val (resolved, unresolved) = artifacts.entries.partition { it.value != null }
-
-    // These are inspector tabs whose jars we managed to resolve and can launch.
-    val resolvedInspectorTabs = resolved
-      .map { pair ->
-        LaunchableInspectorTabLaunchParams(pair.key.provider, pair.value!!.toAppInspectorJar())
+        LibraryCompatbilityInfo.Status.APP_PROGUARDED -> InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE)
+        else -> InspectorJarTarget.Unresolved(provider.toIncompatibleVersionMessage())
       }
-
-    // We didn't manage to resolve artifacts for these tabs, so we show an empty tab with an info message.
-    val unresolvedInspectorTabs = unresolved
-      .map { pair ->
-        StaticInspectorTabLaunchParams(pair.key.provider, pair.key.targetLibrary.toUnresolvedInspectorMessage())
-      }
-
-    return resolvedInspectorTabs + unresolvedInspectorTabs
-  }
-
-  private fun getApplicableFrameworkInspectors(): List<InspectorTabLaunchParams> {
-    return getTabProviders()
-      .filter { it.isApplicable() && it.inspectorLaunchParams is FrameworkInspectorLaunchParams }
-      .map { LaunchableInspectorTabLaunchParams(it, it.inspectorLaunchParams.inspectorAgentJar) }
-  }
-
-  suspend fun getApplicableTabLaunchParams(process: ProcessDescriptor): List<InspectorTabLaunchParams> {
-    return getApplicableFrameworkInspectors() + getApplicableLibraryInspectors(process)
+    }
+      .toMap()
   }
 
   private fun Path.toAppInspectorJar(): AppInspectorJar {
@@ -139,41 +109,44 @@ class AppInspectorTabLaunchSupport(
   }
 }
 
-private class InspectorJarContext(
+/** A wrapper around a target inspector jar that either was successfully resolved or not. */
+sealed class InspectorJarTarget {
+  class Resolved(val jar: AppInspectorJar) : InspectorJarTarget()
+
+  /**
+   * Represents inspectors that cannot be launched, e.g. the target library used by the app is too
+   * old or the user's app was proguarded.
+   */
+  class Unresolved(val error: String) : InspectorJarTarget()
+}
+
+/** A collection of one or more [InspectorJarTarget]s referenced by a given tab. */
+class InspectorTabJarTargets(
   val provider: AppInspectorTabProvider,
-  val targetLibrary: ArtifactCoordinate
+  /** Map of inspector ID to jar targets */
+  var targets: Map<String, InspectorJarTarget>,
 )
 
 /**
- * Collects all of the information necessary to launch an inspector tab, live or dead, in [AppInspectionView].
+ * Convenience method for providing an empty state panel for simple, unresolvable cases.
  *
- * This is used primarily by [AppInspectionView] to decide which tabs to launch, and which to show an error message.
+ * In most cases, tabs wrap a single inspector. If such a tab's inspector could not be successfully
+ * resolved, we can suggest a standard [EmptyStatePanel] to use in that case.
+ *
+ * This method will return null if the tab contains multiple inspectors *or* a single inspector
+ * that was successfully resolved.
  */
-sealed class InspectorTabLaunchParams(val provider: AppInspectorTabProvider)
-
-/**
- * Represents the capability to launch a tab with the inspector [jar].
- */
-class LaunchableInspectorTabLaunchParams(
-  provider: AppInspectorTabProvider,
-  val jar: AppInspectorJar
-) : InspectorTabLaunchParams(provider)
-
-/**
- * Represents inspector instances that for the following reasons cannot be launched:
- *  1) Inspector jar could not be resolved
- *  2) Inspector tab is incompatible with the version of the library in the app
- */
-class StaticInspectorTabLaunchParams(provider: AppInspectorTabProvider, private val reason: String) : InspectorTabLaunchParams(provider) {
-  fun toInfoMessageTab(): JComponent {
-    return EmptyStatePanel(reason, provider.learnMoreUrl)
-  }
+fun InspectorTabJarTargets.toEmptyStatePanelIfSingleUnresolvedInspector(): EmptyStatePanel? {
+  return targets.values.singleOrNull()
+    ?.let { target -> target as? InspectorJarTarget.Unresolved }
+    ?.let { unresolvedTarget -> EmptyStatePanel(unresolvedTarget.error, provider.learnMoreUrl) }
 }
 
+// TODO(b/187421789): Figure out how to migrate this case in a multi-inspector tab world
 internal fun AppInspectorTabProvider.toIncompatibleVersionMessage() =
   AppInspectionBundle.message("incompatible.version",
-                              (inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString())
+                              launchConfigs.map { it.params as LibraryInspectorLaunchParams }.single().minVersionLibraryCoordinate.toString())
 
 private fun ArtifactCoordinate.toUnresolvedInspectorMessage() = AppInspectionBundle.message("unresolved.inspector", this.toString())
 
-internal val appProguardedMessage = AppInspectionBundle.message("app.proguarded")
+internal val APP_PROGUARDED_MESSAGE = AppInspectionBundle.message("app.proguarded")

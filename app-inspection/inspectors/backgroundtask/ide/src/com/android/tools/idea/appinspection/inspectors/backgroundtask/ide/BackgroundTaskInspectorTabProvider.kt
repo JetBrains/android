@@ -20,8 +20,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -31,7 +32,7 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
 
-class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
+class BackgroundTaskInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val inspectorId = "backgroundtask.inspection"
   override val displayName = "Background Task Inspector"
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
@@ -53,10 +54,8 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     parentDisposable: Disposable
   ): AppInspectorTab {
     val scope = AndroidCoroutineScope(parentDisposable)
-    return object : AppInspectorTab {
-      override val messenger = messenger
+    return object : SingleAppInspectorTab(messenger) {
       private val client = BackgroundTaskInspectorClient(messenger, scope)
-
       override val component = BackgroundTaskInspectorTab(client).component
     }
   }

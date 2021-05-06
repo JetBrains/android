@@ -21,8 +21,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.handleError
@@ -38,7 +39,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import javax.swing.Icon
 import javax.swing.JComponent
 
-class DatabaseInspectorTabProvider : AppInspectorTabProvider {
+class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val inspectorId = "androidx.sqlite.inspection"
   override val displayName = "Database Inspector"
   override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
@@ -64,7 +65,7 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
     messenger: AppInspectorMessenger,
     parentDisposable: Disposable
   ): AppInspectorTab {
-    return object : AppInspectorTab {
+    return object : SingleAppInspectorTab(messenger) {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
       private val errorsSideChannel = createErrorSideChannel(project)
       private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
@@ -77,8 +78,6 @@ class DatabaseInspectorTabProvider : AppInspectorTabProvider {
       private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = { databaseId ->
         databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
-
-      override val messenger = messenger
 
       private val dbClient = DatabaseInspectorClient(
         messenger,
