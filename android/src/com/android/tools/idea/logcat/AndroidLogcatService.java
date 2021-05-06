@@ -38,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import java.io.EOFException;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -253,6 +254,9 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
   private static void executeLogcat(@NotNull IShellEnabledDevice device, @NotNull AndroidLogcatReceiver receiver) {
     try {
       execute(device, supportsEpochFormatModifier(device) ? "logcat -v long -v epoch" : "logcat -v long", receiver, Duration.ZERO);
+    }
+    catch (EOFException e) {
+      getLog().info("Logcat process terminated");
     }
     catch (Throwable throwable) {
       getLog().warn(throwable);
