@@ -188,7 +188,7 @@ class AppInspectionViewTest {
               process != inspectionView.processesModel.selectedProcess
             }
           } else if (i == 1) {
-            tabs.forEach { tab -> assertThat(tab.messenger.scope.isActive).isFalse() }
+            tabs.forEach { tab -> assertThat(tab.messengers.single().scope.isActive).isFalse() }
           }
       }
     }
@@ -276,9 +276,9 @@ class AppInspectionViewTest {
     val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
     val tabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
-                             messenger: AppInspectorMessenger, parentDisposable: Disposable): AppInspectorTab {
+                             messengers: Iterable<AppInspectorMessenger?>, parentDisposable: Disposable): AppInspectorTab {
         return object : AppInspectorTab, Disposable {
-          override val messenger = StubTestAppInspectorMessenger()
+          override val messengers: Iterable<AppInspectorMessenger> = listOf(StubTestAppInspectorMessenger())
           override val component = JPanel()
           override fun dispose() {
             tabDisposedDeferred.complete(Unit)
@@ -293,9 +293,9 @@ class AppInspectionViewTest {
     val offlineTabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
       override fun supportsOffline() = true
       override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
-                             messenger: AppInspectorMessenger, parentDisposable: Disposable): AppInspectorTab {
+                             messengers: Iterable<AppInspectorMessenger?>, parentDisposable: Disposable): AppInspectorTab {
         return object : AppInspectorTab, Disposable {
-          override val messenger = StubTestAppInspectorMessenger()
+          override val messengers = listOf(StubTestAppInspectorMessenger())
           override val component = JPanel()
           override fun dispose() {
             offlineTabDisposedDeferred.complete(Unit)
@@ -618,7 +618,7 @@ class AppInspectionViewTest {
           .isEqualTo(
             AppInspectionBundle.message(
               "incompatible.version",
-              (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
+              (provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
 
         tabsAdded.complete(Unit)
       }
@@ -764,7 +764,7 @@ class AppInspectionViewTest {
         assertThat(emptyPanel.reasonText)
           .isEqualTo(AppInspectionBundle.message(
             "incompatible.version",
-            (provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
+            (provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
 
         tabsAdded.complete(Unit)
       }
@@ -827,19 +827,19 @@ class AppInspectionViewTest {
   @Test
   fun launchLibraryInspectors() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-    val resolvedInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
+    val resolvedInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override val inspectorLaunchParams = LibraryInspectorLaunchParams(
         TEST_JAR, TEST_ARTIFACT
       )
     }
     val unresolvableLibrary = ArtifactCoordinate("unresolvable", "artifact", "1.0.0", ArtifactCoordinate.Type.JAR)
-    val unresolvableInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
+    val unresolvableInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
       override val inspectorLaunchParams = LibraryInspectorLaunchParams(
         TEST_JAR, unresolvableLibrary
       )
     }
     val incompatibleLibrary = ArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR)
-    val incompatibleInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+    val incompatibleInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
       override val inspectorLaunchParams = LibraryInspectorLaunchParams(
         TEST_JAR, incompatibleLibrary
       )
@@ -886,14 +886,16 @@ class AppInspectionViewTest {
               assertThat(emptyPanel.reasonText)
                 .isEqualTo(AppInspectionBundle.message(
                   "incompatible.version",
-                  (inspectorTab.provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
+                  (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
+                    .minVersionLibraryCoordinate.toString()))
             }
             unresolvableInspector -> {
               val emptyPanel = inspectorTab.containerPanel.getComponent(0) as EmptyStatePanel
               assertThat(emptyPanel.reasonText)
                 .isEqualTo(AppInspectionBundle.message(
                   "unresolved.inspector",
-                  (inspectorTab.provider.inspectorLaunchParams as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
+                  (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
+                    .minVersionLibraryCoordinate.toString()))
             }
             else -> {
               // Verify it's not an info tab - it's an actual inspector tab.

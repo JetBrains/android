@@ -23,6 +23,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.IdeWorkManagerInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorTab
@@ -36,7 +38,7 @@ import javax.swing.JComponent
 
 const val MINIMUM_WORKMANAGER_VERSION = "2.5.0"
 
-class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
+class WorkManagerInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val inspectorId = "androidx.work.inspection"
   override val displayName = "Background Task Inspector"
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
@@ -59,10 +61,8 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
     parentDisposable: Disposable
   ): AppInspectorTab {
     val scope = AndroidCoroutineScope(parentDisposable)
-    return object : AppInspectorTab {
-      override val messenger = messenger
+    return object : SingleAppInspectorTab(messenger) {
       private val client = WorkManagerInspectorClient(messenger, scope, IdeWorkManagerInspectorTracker(project))
-
       override val component: JComponent = WorkManagerInspectorTab(client, ideServices, scope).component
     }
   }

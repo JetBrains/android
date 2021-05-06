@@ -20,8 +20,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSourceImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
@@ -33,7 +34,7 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
 
-class NetworkInspectorTabProvider : AppInspectorTabProvider {
+class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val inspectorId = "studio.network.inspection"
   override val displayName = "Network Inspector"
   override val icon: Icon = StudioIcons.Shell.Menu.NETWORK_INSPECTOR
@@ -59,8 +60,7 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
     val scope = AndroidCoroutineScope(parentDisposable)
     val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
 
-    return object : AppInspectorTab {
-      override val messenger = messenger
+    return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClient(messenger)
       override val component = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
                                                    AndroidDispatchers.uiThread, parentDisposable).component

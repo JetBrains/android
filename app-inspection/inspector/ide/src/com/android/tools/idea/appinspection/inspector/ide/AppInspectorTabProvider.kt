@@ -23,6 +23,15 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
+/**
+ * Data which is needed to launch an inspector and get a [AppInspectorMessenger] connected to it.
+ */
+class AppInspectorLaunchConfig(
+  /** The ID of the inspector, e.g. "example.inspection" */
+  val id: String,
+  val params: AppInspectorLaunchParams
+)
+
 interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
   companion object {
     @JvmField
@@ -31,10 +40,14 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
     )
   }
 
-  val inspectorId: String
+  /**
+   * A list of configurations for launching relevant inspectors.
+   *
+   * The overridden value provided here must contain at least one configuration. See also: [createTab].
+   */
+  val launchConfigs: Iterable<AppInspectorLaunchConfig>
   val displayName: String
   val icon: Icon? get() = null
-  val inspectorLaunchParams: AppInspectorLaunchParams
   val learnMoreUrl: String? get() = null
   fun isApplicable(): Boolean = true
 
@@ -58,13 +71,15 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
    *   that will drive this UI is attached to
-   * @param messenger A class for communicating to the associated inspector
+   * @param messengers A list of inspector messengers, one generated per config specified in
+   *   [launchConfigs]. It's possible a messenger in the list will be null if the inspector
+   *   couldn't be started for some reason, e.g. a required library to be inspected wasn't present.
    */
   fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger,
+    messengers: Iterable<AppInspectorMessenger?>,
     parentDisposable: Disposable
   ): AppInspectorTab
 

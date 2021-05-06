@@ -59,18 +59,18 @@ class AppInspectorTabLaunchSupportTest {
     override fun isApplicable() = false
   }
   private val frameworkInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {}
-  private val incompatibleLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
+  private val incompatibleLibraryInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
     override val inspectorLaunchParams = LibraryInspectorLaunchParams(
       TEST_JAR, ArtifactCoordinate("incompatible", "lib", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR))
   }
-  private val libraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+  private val libraryInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
     override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR,
                                                                       ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR))
   }
 
   private val unresolvedLibrary = ArtifactCoordinate("fallback", "library", "1.0.0", ArtifactCoordinate.Type.JAR)
   private val unresolvedJar = AppInspectorJar("fallback_jar")
-  private val unresolvedLibraryInspector = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
+  private val unresolvedLibraryInspector = object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
     override val inspectorLaunchParams = LibraryInspectorLaunchParams(unresolvedJar, unresolvedLibrary)
   }
 
@@ -133,23 +133,21 @@ class AppInspectorTabLaunchSupportTest {
 
     processReadyDeferred.await()
 
-    val tabs = support.getApplicableTabLaunchParams(createFakeProcessDescriptor())
-    val inspectorTabs = tabs.filterIsInstance<LaunchableInspectorTabLaunchParams>()
-    val infoTabs = tabs.filterIsInstance<StaticInspectorTabLaunchParams>()
+    val tabTargetsList = support.getInspectorTabJarTargets(createFakeProcessDescriptor())
 
-    assertThat(inspectorTabs).hasSize(2)
-    assertThat(infoTabs).hasSize(2)
+    val (resolvedTabs, unresolvedTabs) = tabTargetsList
+      .partition { tabTargets -> tabTargets.targets.values.all { target -> target is InspectorJarTarget.Resolved } }
 
-    assertThat(infoTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+    assertThat(resolvedTabs).hasSize(2)
+    assertThat(unresolvedTabs).hasSize(2)
 
-    inspectorTabs.forEach { tab ->
-      when (tab.provider) {
-        frameworkInspector -> {
-          assertThat(tab.jar).isSameAs(TEST_JAR)
-        }
-        else -> {
-          assertThat(tab.jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
-        }
+    assertThat(unresolvedTabs.map { it.provider }).containsExactly(incompatibleLibraryInspector, unresolvedLibraryInspector)
+
+    resolvedTabs.forEach { tabTargets ->
+      val jar = (tabTargets.targets.values.single() as InspectorJarTarget.Resolved).jar
+      when (tabTargets.provider) {
+        frameworkInspector -> assertThat(jar).isSameAs(TEST_JAR)
+        else -> assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
       }
     }
   }
