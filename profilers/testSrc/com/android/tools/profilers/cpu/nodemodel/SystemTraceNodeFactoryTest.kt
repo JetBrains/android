@@ -38,6 +38,15 @@ class SystemTraceNodeFactoryTest {
   }
 
   @Test
+  fun `name with # and numbers in the end`() {
+    val name = "Choreographer#doFrame 1234"
+    val expected = "Choreographer#doFrame ###"
+    val factory = SystemTraceNodeFactory()
+
+    assertThat(expected).isEqualTo(factory.getNode(name).fullName)
+  }
+
+  @Test
   fun `name with numbers in the middle`() {
     val name = "Name 1 number"
     val factory = SystemTraceNodeFactory()
