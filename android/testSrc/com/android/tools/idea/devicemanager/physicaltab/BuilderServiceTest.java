@@ -44,7 +44,6 @@ public final class BuilderServiceTest {
 
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn(Futures.immediateFuture("Pixel 3"));
     Mockito.when(myDevice.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn(Futures.immediateFuture("Google"));
-    Mockito.when(myDevice.getSerialNumber()).thenReturn("86UX00F4R");
     Mockito.when(myDevice.getVersion()).thenReturn(new AndroidVersion(30, "S"));
 
     myService = new BuilderService(Clock.fixed(TIME, ZoneId.of("America/Los_Angeles")));
@@ -54,6 +53,7 @@ public final class BuilderServiceTest {
   public void buildOnline() throws Exception {
     // Arrange
     Mockito.when(myDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("86UX00F4R");
 
     // Act
     Future<PhysicalDevice> future = myService.build(myDevice);
@@ -74,10 +74,25 @@ public final class BuilderServiceTest {
 
   @Test
   public void build() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("86UX00F4R");
+
     // Act
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, future.get(256, TimeUnit.MILLISECONDS));
+  }
+
+  @Test
+  public void buildMdnsAutoConnectTls() throws Exception {
+    // Arrange
+    Mockito.when(myDevice.getSerialNumber()).thenReturn("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp");
+
+    // Act
+    Future<PhysicalDevice> future = myService.build(myDevice);
+
+    // Assert
+    assertEquals(ConnectionType.WI_FI, future.get(256, TimeUnit.MILLISECONDS).getConnectionType());
   }
 }
