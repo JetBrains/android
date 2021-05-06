@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspector.ide
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
@@ -62,7 +63,8 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
   ): AppInspectorTab
 
   override fun compareTo(other: AppInspectorTabProvider): Int = this.displayName.compareTo(other.displayName)

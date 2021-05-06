@@ -78,12 +78,14 @@ fun createVariantDetailsFrom(dimensions: Collection<String>, variant: IdeVariant
     variant.buildType,
     if (dimensions.size == variant.productFlavors.size) dimensions.zip(variant.productFlavors) else emptyList(),
     abi
-)
+  )
 
-fun VariantDetails.applyChange(selectionChange: VariantSelectionChange): VariantDetails {
+enum class ApplyAbiSelectionMode { ALWAYS, OVERRIDE_ONLY }
+
+fun VariantDetails.applyChange(selectionChange: VariantSelectionChange, applyAbiMode: ApplyAbiSelectionMode): VariantDetails {
   val newBuildType = selectionChange.buildType ?: buildType
   val newFlavors = flavors.map { (dimension, flavor) -> dimension to (selectionChange.flavors[dimension] ?: flavor) }
-  val newAbi = selectionChange.abi ?: abi
+  val newAbi = selectionChange.abi?.takeIf { applyAbiMode == ApplyAbiSelectionMode.ALWAYS || abi != null } ?: abi
   return VariantDetails(
     buildVariantName(newBuildType, newFlavors.asSequence().map { it.second }),
     newBuildType,

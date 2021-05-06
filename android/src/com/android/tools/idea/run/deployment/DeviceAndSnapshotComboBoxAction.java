@@ -72,6 +72,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
+  private final @NotNull UpdatableDeviceHelpTooltip myUpdatableDeviceHelpTooltip;
 
   @VisibleForTesting
   static final class Builder {
@@ -171,6 +172,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
+
+    myUpdatableDeviceHelpTooltip = new UpdatableDeviceHelpTooltip();
   }
 
   @NotNull
@@ -215,7 +218,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return getSelectedTargets(project, getDevices(project).orElse(Collections.emptyList()));
   }
 
-  private @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
+  @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
@@ -223,6 +226,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     return service.getTargetSelectedWithComboBox(devices).map(Collections::singleton).orElseGet(Collections::emptySet);
+  }
+
+  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
+    return myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog(devices);
   }
 
   void selectMultipleDevices(@NotNull Project project) {
@@ -276,6 +283,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       }
     };
 
+    myUpdatableDeviceHelpTooltip.installOn(button);
     button.setName("deviceAndSnapshotComboBoxButton");
     return button;
   }
@@ -332,7 +340,18 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .build();
 
     updater.update();
+    updateTooltip(project);
     setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+  }
+
+  private void updateTooltip(@NotNull Project project) {
+    List<Device> selectedDevices = getSelectedDevices(project);
+    if (selectedDevices.size() == 1) {
+      myUpdatableDeviceHelpTooltip.updateTooltip(selectedDevices.get(0));
+    }
+    else {
+      myUpdatableDeviceHelpTooltip.cancel();
+    }
   }
 
   private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<@NotNull Target> targets) {

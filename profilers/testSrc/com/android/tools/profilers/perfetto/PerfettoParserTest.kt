@@ -61,17 +61,39 @@ class PerfettoParserTest {
   fun `with UiState appended to trace file`() {
     val services = FakeIdeProfilerServices()
     val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
-    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder ()
-      .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
-      .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
-      .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
-      .build().toByteArray())
+    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder()
+                                                                     .setHighlightProcess(
+                                                                       PerfettoTrace.UiState.HighlightProcess.newBuilder().setPid(1001))
+                                                                     .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+                                                                     .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+                                                                     .build().toByteArray())
     services.enableUseTraceProcessor(true)
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
 
     val parser = PerfettoParser(MainProcessSelector(), services)
     val capture = parser.parse(traceFile, 1)
     assertThat(capture.mainThreadId).isEqualTo(1001)
+    assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.SECONDS.toMicros(1).toDouble())
+    assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.SECONDS.toMicros(99).toDouble())
+  }
+
+  @Test
+  fun `with UiState command line`() {
+    val services = FakeIdeProfilerServices()
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.uiStateForTraceId[1] = Base64.encode(PerfettoTrace.UiState.newBuilder()
+                                                                     .setHighlightProcess(PerfettoTrace.UiState.HighlightProcess
+                                                                                            .newBuilder()
+                                                                                            .setCmdline("com.android.phone"))
+                                                                     .setTimelineStartTs(TimeUnit.SECONDS.toNanos(1))
+                                                                     .setTimelineEndTs(TimeUnit.SECONDS.toNanos(99))
+                                                                     .build().toByteArray())
+    services.enableUseTraceProcessor(true)
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+
+    val parser = PerfettoParser(MainProcessSelector(), services)
+    val capture = parser.parse(traceFile, 1)
+    assertThat(capture.mainThreadId).isEqualTo(2515)
     assertThat(capture.timeline.viewRange.min).isEqualTo(TimeUnit.SECONDS.toMicros(1).toDouble())
     assertThat(capture.timeline.viewRange.max).isEqualTo(TimeUnit.SECONDS.toMicros(99).toDouble())
   }
@@ -88,5 +110,23 @@ class PerfettoParserTest {
 
     assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
     assertThat(capture.type).isEqualTo(Cpu.CpuTraceType.PERFETTO)
+  }
+
+  @Test
+  fun parseAndroidFrameLayers() {
+    val services = FakeIdeProfilerServices().apply {
+      enableUseTraceProcessor(true)
+    }
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto_frame_lifecycle.trace")
+
+    val parser = PerfettoParser(MainProcessSelector("android.com.java.profilertester"), services)
+    val capture = parser.parse(traceFile, 1)
+
+    assertThat(capture).isInstanceOf(SystemTraceCpuCapture::class.java)
+    val systraceCapture = capture as SystemTraceCpuCapture
+    val androidFrameLayers = systraceCapture.getAndroidFrameLayers()
+    assertThat(androidFrameLayers).hasSize(1)
+    assertThat(androidFrameLayers[0].layerName).startsWith("android.com.java.profilertester")
+    assertThat(androidFrameLayers[0].phaseCount).isEqualTo(4)
   }
 }

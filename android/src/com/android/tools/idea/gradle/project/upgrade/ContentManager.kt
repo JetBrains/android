@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.CheckboxTree
@@ -198,6 +199,7 @@ class ToolWindowModel(
         if (newVersion >= current) AgpUpgradeRefactoringProcessor(project, current, it) else null
       }
     }
+    processor?.usageView?.close()
     processor = newProcessor
 
     if (newProcessor == null) {
@@ -291,6 +293,7 @@ class ToolWindowModel(
     }
     else {
       DumbService.getInstance(processor.project).smartInvokeLater {
+        processor.usageView?.close()
         processor.setPreviewUsages(showPreview)
         processor.run()
       }
@@ -364,7 +367,10 @@ class ContentManager(val project: Project) {
     val model = ToolWindowModel(project, current)
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
-    content.setDisposer(model.connection)
+    content.setDisposer {
+      model.processor?.usageView?.close()
+      Disposer.dispose(model.connection)
+    }
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
@@ -546,10 +552,18 @@ class ContentManager(val project: Project) {
     init {
       model.treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun treeStructureChanged(event: TreeModelEvent?) {
-          TreeUtil.expandAll(tree)
+          // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
+          // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
+          // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
+          invokeLater(ModalityState.NON_MODAL) {
+            tree.setHoldSize(false)
+            TreeUtil.expandAll(tree)
+            tree.setHoldSize(true)
+          }
         }
       })
       TreeUtil.expandAll(tree)
+      tree.setHoldSize(true)
     }
 
     private fun makeTopComponent() = JBPanel<JBPanel<*>>().apply {
@@ -733,7 +747,7 @@ fun GradleVersion?.upgradeLabelText() = when (this) {
   else -> "Upgrading Android Gradle Plugin from version $this to"
 }
 
-fun GradleVersion?.contentDisplayName() = when(this) {
+fun GradleVersion?.contentDisplayName() = when (this) {
   null -> "Upgrading project from unknown AGP"
   else -> "Upgrading project from AGP $this"
 }

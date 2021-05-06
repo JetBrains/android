@@ -1,0 +1,4 @@
+buildscript {
+  ext.minSdkVersion = 11
+  ext.targetSdkVersion = 17
+}

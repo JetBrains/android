@@ -99,7 +99,6 @@ public class EmulatorCommandBuilder {
       command.addParameter("-qt-hide-window");
       command.addParameter("-grpc-use-token");
       command.addParameters("-idle-grpc-timeout", "300");
-      command.addParameter("-experimental-enable-multidisplay");
     }
 
     command.addParameters(myStudioEmuParams);

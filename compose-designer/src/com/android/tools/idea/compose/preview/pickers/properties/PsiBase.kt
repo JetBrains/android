@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.Dev
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.EnumSupportWithConstantData
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.FontScale
+import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UI_MODE_TYPE_MASK
 import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.UiMode
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.property.panel.api.ControlType
@@ -43,6 +44,7 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.api.PropertiesView
+import com.intellij.util.text.nullize
 import java.util.function.Consumer
 
 private const val PSI_PROPERTIES_VIEW_NAME = "PsiProperties"
@@ -111,10 +113,34 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
   override fun invoke(property: PsiPropertyItem): EnumSupport? =
     when (property.name) {
       PARAMETER_UI_MODE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-        UiMode.values().firstOrNull { stringValue == it.resolvedValue } ?: UiMode.NORMAL
+        val uiMode = stringValue.toIntOrNull()?.let { numberValue ->
+          val uiModeValue = UI_MODE_TYPE_MASK and numberValue
+          UiMode.values().firstOrNull { it.resolvedValue.toIntOrNull() == uiModeValue }
+        }
+        if (uiMode != null) {
+          // First try to parse to a pre-defined uiMode
+          return@EnumSupportWithConstantData uiMode
+        }
+        stringValue.nullize(true)?.let {
+          // Otherwise just show an item with the initial value
+          return@EnumSupportWithConstantData EnumValue.Companion.item(it)
+        }
+        // For the unlikely scenario when there's no value
+        return@EnumSupportWithConstantData UiMode.UNDEFINED
       }
       PARAMETER_DEVICE -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
-        Device.values().firstOrNull { stringValue == it.resolvedValue } ?: Device.DEFAULT
+        val trimmedValue = stringValue.trim()
+        Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
+          // First try to parse to a pre-defined device
+          return@EnumSupportWithConstantData it
+        }
+        trimmedValue.nullize()?.let {
+          // Show an item with de initial value and make it better to read
+          val readableValue = it.substringAfter(':', it).replace('_', ' ')
+          return@EnumSupportWithConstantData EnumValue.Companion.item(it, readableValue)
+        }
+        // For the scenario when there's no value or it's empty (Default device is an empty string)
+        return@EnumSupportWithConstantData Device.DEFAULT
       }
       PARAMETER_GROUP,
       PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)

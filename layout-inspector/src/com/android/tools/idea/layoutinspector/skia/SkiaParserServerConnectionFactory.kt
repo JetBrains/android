@@ -100,10 +100,13 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
     @Slow
     fun createServer(): SkiaParserServerConnection {
       val path = findPath()
-      if (path?.let { CancellableFileIo.exists(it) } != true && !tryDownload()) {
-        throw Exception("Unable to find server version $serverVersion")
+      val realPath = if (path?.let { CancellableFileIo.exists(it) } != true) {
+        tryDownload()
+        findPath() ?: throw Exception("Unable to find server version $serverVersion")
       }
-      val realPath = findPath() ?: throw Exception("Unable to find server version $serverVersion")
+      else {
+        path
+      }
       return SkiaParserServerConnection(realPath).apply { runServer() }
     }
 

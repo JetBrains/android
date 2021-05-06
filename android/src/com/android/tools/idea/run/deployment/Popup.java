@@ -22,6 +22,7 @@ import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 import javax.swing.AbstractAction;
@@ -31,6 +32,8 @@ import javax.swing.ListModel;
 import org.jetbrains.annotations.NotNull;
 
 final class Popup extends ActionGroupPopup {
+  private final @NotNull UpdatableDeviceHelpTooltipForList myTooltipForList;
+
   Popup(@NotNull ActionGroup group, @NotNull DataContext context, @NotNull Runnable runnable) {
     super(null, group, context, false, true, true, false, runnable, 30, null, null, true);
     setMinimumSize(new Dimension(1, 1));
@@ -40,11 +43,20 @@ final class Popup extends ActionGroupPopup {
 
     list.setCellRenderer(new CellRenderer(this));
     list.setName("deviceAndSnapshotComboBoxList");
+    myTooltipForList = new UpdatableDeviceHelpTooltipForList();
+    myTooltipForList.installOn(list);
 
     ActionMap map = list.getActionMap();
 
     map.put("selectNextRow", new SelectNextRow(list));
     map.put("selectPreviousRow", new SelectPreviousRow(list));
+  }
+
+  @Override
+  protected void disposeAllParents(@NotNull InputEvent event) {
+    // There is case when a tooltip is scheduled to show, but the popup is already closed (disposeAllParents is called).
+    myTooltipForList.cancel();
+    super.disposeAllParents(event);
   }
 
   private static final class SelectNextRow extends SelectRow {

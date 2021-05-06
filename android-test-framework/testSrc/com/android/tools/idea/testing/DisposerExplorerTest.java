@@ -36,8 +36,12 @@ public class DisposerExplorerTest {
 
   @After
   public void checkEverythingWasDisposed() {
-    // If this check fails, then there may be leftover disposables in the disposer tree which may affect other tests.
-    assertWithMessage("Some test disposables were not disposed").that(liveDisposables).isEmpty();
+    try {
+      // If this check fails, then there may be leftover disposables in the disposer tree which may affect other tests.
+      assertWithMessage("Some test disposables were not disposed").that(liveDisposables).isEmpty();
+    } finally {
+      new ArrayList<>(liveDisposables).forEach(Disposer::dispose);
+    }
   }
 
   @Test

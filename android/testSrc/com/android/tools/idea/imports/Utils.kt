@@ -78,8 +78,18 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
             "Index": [
               {
                 "groupId": "androidx.palette",
+                "artifactId": "palette-ktx",
+                "version": "1.0.0",
+                "ktxTargets": [
+                  "androidx.palette:palette"
+                ],
+                "fqcns": []
+              },
+              {
+                "groupId": "androidx.palette",
                 "artifactId": "palette",
                 "version": "1.0.0",
+                "ktxTargets": [],
                 "fqcns": [
                   "androidx.palette.graphics.Palette",
                   "androidx.palette.graphics.FakeClass"
@@ -89,6 +99,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "groupId": "androidx.room",
                 "artifactId": "room-runtime",
                 "version": "2.2.6",
+                "ktxTargets": [],
                 "fqcns": [
                   "androidx.room.Room",
                   "androidx.room.RoomDatabase",
@@ -99,6 +110,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "groupId": "androidx.recyclerview",
                 "artifactId": "recyclerview",
                 "version": "1.1.0",
+                "ktxTargets": [],
                 "fqcns": [
                   "androidx.recyclerview.widget.RecyclerView"
                 ]
@@ -107,6 +119,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "groupId": "com.google.android.gms",
                 "artifactId": "play-services-maps",
                 "version": "17.0.0",
+                "ktxTargets": [],
                 "fqcns": [
                   "com.google.android.gms.maps.SupportMapFragment"
                 ]
@@ -115,6 +128,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "groupId": "androidx.camera",
                 "artifactId": "camera-core",
                 "version": "1.1.0-alpha03",
+                "ktxTargets": [],
                 "fqcns": [
                   "androidx.camera.core.ExtendableBuilder",
                   "androidx.camera.core.ImageCapture"
@@ -124,6 +138,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "groupId": "androidx.camera",
                 "artifactId": "camera-view",
                 "version": "1.0.0-alpha22",
+                "ktxTargets": [],
                 "fqcns": [
                   "androidx.camera.view.PreviewView"
                 ]

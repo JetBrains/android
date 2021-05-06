@@ -24,7 +24,6 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -72,7 +71,7 @@ public class AndroidImportProjectActionTest extends PlatformTestCase {
     File file = new File(myProjectRootDir.getPath(), name);
     assertTrue(FileUtilRt.createIfNotExists(file));
     if (contents.length > 0) {
-      String text = Joiner.on(SystemProperties.getLineSeparator()).join(contents);
+      String text = Joiner.on(System.lineSeparator()).join(contents);
       FileUtil.writeToFile(file, text);
     }
     VirtualFile vFile = myProjectRootDir.getFileSystem().refreshAndFindFileByPath(file.getPath());

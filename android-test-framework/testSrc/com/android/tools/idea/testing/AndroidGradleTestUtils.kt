@@ -17,6 +17,15 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils.getLatestAndroidPlatform
+import com.android.testutils.TestUtils.getSdk
+import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -49,14 +58,6 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
-import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils.getLatestAndroidPlatform
-import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
@@ -69,9 +70,15 @@ import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
+import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
+import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys
+import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
+import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntries
+import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForModule
+import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -166,6 +173,9 @@ data class AndroidModuleModelBuilder(
     projectBuilder: AndroidProjectBuilder
   )
     : this(gradlePath, gradleVersion, agpVersion, projectBuilder.build(), selectedBuildVariant, selectedAbiVariant = null)
+
+  fun withSelectedAbi(abi: String) = copy(selectedAbiVariant = abi)
+  fun withSelectedBuildVariant(variant: String) = copy(selectedBuildVariant = variant)
 }
 
 data class JavaModuleModelBuilder(
@@ -814,7 +824,7 @@ fun setupTestProjectFromAndroidModel(
   }
 
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
-  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants)
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
 
 /**
@@ -825,7 +835,20 @@ fun updateTestProjectFromAndroidModel(
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
-  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false)
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = false)
+  getInstance(project).syncSkipped(null)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
+
+/**
+ * Sets up [project] as a one module project configured in the same way sync would configure it from the same model.
+ */
+fun switchTestProjectVariantsFromAndroidModel(
+  project: Project,
+  basePath: File,
+  vararg moduleBuilders: ModuleModelBuilder
+) {
+  setupTestProjectFromAndroidModelCore(project, basePath, moduleBuilders, setupAllVariants = false, cacheExistingVariants = true)
   getInstance(project).syncSkipped(null)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
@@ -834,8 +857,11 @@ private fun setupTestProjectFromAndroidModelCore(
   project: Project,
   basePath: File,
   moduleBuilders: Array<out ModuleModelBuilder>,
-  setupAllVariants: Boolean
+  setupAllVariants: Boolean,
+  cacheExistingVariants: Boolean,
 ) {
+  // Always skip SYNC in light sync tests.
+  project.putUserData(ALWAYS_SKIP_SYNC, true)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val gradlePlugins = listOf(
@@ -857,6 +883,12 @@ private fun setupTestProjectFromAndroidModelCore(
       basePath.systemIndependentPath,
       basePath.systemIndependentPath),
     null)
+
+  if (cacheExistingVariants) {
+    AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(project)
+    AndroidGradleProjectResolver.attachVariantsSavedFromPreviousSyncs(project, projectDataNode)
+    AndroidGradleProjectResolver.clearVariantsSavedForReuse(project)
+  }
 
   projectDataNode.addChild(
     DataNode<JavaProjectData>(
@@ -1017,6 +1049,7 @@ private fun createAndroidModuleDataNode(
         NdkModuleModel(
           moduleName,
           moduleBasePath,
+          selectedVariantName,
           selectedAbiName,
           ndkModel
         ),
@@ -1296,6 +1329,9 @@ fun switchVariant(project: Project, moduleGradlePath: String, variant: String) {
   BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.gradleModule(moduleGradlePath)!!.name, variant)
 }
 
+fun switchAbi(project: Project, moduleGradlePath: String, abi: String) {
+  BuildVariantUpdater.getInstance(project).updateSelectedAbi(project, project.gradleModule(moduleGradlePath)!!.name, abi)
+}
 
 inline fun <reified F, reified M> Module.verifyModel(getFacet: Module.() -> F?, getModel: F.() -> M) {
   val facet = getFacet()
@@ -1320,3 +1356,42 @@ private fun Project.verifyModelsAttached() {
 fun Project.requestSyncAndWait() {
   AndroidGradleTests.syncProject(this, GradleSyncInvoker.Request.testRequest())
 }
+
+/**
+ * Set up data nodes that are normally created by the project resolver when processing [AndroidModuleModel]s.
+ */
+private fun setupDataNodesForSelectedVariant(
+  project: Project,
+  androidModuleModels: List<AndroidModuleModel>,
+  projectDataNode: DataNode<ProjectData>
+) {
+  val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
+  val moduleIdToDataMap = createModuleIdToModuleDataMap(moduleNodes)
+  androidModuleModels.forEach { androidModuleModel ->
+    val newVariant = androidModuleModel.selectedVariant
+
+    val moduleNode = moduleNodes.firstOrNull { node ->
+      node.data.internalName == androidModuleModel.moduleName
+    } ?: return@forEach
+
+    // Now we need to recreate these nodes using the information from the new variant.
+    moduleNode.setupCompilerOutputPaths(newVariant)
+    // Then patch in any Kapt generated sources that we need
+    val libraryFilePaths = LibraryFilePaths.getInstance(project)
+    moduleNode.setupAndroidDependenciesForModule({ id: String -> moduleIdToDataMap[id] }, { id, path ->
+      AdditionalArtifactsPaths(
+        libraryFilePaths.findSourceJarPath(id, path),
+        libraryFilePaths.findJavadocJarPath(id, path),
+        libraryFilePaths.findSampleSourcesJarPath(id, path)
+      )
+    }, newVariant)
+    moduleNode.setupAndroidContentEntries(newVariant)
+  }
+}
+
+private fun createModuleIdToModuleDataMap(moduleNodes: Collection<DataNode<ModuleData>>): Map<String, ModuleData> {
+  return moduleNodes.map { moduleDataNode -> moduleDataNode.data }.associateBy { moduleData ->
+    moduleData.id
+  }
+}
+

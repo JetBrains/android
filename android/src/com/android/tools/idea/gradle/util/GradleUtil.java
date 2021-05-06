@@ -890,4 +890,13 @@ public final class GradleUtil {
     }
     return null;
   }
+
+  @NotNull
+  public static String createFullTaskName(@NotNull String gradleProjectPath, @NotNull String taskName) {
+    if (gradleProjectPath.endsWith(GRADLE_PATH_SEPARATOR)) {
+      // Prevent double colon when dealing with root module (e.g. "::assemble");
+      return gradleProjectPath + taskName;
+    }
+    return gradleProjectPath + GRADLE_PATH_SEPARATOR + taskName;
+  }
 }

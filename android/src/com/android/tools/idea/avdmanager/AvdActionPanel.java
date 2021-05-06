@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.deviceManager.actions.ExploreAvdAction;
+import com.android.tools.idea.devicemanager.virtualtab.columns.ExploreAvdAction;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -44,7 +44,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -250,7 +249,7 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     protected void paintComponent(Graphics g) {
       super.paintComponent(g);
       if (myFocused && myFocusedComponent != -1 && myVisibleComponents.get(myFocusedComponent) == this) {
-        g.setColor(UIManager.getColor("Table.selectionForeground"));
+        g.setColor(UIUtil.getTableSelectionForeground(true));
         UIUtil.drawDottedRectangle(g, 0, 0, getWidth() - 2, getHeight() - 2);
       }
       if (myIcon != null) {

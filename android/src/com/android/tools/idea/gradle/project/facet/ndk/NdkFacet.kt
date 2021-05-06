@@ -49,8 +49,10 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
     get() = configuration.selectedVariantAbi.takeIf { it in ndkModuleModel?.allVariantAbis ?: emptySet() }
             ?: ndkModuleModel?.getDefaultVariantAbi()
     set(value) {
-      configuration.selectedVariantAbi = value
-      writeConfigurationToDisk()
+      if (configuration.selectedVariantAbi != value) {
+        configuration.selectedVariantAbi = value
+        writeConfigurationToDisk()
+      }
     }
 
   private fun writeConfigurationToDisk() {
@@ -64,6 +66,7 @@ class NdkFacet(module: Module, name: String, configuration: NdkFacetConfiguratio
 
   fun setNdkModuleModel(ndkModuleModel: NdkModuleModel) {
     this.ndkModuleModel = ndkModuleModel
+    this.selectedVariantAbi = VariantAbi(ndkModuleModel.selectedVariant, ndkModuleModel.selectedAbi)
   }
 
   companion object {

@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext
@@ -49,7 +48,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) return false
+    if (!isComposeRunConfigurationEnabled()) return false
     if (context.module?.isNonLibraryAndroidModule() != true) return false
 
     context.containingComposePreviewFunction()?.let {
@@ -74,7 +73,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   }
 
   final override fun isConfigurationFromContext(configuration: ComposePreviewRunConfiguration, context: ConfigurationContext): Boolean {
-    if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
+    if (!isComposeRunConfigurationEnabled()) {
       return false
     }
     context.containingComposePreviewFunction()?.let {

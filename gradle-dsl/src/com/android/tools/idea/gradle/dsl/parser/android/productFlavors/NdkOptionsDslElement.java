@@ -32,32 +32,29 @@ import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class NdkOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<NdkOptionsDslElement> NDK_OPTIONS =
     new PropertiesElementDescription<>("ndk", NdkOptionsDslElement.class, NdkOptionsDslElement::new);
 
-  @NotNull
-  private static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
+  private static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAL},
     {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
     {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
   }).collect(toModelMap());
 
-  @NotNull
-  private static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+  private static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"abiFilters", property, ABI_FILTERS, VAR},
     {"abiFilters", atLeast(0), ABI_FILTERS, OTHER},
     {"abiFilter", exactly(1), ABI_FILTERS, OTHER}
   }).collect(toModelMap());
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

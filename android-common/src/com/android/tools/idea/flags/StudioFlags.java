@@ -164,9 +164,14 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILEABLE = Flag.create(
     PROFILER, "profileable", "Support profileable processes on S+",
     "Show profileable processes on S and later",
-    false
-  );
-  //endregion
+    false);
+
+  // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
+  public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
+    PROFILER, "profileable.qr", "Support profileable processes on Q & R",
+    "Show profileable processes on Q and R",
+    PROFILEABLE.get() && false);
+    //endregion
 
   //region ML
   private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");
@@ -194,11 +199,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
     NELE, "animated.preview", "Show preview animations toolbar",
     "Show an animations bar that allows playback of vector drawable animations.",
-    true);
+    false);
   public static final Flag<Boolean> NELE_ANIMATED_SELECTOR_PREVIEW = Flag.create(
     NELE, "animated.selector.preview", "Show preview animations toolbar for animated selector",
     "Show an animations bar that allows playback of transitions in animated selector.",
-    true);
+    false);
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ANIMATIONS = Flag.create(
     NELE, "animated.motion.layout", "Show preview animations toolbar for MotionLayout",
     "Show an animations bar that allows playback of MotionLayout animations.",
@@ -301,6 +306,11 @@ public final class StudioFlags {
     NELE, "visualization.locale", "Locale Mode in Layout Validation Tool",
     "Enable locale mode in Layout Validation Tool to preview layout in project's locales",
     true);
+
+  public static final Flag<Boolean> NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR = Flag.create(
+    NELE, "visualization.apply.config", "Apply Selected Configuration in Validation Tool to Layout Editor",
+    "Apply the configuration to Layout Editor by double clicking the preview in Validation Tool",
+    false);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
@@ -579,6 +589,14 @@ public final class StudioFlags {
     "Enables Studio to understand feature-on-feature dependencies when launching dynamic apps.",
     false
   );
+
+  public static final Flag<Boolean> COROUTINE_DEBUGGER_ENABLE = Flag.create(
+    RUNDEBUG,
+    "coroutine.debugger.enable",
+    "Enable Coroutine Debugger",
+    "Enables the Coroutine Debugger, that shows up as a panel in the debugger when debugging an app that uses coroutines",
+    false
+  );
   //endregion
 
   //region Gradle Project System
@@ -619,6 +637,11 @@ public final class StudioFlags {
     GRADLE_IDE, "gradle.sync.parallel.sync.prefetch.variants", "Enables speculative syncing of current variants",
     "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
     "new variant selection (which is less parallelizable process).", false);
+
+  public static final Flag<Boolean> GRADLE_SYNC_ENABLE_CACHED_VARIANTS = Flag.create(
+    GRADLE_IDE, "gradle.sync.enable.cached.variants", "Enables caching of build variants",
+    "Enables caching of build variant data so that the IDE does not always run Gradle when switching between build variants. " +
+    "While faster this mode may be incompatible with some plugins.", true);
 
   public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
     GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
@@ -1138,6 +1161,13 @@ public final class StudioFlags {
     COMPOSE, "preview.switch.animation.interactive",
     "Enable animation inspection switch from interactive preview (and disable from static preview)",
     "If enabled, a user can switch to animation inspection from interactive preview",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_CLASSLOADERS_PRELOADING = Flag.create(
+    COMPOSE, "preview.classloaders.preloading",
+    "Enable background classes preloading",
+    "If enabled, a background classes preloading will happen to speed-up preview ClassLoader warm-up",
     true
   );
   //endregion

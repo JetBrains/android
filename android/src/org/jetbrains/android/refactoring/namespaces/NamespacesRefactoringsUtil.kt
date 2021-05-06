@@ -36,6 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceExpression
@@ -49,12 +50,16 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode.NO_SHORTENING
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
+
+// Flag used for gradle version >4.2.0 and <7.0.0
+const val NON_TRANSITIVE_APP_R_CLASSES_PROPERTY = "android.experimental.nonTransitiveAppRClass"
 
 private val LOG: Logger by lazy { Logger.getInstance("NamespaceRefactoringsUtil.kt") }
 
@@ -72,6 +77,8 @@ internal abstract class ResourceUsageInfo : UsageInfo {
   abstract val name: String
   var inferredPackage: String? = null
 }
+
+internal class PropertiesUsageInfo(val flag: String, psiElement: PsiElement) : UsageInfo(psiElement, true)
 
 /**
  * [ResourceUsageInfo] for references to R class fields in Java/Kotlin.
@@ -106,6 +113,22 @@ internal class CodeUsageInfo(
     } else {
       reference.bindToElement(newRClass)
     }
+  }
+
+  /**
+   * Verifies if one of the calls on the stack comes from the [KotlinOptimizeImportsRefactoringHelper].
+   * We check the last 5 elements to allow for some future flow changes.
+   */
+  private fun isKotlinOptimizerCall(): Boolean = Thread.currentThread().stackTrace
+    .take(5)
+    .map { it.className }
+    .any { KotlinOptimizeImportsRefactoringHelper::class.qualifiedName == it }
+
+  override fun getFile(): PsiFile? = if (classReference.element.language is KotlinLanguage && isKotlinOptimizerCall()) {
+    null
+  }
+  else {
+    super.getFile()
   }
 }
 
@@ -216,7 +239,7 @@ private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement)
 
 internal fun inferPackageNames(
   result: Collection<ResourceUsageInfo>,
-  progressIndicator: ProgressIndicator
+  progressIndicator: ProgressIndicator?
 ) {
 
   val inferredNamespaces: Table<ResourceType, String, String> =
@@ -242,7 +265,7 @@ internal fun inferPackageNames(
       null
     }
 
-    progressIndicator.fraction = (index + 1) / total
+    progressIndicator?.fraction = (index + 1) / total
   }
 }
 

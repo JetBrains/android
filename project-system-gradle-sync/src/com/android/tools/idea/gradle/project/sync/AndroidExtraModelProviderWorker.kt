@@ -441,6 +441,9 @@ internal class AndroidExtraModelProviderWorker(
       val abiToRequest = chooseAbiToRequest(module, variant.name, moduleConfiguration.abi)
       val nativeVariantAbi = abiToRequest
         ?.let { controller.findNativeVariantAbiModel(modelCache, module, variant.name, abiToRequest) } ?: NativeVariantAbiResult.None
+      // Regardless of the current selection in the IDE we try to select the same ABI in all modules the "top" module depends on even
+      // when intermediate modules do not have native code.
+      val abiToPropagate = nativeVariantAbi.abi ?: moduleConfiguration.abi
 
       val ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion)
       val newlySelectedVariantDetails = createVariantDetailsFrom(module.androidProject.flavorDimensions, ideVariant, nativeVariantAbi.abi)
@@ -453,14 +456,14 @@ internal class AndroidExtraModelProviderWorker(
         val dependencyModuleSelectedVariantDetails = dependencyModuleCurrentlySelectedVariant?.details
 
         val newSelectedVariantDetails = dependencyModuleSelectedVariantDetails?.applyChange(
-          variantDiffChange ?: VariantSelectionChange.EMPTY
+          variantDiffChange ?: VariantSelectionChange.EMPTY, applyAbiMode = ApplyAbiSelectionMode.ALWAYS
         )
                                         ?: return null
 
         // Make sure the variant name we guessed in fact exists.
         if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
 
-        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToRequest)
+        return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
       }
 
       fun generateDirectModuleDependencies(): List<ModuleConfiguration> {
@@ -469,7 +472,7 @@ internal class AndroidExtraModelProviderWorker(
           val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId ?: "", dependencyProject)
           val dependencyVariant = moduleDependency.variant
           if (dependencyVariant != null) {
-            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToRequest)
+            ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
           }
           else {
             propagateVariantSelectionChangeFallback(dependencyModuleId)

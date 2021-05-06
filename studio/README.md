@@ -43,9 +43,11 @@ which will generate a set of artifacts in `tools/idea/out/studio/dist`. To updat
 $SRC/tools/adt/idea/studio/update_sdk.py --path $SRC/tools/idea/out/studio/dist
 ```
 
-Note: `build_studio.sh` does a clean build by default. You can do an incremental
-build instead by specifying `-Dintellij.build.incremental.compilation=true`
-in the `BUILD_PROPERTIES` array within `build_studio.sh`.
+Note: `build_studio.sh` does a clean build by default. You can use the
+`--incremental` flag to do an incremental build instead, which is much faster
+for repeated builds. There are also some additional build options you can set
+via system properties; see `$SRC/tools/idea/platform/build-scripts/groovy/org/jetbrains/intellij/build/BuildOptions.groovy`
+for details.
 
 ### Isolated builds
 
@@ -89,21 +91,6 @@ bazel run //tools/adt/idea/studio:android-studio -- --debug
 ```
 
 will set it up to wait for a remote debugger connection on the `:5005` port.
-
-## Searchable Options
-
-IntelliJ has a post-build process to generate an index for things that can be searched in the UI. They perform
-this operation by running the IDE headless with a "traverseUI" argument. All these generated files
-are stored in `searchable-options` and we ensure its consistency via tests.
-
-The test `//tools/adt/idea/studio:searchable_options_test` ensures that the bundled xmls are up-to-date.
-If this test fails, its `outputs.zip` file contains the new .xmls that need to be updated.
-
-Alternatively, running
-```
-bazel run //tools/adt/idea/studio:update_searchable_options
-```
-Will build the studio bundle, and update the source files with the latest index.
 
 ## Optimized builds
 

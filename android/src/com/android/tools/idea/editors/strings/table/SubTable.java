@@ -168,7 +168,7 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
   @Nullable
   @Override
   public Object getData(@NotNull String dataId) {
-    return dataId.equals(PlatformDataKeys.PASTE_PROVIDER.getName()) ? this : null;
+    return PlatformDataKeys.PASTE_PROVIDER.is(dataId) ? this : null;
   }
 
   @Override

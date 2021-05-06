@@ -97,74 +97,92 @@ class SelectedVariantCollectorTest {
     )
   }
 
+  private enum class TestMode { BOTH, APPLY, EXTRACT }
+
   @Test
   fun testExtractApplyAndName() {
-    fun expect(from: VariantDetails, base: VariantDetails, selectionChange: VariantSelectionChange?, doNotTestApply: Boolean = false) {
+    fun expect(
+      target: VariantDetails,
+      base: VariantDetails,
+      selectionChange: VariantSelectionChange?,
+      testMode: TestMode = TestMode.BOTH,
+      applyAbiMode: ApplyAbiSelectionMode = ApplyAbiSelectionMode.ALWAYS
+    ) {
       this.expect.that(buildVariantName(base.buildType, base.flavors.asSequence().map { it.second })).isEqualTo(base.name)
-      this.expect.that(buildVariantName(from.buildType, from.flavors.asSequence().map { it.second })).isEqualTo(from.name)
-      this.expect.that(VariantSelectionChange.extractVariantSelectionChange(from = from, base = base)).isEqualTo(selectionChange)
-      if (selectionChange != null && !doNotTestApply) {
-        this.expect.that(base.applyChange(selectionChange)).isEqualTo(from)
+      this.expect.that(buildVariantName(target.buildType, target.flavors.asSequence().map { it.second })).isEqualTo(target.name)
+      if (testMode != TestMode.APPLY) {
+        this.expect.that(VariantSelectionChange.extractVariantSelectionChange(from = target, base = base)).isEqualTo(selectionChange)
+      }
+      if (selectionChange != null && testMode != TestMode.EXTRACT) {
+        this.expect.that(base.applyChange(selectionChange, applyAbiMode = applyAbiMode)).isEqualTo(target)
       }
     }
 
     expect(
-      from = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
+      target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
       selectionChange = VariantSelectionChange(buildType = "debug")
     )
 
     expect(
-      doNotTestApply = true, /* It is not invertible when the configuration structure changes. */
-      from = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
+      testMode = TestMode.EXTRACT, /* It is not invertible when the configuration structure changes. */
+      target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = "x86"),
       selectionChange = VariantSelectionChange(buildType = "debug", abi = null/* abi not available after sync */),
     )
 
     expect(
-      from = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = "x86"),
+      target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = "x86"),
       base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
       selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
     )
 
     expect(
-      from = VariantDetails("aDebug", buildType = "debug", flavors = listOf("dim1" to "a"), abi = "x86"),
+      testMode = TestMode.APPLY,
+      applyAbiMode = ApplyAbiSelectionMode.OVERRIDE_ONLY,
+      target = VariantDetails("debug", buildType = "debug", flavors = emptyList(), abi = null),
+      base = VariantDetails("release", buildType = "release", flavors = emptyList(), abi = null),
+      selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
+    )
+
+    expect(
+      target = VariantDetails("aDebug", buildType = "debug", flavors = listOf("dim1" to "a"), abi = "x86"),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = "x86_64"),
       selectionChange = VariantSelectionChange(buildType = "debug", abi = "x86")
     )
 
     expect(
-      from = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
+      target = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
       selectionChange = VariantSelectionChange()
     )
 
     expect(
-      from = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
+      target = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
       selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b"))
     )
 
     expect(
-      from = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
+      target = VariantDetails("bRelease", buildType = "release", flavors = listOf("dim1" to "b"), abi = null),
       base = VariantDetails("aXRelease", buildType = "release", flavors = listOf("dim1" to "a", "dim2" to "x"), abi = null),
       selectionChange = null
     )
 
     expect(
-      from = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
+      target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("aXRelease", buildType = "release", flavors = listOf("dim1" to "a", "dim2" to "x"), abi = null),
       selectionChange = VariantSelectionChange(flavors = mapOf("dim1" to "b"))
     )
 
     expect(
-      from = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
+      target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("bYDebug", buildType = "debug", flavors = listOf("dim1" to "b", "dim2" to "y"), abi = null),
       selectionChange = VariantSelectionChange(buildType = "release", flavors = mapOf("dim2" to "x"))
     )
 
     expect(
-      from = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
+      target = VariantDetails("bXRelease", buildType = "release", flavors = listOf("dim1" to "b", "dim2" to "x"), abi = null),
       base = VariantDetails("aRelease", buildType = "release", flavors = listOf("dim1" to "a"), abi = null),
       selectionChange = null
     )

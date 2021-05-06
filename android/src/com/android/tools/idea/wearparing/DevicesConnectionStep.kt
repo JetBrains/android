@@ -17,6 +17,7 @@ package com.android.tools.idea.wearparing
 
 import com.android.ddmlib.EmulatorConsole
 import com.android.ddmlib.IDevice
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.ui.SVGScaledImageProvider
 import com.android.tools.adtui.ui.ScalingImagePanel
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
@@ -25,14 +26,18 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.labels.LinkLabel
@@ -47,20 +52,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.commons.lang.time.StopWatch
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Component.LEFT_ALIGNMENT
-import java.awt.FlowLayout
-import java.awt.GridBagConstraints
+import java.awt.Component.TOP_ALIGNMENT
+import java.awt.GridBagConstraints.HORIZONTAL
+import java.awt.GridBagConstraints.RELATIVE
+import java.awt.GridBagConstraints.REMAINDER
+import java.awt.GridBagConstraints.VERTICAL
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
+import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.SwingConstants
@@ -69,7 +79,10 @@ import javax.swing.event.HyperlinkListener
 private const val WEAR_PACKAGE = "com.google.android.wearable.app"
 private const val WEAR_MAIN_ACTIVITY = "com.google.android.clockwork.companion.launcher.LauncherActivity"
 private const val TIME_TO_SHOW_MANUAL_RETRY = 60_000L
+private const val PATH_PLAY_SCREEN = "/wearPairing/screens/playStore.png"
+private const val PATH_PAIR_SCREEN = "/wearPairing/screens/wearPair.png"
 
+private val LOG get() = logger<WearPairingManager>()
 
 class DevicesConnectionStep(model: WearDevicePairingModel,
                             val project: Project,
@@ -82,9 +95,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
   private val canGoForward = BoolValueProperty()
   private val deviceStateListener = ListenerManager()
   private val bindings = BindingsManager()
-  private val mainPanel = JBPanel<JBPanel<*>>(null).apply {
+  private val mainPanel = JBPanel<JBPanel<*>>(GridBagLayout()).apply {
     border = JBUI.Borders.empty(24, 24, 0, 24)
-    layout = BoxLayout(this, BoxLayout.Y_AXIS)
   }
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
@@ -106,14 +118,13 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         killNonSelectedRunningWearEmulators()
       }
 
-      val wearPairingDevice = model.selectedWearDevice.value
-      val wearDevice = wearPairingDevice.launchDeviceIfNeeded()
-      val phonePairingDevice = model.selectedPhoneDevice.value
-      val phoneDevice = phonePairingDevice.launchDeviceIfNeeded()
+      val wearDevice = model.selectedWearDevice.launchDeviceIfNeeded()
+      val phoneDevice = model.selectedPhoneDevice.launchDeviceIfNeeded()
 
+      LOG.warn("Devices are online")
       prepareErrorListener()
       if (showFirstStage) {
-        showFirstPhase(phonePairingDevice, phoneDevice, wearPairingDevice, wearDevice)
+        showFirstPhase(model.selectedPhoneDevice.value, phoneDevice, model.selectedWearDevice.value, wearDevice)
       }
       else {
         showPairingPhase(phoneDevice, wearDevice)
@@ -182,19 +193,27 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
   }
 
-  private suspend fun PairingDevice.launchDeviceIfNeeded(): IDevice {
-    val futureDevice = launch(project)
-    if (!futureDevice.isDone) {
-      showUiLaunchingDevice(displayName)
-    }
-
+  private suspend fun OptionalProperty<PairingDevice>.launchDeviceIfNeeded(): IDevice {
     try {
+      val futureDevice = value.launch(project)
+      if (!futureDevice.isDone) {
+        showUiLaunchingDevice(value.displayName)
+      }
+
       val iDevice = futureDevice.await()
-      launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
+      value.launch = { Futures.immediateFuture(iDevice) }  // We can only launch AVDs once!
+
+      // Wait for device to be reported Online
+      withTimeoutOrNull(5_000) {
+        while (!value.isOnline()) {
+          delay(200)
+        }
+      }
+
       return iDevice
     }
     catch (ex: Throwable) {
-      showDeviceError(this)
+      showDeviceError(value)
       throw RuntimeException(ex)
     }
   }
@@ -224,7 +243,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     header: String = "", description: String = "",
     progressTopLabel: String = "", progressBottomLabel: String = "",
     body: JComponent? = null,
-    buttonLabel: String = "", listener: (ActionEvent) -> Unit = {}
+    buttonLabel: String = "",
+    firstStepLabel: String = "",
+    additionalStepsLabel: String = "",
+    imagePath: String = "",
+    listener: (ActionEvent) -> Unit = {}
   ) = withContext(uiThread(ModalityState.any())) {
     currentUiHeader = header
     currentUiDescription = description
@@ -235,44 +258,56 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       if (header.isNotEmpty()) {
         add(JBLabel(header, UIUtil.ComponentStyle.LARGE).apply {
           name = "header"
-          alignmentX = LEFT_ALIGNMENT
           font = JBFont.label().biggerOn(5.0f)
-        })
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 3))
       }
       if (description.isNotEmpty()) {
-        add(JBLabel(description).apply {
+        add(HtmlLabel().apply {
           name = "description"
-          alignmentX = LEFT_ALIGNMENT
-          border = JBUI.Borders.empty(16, 0, 32, 16)
-        })
+          HtmlLabel.setUpAsHtmlLabel(this)
+          text = description
+          border = JBUI.Borders.empty(20, 0, 20, 16)
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 3))
       }
       if (progressTopLabel.isNotEmpty()) {
         add(JBLabel(progressTopLabel).apply {
-          alignmentX = LEFT_ALIGNMENT
           border = JBUI.Borders.empty(4, 0)
-        })
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
         add(JProgressBar().apply {
-          alignmentX = LEFT_ALIGNMENT
           isIndeterminate = true
-        })
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (progressBottomLabel.isNotEmpty()) {
         add(JBLabel(progressBottomLabel).apply {
-          alignmentX = LEFT_ALIGNMENT
           border = JBUI.Borders.empty(4, 0)
-          foreground = Color.lightGray
-        })
+          foreground = JBColor.DARK_GRAY
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
+      }
+      if (firstStepLabel.isNotEmpty()) {
+        add(JBLabel(firstStepLabel).apply {
+          border = JBUI.Borders.empty(8, 0, 8, 16)
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
       if (buttonLabel.isNotEmpty()) {
         add(JButton(buttonLabel).apply {
-          alignmentX = LEFT_ALIGNMENT
           addActionListener(listener)
-        })
+        }, gridConstraint(x = 0, y = RELATIVE, fill = HORIZONTAL, gridwidth = 1))
       }
       if (body != null) {
-        body.alignmentX = LEFT_ALIGNMENT
-        add(body)
+        add(body, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
       }
+      if (additionalStepsLabel.isNotEmpty()) {
+        add(JBLabel(additionalStepsLabel).apply {
+          alignmentX = LEFT_ALIGNMENT
+          border = JBUI.Borders.empty(4, 0, 0, 16)
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL, gridwidth = 2))
+      }
+      if (imagePath.isNotEmpty()) {
+        add(JBLabel(IconLoader.getIcon(imagePath, DevicesConnectionStep::class.java)).apply {
+          verticalAlignment = JLabel.BOTTOM
+        }, gridConstraint(x = 2, y = RELATIVE, fill = VERTICAL, weighty = 1.0).apply { gridheight = REMAINDER })
+      }
+      add(Box.createVerticalGlue(), gridConstraint(x = 0, y = RELATIVE, weighty = 1.0))
 
       revalidate()
       repaint()
@@ -281,25 +316,32 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
   private fun createScanningPanel(
     showLoadingIcon: Boolean, showSuccessIcon: Boolean, scanningLabel: String, listener: HyperlinkListener?
-  ): JPanel = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-    if (showLoadingIcon) {
-      add(AsyncProcessIcon("ScanningLabel"))
-    }
-    if (showLoadingIcon || scanningLabel.isNotEmpty()) {
-      add(JBLabel(scanningLabel).apply {
-        foreground = Color.lightGray
-        icon = StudioIcons.Common.SUCCESS.takeIf { showSuccessIcon }
-      })
-    }
+  ): JPanel = JPanel(GridBagLayout()).apply {
+    add(JPanel().apply {
+      layout = BoxLayout(this, BoxLayout.LINE_AXIS)
+      alignmentX = LEFT_ALIGNMENT
+      if (showLoadingIcon) {
+        add(AsyncProcessIcon("ScanningLabel").apply {
+          alignmentY = TOP_ALIGNMENT
+          border = JBUI.Borders.empty(0, 0, 0, 8)
+        })
+      }
+      if (showLoadingIcon || scanningLabel.isNotEmpty()) {
+        add(JBLabel(scanningLabel).apply {
+          foreground = JBColor.DARK_GRAY
+          icon = StudioIcons.Common.SUCCESS.takeIf { showSuccessIcon }
+          alignmentY = TOP_ALIGNMENT
+        })
+      }
+    }, gridConstraint(x = 0, y = 0, weightx = 1.0, fill = HORIZONTAL))
     if (listener != null) {
       add(HyperlinkLabel().apply {
         setHyperlinkText(message("wear.assistant.device.connection.check.again"))
         addHyperlinkListener(listener)
-      })
+      }, gridConstraint(x = 0, y = 1, weightx = 1.0, fill = HORIZONTAL))
     }
-
     isOpaque = false
-    border = JBUI.Borders.empty(16, 0)
+    border = JBUI.Borders.empty(8, 2, 12, 4)
   }
 
   private fun createSuccessPanel(successLabel: String): JPanel = JPanel(BorderLayout()).apply {
@@ -362,9 +404,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     listener: HyperlinkListener? = null
   ) = showUI(
     header = message("wear.assistant.device.connection.install.wear.os.title"),
-    description = message("wear.assistant.device.connection.install.wear.os.subtitle"),
+    description = message("wear.assistant.device.connection.install.wear.os.subtitle", WEAR_DOCS_LINK),
     body = createScanningPanel(showLoadingIcon, showSuccessIcon, scanningLabel, listener),
     buttonLabel = message("wear.assistant.device.connection.install.wear.os.button"),
+    firstStepLabel = message("wear.assistant.device.connection.install.wear.os.firstStep"),
+    additionalStepsLabel = message("wear.assistant.device.connection.install.wear.os.additionalSteps"),
+    imagePath = PATH_PLAY_SCREEN,
     listener = {
       GlobalScope.launch(ioThread) {
         phoneDevice.executeShellCommand("am start -a android.intent.action.VIEW -d 'market://details?id=$WEAR_PACKAGE'")
@@ -377,9 +422,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     listener: HyperlinkListener? = null
   ) = showUI(
     header = message("wear.assistant.device.connection.complete.pairing.title"),
-    description = message("wear.assistant.device.connection.complete.pairing.subtitle"),
+    description = message("wear.assistant.device.connection.complete.pairing.subtitle", WEAR_DOCS_LINK),
     body = createScanningPanel(showLoadingIcon, showSuccessIcon, scanningLabel, listener),
     buttonLabel = message("wear.assistant.device.connection.open.companion.button"),
+    firstStepLabel = message("wear.assistant.device.connection.complete.pairing.firstStep"),
+    additionalStepsLabel = message("wear.assistant.device.connection.complete.pairing.additionalSteps"),
+    imagePath = PATH_PAIR_SCREEN,
     listener = {
       GlobalScope.launch(ioThread) {
         phoneDevice.executeShellCommand("am start -n $WEAR_PACKAGE/$WEAR_MAIN_ACTIVITY")
@@ -430,11 +478,11 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         )
         add(
           JBLabel(message("wear.assistant.device.connection.error", errorDevice.displayName)),
-          gridConstraint(x = 1, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL)
+          gridConstraint(x = 1, y = 0, weightx = 1.0, fill = HORIZONTAL)
         )
         add(
           LinkLabel<Unit>(message("wear.assistant.device.connection.restart.pairing"), null) { _, _ -> wizardAction.restart(project) },
-          gridConstraint(x = 1, y = 1, weightx = 1.0, weighty = 1.0, fill = GridBagConstraints.HORIZONTAL)
+          gridConstraint(x = 1, y = 1, weightx = 1.0, weighty = 1.0, fill = HORIZONTAL)
         )
       }
       showUI(header = currentUiHeader, description = currentUiDescription, body = body)

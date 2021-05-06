@@ -20,12 +20,14 @@ import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.surface.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
+import com.intellij.openapi.fileEditor.FileEditorManager
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
@@ -63,13 +65,18 @@ class VisualizationInteractionHandlerTest : SceneTest() {
   }
 
   fun testDoubleClickToNavigateToFileOfPreview() {
+    StudioFlags.NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR.override(false)
+
     val navigationManager = Mockito.mock(LayoutNavigationManager::class.java)
     registerProjectService(LayoutNavigationManager::class.java, navigationManager)
+    FileEditorManager.getInstance(project).openFile(myModel.virtualFile, true, true)
     val handler = VisualizationInteractionHandler(myModel.surface) { Mockito.mock(VisualizationModelsProvider::class.java) }
     val file = myModel.virtualFile
     val view = myModel.surface.sceneManager?.sceneView!!
     handler.doubleClick(view.x + view.scaledContentSize.width, view.y + view.scaledContentSize.height, 0)
     Mockito.verify(navigationManager).pushFile(file, file)
+
+    StudioFlags.NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR.clearOverride()
   }
 
   fun testNoPopupMenuTriggerWhenNotHoveredOnSceneView() {

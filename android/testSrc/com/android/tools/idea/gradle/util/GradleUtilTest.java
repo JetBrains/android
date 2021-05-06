@@ -244,4 +244,9 @@ public class GradleUtilTest {
     assertEquals("", GradleUtil.getParentModulePath(":"));
 
   }
+
+  @Test
+  public void testCreateFullTaskWithTopLevelModule() {
+    assertEquals(":assemble", GradleUtil.createFullTaskName(":", "assemble"));
+  }
 }

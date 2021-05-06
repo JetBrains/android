@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.importing;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public abstract class ProjectFolder {
       }
       createIfNotExists(buildFile);
       String contents = "// Top-level build file where you can add configuration options common to all sub-projects/modules." +
-                        SystemProperties.getLineSeparator();
+                        System.lineSeparator();
       writeToFile(buildFile, contents);
     }
 

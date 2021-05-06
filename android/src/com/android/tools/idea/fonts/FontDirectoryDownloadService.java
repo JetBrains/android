@@ -19,7 +19,6 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.idea.downloads.DownloadService;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -68,6 +67,6 @@ class FontDirectoryDownloadService extends DownloadService {
   static URL getFallbackResourceUrl(@NotNull FontProvider provider) {
     String filename = provider.equals(FontProvider.GOOGLE_PROVIDER) ?
                       "google_font_directory.xml" : "empty_font_directory.xml";
-    return ResourceUtil.getResource(FontDirectoryDownloadService.class, "fonts", filename);
+    return FontDirectoryDownloadService.class.getClassLoader().getResource("fonts/" + filename);
   }
 }

@@ -82,7 +82,6 @@ import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
 import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -226,7 +225,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       myBuildStopper.register(id, cancellationTokenSource);
 
       taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
-      taskListener.onTaskOutput(id, executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), true);
+      taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true);
 
       BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
@@ -341,9 +340,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         handleTaskExecutionError(e);
       }
       finally {
+        Application application = ApplicationManager.getApplication();
         if (buildError != null) {
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildFailure(attributionFileDir);
+            final File finalAttributionFileDir = attributionFileDir;
+            final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
+            application.invokeLater(() -> {
+              if (!project.isDisposed()) {
+                finalBuildAttributionManager.onBuildFailure(finalAttributionFileDir);
+              }
+            });
           }
 
           if (wasBuildCanceled(buildError)) {
@@ -361,8 +367,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         taskListener.onEnd(id);
         myBuildStopper.remove(id);
 
-        String gradleOutput = output.toString();
-        Application application = ApplicationManager.getApplication();
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
           if (isNotEmpty(testOutput)) {

@@ -241,6 +241,10 @@ class AndroidProcessHandler @JvmOverloads constructor(
   private fun areAnyDevicesAssociated(executionTarget: AndroidExecutionTarget): Boolean {
     return executionTarget.runningDevices.any { isAssociated(it) }
   }
+
+  override fun toString(): String {
+    return "AndroidProcessHandler[$targetApplicationId]"
+  }
 }
 
 private typealias AndroidProcessMonitorManagerFactory = (targetApplicationId: String,

@@ -18,50 +18,44 @@ package com.android.tools.idea.gradle.variant.view;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.switchTestProjectVariantsFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.util.ThreeState.YES;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.VariantAbi;
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.project.SyncTimestampUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
 import com.android.tools.idea.testing.AndroidModuleDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiFile;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
 public class BuildVariantUpdaterTest extends AndroidTestCase {
   private int mySelectionChangeCounter = 0;
+  private BuildVariantUpdater myBuildVariantUpdater;
   private final BuildVariantView.BuildVariantSelectionChangeListener myVariantSelectionChangeListener =
-    new BuildVariantView.BuildVariantSelectionChangeListener() {
-      @Override
-      public void selectionChanged() {
-        mySelectionChangeCounter++;
-      }
-    };
+    () -> mySelectionChangeCounter++;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myBuildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
+    myBuildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
+  }
 
   private void setupProject(AndroidModuleModelBuilder... modelBuilders) {
     setupTestProjectFromAndroidModel(
@@ -72,19 +66,38 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
     );
   }
 
-  public void testUpdateSelectedVariant() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-      )
+  private void expectAndSimulateSync(Runnable block, AndroidModuleModelBuilder... modelBuilders) {
+    ProjectSystemSyncManager syncState = getProjectSystem(getProject()).getSyncManager();
+    long stamp = SyncTimestampUtil.getLastSyncTimestamp(getProject());
+    block.run();
+    assertThat(SyncTimestampUtil.getLastSyncTimestamp(getProject())).isGreaterThan(stamp);
+    assertThat(syncState.getLastSyncResult()).isEqualTo(SyncResult.SKIPPED);
+    switchTestProjectVariantsFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      modelBuilders
     );
+  }
+
+  public void testUpdateSelectedVariant() {
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+    );
+
+    setupProject(root);
+
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isNull();
+      },
+      root.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertChangeHappened();
@@ -99,31 +112,29 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   // Expected final Variant/ABI selection:
   //    app: release-x86_64
   public void testUpdateSelectedVariantWithNdkModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder().withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder().withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
     );
+
+    setupProject(root);
 
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isEqualTo("x86_64");
+      },
+      root.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(safeGetAbi(ndkFacet(":").getSelectedVariantAbi())).isEqualTo("x86_64");
     assertThat(ndkModuleModel(":").getSelectedAbi()).isEqualTo("x86_64");
     assertChangeHappened();
-  }
-
-  private void assertChangeHappened() {
-    // TODO(b/184824343): Re-enable when fixed.
-    //      assertThat(mySelectionChangeCounter).isEqualTo(1);
-    // TODO(b/184824343): Remove when fixed.
-    assertThat(getProjectSystem(getProject()).getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED);
   }
 
   // Initial variant/ABI selection:
@@ -135,39 +146,42 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   // Expected final Variant/ABI selection:
   //    app: debug-armeabi-v7a
   public void testUpdateSelectedAbiWithNdkModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder().withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder().withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
     );
+
+    setupProject(root);
 
     VariantAbi variantAbiToSelect = new VariantAbi("debug", "arm64-v8a");
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedAbi(getProject(), module(":").getName(), variantAbiToSelect.getAbi());
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedAbi(getProject(), module(":").getName(), variantAbiToSelect.getAbi());
+        assertThat(selectedVariant(":")).isEqualTo(variantAbiToSelect.getVariant());
+        assertThat(selectedAbi(":")).isEqualTo(variantAbiToSelect.getAbi());
+      },
+      root.withSelectedBuildVariant(variantAbiToSelect.getVariant()).withSelectedAbi(variantAbiToSelect.getAbi())
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantAbiToSelect.getVariant());
     assertThat(safeGetAbi(ndkFacet(":").getSelectedVariantAbi())).isEqualTo(variantAbiToSelect.getAbi());
-    //TODO(b/182456574): assertThat(ndkModuleModel(":").getSelectedAbi()).isEqualTo(variantAbiToSelect.getAbi());
+    assertThat(ndkModuleModel(":").getSelectedAbi()).isEqualTo(variantAbiToSelect.getAbi());
     assertChangeHappened();
   }
 
   public void testUpdateSelectedVariantWithUnchangedVariantName() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
     );
+
+    setupProject(root);
     String variantToSelect = "debug"; // The default selected variant after test setup is "debug".
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(mySelectionChangeCounter).isEqualTo(0);
@@ -175,38 +189,50 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
 
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
     // Simulate build files have changed since last sync.
-    GradleSyncState syncState = mock(GradleSyncState.class);
-    IdeComponents ideComponents = new IdeComponents(getProject());
-    ideComponents.replaceProjectService(GradleSyncState.class, syncState);
-    when(syncState.isSyncNeeded()).thenReturn(YES);
-    GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
-    doAnswer(new Answer() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        GradleSyncListener syncListener = (GradleSyncListener)args[2];
-        syncListener.syncSucceeded(getProject());
-        return null;
-      }
-    }).when(syncInvoker).requestProjectSync(eq(getProject()), any(GradleSyncStats.Trigger.class), any());
-
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-      )
+    PsiFile buildFile = myFixture.addFileToProject("build.gradle", "// gradle");
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
     );
 
-    String variantToSelect = "release";
+    setupProject(root);
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    // First switch to release.
+    {
+      reset();
+      String variantToSelect = "release";
+      expectAndSimulateSync(
+        () -> {
+          myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+          assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+          assertThat(selectedAbi(":")).isNull();
+        },
+        root.withSelectedBuildVariant(variantToSelect)
+      );
 
-    assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
-    // TODO(b/184824343): assertThat(mySelectionChangeCounter).isEqualTo(1);
-    verify(syncInvoker).requestProjectSync(eq(getProject()), any(GradleSyncStats.Trigger.class), any());
+      assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
+      assertChangeHappened();
+    }
+
+    // Then change the build file and switch back.
+    myFixture.saveText(buildFile.getVirtualFile(), "android {}");
+
+    {
+      reset();
+      String variantToSelect = "debug";
+      expectAndSimulateSync(
+        () -> {
+          myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+          assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+          assertThat(selectedAbi(":")).isNull();
+        },
+        root
+      );
+
+      assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
+      assertThat(mySelectionChangeCounter).isEqualTo(1);
+    }
   }
 
   // app module depends on library module.
@@ -221,25 +247,31 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   //    app: release
   //    library: release
   public void testAndroidModuleDependsOnAndroidModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-          .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
-      ),
-      new AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        new AndroidProjectBuilder()
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+        .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
     );
+    AndroidModuleModelBuilder lib = new AndroidModuleModelBuilder(
+      ":lib",
+      "debug",
+      new AndroidProjectBuilder()
+    );
+
+    setupProject(root, lib);
 
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isNull();
+      },
+      root.withSelectedBuildVariant(variantToSelect),
+      lib.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(androidModuleModel(":lib").getSelectedVariantName()).isEqualTo(variantToSelect);
@@ -258,26 +290,32 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   //    app: release-x86_64
   //    library: release
   public void testNdkModuleDependsOnAndroidModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-          .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
-      ),
-      new AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        new AndroidProjectBuilder()
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+        .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
     );
+    AndroidModuleModelBuilder lib = new AndroidModuleModelBuilder(
+      ":lib",
+      "debug",
+      new AndroidProjectBuilder()
+    );
+
+    setupProject(root, lib);
 
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isEqualTo("x86_64");
+      },
+      root.withSelectedBuildVariant(variantToSelect),
+      lib.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(safeGetAbi(ndkFacet(":").getSelectedVariantAbi())).isEqualTo("x86_64");
@@ -297,26 +335,32 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   //    app: release
   //    library: release-x86_64
   public void testAndroidModuleDependsOnNdkModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-          .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
-      ),
-      new AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+        .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
     );
+    AndroidModuleModelBuilder lib = new AndroidModuleModelBuilder(
+      ":lib",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+    );
+
+    setupProject(root, lib);
 
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":lib")).isEqualTo("x86_64");
+      },
+      root.withSelectedBuildVariant(variantToSelect),
+      lib.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(androidModuleModel(":lib").getSelectedVariantName()).isEqualTo(variantToSelect);
@@ -336,27 +380,33 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   //    app: release-x86_64
   //    library: release-x86_64
   public void testNdkModuleDependsOnNdkModule() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-          .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
-      ),
-      new AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+        .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
     );
+    AndroidModuleModelBuilder lib = new AndroidModuleModelBuilder(
+      ":lib",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+    );
+
+    setupProject(root, lib);
 
     String variantToSelect = "release";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedBuildVariant(getProject(), module(":").getName(), variantToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isEqualTo("x86_64");
+      },
+      root.withSelectedBuildVariant(variantToSelect),
+      lib.withSelectedBuildVariant(variantToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(safeGetAbi(ndkFacet(":").getSelectedVariantAbi())).isEqualTo("x86_64");
@@ -377,28 +427,34 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   //    app: debug-armeabi-v7a
   //    library: debug-armeabi-v7a
   public void testNdkModuleDependsOnNdkModuleWithAbiChange() {
-    setupProject(
-      new AndroidModuleModelBuilder(
-        ":",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-          .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
-      ),
-      new AndroidModuleModelBuilder(
-        ":lib",
-        "debug",
-        new AndroidProjectBuilder()
-          .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
-      )
+    AndroidModuleModelBuilder root = new AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+        .withAndroidModuleDependencyList((it, variant) -> ImmutableList.of(new AndroidModuleDependency(":lib", variant)))
     );
+    AndroidModuleModelBuilder lib = new AndroidModuleModelBuilder(
+      ":lib",
+      "debug",
+      new AndroidProjectBuilder()
+        .withNdkModel(AndroidGradleTestUtilsKt::buildNdkModelStub)
+    );
+
+    setupProject(root, lib);
 
     String variantToSelect = "debug";
     String abiToSelect = "arm64-v8a";
 
-    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(getProject());
-    buildVariantUpdater.addSelectionChangeListener(myVariantSelectionChangeListener);
-    buildVariantUpdater.updateSelectedAbi(getProject(), module(":").getName(), abiToSelect);
+    expectAndSimulateSync(
+      () -> {
+        myBuildVariantUpdater.updateSelectedAbi(getProject(), module(":").getName(), abiToSelect);
+        assertThat(selectedVariant(":")).isEqualTo(variantToSelect);
+        assertThat(selectedAbi(":")).isEqualTo(abiToSelect);
+      },
+      root.withSelectedBuildVariant(variantToSelect).withSelectedAbi(abiToSelect),
+      lib.withSelectedBuildVariant(variantToSelect).withSelectedAbi(abiToSelect)
+    );
 
     assertThat(androidModuleModel(":").getSelectedVariantName()).isEqualTo(variantToSelect);
     assertThat(safeGetAbi(ndkFacet(":").getSelectedVariantAbi())).isEqualTo(abiToSelect);
@@ -408,11 +464,34 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
   }
 
   @NotNull
+  private AndroidFacet androidFacet(@NotNull String gradlePath) {
+    Module module = module(gradlePath);
+    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+    if (androidFacet == null) {
+      throw new AssertionError(String.format("Module '%s' (Gradle path: '%s') is not an Android module", module.getName(), gradlePath));
+    }
+    return androidFacet;
+  }
+
+  @NotNull
+  private String selectedVariant(@NotNull String gradlePath) {
+    return androidFacet(gradlePath).getProperties().SELECTED_BUILD_VARIANT;
+  }
+
+  @Nullable
+  private String selectedAbi(@NotNull String gradlePath) {
+    Module module = module(gradlePath);
+    NdkFacet ndkFacet = NdkFacet.getInstance(module);
+    if (ndkFacet == null) return null;
+    return safeGetAbi(ndkFacet.getSelectedVariantAbi());
+  }
+
+  @NotNull
   private AndroidModuleModel androidModuleModel(@NotNull String gradlePath) {
     Module module = module(gradlePath);
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
     if (androidModuleModel == null) {
-      throw new AssertionError(String.format("Module '%s' (Gradle path: '%s') is ot an Android module", module.getName(), gradlePath));
+      throw new AssertionError(String.format("Module '%s' (Gradle path: '%s') is not an Android module", module.getName(), gradlePath));
     }
     return androidModuleModel;
   }
@@ -448,5 +527,14 @@ public class BuildVariantUpdaterTest extends AndroidTestCase {
     Module module = gradleModule(getProject(), gradlePath);
     if (module == null) throw new AssertionError(String.format("No module corresponds to Gradle path '%s'", gradlePath));
     return module;
+  }
+
+  private void reset() {
+    mySelectionChangeCounter = 0;
+  }
+
+  private void assertChangeHappened() {
+    assertThat(mySelectionChangeCounter).isEqualTo(1);
+    assertThat(getProjectSystem(getProject()).getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
   }
 }

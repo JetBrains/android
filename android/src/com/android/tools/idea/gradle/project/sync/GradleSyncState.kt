@@ -39,6 +39,7 @@ import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.FinishBuildEvent
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.impl.NotificationsConfigurationImpl
@@ -260,7 +261,13 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     syncPublisher { syncSkipped(project) }
   }
 
-  open fun isSyncNeeded(): ThreeState = if (GradleFiles.getInstance(project).areGradleFilesModified()) ThreeState.YES else ThreeState.NO
+  open fun isSyncNeeded(): ThreeState {
+    return when {
+      PropertiesComponent.getInstance().getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
+      GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
+      else -> ThreeState.NO
+    }
+  }
 
   /**
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
@@ -274,6 +281,7 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     }
 
     project.putUserData(GradleSyncExecutor.FULL_SYNC_KEY, null)
+    PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
@@ -514,3 +522,4 @@ private fun ExternalSystemTaskId.isGradleResolveProjectTask() =
 private fun normalizePath(projectPath: String) = ExternalSystemApiUtil.toCanonicalPath(projectPath)
 
 private val Any.LOG get() = Logger.getInstance(this::class.java)  // Used for non-frequent logging.
+private const val ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME = "android.gradle.sync.needed"

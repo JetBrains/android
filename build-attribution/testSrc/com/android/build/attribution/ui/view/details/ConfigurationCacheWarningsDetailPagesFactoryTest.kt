@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view.details
 
 import com.android.build.attribution.analyzers.AGPUpdateRequired
+import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
@@ -186,7 +187,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
         Truth.assertThat(pageHtml).contains("The known plugins applied in this build are compatible with Configuration cache.")
       }
       htmlPanes[1].text.clearHtml().let { pageHtml ->
-        Truth.assertThat(pageHtml).contains("Note: There could be unknown plugins that aren't compatible and are discovered after\n" +
+        Truth.assertThat(pageHtml).contains("Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after\n" +
                                             "you build with Configuration cache turned on.")
       }
       htmlPanes[2].text.clearHtml().let { pageHtml ->
@@ -196,6 +197,27 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     }
     TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
       Truth.assertThat(button.text).isEqualTo("Try Configuration cache in a build")
+    }
+  }
+
+  @Test
+  fun testConfigurationCacheAfterTrialBuildPage() {
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers)
+    val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
+      ConfigurationCacheCompatibilityTestFlow,
+      TimeWithPercentage(100, 1000)
+    )
+    val page = factory.createDetailsPage(nodeDescriptor)
+    TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single().text.clearHtml().let { pageHtml ->
+      Truth.assertThat(pageHtml).contains("Test builds with Configuration cache finished successfully")
+      // We  should not show the time saving line as data for this build does not make any value.
+      Truth.assertThat(pageHtml).doesNotContain("You could save about")
+      Truth.assertThat(pageHtml).contains("With <a href=\"CONFIGURATION_CACHING\">Configuration cache</a><icon src=\"ide/external_link_arrow.svg\">,")
+      Truth.assertThat(pageHtml).contains("Gradle can skip the configuration phase")
+      Truth.assertThat(pageHtml).contains("Gradle successfully serialized the task graph and reused it with Configuration cache on.")
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
+      Truth.assertThat(button.text).isEqualTo("Turn on Configuration cache in gradle.properties")
     }
   }
 

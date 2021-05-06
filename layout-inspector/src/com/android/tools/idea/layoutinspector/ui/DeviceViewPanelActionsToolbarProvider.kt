@@ -122,7 +122,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
       else {
         event.presentation.text = "3D Mode"
         event.presentation.description =
-          "Visually inspect the hierarchy by clinking and dragging to rotate the layout. Enabling this mode consumes more device " +
+          "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this mode consumes more device " +
           "resources and might impact runtime performance."
       }
     }

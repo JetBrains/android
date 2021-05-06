@@ -45,6 +45,7 @@ class VisualLintIssueProvider(private val sourceModel: NlModel, val renderErrorM
     override val onIssueSelected: (DesignSurface) -> Unit = {
       // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
       it.repaint()
+      it.scrollToVisible(model, false)
     }
   }
 }

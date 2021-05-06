@@ -174,7 +174,7 @@ def _studio_plugin_impl(ctx):
 
     missing = [str(s.label) for s in _depset_subtract(have, need)]
     if missing:
-        fail("Whilae analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
+        fail("While analyzing %s, the following dependencies are required but not found:\n%s" % (ctx.attr.name, "\n".join(missing)))
 
     return struct(
         directory = ctx.attr.directory,
@@ -232,6 +232,57 @@ def _is_release():
         "//tools/base/bazel:release": True,
         "//conditions:default": False,
     })
+
+def _searchable_options_impl(ctx):
+    searchable_options = {}
+    for f in ctx.files.searchable_options:
+        if not f.short_path.startswith(ctx.attr.strip_prefix):
+            fail("File " + f.short_path + " does not have the given prefix.")
+        path = f.short_path[len(ctx.attr.strip_prefix):]
+        parts = path.split("/")
+        if len(parts) < 2:
+            fail("File does not follow the <plugin>/<jar> convention.")
+        plugin, jar = parts[0], parts[1]
+        if plugin not in searchable_options:
+            searchable_options[plugin] = {}
+        if jar not in searchable_options[plugin]:
+            searchable_options[plugin][jar] = []
+        searchable_options[plugin][jar] += [f]
+
+    so_jars = []
+    for plugin, jars in searchable_options.items():
+        for jar, so_files in jars.items():
+            so_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.%s.zip" % (plugin, jar))
+            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/", None)] + [("search/%s" % f.basename, f) for f in so_files], so_jar)
+            so_jars += [("plugins/%s/lib/%s" % (plugin, jar), so_jar)]
+
+    return struct(
+        files = depset([f for (_, f) in so_jars]),
+        searchable_options = so_jars,
+    )
+
+_searchable_options = rule(
+    attrs = {
+        "searchable_options": attr.label_list(allow_files = True),
+        "compress": attr.bool(),
+        "strip_prefix": attr.string(),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
+            cfg = "host",
+            executable = True,
+        ),
+    },
+    executable = False,
+    implementation = _searchable_options_impl,
+)
+
+def searchable_options(name, files, **kwargs):
+    _searchable_options(
+        name = name,
+        compress = _is_release(),
+        searchable_options = files,
+        **kwargs
+    )
 
 # Build an Android Studio plugin.
 # This plugin is a zip file with the final layout inside Android Studio plugin's directory.
@@ -452,21 +503,7 @@ def _android_studio_os(ctx, platform, out):
     module_deps, _, _ = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     files += [(platform.base_path + "lib/" + d, f) for (d, f) in module_deps]
 
-    searchable_options = {}
-    for dep, spec in ctx.attr.searchable_options.items():
-        plugin, jar = spec.split("/")
-        if plugin not in searchable_options:
-            searchable_options[plugin] = {}
-        if jar not in searchable_options[plugin]:
-            searchable_options[plugin][jar] = []
-        searchable_options[plugin][jar] += dep.files.to_list()
-
-    so_jars = []
-    for plugin, jars in searchable_options.items():
-        for jar, so_files in jars.items():
-            so_jar = ctx.actions.declare_file(ctx.attr.name + ".so.%s.%s.%s.zip" % (platform.name, plugin, jar))
-            _zipper(ctx, "%s %s searchable options" % (plugin, jar), [("search/", None)] + [("search/%s" % f.basename, f) for f in so_files], so_jar)
-            so_jars += [("%splugins/%s/lib/%s" % (platform.base_path, plugin, jar), so_jar)]
+    so_jars = [("%s%s" % (platform.base_path, jar), f) for (jar, f) in ctx.attr.searchable_options.searchable_options]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
     overrides += [(platform_prefix, so_extras)]
@@ -538,7 +575,7 @@ _android_studio = rule(
         "resources": attr.label_list(),
         "resources_dirs": attr.string_list(),
         "plugins": attr.label_list(),
-        "searchable_options": attr.label_keyed_string_dict(allow_files = True),
+        "searchable_options": attr.label(),
         "version_micro": attr.int(),
         "version_patch": attr.int(),
         "version_eap": attr.bool(),
@@ -592,17 +629,11 @@ _android_studio = rule(
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
 def android_studio(
         name,
-        searchable_options,
         modules = {},
         resources = {},
         **kwargs):
     jars, modules_list = _dict_to_lists(modules)
     resources_dirs, resources_list = _dict_to_lists(resources)
-    searchable_options_dict = {}
-    for rel_path in native.glob([searchable_options + "/**"]):
-        parts = rel_path.split("/")
-        if len(parts) > 3:
-            searchable_options_dict[rel_path] = parts[1] + "/" + parts[2]
 
     _android_studio(
         name = name,
@@ -610,7 +641,6 @@ def android_studio(
         jars = jars,
         resources = resources_list,
         resources_dirs = resources_dirs,
-        searchable_options = searchable_options_dict,
         compress = _is_release(),
         **kwargs
     )

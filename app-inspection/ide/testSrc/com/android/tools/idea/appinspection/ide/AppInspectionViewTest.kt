@@ -16,12 +16,13 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
-import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
+import com.android.tools.idea.appinspection.ide.ui.TAB_KEY
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
@@ -29,6 +30,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -47,6 +50,7 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
@@ -57,6 +61,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -68,6 +73,7 @@ import org.junit.rules.RuleChain
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.ArrayBlockingQueue
+import javax.swing.JPanel
 
 class TestAppInspectorTabProvider1 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)
 class TestAppInspectorTabProvider2 : AppInspectorTabProvider by StubTestAppInspectorTabProvider(
@@ -163,8 +169,7 @@ class AppInspectionViewTest {
   fun disposeInspectorWhenSelectionChanges() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
-    lateinit var processesModel: ProcessesModel
-    val tabsAdded = CompletableDeferred<Unit>()
+    lateinit var tabs: List<AppInspectorTab>
     launch(uiDispatcher) {
       val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
                                              appInspectionServiceRule.scope, uiDispatcher) {
@@ -172,11 +177,19 @@ class AppInspectionViewTest {
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
-      processesModel = inspectionView.processesModel
-      inspectionView.tabsChangedFlow.first {
-        assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
-        inspectionView.inspectorTabs.forEach { it.waitForContent() }
-        tabsAdded.complete(Unit)
+      inspectionView.tabsChangedFlow.take(2)
+        .collectIndexed { i, _ ->
+          if (i == 0) {
+            assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
+            inspectionView.inspectorTabs.forEach { it.waitForContent() }
+            tabs = inspectionView.inspectorTabs.mapNotNull { it.getUserData(TAB_KEY) }
+            assertThat(tabs).hasSize(1)
+            inspectionView.processesModel.selectedProcess = inspectionView.processesModel.processes.first { process ->
+              process != inspectionView.processesModel.selectedProcess
+            }
+          } else if (i == 1) {
+            tabs.forEach { tab -> assertThat(tab.messenger.scope.isActive).isFalse() }
+          }
       }
     }
 
@@ -189,27 +202,10 @@ class AppInspectionViewTest {
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess1)
     transportService.addProcess(fakeDevice, fakeProcess2)
-
-    tabsAdded.join()
-
-
-    // Change process selection and check to see if a dispose command was sent out.
-    val disposed = CompletableDeferred<Unit>()
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, object : CommandHandler(timer) {
-      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-        if (command.appInspectionCommand.hasDisposeInspectorCommand()) {
-          disposed.complete(Unit)
-        }
-      }
-    })
-
-    processesModel.selectedProcess = processesModel.processes.first { it != processesModel.selectedProcess }
-
-    disposed.join()
   }
 
   @Test
-  fun inspectorDisposed() = runBlocking<Unit> {
+  fun receivesInspectorDisposedEvent() = runBlocking<Unit> {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     val fakeDevice = FakeTransportService.FAKE_DEVICE.toBuilder().apply {
       deviceId = 1
@@ -255,7 +251,7 @@ class AppInspectionViewTest {
 
     tabsAdded.await()
 
-    // Generate fake crash event
+    // Generate fake dispose event
     transportService.addEventToStream(
       fakeDevice.deviceId,
       Common.Event.newBuilder()
@@ -271,6 +267,87 @@ class AppInspectionViewTest {
     )
 
     tabsCleared.await()
+  }
+
+  @Test
+  fun inspectorTabsAreDisposed_whenUiIsRefreshed() = runBlocking<Unit> {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+    val tabDisposedDeferred = CompletableDeferred<Unit>()
+    val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
+    val tabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
+      override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
+                             messenger: AppInspectorMessenger, parentDisposable: Disposable): AppInspectorTab {
+        return object : AppInspectorTab, Disposable {
+          override val messenger = StubTestAppInspectorMessenger()
+          override val component = JPanel()
+          override fun dispose() {
+            tabDisposedDeferred.complete(Unit)
+          }
+
+          init {
+            Disposer.register(parentDisposable, this)
+          }
+        }
+      }
+    }
+    val offlineTabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
+      override fun supportsOffline() = true
+      override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
+                             messenger: AppInspectorMessenger, parentDisposable: Disposable): AppInspectorTab {
+        return object : AppInspectorTab, Disposable {
+          override val messenger = StubTestAppInspectorMessenger()
+          override val component = JPanel()
+          override fun dispose() {
+            offlineTabDisposedDeferred.complete(Unit)
+          }
+
+          init {
+            Disposer.register(parentDisposable, this)
+          }
+        }
+      }
+    }
+
+    launch(uiDispatcher) {
+      val inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                                             { listOf(tabProvider, offlineTabProvider) },
+                                             appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+      inspectionView.tabsChangedFlow
+        .take(3)
+        .collectIndexed { i, _ ->
+          when (i) {
+            0 -> {
+              // Stopping the process should cause the first tab to be disposed, but keep the offline tab.
+              assertThat(inspectionView.inspectorTabs).hasSize(2)
+              inspectionView.inspectorTabs.forEach { it.waitForContent() }
+              transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+              timer.currentTimeNs += 1
+            }
+            1 -> {
+              // Making the process go back online should cause the tool window to refresh and dispose of the offline tab.
+              assertThat(inspectionView.inspectorTabs).hasSize(1)
+              transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+              timer.currentTimeNs += 1
+            }
+            2 -> {
+              // 2 tabs are added back in the tool window.
+              assertThat(inspectionView.inspectorTabs).hasSize(2)
+            }
+          }
+        }
+    }
+
+    // Launch a processes to start the test
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    timer.currentTimeNs += 1
+
+    tabDisposedDeferred.await()
+    offlineTabDisposedDeferred.await()
   }
 
   @Test
@@ -899,8 +976,8 @@ class AppInspectionViewTest {
     }
 
     withContext(uiDispatcher) {
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[0].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[0].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isTrue()
     }
 
     // Verify auto connect to new process
@@ -913,8 +990,8 @@ class AppInspectionViewTest {
     }
 
     withContext(uiDispatcher) {
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isTrue()
     }
 
     // Process stop still handled, even if auto connect enabled is set to false
@@ -928,13 +1005,13 @@ class AppInspectionViewTest {
     }
 
     withContext(uiDispatcher) {
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isFalse()
 
       // Stopped process is still there even if toggling back to true
       inspectionView.autoConnects = true
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isFalse()
     }
 
     // New process is ignored (as expected) if autoconnection isn't enabled
@@ -949,16 +1026,52 @@ class AppInspectionViewTest {
     }
 
     withContext(uiDispatcher) {
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isFalse()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[1].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isFalse()
     }
 
     // New process attaches if the state changes, however
     withContext(uiDispatcher) {
       inspectionView.autoConnects = true
 
-      assertThat(inspectionView.activeProcess!!.pid).isEqualTo(fakeProcesses[2].pid)
-      assertThat(inspectionView.activeProcess!!.isRunning).isTrue()
+      assertThat(inspectionView.currentProcess!!.pid).isEqualTo(fakeProcesses[2].pid)
+      assertThat(inspectionView.currentProcess!!.isRunning).isTrue()
+    }
+  }
+
+  @Test
+  fun remembersLastActiveTab() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val inspectionView = withContext(uiDispatcher) {
+      AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
+                        { listOf(TestAppInspectorTabProvider1(), TestAppInspectorTabProvider2()) },
+                        appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+        listOf(FakeTransportService.FAKE_PROCESS_NAME)
+      }
+    }
+    Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    timer.currentTimeNs += 1
+
+    inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
+      when (i) {
+        0 -> {
+          val inspectorTabsPane = inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane
+          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(0)
+          inspectionView.inspectorTabs.forEach { it.waitForContent() }
+          inspectorTabsPane.selectedIndex = 1
+          assertThat(inspectorTabsPane.selectedIndex).isEqualTo(1)
+          transportService.stopProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+          timer.currentTimeNs += 1
+        }
+        1 -> {
+          transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+        }
+        2 -> assertThat((inspectionView.inspectorPanel.getComponent(0) as CommonTabbedPane).selectedIndex).isEqualTo(1)
+      }
     }
   }
 }

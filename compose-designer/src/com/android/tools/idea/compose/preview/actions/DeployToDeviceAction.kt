@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
@@ -60,7 +61,8 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isNoLibraryAndroidModule = previewElement()?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
-    e.presentation.isVisible = isNoLibraryAndroidModule
+    e.presentation.isVisible = ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled &&
+                               isNoLibraryAndroidModule
     e.presentation.isEnabled = isNoLibraryAndroidModule && !isAnyPreviewRefreshing(e.dataContext)
   }
 

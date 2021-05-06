@@ -30,7 +30,6 @@ import com.intellij.openapi.util.Key;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -44,24 +43,18 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
   private final @NotNull DialogSupplier myNewSelectMultipleDevicesDialog;
   private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
-  private final @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> myDevicesSelectedServiceGetInstance;
 
   // TODO This should not be used in tests
   public DeviceAndSnapshotComboBoxTargetProvider() {
-    this(DeviceAndSnapshotComboBoxAction::getInstance,
-         SelectMultipleDevicesDialog::new,
-         SelectedDevicesErrorDialog::new,
-         DevicesSelectedService::getInstance);
+    this(DeviceAndSnapshotComboBoxAction::getInstance, SelectMultipleDevicesDialog::new, SelectedDevicesErrorDialog::new);
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
                                           @NotNull DialogSupplier newSelectMultipleDevicesDialog,
-                                          @NotNull DialogSupplier selectedDevicesErrorDialog,
-                                          @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
+                                          @NotNull DialogSupplier selectedDevicesErrorDialog) {
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
     myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
-    myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
     mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
   }
 
@@ -117,8 +110,9 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public @Nullable DeployTarget showPrompt(@NotNull AndroidFacet facet) {
+    DeviceAndSnapshotComboBoxAction action = myDeviceAndSnapshotComboBoxActionGetInstance.get();
     Project project = facet.getModule().getProject();
-    List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
+    List<Device> devices = action.getDevices(project).orElse(Collections.emptyList());
 
     // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
     Boolean showRunMultipleDeviceDialog = MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
@@ -135,15 +129,15 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
     // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
     if (showRunMultipleDeviceDialog) {
-      return new DeviceAndSnapshotComboBoxTarget(myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog(devices));
+      return new DeviceAndSnapshotComboBoxTarget(action::getTargetsSelectedWithDialog);
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedTargets(project));
+    return new DeviceAndSnapshotComboBoxTarget(action::getSelectedTargets);
   }
 
   @NotNull
   @Override
   public DeployTarget getDeployTarget(@NotNull Project project) {
-    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedTargets(project));
+    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
   }
 }

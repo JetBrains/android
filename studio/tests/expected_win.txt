@@ -857,13 +857,10 @@ android-studio/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotations-android.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotations-jvm-sources.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotations-jvm.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-ant.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-compiler.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlin-coroutines-experimental-compat-sources.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlin-coroutines-experimental-compat.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-daemon-client.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-daemon.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-imports-dumper-compiler-plugin.jar
@@ -906,6 +903,7 @@ android-studio/plugins/Kotlin/kotlinc/lib/parcelize-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/sam-with-receiver-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/trove4j.jar
 android-studio/plugins/Kotlin/kotlinc/license/COPYRIGHT.txt
+android-studio/plugins/Kotlin/kotlinc/license/COPYRIGHT_HEADER.txt
 android-studio/plugins/Kotlin/kotlinc/license/LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/NOTICE.txt
 android-studio/plugins/Kotlin/kotlinc/license/README.md
@@ -959,7 +957,6 @@ android-studio/plugins/Kotlin/lib/kotlin-compiler-plugins-noarg.jar
 android-studio/plugins/Kotlin/lib/kotlin-compiler-plugins-sam-with-receiver.jar
 android-studio/plugins/Kotlin/lib/kotlin-compiler-plugins-scripting.jar
 android-studio/plugins/Kotlin/lib/kotlin-core.jar
-android-studio/plugins/Kotlin/lib/kotlin-coroutines-experimental-compat.jar
 android-studio/plugins/Kotlin/lib/kotlin-eval4j.jar
 android-studio/plugins/Kotlin/lib/kotlin-formatter.jar
 android-studio/plugins/Kotlin/lib/kotlin-frontend-independent.jar
@@ -990,6 +987,7 @@ android-studio/plugins/Kotlin/lib/kotlin-project-wizard-core.jar
 android-studio/plugins/Kotlin/lib/kotlin-project-wizard-idea.jar
 android-studio/plugins/Kotlin/lib/kotlin-reflect.jar
 android-studio/plugins/Kotlin/lib/kotlin-repl.jar
+android-studio/plugins/Kotlin/lib/kotlin-resources-descriptors.jar
 android-studio/plugins/Kotlin/lib/kotlin-script-runtime.jar
 android-studio/plugins/Kotlin/lib/kotlin-script-util.jar
 android-studio/plugins/Kotlin/lib/kotlin-scripting-common.jar
@@ -1578,7 +1576,7 @@ android-studio/plugins/android/lib/baksmali-2.2.4.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/core-3.4.0.jar
-android-studio/plugins/android/lib/core-proto-0.0.8-alpha03.jar
+android-studio/plugins/android/lib/core-proto-0.0.8-alpha04.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/dexlib2-2.2.4.jar
@@ -1632,7 +1630,7 @@ android-studio/plugins/android/lib/sdk-tools.jar
 android-studio/plugins/android/lib/sdklib.jar
 android-studio/plugins/android/lib/shared.jar
 android-studio/plugins/android/lib/spantable.jar
-android-studio/plugins/android/lib/sqlite-jdbc-3.21.0.1.jar
+android-studio/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 android-studio/plugins/android/lib/sqlite_inspector_proto.jar
 android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar

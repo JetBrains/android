@@ -259,6 +259,16 @@ interface IdeSyncIssue {
         /** Java version used by AGP is too low. */
         const val TYPE_AGP_USED_JAVA_VERSION_TOO_LOW = 46
 
+        /**
+         * Indicates that the project uses a compile SDK version that's newer than
+         * the highest version that the build system has been tested with.
+         *
+         * The data is the maximum supported compile SDK version for this version
+         * of the Android Gradle Plugin.
+         */
+
+        const val TYPE_COMPILE_SDK_VERSION_TOO_HIGH = 47
+
         // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
         // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
         // an indexing issue in the past (see http://issuetracker.google.com/138278313).

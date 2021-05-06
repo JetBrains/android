@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
@@ -88,10 +89,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   override fun getShowPreviewAction() = previewViewAction
 
   override fun getData(dataId: String): Any? {
-    if (dataId == LangDataKeys.IDE_VIEW.name) {
-      val component = myEditor.editor.contentComponent
-      val context = DataManager.getInstance().getDataContext(component)
-      return context.getData(dataId)
+    if (LangDataKeys.IDE_VIEW.`is`(dataId)) {
+      val project = editor.project ?: return null
+      return FileEditorManagerEx.getInstanceEx(project).getData(dataId, editor, editor.caretModel.currentCaret)
     }
     return null
   }

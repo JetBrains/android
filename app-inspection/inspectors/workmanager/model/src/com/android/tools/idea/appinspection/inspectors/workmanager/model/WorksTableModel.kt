@@ -32,12 +32,12 @@ class WorksTableModel(private val client: WorkManagerInspectorClient) : Abstract
         return Any()
       }
     },
-    CLASS_NAME(0.35, Long::class.java, "Class Name") {
+    CLASS_NAME(0.32, Long::class.java, "Class Name") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.workerClassName.substringAfterLast('.')
       }
     },
-    STATE(0.1, String::class.java, "State") {
+    STATE(0.13, String::class.java, "State") {
       override fun getValueFrom(data: WorkManagerInspectorProtocol.WorkInfo): Any {
         return data.state.ordinal
       }

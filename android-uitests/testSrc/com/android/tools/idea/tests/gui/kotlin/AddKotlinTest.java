@@ -165,9 +165,14 @@ public class AddKotlinTest {
       .open("build.gradle")
       .getCurrentFileContents();
 
+    String kotlinVersion = bundledRuntimeVersion();
+    int dash = kotlinVersion.indexOf('-');
+    if (dash != -1) {
+      kotlinVersion = kotlinVersion.substring(0, dash);
+    }
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "ext\\.kotlin_version.*=.*",
-      "ext.kotlin_version = '" + bundledRuntimeVersion() + '\'')
+      "ext.kotlin_version = '" + kotlinVersion + '\'')
       .replaceAll(
         "mavenCentral\\(\\)",
         ""

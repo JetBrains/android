@@ -126,7 +126,7 @@ java_import(
 # managed by go/iml_to_build
 java_import(
     name = "sqlite",
-    jars = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.21.0.1:sqlite_files"],
+    jars = ["//prebuilts/tools/common/m2/repository/org/xerial/sqlite-jdbc/3.34.0:sqlite_files"],
     visibility = ["//visibility:public"],
 )
 

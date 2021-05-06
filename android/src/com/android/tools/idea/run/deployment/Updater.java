@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunProfile;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
-import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -254,9 +252,6 @@ final class Updater {
 
     myPresentation.setIcon(device.getIcon());
     myPresentation.setText(getText(device, target), false);
-    if (!device.getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK)) {
-      myPresentation.setDescription(Devices.getErrorFormattedText(device.getLaunchCompatibility()));
-    }
   }
 
   /**

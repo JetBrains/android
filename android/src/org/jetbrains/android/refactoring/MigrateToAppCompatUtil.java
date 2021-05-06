@@ -162,11 +162,11 @@ class MigrateToAppCompatUtil {
       List<LintProblemData> problemDataList = entry.getValue();
 
       for (LintProblemData problemData : problemDataList) {
-        Integer start = problemData.getTextRange().getStartOffset();
+        int start = problemData.getTextRange().getStartOffset();
         LintFix fix = problemData.getQuickfixData();
         if (!(fix instanceof LintFix.ReplaceString)) continue;
         LintFix.ReplaceString replaceFix = (LintFix.ReplaceString)fix;
-        String suggestedSuperClass = replaceFix.replacement;
+        String suggestedSuperClass = replaceFix.getReplacement();
         PsiElement element = PsiTreeUtil.findElementOfClassAtOffset(psiFile, start, PsiElement.class, true);
         if (element != null) {
           result.add(new ChangeCustomViewUsageInfo(element, suggestedSuperClass));

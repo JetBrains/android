@@ -63,13 +63,13 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
 
         fun A() {}
         val aCallable: () -> Unit = ::A
-        val bCallable: @Composable () -> Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is KFunction0<Unit> but @Composable() () -> Unit was expected">::A</error>
+        val bCallable: @Composable () -> Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is KFunction0<Unit> but @Composable () -> Unit was expected">::A</error>
         val cCallable = ::A
         fun doSomething(fn: () -> Unit) { print(fn) }
         @Composable fun B(content: @Composable () -> Unit) {
             content()
             doSomething(::A)
-            B(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is KFunction0<Unit> but @Composable() () -> Unit was expected">::A</error>)
+            B(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is KFunction0<Unit> but @Composable () -> Unit was expected">::A</error>)
         }
         """
     )
@@ -132,11 +132,11 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       fun acceptSuspend(fn: suspend () -> Unit) { print(fn) }
       fun acceptComposableSuspend(fn: <error descr="[COMPOSABLE_SUSPEND_FUN] Suspend functions cannot be made Composable">@Composable suspend () -> Unit</error>) { print(fn.hashCode()) }
 
-      val foo: suspend () -> Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
+      val foo: suspend () -> Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
       val bar: suspend () -> Unit = {}
       fun Test() {
           val composableLambda = @Composable {}
-          acceptSuspend <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable() suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
+          acceptSuspend <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
           acceptComposableSuspend @Composable {}
           acceptComposableSuspend(<error descr="[UNSUPPORTED_FEATURE] The feature \"suspend conversion\" is disabled">composableLambda</error>)
           acceptSuspend(<error descr="Expecting ')'"><error descr="Expecting an expression"><</error></error><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">!COMPOSABLE_SUSPEND_FUN, TYPE_MISMATCH!>@Composable suspend fun()</error> <warning descr="[UNUSED_LAMBDA_EXPRESSION] The lambda expression is unused. If you mean a block, you can use 'run { ... }'">{ }</warning><error descr="Unexpected tokens (use ';' to separate expressions on the same line)">)</error>

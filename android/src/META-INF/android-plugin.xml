@@ -164,6 +164,9 @@
       <action internal="true" id="Android.DumpProject" class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectAction"/>
       <action internal="true" id="Android.DumpProjectData" class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectDataAction"/>
       <action internal="true" id="Android.ShowFileResources" class="com.android.tools.idea.res.ShowFileResourcesAction"/>
+      <action internal="true" id="Android.Jfr.Start" class="com.android.tools.idea.diagnostics.profiler.StartJfr" />
+      <action internal="true" id="Android.Jfr.Dump" class="com.android.tools.idea.diagnostics.profiler.DumpJfrRecording" />
+      <action internal="true" id="Android.Jfr.Stop" class="com.android.tools.idea.diagnostics.profiler.StopJfr" />
       <add-to-group group-id="Internal"/>
     </group>
     <group id="Internal.Android.LiveLiterals" text="Live Literals" popup="true" internal="true">
@@ -292,7 +295,6 @@
         class="com.android.tools.idea.editors.literals.actions.ToggleLiveLiteralsHighlightAction"
         text="Toggle Live Literals Highlights"
         description="Switches the Live Literals highlights on/off">
-      <keyboard-shortcut keymap="$default" first-keystroke="alt shift COMMA" />
     </action>
   </actions>
 
@@ -609,6 +611,7 @@
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceXmlUsageProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidResourceReferenceInCodeUsageTypeProvider" order="first" />
+    <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
     <externalAnnotator language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaResourceExternalAnnotator"/>
 
     <facet.toolWindow id="Logcat"
@@ -627,7 +630,7 @@
                       facetIdList="android,apk"
                       anchor="right"
                       icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
-                      factoryClass="com.android.tools.idea.deviceManager.DeviceManagerFactory"/>
+                      factoryClass="com.android.tools.idea.devicemanager.DeviceManagerFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"/>
@@ -713,7 +716,6 @@
     <refactoring.safeDeleteProcessor id="android_resource_file" implementation="org.jetbrains.android.AndroidResourceFileSafeDeleteProcessor"/>
 
     <statusBarWidgetProvider implementation="com.android.tools.idea.widget.AdbConnectionWidgetProvider"/>
-    <statusBarWidgetFactory id="LiveLiterals" implementation="com.android.tools.idea.editors.literals.ui.LiveLiteralsAvailableIndicatorFactory"/>
 
     <projectService serviceImplementation="com.android.tools.idea.rendering.classloading.ProjectConstantRemapper"
                     serviceInterface="com.android.tools.idea.rendering.classloading.ConstantRemapper" />

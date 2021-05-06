@@ -2,6 +2,7 @@ package com.android.tools.idea.appinspection.inspectors.workmanager.view
 
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkSelectionModel
@@ -24,7 +25,6 @@ import java.awt.event.ActionListener
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JSeparator
 
 private const val BUTTON_SIZE = 24 // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON_SIZE))
@@ -39,20 +39,22 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
                           private val workSelectionModel: WorkSelectionModel,
                           private val contentView: WorksContentView) : JPanel() {
 
+  // A configuration map to add extra paddings at the bottom of certain components.
+  private val extraBottomPaddingMap = mutableMapOf<Component, Int>()
   private val scrollPane = JBScrollPane()
 
   init {
-    layout = TabularLayout("*", "Fit,Fit,*")
+    layout = TabularLayout("*", "28px,*")
+    border = BorderFactory.createEmptyBorder()
     val headingPanel = JPanel(BorderLayout())
     val instanceViewLabel = JLabel("Work Details")
-    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 5, 0, 0)
+    instanceViewLabel.border = BorderFactory.createEmptyBorder(0, 6, 0, 0)
     headingPanel.add(instanceViewLabel, BorderLayout.WEST)
     val closeButton = CloseButton { tab.isDetailsViewVisible = false }
     headingPanel.add(closeButton, BorderLayout.EAST)
     add(headingPanel, TabularLayout.Constraint(0, 0))
-    add(JSeparator(), TabularLayout.Constraint(1, 0))
-    scrollPane.border = BorderFactory.createEmptyBorder()
-    add(scrollPane, TabularLayout.Constraint(2, 0))
+    scrollPane.border = AdtUiUtils.DEFAULT_TOP_BORDER
+    add(scrollPane, TabularLayout.Constraint(1, 0))
 
     workSelectionModel.registerWorkSelectionListener { work, _ ->
       if (work != null && tab.isDetailsViewVisible) {
@@ -62,7 +64,9 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   }
 
   private fun updateSelectedWork(work: WorkInfo) {
-    val detailsPanel = ScrollablePanel(VerticalLayout(18))
+    val detailsPanel = object : ScrollablePanel(VerticalLayout(18)) {
+      override fun getScrollableTracksViewportWidth() = false
+    }
     detailsPanel.border = BorderFactory.createEmptyBorder(6, 12, 20, 12)
 
     val idListProvider = IdListProvider(client, work) {
@@ -101,17 +105,18 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     }
 
     detailsPanel.add(buildCategoryPanel("WorkContinuation", listOf(
-      switchContentModeLabel,
+      // Visually separate switchContentModeLabel and work chain labels.
+      switchContentModeLabel.apply { extraBottomPaddingMap[this] = 10 },
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
-      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider),
-      buildKeyValuePair(" ", ""), // Visually separate work chain or else UUIDs run together
+      // Visually separate work chain or else UUIDs run together.
+      buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },
       buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
     )))
 
     detailsPanel.add(buildCategoryPanel("Results", listOf(
-      buildKeyValuePair("Time Started", work.scheduleRequestedAt, TimeProvider),
+      buildKeyValuePair("Time started", work.scheduleRequestedAt, TimeProvider),
       buildKeyValuePair("Retries", work.runAttemptCount),
-      buildKeyValuePair("Output Data", work, OutputDataProvider)
+      buildKeyValuePair("Output data", work, OutputDataProvider)
     )))
 
     scrollPane.setViewportView(detailsPanel)
@@ -119,16 +124,18 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
     repaint()
   }
 
-  private fun buildCategoryPanel(name: String, subPanels: List<Component>): JPanel {
-    val panel = JPanel(VerticalLayout(0))
+  private fun buildCategoryPanel(name: String, entryComponents: List<Component>): JPanel {
+    val panel = JPanel(VerticalLayout(6))
 
     val headingPanel = TitledSeparator(name)
+    headingPanel.minimumSize = Dimension(0, 34)
     panel.add(headingPanel)
 
-    for (subPanel in subPanels) {
+    for (component in entryComponents) {
       val borderedPanel = JPanel(BorderLayout())
-      borderedPanel.add(subPanel, BorderLayout.WEST)
-      borderedPanel.border = BorderFactory.createEmptyBorder(0, 20, 0, 0)
+      borderedPanel.add(component, BorderLayout.WEST)
+      borderedPanel.border =
+        BorderFactory.createEmptyBorder(0, 18, extraBottomPaddingMap.getOrDefault(component, 0), 0)
       panel.add(borderedPanel)
     }
     return panel
@@ -137,7 +144,7 @@ class WorkInfoDetailsView(private val tab: WorkManagerInspectorTab,
   private fun <T> buildKeyValuePair(key: String,
                                     value: T,
                                     componentProvider: ComponentProvider<T> = ToStringProvider()): JPanel {
-    val panel = JPanel(TabularLayout("180px,*")).apply {
+    val panel = JPanel(TabularLayout("155px,*")).apply {
       // Add a 2px text offset to align this panel with a [HyperlinkLabel] properly.
       // See HyperlinkLabel.getTextOffset() for more details.
       border = BorderFactory.createEmptyBorder(0, 2, 0, 0)

@@ -29,30 +29,28 @@ import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class AbiDslElement extends BaseSplitOptionsDslElement {
   public static final PropertiesElementDescription<AbiDslElement> ABI =
     new PropertiesElementDescription<>("abi", AbiDslElement.class, AbiDslElement::new);
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap =
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap =
     Stream.concat(
       BaseSplitOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
+        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"isUniversalApk", property, UNIVERSAL_APK, VAR},
       })).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap =
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap =
     Stream.concat(
       BaseSplitOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
+        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"universalApk", property, UNIVERSAL_APK, VAR},
@@ -60,8 +58,7 @@ public class AbiDslElement extends BaseSplitOptionsDslElement {
       })).collect(toModelMap());
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

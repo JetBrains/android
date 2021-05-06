@@ -25,33 +25,38 @@ import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public final class ModelMapCollector {
-  @NotNull
-  public static Collector<Object[], ?, ImmutableMap<Pair<String, Integer>, ModelEffectDescription>> toModelMap() {
-    Function<Object[], Pair<String,Integer>> k = data -> {
+  public static @NotNull Collector<Object[], ?, ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription>> toModelMap() {
+    Function<Object[], SurfaceSyntaxDescription> k = data -> {
+      String name = (String) data[0];
       Integer arity = (Integer) data[1];
       SemanticsDescription description = (SemanticsDescription) data[3];
       if (Objects.equals(arity, ArityHelper.property)) {
         if (!(description instanceof PropertySemanticsDescription)) {
-          throw new RuntimeException((String) data[0]);
+          throw new RuntimeException("Dsl setup problem for " + name + ": property/semantics description mismatch");
         }
       }
       else {
         if (!(description instanceof MethodSemanticsDescription)) {
-          throw new RuntimeException((String) data[0]);
+          throw new RuntimeException("Dsl setup problem for " + name + ": method/semantics description mismatch");
         }
       }
-      return new Pair<>((String)data[0], (Integer)data[1]);
+      return new SurfaceSyntaxDescription(name, arity);
     };
     Function<Object[], ModelEffectDescription> v = data -> {
-      if (data[2] instanceof String) {
-        return new ModelEffectDescription(new ModelPropertyDescription((String)data[2]), (SemanticsDescription)data[3]);
+      String name = (String)data[0];
+      Object propertyDescriptionDesignator = data[2];
+      SemanticsDescription sd = (SemanticsDescription)data[3];
+      ModelPropertyDescription mpd;
+      if (propertyDescriptionDesignator instanceof String) {
+        mpd = new ModelPropertyDescription((String)propertyDescriptionDesignator);
       }
-      else if (data[2] instanceof ModelPropertyDescription) {
-        return new ModelEffectDescription((ModelPropertyDescription) data[2], (SemanticsDescription) data[3]);
+      else if (propertyDescriptionDesignator instanceof ModelPropertyDescription) {
+        mpd = (ModelPropertyDescription)propertyDescriptionDesignator;
       }
       else {
-        throw new RuntimeException(data[2].toString());
+        throw new RuntimeException("Unrecognized model property description designator for " + name + ": " + propertyDescriptionDesignator);
       }
+      return new ModelEffectDescription(mpd, sd);
     };
     return toImmutableMap(k, v);
   }

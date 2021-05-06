@@ -60,6 +60,8 @@ class WorkManagerInspectorTab(client: WorkManagerInspectorClient,
     border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
     isOpaque = true
     firstComponent = contentView
+    dividerWidth = 1
+    divider.background = AdtUiUtils.DEFAULT_BORDER_COLOR
   }
 
   val component: JComponent = splitter

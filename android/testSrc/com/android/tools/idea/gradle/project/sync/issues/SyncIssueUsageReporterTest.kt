@@ -30,7 +30,9 @@ class SyncIssueUsageReporterTest : AndroidGradleTestCase() {
   fun testAllSyncIssueTypesHaveGradleSyncIssueType() {
     val nonGenericSyncIssues = SyncIssue::class.java.fields.filter { it.name.startsWith("TYPE_") && it.name != "TYPE_GENERIC" }
     for (syncIssue in nonGenericSyncIssues) {
-      assertThat(syncIssue.getInt(SyncIssue::class.java).toGradleSyncIssueType()).isNotNull()
+      assertThat(syncIssue.getInt(SyncIssue::class.java).toGradleSyncIssueType())
+        .named("SyncIssue.${syncIssue.name}.toGradleSyncIssueType()")
+        .isNotNull()
     }
   }
 

@@ -16,10 +16,13 @@
 package com.android.tools.idea.imports
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import java.nio.charset.StandardCharsets.UTF_8
+import java.time.Duration
 
 /**
  * Tests for [MavenClassRegistryFromRepository].
@@ -36,6 +39,7 @@ class MavenClassRegistryFromRepositoryTest {
               "groupId": "androidx.activity",
               "artifactId": "activity",
               "version": "1.1.0",
+              "ktxTargets": [],
               "fqcns": [
                 "androidx.activity.ComponentActivity",
                 "androidx.activity.Fake"
@@ -45,12 +49,16 @@ class MavenClassRegistryFromRepositoryTest {
               "groupId": "androidx.activity",
               "artifactId": "activity-ktx",
               "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
               "fqcns": []
             },
             {
               "groupId": "androidx.annotation",
               "artifactId": "annotation",
               "version": "1.1.0",
+              "ktxTargets": [],
               "fqcns": [
                 "androidx.annotation.AnimRes",
                 "androidx.annotation.Fake"
@@ -63,7 +71,7 @@ class MavenClassRegistryFromRepositoryTest {
 
     val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
-    assertThat(mavenClassRegistry.lookup).containsExactlyEntriesIn(
+    assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
           MavenClassRegistryBase.Library(
@@ -93,6 +101,12 @@ class MavenClassRegistryFromRepositoryTest {
         )
       )
     )
+
+    assertThat(mavenClassRegistry.lookup.ktxMap).containsExactlyEntriesIn(
+      mapOf(
+        "androidx.activity:activity" to "androidx.activity:activity-ktx"
+      )
+    )
   }
 
   @Test
@@ -109,7 +123,8 @@ class MavenClassRegistryFromRepositoryTest {
 
     val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
-    assertThat(mavenClassRegistry.lookup).isEmpty()
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
   }
 
   @Test
@@ -122,6 +137,7 @@ class MavenClassRegistryFromRepositoryTest {
             {
               "artifactId": "activity",
               "version": "1.1.0",
+              "ktxTargets": [],
               "fqcns": [
                 "androidx.activity.ComponentActivity",
                 "androidx.activity.Fake"
@@ -134,7 +150,8 @@ class MavenClassRegistryFromRepositoryTest {
 
     val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
-    assertThat(mavenClassRegistry.lookup).isEmpty()
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
   }
 
   @Test
@@ -146,6 +163,89 @@ class MavenClassRegistryFromRepositoryTest {
           "Index": [
             {
               "groupId": "androidx.activity",
+              "version": "1.1.0",
+              "ktxTargets": [],
+              "fqcns": [
+                "androidx.activity.ComponentActivity",
+                "androidx.activity.Fake"
+              ]
+            },
+          ]
+        }
+      """.trimIndent().byteInputStream(UTF_8)
+    )
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
+
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
+  }
+
+  @Test
+  fun parseMalformedJsonFile_noVersionDeclared() {
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-ktx",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
+              "fqcns": [
+                "androidx.activity.ComponentActivity",
+                "androidx.activity.Fake"
+              ]
+            },
+          ]
+        }
+      """.trimIndent().byteInputStream(UTF_8)
+    )
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
+
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
+  }
+
+  @Test
+  fun parseMalformedJsonFile_noFqcnsDeclared() {
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity-ktx",
+              "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ]
+            },
+          ]
+        }
+      """.trimIndent().byteInputStream(UTF_8)
+    )
+
+    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
+
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
+  }
+
+  @Test
+  fun parseMalformedJsonFile_noKtxTargetsDeclared() {
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+      """
+        {
+          "Index": [
+            {
+              "groupId": "androidx.activity",
+              "artifactId": "activity",
               "version": "1.1.0",
               "fqcns": [
                 "androidx.activity.ComponentActivity",
@@ -159,54 +259,8 @@ class MavenClassRegistryFromRepositoryTest {
 
     val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
-    assertThat(mavenClassRegistry.lookup).isEmpty()
-  }
-
-  @Test
-  fun parseMalformedJsonFile_noVersionDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
-      """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "fqcns": [
-                "androidx.activity.ComponentActivity",
-                "androidx.activity.Fake"
-              ]
-            },
-          ]
-        }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
-
-    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
-
-    assertThat(mavenClassRegistry.lookup).isEmpty()
-  }
-
-  @Test
-  fun parseMalformedJsonFile_noFqcnsDeclared() {
-    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    `when`(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
-      """
-        {
-          "Index": [
-            {
-              "groupId": "androidx.activity",
-              "artifactId": "activity",
-              "version": "1.1.0"
-            },
-          ]
-        }
-      """.trimIndent().byteInputStream(UTF_8)
-    )
-
-    val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
-
-    assertThat(mavenClassRegistry.lookup).isEmpty()
+    assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
+    assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
   }
 
   @Test
@@ -227,6 +281,7 @@ class MavenClassRegistryFromRepositoryTest {
               "groupId": "androidx.activity",
               "artifactId": "activity",
               "version": "1.1.0",
+              "ktxTargets": [],
               "unKnown3": "unknown content",
               "fqcns": [
                 "androidx.activity.ComponentActivity",
@@ -237,6 +292,9 @@ class MavenClassRegistryFromRepositoryTest {
               "groupId": "androidx.activity",
               "artifactId": "activity-ktx",
               "version": "1.1.0",
+              "ktxTargets": [
+                "androidx.activity:activity"
+              ],
               "unKnown4": [
                 "a",
                 "b"
@@ -247,6 +305,7 @@ class MavenClassRegistryFromRepositoryTest {
               "groupId": "androidx.annotation",
               "artifactId": "annotation",
               "version": "1.1.0",
+              "ktxTargets": [],
               "unKnown5": [],
               "fqcns": [
                 "androidx.annotation.AnimRes",
@@ -261,7 +320,7 @@ class MavenClassRegistryFromRepositoryTest {
 
     val mavenClassRegistry = MavenClassRegistryFromRepository(gMavenIndexRepositoryMock)
 
-    assertThat(mavenClassRegistry.lookup).containsExactlyEntriesIn(
+    assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
           MavenClassRegistryBase.Library(
@@ -291,5 +350,66 @@ class MavenClassRegistryFromRepositoryTest {
         )
       )
     )
+    assertThat(mavenClassRegistry.lookup.ktxMap).containsExactlyEntriesIn(
+      mapOf(
+        "androidx.activity:activity" to "androidx.activity:activity-ktx"
+      )
+    )
+  }
+
+  @Test
+  fun readOfflineIndexFile() {
+    val tempDir = createInMemoryFileSystemAndFolder("tempCacheDir")
+    val repository = GMavenIndexRepository("https://example.com", tempDir, Duration.ofDays(1))
+
+    try {
+      val mavenClassRegistry = MavenClassRegistryFromRepository(repository)
+      val data = repository.loadIndexFromDisk().bufferedReader(UTF_8).use {
+        it.readText()
+      }
+
+      // Check if we have a valid built-in index file.
+      assertThat(data).startsWith(
+        """
+          {
+            "Index": [
+              {
+        """.trimIndent()
+      )
+
+      // Check if this offline index file can be properly parsed.
+      mavenClassRegistry.lookup.classNameMap.let {
+        assertThat(it.size).isAtLeast(6000)
+        assertThat(it).containsEntry(
+          "ComponentActivity",
+          listOf(
+            MavenClassRegistryBase.Library(
+              artifact = "androidx.activity:activity",
+              packageName = "androidx.activity",
+              version = "1.2.2"
+            )
+          )
+        )
+        assertThat(it).containsEntry(
+          "OnBackPressedDispatcher",
+          listOf(
+            MavenClassRegistryBase.Library(
+              artifact = "androidx.activity:activity",
+              packageName = "androidx.activity",
+              version = "1.2.2"
+            )
+          )
+        )
+      }
+
+      mavenClassRegistry.lookup.ktxMap.let {
+        assertThat(it.size).isAtLeast(40)
+        assertThat(it).containsEntry("androidx.navigation:navigation-fragment", "androidx.navigation:navigation-fragment-ktx")
+        assertThat(it).containsEntry("androidx.activity:activity", "androidx.activity:activity-ktx")
+      }
+    }
+    finally {
+      Disposer.dispose(repository)
+    }
   }
 }

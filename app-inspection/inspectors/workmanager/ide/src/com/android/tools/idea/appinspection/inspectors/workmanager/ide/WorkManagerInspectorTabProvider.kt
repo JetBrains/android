@@ -28,10 +28,9 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkMan
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_INSPECTOR_TAB
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import javax.swing.Icon
 import javax.swing.JComponent
 
@@ -51,17 +50,19 @@ class WorkManagerInspectorTabProvider : AppInspectorTabProvider {
     return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()
   }
 
-  override fun createTab(project: Project,
-                         ideServices: AppInspectionIdeServices,
-                         processDescriptor: ProcessDescriptor,
-                         messenger: AppInspectorMessenger): AppInspectorTab {
-    val projectScope = AndroidCoroutineScope(project)
-    val moduleScope = CoroutineScope(projectScope.coroutineContext + Job(projectScope.coroutineContext[Job]))
+  override fun createTab(
+    project: Project,
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
+  ): AppInspectorTab {
+    val scope = AndroidCoroutineScope(parentDisposable)
     return object : AppInspectorTab {
       override val messenger = messenger
-      private val client = WorkManagerInspectorClient(messenger, moduleScope, IdeWorkManagerInspectorTracker(project))
+      private val client = WorkManagerInspectorClient(messenger, scope, IdeWorkManagerInspectorTracker(project))
 
-      override val component: JComponent = WorkManagerInspectorTab(client, ideServices, moduleScope).component
+      override val component: JComponent = WorkManagerInspectorTab(client, ideServices, scope).component
     }
   }
 

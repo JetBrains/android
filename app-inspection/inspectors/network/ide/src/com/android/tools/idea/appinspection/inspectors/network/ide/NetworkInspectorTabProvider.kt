@@ -23,12 +23,12 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
-import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSourceImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
@@ -36,7 +36,7 @@ import javax.swing.Icon
 class NetworkInspectorTabProvider : AppInspectorTabProvider {
   override val inspectorId = "studio.network.inspection"
   override val displayName = "Network Inspector"
-  override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
+  override val icon: Icon = StudioIcons.Shell.Menu.NETWORK_INSPECTOR
   override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
     AppInspectorJar("network-inspector.jar",
                     developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
@@ -51,18 +51,19 @@ class NetworkInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messenger: AppInspectorMessenger
+    messenger: AppInspectorMessenger,
+    parentDisposable: Disposable
   ): AppInspectorTab {
     val componentsProvider = DefaultUiComponentsProvider(project)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
-    val scope = AndroidCoroutineScope(project)
+    val scope = AndroidCoroutineScope(parentDisposable)
     val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
 
     return object : AppInspectorTab {
       override val messenger = messenger
       private val client = NetworkInspectorClient(messenger)
       override val component = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
-                                                   AndroidDispatchers.uiThread, project).component
+                                                   AndroidDispatchers.uiThread, parentDisposable).component
     }
   }
 }

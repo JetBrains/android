@@ -27,9 +27,9 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Cpu;
@@ -51,8 +51,8 @@ import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
-import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.network.NetworkProfiler;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -61,6 +61,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -71,6 +72,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -339,7 +341,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   /**
    * Enable/disable auto device+process selection, which looks for the preferred device + process combination and starts profiling. If no
-   * preference has been set (via {@link #setProcess(Device, Common.Process)}, then we profiling any online device+process combo.
+   * preference has been set (via {@link #setProcess(Common.Device, Common.Process)}, then we profiling any online device+process combo.
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
@@ -402,7 +404,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           if (isStreamDead) {
             // TODO state changes are represented differently in the unified pipeline (with two separate events)
             // remove this once we move complete away from the legacy pipeline.
-            stream = stream.toBuilder().setDevice(stream.getDevice().toBuilder().setState(Device.State.DISCONNECTED)).build();
+            stream = stream.toBuilder().
+              setDevice(stream.getDevice().toBuilder().setState(Common.Device.State.DISCONNECTED)).build();
           }
           if (deviceToStreamIds != null) {
             deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
@@ -419,6 +422,26 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       devices = response.getDeviceList();
     }
     return devices;
+  }
+
+  private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
+                                                     Collection<Common.Device> currentDevices) {
+    if (!myIdeServices.getFeatureConfig().isProfileableInQrEnabled()) {
+      return;
+    }
+    Set<Common.Device> newDevices = Sets.difference(filterOnlineDevices(currentDevices),
+                                                    filterOnlineDevices(previousDevices));
+    for (Common.Device device : newDevices) {
+      int level = device.getFeatureLevel();
+      if (level == AndroidVersion.VersionCodes.Q || level == AndroidVersion.VersionCodes.R) {
+        myClient.executeAsync(
+          Commands.Command.newBuilder()
+            .setStreamId(myDeviceToStreamIds.get(device))
+            .setType(Commands.Command.CommandType.DISCOVER_PROFILEABLE)
+            .build(),
+          getIdeServices().getPoolExecutor());
+      }
+    }
   }
 
   @NotNull
@@ -443,6 +466,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     try {
       Map<Common.Device, List<Common.Process>> newProcesses = new HashMap<>();
       List<Common.Device> devices = getUpToDateDevices();
+      startProfileableDiscoveryIfApplicable(myProcesses.keySet(), devices);
+
       if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
         for (Common.Device device : devices) {
           GetEventGroupsRequest processRequest = GetEventGroupsRequest.newBuilder()
@@ -530,6 +555,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
+  private static Set<Common.Device> filterOnlineDevices(Collection<Common.Device> devices) {
+    return devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
+  }
+
   /**
    * Finds and returns the preferred device if there is an online device with a matching name.
    * Otherwise, we attempt to maintain the currently selected device.
@@ -537,8 +566,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private Common.Device findPreferredDevice() {
     Set<Common.Device> devices = myProcesses.keySet();
-    Set<Common.Device> onlineDevices =
-      devices.stream().filter(device -> device.getState().equals(Common.Device.State.ONLINE)).collect(Collectors.toSet());
+    Set<Common.Device> onlineDevices = filterOnlineDevices(devices);
 
     // We have a preferred device, try not to select anything else.
     if (myAutoProfilingEnabled && myPreferredDeviceName != null) {

@@ -16,7 +16,6 @@
 package com.android.tools.idea.apk.paths;
 
 import com.google.common.base.Joiner;
-import com.intellij.util.SystemProperties;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -130,7 +129,7 @@ public class PathTreeTest {
     expectedLines.add("                              include");
     expectedLines.add("");
 
-    String expected = Joiner.on(SystemProperties.getLineSeparator()).join(expectedLines);
+    String expected = Joiner.on(System.lineSeparator()).join(expectedLines);
     assertEquals(expected, myTree.print());
   }
 }

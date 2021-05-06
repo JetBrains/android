@@ -261,7 +261,7 @@ class WarningsViewDetailPagesFactory(
       addActionListener { actionHandlers.runTestConfigurationCachingBuild() }
     }
     val unknownPluginsNoteHtml = """
-        Note: There could be unknown plugins that aren't compatible and are discovered after
+        Note: <b>Configuration cache is currently an experimental Gradle feature.</b> There could be unknown plugins that aren't compatible and are discovered after
         you build with Configuration cache turned on.
         """.trimIndent().insertBRTags()
     val unknownPluginsListHtml = uiData.unrecognizedPlugins.joinToString(
@@ -281,9 +281,9 @@ class WarningsViewDetailPagesFactory(
         <b>Test builds with Configuration cache finished successfully</b>
         With ${externalLink("Configuration cache", CONFIGURATION_CACHING)}, Gradle can skip the configuration phase entirely when nothing that affects the build configuration has changed.
         
-        Gradle was able to serialize the task graph of this build and reuse it for the second run using configuration cache.
+        Gradle successfully serialized the task graph and reused it with Configuration cache on.
       """.trimIndent().insertBRTags()
-    val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties.").apply {
+    val addToPropertiesActionButton = JButton("Turn on Configuration cache in gradle.properties").apply {
       addActionListener { actionHandlers.turnConfigurationCachingOnInProperties() }
     }
     add(htmlTextLabelWithFixedLines(contentHtml).setupConfigurationCachingDescriptionPane())

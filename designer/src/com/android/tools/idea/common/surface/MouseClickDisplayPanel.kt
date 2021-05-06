@@ -71,7 +71,7 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
       val clickPoint = SwingUtilities.convertPoint(it.component, it.point, this)
       if (contains(clickPoint)) {
         // The click is within our bounds (0, 0, width, height)
-        clickPosition = it.point
+        clickPosition = clickPoint
         endTimeMillis = System.currentTimeMillis() + durationMs
         repaint()
       }

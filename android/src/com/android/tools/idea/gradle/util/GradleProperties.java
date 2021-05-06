@@ -25,7 +25,6 @@ import com.android.tools.idea.util.PropertiesFiles;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -105,7 +104,7 @@ public class GradleProperties {
       "# http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects",
       "# org.gradle.parallel=true"
     };
-    return Joiner.on(SystemProperties.getLineSeparator()).join(lines);
+    return Joiner.on(System.lineSeparator()).join(lines);
   }
 
   public void setJvmArgs(@NotNull String jvmArgs) {

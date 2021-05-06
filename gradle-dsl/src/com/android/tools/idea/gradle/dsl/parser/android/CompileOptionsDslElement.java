@@ -29,29 +29,27 @@ import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.SurfaceSyntaxDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap =
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> ktsToModelNameMap =
     Stream.concat(
       BaseCompileOptionsDslElement.ktsToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
+        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"encoding", property, ENCODING, VAR},
         {"incremental", property, INCREMENTAL, VAR}
       })).collect(toModelMap());
 
-  @NotNull
-  public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap =
+  public static final ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> groovyToModelNameMap =
     Stream.concat(
       BaseCompileOptionsDslElement.groovyToModelNameMap.entrySet().stream().map(data -> new Object[]{
-        data.getKey().getFirst(), data.getKey().getSecond(), data.getValue().property, data.getValue().semantics
+        data.getKey().name, data.getKey().arity, data.getValue().property, data.getValue().semantics
       }),
       Stream.of(new Object[][]{
         {"encoding", property, ENCODING, VAR},
@@ -63,8 +61,7 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
     new PropertiesElementDescription<>("compileOptions", CompileOptionsDslElement.class, CompileOptionsDslElement::new);
 
   @Override
-  @NotNull
-  public ImmutableMap<Pair<String, Integer>, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+  public @NotNull ImmutableMap<SurfaceSyntaxDescription, ModelEffectDescription> getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     if (converter instanceof KotlinDslNameConverter) {
       return ktsToModelNameMap;
     }

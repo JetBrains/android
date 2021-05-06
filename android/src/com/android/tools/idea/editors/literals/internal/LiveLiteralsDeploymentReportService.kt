@@ -81,7 +81,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
 
   /** Map containing when a given device id is currently deploying literals. */
   @GuardedBy("serviceLock")
-  private val activeDevices = mutableSetOf<String>()
+  private val activeDevices = mutableMapOf<String, LiveLiteralsMonitorHandler.DeviceType>()
 
   /** Map containing deployment problems recorded for a given device id. */
   @GuardedBy("serviceLock")
@@ -113,6 +113,12 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
       }
     }
 
+  /**
+   * Returns true if any of the device types are of the given [deviceType].
+   */
+  fun hasActiveDeviceOfType(vararg deviceType: LiveLiteralsMonitorHandler.DeviceType): Boolean =
+    serviceLock.read { deviceType.any { activeDevices.containsValue(it) } }
+
   val problems: Collection<Pair<String, LiveLiteralsMonitorHandler.Problem>>
     get() {
       serviceLock.read {
@@ -130,7 +136,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
 
     var started: Boolean
     serviceLock.write {
-      started = activeDevices.add(deviceId)
+      started = activeDevices.putIfAbsent(deviceId, deviceType) == null
       if (started) {
         log.debug { "Monitor started for '$deviceId' deviceCount=${activeDevices.size}"}
         problemsMap.remove(deviceId)
@@ -156,7 +162,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
     var stopped: Boolean
     modificationTracker.incModificationCount()
     serviceLock.write {
-      stopped = activeDevices.remove(deviceId)
+      stopped = activeDevices.remove(deviceId) != null
       problemsMap.remove(deviceId)
 
       if (stopped) {
@@ -211,7 +217,7 @@ class LiveLiteralsDeploymentReportService private constructor(private val projec
   }
 
   fun stopAllMonitors() {
-    serviceLock.read { activeDevices.toSet() }.forEach { liveLiteralsMonitorStopped(it) }
+    serviceLock.read { activeDevices.keys }.forEach { liveLiteralsMonitorStopped(it) }
   }
 
   /**

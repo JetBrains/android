@@ -12,7 +12,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2/repository/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09:jetifier-core",
         "//prebuilts/tools/common/m2/repository/com/google/auto/auto-common/0.10:auto-common",
         "//prebuilts/tools/common/m2/repository/com/google/flatbuffers/flatbuffers-java/1.12.0:flatbuffers-java",
-        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha03:utp-core-proto",
+        "//prebuilts/tools/common/m2/repository/com/google/testing/platform/core-proto/0.0.8-alpha04:utp-core-proto",
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:juniversalchardet",
         "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.10.0:javapoet",
         "//prebuilts/tools/common/m2/repository/com/squareup/okio/okio/1.14.0:okio",
@@ -112,6 +112,7 @@ studio_plugin(
             "//tools/adt/idea/dagger:intellij.android.dagger",
             "//tools/adt/idea/databinding:intellij.android.databinding",
             "//tools/adt/idea/app-inspection/inspectors/database:intellij.android.app-inspection.inspectors.database",
+            "//tools/adt/idea/debuggers:intellij.android.debuggers",
             "//tools/adt/idea/deploy:intellij.android.deploy",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
@@ -534,11 +535,12 @@ android_studio(
             "//prebuilts/studio/layoutlib:licenses",
         ],
     },
-    searchable_options = "searchable-options",
+    searchable_options = "//tools/adt/idea/searchable-options",
     version_eap = True,
-    version_full = "Arctic Fox | {0}.{1}.{2} Canary {3}",
-    version_micro = 1,
-    version_patch = 15,
+    version_full = "dev build",
+    version_micro = 0,
+    version_patch = 0,
+    visibility = ["//visibility:public"],
 )
 
 py_test(
@@ -547,27 +549,12 @@ py_test(
     data = [
         "tests/expected_linux.txt",
         "tests/expected_mac.txt",
+        "tests/expected_mac_arm.txt",
         "tests/expected_win.txt",
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
+        ":android-studio.mac_arm.zip",
         ":android-studio.win.zip",
-    ],
-)
-
-py_test(
-    name = "searchable_options_test",
-    srcs = [
-        "tests/searchable_options_test.py",
-        "tests/update_searchable_options.py",
-    ],
-    data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
-    ],
-    tags = [
-        "block_network",
-        "no_windows",
     ],
 )
 
@@ -579,21 +566,6 @@ py_test(
     data = [
         ":android-studio.linux.zip",
         "//tools/vendor/google/testing/display:xvfb",
-    ],
-    tags = [
-        "block_network",
-        "no_mac",
-        "no_windows",
-    ],
-)
-
-py_binary(
-    name = "update_searchable_options",
-    srcs = ["tests/update_searchable_options.py"],
-    data = [
-        ":android-studio.linux.zip",
-        ":android-studio.mac.zip",
-        ":android-studio.plugin.lst",
     ],
     tags = [
         "block_network",

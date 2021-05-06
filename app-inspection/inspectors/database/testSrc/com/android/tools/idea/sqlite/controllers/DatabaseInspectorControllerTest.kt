@@ -677,7 +677,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun testAlterTableRenameTableUpdatesSchema() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun ignore_testAlterTableRenameTableUpdatesSchema() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
@@ -732,7 +733,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun `test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun `ignore_test AlterTableAddColumn AlterTableRenameTable UpdatesSchema`() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {
@@ -808,7 +810,8 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     )
   }
 
-  fun `test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
+  // TODO(b/186423143): Re-enable ALTER RENAME tests
+  fun `ignore_test CreateTable AddColumn RenameTable AddColumn UpdatesSchema`() {
     // Prepare
     val databaseId = SqliteDatabaseId.fromLiveDatabase("path", 0)
     runDispatching {

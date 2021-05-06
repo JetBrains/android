@@ -18,6 +18,7 @@ package com.android.tools.idea.transport.poller
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
@@ -118,8 +119,16 @@ class TransportEventPoller(
                      executorServiceForTest: ScheduledExecutorService? = null
     ): TransportEventPoller {
       val poller = TransportEventPoller(transportClient, sortOrder)
-      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay({ poller.poll() },
-                                                                                                 0, pollPeriodNs, TimeUnit.NANOSECONDS)
+      val scheduledFuture = (executorServiceForTest ?: myExecutorService).scheduleWithFixedDelay(
+        {
+          try {
+            poller.poll()
+          }
+          catch (t: Throwable) {
+            Logger.getInstance(TransportEventPoller::class.java).warn(t.toString())
+          }
+        },
+        0, pollPeriodNs, TimeUnit.NANOSECONDS)
       myScheduledFutures[poller] = scheduledFuture
       return poller
     }

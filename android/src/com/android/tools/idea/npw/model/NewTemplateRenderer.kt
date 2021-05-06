@@ -304,6 +304,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ANDROID_INSTANT_APP_BUNDLE_PROJECT,
     TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE,
     TemplateRenderer.BENCHMARK_LIBRARY_MODULE,
+    TemplateRenderer.MACROBENCHMARK_LIBRARY_MODULE,
     TemplateRenderer.ANDROID_LIBRARY,
     TemplateRenderer.DYNAMIC_FEATURE_MODULE,
     TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE,

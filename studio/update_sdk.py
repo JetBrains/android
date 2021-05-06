@@ -242,8 +242,9 @@ sudo apt install android-fetch-artifact""")
 def compatible(old_file, new_file):
   if not os.path.isfile(old_file) or not os.path.isfile(new_file):
     return False
-  if not old_file.endswith(".jar") or not new_file.endswith(".jar"):
-    return False
+  for file in [old_file, new_file]:
+    if not (file.endswith(".jar") or file.endswith(".zip")):
+      return False
   old_files = []
   new_files = []
   with zipfile.ZipFile(old_file) as old_zip:

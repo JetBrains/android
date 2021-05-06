@@ -16,17 +16,12 @@
 package com.android.tools.idea.tests.gui.framework
 
 import com.android.SdkConstants
-import com.android.tools.idea.npw.model.MultiTemplateRenderer
+import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.tools.idea.npw.model.MultiTemplateRenderer.TemplateRendererListener
 import com.android.tools.idea.testing.AndroidGradleTests
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.messages.MessageBusConnection
-import org.junit.rules.TestWatcher
-import org.junit.runner.Description
 import java.io.File
 
 /**
@@ -41,6 +36,7 @@ class NpwControl(private val project: Project) : TemplateRendererListener {
     // Update project files.
     updateRepositories(File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE))
     updateRepositories(File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE))
+    AndroidGradleTests.createGradleWrapper(File(project.basePath!!), GRADLE_LATEST_VERSION) // Point distributionUrl to local file
   }
 
   private fun updateRepositories(gradleFile: File) {

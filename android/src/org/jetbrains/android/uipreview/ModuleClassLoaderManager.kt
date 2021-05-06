@@ -15,7 +15,9 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.LogAnonymizerUtil.anonymize
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.classloading.ClassTransform
@@ -31,10 +33,13 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
 import org.jetbrains.android.uipreview.ModuleClassLoader.NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS
 import org.jetbrains.android.uipreview.ModuleClassLoader.PROJECT_DEFAULT_TRANSFORMS
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.util.ifTrue
 import org.jetbrains.plugins.groovy.util.removeUserData
 import java.lang.ref.SoftReference
 import java.util.Collections
@@ -82,7 +87,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
 /**
  * This is a wrapper around a class preloading [CompletableFuture] that allows for the proper disposal of the resources used.
  */
-private class Preloader(
+class Preloader(
   moduleClassLoader: ModuleClassLoader,
   classesToPreload: Collection<String> = emptyList()) : Disposable {
   private val classLoader = SoftReference(moduleClassLoader)
@@ -109,6 +114,9 @@ private class Preloader(
    */
   fun isLoadingFor(cl: ModuleClassLoader) = classLoader.get() == cl
 
+  fun isForCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
+    classLoader.get()?.isCompatible(parent, projectTransformations, nonProjectTransformations) == true
+
   override fun dispose() {
     try {
       preloader.cancel(true)
@@ -120,6 +128,7 @@ private class Preloader(
 }
 
 private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
+private val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
 
 /**
  * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
@@ -148,6 +157,17 @@ fun ModuleClassLoader.isCompatible(
     true
   }
 }
+
+private fun <T> UserDataHolder.getOrCreate(key: Key<T>, factory: () -> T): T {
+  getUserData(key)?.let {
+    return it
+  }
+  return factory().also {
+    putUserData(key, it)
+  }
+}
+
+private fun UserDataHolder.getOrCreateHatchery() = getOrCreate(HATCHERY) { ModuleClassLoaderHatchery() }
 
 /**
  * A [ClassLoader] for the [Module] dependencies.
@@ -219,12 +239,31 @@ class ModuleClassLoaderManager {
     // Make sure the helper service is initialized
     moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
 
-    return ModuleClassLoader(parent, moduleRenderContext,
-                      combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation),
-                      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation),
-                             createDiagnostics()).apply {
+    val combinedProjectTransformations = combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
+    val combinedNonProjectTransformations = combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
+    val preloadedClassLoader: ModuleClassLoader? = COMPOSE_CLASSLOADERS_PRELOADING.ifEnabled {
+      moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+        parent, combinedProjectTransformations, combinedNonProjectTransformations)
+    }
+    return (preloadedClassLoader ?: ModuleClassLoader(parent, moduleRenderContext,
+                             combinedProjectTransformations,
+                             combinedNonProjectTransformations,
+                             createDiagnostics())).apply {
       holders[this] = createHoldersSet().apply { add(holder) }
     }
+  }
+
+  @VisibleForTesting
+  fun createCopy(mcl: ModuleClassLoader): ModuleClassLoader? {
+    mcl.moduleContext?.let {
+      return ModuleClassLoader(
+        mcl.parent,
+        it,
+        mcl.projectClassesTransformationProvider,
+        mcl.nonProjectClassesTransformationProvider,
+        createDiagnostics())
+    }
+    return null
   }
 
   private fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
@@ -272,19 +311,20 @@ class ModuleClassLoaderManager {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {
-        return@let
+        if (COMPOSE_CLASSLOADERS_PRELOADING.get() && holders.isNotEmpty()) {
+          module.getOrCreateHatchery().incubateIfNeeded(moduleClassLoader, ::createCopy)
+        }
       }
-      module.removeUserData(PRELOADER)?.let { Disposer.dispose(it) }
-      val moduleContext = moduleClassLoader.moduleContext ?: return@let
-      val newClassLoader = ModuleClassLoader(
-        moduleClassLoader.parent,
-        moduleContext,
-        moduleClassLoader.projectClassesTransformationProvider,
-        moduleClassLoader.nonProjectClassesTransformationProvider,
-        createDiagnostics())
-      // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
-      val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
-      moduleClassLoader.module?.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))
+      else {
+        val newClassLoader = createCopy(moduleClassLoader) ?: return@let
+        module.removeUserData(PRELOADER)?.let { Disposer.dispose(it) }
+        // We first load dependencies classes and then project classes since the latter reference the former and not vice versa
+        val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
+        module.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))
+      }
+      if (holders.isEmpty()) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the resources
+        module.getUserData(HATCHERY)?.destroy()
+      }
     }
     return true
   }

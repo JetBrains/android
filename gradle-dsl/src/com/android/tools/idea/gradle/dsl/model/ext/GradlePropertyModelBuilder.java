@@ -263,12 +263,6 @@ public class GradlePropertyModelBuilder {
    */
   @NotNull
   public static GradlePropertyModel createModelFromDslElement(@NotNull GradleDslElement dslElement) {
-    if (dslElement.getParent() != null) {
-      if (dslElement instanceof GradlePropertiesDslElement) {
-        GradlePropertiesDslElement parent = (GradlePropertiesDslElement)dslElement.getParent();
-        return create(parent, dslElement.getName()).build();
-      }
-    }
     return create(dslElement).build();
   }
 

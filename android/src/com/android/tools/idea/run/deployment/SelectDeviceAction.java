@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import java.util.Collection;
 import java.util.Objects;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +40,6 @@ public final class SelectDeviceAction extends AnAction {
   }
 
   @NotNull
-  @VisibleForTesting
   public Device getDevice() {
     return myDevice;
   }
@@ -57,10 +53,6 @@ public final class SelectDeviceAction extends AnAction {
     Key key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
 
     presentation.setText(Devices.getText(myDevice, key), false);
-
-    if (!myDevice.getLaunchCompatibility().getState().equals(LaunchCompatibility.State.OK)) {
-      presentation.putClientProperty(JComponent.TOOL_TIP_TEXT_KEY, Devices.getErrorFormattedText(myDevice.getLaunchCompatibility()));
-    }
   }
 
   @Override

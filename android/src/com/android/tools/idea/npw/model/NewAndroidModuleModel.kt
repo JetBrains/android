@@ -224,7 +224,7 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
 }
 
 private fun Project.hasKtsUsage() : Boolean {
-  // TODO(parentej): Check if settings is kts or any module is kts
+  // TODO: b/185269439 - return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
   return false
 }
 

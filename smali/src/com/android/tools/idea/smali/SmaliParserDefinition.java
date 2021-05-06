@@ -46,11 +46,13 @@ public class SmaliParserDefinition implements ParserDefinition {
     return new SmaliLexerAdapter();
   }
 
+  @NotNull
   @Override
   public PsiParser createParser(Project project) {
     return new SmaliParser();
   }
 
+  @NotNull
   @Override
   public IFileElementType getFileNodeType() {
     return FILE;
@@ -80,11 +82,13 @@ public class SmaliParserDefinition implements ParserDefinition {
     return SmaliTypes.Factory.createElement(node);
   }
 
+  @NotNull
   @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new SmaliFile(viewProvider);
   }
 
+  @NotNull
   @Override
   public SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return MAY;
