@@ -121,7 +121,6 @@ import com.intellij.psi.xml.XmlProcessingInstruction;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.serviceContainer.AlreadyDisposedException;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,7 +139,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -150,7 +148,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
@@ -1029,44 +1026,41 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   /**
-   * Find the {@link com.android.tools.idea.configurations.Configuration} for the provided file and
-   * it's associated {@link AndroidTargetData} asynchronously and then run the provided consumer on the EDT
+   * Calls the provided {@code consumer} asynchronously passing the {@link AndroidTargetData} associated
+   * with the given file.
    */
   private void getAndroidTargetDataThenRun(@NotNull VirtualFile file, @NotNull Consumer<AndroidTargetData> consumer) {
-    Module module = myFacet.getModule();
-    ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(module);
-    if (configurationManager == null) {
-      return;
-    }
-    CompletableFuture.supplyAsync(() -> {
-      IAndroidTarget target = configurationManager.getConfiguration(file).getTarget();
-      if (target != null) {
-        return AndroidTargetData.getTargetData(target, module);
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (myFacet.isDisposed()) {
+        return;
       }
-      return null;
-    }, PooledThreadExecutor.INSTANCE)
-      .thenAcceptAsync((target) -> {
-        if (target != null) {
-          consumer.accept(target);
-        }
-      }, EdtExecutorService.getInstance());
+      ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(myFacet);
+      if (configurationManager == null) {
+        return;
+      }
+      IAndroidTarget target = configurationManager.getConfiguration(file).getTarget();
+      if (target == null) {
+        return;
+      }
+      consumer.accept(AndroidTargetData.getTargetData(target, myFacet.getModule()));
+    });
   }
 
   /**
-   * Called when a bitmap has been changed/deleted. In that case we need to clear out any caches for that
-   * image held by layout lib.
+   * Called when a bitmap file has been changed or deleted. Clears out any caches for that image
+   * inside LayoutLibrary.
    */
   private void bitmapUpdated(@NotNull VirtualFile bitmap) {
     Module module = myFacet.getModule();
-    getAndroidTargetDataThenRun(bitmap, (targetData) -> targetData.clearLayoutBitmapCache(module));
+    getAndroidTargetDataThenRun(bitmap, targetData -> targetData.clearLayoutBitmapCache(module));
   }
 
   /**
-   * Called when a font file has been changed/deleted. This removes the corresponding file from the
-   * Typeface cache inside layoutlib.
+   * Called when a font file has been changed or deleted. Removes the corresponding file from the Typeface
+   * cache inside LayoutLibrary.
    */
   void clearFontCache(@NotNull VirtualFile virtualFile) {
-    getAndroidTargetDataThenRun(virtualFile, (targetData) -> targetData.clearFontCache(virtualFile.getPath()));
+    getAndroidTargetDataThenRun(virtualFile, targetData -> targetData.clearFontCache(virtualFile.getPath()));
   }
 
   @NotNull
