@@ -24,18 +24,22 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WebpConversionDialog extends DialogWrapper implements DocumentListener, ChangeListener, ActionListener {
+  @Nls(capitalization = Nls.Capitalization.Title) public static final String TITLE = "Converting Images to WebP";
+
   private JSlider myQualitySlider;
   private JBTextField myQualityField;
   private JBRadioButton myLossyButton;
@@ -53,10 +57,9 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
   private JBLabel myMinSdkVersionLabel2;
   private boolean myIgnore;
 
-  public WebpConversionDialog(@NotNull Project project, int minSdkVersion, @NotNull WebpConversionSettings settings,
-                              boolean singleFile) {
+  public WebpConversionDialog(@NotNull Project project, int minSdkVersion, @NotNull WebpConversionSettings settings, boolean singleFile) {
     super(project);
-    setTitle(ConvertToWebpAction.TITLE);
+    setTitle(TITLE);
     fromSettings(settings);
     myQualityField.getDocument().addDocumentListener(this);
     myQualitySlider.addChangeListener(this);
