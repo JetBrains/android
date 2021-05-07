@@ -46,7 +46,7 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(private val projec
       textEditor.setState(state.editorState)
       preview.setState(state.previewState)
 
-      layout = state.selectedLayout
+      setLayoutExplicitly(state.selectedLayout)
     } else {
       super.setState(state)
     }
