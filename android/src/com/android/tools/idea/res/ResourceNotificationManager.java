@@ -91,25 +91,29 @@ import org.jetbrains.annotations.Nullable;
 public class ResourceNotificationManager {
   private final @NotNull Project myProject;
 
+  private final @NotNull Object myObserverLock = new Object();
   /**
    * Module observers: one per observed module in the project, with potentially multiple listeners.
    */
+  @GuardedBy("myObserverLock")
   private final @NotNull Map<Module, ModuleEventObserver> myModuleToObserverMap = new HashMap<>();
 
   /**
    * File observers: one per observed file, with potentially multiple listeners.
    */
+  @GuardedBy("myObserverLock")
   private final @NotNull Map<VirtualFile, FileEventObserver> myFileToObserverMap = new HashMap<>();
 
   /**
    * Configuration observers: one per observed configuration, with potentially multiple listeners.
    */
+  @GuardedBy("myObserverLock")
   private final @NotNull Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = new HashMap<>();
 
   /**
    * Project wide observer: a single one will do.
    */
-  @GuardedBy("this")
+  @GuardedBy("myObserverLock")
   private @Nullable ProjectPsiTreeObserver myProjectPsiTreeObserver;
 
   private final @NotNull ProjectBuildObserver myProjectBuildObserver = new ProjectBuildObserver();
@@ -181,43 +185,45 @@ public class ResourceNotificationManager {
    *                      you can listen for changes in (must be a configuration corresponding to the file)
    * @return the current resource modification stamp of the given module
    */
-  public synchronized @NotNull ResourceVersion addListener(@NotNull ResourceChangeListener listener,
-                                                           @NotNull AndroidFacet facet,
-                                                           @Nullable VirtualFile file,
-                                                           @Nullable Configuration configuration) {
+  public @NotNull ResourceVersion addListener(@NotNull ResourceChangeListener listener,
+                                              @NotNull AndroidFacet facet,
+                                              @Nullable VirtualFile file,
+                                              @Nullable Configuration configuration) {
     Module module = facet.getModule();
-    ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
-    if (moduleEventObserver == null) {
-      if (myModuleToObserverMap.isEmpty()) {
-        if (myProjectPsiTreeObserver == null) {
-          myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
+    synchronized (myObserverLock) {
+      ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
+      if (moduleEventObserver == null) {
+        if (myModuleToObserverMap.isEmpty()) {
+          if (myProjectPsiTreeObserver == null) {
+            myProjectPsiTreeObserver = new ProjectPsiTreeObserver();
+          }
+          myProjectBuildObserver.startListening();
         }
-        myProjectBuildObserver.startListening();
+        moduleEventObserver = new ModuleEventObserver(facet);
+        myModuleToObserverMap.put(module, moduleEventObserver);
       }
-      moduleEventObserver = new ModuleEventObserver(facet);
-      myModuleToObserverMap.put(module, moduleEventObserver);
-    }
-    moduleEventObserver.addListener(listener);
+      moduleEventObserver.addListener(listener);
 
-    if (file != null) {
-      FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
-      if (fileEventObserver == null) {
-        fileEventObserver = new FileEventObserver(module);
-        myFileToObserverMap.put(file, fileEventObserver);
-      }
-      fileEventObserver.addListener(listener);
-
-      if (configuration != null) {
-        ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
-        if (configurationEventObserver == null) {
-          configurationEventObserver = new ConfigurationEventObserver(configuration);
-          myConfigurationToObserverMap.put(configuration, configurationEventObserver);
+      if (file != null) {
+        FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
+        if (fileEventObserver == null) {
+          fileEventObserver = new FileEventObserver(module);
+          myFileToObserverMap.put(file, fileEventObserver);
         }
-        configurationEventObserver.addListener(listener);
+        fileEventObserver.addListener(listener);
+
+        if (configuration != null) {
+          ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
+          if (configurationEventObserver == null) {
+            configurationEventObserver = new ConfigurationEventObserver(configuration);
+            myConfigurationToObserverMap.put(configuration, configurationEventObserver);
+          }
+          configurationEventObserver.addListener(listener);
+        }
       }
-    }
-    else {
-      assert configuration == null : configuration;
+      else {
+        assert configuration == null : configuration;
+      }
     }
 
     return getCurrentVersion(facet, file != null ? AndroidPsiUtils.getPsiFileSafely(myProject, file) : null, configuration);
@@ -231,41 +237,43 @@ public class ResourceNotificationManager {
    * @param file          the file passed in to the corresponding {@link #addListener} call
    * @param configuration the configuration passed in to the corresponding {@link #addListener} call
    */
-  public synchronized void removeListener(@NotNull ResourceChangeListener listener,
-                                          @NotNull AndroidFacet facet,
-                                          @Nullable VirtualFile file,
-                                          @Nullable Configuration configuration) {
-    if (file != null) {
-      if (configuration != null) {
-        ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
-        if (configurationEventObserver != null) {
-          configurationEventObserver.removeListener(listener);
-          if (!configurationEventObserver.hasListeners()) {
-            myConfigurationToObserverMap.remove(configuration);
+  public void removeListener(@NotNull ResourceChangeListener listener,
+                             @NotNull AndroidFacet facet,
+                             @Nullable VirtualFile file,
+                             @Nullable Configuration configuration) {
+    synchronized (myObserverLock) {
+      if (file != null) {
+        if (configuration != null) {
+          ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
+          if (configurationEventObserver != null) {
+            configurationEventObserver.removeListener(listener);
+            if (!configurationEventObserver.hasListeners()) {
+              myConfigurationToObserverMap.remove(configuration);
+            }
+          }
+        }
+        FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
+        if (fileEventObserver != null) {
+          fileEventObserver.removeListener(listener);
+          if (!fileEventObserver.hasListeners()) {
+            myFileToObserverMap.remove(file);
           }
         }
       }
-      FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
-      if (fileEventObserver != null) {
-        fileEventObserver.removeListener(listener);
-        if (!fileEventObserver.hasListeners()) {
-          myFileToObserverMap.remove(file);
-        }
+      else {
+        assert configuration == null : configuration;
       }
-    }
-    else {
-      assert configuration == null : configuration;
-    }
 
-    Module module = facet.getModule();
-    ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
-    if (moduleEventObserver != null) {
-      moduleEventObserver.removeListener(listener);
-      if (!moduleEventObserver.hasListeners()) {
-        myModuleToObserverMap.remove(module);
-        if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
-          myProjectBuildObserver.stopListening();
-          myProjectPsiTreeObserver = null;
+      Module module = facet.getModule();
+      ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
+      if (moduleEventObserver != null) {
+        moduleEventObserver.removeListener(listener);
+        if (!moduleEventObserver.hasListeners()) {
+          myModuleToObserverMap.remove(module);
+          if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
+            myProjectBuildObserver.stopListening();
+            myProjectPsiTreeObserver = null;
+          }
         }
       }
     }
@@ -277,8 +285,10 @@ public class ResourceNotificationManager {
    * <p>
    * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
    */
-  public synchronized @Nullable PsiTreeChangeListener getPsiListener() {
-    return myProjectPsiTreeObserver;
+  public @Nullable PsiTreeChangeListener getPsiListener() {
+    synchronized (myObserverLock) {
+      return myProjectPsiTreeObserver;
+    }
   }
 
   /**
@@ -340,7 +350,11 @@ public class ResourceNotificationManager {
   private void notifyListeners(@NotNull EnumSet<Reason> reason) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
-    for (ModuleEventObserver moduleEventObserver : myModuleToObserverMap.values()) {
+    List<ModuleEventObserver> observers;
+    synchronized (myObserverLock) {
+      observers = new ArrayList<>(myModuleToObserverMap.values());
+    }
+    for (ModuleEventObserver moduleEventObserver : observers) {
       // Not every module may have pending changes; each one will check.
       moduleEventObserver.notifyListeners(reason);
     }
@@ -678,7 +692,9 @@ public class ResourceNotificationManager {
      * Checks if the file is present in {@link #myFileToObserverMap}.
      */
     private boolean isRelevantFile(@NotNull VirtualFile virtualFile) {
-      return myFileToObserverMap.containsKey(virtualFile);
+      synchronized (myObserverLock) {
+        return myFileToObserverMap.containsKey(virtualFile);
+      }
     }
 
     private boolean isIgnorable(@NotNull PsiTreeChangeEvent event) {
