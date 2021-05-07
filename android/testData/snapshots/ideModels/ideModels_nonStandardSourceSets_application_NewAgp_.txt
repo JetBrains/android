@@ -74,7 +74,6 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/externalRoot/main/assets [-]
             JniLibsDirectories            : <ROOT>/externalRoot/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/externalRoot/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/externalRoot/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -91,7 +90,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -107,7 +105,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -129,7 +126,6 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/application/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/application/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/application/app/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/application/app/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -146,7 +142,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -163,7 +158,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -184,7 +178,6 @@ MODULE                        : application.app
             AssetsDirectories             : <ROOT>/application/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/application/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/application/app/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/application/app/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -201,7 +194,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -218,7 +210,6 @@ MODULE                        : application.app
                     AssetsDirectories             : <ROOT>/application/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/application/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/application/app/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/application/app/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

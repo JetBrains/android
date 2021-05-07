@@ -71,7 +71,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -88,7 +87,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -104,7 +102,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -126,7 +123,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -143,7 +139,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -160,7 +155,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -181,7 +175,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -198,7 +191,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -215,7 +207,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -417,7 +408,6 @@ MODULE                        : project.library
             AssetsDirectories             : <ROOT>/library/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/library/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/library/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -434,7 +424,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -450,7 +439,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -472,7 +460,6 @@ MODULE                        : project.library
             AssetsDirectories             : <ROOT>/library/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/library/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/library/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -489,7 +476,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -506,7 +492,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -527,7 +512,6 @@ MODULE                        : project.library
             AssetsDirectories             : <ROOT>/library/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/library/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/library/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -544,7 +528,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -561,7 +544,6 @@ MODULE                        : project.library
                     AssetsDirectories             : <ROOT>/library/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -735,7 +717,6 @@ MODULE                        : project.library-remote
             AssetsDirectories             : <ROOT>/library-remote/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/library-remote/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/library-remote/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -752,7 +733,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -768,7 +748,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -790,7 +769,6 @@ MODULE                        : project.library-remote
             AssetsDirectories             : <ROOT>/library-remote/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/library-remote/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/library-remote/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -807,7 +785,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -824,7 +801,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -845,7 +821,6 @@ MODULE                        : project.library-remote
             AssetsDirectories             : <ROOT>/library-remote/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/library-remote/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/library-remote/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/library-remote/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -862,7 +837,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -879,7 +853,6 @@ MODULE                        : project.library-remote
                     AssetsDirectories             : <ROOT>/library-remote/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/library-remote/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/library-remote/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/library-remote/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

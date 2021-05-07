@@ -36,8 +36,6 @@ MODULE: testNestedProjects.app
                 file://./app/src/main/resources
             ShadersDirectoryUrls:
                 file://./app/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -61,8 +59,6 @@ MODULE: testNestedProjects.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
-            MlModelsDirectories:
-                ./app/src/main/ml
         Active:
             main
                 Manifest:
@@ -86,8 +82,6 @@ MODULE: testNestedProjects.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
@@ -110,8 +104,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/resources
                 ShadersDirectories:
                     ./app/src/basic/shaders
-                MlModelsDirectories:
-                    ./app/src/basic/ml
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
@@ -134,8 +126,6 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/resources
                 ShadersDirectories:
                     ./app/src/bar/shaders
-                MlModelsDirectories:
-                    ./app/src/bar/ml
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
@@ -158,8 +148,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/resources
                 ShadersDirectories:
                     ./app/src/basicBar/shaders
-                MlModelsDirectories:
-                    ./app/src/basicBar/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -182,8 +170,6 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
@@ -206,8 +192,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/basicBarDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/basicBarDebug/ml
         All:
             main
                 Manifest:
@@ -231,8 +215,6 @@ MODULE: testNestedProjects.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             bar
                 Manifest:
                     ./app/src/bar/AndroidManifest.xml
@@ -255,8 +237,6 @@ MODULE: testNestedProjects.app
                     ./app/src/bar/resources
                 ShadersDirectories:
                     ./app/src/bar/shaders
-                MlModelsDirectories:
-                    ./app/src/bar/ml
             basic
                 Manifest:
                     ./app/src/basic/AndroidManifest.xml
@@ -279,8 +259,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basic/resources
                 ShadersDirectories:
                     ./app/src/basic/shaders
-                MlModelsDirectories:
-                    ./app/src/basic/ml
             basicBar
                 Manifest:
                     ./app/src/basicBar/AndroidManifest.xml
@@ -303,8 +281,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBar/resources
                 ShadersDirectories:
                     ./app/src/basicBar/shaders
-                MlModelsDirectories:
-                    ./app/src/basicBar/ml
             basicBarDebug
                 Manifest:
                     ./app/src/basicBarDebug/AndroidManifest.xml
@@ -327,8 +303,6 @@ MODULE: testNestedProjects.app
                     ./app/src/basicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/basicBarDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/basicBarDebug/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -351,8 +325,6 @@ MODULE: testNestedProjects.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
             otherBar
                 Manifest:
                     ./app/src/otherBar/AndroidManifest.xml
@@ -375,8 +347,6 @@ MODULE: testNestedProjects.app
                     ./app/src/otherBar/resources
                 ShadersDirectories:
                     ./app/src/otherBar/shaders
-                MlModelsDirectories:
-                    ./app/src/otherBar/ml
             paid
                 Manifest:
                     ./app/src/paid/AndroidManifest.xml
@@ -399,8 +369,6 @@ MODULE: testNestedProjects.app
                     ./app/src/paid/resources
                 ShadersDirectories:
                     ./app/src/paid/shaders
-                MlModelsDirectories:
-                    ./app/src/paid/ml
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -423,8 +391,6 @@ MODULE: testNestedProjects.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
-                MlModelsDirectories:
-                    ./app/src/release/ml
             specialRelease
                 Manifest:
                     ./app/src/specialRelease/AndroidManifest.xml
@@ -447,8 +413,6 @@ MODULE: testNestedProjects.app
                     ./app/src/specialRelease/resources
                 ShadersDirectories:
                     ./app/src/specialRelease/shaders
-                MlModelsDirectories:
-                    ./app/src/specialRelease/ml
         UnitTest:
             test
                 Manifest:
@@ -472,8 +436,6 @@ MODULE: testNestedProjects.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
-                MlModelsDirectories:
-                    ./app/src/test/ml
             testBasic
                 Manifest:
                     ./app/src/testBasic/AndroidManifest.xml
@@ -496,8 +458,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasic/resources
                 ShadersDirectories:
                     ./app/src/testBasic/shaders
-                MlModelsDirectories:
-                    ./app/src/testBasic/ml
             testBar
                 Manifest:
                     ./app/src/testBar/AndroidManifest.xml
@@ -520,8 +480,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBar/resources
                 ShadersDirectories:
                     ./app/src/testBar/shaders
-                MlModelsDirectories:
-                    ./app/src/testBar/ml
             testBasicBar
                 Manifest:
                     ./app/src/testBasicBar/AndroidManifest.xml
@@ -544,8 +502,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBar/resources
                 ShadersDirectories:
                     ./app/src/testBasicBar/shaders
-                MlModelsDirectories:
-                    ./app/src/testBasicBar/ml
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -568,8 +524,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/testDebug/ml
             testBasicBarDebug
                 Manifest:
                     ./app/src/testBasicBarDebug/AndroidManifest.xml
@@ -592,8 +546,6 @@ MODULE: testNestedProjects.app
                     ./app/src/testBasicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/testBasicBarDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/testBasicBarDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -617,8 +569,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTest/ml
             androidTestBasic
                 Manifest:
                     ./app/src/androidTestBasic/AndroidManifest.xml
@@ -641,8 +591,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasic/resources
                 ShadersDirectories:
                     ./app/src/androidTestBasic/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestBasic/ml
             androidTestBar
                 Manifest:
                     ./app/src/androidTestBar/AndroidManifest.xml
@@ -665,8 +613,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBar/resources
                 ShadersDirectories:
                     ./app/src/androidTestBar/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestBar/ml
             androidTestBasicBar
                 Manifest:
                     ./app/src/androidTestBasicBar/AndroidManifest.xml
@@ -689,8 +635,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBar/resources
                 ShadersDirectories:
                     ./app/src/androidTestBasicBar/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestBasicBar/ml
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -713,8 +657,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestDebug/ml
             androidTestBasicBarDebug
                 Manifest:
                     ./app/src/androidTestBasicBarDebug/AndroidManifest.xml
@@ -737,8 +679,6 @@ MODULE: testNestedProjects.app
                     ./app/src/androidTestBasicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestBasicBarDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestBasicBarDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -838,13 +778,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBar/shaders
                     file://./app/src/debug/shaders
                     file://./app/src/basicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
-                    file://./app/src/basic/ml
-                    file://./app/src/bar/ml
-                    file://./app/src/basicBar/ml
-                    file://./app/src/debug/ml
-                    file://./app/src/basicBarDebug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -931,13 +864,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBar/shaders
                     file://./app/src/testDebug/shaders
                     file://./app/src/testBasicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
-                    file://./app/src/testBasic/ml
-                    file://./app/src/testBar/ml
-                    file://./app/src/testBasicBar/ml
-                    file://./app/src/testDebug/ml
-                    file://./app/src/testBasicBarDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1024,13 +950,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBar/shaders
                     file://./app/src/androidTestDebug/shaders
                     file://./app/src/androidTestBasicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
-                    file://./app/src/androidTestBasic/ml
-                    file://./app/src/androidTestBar/ml
-                    file://./app/src/androidTestBasicBar/ml
-                    file://./app/src/androidTestDebug/ml
-                    file://./app/src/androidTestBasicBarDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1067,8 +986,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             bar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1094,8 +1011,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/bar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/bar/ml
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1121,8 +1036,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basic/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basic/ml
             basicBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1148,8 +1061,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basicBar/ml
             basicBarDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1175,8 +1086,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basicBarDebug/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1202,8 +1111,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
             otherBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1229,8 +1136,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/otherBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/otherBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/otherBar/ml
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1266,8 +1171,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/paid/resources
                 ShadersDirectoryUrls:
                     file://./app/src/paid/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/paid/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1293,8 +1196,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/release/ml
             specialRelease (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1320,8 +1221,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/specialRelease/resources
                 ShadersDirectoryUrls:
                     file://./app/src/specialRelease/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/specialRelease/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1358,8 +1257,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1385,8 +1282,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basic/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basic/ml
             bar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1412,8 +1307,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/bar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/bar/ml
             basicBar (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1439,8 +1332,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basicBar/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1466,8 +1357,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
             basicBarDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1493,8 +1382,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/basicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/basicBarDebug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1521,8 +1408,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1548,8 +1433,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasic/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBasic/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testBasic/ml
             testBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1575,8 +1458,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testBar/ml
             testBasicBar (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1602,8 +1483,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBasicBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testBasicBar/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1629,8 +1508,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testDebug/ml
             testBasicBarDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1656,8 +1533,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/testBasicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBasicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testBasicBarDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1684,8 +1559,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1711,8 +1584,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasic/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasic/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestBasic/ml
             androidTestBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1738,8 +1609,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestBar/ml
             androidTestBasicBar (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1765,8 +1634,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasicBar/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestBasicBar/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1792,8 +1659,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestDebug/ml
             androidTestBasicBarDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1819,8 +1684,6 @@ MODULE: testNestedProjects.app
                     file://./app/src/androidTestBasicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasicBarDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestBasicBarDebug/ml
 MODULE: testNestedProjects.dyn_feature
     by Facet:
         main (IDEA)
@@ -1852,8 +1715,6 @@ MODULE: testNestedProjects.dyn_feature
                 file://./dyn_feature/src/main/resources
             ShadersDirectoryUrls:
                 file://./dyn_feature/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./dyn_feature/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -1877,8 +1738,6 @@ MODULE: testNestedProjects.dyn_feature
                 ./dyn_feature/src/main/resources
             ShadersDirectories:
                 ./dyn_feature/src/main/shaders
-            MlModelsDirectories:
-                ./dyn_feature/src/main/ml
         Active:
             main
                 Manifest:
@@ -1902,8 +1761,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/resources
                 ShadersDirectories:
                     ./dyn_feature/src/main/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/main/ml
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -1926,8 +1783,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/debug/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/debug/ml
         All:
             main
                 Manifest:
@@ -1951,8 +1806,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/main/resources
                 ShadersDirectories:
                     ./dyn_feature/src/main/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/main/ml
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -1975,8 +1828,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/debug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/debug/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/debug/ml
             release
                 Manifest:
                     ./dyn_feature/src/release/AndroidManifest.xml
@@ -1999,8 +1850,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/release/resources
                 ShadersDirectories:
                     ./dyn_feature/src/release/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -2024,8 +1873,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/test/resources
                 ShadersDirectories:
                     ./dyn_feature/src/test/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/test/ml
             testDebug
                 Manifest:
                     ./dyn_feature/src/testDebug/AndroidManifest.xml
@@ -2048,8 +1895,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/testDebug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -2073,8 +1918,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTest/resources
                 ShadersDirectories:
                     ./dyn_feature/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
@@ -2097,8 +1940,6 @@ MODULE: testNestedProjects.dyn_feature
                     ./dyn_feature/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./dyn_feature/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./dyn_feature/src/main/AndroidManifest.xml
@@ -2144,9 +1985,6 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
                     file://./dyn_feature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/main/ml
-                    file://./dyn_feature/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2185,9 +2023,6 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/test/shaders
                     file://./dyn_feature/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/test/ml
-                    file://./dyn_feature/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2226,9 +2061,6 @@ MODULE: testNestedProjects.dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTest/shaders
                     file://./dyn_feature/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/ml
-                    file://./dyn_feature/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2259,8 +2091,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/main/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2286,8 +2116,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2313,8 +2141,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/release/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2345,8 +2171,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/main/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2372,8 +2196,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2400,8 +2222,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/test/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2427,8 +2247,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2455,8 +2273,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2482,8 +2298,6 @@ MODULE: testNestedProjects.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/ml
 MODULE: testNestedProjects.jav
 MODULE: testNestedProjects.lib
     by Facet:
@@ -2522,8 +2336,6 @@ MODULE: testNestedProjects.lib
                 file://./lib/src/main/resources
             ShadersDirectoryUrls:
                 file://./lib/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./lib/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -2547,8 +2359,6 @@ MODULE: testNestedProjects.lib
                 ./lib/src/main/resources
             ShadersDirectories:
                 ./lib/src/main/shaders
-            MlModelsDirectories:
-                ./lib/src/main/ml
         Active:
             main
                 Manifest:
@@ -2572,8 +2382,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
-                MlModelsDirectories:
-                    ./lib/src/main/ml
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2596,8 +2404,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./lib/src/debug/ml
         All:
             main
                 Manifest:
@@ -2621,8 +2427,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
-                MlModelsDirectories:
-                    ./lib/src/main/ml
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -2645,8 +2449,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./lib/src/debug/ml
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -2669,8 +2471,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/release/resources
                 ShadersDirectories:
                     ./lib/src/release/shaders
-                MlModelsDirectories:
-                    ./lib/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -2694,8 +2494,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/test/resources
                 ShadersDirectories:
                     ./lib/src/test/shaders
-                MlModelsDirectories:
-                    ./lib/src/test/ml
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
@@ -2718,8 +2516,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/testDebug/resources
                 ShadersDirectories:
                     ./lib/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./lib/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -2743,8 +2539,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTest/resources
                 ShadersDirectories:
                     ./lib/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./lib/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -2767,8 +2561,6 @@ MODULE: testNestedProjects.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./lib/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -2820,9 +2612,6 @@ MODULE: testNestedProjects.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
-                    file://./lib/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2861,9 +2650,6 @@ MODULE: testNestedProjects.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/test/ml
-                    file://./lib/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2902,9 +2688,6 @@ MODULE: testNestedProjects.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTest/ml
-                    file://./lib/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2941,8 +2724,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2968,8 +2749,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2995,8 +2774,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/release/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3033,8 +2810,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3060,8 +2835,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -3088,8 +2861,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/test/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3115,8 +2886,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3143,8 +2912,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3170,8 +2937,6 @@ MODULE: testNestedProjects.lib
                     file://./lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTestDebug/ml
 MODULE: testNestedProjects.nested1
     by Facet:
         main (IDEA)
@@ -3203,8 +2968,6 @@ MODULE: testNestedProjects.nested1
                 file://./nested1/src/main/resources
             ShadersDirectoryUrls:
                 file://./nested1/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./nested1/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -3228,8 +2991,6 @@ MODULE: testNestedProjects.nested1
                 ./nested1/src/main/resources
             ShadersDirectories:
                 ./nested1/src/main/shaders
-            MlModelsDirectories:
-                ./nested1/src/main/ml
         Active:
             main
                 Manifest:
@@ -3253,8 +3014,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/resources
                 ShadersDirectories:
                     ./nested1/src/main/shaders
-                MlModelsDirectories:
-                    ./nested1/src/main/ml
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3277,8 +3036,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/resources
                 ShadersDirectories:
                     ./nested1/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested1/src/debug/ml
         All:
             main
                 Manifest:
@@ -3302,8 +3059,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/main/resources
                 ShadersDirectories:
                     ./nested1/src/main/shaders
-                MlModelsDirectories:
-                    ./nested1/src/main/ml
             debug
                 Manifest:
                     ./nested1/src/debug/AndroidManifest.xml
@@ -3326,8 +3081,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/debug/resources
                 ShadersDirectories:
                     ./nested1/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested1/src/debug/ml
             release
                 Manifest:
                     ./nested1/src/release/AndroidManifest.xml
@@ -3350,8 +3103,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/release/resources
                 ShadersDirectories:
                     ./nested1/src/release/shaders
-                MlModelsDirectories:
-                    ./nested1/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -3375,8 +3126,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/test/resources
                 ShadersDirectories:
                     ./nested1/src/test/shaders
-                MlModelsDirectories:
-                    ./nested1/src/test/ml
             testDebug
                 Manifest:
                     ./nested1/src/testDebug/AndroidManifest.xml
@@ -3399,8 +3148,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/testDebug/resources
                 ShadersDirectories:
                     ./nested1/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./nested1/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -3424,8 +3171,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTest/resources
                 ShadersDirectories:
                     ./nested1/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./nested1/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./nested1/src/androidTestDebug/AndroidManifest.xml
@@ -3448,8 +3193,6 @@ MODULE: testNestedProjects.nested1
                     ./nested1/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested1/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./nested1/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/src/main/AndroidManifest.xml
@@ -3495,9 +3238,6 @@ MODULE: testNestedProjects.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
                     file://./nested1/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/main/ml
-                    file://./nested1/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -3536,9 +3276,6 @@ MODULE: testNestedProjects.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/test/shaders
                     file://./nested1/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/test/ml
-                    file://./nested1/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3577,9 +3314,6 @@ MODULE: testNestedProjects.nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTest/shaders
                     file://./nested1/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/androidTest/ml
-                    file://./nested1/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3610,8 +3344,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3637,8 +3369,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3664,8 +3394,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/release/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3696,8 +3424,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3723,8 +3449,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -3751,8 +3475,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3778,8 +3500,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3806,8 +3526,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3833,8 +3551,6 @@ MODULE: testNestedProjects.nested1
                     file://./nested1/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/ml
 MODULE: testNestedProjects.nested1.deep
     by Facet:
         main (IDEA)
@@ -3866,8 +3582,6 @@ MODULE: testNestedProjects.nested1.deep
                 file://./nested1/deep/src/main/resources
             ShadersDirectoryUrls:
                 file://./nested1/deep/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./nested1/deep/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -3891,8 +3605,6 @@ MODULE: testNestedProjects.nested1.deep
                 ./nested1/deep/src/main/resources
             ShadersDirectories:
                 ./nested1/deep/src/main/shaders
-            MlModelsDirectories:
-                ./nested1/deep/src/main/ml
         Active:
             main
                 Manifest:
@@ -3916,8 +3628,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/resources
                 ShadersDirectories:
                     ./nested1/deep/src/main/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/main/ml
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -3940,8 +3650,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/debug/ml
         All:
             main
                 Manifest:
@@ -3965,8 +3673,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/main/resources
                 ShadersDirectories:
                     ./nested1/deep/src/main/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/main/ml
             debug
                 Manifest:
                     ./nested1/deep/src/debug/AndroidManifest.xml
@@ -3989,8 +3695,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/debug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/debug/ml
             release
                 Manifest:
                     ./nested1/deep/src/release/AndroidManifest.xml
@@ -4013,8 +3717,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/release/resources
                 ShadersDirectories:
                     ./nested1/deep/src/release/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -4038,8 +3740,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/test/resources
                 ShadersDirectories:
                     ./nested1/deep/src/test/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/test/ml
             testDebug
                 Manifest:
                     ./nested1/deep/src/testDebug/AndroidManifest.xml
@@ -4062,8 +3762,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/testDebug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -4087,8 +3785,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTest/resources
                 ShadersDirectories:
                     ./nested1/deep/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
@@ -4111,8 +3807,6 @@ MODULE: testNestedProjects.nested1.deep
                     ./nested1/deep/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./nested1/deep/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/deep/src/main/AndroidManifest.xml
@@ -4158,9 +3852,6 @@ MODULE: testNestedProjects.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
                     file://./nested1/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/main/ml
-                    file://./nested1/deep/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -4199,9 +3890,6 @@ MODULE: testNestedProjects.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/test/shaders
                     file://./nested1/deep/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/test/ml
-                    file://./nested1/deep/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -4240,9 +3928,6 @@ MODULE: testNestedProjects.nested1.deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTest/shaders
                     file://./nested1/deep/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/ml
-                    file://./nested1/deep/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4273,8 +3958,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4300,8 +3983,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4327,8 +4008,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/release/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4359,8 +4038,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4386,8 +4063,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -4414,8 +4089,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4441,8 +4114,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -4469,8 +4140,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4496,8 +4165,6 @@ MODULE: testNestedProjects.nested1.deep
                     file://./nested1/deep/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/ml
 MODULE: testNestedProjects.nested2
     by Facet:
         main (IDEA)
@@ -4529,8 +4196,6 @@ MODULE: testNestedProjects.nested2
                 file://./nested2/src/main/resources
             ShadersDirectoryUrls:
                 file://./nested2/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./nested2/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -4554,8 +4219,6 @@ MODULE: testNestedProjects.nested2
                 ./nested2/src/main/resources
             ShadersDirectories:
                 ./nested2/src/main/shaders
-            MlModelsDirectories:
-                ./nested2/src/main/ml
         Active:
             main
                 Manifest:
@@ -4579,8 +4242,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/resources
                 ShadersDirectories:
                     ./nested2/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/src/main/ml
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4603,8 +4264,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/resources
                 ShadersDirectories:
                     ./nested2/src/basic/shaders
-                MlModelsDirectories:
-                    ./nested2/src/basic/ml
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4627,8 +4286,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/resources
                 ShadersDirectories:
                     ./nested2/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/debug/ml
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4651,8 +4308,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/basicDebug/ml
         All:
             main
                 Manifest:
@@ -4676,8 +4331,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/main/resources
                 ShadersDirectories:
                     ./nested2/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/src/main/ml
             basic
                 Manifest:
                     ./nested2/src/basic/AndroidManifest.xml
@@ -4700,8 +4353,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basic/resources
                 ShadersDirectories:
                     ./nested2/src/basic/shaders
-                MlModelsDirectories:
-                    ./nested2/src/basic/ml
             basicDebug
                 Manifest:
                     ./nested2/src/basicDebug/AndroidManifest.xml
@@ -4724,8 +4375,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/basicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/basicDebug/ml
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4748,8 +4397,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/debug/resources
                 ShadersDirectories:
                     ./nested2/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/debug/ml
             paid
                 Manifest:
                     ./nested2/src/paid/AndroidManifest.xml
@@ -4772,8 +4419,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/paid/resources
                 ShadersDirectories:
                     ./nested2/src/paid/shaders
-                MlModelsDirectories:
-                    ./nested2/src/paid/ml
             release
                 Manifest:
                     ./nested2/src/release/AndroidManifest.xml
@@ -4796,8 +4441,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/release/resources
                 ShadersDirectories:
                     ./nested2/src/release/shaders
-                MlModelsDirectories:
-                    ./nested2/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -4821,8 +4464,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/test/resources
                 ShadersDirectories:
                     ./nested2/src/test/shaders
-                MlModelsDirectories:
-                    ./nested2/src/test/ml
             testBasic
                 Manifest:
                     ./nested2/src/testBasic/AndroidManifest.xml
@@ -4845,8 +4486,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasic/resources
                 ShadersDirectories:
                     ./nested2/src/testBasic/shaders
-                MlModelsDirectories:
-                    ./nested2/src/testBasic/ml
             testDebug
                 Manifest:
                     ./nested2/src/testDebug/AndroidManifest.xml
@@ -4869,8 +4508,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/testDebug/ml
             testBasicDebug
                 Manifest:
                     ./nested2/src/testBasicDebug/AndroidManifest.xml
@@ -4893,8 +4530,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/testBasicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/testBasicDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/testBasicDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -4918,8 +4553,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTest/resources
                 ShadersDirectories:
                     ./nested2/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./nested2/src/androidTest/ml
             androidTestBasic
                 Manifest:
                     ./nested2/src/androidTestBasic/AndroidManifest.xml
@@ -4942,8 +4575,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasic/resources
                 ShadersDirectories:
                     ./nested2/src/androidTestBasic/shaders
-                MlModelsDirectories:
-                    ./nested2/src/androidTestBasic/ml
             androidTestDebug
                 Manifest:
                     ./nested2/src/androidTestDebug/AndroidManifest.xml
@@ -4966,8 +4597,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested2/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/androidTestDebug/ml
             androidTestBasicDebug
                 Manifest:
                     ./nested2/src/androidTestBasicDebug/AndroidManifest.xml
@@ -4990,8 +4619,6 @@ MODULE: testNestedProjects.nested2
                     ./nested2/src/androidTestBasicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/androidTestBasicDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/src/androidTestBasicDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/src/main/AndroidManifest.xml
@@ -5061,11 +4688,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/shaders
                     file://./nested2/src/debug/shaders
                     file://./nested2/src/basicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/main/ml
-                    file://./nested2/src/basic/ml
-                    file://./nested2/src/debug/ml
-                    file://./nested2/src/basicDebug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -5128,11 +4750,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasic/shaders
                     file://./nested2/src/testDebug/shaders
                     file://./nested2/src/testBasicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/test/ml
-                    file://./nested2/src/testBasic/ml
-                    file://./nested2/src/testDebug/ml
-                    file://./nested2/src/testBasicDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -5195,11 +4812,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasic/shaders
                     file://./nested2/src/androidTestDebug/shaders
                     file://./nested2/src/androidTestBasicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/androidTest/ml
-                    file://./nested2/src/androidTestBasic/ml
-                    file://./nested2/src/androidTestDebug/ml
-                    file://./nested2/src/androidTestBasicDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5230,8 +4842,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/main/ml
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5257,8 +4867,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/basic/ml
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5284,8 +4892,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/basicDebug/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5311,8 +4917,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/debug/ml
             paid (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5338,8 +4942,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/paid/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/paid/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/paid/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5365,8 +4967,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/release/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -5397,8 +4997,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/main/ml
             basic (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5424,8 +5022,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/basic/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5451,8 +5047,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/debug/ml
             basicDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -5478,8 +5072,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/basicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/basicDebug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -5506,8 +5098,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/test/ml
             testBasic (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5533,8 +5123,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testBasic/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/testBasic/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5560,8 +5148,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/testDebug/ml
             testBasicDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -5587,8 +5173,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/testBasicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testBasicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/testBasicDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -5615,8 +5199,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/androidTest/ml
             androidTestBasic (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5642,8 +5224,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestBasic/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5669,8 +5249,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/ml
             androidTestBasicDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -5696,8 +5274,6 @@ MODULE: testNestedProjects.nested2
                     file://./nested2/src/androidTestBasicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestBasicDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/src/androidTestBasicDebug/ml
 MODULE: testNestedProjects.nested2.deep
     by Facet:
         main (IDEA)
@@ -5729,8 +5305,6 @@ MODULE: testNestedProjects.nested2.deep
                 file://./nested2/deep/src/main/resources
             ShadersDirectoryUrls:
                 file://./nested2/deep/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./nested2/deep/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -5754,8 +5328,6 @@ MODULE: testNestedProjects.nested2.deep
                 ./nested2/deep/src/main/resources
             ShadersDirectories:
                 ./nested2/deep/src/main/shaders
-            MlModelsDirectories:
-                ./nested2/deep/src/main/ml
         Active:
             main
                 Manifest:
@@ -5779,8 +5351,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/resources
                 ShadersDirectories:
                     ./nested2/deep/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/main/ml
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -5803,8 +5373,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/debug/ml
         All:
             main
                 Manifest:
@@ -5828,8 +5396,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/main/resources
                 ShadersDirectories:
                     ./nested2/deep/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/main/ml
             debug
                 Manifest:
                     ./nested2/deep/src/debug/AndroidManifest.xml
@@ -5852,8 +5418,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/debug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/debug/ml
             release
                 Manifest:
                     ./nested2/deep/src/release/AndroidManifest.xml
@@ -5876,8 +5440,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/release/resources
                 ShadersDirectories:
                     ./nested2/deep/src/release/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -5901,8 +5463,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/test/resources
                 ShadersDirectories:
                     ./nested2/deep/src/test/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/test/ml
             testDebug
                 Manifest:
                     ./nested2/deep/src/testDebug/AndroidManifest.xml
@@ -5925,8 +5485,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -5950,8 +5508,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTest/resources
                 ShadersDirectories:
                     ./nested2/deep/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
@@ -5974,8 +5530,6 @@ MODULE: testNestedProjects.nested2.deep
                     ./nested2/deep/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/deep/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/deep/src/main/AndroidManifest.xml
@@ -6021,9 +5575,6 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
                     file://./nested2/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/main/ml
-                    file://./nested2/deep/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -6062,9 +5613,6 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/test/shaders
                     file://./nested2/deep/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/test/ml
-                    file://./nested2/deep/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6103,9 +5651,6 @@ MODULE: testNestedProjects.nested2.deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTest/shaders
                     file://./nested2/deep/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/ml
-                    file://./nested2/deep/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6136,8 +5681,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6163,8 +5706,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6190,8 +5731,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/release/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6222,8 +5761,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6249,8 +5786,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -6277,8 +5812,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6304,8 +5837,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6332,8 +5863,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -6359,8 +5888,6 @@ MODULE: testNestedProjects.nested2.deep
                     file://./nested2/deep/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/ml
 MODULE: testNestedProjects.nested2.trans
 MODULE: testNestedProjects.nested2.trans.deep2
     by Facet:
@@ -6393,8 +5920,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 file://./nested2/trans/deep2/src/main/resources
             ShadersDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./nested2/trans/deep2/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -6418,8 +5943,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ./nested2/trans/deep2/src/main/resources
             ShadersDirectories:
                 ./nested2/trans/deep2/src/main/shaders
-            MlModelsDirectories:
-                ./nested2/trans/deep2/src/main/ml
         Active:
             main
                 Manifest:
@@ -6443,8 +5966,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/main/ml
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6467,8 +5988,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/debug/ml
         All:
             main
                 Manifest:
@@ -6492,8 +6011,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/main/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/main/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/main/ml
             debug
                 Manifest:
                     ./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -6516,8 +6033,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/debug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/debug/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/debug/ml
             release
                 Manifest:
                     ./nested2/trans/deep2/src/release/AndroidManifest.xml
@@ -6540,8 +6055,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/release/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/release/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -6565,8 +6078,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/test/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/test/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/test/ml
             testDebug
                 Manifest:
                     ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
@@ -6589,8 +6100,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -6614,8 +6123,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTest/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
@@ -6638,8 +6145,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     ./nested2/trans/deep2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/trans/deep2/src/main/AndroidManifest.xml
@@ -6685,9 +6190,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
                     file://./nested2/trans/deep2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/ml
-                    file://./nested2/trans/deep2/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -6726,9 +6228,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/shaders
                     file://./nested2/trans/deep2/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/ml
-                    file://./nested2/trans/deep2/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6767,9 +6266,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/shaders
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/ml
-                    file://./nested2/trans/deep2/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6800,8 +6296,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6827,8 +6321,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6854,8 +6346,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/release/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -6886,8 +6376,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -6913,8 +6401,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -6941,8 +6427,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -6968,8 +6452,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -6996,8 +6478,6 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -7023,5 +6503,3 @@ MODULE: testNestedProjects.nested2.trans.deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/ml

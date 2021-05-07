@@ -36,8 +36,6 @@ MODULE: AS36_noiml.app
                 file://./app/src/main/resources
             ShadersDirectoryUrls:
                 file://./app/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -61,8 +59,6 @@ MODULE: AS36_noiml.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
-            MlModelsDirectories:
-                ./app/src/main/ml
         Active:
             main
                 Manifest:
@@ -86,8 +82,6 @@ MODULE: AS36_noiml.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -110,8 +104,6 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
         All:
             main
                 Manifest:
@@ -135,8 +127,6 @@ MODULE: AS36_noiml.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -159,8 +149,6 @@ MODULE: AS36_noiml.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -183,8 +171,6 @@ MODULE: AS36_noiml.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
-                MlModelsDirectories:
-                    ./app/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -208,8 +194,6 @@ MODULE: AS36_noiml.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
-                MlModelsDirectories:
-                    ./app/src/test/ml
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -232,8 +216,6 @@ MODULE: AS36_noiml.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -257,8 +239,6 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -281,8 +261,6 @@ MODULE: AS36_noiml.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -334,9 +312,6 @@ MODULE: AS36_noiml.app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
-                    file://./app/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -381,9 +356,6 @@ MODULE: AS36_noiml.app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
-                    file://./app/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -428,9 +400,6 @@ MODULE: AS36_noiml.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
-                    file://./app/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -467,8 +436,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -494,8 +461,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -521,8 +486,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -559,8 +522,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -586,8 +547,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -620,8 +579,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -647,8 +604,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -681,8 +636,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -708,8 +661,6 @@ MODULE: AS36_noiml.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestDebug/ml
 MODULE: AS36_noiml.features
 MODULE: AS36_noiml.features.dynamicfeature
     by Facet:
@@ -742,8 +693,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 file://./features/dynamicfeature/src/main/resources
             ShadersDirectoryUrls:
                 file://./features/dynamicfeature/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./features/dynamicfeature/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -767,8 +716,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ./features/dynamicfeature/src/main/resources
             ShadersDirectories:
                 ./features/dynamicfeature/src/main/shaders
-            MlModelsDirectories:
-                ./features/dynamicfeature/src/main/ml
         Active:
             main
                 Manifest:
@@ -792,8 +739,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/main/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/main/ml
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -816,8 +761,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/debug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/debug/ml
         All:
             main
                 Manifest:
@@ -841,8 +784,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/main/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/main/ml
             debug
                 Manifest:
                     ./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -865,8 +806,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/debug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/debug/ml
             release
                 Manifest:
                     ./features/dynamicfeature/src/release/AndroidManifest.xml
@@ -889,8 +828,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/release/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/release/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -914,8 +851,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/test/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/test/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/test/ml
             testDebug
                 Manifest:
                     ./features/dynamicfeature/src/testDebug/AndroidManifest.xml
@@ -938,8 +873,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/testDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -963,8 +896,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTest/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
@@ -987,8 +918,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     ./features/dynamicfeature/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./features/dynamicfeature/src/main/AndroidManifest.xml
@@ -1034,9 +963,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
                     file://./features/dynamicfeature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/ml
-                    file://./features/dynamicfeature/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1075,9 +1001,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/test/shaders
                     file://./features/dynamicfeature/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/test/ml
-                    file://./features/dynamicfeature/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1116,9 +1039,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTest/ml
-                    file://./features/dynamicfeature/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1149,8 +1069,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1176,8 +1094,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1203,8 +1119,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/release/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1235,8 +1149,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/main/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1262,8 +1174,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1290,8 +1200,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/test/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1317,8 +1225,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1345,8 +1251,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1372,8 +1276,6 @@ MODULE: AS36_noiml.features.dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature/src/androidTestDebug/ml
 MODULE: AS36_noiml.features.dynamicfeature2
     by Facet:
         main (IDEA)
@@ -1405,8 +1307,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 file://./features/dynamicfeature2/src/main/resources
             ShadersDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./features/dynamicfeature2/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -1430,8 +1330,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ./features/dynamicfeature2/src/main/resources
             ShadersDirectories:
                 ./features/dynamicfeature2/src/main/shaders
-            MlModelsDirectories:
-                ./features/dynamicfeature2/src/main/ml
         Active:
             main
                 Manifest:
@@ -1455,8 +1353,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/main/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/main/ml
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1479,8 +1375,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/debug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/debug/ml
         All:
             main
                 Manifest:
@@ -1504,8 +1398,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/main/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/main/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/main/ml
             debug
                 Manifest:
                     ./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -1528,8 +1420,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/debug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/debug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/debug/ml
             release
                 Manifest:
                     ./features/dynamicfeature2/src/release/AndroidManifest.xml
@@ -1552,8 +1442,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/release/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/release/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -1577,8 +1465,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/test/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/test/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/test/ml
             testDebug
                 Manifest:
                     ./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
@@ -1601,8 +1487,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/testDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -1626,8 +1510,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTest/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
@@ -1650,8 +1532,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     ./features/dynamicfeature2/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./features/dynamicfeature2/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./features/dynamicfeature2/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./features/dynamicfeature2/src/main/AndroidManifest.xml
@@ -1697,9 +1577,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
                     file://./features/dynamicfeature2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/ml
-                    file://./features/dynamicfeature2/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1738,9 +1615,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/shaders
                     file://./features/dynamicfeature2/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/test/ml
-                    file://./features/dynamicfeature2/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1779,9 +1653,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTest/ml
-                    file://./features/dynamicfeature2/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1812,8 +1683,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1839,8 +1708,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1866,8 +1733,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/release/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1898,8 +1763,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/main/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1925,8 +1788,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1953,8 +1814,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/test/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1980,8 +1839,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2008,8 +1865,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2035,8 +1890,6 @@ MODULE: AS36_noiml.features.dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./features/dynamicfeature2/src/androidTestDebug/ml
 MODULE: AS36_noiml.libs
 MODULE: AS36_noiml.libs.android_library
     by Facet:
@@ -2075,8 +1928,6 @@ MODULE: AS36_noiml.libs.android_library
                 file://./libs/android_library/src/main/resources
             ShadersDirectoryUrls:
                 file://./libs/android_library/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./libs/android_library/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -2100,8 +1951,6 @@ MODULE: AS36_noiml.libs.android_library
                 ./libs/android_library/src/main/resources
             ShadersDirectories:
                 ./libs/android_library/src/main/shaders
-            MlModelsDirectories:
-                ./libs/android_library/src/main/ml
         Active:
             main
                 Manifest:
@@ -2125,8 +1974,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/resources
                 ShadersDirectories:
                     ./libs/android_library/src/main/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/main/ml
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2149,8 +1996,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/debug/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/debug/ml
         All:
             main
                 Manifest:
@@ -2174,8 +2019,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/main/resources
                 ShadersDirectories:
                     ./libs/android_library/src/main/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/main/ml
             debug
                 Manifest:
                     ./libs/android_library/src/debug/AndroidManifest.xml
@@ -2198,8 +2041,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/debug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/debug/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/debug/ml
             release
                 Manifest:
                     ./libs/android_library/src/release/AndroidManifest.xml
@@ -2222,8 +2063,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/release/resources
                 ShadersDirectories:
                     ./libs/android_library/src/release/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -2247,8 +2086,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/test/resources
                 ShadersDirectories:
                     ./libs/android_library/src/test/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/test/ml
             testDebug
                 Manifest:
                     ./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -2271,8 +2108,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/testDebug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -2296,8 +2131,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTest/resources
                 ShadersDirectories:
                     ./libs/android_library/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -2320,8 +2153,6 @@ MODULE: AS36_noiml.libs.android_library
                     ./libs/android_library/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./libs/android_library/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./libs/android_library/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./libs/android_library/src/main/AndroidManifest.xml
@@ -2373,9 +2204,6 @@ MODULE: AS36_noiml.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
                     file://./libs/android_library/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/main/ml
-                    file://./libs/android_library/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2420,9 +2248,6 @@ MODULE: AS36_noiml.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/test/shaders
                     file://./libs/android_library/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/test/ml
-                    file://./libs/android_library/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2467,9 +2292,6 @@ MODULE: AS36_noiml.libs.android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
                     file://./libs/android_library/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/androidTest/ml
-                    file://./libs/android_library/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2506,8 +2328,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2533,8 +2353,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2560,8 +2378,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/release/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2598,8 +2414,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/main/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2625,8 +2439,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2659,8 +2471,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/test/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2686,8 +2496,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2720,8 +2528,6 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2747,6 +2553,4 @@ MODULE: AS36_noiml.libs.android_library
                     file://./libs/android_library/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./libs/android_library/src/androidTestDebug/ml
 MODULE: AS36_noiml.libs.java_lib
