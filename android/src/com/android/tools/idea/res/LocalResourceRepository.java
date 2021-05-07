@@ -219,6 +219,8 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
 
   /**
    * Executes the given callback using the given executor after all currently pending updates have been processed.
+   * The repository is not guaranteed to be completely up to date with respect to PSI and VFS because additional
+   * changes may be made by the user in the meantime.
    */
   public void invokeAfterPendingUpdatesFinish(@NotNull Executor executor, @NotNull Runnable callback) {
     executor.execute(callback);
