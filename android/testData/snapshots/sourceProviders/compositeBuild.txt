@@ -36,8 +36,6 @@ MODULE: TestCompositeLib1.app
                 file://./TestCompositeLib1/app/src/main/resources
             ShadersDirectoryUrls:
                 file://./TestCompositeLib1/app/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./TestCompositeLib1/app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -61,8 +59,6 @@ MODULE: TestCompositeLib1.app
                 ./TestCompositeLib1/app/src/main/resources
             ShadersDirectories:
                 ./TestCompositeLib1/app/src/main/shaders
-            MlModelsDirectories:
-                ./TestCompositeLib1/app/src/main/ml
         Active:
             main
                 Manifest:
@@ -86,8 +82,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib1/app/src/debug/AndroidManifest.xml
@@ -110,8 +104,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/debug/ml
         All:
             main
                 Manifest:
@@ -135,8 +127,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib1/app/src/debug/AndroidManifest.xml
@@ -159,8 +149,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/debug/ml
             release
                 Manifest:
                     ./TestCompositeLib1/app/src/release/AndroidManifest.xml
@@ -183,8 +171,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/release/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/release/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -208,8 +194,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/test/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/test/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/test/ml
             testDebug
                 Manifest:
                     ./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
@@ -232,8 +216,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/testDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -257,8 +239,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTest/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
@@ -281,8 +261,6 @@ MODULE: TestCompositeLib1.app
                     ./TestCompositeLib1/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/app/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/app/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
@@ -334,9 +312,6 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
                     file://./TestCompositeLib1/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/main/ml
-                    file://./TestCompositeLib1/app/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -381,9 +356,6 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/shaders
                     file://./TestCompositeLib1/app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/test/ml
-                    file://./TestCompositeLib1/app/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -428,9 +400,6 @@ MODULE: TestCompositeLib1.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/shaders
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/androidTest/ml
-                    file://./TestCompositeLib1/app/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -467,8 +436,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -494,8 +461,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -521,8 +486,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -559,8 +522,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -586,8 +547,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -620,8 +579,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -647,8 +604,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -681,8 +636,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -708,8 +661,6 @@ MODULE: TestCompositeLib1.app
                     file://./TestCompositeLib1/app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/app/src/androidTestDebug/ml
 MODULE: TestCompositeLib1.lib
     by Facet:
         main (IDEA)
@@ -747,8 +698,6 @@ MODULE: TestCompositeLib1.lib
                 file://./TestCompositeLib1/lib/src/main/resources
             ShadersDirectoryUrls:
                 file://./TestCompositeLib1/lib/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./TestCompositeLib1/lib/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -772,8 +721,6 @@ MODULE: TestCompositeLib1.lib
                 ./TestCompositeLib1/lib/src/main/resources
             ShadersDirectories:
                 ./TestCompositeLib1/lib/src/main/shaders
-            MlModelsDirectories:
-                ./TestCompositeLib1/lib/src/main/ml
         Active:
             main
                 Manifest:
@@ -797,8 +744,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -821,8 +766,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/debug/ml
         All:
             main
                 Manifest:
@@ -846,8 +789,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -870,8 +811,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/debug/ml
             release
                 Manifest:
                     ./TestCompositeLib1/lib/src/release/AndroidManifest.xml
@@ -894,8 +833,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/release/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/release/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -919,8 +856,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/test/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/test/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/test/ml
             testDebug
                 Manifest:
                     ./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
@@ -943,8 +878,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/testDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -968,8 +901,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTest/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
@@ -992,8 +923,6 @@ MODULE: TestCompositeLib1.lib
                     ./TestCompositeLib1/lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib1/lib/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib1/lib/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
@@ -1045,9 +974,6 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
                     file://./TestCompositeLib1/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/main/ml
-                    file://./TestCompositeLib1/lib/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1092,9 +1018,6 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/shaders
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/test/ml
-                    file://./TestCompositeLib1/lib/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1139,9 +1062,6 @@ MODULE: TestCompositeLib1.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/shaders
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/androidTest/ml
-                    file://./TestCompositeLib1/lib/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1178,8 +1098,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1205,8 +1123,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1232,8 +1148,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/release/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1270,8 +1184,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1297,8 +1209,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1331,8 +1241,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/test/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1358,8 +1266,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1392,8 +1298,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1419,8 +1323,6 @@ MODULE: TestCompositeLib1.lib
                     file://./TestCompositeLib1/lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib1/lib/src/androidTestDebug/ml
 MODULE: TestCompositeLib3
 MODULE: TestCompositeLib3.app
     by Facet:
@@ -1459,8 +1361,6 @@ MODULE: TestCompositeLib3.app
                 file://./TestCompositeLib3/app/src/main/resources
             ShadersDirectoryUrls:
                 file://./TestCompositeLib3/app/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./TestCompositeLib3/app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -1484,8 +1384,6 @@ MODULE: TestCompositeLib3.app
                 ./TestCompositeLib3/app/src/main/resources
             ShadersDirectories:
                 ./TestCompositeLib3/app/src/main/shaders
-            MlModelsDirectories:
-                ./TestCompositeLib3/app/src/main/ml
         Active:
             main
                 Manifest:
@@ -1509,8 +1407,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib3/app/src/debug/AndroidManifest.xml
@@ -1533,8 +1429,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/debug/ml
         All:
             main
                 Manifest:
@@ -1558,8 +1452,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib3/app/src/debug/AndroidManifest.xml
@@ -1582,8 +1474,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/debug/ml
             release
                 Manifest:
                     ./TestCompositeLib3/app/src/release/AndroidManifest.xml
@@ -1606,8 +1496,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/release/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/release/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -1631,8 +1519,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/test/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/test/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/test/ml
             testDebug
                 Manifest:
                     ./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
@@ -1655,8 +1541,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/testDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -1680,8 +1564,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTest/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
@@ -1704,8 +1586,6 @@ MODULE: TestCompositeLib3.app
                     ./TestCompositeLib3/app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/app/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/app/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
@@ -1757,9 +1637,6 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
                     file://./TestCompositeLib3/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/main/ml
-                    file://./TestCompositeLib3/app/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -1804,9 +1681,6 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/shaders
                     file://./TestCompositeLib3/app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/test/ml
-                    file://./TestCompositeLib3/app/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1851,9 +1725,6 @@ MODULE: TestCompositeLib3.app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/shaders
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/androidTest/ml
-                    file://./TestCompositeLib3/app/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1890,8 +1761,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1917,8 +1786,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1944,8 +1811,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -1982,8 +1847,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2009,8 +1872,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2043,8 +1904,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2070,8 +1929,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2104,8 +1961,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2131,8 +1986,6 @@ MODULE: TestCompositeLib3.app
                     file://./TestCompositeLib3/app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/app/src/androidTestDebug/ml
 MODULE: TestCompositeLib3.lib
     by Facet:
         main (IDEA)
@@ -2170,8 +2023,6 @@ MODULE: TestCompositeLib3.lib
                 file://./TestCompositeLib3/lib/src/main/resources
             ShadersDirectoryUrls:
                 file://./TestCompositeLib3/lib/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./TestCompositeLib3/lib/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -2195,8 +2046,6 @@ MODULE: TestCompositeLib3.lib
                 ./TestCompositeLib3/lib/src/main/resources
             ShadersDirectories:
                 ./TestCompositeLib3/lib/src/main/shaders
-            MlModelsDirectories:
-                ./TestCompositeLib3/lib/src/main/ml
         Active:
             main
                 Manifest:
@@ -2220,8 +2069,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -2244,8 +2091,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/debug/ml
         All:
             main
                 Manifest:
@@ -2269,8 +2114,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/main/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/main/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/main/ml
             debug
                 Manifest:
                     ./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -2293,8 +2136,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/debug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/debug/ml
             release
                 Manifest:
                     ./TestCompositeLib3/lib/src/release/AndroidManifest.xml
@@ -2317,8 +2158,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/release/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/release/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -2342,8 +2181,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/test/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/test/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/test/ml
             testDebug
                 Manifest:
                     ./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
@@ -2366,8 +2203,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/testDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -2391,8 +2226,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTest/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
@@ -2415,8 +2248,6 @@ MODULE: TestCompositeLib3.lib
                     ./TestCompositeLib3/lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./TestCompositeLib3/lib/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./TestCompositeLib3/lib/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
@@ -2468,9 +2299,6 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
                     file://./TestCompositeLib3/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/main/ml
-                    file://./TestCompositeLib3/lib/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -2515,9 +2343,6 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/shaders
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/test/ml
-                    file://./TestCompositeLib3/lib/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2562,9 +2387,6 @@ MODULE: TestCompositeLib3.lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/shaders
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/androidTest/ml
-                    file://./TestCompositeLib3/lib/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2601,8 +2423,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2628,8 +2448,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2655,8 +2473,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/release/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2693,8 +2509,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2720,8 +2534,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2754,8 +2566,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/test/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2781,8 +2591,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2815,8 +2623,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2842,8 +2648,6 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./TestCompositeLib3/lib/src/androidTestDebug/ml
 MODULE: composite2
 MODULE: composite4
 MODULE: testCompositeBuild
@@ -2884,8 +2688,6 @@ MODULE: testCompositeBuild.app
                 file://./app/src/main/resources
             ShadersDirectoryUrls:
                 file://./app/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./app/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -2909,8 +2711,6 @@ MODULE: testCompositeBuild.app
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
-            MlModelsDirectories:
-                ./app/src/main/ml
         Active:
             main
                 Manifest:
@@ -2934,8 +2734,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -2958,8 +2756,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
         All:
             main
                 Manifest:
@@ -2983,8 +2779,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
-                MlModelsDirectories:
-                    ./app/src/main/ml
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -3007,8 +2801,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
-                MlModelsDirectories:
-                    ./app/src/debug/ml
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
@@ -3031,8 +2823,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
-                MlModelsDirectories:
-                    ./app/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -3056,8 +2846,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
-                MlModelsDirectories:
-                    ./app/src/test/ml
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -3080,8 +2868,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -3105,8 +2891,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
@@ -3129,8 +2913,6 @@ MODULE: testCompositeBuild.app
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./app/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -3182,9 +2964,6 @@ MODULE: testCompositeBuild.app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
-                    file://./app/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -3229,9 +3008,6 @@ MODULE: testCompositeBuild.app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
-                    file://./app/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3276,9 +3052,6 @@ MODULE: testCompositeBuild.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
                     file://./app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
-                    file://./app/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3315,8 +3088,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3342,8 +3113,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3369,8 +3138,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/release/resources
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -3407,8 +3174,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/main/resources
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -3434,8 +3199,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -3468,8 +3231,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -3495,8 +3256,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3529,8 +3288,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -3556,8 +3313,6 @@ MODULE: testCompositeBuild.app
                     file://./app/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./app/src/androidTestDebug/ml
 MODULE: testCompositeBuild.lib
     by Facet:
         main (IDEA)
@@ -3595,8 +3350,6 @@ MODULE: testCompositeBuild.lib
                 file://./lib/src/main/resources
             ShadersDirectoryUrls:
                 file://./lib/src/main/shaders
-            MlModelsDirectoryUrls:
-                file://./lib/src/main/ml
     by AndroidModel:
         main
             Manifest:
@@ -3620,8 +3373,6 @@ MODULE: testCompositeBuild.lib
                 ./lib/src/main/resources
             ShadersDirectories:
                 ./lib/src/main/shaders
-            MlModelsDirectories:
-                ./lib/src/main/ml
         Active:
             main
                 Manifest:
@@ -3645,8 +3396,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
-                MlModelsDirectories:
-                    ./lib/src/main/ml
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -3669,8 +3418,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./lib/src/debug/ml
         All:
             main
                 Manifest:
@@ -3694,8 +3441,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
-                MlModelsDirectories:
-                    ./lib/src/main/ml
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
@@ -3718,8 +3463,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
-                MlModelsDirectories:
-                    ./lib/src/debug/ml
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
@@ -3742,8 +3485,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/release/resources
                 ShadersDirectories:
                     ./lib/src/release/shaders
-                MlModelsDirectories:
-                    ./lib/src/release/ml
         UnitTest:
             test
                 Manifest:
@@ -3767,8 +3508,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/test/resources
                 ShadersDirectories:
                     ./lib/src/test/shaders
-                MlModelsDirectories:
-                    ./lib/src/test/ml
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
@@ -3791,8 +3530,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/testDebug/resources
                 ShadersDirectories:
                     ./lib/src/testDebug/shaders
-                MlModelsDirectories:
-                    ./lib/src/testDebug/ml
         AndroidTest:
             androidTest
                 Manifest:
@@ -3816,8 +3553,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTest/resources
                 ShadersDirectories:
                     ./lib/src/androidTest/shaders
-                MlModelsDirectories:
-                    ./lib/src/androidTest/ml
             androidTestDebug
                 Manifest:
                     ./lib/src/androidTestDebug/AndroidManifest.xml
@@ -3840,8 +3575,6 @@ MODULE: testCompositeBuild.lib
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
-                MlModelsDirectories:
-                    ./lib/src/androidTestDebug/ml
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -3893,9 +3626,6 @@ MODULE: testCompositeBuild.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
-                    file://./lib/src/debug/ml
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
@@ -3940,9 +3670,6 @@ MODULE: testCompositeBuild.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/test/ml
-                    file://./lib/src/testDebug/ml
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
@@ -3987,9 +3714,6 @@ MODULE: testCompositeBuild.lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
                     file://./lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTest/ml
-                    file://./lib/src/androidTestDebug/ml
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4026,8 +3750,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4053,8 +3775,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/debug/ml
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4080,8 +3800,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/release/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/release/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/release/ml
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -4118,8 +3836,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/main/ml
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -4145,8 +3861,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/debug/ml
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -4179,8 +3893,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/test/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/test/ml
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -4206,8 +3918,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/testDebug/ml
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -4240,8 +3950,6 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/androidTest/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTest/ml
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -4267,5 +3975,3 @@ MODULE: testCompositeBuild.lib
                     file://./lib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTestDebug/shaders
-                MlModelsDirectoryUrls:
-                    file://./lib/src/androidTestDebug/ml

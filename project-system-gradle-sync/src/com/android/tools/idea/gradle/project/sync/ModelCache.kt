@@ -393,7 +393,7 @@ fun createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap: Map<BooleanFlag
  */
 internal fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap = emptyMap())
 
-private fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
+internal fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
 
 internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {
   AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN

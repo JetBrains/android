@@ -87,7 +87,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -102,7 +101,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -116,7 +114,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -136,7 +133,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -151,7 +147,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -166,7 +161,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -185,7 +179,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -200,7 +193,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -215,7 +207,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testRelease/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -234,7 +225,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/specialRelease/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/specialRelease/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/specialRelease/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/specialRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -249,7 +239,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestSpecialRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestSpecialRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestSpecialRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestSpecialRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -264,7 +253,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testSpecialRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testSpecialRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testSpecialRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testSpecialRelease/ml [-]
     ProductFlavors
         ProductFlavor
             Dimension                     : foo
@@ -281,7 +269,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/basic/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/basic/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/basic/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -296,7 +283,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestBasic/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestBasic/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -310,7 +296,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasic/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testBasic/ml [-]
         ProductFlavor
             Dimension                     : foo
             ApplicationId                 : com.example.psd.sample.app.paid
@@ -342,7 +327,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/paid/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/paid/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/paid/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -357,7 +341,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestPaid/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestPaid/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -371,7 +354,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testPaid/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testPaid/ml [-]
         ProductFlavor
             Dimension                     : bar
             VectorDrawables
@@ -386,7 +368,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/bar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/bar/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/bar/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/bar/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -401,7 +382,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestBar/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -415,7 +395,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testBar/ml [-]
         ProductFlavor
             Dimension                     : bar
             resourceConfigurations        : hdpi
@@ -433,7 +412,6 @@ MODULE                        : project.app
             AssetsDirectories             : <ROOT>/app/src/otherBar/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/otherBar/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/otherBar/shaders [-]
-            MlModelsDirectories           : <ROOT>/app/src/otherBar/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -448,7 +426,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestOtherBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestOtherBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestOtherBar/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -462,7 +439,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testOtherBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testOtherBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testOtherBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testOtherBar/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -620,7 +596,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/basicBarDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/basicBarDebug/ml [-]
                 MultiFlavorSourceProvider
                     Name                          : basicBar
                     Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
@@ -632,7 +607,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/basicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/basicBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/basicBar/ml [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
@@ -1260,7 +1234,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestBasicBarDebug/ml [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestBasicBar
                     Manifest                      : <ROOT>/app/src/androidTestBasicBar/AndroidManifest.xml [-]
@@ -1272,7 +1245,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestBasicBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/androidTestBasicBar/ml [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
@@ -1983,7 +1955,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasicBarDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testBasicBarDebug/ml [-]
                 MultiFlavorSourceProvider
                     Name                          : testBasicBar
                     Manifest                      : <ROOT>/app/src/testBasicBar/AndroidManifest.xml [-]
@@ -1995,7 +1966,6 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBasicBar/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBar/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasicBar/shaders [-]
-                    MlModelsDirectories           : <ROOT>/app/src/testBasicBar/ml [-]
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
@@ -2626,7 +2596,6 @@ MODULE                        : project.dyn_feature
             AssetsDirectories             : <ROOT>/dyn_feature/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/dyn_feature/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/dyn_feature/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2641,7 +2610,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2655,7 +2623,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -2675,7 +2642,6 @@ MODULE                        : project.dyn_feature
             AssetsDirectories             : <ROOT>/dyn_feature/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/dyn_feature/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/dyn_feature/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2690,7 +2656,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2705,7 +2670,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2724,7 +2688,6 @@ MODULE                        : project.dyn_feature
             AssetsDirectories             : <ROOT>/dyn_feature/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/dyn_feature/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/dyn_feature/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/dyn_feature/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2739,7 +2702,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -2754,7 +2716,6 @@ MODULE                        : project.dyn_feature
                     AssetsDirectories             : <ROOT>/dyn_feature/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/dyn_feature/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/dyn_feature/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/dyn_feature/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -2925,7 +2886,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/lib/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2940,7 +2900,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -2954,7 +2913,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -2974,7 +2932,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/lib/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -2989,7 +2946,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3004,7 +2960,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3023,7 +2978,6 @@ MODULE                        : project.lib
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/lib/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -3038,7 +2992,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -3053,7 +3006,6 @@ MODULE                        : project.lib
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/lib/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -4772,7 +4724,6 @@ MODULE                        : project.nested1
             AssetsDirectories             : <ROOT>/nested1/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4787,7 +4738,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -4801,7 +4751,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -4821,7 +4770,6 @@ MODULE                        : project.nested1
             AssetsDirectories             : <ROOT>/nested1/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4836,7 +4784,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4851,7 +4798,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -4870,7 +4816,6 @@ MODULE                        : project.nested1
             AssetsDirectories             : <ROOT>/nested1/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -4885,7 +4830,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -4900,7 +4844,6 @@ MODULE                        : project.nested1
                     AssetsDirectories             : <ROOT>/nested1/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5068,7 +5011,6 @@ MODULE                        : project.nested1.deep
             AssetsDirectories             : <ROOT>/nested1/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/deep/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/deep/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5083,7 +5025,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5097,7 +5038,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5117,7 +5057,6 @@ MODULE                        : project.nested1.deep
             AssetsDirectories             : <ROOT>/nested1/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/deep/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/deep/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5132,7 +5071,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5147,7 +5085,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5166,7 +5103,6 @@ MODULE                        : project.nested1.deep
             AssetsDirectories             : <ROOT>/nested1/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested1/deep/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested1/deep/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested1/deep/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5181,7 +5117,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5196,7 +5131,6 @@ MODULE                        : project.nested1.deep
                     AssetsDirectories             : <ROOT>/nested1/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested1/deep/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested1/deep/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested1/deep/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5366,7 +5300,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5381,7 +5314,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5395,7 +5327,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5415,7 +5346,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5430,7 +5360,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5445,7 +5374,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5464,7 +5392,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5479,7 +5406,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5494,7 +5420,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/testRelease/ml [-]
     ProductFlavors
         ProductFlavor
             Dimension                     : foo
@@ -5510,7 +5435,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/basic/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/basic/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/src/basic/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/src/basic/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5525,7 +5449,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestBasic/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTestBasic/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5539,7 +5462,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testBasic/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasic/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testBasic/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/testBasic/ml [-]
         ProductFlavor
             Dimension                     : foo
             VectorDrawables
@@ -5554,7 +5476,6 @@ MODULE                        : project.nested2
             AssetsDirectories             : <ROOT>/nested2/src/paid/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/src/paid/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/src/paid/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/src/paid/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5569,7 +5490,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestPaid/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTestPaid/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5583,7 +5503,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testPaid/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testPaid/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testPaid/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/testPaid/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -5647,7 +5566,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/basicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/basicDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/basicDebug/ml [-]
                 Level2Dependencies
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -5682,7 +5600,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/androidTestBasicDebug/ml [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -5726,7 +5643,6 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testBasicDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/src/testBasicDebug/ml [-]
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
@@ -5797,7 +5713,6 @@ MODULE                        : project.nested2.deep
             AssetsDirectories             : <ROOT>/nested2/deep/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/deep/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/deep/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5812,7 +5727,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -5826,7 +5740,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -5846,7 +5759,6 @@ MODULE                        : project.nested2.deep
             AssetsDirectories             : <ROOT>/nested2/deep/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/deep/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/deep/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5861,7 +5773,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5876,7 +5787,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5895,7 +5805,6 @@ MODULE                        : project.nested2.deep
             AssetsDirectories             : <ROOT>/nested2/deep/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/deep/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/deep/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/deep/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -5910,7 +5819,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -5925,7 +5833,6 @@ MODULE                        : project.nested2.deep
                     AssetsDirectories             : <ROOT>/nested2/deep/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/deep/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/deep/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/deep/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -6091,7 +5998,6 @@ MODULE                        : project.nested2.trans.deep2
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/main/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/main/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6106,7 +6012,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTest/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/androidTest/ml [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -6120,7 +6025,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/test/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/test/ml [-]
     BuildTypes
         BuildType
             IsDebuggable                  : true
@@ -6140,7 +6044,6 @@ MODULE                        : project.nested2.trans.deep2
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/debug/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/debug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6155,7 +6058,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/androidTestDebug/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6170,7 +6072,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testDebug/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/testDebug/ml [-]
         BuildType
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -6189,7 +6090,6 @@ MODULE                        : project.nested2.trans.deep2
             AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/release/shaders [-]
-            MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/release/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -6204,7 +6104,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/androidTestRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/androidTestRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/androidTestRelease/ml [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -6219,7 +6118,6 @@ MODULE                        : project.nested2.trans.deep2
                     AssetsDirectories             : <ROOT>/nested2/trans/deep2/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/trans/deep2/src/testRelease/shaders [-]
-                    MlModelsDirectories           : <ROOT>/nested2/trans/deep2/src/testRelease/ml [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
