@@ -2022,12 +2022,10 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       return;
     }
     if (folderType == DRAWABLE) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod: for testing
       layoutlibCacheFlushes++;
       bitmapUpdated(file);
     }
     else if (folderType == FONT) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod: for testing
       layoutlibCacheFlushes++;
       clearFontCache(file);
     }
