@@ -49,6 +49,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -97,6 +98,7 @@ class ResolutionElementEditorTest {
     checkImage(editors, "Closed")
   }
 
+  @Ignore("b/187441420")
   @Test
   fun testPaintOpen() {
     setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
@@ -105,6 +107,7 @@ class ResolutionElementEditorTest {
     checkImage(editors, "Open")
   }
 
+  @Ignore("b/187441420")
   @Test
   fun testPaintOpenWithDetails() {
     setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
@@ -114,6 +117,7 @@ class ResolutionElementEditorTest {
     checkImage(editors, "OpenWithDetails")
   }
 
+  @Ignore("b/187441420")
   @Test
   fun testPaintOpenWithTwoDetails() {
     setLookAndFeel(IntelliJLaf(), ImageDiffTestUtil.getDefaultFont())
