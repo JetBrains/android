@@ -91,10 +91,8 @@ private fun collectContentRootData(
   val handleBuildDir = FileUtil.isAncestor(moduleRootPath, buildDir.path, false)
   // Function passed in to the methods below to register each source path with a ContentRootData object.
   fun addSourceFolder(path: @SystemDependent String, sourceType: ExternalSystemSourceType?) {
-    if (handleBuildDir && FileUtil.isAncestor(buildDir.path, path, false)) {
-      if (sourceType != null) {
-        mainContentRootData.storePath(sourceType, path)
-      }
+    if (sourceType != null && handleBuildDir && FileUtil.isAncestor(buildDir.path, path, false)) {
+      mainContentRootData.storePath(sourceType, path)
     }
     else {
       val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, path)
