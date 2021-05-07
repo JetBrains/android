@@ -80,6 +80,11 @@ public class ConfigurationManager implements Disposable {
     return findConfigurationManager(androidFacet, true /* create if necessary */);
   }
 
+  @Nullable
+  public static ConfigurationManager findExistingInstance(@NotNull AndroidFacet androidFacet) {
+    return findConfigurationManager(androidFacet, false);
+  }
+
   // TODO: Migrate to use the version that takes an AndroidFacet
   @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull Module module) {
