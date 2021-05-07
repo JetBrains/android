@@ -34,7 +34,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.apache.log4j.Logger
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -158,8 +157,9 @@ class CoroutineUtilsTest {
     val defaultProcessor = LoggedErrorProcessor.getInstance()
     try {
       LoggedErrorProcessor.setNewInstance(object : LoggedErrorProcessor() {
-        override fun processError(message: String, t: Throwable?, details: Array<String>, logger: Logger) {
+        override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
           messages.add(message)
+          return false
         }
       })
 
