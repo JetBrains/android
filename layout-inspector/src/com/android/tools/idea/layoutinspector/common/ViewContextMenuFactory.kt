@@ -18,6 +18,8 @@ package com.android.tools.idea.layoutinspector.common
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -128,8 +130,7 @@ private fun generateText(viewNode: ViewNode) =
 @VisibleForTesting
 class SelectViewAction(
   val view: ViewNode, val inspectorModel: InspectorModel
-) : AnAction(generateText(view), null,
-             AndroidDomElementDescriptorProvider.getIconForViewTag(view.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW) {
+) : AnAction(generateText(view), null, IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode)) {
 
   override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
