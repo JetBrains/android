@@ -43,6 +43,8 @@
                       icon="StudioIcons.Shell.ToolWindows.BUILD_VARIANTS"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
     <notificationGroup id="Android Gradle Tasks" displayType="BALLOON"/>
+    <externalSystemViewContributor id="android" order="before com.intellij.openapi.externalSystem.view.ExternalSystemViewDefaultContributor"
+                                   implementation="com.android.tools.idea.projectsystem.gradle.GradleTaskEmptyContributor"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver" order="first"/>
