@@ -18,9 +18,8 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
-import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
+import com.android.ddmlib.logcat.LogCatHeaderParser;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.logcat.LogCatMessageParser;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.openapi.Disposable;
@@ -53,10 +52,13 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   private static final Pattern CARRIAGE_RETURN = Pattern.compile("\r", Pattern.LITERAL);
 
-  private final LogCatMessageParser myLongEpochParser;
-  private final LogCatMessageParser myLongParser;
+  @NotNull
+  private final LogCatHeaderParser myLogCatHeaderParser;
+  @NotNull
   private final IDevice myDevice;
+  @NotNull
   private final StackTraceExpander myStackTraceExpander;
+  @NotNull
   private final LogcatListener myLogcatListener;
   private volatile boolean myCanceled;
 
@@ -65,8 +67,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @Nullable private List<@NotNull String> myPreviousLines;
 
   AndroidLogcatReceiver(@NotNull IDevice device, @NotNull LogcatListener listener) {
-    myLongEpochParser = new LogCatLongEpochMessageParser();
-    myLongParser = new LogCatMessageParser();
+    myLogCatHeaderParser = new LogCatHeaderParser();
     myDevice = device;
     myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
     myLogcatListener = listener;
@@ -127,7 +128,7 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     for (String line : newLines) {
       line = fixLine(line);
 
-      LogCatHeader header = tryParseHeader(line);
+      LogCatHeader header = myLogCatHeaderParser.parseHeader(line, myDevice);
 
       if (header != null) {
         // It's a header, flush active lines.
@@ -193,16 +194,6 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
 
   public void cancel() {
     myCanceled = true;
-  }
-
-  @Nullable
-  private LogCatHeader tryParseHeader(@NotNull String line) {
-    LogCatHeader header = myLongEpochParser.processLogHeader(line, myDevice);
-
-    if (header == null) {
-      header = myLongParser.processLogHeader(line, myDevice);
-    }
-    return header;
   }
 
   /**
