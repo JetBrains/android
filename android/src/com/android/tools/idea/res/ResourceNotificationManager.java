@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -88,8 +89,6 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 public class ResourceNotificationManager {
-  private final Object myChangePendingLock = new Object();
-
   private final @NotNull Project myProject;
 
   /**
@@ -118,7 +117,7 @@ public class ResourceNotificationManager {
   /**
    * Whether we've already been notified about a change and we'll be firing it shortly.
    */
-  private boolean myPendingNotify;
+  private final AtomicBoolean myPendingNotify = new AtomicBoolean();
 
   private boolean myIgnoreChildrenChanged;
 
@@ -287,18 +286,13 @@ public class ResourceNotificationManager {
    */
   private void notice(@NotNull Reason reason, @Nullable VirtualFile source) {
     myEvents.add(reason);
-    synchronized (myChangePendingLock) {
-      if (myPendingNotify) {
-        return;
-      }
-      myPendingNotify = true;
+    if (!myPendingNotify.compareAndSet(false, true)) {
+      return;
     }
+
     ApplicationManager.getApplication().invokeLater(() -> {
-      synchronized (myChangePendingLock) {
-        if (!myPendingNotify) {
-          return;
-        }
-        myPendingNotify = false;
+      if (!myPendingNotify.compareAndSet(true, false)) {
+        return;
       }
 
       if (source == null) {
