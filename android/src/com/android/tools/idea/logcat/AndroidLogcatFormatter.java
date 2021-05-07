@@ -17,7 +17,6 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.logcat.LogCatHeader;
-import com.android.ddmlib.logcat.LogCatLongEpochMessageParser;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
 import java.time.Instant;
@@ -50,6 +49,11 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
     .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
     .toFormatter(Locale.ROOT);
+  private static final DateTimeFormatter EPOCH_TIME_FORMATTER =
+    new DateTimeFormatterBuilder()
+      .appendValue(ChronoField.INSTANT_SECONDS)
+      .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+      .toFormatter(Locale.ROOT);
 
   @NotNull private final ZoneId myTimeZone;
   private final AndroidLogcatPreferences myPreferences;
@@ -100,7 +104,7 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     Instant timestamp = header.getTimestamp();
 
     Object timestampString = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH
-                             ? LogCatLongEpochMessageParser.EPOCH_TIME_FORMATTER.format(timestamp)
+                             ? EPOCH_TIME_FORMATTER.format(timestamp)
                              : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, myTimeZone));
 
     Object processIdThreadId = header.getPid() + "-" + header.getTid();
