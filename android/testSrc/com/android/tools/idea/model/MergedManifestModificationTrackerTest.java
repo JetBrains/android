@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.model;
 
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
@@ -40,9 +39,9 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.AdditionalAnswers;
 import org.mockito.stubbing.Answer;
 
@@ -61,7 +60,7 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
   }
 
-  public void testWhenManifestChanged() throws TimeoutException {
+  public void testWhenManifestChanged() throws Exception {
     PathString stringPath = mock(PathString.class);
     AndroidFacetConfiguration androidFacetConfiguration = mock(AndroidFacetConfiguration.class);
     MergedManifestModificationListener modificationListener = new MergedManifestModificationListener(myProject);
@@ -71,8 +70,8 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     MergedManifestModificationTracker mergedManifestTracker = MergedManifestModificationTracker.getInstance(myModule);
     long baseMergedManifestTrackerCount = mergedManifestTracker.getModificationCount();
 
-    updateManifest(modificationListener, stringPath, androidFacet);
-    waitForCondition(2, TimeUnit.SECONDS, () -> mergedManifestTracker.getModificationCount() == baseMergedManifestTrackerCount + 1);
+    updateManifestAndWaitWithTimeout(modificationListener, stringPath, androidFacet);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
   }
 
   public void testWhenManifestChangedActively() throws Exception {
@@ -116,14 +115,13 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
       Thread.sleep(50);
     }
 
-    BoundedTaskExecutor internalExecutor = (BoundedTaskExecutor)modificationListener.trackerUpdaterExecutor;
-    internalExecutor.waitAllTasksExecuted(2, TimeUnit.SECONDS);
+    ensureTaskIsCompletedWithTimeout(modificationListener, 2, TimeUnit.SECONDS);
 
     assertThat(dependencyModuleTracker.getModificationCount()).isEqualTo(dependencyModuleTrackerBaseCount + 20);
     assertThat(myModuleTracker.getModificationCount()).isEqualTo(myModuleTrackerBaseCount + 1);
   }
 
-  public void testCombinationCases() throws TimeoutException {
+  public void testCombinationCases() throws Exception {
     PathString stringPath = mock(PathString.class);
     AndroidFacetConfiguration androidFacetConfiguration = mock(AndroidFacetConfiguration.class);
     MergedManifestModificationListener modificationListener = new MergedManifestModificationListener(myProject);
@@ -138,8 +136,8 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     long baseMergedManifestTrackerCount = mergedManifestTracker.getModificationCount();
 
     // update manifest
-    updateManifest(modificationListener, stringPath, androidFacet);
-    waitForCondition(2, TimeUnit.SECONDS, () -> mergedManifestTracker.getModificationCount() == baseMergedManifestTrackerCount + 1);
+    updateManifestAndWaitWithTimeout(modificationListener, stringPath, androidFacet);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
 
     // sync
     projectSync();
@@ -147,8 +145,8 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 2);
 
     // update manifest
-    updateManifest(modificationListener, stringPath, androidFacet);
-    waitForCondition(2, TimeUnit.SECONDS, () -> mergedManifestTracker.getModificationCount() == baseMergedManifestTrackerCount + 3);
+    updateManifestAndWaitWithTimeout(modificationListener, stringPath, androidFacet);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 3);
 
     // sync
     projectSync();
@@ -170,5 +168,19 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
                                      PathString stringPath,
                                      AndroidFacet androidFacet) {
     modificationListener.fileChanged(stringPath, androidFacet);
+  }
+
+  private static void updateManifestAndWaitWithTimeout(@NotNull MergedManifestModificationListener modificationListener,
+                                                       PathString stringPath,
+                                                       AndroidFacet androidFacet) throws Exception {
+    modificationListener.fileChanged(stringPath, androidFacet);
+    ensureTaskIsCompletedWithTimeout(modificationListener, 3, TimeUnit.SECONDS);
+  }
+
+  private static void ensureTaskIsCompletedWithTimeout(@NotNull MergedManifestModificationListener modificationListener,
+                                                       long timeout,
+                                                       @NotNull TimeUnit unit) throws Exception {
+    BoundedTaskExecutor internalExecutor = (BoundedTaskExecutor)modificationListener.trackerUpdaterExecutor;
+    internalExecutor.waitAllTasksExecuted(timeout, unit);
   }
 }
