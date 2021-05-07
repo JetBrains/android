@@ -111,7 +111,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
 
       if (!layoutSetExplicitly) {
         preview.currentRepresentation?.preferredInitialVisibility?.toTextEditorLayout()?.let {
-          setLayout(it)
+          setLayoutExplicitly(it)
         }
       }
     }
@@ -130,7 +130,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   /**
    * Set the layout (code, split or only design) of the panel explicitly.
    */
-  protected fun setLayout(layout: Layout?) {
+  protected fun setLayoutExplicitly(layout: Layout?) {
     if (layout != null) {
       layoutSetExplicitly = true
       setEditorLayout(layout)
