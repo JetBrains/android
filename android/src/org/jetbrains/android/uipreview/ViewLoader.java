@@ -433,7 +433,7 @@ public class ViewLoader {
           if (!AndroidUtils.isAbstract(psiClass)) {
             try {
               Class<?> aClass = myLoadedClasses.get(qName);
-              if (aClass == null && myLayoutLibrary.getClassLoader() != null) {
+              if (aClass == null) {
                 aClass = myLayoutLibrary.getClassLoader().loadClass(qName);
                 if (aClass != null) {
                   myLoadedClasses.put(qName, aClass);
