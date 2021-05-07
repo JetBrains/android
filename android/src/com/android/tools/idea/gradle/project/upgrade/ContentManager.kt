@@ -187,6 +187,8 @@ class ToolWindowModel(
     root.removeAllChildren()
     showFinishedMessage.set(false)
     treeModel.nodeStructureChanged(root)
+    processor?.usageView?.close()
+    processor = null
 
     if (refindPlugin) {
       current = AndroidPluginInfo.find(project)?.pluginVersion
@@ -199,8 +201,6 @@ class ToolWindowModel(
         if (newVersion >= current) AgpUpgradeRefactoringProcessor(project, current, it) else null
       }
     }
-    processor?.usageView?.close()
-    processor = newProcessor
 
     if (newProcessor == null) {
       // Preserve existing message and run button tooltips from newVersion validation.
@@ -232,6 +232,7 @@ class ToolWindowModel(
 
   private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, classpathUsageFound: Boolean) {
     refreshTree(newProcessor)
+    processor = newProcessor
     if (!classpathUsageFound && newProcessor.current != newProcessor.new) {
       newProcessor.trackProcessorUsage(FAILURE_PREDICTED)
       runEnabled.set(false)
