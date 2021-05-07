@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static org.junit.Assert.assertNotEquals;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -126,7 +127,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     //noinspection ConstantConditions
     assertEquals("#ff0000",
                  configuration1.getResourceResolver()
-                   .getStyle("AppTheme", false)
+                   .getStyle(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "AppTheme"))
                    .getItem(ResourceNamespace.ANDROID, "colorBackground").getValue());
     IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color2", ResourceType.COLOR, "colors.xml",
                                          Collections.singletonList("values"), "#fa2395");
@@ -177,7 +178,10 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     // Read the value first to ensure that we trigger it as a read (see comment above for previous
     // resource resolver lookup).
     //noinspection ConstantConditions
-    assertEquals("Hello", configuration1.getResourceResolver().findResValue("@string/hello_world", false).getValue());
+    assertEquals("Hello",
+                 configuration1.getResourceResolver().getResolvedResource(
+                     new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STRING, "hello_world")).getValue());
+    //getResolvedResource
     addText(values1, "Hello^</string>", " World");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
