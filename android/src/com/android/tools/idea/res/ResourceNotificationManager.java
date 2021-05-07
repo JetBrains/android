@@ -88,34 +88,35 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  */
 public class ResourceNotificationManager {
-  private final Project myProject;
+  private final Object myChangePendingLock = new Object();
+
+  private final @NotNull Project myProject;
 
   /**
-   * Module observers: one per observed module in the project, with potentially multiple listeners
+   * Module observers: one per observed module in the project, with potentially multiple listeners.
    */
-  private final Map<Module, ModuleEventObserver> myModuleToObserverMap = new HashMap<>();
+  private final @NotNull Map<Module, ModuleEventObserver> myModuleToObserverMap = new HashMap<>();
 
   /**
-   * File observers: one per observed file, with potentially multiple listeners
+   * File observers: one per observed file, with potentially multiple listeners.
    */
-  private final Map<VirtualFile, FileEventObserver> myFileToObserverMap = new HashMap<>();
+  private final @NotNull Map<VirtualFile, FileEventObserver> myFileToObserverMap = new HashMap<>();
 
   /**
-   * Configuration observers: one per observed configuration, with potentially multiple listeners
+   * Configuration observers: one per observed configuration, with potentially multiple listeners.
    */
-  private final Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = new HashMap<>();
+  private final @NotNull Map<Configuration, ConfigurationEventObserver> myConfigurationToObserverMap = new HashMap<>();
 
   /**
-   * Project wide observer: a single one will do
+   * Project wide observer: a single one will do.
    */
   @GuardedBy("this")
-  @Nullable
-  private ProjectPsiTreeObserver myProjectPsiTreeObserver;
+  private @Nullable ProjectPsiTreeObserver myProjectPsiTreeObserver;
 
-  private final ProjectBuildObserver myProjectBuildObserver = new ProjectBuildObserver();
+  private final @NotNull ProjectBuildObserver myProjectBuildObserver = new ProjectBuildObserver();
 
   /**
-   * Whether we've already been notified about a change and we'll be firing it shortly
+   * Whether we've already been notified about a change and we'll be firing it shortly.
    */
   private boolean myPendingNotify;
 
@@ -130,29 +131,28 @@ public class ResourceNotificationManager {
   /**
    * Set of events we've observed since the last notification
    */
-  private EnumSet<Reason> myEvents = EnumSet.noneOf(Reason.class);
+  private @NotNull EnumSet<Reason> myEvents = EnumSet.noneOf(Reason.class);
 
   /**
    * Do not instantiate directly; this is a Service and its lifecycle is managed by the IDE;
-   * use {@link #getInstance(Project)} instead
+   * use {@link #getInstance(Project)} instead.
    */
-  public ResourceNotificationManager(Project project) {
+  public ResourceNotificationManager(@NotNull Project project) {
     myProject = project;
   }
 
   /**
-   * Returns the {@linkplain ResourceNotificationManager} for the given project
+   * Returns the {@linkplain ResourceNotificationManager} for the given project.
    *
    * @param project the project to return the notification manager for
    * @return a notification manager
    */
-  @NotNull
-  public static ResourceNotificationManager getInstance(@NotNull Project project) {
+  public static @NotNull ResourceNotificationManager getInstance(@NotNull Project project) {
     return project.getService(ResourceNotificationManager.class);
   }
 
-  @NotNull
-  public ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file, @Nullable Configuration configuration) {
+  public @NotNull ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file,
+                                                    @Nullable Configuration configuration) {
     LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
@@ -171,7 +171,7 @@ public class ResourceNotificationManager {
   }
 
   /**
-   * Registers an interest in resources accessible from the given module
+   * Registers an interest in resources accessible from the given module.
    *
    * @param listener      the listener to notify when there is a resource change
    * @param facet         the facet for the Android module whose resources the listener is interested in
@@ -182,10 +182,10 @@ public class ResourceNotificationManager {
    *                      you can listen for changes in (must be a configuration corresponding to the file)
    * @return the current resource modification stamp of the given module
    */
-  public synchronized ResourceVersion addListener(@NotNull ResourceChangeListener listener,
-                                                  @NotNull AndroidFacet facet,
-                                                  @Nullable VirtualFile file,
-                                                  @Nullable Configuration configuration) {
+  public synchronized @NotNull ResourceVersion addListener(@NotNull ResourceChangeListener listener,
+                                                           @NotNull AndroidFacet facet,
+                                                           @Nullable VirtualFile file,
+                                                           @Nullable Configuration configuration) {
     Module module = facet.getModule();
     ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
     if (moduleEventObserver == null) {
@@ -225,7 +225,7 @@ public class ResourceNotificationManager {
   }
 
   /**
-   * Registers an interest in resources accessible from the given module
+   * Registers an interest in resources accessible from the given module.
    *
    * @param listener      the listener to notify when there is a resource change
    * @param facet         the facet for the Android module whose resources the listener is interested in
@@ -236,68 +236,65 @@ public class ResourceNotificationManager {
                                           @NotNull AndroidFacet facet,
                                           @Nullable VirtualFile file,
                                           @Nullable Configuration configuration) {
-      if (file != null) {
-        if (configuration != null) {
-          ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
-          if (configurationEventObserver != null) {
-            configurationEventObserver.removeListener(listener);
-            if (!configurationEventObserver.hasListeners()) {
-              myConfigurationToObserverMap.remove(configuration);
-            }
-          }
-        }
-        FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
-        if (fileEventObserver != null) {
-          fileEventObserver.removeListener(listener);
-          if (!fileEventObserver.hasListeners()) {
-            myFileToObserverMap.remove(file);
+    if (file != null) {
+      if (configuration != null) {
+        ConfigurationEventObserver configurationEventObserver = myConfigurationToObserverMap.get(configuration);
+        if (configurationEventObserver != null) {
+          configurationEventObserver.removeListener(listener);
+          if (!configurationEventObserver.hasListeners()) {
+            myConfigurationToObserverMap.remove(configuration);
           }
         }
       }
-      else {
-        assert configuration == null : configuration;
+      FileEventObserver fileEventObserver = myFileToObserverMap.get(file);
+      if (fileEventObserver != null) {
+        fileEventObserver.removeListener(listener);
+        if (!fileEventObserver.hasListeners()) {
+          myFileToObserverMap.remove(file);
+        }
       }
+    }
+    else {
+      assert configuration == null : configuration;
+    }
 
-      Module module = facet.getModule();
-      ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
-      if (moduleEventObserver != null) {
-        moduleEventObserver.removeListener(listener);
-        if (!moduleEventObserver.hasListeners()) {
-          myModuleToObserverMap.remove(module);
-          if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
-            myProjectBuildObserver.stopListening();
-            myProjectPsiTreeObserver = null;
-          }
+    Module module = facet.getModule();
+    ModuleEventObserver moduleEventObserver = myModuleToObserverMap.get(module);
+    if (moduleEventObserver != null) {
+      moduleEventObserver.removeListener(listener);
+      if (!moduleEventObserver.hasListeners()) {
+        myModuleToObserverMap.remove(module);
+        if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
+          myProjectBuildObserver.stopListening();
+          myProjectPsiTreeObserver = null;
         }
       }
+    }
   }
 
   /**
-   * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as a
-   * delegate (e.g in {@link AndroidFileChangeListener}).
+   * Returns a implementation of {@link PsiTreeChangeListener} that is not registered and is used as
+   * a delegate (e.g in {@link AndroidFileChangeListener}).
    * <p>
    * If no listener has been added to the {@link ResourceNotificationManager}, this method returns null.
    */
-  @Nullable
-  public synchronized PsiTreeChangeListener getPsiListener() {
-      return myProjectPsiTreeObserver;
+  public synchronized @Nullable PsiTreeChangeListener getPsiListener() {
+    return myProjectPsiTreeObserver;
   }
-
-  private final Object CHANGE_PENDING_LOCK = new Object();
 
   /**
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
    */
   private void notice(@NotNull Reason reason, @Nullable VirtualFile source) {
     myEvents.add(reason);
-    synchronized (CHANGE_PENDING_LOCK) {
+    synchronized (myChangePendingLock) {
       if (myPendingNotify) {
         return;
       }
       myPendingNotify = true;
     }
     ApplicationManager.getApplication().invokeLater(() -> {
-      synchronized (CHANGE_PENDING_LOCK) {
+      synchronized (myChangePendingLock) {
         if (!myPendingNotify) {
           return;
         }
@@ -350,14 +347,14 @@ public class ResourceNotificationManager {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     for (ModuleEventObserver moduleEventObserver : myModuleToObserverMap.values()) {
-      // Not every module may have pending changes; each one will check
+      // Not every module may have pending changes; each one will check.
       moduleEventObserver.notifyListeners(reason);
     }
   }
 
   /**
    * A {@linkplain ModuleEventObserver} registers listeners for various module-specific events (such as
-   * resource folder manager changes) and then notifies {@link #notice(Reason, VirtualFile)} when it sees an event
+   * resource folder manager changes) and then notifies {@link #notice(Reason, VirtualFile)} when it sees an event.
    */
   private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
     private final AndroidFacet myFacet;
@@ -366,7 +363,7 @@ public class ResourceNotificationManager {
     private MessageBusConnection myConnection;
 
     @GuardedBy("myListenersLock")
-    private final List<ResourceChangeListener> myListeners = new ArrayList<>(4);
+    private final @NotNull List<ResourceChangeListener> myListeners = new ArrayList<>(4);
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
@@ -402,7 +399,7 @@ public class ResourceNotificationManager {
         // Ensure that project resources have been initialized first, since
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
-        // before our own update listener attempts a re-render)
+        // before our own update listener attempts a re-render).
         ResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
@@ -426,7 +423,7 @@ public class ResourceNotificationManager {
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
-        // such as a variant change, then notify regardless
+        // such as a variant change, then notify regardless.
         return;
       }
 
@@ -543,8 +540,7 @@ public class ResourceNotificationManager {
         PsiElement parent = event.getParent();
 
         if (child instanceof XmlAttribute && parent instanceof XmlTag) {
-          // Typing in a new attribute. Don't need to do any rendering until there
-          // is an actual value
+          // Typing in a new attribute. Don't need to do any rendering until there is an actual value.
           if (((XmlAttribute)child).getValueElement() == null) {
             return;
           }
@@ -553,22 +549,22 @@ public class ResourceNotificationManager {
           XmlAttributeValue attributeValue = (XmlAttributeValue)child;
           attributeValue.getValue();
           if (attributeValue.getValue().isEmpty()) {
-            // Just added a new blank attribute; nothing to render yet
+            // Just added a new blank attribute; nothing to render yet.
             return;
           }
         }
         else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() == null) {
           // Just added attribute value
           String text = child.getText();
-          // See if this is an attribute that takes a resource!
+          // Check if this is an attribute that takes a resource.
           if (text.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(text)) {
             if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
-              // Using code completion to insert resource reference; not yet done
+              // Using code completion to insert resource reference; not yet done.
               return;
             }
             ResourceUrl url = ResourceUrl.parse(text);
             if (url != null && url.name.isEmpty()) {
-              // Using code completion to insert resource reference; not yet done
+              // Using code completion to insert resource reference; not yet done.
               return;
             }
           }
@@ -593,8 +589,7 @@ public class ResourceNotificationManager {
         PsiElement child = event.getChild();
         PsiElement parent = event.getParent();
         if (parent instanceof XmlAttribute && child instanceof XmlToken) {
-          // Typing in attribute name. Don't need to do any rendering until there
-          // is an actual value
+          // Typing in attribute name. Don't need to do any rendering until there is an actual value.
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
           if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
@@ -620,8 +615,7 @@ public class ResourceNotificationManager {
         PsiElement child = event.getChild();
         PsiElement parent = event.getParent();
         if (parent instanceof XmlAttribute && child instanceof XmlToken) {
-          // Typing in attribute name. Don't need to do any rendering until there
-          // is an actual value
+          // Typing in attribute name. Don't need to do any rendering until there is an actual value.
           XmlAttributeValue valueElement = ((XmlAttribute)parent).getValueElement();
           if (valueElement == null || valueElement.getValue().isEmpty()) {
             return;
@@ -630,7 +624,7 @@ public class ResourceNotificationManager {
         else if (parent instanceof XmlAttributeValue && child instanceof XmlToken && event.getOldChild() != null) {
           String newText = child.getText();
           String prevText = event.getOldChild().getText();
-          // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually
+          // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually.
           if (newText.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(newText)) {
             ResourceUrl prevUrl = ResourceUrl.parse(prevText);
             ResourceUrl newUrl = ResourceUrl.parse(newText);
@@ -841,11 +835,11 @@ public class ResourceNotificationManager {
   }
 
   /**
-   * Interface which should be implemented by clients interested in resource edits and events that affect resources
+   * Interface that should be implemented by clients interested in resource edits and events that affect resources.
    */
   public interface ResourceChangeListener {
     /**
-     * One or more resources have changed
+     * One or more resources have changed.
      *
      * @param reason the set of reasons that the resources have changed since the last notification
      */
@@ -876,19 +870,17 @@ public class ResourceNotificationManager {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
       ResourceVersion version = (ResourceVersion)o;
 
-      if (myResourceGeneration != version.myResourceGeneration) return false;
-      if (myFileGeneration != version.myFileGeneration) return false;
-      if (myConfigurationGeneration != version.myConfigurationGeneration) return false;
-      if (myProjectConfigurationGeneration != version.myProjectConfigurationGeneration) return false;
-      if (myOtherGeneration != version.myOtherGeneration) return false;
-
-      return true;
+      return myResourceGeneration == version.myResourceGeneration &&
+          myFileGeneration == version.myFileGeneration &&
+          myConfigurationGeneration == version.myConfigurationGeneration &&
+          myProjectConfigurationGeneration == version.myProjectConfigurationGeneration &&
+          myOtherGeneration == version.myOtherGeneration;
     }
 
     @Override
@@ -901,7 +893,7 @@ public class ResourceNotificationManager {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
       return "ResourceVersion{" +
              "resource=" + myResourceGeneration +
              ", file=" + myFileGeneration +
@@ -913,33 +905,33 @@ public class ResourceNotificationManager {
   }
 
   /**
-   * The reason the resources have changed
+   * The reason the resources have changed.
    */
   public enum Reason {
     /**
      * An edit which affects the resource repository was performed (e.g. changing the value of a string
-     * is a resource edit, but editing the layout parameters of a widget in a layout file is not)
+     * is a resource edit, but editing the layout parameters of a widget in a layout file is not).
      */
     RESOURCE_EDIT,
 
     /**
      * Edit of a file that is being observed (if you're for example watching a menu file, this will include
-     * edits in whitespace etc
+     * edits in whitespace etc.
      */
     EDIT,
 
     /**
-     * The configuration changed (for example, the locale may have changed)
+     * The configuration changed (for example, the locale may have changed).
      */
     CONFIGURATION_CHANGED,
 
     /**
-     * The module SDK changed
+     * The module SDK changed.
      */
     SDK_CHANGED,
 
     /**
-     * The active variant changed, which affects available resource sets and values
+     * The active variant changed, which affects available resource sets and values.
      */
     VARIANT_CHANGED,
 
@@ -950,7 +942,7 @@ public class ResourceNotificationManager {
 
     /**
      * Project build. Not a direct resource edit, but for example when a custom view
-     * is compiled it can affect how a resource like layouts should be rendered
+     * is compiled it can affect how a resource like layouts should be rendered.
      */
     PROJECT_BUILD,
 
