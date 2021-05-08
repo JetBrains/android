@@ -34,8 +34,8 @@ fun buildGradle(
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
   useGradleKts: Boolean,
-  moduleName: String,
   targetModule: Module,
+  benchmarkBuildTypeName: String,
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
@@ -68,22 +68,26 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    buildTypes {
+        $benchmarkBuildTypeName {
+            debuggable = true
+            signingConfig = debug.signingConfig
+        }
+    }
+    
+    targetProjectPath = "$targetModuleGradlePath"
+    properties["android.experimental.self-instrumenting"] = true
 }
 
 dependencies {
 }
 
-// Define task dependencies to ensure the app is built and installed before macrobenchmarks run.
-//
-// NOTE: This requires signingConfig for the release buildType to be set on the target app module, ${targetModule.name} at
-// $targetModuleGradlePath! To do so, apply the following to the build.gradle file:
-//
-// buildTypes {
-//   release {
-//     signingConfig signingConfigs.debug
-//   }
-// }
-tasks.getByPath(':$moduleName:assembleAndroidTest').dependsOn(tasks.getByPath('$targetModuleGradlePath:assembleRelease'))
-tasks.getByPath(':$moduleName:connectedCheck').dependsOn(tasks.getByPath('$targetModuleGradlePath:installRelease'))
+androidComponents {
+    beforeVariants(selector().all()) {
+        enable = buildType == '$benchmarkBuildTypeName'
+    }
+}
+
 """.gradleToKtsIfKts(useGradleKts)
 }

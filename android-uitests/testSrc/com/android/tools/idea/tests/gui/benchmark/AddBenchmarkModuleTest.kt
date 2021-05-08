@@ -153,11 +153,11 @@ class AddBenchmarkModuleTest {
    * 2. Open the Macrobenchmark Module main manifest and check that:
    *     - Query for target application is declared
    *     - android.permission.WRITE_EXTERNAL_STORAGE is declared
-   * 3. Open the Macrobenchmark Module androidTest manifest and check that:
-   *     - android.permission.WRITE_EXTERNAL_STORAGE is declared
-   * 4. Open build.gradle and check that:
-   *     - com.android.library plugin is applied
-   *     - the macrobenchmark library added as an androidTest dependency.
+   * 3. Open build.gradle and check that:
+   *     - com.android.test plugin is applied
+   *     - the macrobenchmark library added as an implementation dependency
+   *     - targetProjectPath is set to :app
+   *     - The android.experimental.self-instrumenting property is set to true
    */
   @Test
   @Throws(Exception::class)
@@ -186,15 +186,11 @@ class AddBenchmarkModuleTest {
       )
     }
 
-    guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
-    }
-
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""id 'com.android.library'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-macro-junit4:""")
+      assertThat(this).contains("""id 'com.android.test'""")
+      assertThat(this).contains("""implementation 'androidx.benchmark:benchmark-macro-junit4:""")
+      assertThat(this).contains("""properties["android.experimental.self-instrumenting"] = true""")
+      assertThat(this).contains("""targetProjectPath = :app""")
     }
   }
 
@@ -215,11 +211,11 @@ class AddBenchmarkModuleTest {
    * 2. Open the Macrobenchmark Module main manifest and check that:
    *     - Query for target application is declared
    *     - android.permission.WRITE_EXTERNAL_STORAGE is declared
-   * 3. Open the Macrobenchmark Module androidTest manifest and check that:
-   *     - android.permission.WRITE_EXTERNAL_STORAGE is declared
-   * 4. Open build.gradle and check that:
-   *     - com.android.library plugin is applied
-   *     - the macrobenchmark library added as an androidTest dependency.
+   * 3. Open build.gradle and check that:
+   *     - com.android.test plugin is applied
+   *     - the macrobenchmark library added as an implementation dependency
+   *     - targetProjectPath is set to :app
+   *     - The android.experimental.self-instrumenting property is set to true
    */
   @Test
   @Throws(Exception::class)
@@ -248,15 +244,11 @@ class AddBenchmarkModuleTest {
       )
     }
 
-    guiTest.getProjectFileText("benchmark/src/androidTest/AndroidManifest.xml").run {
-      assertThat(this).containsMatch(
-        "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
-      )
-    }
-
     guiTest.getProjectFileText("benchmark/build.gradle").run {
-      assertThat(this).contains("""id 'com.android.library'""")
-      assertThat(this).contains("""androidTestImplementation 'androidx.benchmark:benchmark-macro-junit4:""")
+      assertThat(this).contains("""id 'com.android.test'""")
+      assertThat(this).contains("""implementation 'androidx.benchmark:benchmark-macro-junit4:""")
+      assertThat(this).contains("""properties["android.experimental.self-instrumenting"] = true""")
+      assertThat(this).contains("""targetProjectPath = :app""")
     }
   }
 }
