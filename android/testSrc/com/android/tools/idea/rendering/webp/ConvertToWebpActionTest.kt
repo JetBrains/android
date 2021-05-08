@@ -15,14 +15,30 @@
  */
 package com.android.tools.idea.rendering.webp
 
-import com.google.common.truth.Truth
+import com.android.tools.idea.concurrency.waitForCondition
+import com.google.common.truth.Truth.assertThat
+import com.intellij.notification.Notification
+import com.intellij.notification.Notifications
 import org.jetbrains.android.AndroidTestCase
+import java.util.concurrent.TimeUnit
 
 class ConvertToWebpActionTest : AndroidTestCase() {
+  val notifications = mutableListOf<Notification>()
+
+  override fun setUp() {
+    super.setUp()
+    project.messageBus.connect(testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
+      override fun notify(notification: Notification) {
+        notifications.add(notification)
+      }
+    })
+  }
+
   fun testConvert() {
     // Regression test for issue 226893
     // Ensure that images that are too large to encode are encoded anyway if the user asked for it
     val settings = WebpConversionSettings()
+    settings.previewConversion = false
     settings.skipTransparentImages = false
     settings.skipLargerImages = true
     settings.quality = 75
@@ -33,17 +49,22 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     val action = ConvertToWebpAction()
     action.convert(project, settings, true, listOf(mdpi, xhdpi))
 
+    waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
+    assertThat(notifications).hasSize(1)
+    assertThat(notifications[0].content).isEqualTo(
+        "2 files were converted<br/>62 bytes saved<br>2 files were skipped because there was no net space savings")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
-    Truth.assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
-    Truth.assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_action_name.png")).isNotNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNull()
+    assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
+    assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.png")).isNotNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNull()
   }
 
   fun testIncludeLargerImages() {
     // Regression test for issue 226893
     // Ensure that images that are too large to encode are encoded anyway if the user asked for it
     val settings = WebpConversionSettings()
+    settings.previewConversion = false
     settings.skipTransparentImages = false
     settings.skipLargerImages = false
     settings.quality = 75
@@ -56,12 +77,15 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     val action = ConvertToWebpAction()
     action.convert(project, settings, true, listOf(mdpi, xhdpi, gray))
 
+    waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
+    assertThat(notifications).hasSize(1)
+    assertThat(notifications[0].content).isEqualTo("6 files were converted<br/>-722 bytes saved")
     // Check that we converted both images
-    Truth.assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
-    Truth.assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_action_name.png")).isNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull()
-    Truth.assertThat(mdpiFolder.findChild("ic_arrow_back.png")).isNull()
+    assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
+    assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.png")).isNull()
+    assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull()
+    assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull()
+    assertThat(mdpiFolder.findChild("ic_arrow_back.png")).isNull()
   }
 }
