@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
@@ -34,7 +35,6 @@ import com.android.tools.idea.layoutinspector.skia.SkiaParserServerConnection
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.layoutinspector.BitmapType
-import com.android.tools.layoutinspector.LayoutInspectorUtils
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType
@@ -204,6 +204,10 @@ class TransportTreeLoaderTest {
   private fun createMockTransportClient(): TransportInspectorClient {
     val client: TransportInspectorClient = mock()
     `when`(client.treeLoader).thenReturn(TransportTreeLoader(projectRule.project, client, mock()))
+    val process: ProcessDescriptor = mock()
+    `when`(process.device).thenReturn(mock())
+    `when`(process.name).thenReturn("my.package")
+    `when`(client.process).thenReturn(process)
     return client
   }
 
@@ -234,7 +238,7 @@ class TransportTreeLoaderTest {
     `when`(skiaParser.getViewTree(eq(payload), argThat { req -> req.map { it.id }.sorted() == listOf(-2L, 1L, 2L, 3L, 4L) }, any(), any()))
       .thenReturn(skiaResponse)
 
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser, client.process)!!
     window!!.refreshImages(1.0)
     val tree = window.root
     assertThat(tree.drawId).isEqualTo(1)
@@ -306,7 +310,7 @@ class TransportTreeLoaderTest {
     val client = createMockTransportClient()
     `when`(client.getPayload(111)).thenReturn(sampleDeflatedBytes)
 
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client.process)!!
     window!!.refreshImages(1.0)
     val tree = window.root
 
@@ -330,7 +334,7 @@ class TransportTreeLoaderTest {
     var calledBack = false
     val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
 
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser, client.process)!!
     window!!.refreshImages(1.0)
     assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("No renderer supporting SKP version 123 found. Rotation disabled.")
@@ -350,7 +354,7 @@ class TransportTreeLoaderTest {
     var calledBack = false
     val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
 
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser, client.process)!!
     window!!.refreshImages(1.0)
     assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("Invalid picture data received from device. Rotation disabled.")
@@ -371,7 +375,7 @@ class TransportTreeLoaderTest {
     var calledBack = false
     val skiaParser = SkiaParserImpl({ calledBack = true }, { connection })
 
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), skiaParser, client.process)!!
     window!!.refreshImages(1.0)
     assertThat(calledBack).isTrue()
     assertThat(banner.text.text).isEqualTo("Problem launching renderer. Rotation disabled.")
@@ -390,7 +394,8 @@ class TransportTreeLoaderTest {
 
     val client = createMockTransportClient()
     val skiaParser: SkiaParser = mock()
-    val (window, generation) = client.treeLoader.loadComponentTree(emptyTreeEvent, ResourceLookup(projectRule.project), skiaParser)!!
+    val (window, generation) =
+      client.treeLoader.loadComponentTree(emptyTreeEvent, ResourceLookup(projectRule.project), skiaParser, client.process)!!
     assertThat(window).isNull()
     assertThat(generation).isEqualTo(17)
   }
@@ -410,7 +415,7 @@ class TransportTreeLoaderTest {
         payloadType = PayloadType.BITMAP_AS_REQUESTED
       }.build()
     }.build()
-    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project))!!
+    val (window, _) = client.treeLoader.loadComponentTree(event, ResourceLookup(projectRule.project), client.process)!!
     window!!.refreshImages(1.0)
     val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sampleImage, resultImage, 0.01)

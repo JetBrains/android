@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.resources.Density.DEFAULT_DENSITY
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -67,12 +68,12 @@ class ResourceLookup(private val project: Project) {
   /**
    * Update the configuration after a possible configuration change detected on the device.
    */
-  fun updateConfiguration(appContext: AppContext, stringTable: StringTable) {
+  fun updateConfiguration(appContext: AppContext, stringTable: StringTable, process: ProcessDescriptor) {
     val config = appContext.configuration
     dpi = if (config.density != 0) config.density else DEFAULT_DENSITY
     fontScale = if (config.fontScale != 0.0f) config.fontScale else DEFAULT_FONT_SCALE
-    val loader = ConfigurationLoader(appContext, stringTable)
-    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, loader.packageName) }
+    val loader = ConfigurationLoader(appContext, stringTable, process.device.apiLevel)
+    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) }
     if (facet == null) {
       resolver = null
     }

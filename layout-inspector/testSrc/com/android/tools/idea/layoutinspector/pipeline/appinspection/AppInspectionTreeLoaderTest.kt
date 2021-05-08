@@ -22,6 +22,10 @@ import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -117,7 +121,6 @@ class AppInspectionTreeLoaderTest {
       ViewString(6, "ComposeView")
 
       appContextBuilder.apply {
-        apiLevel = 29
         configurationBuilder.apply {
           countryCode = 1
         }
@@ -254,7 +257,7 @@ class AppInspectionTreeLoaderTest {
     )
 
     val data = createFakeData()
-    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
 
     window!!.refreshImages(1.0)
@@ -325,7 +328,7 @@ class AppInspectionTreeLoaderTest {
       logEvent = { fail() }, // Metrics shouldn't be logged until we come back with a screenshot
       skiaParser
     )
-    val (window, _) = treeLoader.loadComponentTree(createFakeData(), ResourceLookup(projectRule.project))!!
+    val (window, _) = treeLoader.loadComponentTree(createFakeData(), ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     window!!.refreshImages(1.0)
 
     assertThat(banner.text.text).isEqualTo(msg)
@@ -370,7 +373,7 @@ class AppInspectionTreeLoaderTest {
     )
 
     val data = createFakeData(BITMAP)
-    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project))!!
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
 
@@ -378,7 +381,7 @@ class AppInspectionTreeLoaderTest {
     ImageDiffUtil.assertImageSimilar("image1.png", sample565.image, resultImage, 0.01)
 
     val data2 = createFakeData(BITMAP, bitmapType = BitmapType.ARGB_8888)
-    val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project))!!
+    val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     window2!!.refreshImages(1.0)
 
     val resultImage2 = ViewNode.readDrawChildren { drawChildren -> (window2.root.drawChildren()[0] as DrawViewImage).image }

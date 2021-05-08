@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.transport
 
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -43,17 +44,18 @@ class TransportTreeLoader(
 
   override fun loadComponentTree(
     data: Any?,
-    resourceLookup: ResourceLookup
+    resourceLookup: ResourceLookup,
+    process: ProcessDescriptor
   ): ComponentTreeData? {
-    return loadComponentTree(data, resourceLookup, skiaParser)
+    return loadComponentTree(data, resourceLookup, skiaParser, process)
   }
 
   @VisibleForTesting
-  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParser): ComponentTreeData? {
+  fun loadComponentTree(maybeEvent: Any?, resourceLookup: ResourceLookup, skiaParser: SkiaParser,  process: ProcessDescriptor): ComponentTreeData? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     val window: AndroidWindow? =
       if (event.tree.hasRoot()) {
-        TransportTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+        TransportTreeLoaderImpl(event.tree, resourceLookup, process).loadComponentTree(client, skiaParser, project) ?: return null
       }
       else {
         null
@@ -69,7 +71,8 @@ class TransportTreeLoader(
 
 private class TransportTreeLoaderImpl(
   private val tree: LayoutInspectorProto.ComponentTreeEvent,
-  private val resourceLookup: ResourceLookup?
+  private val resourceLookup: ResourceLookup?,
+  private val process: ProcessDescriptor
 ) {
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
@@ -97,7 +100,7 @@ private class TransportTreeLoaderImpl(
   }
 
   private fun loadRootView(): ViewNode? {
-    resourceLookup?.updateConfiguration(tree.resources.toAppContext(), stringTable)
+    resourceLookup?.updateConfiguration(tree.resources.toAppContext(), stringTable, process)
     if (tree.hasRoot()) {
       return try {
         loadView(tree.root)

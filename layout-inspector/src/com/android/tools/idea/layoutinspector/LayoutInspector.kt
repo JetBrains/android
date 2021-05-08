@@ -89,7 +89,7 @@ class LayoutInspector(
       val time = System.currentTimeMillis()
       val treeLoader = currentClient.treeLoader
       val allIds = treeLoader.getAllWindowIds(event)
-      val data = treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup) ?: return@execute
+      val data = treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup, currentClient.process) ?: return@execute
       currentClient.addDynamicCapabilities(data.dynamicCapabilities)
       if (allIds != null) {
         synchronized(latestLoadTime) {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -54,12 +55,21 @@ class LegacyClientTest {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess() // This causes the tree to get loaded as a side effect
     val client = inspectorRule.inspectorClient as LegacyClient
 
-    verify(client.treeLoader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window1" },
-                                                any(ResourceLookup::class.java))
-    verify(client.treeLoader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window2" },
-                                                any(ResourceLookup::class.java))
-    verify(client.treeLoader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window3" },
-                                                any(ResourceLookup::class.java))
+    verify(client.treeLoader).loadComponentTree(
+      argThat { event: LegacyEvent -> event.windowId == "window1" },
+      any(ResourceLookup::class.java),
+      eq(client.process)
+    )
+    verify(client.treeLoader).loadComponentTree(
+      argThat { event: LegacyEvent -> event.windowId == "window2" },
+      any(ResourceLookup::class.java),
+      eq(client.process)
+    )
+    verify(client.treeLoader).loadComponentTree(
+      argThat { event: LegacyEvent -> event.windowId == "window3" },
+      any(ResourceLookup::class.java),
+      eq(client.process)
+    )
   }
 
   @Test
@@ -77,7 +87,10 @@ class LegacyClientTest {
     }
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     val client = inspectorRule.inspectorClient as LegacyClient
-    verify(client.treeLoader).loadComponentTree(argThat { event: LegacyEvent -> event.windowId == "window1" },
-                                                any(ResourceLookup::class.java))
+    verify(client.treeLoader).loadComponentTree(
+      argThat { event: LegacyEvent -> event.windowId == "window1" },
+      any(ResourceLookup::class.java),
+      eq(client.process)
+    )
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
@@ -38,6 +39,7 @@ class ViewInspectorTreeLoader(
   private val skiaParser: SkiaParser,
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
+  private val process: ProcessDescriptor,
   composeEvent: LayoutInspectorComposeProtocol.GetComposablesResponse?,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
@@ -63,7 +65,7 @@ class ViewInspectorTreeLoader(
       return null
     }
     try {
-      resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings)
+      resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings, process)
       val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
       return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted }, logEvent)
     }

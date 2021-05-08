@@ -19,9 +19,6 @@ package com.android.tools.idea.layoutinspector.resource.data
  * Misc. context about the current running app.
  */
 class AppContext(
-  val apiLevel: Int = 0, // Key for a StringTable
-  val apiCodeName: Int = 0, // Key for a StringTable
-  val appPackageName: Int = 0, // Key for a StringTable
   val theme: Resource = Resource(),
   val configuration: Configuration = Configuration()
 )

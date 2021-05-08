@@ -125,7 +125,8 @@ class AppInspectionInspectorMetricsTest {
 
     // Load the tree with root id 1. The subsequent refreshImages() should generate an initial load event.
     val (window, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
-                                                                                    ResourceLookup(inspectorRule.project))!!
+                                                                                    ResourceLookup(inspectorRule.project),
+                                                                                    inspectorRule.inspectorClient.process)!!
     window!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
 
@@ -136,7 +137,8 @@ class AppInspectionInspectorMetricsTest {
     // Load a new window with root id 2. This still shouldn't generate another event.
     rootId = 2
     val (window2, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
-                                                                                     ResourceLookup(inspectorRule.project))!!
+                                                                                     ResourceLookup(inspectorRule.project),
+                                                                                     inspectorRule.inspectorClient.process)!!
     window2!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(1)
 
@@ -145,7 +147,8 @@ class AppInspectionInspectorMetricsTest {
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     (inspectorRule.inspectorClient.treeLoader as AppInspectionTreeLoader).skiaParser = skiaParser
     val (window3, _, _) = inspectorRule.inspectorClient.treeLoader.loadComponentTree(createFakeData(rootId),
-                                                                                    ResourceLookup(inspectorRule.project))!!
+                                                                                     ResourceLookup(inspectorRule.project),
+                                                                                     inspectorRule.inspectorClient.process)!!
     window3!!.refreshImages(1.0)
     assertThat(getUsages()).hasSize(2)
   }
@@ -160,7 +163,6 @@ class AppInspectionInspectorMetricsTest {
       ViewString(3, "MyViewClass1")
 
       appContextBuilder.apply {
-        apiLevel = 29
         configurationBuilder.apply {
           countryCode = 1
         }

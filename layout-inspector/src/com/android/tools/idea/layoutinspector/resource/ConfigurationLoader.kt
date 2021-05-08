@@ -60,11 +60,9 @@ import com.android.tools.idea.layoutinspector.resource.data.AppContext
 /**
  * Load theme, version, and [FolderConfiguration] from a [AppContext] usually received from a device.
  */
-class ConfigurationLoader(appContext: AppContext, stringTable: StringTable) {
-  val packageName = stringTable[appContext.appPackageName]
+class ConfigurationLoader(appContext: AppContext, stringTable: StringTable, apiLevel: Int) {
   val theme = appContext.theme.createReference(stringTable)
-  val folderConfiguration = loadFolderConfiguration(appContext.configuration, appContext.apiLevel)
-  val version = AndroidVersion(appContext.apiLevel, stringTable[appContext.apiCodeName])
+  val folderConfiguration = loadFolderConfiguration(appContext.configuration, apiLevel)
 
   private fun loadFolderConfiguration(configuration: Configuration, apiLevel: Int): FolderConfiguration {
     val config = FolderConfiguration()
