@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ICON;
 import static com.android.SdkConstants.ATTR_ROUND_ICON;
@@ -41,12 +40,10 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -55,11 +52,9 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.DumbProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -68,8 +63,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +75,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,10 +82,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Action which converts source PNG and JPEG images into WEBP
+ * Action which converts source PNG and JPEG images into WEBP.
  */
 public class ConvertToWebpAction extends DumbAwareAction {
-  @Nls(capitalization = Nls.Capitalization.Title) public static final String TITLE = "Converting Images to WebP";
+  @Nls(capitalization = Nls.Capitalization.Sentence) public static final String TASK_NAME = "Converting images to WebP";
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
@@ -106,7 +102,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     if (module != null) {
       AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
       if (info != null) {
-        minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
+        minSdkVersion = info.getMinSdkVersion().getFeatureLevel();
       }
     }
     else {
@@ -179,16 +175,8 @@ public class ConvertToWebpAction extends DumbAwareAction {
                       @NotNull WebpConversionSettings settings,
                       boolean showBalloon,
                       @NotNull Collection<VirtualFile> files) {
-    boolean isUnitTest = ApplicationManager.getApplication().isUnitTestMode();
-    WebpConversionTask task = new WebpConversionTask(project, settings, showBalloon && !isUnitTest, files);
-    if (isUnitTest) {
-      // Do it immediately
-      task.run(new DumbProgressIndicator());
-      settings.previewConversion = false;
-      task.onFinished();
-    } else {
-      ProgressManager.getInstance().run(task);
-    }
+    WebpConversionTask task = new WebpConversionTask(project, settings, showBalloon, files);
+    ProgressManager.getInstance().run(task);
   }
 
   public static boolean isEligibleForConversion(@Nullable VirtualFile file, @Nullable WebpConversionSettings settings) {
@@ -268,7 +256,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
                               WebpConversionSettings settings,
                               boolean showBalloon,
                               Collection<VirtualFile> files) {
-      super(project, TITLE, true);
+      super(project, TASK_NAME, true);
       mySettings = settings;
       myProject = project;
       myShowBalloon = showBalloon;
@@ -277,48 +265,54 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     @Override
     public void onFinished() {
+      boolean skipAlreadyEncoded;
       if (mySettings.previewConversion &&
-          // Doesn't apply in lossless mode - nothing to preview, all conversions are exact
+          // Doesn't apply in lossless mode - nothing to preview, all conversions are exact.
           !mySettings.lossless &&
           !myConvertedFiles.isEmpty()) {
         WebpPreviewDialog dialog = new WebpPreviewDialog(this, myProject, mySettings, myConvertedFiles);
         if (!dialog.showAndGet()) {
           return;
         }
-        encode(myConvertedFiles, true);
-      } else {
-        encode(myConvertedFiles, false);
+        skipAlreadyEncoded = true;
       }
-      writeImages(this, myProject, myConvertedFiles);
-
-      if (myShowBalloon) {
-        StringBuilder sb = new StringBuilder();
-        if (myFiles.size() > 1 || myFileCount == 0) {
-          sb.append(Integer.toString(myFileCount)).append(" files were converted");
-        }
-        if (mySaved > 0 || myTransparentCount == 0 && myNinePatchCount == 0 && mySkipped == 0) {
-          sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
-        }
-        if (myNinePatchCount > 0) {
-          sb.append("<br>").append(Integer.toString(myNinePatchCount)).append(" 9-patch files were skipped");
-        }
-        if (myLauncherIconCount > 0) {
-          sb.append("<br>").append(Integer.toString(myLauncherIconCount)).append(" launcher icons were skipped");
-        }
-        if (myTransparentCount > 0) {
-          sb.append("<br>").append(Integer.toString(myTransparentCount)).append(" transparent images were skipped");
-        }
-        if (mySkipped > 0) {
-          sb.append("<br>").append(Integer.toString(mySkipped)).append(" files were skipped because there was no net space savings");
-        }
-        String message = sb.toString();
-        new NotificationGroup(
-          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
-          .createNotification(message, NotificationType.INFORMATION)
-          .notify(myProject);
+      else {
+        skipAlreadyEncoded = false;
       }
 
-      refreshFolders(myParentFolders);
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        encode(myConvertedFiles, skipAlreadyEncoded);
+        ApplicationManager.getApplication().invokeLater(() -> {
+          writeImages(this, myProject, myConvertedFiles);
+          refreshFolders(myParentFolders);
+
+          if (myShowBalloon) {
+            StringBuilder sb = new StringBuilder();
+            if (myFiles.size() > 1 || myFileCount == 0) {
+              sb.append(myFileCount).append(" files were converted");
+            }
+            if (mySaved > 0 || myTransparentCount == 0 && myNinePatchCount == 0 && mySkipped == 0) {
+              sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
+            }
+            if (myNinePatchCount > 0) {
+              sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
+            }
+            if (myLauncherIconCount > 0) {
+              sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
+            }
+            if (myTransparentCount > 0) {
+              sb.append("<br>").append(myTransparentCount).append(" transparent images were skipped");
+            }
+            if (mySkipped > 0) {
+              sb.append("<br>").append(mySkipped).append(" files were skipped because there was no net space savings");
+            }
+            String message = sb.toString();
+            NotificationGroup group = NotificationGroup.findRegisteredGroup("Convert to WebP");
+            assert group != null;
+            group.createNotification(message, NotificationType.INFORMATION).notify(myProject);
+          }
+        });
+      });
     }
 
     private void writeImages(Object requestor, Project project, List<WebpConvertedFile> files) {
@@ -379,7 +373,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     private Set<String> getLauncherIconNames(LinkedList<VirtualFile> roots) {
       // Find all the modules that apply to the file search roots
-      Set<Module> modules = Sets.newHashSet();
+      Set<Module> modules = new HashSet<>();
       for (VirtualFile file : roots) {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
         if (module != null) {
@@ -392,7 +386,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       }
 
       // Find all the android modules/facets
-      Set<AndroidFacet> facets = Sets.newHashSet();
+      Set<AndroidFacet> facets = new HashSet<>();
       for (Module module : modules) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
@@ -402,7 +396,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
       // For each android facet, go through the merged manifest and gather up icons
       // TODO: Prune out libraries here if we have the dependent app module too
-      Set<String> names = Sets.newHashSet();
+      Set<String> names = new HashSet<>();
       for (AndroidFacet facet : facets) {
         Document document = MergedManifestManager.getSnapshot(facet).getDocument();
         if (document != null && document.getDocumentElement() != null) {
@@ -451,7 +445,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     @NotNull
     private List<WebpConvertedFile> findImages(@NotNull ProgressIndicator progressIndicator, @NotNull LinkedList<VirtualFile> images) {
-      List<WebpConvertedFile> files = Lists.newArrayList();
+      List<WebpConvertedFile> files = new ArrayList<>();
 
       Set<String> launcherIconNames = getLauncherIconNames(images);
 
@@ -496,7 +490,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
   @NotNull
   private static List<VirtualFile> computeParentFolders(@NotNull List<WebpConvertedFile> files) {
-    List<VirtualFile> toRefresh = Lists.newArrayList();
+    List<VirtualFile> toRefresh = new ArrayList<>();
     for (WebpConvertedFile file : files) {
       VirtualFile parent = file.sourceFile.getParent();
       if (parent != null && !toRefresh.contains(parent)) {
