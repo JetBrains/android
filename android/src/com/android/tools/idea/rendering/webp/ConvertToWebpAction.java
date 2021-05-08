@@ -44,7 +44,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -53,11 +52,9 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.DumbProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -178,16 +175,8 @@ public class ConvertToWebpAction extends DumbAwareAction {
                       @NotNull WebpConversionSettings settings,
                       boolean showBalloon,
                       @NotNull Collection<VirtualFile> files) {
-    boolean isUnitTest = ApplicationManager.getApplication().isUnitTestMode();
-    WebpConversionTask task = new WebpConversionTask(project, settings, showBalloon && !isUnitTest, files);
-    if (isUnitTest) {
-      // Do it immediately
-      task.run(new DumbProgressIndicator());
-      settings.previewConversion = false;
-      task.onFinished();
-    } else {
-      ProgressManager.getInstance().run(task);
-    }
+    WebpConversionTask task = new WebpConversionTask(project, settings, showBalloon, files);
+    ProgressManager.getInstance().run(task);
   }
 
   public static boolean isEligibleForConversion(@Nullable VirtualFile file, @Nullable WebpConversionSettings settings) {
@@ -276,48 +265,54 @@ public class ConvertToWebpAction extends DumbAwareAction {
 
     @Override
     public void onFinished() {
+      boolean skipAlreadyEncoded;
       if (mySettings.previewConversion &&
-          // Doesn't apply in lossless mode - nothing to preview, all conversions are exact
+          // Doesn't apply in lossless mode - nothing to preview, all conversions are exact.
           !mySettings.lossless &&
           !myConvertedFiles.isEmpty()) {
         WebpPreviewDialog dialog = new WebpPreviewDialog(this, myProject, mySettings, myConvertedFiles);
         if (!dialog.showAndGet()) {
           return;
         }
-        encode(myConvertedFiles, true);
-      } else {
-        encode(myConvertedFiles, false);
+        skipAlreadyEncoded = true;
       }
-      writeImages(this, myProject, myConvertedFiles);
-
-      if (myShowBalloon) {
-        StringBuilder sb = new StringBuilder();
-        if (myFiles.size() > 1 || myFileCount == 0) {
-          sb.append(myFileCount).append(" files were converted");
-        }
-        if (mySaved > 0 || myTransparentCount == 0 && myNinePatchCount == 0 && mySkipped == 0) {
-          sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
-        }
-        if (myNinePatchCount > 0) {
-          sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
-        }
-        if (myLauncherIconCount > 0) {
-          sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
-        }
-        if (myTransparentCount > 0) {
-          sb.append("<br>").append(myTransparentCount).append(" transparent images were skipped");
-        }
-        if (mySkipped > 0) {
-          sb.append("<br>").append(mySkipped).append(" files were skipped because there was no net space savings");
-        }
-        String message = sb.toString();
-        new NotificationGroup(
-          "Convert to WebP", NotificationDisplayType.BALLOON, true, null, null, null, PluginId.getId("org.jetbrains.android"))
-          .createNotification(message, NotificationType.INFORMATION)
-          .notify(myProject);
+      else {
+        skipAlreadyEncoded = false;
       }
 
-      refreshFolders(myParentFolders);
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        encode(myConvertedFiles, skipAlreadyEncoded);
+        ApplicationManager.getApplication().invokeLater(() -> {
+          writeImages(this, myProject, myConvertedFiles);
+          refreshFolders(myParentFolders);
+
+          if (myShowBalloon) {
+            StringBuilder sb = new StringBuilder();
+            if (myFiles.size() > 1 || myFileCount == 0) {
+              sb.append(myFileCount).append(" files were converted");
+            }
+            if (mySaved > 0 || myTransparentCount == 0 && myNinePatchCount == 0 && mySkipped == 0) {
+              sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
+            }
+            if (myNinePatchCount > 0) {
+              sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
+            }
+            if (myLauncherIconCount > 0) {
+              sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
+            }
+            if (myTransparentCount > 0) {
+              sb.append("<br>").append(myTransparentCount).append(" transparent images were skipped");
+            }
+            if (mySkipped > 0) {
+              sb.append("<br>").append(mySkipped).append(" files were skipped because there was no net space savings");
+            }
+            String message = sb.toString();
+            NotificationGroup group = NotificationGroup.findRegisteredGroup("Convert to WebP");
+            assert group != null;
+            group.createNotification(message, NotificationType.INFORMATION).notify(myProject);
+          }
+        });
+      });
     }
 
     private void writeImages(Object requestor, Project project, List<WebpConvertedFile> files) {
