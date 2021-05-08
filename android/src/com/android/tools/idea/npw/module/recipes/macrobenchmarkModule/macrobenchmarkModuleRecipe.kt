@@ -23,17 +23,14 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
+import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
+import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
-import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.androidTest.exampleMacrobenchmarkJava
-import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.androidTest.exampleMacrobenchmarkKt
-import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.androidTest.testAndroidManifestXml
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.facet.AndroidFacet
 
 fun RecipeExecutor.generateMacrobenchmarkModule(
   moduleData: ModuleTemplateData,
@@ -41,15 +38,17 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   targetModule: Module,
 ) {
   val projectData = moduleData.projectTemplateData
-  val testOut = moduleData.testDir
+  val srcOut = moduleData.srcDir
   val packageName = moduleData.packageName
   val moduleOut = moduleData.rootDir
   val buildToolsVersion = projectData.buildToolsVersion
   val (buildApi, targetApi, minApi) = moduleData.apis
   val language = projectData.language
 
+  var benchmarkBuildTypeName = "benchmark"
   if (this is DefaultRecipeExecutor) {
-    addSigningReference(targetModule)
+    benchmarkBuildTypeName = generateUniqueBenchmarkBuildTypeName(targetModule = targetModule)
+    targetModule.addBuildType(name = benchmarkBuildTypeName, debuggable = false)
   }
 
   val targetPackageName = AndroidModuleInfo.getInstance(targetModule)?.`package` ?: ""
@@ -65,13 +64,13 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
     language = language,
     gradlePluginVersion = projectData.gradlePluginVersion,
     useGradleKts = useGradleKts,
-    moduleName = moduleData.name,
     targetModule = targetModule,
+    benchmarkBuildTypeName = benchmarkBuildTypeName,
   )
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(bg, moduleOut.resolve(buildFile))
-  applyPlugin("com.android.library")
+  applyPlugin("com.android.test")
 
   addDependency("androidx.test.ext:junit:+", "implementation")
   addDependency("androidx.test.espresso:espresso-core:3.+", "implementation")
@@ -79,24 +78,44 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   addDependency("androidx.benchmark:benchmark-macro-junit4:+", configuration = "implementation", minRev = "1.1.0-alpha02")
 
   save(androidManifestXml(packageName, targetPackageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
-  save(testAndroidManifestXml(packageName), moduleOut.resolve("src/androidTest/AndroidManifest.xml"))
 
   if (language == Language.Kotlin) {
-    save(exampleMacrobenchmarkKt(packageName, targetPackageName), testOut.resolve("ExampleStartupBenchmark.kt"))
+    save(exampleMacrobenchmarkKt(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.kt"))
   }
   else {
-    save(exampleMacrobenchmarkJava(packageName, targetPackageName), testOut.resolve("ExampleStartupBenchmark.java"))
+    save(exampleMacrobenchmarkJava(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.java"))
   }
 
   addKotlinIfNeeded(projectData, noKtx = true)
 }
 
-private fun addSigningReference(targetModule: Module) {
-  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
-  val androidBuildModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
-  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().first { it.name() == "debug" } ?: return
-  val buildTypeReleaseBuildModel = androidBuildModel.buildTypes().first { it.name() == "release" } ?: return
+/**
+ * Generate unique name for a new benchmark build type that this macrobenchmark module will be setup with.
+ *
+ * @param targetModule The existing target app module which the new buildType should not collide names with.
+ */
+private fun generateUniqueBenchmarkBuildTypeName(targetModule: Module): String {
+  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return "benchmark"
+  val androidBuildModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return "benchmark"
 
-  buildTypeReleaseBuildModel.signingConfig().setValue(ReferenceTo(debugSignConfigBuildModel))
+  var benchmarkBuildTypeSuffix: Int? = null
+  var benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix ?: ""}"
+  while (androidBuildModel.signingConfigs().any { it.name() == benchmarkBuildTypeName }) {
+    benchmarkBuildTypeSuffix = benchmarkBuildTypeSuffix?.inc() ?: 1
+    benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix}"
+  }
+
+  return benchmarkBuildTypeName
+}
+
+private fun Module.addBuildType(name: String, debuggable: Boolean) {
+  val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
+  val androidBuildModel = projectBuildModel.getModuleBuildModel(this)?.android() ?: return
+
+  val benchmarkBuildType = androidBuildModel.addBuildType(name)
+  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().first { it.name() == "debug" } ?: return
+
+  benchmarkBuildType.signingConfig().setValue(ReferenceTo(debugSignConfigBuildModel))
+  benchmarkBuildType.debuggable().setValue(debuggable)
   projectBuildModel.applyChanges()
 }
