@@ -72,9 +72,6 @@ fun Configuration.convert(): LayoutInspectorProto.Configuration {
 fun AppContext.toResourceConfiguration(): LayoutInspectorProto.ResourceConfiguration {
   val ctx = this
   return LayoutInspectorProto.ResourceConfiguration.newBuilder().apply {
-    apiLevel = ctx.apiLevel
-    apiCodeName = ctx.apiCodeName
-    appPackageName = ctx.appPackageName
     theme = ctx.theme.convert()
     configuration = ctx.configuration.convert()
   }.build()

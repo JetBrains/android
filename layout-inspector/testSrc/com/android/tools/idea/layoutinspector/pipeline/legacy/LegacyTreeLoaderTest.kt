@@ -117,6 +117,7 @@ DONE.
     val legacyClient = mock<LegacyClient>()
     `when`(legacyClient.latestScreenshots).thenReturn(mutableMapOf())
     `when`(legacyClient.treeLoader).thenReturn(LegacyTreeLoader(adb.bridge, legacyClient))
+    `when`(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
     return legacyClient
   }
 
@@ -220,7 +221,9 @@ DONE.
     legacyClient.treeLoader.ddmClientOverride = client
     val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!.window!!
+      resourceLookup,
+      legacyClient.process
+    )!!.window!!
     window.refreshImages(1.0)
 
     assertThat(window.id).isEqualTo("window1")
@@ -285,7 +288,9 @@ DONE.
     legacyClient.treeLoader.ddmClientOverride = client
     val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup)!!.window!!
+      resourceLookup,
+      legacyClient.process
+    )!!.window!!
     val model = InspectorModel(mock())
     model.update(window, listOf("window1"), 0)
 
@@ -321,7 +326,8 @@ DONE.
 
     // Update and verify the image is updated
     val (updatedWindow, _) = legacyClient.treeLoader.loadComponentTree(
-      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")), resourceLookup)!!
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")), resourceLookup, legacyClient.process
+    )!!
     model.update(updatedWindow, listOf("window1"), 1)
 
     window.refreshImages(1.0)

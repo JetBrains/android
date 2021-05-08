@@ -66,9 +66,6 @@ fun LayoutInspectorViewProtocol.Configuration.convert(): Configuration {
 
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
-    apiLevel,
-    apiCodeName,
-    appPackageName,
     theme.convert(),
     configuration.convert()
   )

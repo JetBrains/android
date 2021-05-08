@@ -68,9 +68,6 @@ fun LayoutInspectorProto.Configuration.convert(): Configuration {
 
 fun LayoutInspectorProto.ResourceConfiguration.toAppContext(): AppContext {
   return AppContext(
-    apiLevel,
-    apiCodeName,
-    appPackageName,
     theme.convert(),
     configuration.convert()
   )

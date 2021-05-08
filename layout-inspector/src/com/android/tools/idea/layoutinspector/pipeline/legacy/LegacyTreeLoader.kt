@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
@@ -55,7 +56,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
   @VisibleForTesting
   var ddmClientOverride: Client? = null
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? {
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
     return capture(windowName, updater)?.let { ComponentTreeData(it, 0, emptySet()) }
   }

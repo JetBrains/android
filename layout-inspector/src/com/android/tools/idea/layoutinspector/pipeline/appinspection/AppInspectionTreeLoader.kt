@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -34,13 +35,14 @@ class AppInspectionTreeLoader(
   private val project: Project,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
   @VisibleForTesting var skiaParser: SkiaParser) : TreeLoader {
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? {
+  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
       val treeLoader = ViewInspectorTreeLoader(
         project,
         skiaParser,
         data.viewEvent,
         resourceLookup,
+        process,
         data.composeEvent,
         logEvent
       )

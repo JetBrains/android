@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -27,7 +28,7 @@ interface TreeLoader {
   /**
    * Load the component tree corresponding to the given [data] (implementation specific).
    */
-  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData?
+  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData?
 
   fun getAllWindowIds(data: Any?): List<*>?
 }

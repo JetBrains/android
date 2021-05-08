@@ -46,8 +46,6 @@ class ConfigurationLoaderTest {
   @Test
   fun testConfigurationLoader() {
     val appContext = AppContext(
-      apiLevel = AndroidVersion.VersionCodes.Q,
-      appPackageName = id(APP_PACKAGE),
       theme = reference(ResourceType.STYLE, APP_PACKAGE, APP_THEME),
       configuration = Configuration(
         fontScale = 1.0f,
@@ -70,11 +68,9 @@ class ConfigurationLoaderTest {
       )
     )
     val table = stringTable()
-    val loader = ConfigurationLoader(appContext, table)
-    assertThat(loader.packageName).isEqualTo(APP_PACKAGE)
+    val loader = ConfigurationLoader(appContext, table, AndroidVersion.VersionCodes.Q)
     assertThat(loader.theme).isEquivalentAccordingToCompareTo(
       ResourceReference(ResourceNamespace.fromPackageName(APP_PACKAGE), ResourceType.STYLE, APP_THEME))
-    assertThat(loader.version).isEquivalentAccordingToCompareTo(AndroidVersion(AndroidVersion.VersionCodes.Q))
     assertThat(loader.folderConfiguration.qualifierString).isEqualTo(join("-",
         "mcc310",
         "mnc410",

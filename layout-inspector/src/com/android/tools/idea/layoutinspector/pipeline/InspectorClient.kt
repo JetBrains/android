@@ -217,7 +217,7 @@ object DisconnectedClient : InspectorClient {
     override val streamId: Long = 0
   }
   override val treeLoader = object : TreeLoader {
-    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup): ComponentTreeData? = null
+    override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? = null
     override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
   }
   override val isCapturing = false
