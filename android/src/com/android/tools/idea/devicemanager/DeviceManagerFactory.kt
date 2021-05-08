@@ -17,7 +17,7 @@ package com.android.tools.idea.devicemanager
 
 import com.android.tools.idea.devicemanager.groupstab.DeviceGroupsTabPanel
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalTabContent
-import com.android.tools.idea.devicemanager.virtualtab.VirtualTab
+import com.android.tools.idea.devicemanager.virtualtab.VirtualTabContent
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -29,19 +29,17 @@ import javax.swing.JComponent
 
 // It should match id in a corresponding .xml
 const val DEVICE_MANAGER_ID = "Device Manager"
-const val virtualTabName = "Virtual"
 const val deviceGroupsTabName = "Device Groups"
 
 class DeviceManagerFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val virtualTab = VirtualTab(project)
     val contentFactory = ContentFactory.SERVICE.getInstance()
 
     fun createTab(content: JComponent, name: String) {
       toolWindow.contentManager.addContent(contentFactory.createContent(content, name, false))
     }
 
-    createTab(virtualTab.content, virtualTabName)
+    toolWindow.contentManager.addContent(VirtualTabContent.create(contentFactory, project))
     toolWindow.contentManager.addContent(PhysicalTabContent.create(contentFactory, project))
 
     if (StudioFlags.ENABLE_DEVICE_MANAGER_GROUPS.get()) {
