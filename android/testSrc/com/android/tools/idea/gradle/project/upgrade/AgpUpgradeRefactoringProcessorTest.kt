@@ -19,6 +19,7 @@ import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Ignore
@@ -82,6 +83,36 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
     processor.run()
     verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/VersionInLiteralExpected"))
+  }
+
+  @Test
+  fun testEnabledAgpClasspathDependencyHasTarget() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.classpathRefactoringProcessor.isEnabled = true
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+    processor.run()
+    assertThat(processor.targets).isNotEmpty()
+  }
+
+  @Test
+  fun testDisabledHasNoEffectOnAgpClasspathDependency() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpClasspathDependency/VersionInLiteral"))
+  }
+
+  @Test
+  fun testDisabledAgpClasspathDependencyStillHasTarget() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = false }
+    processor.run()
+    assertThat(processor.targets).isNotEmpty()
   }
 
   @Test

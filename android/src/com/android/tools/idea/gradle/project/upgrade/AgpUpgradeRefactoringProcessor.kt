@@ -116,6 +116,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringBundle
@@ -288,6 +289,7 @@ class AgpUpgradeRefactoringProcessor(
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
+    RemoveImplementationPropertiesRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
@@ -317,10 +319,17 @@ class AgpUpgradeRefactoringProcessor(
     val usages = ArrayList<UsageInfo>()
 
     usages.addAll(classpathRefactoringProcessor.findUsages())
-    targets.ifEmpty { targets.apply { usages.firstNotNullResult { it.element }?.let { add(it) } } }
-
     componentRefactoringProcessors.forEach { processor ->
       usages.addAll(processor.findUsages())
+    }
+    targets.clear()
+    projectBuildModel.projectBuildModel?.let {
+      targets.add(object : FakePsiElement() {
+        override fun getParent() = it.psiElement
+        override fun canNavigate() = false
+        override fun getContainingFile() = it.psiFile
+        override fun getName() = "Upgrading Project Build Configuration"
+      })
     }
 
     foundUsages = usages.size > 0

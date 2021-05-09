@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.highlighting.HighlightManager
 import com.intellij.openapi.application.ReadAction
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
@@ -120,8 +122,11 @@ private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLitera
  * A reference to a literal constant.
  */
 interface LiteralReference {
+  val containingFile: PsiFile
+
   /** Filename where this literal is declared */
   val fileName: String
+    get() = containingFile.name
 
   /** The initial range for the constant. Can be used for sorting and/or highlighting. */
   val initialTextRange: TextRange
@@ -256,9 +261,14 @@ private open class LiteralReferenceImpl(originalElement: PsiElement,
                                         uniqueIdProvider: PsiElementUniqueIdProvider,
                                         usageReferenceProvider: PsiElementLiteralUsageReferenceProvider,
                                         final override val initialConstantValue: Any,
-                                        private val constantEvaluator: ConstantEvaluator) : LiteralReference, ModificationTracker {
-  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement)
-  override val fileName = originalElement.containingFile.name
+                                        private val constantEvaluator: ConstantEvaluator,
+                                        onElementAttached: (PsiElement, LiteralReference) -> Unit) : LiteralReference, ModificationTracker {
+  init {
+    onElementAttached(originalElement, this)
+  }
+
+  private val elementPointer = ReattachableSmartPsiElementPointer(originalElement) { onElementAttached(it, this) }
+  override val containingFile = originalElement.containingFile
   override val usages = findUsages(originalElement, usageReferenceProvider, constantEvaluator)
   override val initialTextRange: TextRange = constantEvaluator.range(originalElement)
   override val uniqueId = uniqueIdProvider.getUniqueId(originalElement)
@@ -381,7 +391,12 @@ class LiteralsManager(
               element.entries.forEach {
                 if (it is KtLiteralStringTemplateEntry) {
                   savedLiterals.add(
-                    LiteralReferenceImpl(it, uniqueIdProvider, literalUsageReferenceProvider, it.text, PsiTextConstantEvaluator))
+                    LiteralReferenceImpl(it,
+                                         uniqueIdProvider,
+                                         literalUsageReferenceProvider,
+                                         it.text,
+                                         PsiTextConstantEvaluator,
+                                         Companion::markAsManaged))
                 }
               }
             }
@@ -390,7 +405,8 @@ class LiteralsManager(
               savedLiterals.add(
                 LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
                                      KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
-                                     KotlinLiteralTemplateConstantEvaluator))
+                                     KotlinLiteralTemplateConstantEvaluator,
+                                     Companion::markAsManaged))
             }
             return
           }
@@ -398,7 +414,12 @@ class LiteralsManager(
           if (constantType.isInstance(element)) {
             constantEvaluator.evaluate(element)?.let {
               // This is a regular constant, save it.
-              savedLiterals.add(LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider, it, constantEvaluator))
+              savedLiterals.add(LiteralReferenceImpl(element,
+                                                     uniqueIdProvider,
+                                                     literalUsageReferenceProvider,
+                                                     it,
+                                                     constantEvaluator,
+                                                     Companion::markAsManaged))
             }
             return
           }
@@ -425,6 +446,24 @@ class LiteralsManager(
       LOG.warn("Only Kotlin is supported for LiveLiterals")
       EmptyLiteralReferenceSnapshot
     }
+
+  companion object {
+    private val MANAGED_KEY: Key<LiteralReference> = Key.create(Companion::MANAGED_KEY.qualifiedName)
+
+    /**
+     * If the element has a [LiteralReference] associated, this will return it.
+     */
+    internal fun getLiteralReference(element: PsiElement): LiteralReference? {
+      if (!element.isValid) return null
+
+      return element.getCopyableUserData(MANAGED_KEY)
+    }
+
+    /**
+     * Marks the given element as managed.
+     */
+    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY, literalReference)
+  }
 }
 
 /**
@@ -433,9 +472,11 @@ class LiteralsManager(
 fun LiteralReferenceSnapshot.highlightSnapshotInEditor(project: Project,
                                                        editor: Editor,
                                                        textAttributesKey: TextAttributesKey,
-                                                       outHighlighters: MutableSet<RangeHighlighter>? = null) {
+                                                       outHighlighters: MutableSet<RangeHighlighter>? = null,
+                                                       referenceFilter: (LiteralReference) -> Boolean = { true }) {
   val highlightManager = HighlightManager.getInstance(project)
   val elements = all.filterIsInstance<LiteralReferenceImpl>()
+    .filter { referenceFilter(it) }
     .mapNotNull { it.element }
     .toTypedArray()
 

@@ -26,6 +26,8 @@ import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl
 import com.intellij.lang.annotation.AnnotationSession
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
@@ -58,10 +60,12 @@ class ComposeColorAnnotatorTest {
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.addClass(
-      //language=kotlin
+      //language=java
       """
-      package androidx.compose.ui.graphics
-      class ColorSpace
+      package androidx.compose.ui.graphics;
+      class ColorSpace {
+        public static final ColorSpace TEST_SPACE = ColorSpace();
+      }
       """)
     myFixture.addFileToProject(
       "src/com/androidx/compose/ui/graphics/Color.kt",
@@ -97,8 +101,10 @@ class ComposeColorAnnotatorTest {
       class A {
         val other = Color(0xFFC20029)
         fun () {
-          val primary = Color(0xFF4A8A7B)
+          val primary = Color(0x4A8A7B)
+          val secondary = Color(0xFF4A8A7B)
           val primaryVariant = Color(color = 0xFF57AD28)
+          val secondaryVariant = Color(color = 0xFF57AD28)
         }
       }
       """.trimIndent())
@@ -107,11 +113,14 @@ class ComposeColorAnnotatorTest {
       listOf(
         Color(194, 0, 41),
         Color(74, 138, 123),
+        Color(74, 138, 123),
+        Color(87, 173, 40),
         Color(87, 173, 40)
       ),
       includeClickAction = true
     )
     setNewColor("Co|lor(0xFF4A8A7B)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(color = 0xFF57AD28)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text).isEqualTo(
       //language=kotlin
       """
@@ -120,8 +129,10 @@ class ComposeColorAnnotatorTest {
       class A {
         val other = Color(0xFFC20029)
         fun () {
-          val primary = Color(0xFFAABBCC)
-          val primaryVariant = Color(color = 0xFF57AD28)
+          val primary = Color(0x4A8A7B)
+          val secondary = Color(0xFFAABBCC)
+          val primaryVariant = Color(color = 0xFFAABBCC)
+          val secondaryVariant = Color(color = 0xFF57AD28)
         }
       }
       """.trimIndent()
@@ -140,19 +151,24 @@ class ComposeColorAnnotatorTest {
         val other = Color(0xC20029)
         fun () {
           val primary = Color(0x4A8A7B)
+          val secondary = Color(0x4A8A7B)
           val primaryVariant = Color(color = 0x57AD28)
+          val secondaryVariant = Color(color = 0x57AD28)
         }
       }
       """.trimIndent())
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     checkGutterIconInfos(
       listOf(
-        Color(194, 0, 41, 0),
-        Color(74, 138, 123, 0),
-        Color(87, 173, 40, 0)),
+        Color(194, 0, 41, 255),
+        Color(74, 138, 123, 255),
+        Color(74, 138, 123, 255),
+        Color(87, 173, 40, 255),
+        Color(87, 173, 40, 255)),
       includeClickAction = true
     )
     setNewColor("Co|lor(0x4A8A7B)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(color = 0x57AD28)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text).isEqualTo(
       //language=kotlin
       """
@@ -162,10 +178,228 @@ class ComposeColorAnnotatorTest {
         val other = Color(0xC20029)
         fun () {
           val primary = Color(0xFFAABBCC)
-          val primaryVariant = Color(color = 0x57AD28)
+          val secondary = Color(0x4A8A7B)
+          val primaryVariant = Color(color = 0xFFAABBCC)
+          val secondaryVariant = Color(color = 0x57AD28)
         }
       }
       """.trimIndent())
+  }
+
+  @Test
+  fun testColorInt_X3() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xC2, 0x00, 0x29)
+        fun () {
+          val primary = Color(0x4A, 0x8A, 0x7B)
+          val secondary = Color(170, 187, 204)
+          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28)
+          val secondaryVariant = Color(green = 200, red = 180, blue = 120)
+        }
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(194, 0, 41),
+        Color(74, 138, 123),
+        Color(170, 187, 204),
+        Color(87, 173, 40),
+        Color(180, 200, 120)),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0x4A, 0x8A, 0x7B)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(170, 187, 204)", Color(0xFF406080.toInt()))
+    setNewColor("Co|lor(red = 0x57, green = 0xAD, blue = 0x28)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(green = 200, red = 180, blue = 120)", Color(0x80112233.toInt()))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xC2, 0x00, 0x29)
+        fun () {
+          val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
+          val secondary = Color(64, 96, 128, 255)
+          val primaryVariant = Color(red = 0xAA, green = 0xBB, blue = 0xCC, alpha = 0xFF)
+          val secondaryVariant = Color(red = 17, green = 34, blue = 51, alpha = 255)
+        }
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testColorInt_X4() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xC2, 0x00, 0x29, 0xFF)
+        fun () {
+          val primary = Color(0x4A, 0x8A, 0x7B, 0xFF)
+          val secondary = Color(170, 187, 204, 255)
+          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
+          val secondaryVariant = Color(green = 120, red = 64, alpha = 255, blue = 192)
+        }
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(194, 0, 41),
+        Color(74, 138, 123),
+        Color(170, 187, 204),
+        Color(87, 173, 40),
+        Color(64, 120, 192)),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0x4A, 0x8A, 0x7B, 0xFF)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(green = 120, red = 64, alpha = 255, blue = 192)", Color(0xFFAABBCC.toInt()))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xC2, 0x00, 0x29, 0xFF)
+        fun () {
+          val primary = Color(0xAA, 0xBB, 0xCC, 0xFF)
+          val secondary = Color(170, 187, 204, 255)
+          val primaryVariant = Color(red = 0x57, green = 0xAD, blue = 0x28, alpha = 0xFF)
+          val secondaryVariant = Color(red = 170, green = 187, blue = 204, alpha = 255)
+        }
+      }
+      """.trimIndent())
+  }
+
+
+  @Test
+  fun testColorFloat_X3() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0.14f, 0.0f, 0.16f)
+        fun () {
+          val primary = Color(0.3f, 0.54f, 0.48f)
+          val primary = Color(0.3f, 0.54f, 0.48f)
+          val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
+          val primaryVariant = Color(green = 0.68f, red = 0.34f, blue = 0.15f)
+        }
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(36, 0, 41),
+        Color(77, 138, 122),
+        Color(77, 138, 122),
+        Color(87, 173, 38),
+        Color(87, 173, 38)),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0.3f, 0.54f, 0.48f)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(green = 0.68f, red = 0.34f, blue = 0.15f)", Color(0xFFAABBCC.toInt()))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0.14f, 0.0f, 0.16f)
+        fun () {
+          val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
+          val primary = Color(0.3f, 0.54f, 0.48f)
+          val primaryVariant = Color(red = 0.34f, green = 0.68f, blue = 0.15f)
+          val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+        }
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testColorFloat_X4() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0.194f, 0f, 0.41f, 0.5f)
+        fun () {
+          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
+          val primaryVariant = Color(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)
+        }
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(49, 0, 105, 128),
+        Color(189, 35, 77, 215),
+        Color(189, 35, 77, 215),
+        Color(222, 44, 102, 64),
+        Color(222, 44, 102, 64)),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0.74f, 0.138f, 0.3f, 0.845f)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(alpha = 0.25f, green = 0.173f, blue = 0.4f, red = 0.87f)", Color(0xFFAABBCC.toInt()))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0.194f, 0f, 0.41f, 0.5f)
+        fun () {
+          val primary = Color(0.667f, 0.733f, 0.8f, 1.0f)
+          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
+          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f)
+          val primaryVariant = Color(red = 0.667f, green = 0.733f, blue = 0.8f, alpha = 1.0f)
+        }
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testColorFloat_X4_ColorSpace() {
+    // Note: We don't offer neither color preview nor picker for Color(Float, Float, Float, Float, ColorSpace) function.
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      import androidx.compose.ui.graphics.ColorSpace
+      class A {
+        val other = Color(0.194f, 0f, 0.41f, 0.5f, ColorSpace.TEST_SPACE)
+        fun () {
+          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f, ColorSpace.TEST_SPACE)
+          val primary = Color(0f, 0f, 0f, 0f, ColorSpace.TEST_SPACE)
+          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f, alpha = 0.25f, colorSpace = ColorSpace.TEST_SPACE)
+          val primaryVariant = Color(red = 1.0f, green = 1.0f, blue = 1.0f, alpha = 1.0f, colorSpace = ColorSpace.TEST_SPACE)
+        }
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    // No gutter for color space.
+    checkGutterIconInfos(listOf(), includeClickAction = false)
   }
 
   private fun setNewColor(window: String, newColor: Color) {
@@ -174,66 +408,20 @@ class ComposeColorAnnotatorTest {
       val annotationHolder = AnnotationHolderImpl(AnnotationSession(myFixture.file))
       annotationHolder.runAnnotatorWithContext(element.parentOfType<KtCallExpression>()!! as PsiElement, ComposeColorAnnotator())
       val iconRenderer = annotationHolder[0].gutterIconRenderer as ColorIconRenderer
-      iconRenderer.setColorToAttribute(newColor)
+      val project = myFixture.project
+
+      val setColorTask = iconRenderer.getSetColorTask() ?: return@runInEdtAndWait
+      ApplicationManager.getApplication().invokeLater({
+        WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
+      }, project.disposed)
+
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     }
   }
 
-  @Test
-  fun testColorIntx3x4() {
-    val psiFile = myFixture.addFileToProject(
-      "src/com/android/test/A.kt",
-      //language=kotlin
-      """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(0.194f, 0f, 0.41f)
-        fun () {
-          val primary = Color(0.74f, 0.138f, 0.3f, 0.845f)
-          val primaryVariant = Color(red = 0.87f, green = 0.173f, blue = 0.4f)
-        }
-      }
-      """.trimIndent())
-    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(49, 0, 105),
-        Color(189, 35, 77, 215),
-        Color(222, 44, 102)),
-      includeClickAction = false
-    )
-  }
-
-  @Test
-  fun testFloatIntx3x4() {
-    val psiFile = myFixture.addFileToProject(
-      "src/com/android/test/A.kt",
-      //language=kotlin
-      """
-      package com.android.test
-      import androidx.compose.ui.graphics.Color
-      class A {
-        val other = Color(194, 0, 41)
-        fun () {
-          val primary = Color(74, 138, 123, 145)
-          val primaryVariant = Color(red = 87, green = 173, blue = 40)
-        }
-      }
-      """.trimIndent())
-    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
-    checkGutterIconInfos(
-      listOf(
-        Color(194, 0, 41),
-        Color(74, 138, 123, 145),
-        Color(87, 173, 40)),
-      includeClickAction = false
-    )
-  }
-
   private fun checkGutterIconInfos(expectedColorIcons: List<Color>, includeClickAction: Boolean) {
     val iconList = myFixture.doHighlighting().filter { it.gutterIconRenderer is ColorIconRenderer }.sortedBy { it.startOffset }
-    assertThat(iconList).hasSize(3)
+    assertThat(iconList).hasSize(expectedColorIcons.size)
     iconList.forEach {
       assertThat(it.gutterIconRenderer.icon).isNotNull()
       if (includeClickAction) {
@@ -292,6 +480,5 @@ class ComposeColorReferenceAnnotatorTest {
     val icons = myFixture.findAllGutters()
     val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
     assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
-
   }
 }

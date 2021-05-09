@@ -33,6 +33,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.annotations.VisibleForTesting
@@ -454,7 +455,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
         }
       }
       updateProgress()
-      myResultsTableView.refreshTable()
+      myResultsTableView.setTestSuiteResultForDevice(
+        device, testSuite.result ?: AndroidTestSuiteResult.CANCELLED)
       myDetailsView.reloadAndroidTestResults()
     }
   }

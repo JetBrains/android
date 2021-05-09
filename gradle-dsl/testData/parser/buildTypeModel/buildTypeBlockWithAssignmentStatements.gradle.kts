@@ -3,7 +3,9 @@ android {
     create("xyz") {
       applicationIdSuffix = "mySuffix"
       consumerProguardFiles("proguard-android.txt", "proguard-rules.pro")
+      isCrunchPngs = true
       isDebuggable = true
+      isDefault = true
       isEmbedMicroApp = true
       isJniDebuggable= true
       manifestPlaceholders = mutableMapOf("activityLabel1" to "defaultName1", "activityLabel2" to "defaultName2")

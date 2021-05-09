@@ -29,16 +29,17 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.WeakList
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -173,7 +174,9 @@ class LiveLiteralsService private constructor(private val project: Project,
       }
 
       if (fileSnapshot.all.isNotEmpty()) {
-        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters)
+        fileSnapshot.highlightSnapshotInEditor(project, editor, LITERAL_TEXT_ATTRIBUTE_KEY, outHighlighters) {
+          it.containingFile.hasCompilerLiveLiteral(it.containingFile.virtualFile.path, it.initialTextRange.startOffset)
+        }
 
         if (outHighlighters.isNotEmpty()) {
           // Remove the highlights if the manager is deactivated
@@ -192,7 +195,18 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
+  /**
+   * Listener that gets notified if there's been a change in which elements are now handled by this service for a given file.
+   * This allows to refresh any user of the [isElementManaged] method to let them know there might have been a change.
+   */
+  interface ManagedElementsUpdatedListener {
+    fun onChange(file: PsiFile)
+  }
+
   companion object {
+    private val MANAGED_ELEMENTS_UPDATED_TOPIC: Topic<ManagedElementsUpdatedListener> = Topic.create("Managed elements updated",
+                                                                                                     ManagedElementsUpdatedListener::class.java)
+    private val COMPILER_LITERALS_FINDER: Key<CompilerLiveLiteralsManager.Finder> = Key.create(Companion::COMPILER_LITERALS_FINDER.qualifiedName)
     private val DOCUMENT_SNAPSHOT_KEY: Key<LiteralReferenceSnapshot> = Key.create(Companion::DOCUMENT_SNAPSHOT_KEY.qualifiedName)
 
     private fun Document.getCachedDocumentSnapshot() = getUserData(DOCUMENT_SNAPSHOT_KEY)
@@ -210,6 +224,9 @@ class LiveLiteralsService private constructor(private val project: Project,
                           LiveLiteralsDeploymentReportService.getInstanceForTesting(project, listenerExecutor)).also {
         Disposer.register(parentDisposable, it)
       }
+
+    private fun PsiFile?.hasCompilerLiveLiteral(path: String, offset: Int) =
+      this?.getUserData(COMPILER_LITERALS_FINDER)?.hasCompilerLiveLiteral(path, offset) ?: true
   }
 
   private val log = Logger.getInstance(LiveLiteralsService::class.java)
@@ -367,6 +384,12 @@ class LiveLiteralsService private constructor(private val project: Project,
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
     val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
     val tracker = HighlightTracker(file, editor, cachedSnapshot)
+
+    CompilerLiveLiteralsManager.findAsync(file) {
+      file.putUserData(COMPILER_LITERALS_FINDER, it)
+      project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
+    }
+
     trackers.add(tracker)
     Disposer.register(parentDisposable, tracker)
     editor.addEditorMouseListener(object : EditorMouseListener {
@@ -489,6 +512,22 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   override fun liveLiteralPushed(deviceId: String, pushId: String, problems: Collection<LiveLiteralsMonitorHandler.Problem>) =
     deploymentReportService.liveLiteralPushed(deviceId, pushId, problems)
+
+  fun addOnManagedElementsUpdatedListener(parentDisposable: Disposable, listener: ManagedElementsUpdatedListener) {
+    project.messageBus.connect(parentDisposable).subscribe(MANAGED_ELEMENTS_UPDATED_TOPIC, listener)
+  }
+
+  /**
+   * Returns whether the given [PsiElement] is handled by this service. This will be the case when the element is a constant
+   * and the Live Literals are available and the compiler provides metadata for it. See [CompilerLiveLiteralsManager].
+   */
+  fun isElementManaged(element: PsiElement): Boolean {
+    if (!isAvailable) return false
+
+    val literalReference = LiteralsManager.getLiteralReference(element) ?: return false
+    return element.containingFile.hasCompilerLiveLiteral(literalReference.containingFile.virtualFile.path,
+                                                         literalReference.initialTextRange.startOffset)
+  }
 
   override fun dispose() {
     deactivateTracking()

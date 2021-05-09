@@ -36,8 +36,9 @@ private fun SmartPsiElementPointer<PsiElement>.isValid() = range != null && Read
  * to find the equivalent [PsiElement] when a new is added. This operation should be transparent to the user of this pointer.
  *
  * @param originalElement the [PsiElement] to track
+ * @param onReattach callback when the [PsiElement] handled by this smart pointer changes.
  */
-class ReattachableSmartPsiElementPointer(originalElement: PsiElement): SmartPsiElementPointer<PsiElement> {
+class ReattachableSmartPsiElementPointer(originalElement: PsiElement, private val onReattach: (PsiElement) -> Unit = {}): SmartPsiElementPointer<PsiElement> {
   private val originalStartOffset = originalElement.range.start
   private val originalElementClass = originalElement::class.java
   private var elementPointer = SmartPointerManager.createPointer(originalElement)
@@ -61,6 +62,7 @@ class ReattachableSmartPsiElementPointer(originalElement: PsiElement): SmartPsiE
             ?.firstOrNull { it.range.start == originalStartOffset }
             ?.let {
               elementPointer = SmartPointerManager.createPointer(it)
+              onReattach(it)
             }
         }
       }

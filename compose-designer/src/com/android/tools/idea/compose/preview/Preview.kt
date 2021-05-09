@@ -89,6 +89,7 @@ import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.apache.commons.lang.time.DurationFormatUtils
 import org.jetbrains.kotlin.idea.util.module
 import java.awt.Color
 import java.time.Duration
@@ -211,7 +212,7 @@ private const val FPS_LIMIT = 60
  * A [PreviewRepresentation] that provides a compose elements preview representation of the given `psiFile`.
  *
  * A [component] is implied to display previews for all declared `@Composable` functions that also use the `@Preview` (see
- * [com.android.tools.idea.compose.preview.util.PREVIEW_ANNOTATION_FQN]) annotation.
+ * [com.android.tools.compose.PREVIEW_ANNOTATION_FQNS]) annotation.
  * For every preview element a small XML is generated that allows Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
@@ -896,13 +897,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         true
       )
 
-      fun createRefreshElapsedTimeNotification(bundleStringEntry: String) = Notification(
-        NOTIFICATION_GROUP_ID,
-        message("event.log.refresh.title"),
-        message(bundleStringEntry, "${(System.nanoTime() - startTime) / 1_000_000} ms"),
-        NotificationType.INFORMATION
-      )
-
       /**
        * Check if `refreshProgressIndicator` is cancelled. If it is, stop it. Otherwise, update its text.
        */
@@ -999,7 +993,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         UIUtil.invokeLaterIfNeeded {
           if (!(composeWorkBench as ComposePreviewViewImpl).isMessageVisible) {
             // Only notify the preview refresh time if there are previews to show.
-            Notifications.Bus.notify(createRefreshElapsedTimeNotification("event.log.refresh.total.elapsed.time"), project)
+            val durationMs = (System.nanoTime() - startTime) / 1_000_000
+            val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
+            val notification = Notification(
+              NOTIFICATION_GROUP_ID,
+              message("event.log.refresh.title"),
+              message("event.log.refresh.total.elapsed.time", DurationFormatUtils.formatDuration(durationMs, durationFormat, false)),
+              NotificationType.INFORMATION
+            )
+            Notifications.Bus.notify(notification, project)
           }
         }
         refreshProgressIndicator.processFinish()

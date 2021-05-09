@@ -66,6 +66,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
         {"setApplicationId", exactly(1), APPLICATION_ID, SET},
+        {"isDefault", property, DEFAULT, VAR},
         {"dimension", property, DIMENSION, VAR},
         {"setDimension", exactly(1), DIMENSION, SET},
         {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
@@ -106,6 +107,8 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
       Stream.of(new Object[][]{
         {"applicationId", property, APPLICATION_ID, VAR},
         {"applicationId", exactly(1), APPLICATION_ID, SET},
+        {"isDefault", property, DEFAULT, VAR},
+        {"isDefault", exactly(1), DEFAULT, SET},
         {"dimension", property, DIMENSION, VAR},
         {"dimension", exactly(1), DIMENSION, SET},
         {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
