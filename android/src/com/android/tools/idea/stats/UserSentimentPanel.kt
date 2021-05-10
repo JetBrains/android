@@ -108,7 +108,8 @@ class UserSentimentPanel(private var myProject: Project?,
     }
 
     val notification = NOTIFICATIONS.createNotification(AndroidBundle.message("feedback.notifications.title"),
-                                                        XmlStringUtil.wrapInHtml(message), NotificationType.INFORMATION, listener)
+                                                        XmlStringUtil.wrapInHtml(message), NotificationType.INFORMATION)
+    notification.setListener(listener)
     notification.notify(project)
   }
 

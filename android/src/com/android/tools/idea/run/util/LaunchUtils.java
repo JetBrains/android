@@ -173,7 +173,7 @@ public class LaunchUtils {
         final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
 
         NotificationGroup group = getNotificationGroup(toolWindowId);
-        group.createNotification("", notificationMessage, type, new NotificationListener() {
+        group.createNotification(notificationMessage, type).setListener(new NotificationListener() {
           @Override
           public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
             boolean handled = false;

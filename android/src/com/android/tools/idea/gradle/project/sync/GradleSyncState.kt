@@ -345,7 +345,9 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
         quickFixes.forEach { link -> link.executeIfClicked(project, event) }
       }
     }
-    notificationGroup.createNotification("", resultMessage, type.toNotificationType(), listener).notify(project)
+    val notification = notificationGroup.createNotification("", resultMessage, type.toNotificationType())
+    if (listener != null) notification.setListener(listener)
+    notification.notify(project)
   }
 
   private fun syncPublisher(block: GradleSyncListener.() -> Unit) {

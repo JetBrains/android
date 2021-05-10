@@ -120,7 +120,6 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
       val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
         AndroidBundle.message("heap.dump.analysis.notification.title"),
-        null,
         AndroidBundle.message("heap.dump.analysis.notification.ready.content"),
         NotificationType.INFORMATION)
       notification.isImportant = true
@@ -161,8 +160,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
             HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),
               AndroidBundle.message("heap.dump.analysis.notification.submitted.content"),
-              NotificationType.INFORMATION,
-              null
+              NotificationType.INFORMATION
             ).setImportant(false).notify(null)
           }
           else {
@@ -170,8 +168,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
             HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),
               AndroidBundle.message("heap.dump.analysis.notification.submit.error.content"),
-              NotificationType.ERROR,
-              null
+              NotificationType.ERROR
             ).setImportant(false).notify(null)
           }
         }, PooledThreadExecutor.INSTANCE)

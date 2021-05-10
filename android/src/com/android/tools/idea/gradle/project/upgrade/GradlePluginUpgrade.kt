@@ -203,7 +203,11 @@ fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, p
 }
 
 class ProjectUpgradeNotification(title: String, content: String, listener: NotificationListener)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, NotificationType.INFORMATION, listener)
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, NotificationType.INFORMATION) {
+    init {
+      setListener(listener)
+    }
+  }
 
 fun expireProjectUpgradeNotifications(project: Project?) {
   NotificationsManager

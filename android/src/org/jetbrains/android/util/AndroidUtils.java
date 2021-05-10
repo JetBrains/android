@@ -57,7 +57,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -783,10 +782,12 @@ public class AndroidUtils extends CommonAndroidUtil {
   }
 
   public static void reportImportErrorToEventLog(String message, String modName, Project project, NotificationListener listener) {
-    Notifications.Bus.notify(new Notification(NotificationGroup.createIdWithTitle(
+    Notification notification = new Notification(NotificationGroup.createIdWithTitle(
       "Importing Error", AndroidBundle.message("android.facet.importing.notification.group")),
                                               AndroidBundle.message("android.facet.importing.title", modName),
-                                              message, NotificationType.ERROR, listener), project);
+                                              message, NotificationType.ERROR);
+    if (listener != null) notification.setListener(listener);
+    notification.notify(project);
     LOG.debug(message);
   }
 

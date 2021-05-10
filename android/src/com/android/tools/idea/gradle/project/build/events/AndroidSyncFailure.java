@@ -58,10 +58,8 @@ public final class AndroidSyncFailure {
       @NotNull
       @Override
       public Notification getNotification() {
-        return new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", data.getTitle(),
-                                data.getMessage(),
-                                data.getNotificationCategory().getNotificationType(),
-                                data.getListener());
+        return new Notification(GRADLE_SYSTEM_ID.getReadableName() + " sync", data.getTitle(), data.getMessage(), data.getNotificationCategory().getNotificationType())
+          .setListener(data.getListener());
       }
 
       @Nullable

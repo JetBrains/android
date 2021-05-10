@@ -434,7 +434,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
       AndroidBundle.message("android.update.project.properties.dialog.title"),
       AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
+      NotificationType.INFORMATION).setListener(new NotificationListener.Adapter() {
       @Override
       protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
         final String desc = event.getDescription();

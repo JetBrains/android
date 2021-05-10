@@ -220,7 +220,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       public void appStarting(Project project) {
         app.invokeLater(() -> {
           Notification notification =
-            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+            getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING);
+          if (listener != null) notification.setListener(listener);
           notification.setImportant(true);
           Notifications.Bus.notify(notification);
         });

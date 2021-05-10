@@ -145,7 +145,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
       "'" + propertyName +
       "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
       " file.<br>You may enable related option in <a href='configure'>Settings | Compiler | Android DX</a>",
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
+      NotificationType.INFORMATION).setListener(new NotificationListener.Adapter() {
         @Override
         protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
           notification.expire();

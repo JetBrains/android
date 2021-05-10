@@ -53,12 +53,10 @@ class CopyResultImageAction(private val sceneManagerProvider: () -> LayoutlibSce
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
 
     e.project?.let {
-      Notification(IMAGE_COPIED_ID, null,
+      Notification(IMAGE_COPIED_ID,
                    actionCompleteText,
                    "",
-                   "",
-                   NotificationType.INFORMATION,
-                  null)
+                   NotificationType.INFORMATION)
         .notify(e.project)
     }
   }

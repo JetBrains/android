@@ -328,7 +328,7 @@ class InstallTask extends Task.Backgroundable {
             message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
           }
           group.createNotification(
-            "SDK Install", message, NotificationType.INFORMATION, notificationListener).notify(p);
+            "SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p);
         }
       },
       ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)

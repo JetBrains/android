@@ -33,7 +33,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
@@ -396,7 +395,7 @@ public class AndroidCompileUtil {
                              model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
       final Notification notification = new Notification(
         NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
-        "Autogeneration Error", message, NotificationType.ERROR,
+        "Autogeneration Error", message, NotificationType.ERROR).setListener(
         new NotificationListener.Adapter() {
           @Override
           protected void hyperlinkActivated(@NotNull Notification notification,
@@ -419,7 +418,7 @@ public class AndroidCompileUtil {
               });
           }
         });
-      Notifications.Bus.notify(notification, project);
+      notification.notify(project);
       LOG.debug(message);
       return null;
     }

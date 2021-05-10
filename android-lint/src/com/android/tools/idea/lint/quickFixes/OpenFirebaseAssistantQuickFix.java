@@ -59,7 +59,7 @@ public class OpenFirebaseAssistantQuickFix implements LintIdeQuickFix {
       notification.expire();
     };
     Notification notification =
-      AndroidNotification.BALLOON_GROUP.createNotification(getName(), message, NotificationType.WARNING, listener);
+      AndroidNotification.BALLOON_GROUP.createNotification(getName(), message, NotificationType.WARNING).setListener(listener);
     notification.notify(null);
   }
 
