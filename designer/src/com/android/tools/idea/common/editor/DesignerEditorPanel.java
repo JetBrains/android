@@ -30,6 +30,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -38,6 +39,7 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
+import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
@@ -350,7 +352,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
     if (Disposer.isDisposed(model)) {
       return;
     }
-    model.getType().setTypePrerequisites(model);
 
     CompletableFuture<Void> modelSetFuture = mySurface.setModel(model);
 
@@ -484,12 +485,14 @@ public class DesignerEditorPanel extends JPanel implements Disposable, DesignSur
    */
   public interface ModelProvider {
 
-    ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) ->
-      NlModel.builder(facet, file, ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file))
+    ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
+      Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet));
+      return NlModel.builder(facet, file, configuration)
         .withParentDisposable(disposable)
         .withComponentRegistrar(componentRegistrar)
         .withModelDisplayName("") // For the Layout Editor, set an empty name to enable SceneView toolbars.
         .build();
+    };
 
     /**
      * The function Create the {@link NlModel}s for the given virtual file.

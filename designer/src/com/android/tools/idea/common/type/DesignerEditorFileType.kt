@@ -17,7 +17,6 @@ package com.android.tools.idea.common.type
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.psi.PsiFile
@@ -50,12 +49,6 @@ interface DesignerEditorFileType {
    */
   fun getSelectionContextToolbar(surface: DesignSurface, selection: List<NlComponent>): DefaultActionGroup =
     surface.actionManager.getToolbarActions(selection)
-
-  /**
-   * If required, modifies the model to make sure it can represent files of this type. For example, we might want to adjust the model's
-   * density for some drawable types.
-   */
-  fun setTypePrerequisites(model: NlModel) {}
 }
 
 /**
