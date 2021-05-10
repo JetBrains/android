@@ -329,14 +329,19 @@ private val IdeaSourceProvider.allSourceFolderUrls: Sequence<String>
       .asSequence()
       .flatten()
 
-
 /**
  * Returns true if this SourceProvider has one or more source folders contained by (or equal to)
  * the given folder.
  */
-fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
+fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean = findSourceRoot(file) != null
+
+/**
+ * Returns the source root as a VirualFile that includes the given [file]. If the [file] is not present in
+ * the [IdeaSourceProvider] then this method will return null.
+ */
+fun IdeaSourceProvider.findSourceRoot(file: VirtualFile): VirtualFile? {
   if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
-    return true
+    return file
   }
 
   for (container in allSourceFolders) {
@@ -346,10 +351,10 @@ fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
     }
 
     if (VfsUtilCore.isAncestor(container, file, false /* allow them to be the same */)) {
-      return true
+      return container
     }
   }
-  return false
+  return null
 }
 
 fun <T : IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }

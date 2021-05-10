@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import static com.android.SdkConstants.FD_MAIN;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -25,34 +28,30 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.SdkConstants.FD_MAIN;
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-
 public class AndroidPsiFileNode extends PsiFileNode {
-  @Nullable private final NamedIdeaSourceProvider mySourceProvider;
+  @Nullable private final String mySourceSetName;
 
-  AndroidPsiFileNode(@NotNull Project project,
+  public AndroidPsiFileNode(@NotNull Project project,
                      @NotNull PsiFile file,
                      @NotNull ViewSettings settings,
-                     @Nullable NamedIdeaSourceProvider sourceProvider) {
+                     @Nullable String sourceSetName) {
     super(project, file, settings);
-    mySourceProvider = sourceProvider;
+    mySourceSetName = sourceSetName;
   }
 
   @Override
   protected void updateImpl(@NotNull PresentationData data) {
     super.updateImpl(data);
-    if (mySourceProvider != null && !FD_MAIN.equals(mySourceProvider.getName())) {
+    if (mySourceSetName != null && !FD_MAIN.equals(mySourceSetName)) {
       data.addText(data.getPresentableText(), REGULAR_ATTRIBUTES);
-      data.addText(" (" + mySourceProvider.getName() + ")", GRAY_ATTRIBUTES);
+      data.addText(" (" + mySourceSetName + ")", GRAY_ATTRIBUTES);
     }
   }
 
   @Override
   @Nullable
   public Comparable getSortKey() {
-    String sourceProviderName = mySourceProvider == null ? "" : mySourceProvider.getName();
+    String sourceProviderName = mySourceSetName == null ? "" : mySourceSetName;
     return getQualifiedNameSortKey() + "-" + (FD_MAIN.equals(sourceProviderName) ? "" : sourceProviderName);
   }
 
@@ -67,6 +66,6 @@ public class AndroidPsiFileNode extends PsiFileNode {
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     PsiFile file = getValue();
     assert file != null;
-    return AndroidPsiDirectoryNode.toTestString(file.getName(), mySourceProvider);
+    return AndroidPsiDirectoryNode.toTestString(file.getName(), mySourceSetName);
   }
 }
