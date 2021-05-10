@@ -16,7 +16,9 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.TableCellRenderers;
+import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
@@ -30,13 +32,45 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ActionsComponent extends JBPanel<ActionsComponent> implements TableCellRenderer {
+  private final @Nullable Project myProject;
+
+  private @Nullable AbstractButton myDeviceFileExplorerButton;
   private @Nullable AbstractButton myMoreButton;
 
-  ActionsComponent() {
-    super(null);
+  private @Nullable PhysicalDevice myDevice;
 
+  ActionsComponent(@Nullable Project project) {
+    super(null);
+    myProject = project;
+
+    initDeviceFileExplorerButton();
     initMoreButton();
+
     setLayout();
+  }
+
+  private void initDeviceFileExplorerButton() {
+    myDeviceFileExplorerButton = new JButton(AllIcons.General.OpenDiskHover);
+
+    myDeviceFileExplorerButton.setBorderPainted(false);
+    myDeviceFileExplorerButton.setContentAreaFilled(false);
+
+    myDeviceFileExplorerButton.addActionListener(event -> {
+      // TODO(http://b/187856375) Does the Device File Explorer need to work from the Welcome to Android Studio window?
+      if (myProject == null) {
+        return;
+      }
+
+      if (myDevice == null) {
+        return;
+      }
+
+      if (!myDevice.isOnline()) {
+        return;
+      }
+
+      DeviceExplorerToolWindowFactory.openAndShowDevice(myProject, myDevice.getSerialNumber());
+    });
   }
 
   private void initMoreButton() {
@@ -51,11 +85,13 @@ final class ActionsComponent extends JBPanel<ActionsComponent> implements TableC
 
     Group horizontalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
+      .addComponent(myDeviceFileExplorerButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE)
       .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
       .addGroup(layout.createParallelGroup()
+                  .addComponent(myDeviceFileExplorerButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE)
                   .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE))
       .addGap(0, 0, Short.MAX_VALUE);
 
@@ -63,6 +99,10 @@ final class ActionsComponent extends JBPanel<ActionsComponent> implements TableC
     layout.setVerticalGroup(verticalGroup);
 
     setLayout(layout);
+  }
+
+  void setDevice(@NotNull PhysicalDevice device) {
+    myDevice = device;
   }
 
   @Override

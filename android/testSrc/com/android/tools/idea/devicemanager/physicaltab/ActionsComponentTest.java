@@ -30,7 +30,7 @@ public final class ActionsComponentTest {
   @Test
   public void getTableCellRendererComponent() {
     // Arrange
-    ActionsComponent component = new ActionsComponent();
+    ActionsComponent component = new ActionsComponent(null);
     JTable table = new JBTable();
 
     // Act

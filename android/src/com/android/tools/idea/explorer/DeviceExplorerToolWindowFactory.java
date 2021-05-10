@@ -112,11 +112,9 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
    * Opens the Device Explorer tool window and selects the device matching the AvdInfo
    */
   public static void openAndShowDevice(@NotNull Project project, @NotNull AvdInfo avdInfo) {
-    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
-    if (toolWindow == null) {
+    if (!showToolWindow(project)) {
       return;
     }
-    toolWindow.show();
 
     DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
     assert controller != null;
@@ -131,5 +129,28 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     }
 
     controller.selectActiveDevice(optionalIDevice.get().getSerialNumber());
+  }
+
+  public static void openAndShowDevice(@NotNull Project project, @NotNull String serialNumber) {
+    if (!showToolWindow(project)) {
+      return;
+    }
+
+    DeviceExplorerController controller = DeviceExplorerController.getProjectController(project);
+    assert controller != null;
+
+    controller.selectActiveDevice(serialNumber);
+  }
+
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private static boolean showToolWindow(@NotNull Project project) {
+    ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
+
+    if (toolWindow == null) {
+      return false;
+    }
+
+    toolWindow.show();
+    return true;
   }
 }

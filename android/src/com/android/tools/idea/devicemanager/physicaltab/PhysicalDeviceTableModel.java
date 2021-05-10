@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 @UiThread
 final class PhysicalDeviceTableModel extends AbstractTableModel {
-  private static final int DEVICE_MODEL_COLUMN_INDEX = 0;
+  static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   private static final int API_MODEL_COLUMN_INDEX = 1;
 
   @VisibleForTesting
@@ -43,7 +43,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
    * Supplies a key for JTable.defaultRenderersByColumnClass and ActionsComponent
    */
   static final class Actions {
-    @VisibleForTesting
     @SuppressWarnings("InstantiationOfUtilityClass")
     static final Actions INSTANCE = new Actions();
 
@@ -118,6 +117,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       default:
         throw new AssertionError(modelColumnIndex);
     }
+  }
+
+  @Override
+  public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
+    return modelColumnIndex == ACTIONS_MODEL_COLUMN_INDEX;
   }
 
   @Override
