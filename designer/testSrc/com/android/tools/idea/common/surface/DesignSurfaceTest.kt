@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface.MAGNIFICATION_SENSITIVITY
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
@@ -33,7 +34,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
+import junit.framework.TestCase
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
@@ -182,6 +185,34 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.addModelWithoutRender(model3)
     assertThat(surface.models).containsExactly(model2, model1, model3).inOrder()
   }
+
+  fun testMagnify() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(1.0)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(1.0 + MAGNIFICATION_SENSITIVITY * 1.0, surface.scale)
+
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(-1.5)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(1.0 + MAGNIFICATION_SENSITIVITY * -1.5, surface.scale)
+
+    // Test magnifying is bounded by min and max scale allowances.
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(-100000.0)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(0.1, surface.scale)
+
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(100000.0)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(10.0, surface.scale)
+  }
 }
 
 class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
@@ -237,6 +268,10 @@ class TestDesignSurface(project: Project, disposible: Disposable)
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
   override fun canZoomToFit() = true
+
+  override fun getMinScale() = 0.1
+
+  override fun getMaxScale() = 10.0
 
   override fun getDefaultOffset() = Dimension()
 
