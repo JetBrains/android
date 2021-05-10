@@ -54,20 +54,17 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.projectImport.ProjectOpenProcessor;
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -82,7 +79,6 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -220,7 +216,8 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void addStartupWarning(@NotNull String message, @Nullable NotificationListener listener) {
-    Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING, listener);
+    Notification notification = getNotificationGroup().createNotification("SDK Validation", message, NotificationType.WARNING);
+    if (listener != null) notification.setListener(listener);
     notification.setImportant(true);
     Notifications.Bus.notify(notification);
   }

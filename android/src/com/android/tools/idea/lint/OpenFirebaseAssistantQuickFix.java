@@ -20,7 +20,6 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.PluginManagerConfigurable;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -58,9 +57,9 @@ public class OpenFirebaseAssistantQuickFix implements LintIdeQuickFix {
       ShowSettingsUtil.getInstance().showSettingsDialog(null, PluginManagerConfigurable.class);
       notification.expire();
     };
-    Notification notification =
-      AndroidNotification.BALLOON_GROUP.createNotification(getName(), message, NotificationType.WARNING, listener);
-    notification.notify(null);
+    AndroidNotification.BALLOON_GROUP.createNotification(getName(), message, NotificationType.WARNING)
+      .setListener(listener)
+      .notify(null);
   }
 
   @Override

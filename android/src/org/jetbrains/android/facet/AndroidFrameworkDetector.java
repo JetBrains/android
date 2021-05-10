@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.facet;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
@@ -145,14 +145,14 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
       "'" + propertyName +
       "' property is detected in " + SdkConstants.FN_PROJECT_PROPERTIES +
       " file.<br>You may enable related option in <a href='configure'>Settings | Compiler | Android DX</a>",
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
-        @Override
-        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-          notification.expire();
-          ShowSettingsUtil.getInstance().showSettingsDialog(
-            project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
-        }
-      });
+      NotificationType.INFORMATION);
+    notification.setListener(new NotificationListener.Adapter() {
+      @Override
+      protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+        notification.expire();
+        ShowSettingsUtil.getInstance().showSettingsDialog(project, AndroidBundle.message("android.dex.compiler.configurable.display.name"));
+      }
+    });
     notification.notify(project);
     return notification;
   }

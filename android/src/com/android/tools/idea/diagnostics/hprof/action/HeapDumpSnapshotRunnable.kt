@@ -242,7 +242,7 @@ class HeapDumpSnapshotRunnable(
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),
               AndroidBundle.message("heap.dump.snapshot.created", hprofPath.toString(), productName),
-              NotificationType.INFORMATION, null)
+              NotificationType.INFORMATION)
             notification.notify(null)
           }
         }
@@ -253,7 +253,7 @@ class HeapDumpSnapshotRunnable(
           val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
             AndroidBundle.message("heap.dump.analysis.notification.title"),
             AndroidBundle.message("heap.dump.snapshot.created.no.analysis", hprofPath.toString()),
-            NotificationType.INFORMATION, null)
+            NotificationType.INFORMATION)
           notification.notify(null)
         }
       }

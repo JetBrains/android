@@ -1,4 +1,4 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2021 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler;
 
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
@@ -16,7 +16,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
@@ -397,10 +396,9 @@ public class AndroidCompileUtil {
       final String message = "Cannot mark directory '" + FileUtil.toSystemDependentName(root.getPath()) +
                              "' as source root, because it is not located under content root of module '" +
                              model.getModule().getName() + "'\n<a href='fix'>Open Project Structure</a>";
-      final Notification notification = new Notification(
-        NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
-        "Autogeneration Error", message, NotificationType.ERROR,
-        new NotificationListener.Adapter() {
+      new Notification(NotificationGroup.createIdWithTitle("Android Autogeneration", AndroidBundle.message("android.autogeneration.notification.group")),
+                       "Autogeneration Error", message, NotificationType.ERROR)
+        .setListener(new NotificationListener.Adapter() {
           @Override
           protected void hyperlinkActivated(@NotNull Notification notification,
                                             @NotNull HyperlinkEvent e) {
@@ -421,8 +419,8 @@ public class AndroidCompileUtil {
                 }
               });
           }
-        });
-      Notifications.Bus.notify(notification, project);
+        })
+        .notify(project);
       LOG.debug(message);
       return null;
     }

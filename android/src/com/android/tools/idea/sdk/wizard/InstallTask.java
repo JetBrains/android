@@ -43,11 +43,10 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.extensions.PluginId;
-import com.intellij.openapi.progress.*;
 import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -333,8 +332,7 @@ class InstallTask extends Task.Backgroundable {
           else {
             message = packages.size() + " packages are ready to install or uninstall<br/><a href=\"install\">Continue</a>";
           }
-          group.createNotification(
-            "SDK Install", message, NotificationType.INFORMATION, notificationListener).notify(p);
+          group.createNotification("SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p);
         }
       },
       ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)
