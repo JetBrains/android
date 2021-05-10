@@ -65,7 +65,9 @@ class ViewInspectorTreeLoader(
       return null
     }
     try {
-      resourceLookup.updateConfiguration(viewEvent.appContext.convert(), viewNodeCreator.strings, process)
+      val folderConfig = viewEvent.configuration.convert(process.device.apiLevel)
+      resourceLookup.updateConfiguration(folderConfig, viewEvent.appContext.convert(viewEvent.configuration), viewNodeCreator.strings,
+                                         process)
       val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
       return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, { isInterrupted }, logEvent)
     }

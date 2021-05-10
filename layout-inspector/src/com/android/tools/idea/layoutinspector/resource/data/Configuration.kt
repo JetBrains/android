@@ -21,7 +21,6 @@ package com.android.tools.idea.layoutinspector.resource.data
  * See also: https://developer.android.com/reference/android/content/res/Configuration
  */
 class Configuration(
-  val fontScale: Float = 0f,
   val countryCode: Int = 0,
   val networkCode: Int = 0,
   val locale: Locale = Locale(),
