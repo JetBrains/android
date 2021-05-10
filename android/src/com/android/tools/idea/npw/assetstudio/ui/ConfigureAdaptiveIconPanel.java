@@ -25,7 +25,6 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator;
-import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.TvChannelIconGenerator;
@@ -58,6 +57,7 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -346,7 +346,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myBackgroundLayerName = new TextProperty(myBackgroundLayerNameTextField);
     myListeners.listen(myForegroundLayerName, name -> {
       if (name.equals(defaultForegroundLayerName())) {
-        myGeneralBindings.bind(myForegroundLayerName, Expression.create(() -> defaultForegroundLayerName(), myOutputName));
+        myGeneralBindings.bind(myForegroundLayerName, Expression.create(this::defaultForegroundLayerName, myOutputName));
       }
       else {
         myGeneralBindings.release(myForegroundLayerName);
@@ -354,7 +354,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     });
     myListeners.listen(myBackgroundLayerName, name -> {
       if (name.equals(defaultBackgroundLayerName())) {
-        myGeneralBindings.bind(myBackgroundLayerName, Expression.create(() -> defaultBackgroundLayerName(), myOutputName));
+        myGeneralBindings.bind(myBackgroundLayerName, Expression.create(this::defaultBackgroundLayerName, myOutputName));
       }
       else {
         myGeneralBindings.release(myBackgroundLayerName);
@@ -567,12 +567,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       getIconGenerator().backgroundImageAsset().setNullableValue(asset);
       onAssetModified.run();
     };
-    myListeners.listenAndFire(myBackgroundImageAsset, () -> onBackgroundAssetModified.run());
+    myListeners.listenAndFire(myBackgroundImageAsset, onBackgroundAssetModified::run);
 
     /*
      * Hook up a bunch of UI <- boolean expressions, so that when certain conditions are met,
      * various components show/hide. This also requires refreshing the panel explicitly, as
-     * otherwise Swing doesn't realize it should trigger a relayout.
+     * otherwise Swing doesn't realize it should trigger a re-layout.
      */
     ImmutableMap.Builder<BoolProperty, ObservableValue<Boolean>> layoutPropertiesBuilder = ImmutableMap.builder();
     layoutPropertiesBuilder.put(new VisibleProperty(myForegroundImageAssetRowPanel), new SelectedProperty(myForegroundImageRadioButton));
