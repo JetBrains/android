@@ -190,6 +190,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected static final double SCALING_THRESHOLD = 0.005;
 
   /**
+   * The factor of magnification when evaluating the new scale value.
+   * This factor is a percentage, and increase/decrease the speed of increasing/decreasing the zoom level by magnifying.
+   * For example, when this value is 0.25 (25%), the speed of changing zoom level is reduce to 25%.
+   *
+   * TODO(b/187714279): Make this configurable in preference setting.
+   */
+  @VisibleForTesting
+  public static final double MAGNIFICATION_SENSITIVITY = 0.25;
+
+  /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
    **/
   private static final Predicate<NlModel> FILTER_DISPOSED_MODELS = input -> input != null && !input.getModule().isDisposed();
@@ -205,6 +215,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final Project myProject;
 
   @SurfaceScale private double myScale = 1;
+  /**
+   * The scale level when magnification started. This is used as a standard when the new scale level is evaluated.
+   */
+  @SurfaceScale private double myMagnificationStartedScale;
+
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
    */
@@ -968,6 +983,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   @Override
   public void magnificationStarted(Point at) {
+    myMagnificationStartedScale = getScale();
   }
 
   @Override
@@ -980,14 +996,21 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return;
     }
 
-    // Convert from the magnification scale [-1, 1] to the scale one [0, 1]
-    PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-    if (pointerInfo != null) {
-      Point mouse = pointerInfo.getLocation();
+    Point mouse;
+    if (!GraphicsEnvironment.isHeadless()) {
+      PointerInfo pointerInfo = MouseInfo.getPointerInfo();
+      if (pointerInfo == null) {
+        return;
+      }
+      mouse = pointerInfo.getLocation();
       SwingUtilities.convertPointFromScreen(mouse, getViewport().getViewportComponent());
-      double magnifiedScale = magnification < 0 ? 1f / (1 - magnification) : (1 + magnification);
-      setScale(magnifiedScale * getScale(), mouse.x, mouse.y);
     }
+    else {
+      // In headless mode we assume the scale point is at the center.
+      mouse = new Point(getWidth() / 2, getHeight() / 2);
+    }
+    @SurfaceScale double newScale = myMagnificationStartedScale + magnification * MAGNIFICATION_SENSITIVITY;
+    setScale(newScale, mouse.x, mouse.y);
   }
 
   @Override
