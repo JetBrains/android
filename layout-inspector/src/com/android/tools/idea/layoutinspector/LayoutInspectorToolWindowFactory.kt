@@ -35,7 +35,6 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -86,10 +85,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   override fun isApplicable(project: Project): Boolean = enableLiveLayoutInspector
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    // Ensure the transport service is started
-    if (TransportService.getInstance() == null) {
-      throw ServiceNotReadyException()
-    }
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
 

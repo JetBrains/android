@@ -34,10 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.MessagesToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.inspector.LayoutInspectorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PTableFixture
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.View
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -68,6 +64,7 @@ private const val LAYOUT_NAME = "inspection"
  */
 @RunWith(GuiTestRemoteRunner::class)
 class BasicLayoutInspectorUITest {
+/*  Disabled pending rewrite to app inspection: b/187734852
   companion object {
     init {
       System.loadLibrary("layout_inspector_test_support")
@@ -721,5 +718,5 @@ class BasicLayoutInspectorUITest {
         else -> null
       }
     }
-  }
+  }*/
 }

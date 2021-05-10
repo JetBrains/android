@@ -24,7 +24,6 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.stats.MemoryProbe
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -46,7 +45,6 @@ class InspectorMemoryProbe(
   private val includedPackagePrefixes = listOf(
     ViewNode::class.java.`package`.name + DOT,
     ResourceType::class.java.`package`.name + DOT,
-    LayoutInspectorProto::class.java.`package`.name + DOT,
     ResourceReference::class.java.`package`.name + DOT,
     ImmutableList::class.java.`package`.name + DOT,
     java.awt.Image::class.java.`package`.name + DOT,

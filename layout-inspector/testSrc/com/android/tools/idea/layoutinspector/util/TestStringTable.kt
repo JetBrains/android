@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector.util
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.resource.data.Resource
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.util.text.nullize
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 class TestStringTable : StringTable {
   private val strings: BiMap<String, Int> = HashBiMap.create()
@@ -43,9 +43,9 @@ class TestStringTable : StringTable {
       )
     }
 
-  fun asEntryList(): List<LayoutInspectorProto.StringEntry> =
+  fun asEntryList(): List<LayoutInspectorViewProtocol.StringEntry> =
     strings.entries
-      .map { LayoutInspectorProto.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
+      .map { LayoutInspectorViewProtocol.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
 
   override operator fun get(id: Int): String = strings.inverse()[id].orEmpty()
 
