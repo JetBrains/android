@@ -68,6 +68,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.MergeDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewTagDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.navigation.NavigationDomFileDescription"/>
 
     <!--  The dynamic DOM extender:  -->
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement" extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
