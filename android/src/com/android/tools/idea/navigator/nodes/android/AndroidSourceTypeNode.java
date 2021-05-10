@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.containsFile;
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.findSourceRoot;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
@@ -47,6 +47,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import kotlin.Pair;
 
 /**
  * {@link AndroidSourceTypeNode} is a virtual node in the package view of an Android module under which all sources
@@ -90,17 +91,21 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   private Collection<AbstractTreeNode<?>> annotateWithSourceProvider(@NotNull Collection<AbstractTreeNode<?>> folderChildren) {
     List<AbstractTreeNode<?>> children = new ArrayList<>(folderChildren.size());
     assert myProject != null;
-    for (AbstractTreeNode child : folderChildren) {
+    for (AbstractTreeNode<?> child : folderChildren) {
       if (child instanceof PsiDirectoryNode) {
         PsiDirectory folder = ((PsiDirectoryNode)child).getValue();
         assert folder != null;
-        children.add(new AndroidPsiDirectoryNode(myProject, folder, getSettings(), findSourceProvider(folder.getVirtualFile())));
+        Pair<String, VirtualFile> providerPair = findSourceProvider(folder.getVirtualFile());
+        VirtualFile file = providerPair.getSecond();
+        PsiDirectory psiDir = (file == null) ? null : PsiManager.getInstance(myProject).findDirectory(file);
+        children.add(new AndroidPsiDirectoryNode(myProject, folder, getSettings(), providerPair.getFirst(), psiDir));
       }
       else if (child instanceof PsiFileNode) {
         PsiFile file = ((PsiFileNode)child).getValue();
         assert file != null;
         VirtualFile virtualFile = file.getVirtualFile();
-        children.add(new AndroidPsiFileNode(myProject, file, getSettings(), findSourceProvider(virtualFile)));
+        Pair<String, VirtualFile> providerPair = findSourceProvider(virtualFile);
+        children.add(new AndroidPsiFileNode(myProject, file, getSettings(), providerPair.getFirst()));
       }
       else {
         children.add(child);
@@ -110,17 +115,18 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     return children;
   }
 
-  @Nullable
-  private NamedIdeaSourceProvider findSourceProvider(@NotNull VirtualFile virtualFile) {
+  @NotNull
+  private Pair<String, VirtualFile> findSourceProvider(@NotNull VirtualFile virtualFile) {
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
     for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
-      if (containsFile(provider, virtualFile)) {
-        return provider;
+      VirtualFile root = findSourceRoot(provider, virtualFile);
+      if (root != null) {
+        return new Pair<>(provider.getName(), root);
       }
     }
 
-    return null;
+    return new Pair<>(null, null);
   }
 
   @NotNull
