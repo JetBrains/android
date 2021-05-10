@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.google.common.truth.Truth.assertThat;
 import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -47,9 +48,11 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -362,5 +365,97 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       ImageUtil.toBufferedImage(IconUtil.toImage(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_PHONE), ScaleContext.createIdentity()));
     BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(target.getIcon(), ScaleContext.createIdentity()));
     ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);
+  }
+
+  @Test
+  public void isMultipleTargetsSelectedInComboBoxWithOneDeviceSelected() {
+    // Arrange
+    Key key = new VirtualDeviceName("Pixel_4_API_29");
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(key)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = Collections.singletonList(device);
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(devices));
+
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(key));
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
+    Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
+
+    DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
+    Mockito.when(dialog.showAndGet()).thenReturn(true);
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(p -> myDevicesGetter)
+      .setDevicesSelectedServiceGetInstance(p -> service)
+      .setExecutionTargetServiceGetInstance(p -> myExecutionTargetService)
+      .setNewSelectMultipleDevicesDialog((p, d) -> dialog)
+      .build();
+
+    Project project = myRule.getProject();
+
+    // Act
+    action.selectMultipleDevices(project);
+
+    // Assert
+    assertThat(action.isMultipleTargetsSelectedInComboBox(project)).isTrue();
+    assertThat(action.getNumberOfSelectedDevices(project)).isEqualTo(1);
+  }
+
+  @Test
+  public void isMultipleTargetsSelectedInComboBoxWithMultipleDevicesSelected() {
+    // Arrange
+    Key key1 = new VirtualDeviceName("Pixel_4_API_29");
+    Key key2 = new VirtualDeviceName("Pixel_4_API_28");
+
+    Device device1 = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 29")
+      .setKey(key1)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+    Device device2 = new VirtualDevice.Builder()
+      .setName("Pixel 4 API 28")
+      .setKey(key2)
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = new ArrayList<>();
+    devices.add(device1);
+    devices.add(device2);
+
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(devices));
+
+    Set<Target> targets = new HashSet();
+    targets.add(new QuickBootTarget(key1));
+    targets.add(new QuickBootTarget(key2));
+
+    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
+    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
+    Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
+
+    DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
+    Mockito.when(dialog.showAndGet()).thenReturn(true);
+
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
+      .setDevicesGetterGetter(p -> myDevicesGetter)
+      .setDevicesSelectedServiceGetInstance(p -> service)
+      .setExecutionTargetServiceGetInstance(p -> myExecutionTargetService)
+      .setNewSelectMultipleDevicesDialog((p, d) -> dialog)
+      .build();
+
+    Project project = myRule.getProject();
+
+    // Act
+    action.selectMultipleDevices(project);
+
+    // Assert
+    assertThat(action.isMultipleTargetsSelectedInComboBox(project)).isTrue();
+    assertThat(action.getNumberOfSelectedDevices(project)).isEqualTo(2);
   }
 }
