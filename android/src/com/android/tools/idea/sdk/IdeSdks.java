@@ -1133,6 +1133,35 @@ public class IdeSdks {
     return version != null && version.compareTo(expectedVersion) == 0;
   }
 
+  /**
+   * Recreates entries in the ProjectJDKTable. Must be run on a write thread.
+   */
+  public void recreateProjectJdkTable() {
+    Runnable cleanJdkTableAction = () -> {
+      // Recreate remaining JDKs to ensure they are up to date after an update (b/185562147)
+      ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+      for (Sdk jdk : jdkTable.getSdksOfType(JavaSdk.getInstance())) {
+        Sdk recreatedJdk = recreateJdk(jdk);
+        if (recreatedJdk != null) {
+          jdkTable.updateJdk(jdk, recreatedJdk);
+        }
+        else {
+          jdkTable.removeJdk(jdk);
+        }
+      }
+    };
+    ApplicationManager.getApplication().runWriteAction(cleanJdkTableAction);
+  }
+
+  @Nullable
+  private Sdk recreateJdk(@NotNull Sdk originalJdk) {
+    String jdkPath = originalJdk.getHomePath();
+    if (jdkPath != null && (validateJdkPath(new File(jdkPath)) != null)) {
+      return JavaSdk.getInstance().createJdk(originalJdk.getName(), jdkPath, false);
+    }
+    return null;
+  }
+
   private class EnvVariableSettings {
     private Sdk mySdk;
     private String myVariableValue;
