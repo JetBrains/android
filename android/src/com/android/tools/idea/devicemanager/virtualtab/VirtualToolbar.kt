@@ -68,8 +68,8 @@ class VirtualToolbar(
     row {
       newButton().withLeftGap()
       separator()
-      refreshButton()
       if (StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get()) {
+        refreshButton()
         helpButton()
         searchField(growX, pushX)
       }
