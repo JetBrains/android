@@ -783,16 +783,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void scan(@NotNull PsiFile psiFile, @NotNull ResourceFolderType folderType) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      ApplicationManager.getApplication().runReadAction(() -> scan(psiFile, folderType));
+    ProgressManager.checkCanceled();
+
+    if (!isResourceFile(psiFile) || !isRelevantFile(psiFile) || psiFile.getProject().isDisposed()) {
       return;
     }
 
     TRACER.log(() -> "ResourceFolderRepository.scan " + psiFile.getVirtualFile());
-
-    ProgressManager.checkCanceled();
-    if (psiFile.getProject().isDisposed()) return;
-
     if (LOG.isDebugEnabled()) {
       LOG.debug("Rescanning ", psiFile);
     }
@@ -940,30 +937,28 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   private void scan(@NotNull VirtualFile file) {
     ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
-    if (folderType == null) {
+    if (folderType == null || !isResourceFile(file) || !isRelevantFile(file)) {
       return;
     }
 
-    if (isResourceFile(file) && isRelevantFile(file)) {
-      PsiFile psiFile = myPsiManager.findFile(file);
-      if (psiFile != null) {
-        Document document = myPsiDocumentManager.getDocument(psiFile);
-        if (document != null && myPsiDocumentManager.isUncommited(document)) {
-          // The Document has uncommitted changes, so scanning the PSI will yield stale results.
-          // Request a commit and scan once it's done.
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Committing ", document);
-          }
-          //noinspection UnstableApiUsage
-          ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
-            myPsiDocumentManager.commitDocument(document);
-            scheduleScan(file, folderType);
-          });
-          return;
+    PsiFile psiFile = myPsiManager.findFile(file);
+    if (psiFile != null) {
+      Document document = myPsiDocumentManager.getDocument(psiFile);
+      if (document != null && myPsiDocumentManager.isUncommited(document)) {
+        // The Document has uncommitted changes, so scanning the PSI will yield stale results.
+        // Request a commit and scan once it's done.
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Committing ", document);
         }
-
-        scan(psiFile, folderType);
+        //noinspection UnstableApiUsage
+        ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+          myPsiDocumentManager.commitDocument(document);
+          scheduleScan(file, folderType);
+        });
+        return;
       }
+
+      scan(psiFile, folderType);
     }
   }
 
