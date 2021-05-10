@@ -226,6 +226,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       connect(device);
 
       AndroidLogcatReceiver receiver = newAndroidLogcatReceiver(device);
+      Disposer.register(this, receiver);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
       myExecutors.get(device).submit(() -> executeLogcat(device, receiver));
@@ -502,5 +503,14 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     }
 
     receiver.invalidate();
+  }
+
+  @TestOnly
+  void waitForIdle(IDevice device) throws InterruptedException {
+    AndroidLogcatReceiver receiver;
+    synchronized (myLock) {
+      receiver = myLogReceivers.get(device);
+    }
+    receiver.waitForIdle();
   }
 }

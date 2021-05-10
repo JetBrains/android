@@ -16,20 +16,28 @@
 
 package com.android.tools.idea.logcat;
 
+import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
+
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatHeaderParser;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
-import com.intellij.diagnostic.logging.LogConsoleBase;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * An {@link AndroidOutputReceiver} which receives output from logcat and processes each line,
@@ -40,6 +48,12 @@ import org.jetbrains.annotations.Nullable;
  * 1+ lines of log text below, for each log message).
  */
 public final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Disposable {
+  /**
+   * Last message in batch will be posted after a delay, to allow for more log lines if another batch is pending.
+   */
+  @VisibleForTesting
+  static final int DELAY_MILLIS = 100;
+
   /**
    * Prefix to use for stack trace lines.
    */
@@ -61,16 +75,26 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @NotNull
   private final LogcatListener myLogcatListener;
   private volatile boolean myCanceled;
+  @SuppressWarnings("UnstableApiUsage")
+  @NotNull
+  private final Executor mySequentialExecutor =
+    MoreExecutors.newSequentialExecutor(AppExecutorUtil.getAppExecutorService());
+  @NotNull
+  private final SafeAlarm myAlarm;
 
-  // Save the last header of the batch in case a log entry was split into 2 batches.
+  // Save the last header and lines of the batch in case a log entry was split into 2 batches.
   @Nullable private LogCatHeader myPreviousHeader;
-  @Nullable private List<@NotNull String> myPreviousLines;
+  @NotNull private List<@NotNull String> myPreviousLines = new ArrayList<>();
+
+  // Hold on to the last message in a batch to send if no new batch arrives in a reasonable time.
+  @Nullable private LogCatMessage myPendingMessage;
 
   AndroidLogcatReceiver(@NotNull IDevice device, @NotNull LogcatListener listener) {
     myLogCatHeaderParser = new LogCatHeaderParser();
     myDevice = device;
     myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
     myLogcatListener = listener;
+    myAlarm = new SafeAlarm(POOLED_THREAD, this);
   }
 
   /**
@@ -89,42 +113,66 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
    *   ...
    * </pre>
    * <p>
-   * However, there are 2 special cases that need to be handled:
-   * <ol>
-   * <li>The log will (always?) start with a "--------- beginning of ..." line which doesn't have a header. We need to be able to ignore
-   * this line.
-   * <li>A log entry can be split into 2 batches so we need to keep a state field of the last processed header.
-   * </ol>
    * <p>
-   * Handing case #1 seems simple. We can simply ignore lines that arrive before we have a valid header.
+   * There seems to be no way to deterministically detect the end of a log entry because the EOM is indicated by an empty line but an empty
+   * line can be also be a valid part of a log entry. A valid header is a good indication that the previous entry has ended but we can't
+   * just hold on to an entry until we get a new header because there could be a long pause between entries.
    * <p>
-   * Handling case #2 is harder. We need to keep 2 state fields. One field will keep the last header of a batch and a second field will keep
-   * any log lines from an incomplete log entry from the last batch.
+   * We address this issue by posting a delayed task that will flush the last entry in a batch. If we get another batch before the delayed
+   * task executes, we cancel it.
    * <p>
-   * An incomplete log entry is detected by the lack of an empty line at the end.
-   * <p>
-   * This leaves a rare edge case where a user emits an empty line to the log AND that empty lines happens to fall exactly between batches.
-   * <p>
-   * It's very hard to handle this case. The previous implementation of this code handled it by pushing the responsibility to downstream
-   * code and requiring it to keep its own state. Since the downstream code was not thread safe, this resulted in state contamination and
-   * caused crashes.
-   * <p>
-   * As a Compromise, this code will split a log entry that has a user emitted empty line into 2 log entries, but only if the empty line
-   * happens to fall exactly at the end of a batch, which should be extremely rare.
-   * <p>
-   * Note that we can't just hold on the last log entry and handle it on the next batch because there may not be a next batch for a while.
-   * <p>
-   * Possible ways to handle this edge case:
-   * <ul>
-   * <li>Post a delayed task that would flush the saved lines.
-   * <li>Replace the last log entry in {@link LogConsoleBase#getOriginalDocument()} with an updated one if the header is the same. This
-   * would require adding a unique id to the header.
-   * </ul>
+   * To avoid multithreading issues, we serialize the processing of the batch with the delayed task by handling both in an {@link Alarm}
+   * which runs on a sequentialized thread pool using {@code AppExecutorUtil.createBoundedScheduledExecutorService("...", 1)}
    */
   @Override
   protected void processNewLines(@NotNull List<@NotNull String> newLines) {
-    LogCatHeader activeHeader = null;
-    List<String> activeLines = new ArrayList<>();
+    mySequentialExecutor.execute(() -> {
+      // New batch arrived so effectively cancel the pending request by resetting myPendingMessage
+      myPendingMessage = null;
+
+      // Parse new lines and send log messages
+      Batch batch = parseNewLines(myPreviousHeader, myPreviousLines, newLines);
+      for (LogCatMessage message : batch.myMessages) {
+        myLogcatListener.onLogLineReceived(message);
+      }
+
+      // Save for next batch
+      myPreviousHeader = batch.myLastHeader;
+      myPreviousLines = batch.myLastLines;
+
+      // If there is a valid last message in the batch, queue it for sending in case there is no imminent next batch coming
+      if (myPreviousHeader != null && !myPreviousLines.isEmpty()) {
+        myPendingMessage = new LogCatMessage(myPreviousHeader, joinLines(myPreviousLines));
+        myAlarm.addRequest(this::processPendingMessage, DELAY_MILLIS);
+      }
+    });
+  }
+
+  private void processPendingMessage() {
+    mySequentialExecutor.execute(() -> {
+      if (myPendingMessage != null) {
+        myLogcatListener.onLogLineReceived(myPendingMessage);
+
+        // reset all state variables.
+        myPendingMessage = null;
+        myPreviousHeader = null;
+        myPreviousLines.clear();
+      }
+    });
+  }
+
+  /**
+   * Parse a batch of new log lines into a {@link Batch}. A batch of lines can start and end with a partial log entry so this method
+   * can be handed the header and lines of the last entry from the previous batch. The returned Batch object will all but the last log entry
+   * in this batch as a list and the last entry as a header and lines.
+   *
+   * @param activeHeader the header of the last entry in the previous batch or null if this is the first batch
+   * @param activeLines  the initial lines of the last entry from the previous batch
+   * @param newLines     the lines in the batch to be parsed
+   */
+  @VisibleForTesting
+  Batch parseNewLines(@Nullable LogCatHeader activeHeader, @NotNull List<String> activeLines, @NotNull List<String> newLines) {
+    List<LogCatMessage> batchMessages = new ArrayList<>();
     for (String line : newLines) {
       line = fixLine(line);
 
@@ -134,42 +182,18 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
         // It's a header, flush active lines.
         myStackTraceExpander.reset();
         if (!activeLines.isEmpty()) {
-          notifyLogcatMessage(activeHeader, activeLines);
+          if (activeHeader != null) {
+            batchMessages.add(new LogCatMessage(activeHeader, joinLines(activeLines)));
+          }
           activeLines.clear();
         }
         activeHeader = header;
-
-        // Save for next batch.
-        myPreviousHeader = header;
       }
       else {
-        // It's a message line. Collect it if we have an active header
-        if (activeHeader == null) {
-          if (myPreviousHeader == null) {
-            // This should only happen once when the log starts and the line should start with "-------"
-            // TODO(aalbert): Should we check if the the line conforms? Should we throw or log if not?
-            continue;
-          }
-          activeHeader = myPreviousHeader;
-          if (myPreviousLines != null) {
-            activeLines.addAll(myPreviousLines);
-            myPreviousLines = null;
-          }
-        }
         activeLines.addAll(myStackTraceExpander.process(line));
       }
     }
-    if (!activeLines.isEmpty()) {
-      int size = activeLines.size();
-      if (size >= 2 && activeLines.get(size - 1).isEmpty()) {
-        // If theres at least 2 lines and the last line is empty, this is probably a complete log entry so send it.
-        notifyLogcatMessage(activeHeader, activeLines);
-      }
-      else {
-        // Otherwise, it's a partial entry so save it for next batch which will arrive shortly.
-        myPreviousLines = activeLines;
-      }
-    }
+    return new Batch(batchMessages, activeHeader, activeLines);
   }
 
   // This method is package protected so other Logcat components can feed receiver processed log lines if they need to
@@ -177,9 +201,9 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
     myLogcatListener.onLogLineReceived(new LogCatMessage(header, msg));
   }
 
-  private void notifyLogcatMessage(@NotNull LogCatHeader header, @NotNull List<@NotNull String> messageLines) {
-    String message = StringUtil.trim(String.join("\n", messageLines), ch -> ch != '\n');
-    notifyLogcatMessage(header, message);
+  @NotNull
+  private static String joinLines(@NotNull List<@NotNull String> activeLines) {
+    return StringUtil.trim(String.join("\n", activeLines), ch -> ch != '\n');
   }
 
   @Override
@@ -212,5 +236,29 @@ public final class AndroidLogcatReceiver extends AndroidOutputReceiver implement
   @NotNull
   private static String fixLine(@NotNull String line) {
     return CARRIAGE_RETURN.matcher(line).replaceAll("");
+  }
+
+  /**
+   * A batch consists of the first n-1 log entries in a batch. The last entry can be incomplete and is stored as a header and a list of
+   * lines.
+   */
+  @VisibleForTesting
+  static final class Batch {
+    final List<LogCatMessage> myMessages;
+    final LogCatHeader myLastHeader;
+    final List<String> myLastLines;
+
+    private Batch(List<LogCatMessage> messages, LogCatHeader header, List<String> lines) {
+      myMessages = messages;
+      myLastHeader = header;
+      myLastLines = lines;
+    }
+  }
+
+  @TestOnly
+  void waitForIdle() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    mySequentialExecutor.execute(() -> myAlarm.addRequest(() -> mySequentialExecutor.execute(latch::countDown), DELAY_MILLIS));
+    latch.await();
   }
 }

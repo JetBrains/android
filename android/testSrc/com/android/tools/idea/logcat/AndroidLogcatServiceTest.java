@@ -83,6 +83,7 @@ public class AndroidLogcatServiceTest {
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
     myProject = mock(Project.class);
+    Disposer.register(myProject, myLogcatService);
   }
 
   @After
@@ -260,7 +261,7 @@ public class AndroidLogcatServiceTest {
     doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat -v long -v epoch"), any(), eq(0L), eq(TimeUnit.MILLISECONDS));
   }
 
-  private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
+  private class TestLogcatListener implements AndroidLogcatService.LogcatListener {
 
     private final List<LogCatMessage> myReceivedMessages = new ArrayList<>();
     private boolean myCleared;
@@ -281,7 +282,8 @@ public class AndroidLogcatServiceTest {
       myReceivedMessages.clear();
     }
 
-    public void assertAllReceived() {
+    public void assertAllReceived() throws InterruptedException {
+      myLogcatService.waitForIdle(mockDevice);
       assertThat(myReceivedMessages).containsAllIn(EXPECTED_LOG_MESSAGES);
     }
 
