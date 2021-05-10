@@ -28,6 +28,44 @@
         text="Show Help Panel"
         description="Show Help Panel for Navigation Editor">
     </action>
+
+    <group id="Android.Designer.NavEditorActions" text="Navigation Editor">
+
+      <action id="Android.Designer.AssignStartDestination"
+              icon="StudioIcons.NavEditor.Toolbar.ASSIGN_START"
+              class="com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction"
+              text="Assign Start Destination"
+              description="Assign the start point of navigation graph">
+        <keyboard-shortcut keymap="$default" first-keystroke="H"/>
+      </action>
+
+      <action id="Android.Designer.AddDeepLink"
+              icon="StudioIcons.NavEditor.Toolbar.DEEPLINK"
+              class="com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction"
+              text="Add Deep Link"
+              description="Add deep link to the selected item">
+        <keyboard-shortcut keymap="$default" first-keystroke="D"/>
+      </action>
+
+      <action id="Android.Designer.AddAction"
+              icon="StudioIcons.NavEditor.Toolbar.ACTION"
+              class="com.android.tools.idea.naveditor.actions.AddActionToolbarAction"
+              text="Add Action"
+              description="Add action to the selected item">
+        <keyboard-shortcut keymap="$default" first-keystroke="A"/>
+      </action>
+
+      <action id="Android.Designer.AutoArrange"
+              icon="StudioIcons.NavEditor.Toolbar.AUTO_ARRANGE"
+              class="com.android.tools.idea.naveditor.actions.AutoArrangeAction"
+              text="Auto Arrange"
+              description="Rearrange the items">
+        <keyboard-shortcut keymap="$default" first-keystroke="ctrl L"/>
+        <keyboard-shortcut keymap="Mac OS X" first-keystroke="meta L" replace-all="true"/>
+      </action>
+
+      <add-to-group group-id="Android.Designer.ToolsActions"/>
+    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
