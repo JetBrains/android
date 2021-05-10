@@ -24,6 +24,7 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
@@ -53,6 +54,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
   @NotNull Collection<@NotNull PhysicalDevice> get() {
     return myState.physicalDevices.stream()
       .map(PhysicalDeviceState::asPhysicalDevice)
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
@@ -120,12 +122,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       connectionType = device.getConnectionType();
     }
 
-    private @NotNull PhysicalDevice asPhysicalDevice() {
-      assert serialNumber != null;
-      assert name != null;
-      assert target != null;
-      assert api != null;
-      assert connectionType != null;
+    private @Nullable PhysicalDevice asPhysicalDevice() {
+      // Check all non-nullable fields are initialized. If the file used for persistence has been
+      // tampered with for some reason, some of these fields could be null.
+      if (serialNumber == null || name == null || target == null || api == null || connectionType == null) {
+        Logger.getInstance(PhysicalTabPersistentStateComponent.class).warn("Skipping device entry because some values are not set");
+        return null;
+      }
 
       return new PhysicalDevice.Builder()
         .setSerialNumber(serialNumber)
