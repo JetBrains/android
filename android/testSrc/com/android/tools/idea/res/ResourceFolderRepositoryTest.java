@@ -56,6 +56,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.problems.MockWolfTheProblemSolver;
 import com.intellij.openapi.actionSystem.IdeActions;
@@ -356,24 +357,25 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertEquals(3, layouts.size());
   }
 
-  public void testAddUnrelatedFile() {
+  public void testAddUnrelatedFile() throws Exception {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository repository = createRegisteredRepository();
-    assertNotNull(repository);
-    Collection<String> layouts = repository.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
-    assertEquals(2, layouts.size());
-    assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
-    assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
+    Multimap<String, ResourceItem> layouts = repository.getResources(RES_AUTO, ResourceType.LAYOUT);
+    assertThat(layouts).hasSize(2);
+    assertThat(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout1")).hasSize(1);
+    assertThat(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2")).hasSize(1);
 
     long generation = repository.getModificationCount();
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.unrelated");
+    waitForUpdates(repository);
     assertThat(repository.getModificationCount()).isEqualTo(generation); // no changes in file: no new generation
-    assertEquals(2, layouts.size());
+    assertThat(layouts).hasSize(2);
 
     myFixture.copyFileToProject(LAYOUT1, "src/layout/layout2.xml"); // not a resource folder
+    waitForUpdates(repository);
     assertThat(repository.getModificationCount()).isEqualTo(generation); // no changes in file: no new generation
-    assertEquals(2, layouts.size());
+    assertThat(layouts).hasSize(2);
   }
 
   public void testDeleteResourceFile() throws Exception {
