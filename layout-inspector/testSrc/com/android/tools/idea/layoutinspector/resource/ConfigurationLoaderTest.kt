@@ -20,12 +20,12 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.idea.layoutinspector.pipeline.transport.StringTableImpl
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.resource.data.Resource
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.StringEntry
 import com.google.common.truth.Truth.assertThat
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.After
 import org.junit.Test
 import java.lang.String.join
@@ -104,5 +104,5 @@ class ConfigurationLoaderTest {
   }
 
   private fun stringTable(): StringTable =
-    StringTableImpl(table.entries.map { StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
+    StringTableImpl(table.entries.map { LayoutInspectorViewProtocol.StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
 }

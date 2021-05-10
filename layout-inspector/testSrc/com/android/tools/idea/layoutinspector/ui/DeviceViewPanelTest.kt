@@ -305,7 +305,7 @@ class DeviceViewPanelWithFullInspectorTest {
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
-    assertThat(contentPanel.showEmptyText).isFalse()
+    waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
 
     // Stop connecting, loading should stop
     contentPanel.selectProcessAction.updateActions(mock())

@@ -17,11 +17,11 @@ package com.android.tools.idea.tests.gui.layoutinspector
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
-import com.android.tools.idea.layoutinspector.pipeline.transport.convert
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
 import com.intellij.util.text.nullize
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
 /**
  * StringTable for use in ui tests.
@@ -42,22 +42,22 @@ class TestStringTable : StringTable {
       }
     } ?: 0
 
-  fun add(value: ResourceReference?): LayoutInspectorProto.Resource? =
+  fun add(value: ResourceReference?): LayoutInspectorViewProtocol.Resource? =
     value?.let {
-      LayoutInspectorProto.Resource.newBuilder().apply {
+      LayoutInspectorViewProtocol.Resource.newBuilder().apply {
         namespace = add(it.namespace.packageName)
         name = add(it.name)
         type = add(it.resourceType.getName())
       }.build()
     }
 
-  fun asEntryList(): List<LayoutInspectorProto.StringEntry> =
+  fun asEntryList(): List<LayoutInspectorViewProtocol.StringEntry> =
     strings.entries
-      .map { LayoutInspectorProto.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
+      .map { LayoutInspectorViewProtocol.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
 
   override operator fun get(id: Int): String = strings.inverse()[id].orEmpty()
 
-  fun get(resource: LayoutInspectorProto.Resource?): ResourceReference? {
+  fun get(resource: LayoutInspectorViewProtocol.Resource?): ResourceReference? {
     return resource?.convert()?.createReference(this)
   }
 }

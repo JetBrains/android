@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.SdkConstants
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
@@ -23,9 +24,12 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
+import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
@@ -45,11 +49,14 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
-import com.android.tools.idea.layoutinspector.pipeline.transport.addComponentTreeEvent
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Root
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
-import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -67,6 +74,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
@@ -87,17 +95,17 @@ import javax.swing.JTree
 private const val SYSTEM_PKG = -1
 private const val USER_PKG = 123
 
-private val PROCESS = MODERN_DEVICE.createProcess()
+private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
-  private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider(), projectRule) { listOf(PROCESS.name) }
+  private val appInspectorRule = AppInspectionInspectorRule()
+  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider(), projectRule) { listOf(PROCESS.name) }
   private val setFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(setFlagRule).around((EdtRule()))!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(setFlagRule).around((EdtRule()))!!
 
   private var componentStack: ComponentStack? = null
 
@@ -111,8 +119,66 @@ class LayoutInspectorTreePanelTest {
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
 
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
+
+    projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+    projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    projectRule.fixture.copyFileToProject("res/layout/demo.xml")
+
+    appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) { command ->
+      appInspectorRule.viewInspector.connection.sendEvent {
+        rootsEventBuilder.apply {
+          addIds(1L)
+        }
+      }
+
+      appInspectorRule.viewInspector.connection.sendEvent {
+        layoutEventBuilder.apply {
+          ViewString(1, "com.android.internal.policy")
+          ViewString(2, "DecorView")
+          ViewString(3, "demo")
+          ViewString(4, "layout")
+          ViewString(5, "android.widget")
+          ViewString(6, "RelativeLayout")
+          ViewString(7, "TextView")
+          ViewString(8, "id")
+          ViewString(9, "title")
+          ViewString(10, "android")
+          ViewString(11, "AppTheme")
+          ViewString(12, "http://schemas.android.com/apk/res/myapp")
+          ViewString(13, "style")
+
+          Root {
+            id = 1
+            packageName = 1
+            className = 2
+            ViewNode {
+              id = VIEW1
+              packageName = 5
+              className = 6
+              layoutResource = ViewResource(4, 12, 3)
+              ViewNode {
+                id = VIEW2
+                packageName = 5
+                className = 7
+                resource = ViewResource(8, 10, 9)
+                layoutResource = ViewResource(4, 12, 3)
+              }
+            }
+          }
+
+          appContextBuilder.apply {
+            theme = ViewResource(13, 12, 11)
+          }
+        }
+      }
+
+      LayoutInspectorViewProtocol.Response.newBuilder().setStartFetchResponse(
+        LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
+    }
+
+    inspectorRule.processNotifier.fireConnected(PROCESS)
     inspectorRule.processes.selectedProcess = PROCESS
-    transportRule.addComponentTreeEvent(inspectorRule, DemoExample.extractViewRoot(projectRule.fixture))
+    waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
   }
 
   @After

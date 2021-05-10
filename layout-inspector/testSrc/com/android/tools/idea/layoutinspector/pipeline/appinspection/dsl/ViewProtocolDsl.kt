@@ -38,6 +38,10 @@ fun LayoutEvent.Builder.ViewString(id: Int, str: String) {
   addStrings(createViewString(id, str))
 }
 
+fun LayoutEvent.Builder.Root(init: ViewNode.Builder.() -> Unit) {
+  rootView = createViewNode(init)
+}
+
 // Need to create a helper function to avoid name ambiguity
 private fun createViewNode(init: ViewNode.Builder.() -> Unit): ViewNode {
   return ViewNode.newBuilder().apply(init).build()

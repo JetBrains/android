@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.android.tools.idea.project.AndroidNotification
 import com.google.common.html.HtmlEscapers
 import com.intellij.notification.NotificationType
@@ -84,7 +83,7 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
       }
     }
     catch (ex: Exception) {
-      Logger.getInstance(TransportInspectorClient::class.java).warn(ex)
+      Logger.getInstance(DebugViewAttributes::class.java).warn(ex)
       errorMessage = ex.message ?: ex.javaClass.simpleName
     }
     if (errorMessage.isNotEmpty()) {

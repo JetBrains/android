@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
@@ -64,98 +63,100 @@ class TransportRule(
   private val transportService: FakeTransportService = FakeTransportService(timer),
   private val grpcServer: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer(TEST_CHANNEL_NAME, transportService)
 ) : TestRule {
+  override fun apply(base: Statement, description: Description) = base
 
-  /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
-  var shouldConnectSuccessfully = true
+    /* Disabled pending rewrite to app inspection: b/187734852
+      /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
+      var shouldConnectSuccessfully = true
 
-  private val commandHandlers = mutableMapOf<
-    LayoutInspectorProto.LayoutInspectorCommand.Type,
-    (Commands.Command, MutableList<Common.Event>) -> Unit>()
+      private val commandHandlers = mutableMapOf<
+        LayoutInspectorProto.LayoutInspectorCommand.Type,
+        (Commands.Command, MutableList<Common.Event>) -> Unit>()
 
-  private var attachHandler: CommandHandler = object : CommandHandler(timer) {
-    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      if (command.type == Commands.Command.CommandType.ATTACH_AGENT) {
-        events.add(
-          Common.Event.newBuilder().apply {
-            pid = command.pid
-            kind = Common.Event.Kind.AGENT
-            agentData = Common.AgentData.newBuilder().setStatus(if (shouldConnectSuccessfully) ATTACHED else UNATTACHABLE).build()
-          }.build()
-        )
-      }
-    }
-  }
-
-  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
-    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      val handler = commandHandlers[command.layoutInspector.type]
-      handler?.invoke(command, events)
-    }
-  }
-
-  /**
-   * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
-   */
-  fun withCommandHandler(type: LayoutInspectorProto.LayoutInspectorCommand.Type,
-                         handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
-    apply { commandHandlers[type] = handler }
-
-  fun withFile(id: Int, bytes: ByteArray) = apply {
-    transportService.addFile(id.toString(), ByteString.copyFrom(bytes))
-  }
-
-  fun addEventToStream(device: Common.Device, event: Common.Event) {
-    transportService.addEventToStream(device.deviceId, event)
-  }
-
-  fun withDeviceCommandHandler(handler: DeviceCommandHandler) = apply {
-    adbRule.withDeviceCommandHandler(handler)
-  }
-
-  /**
-   * Add the given process and stream to the transport service.
-   */
-  fun addProcess(device: Common.Device, process: Common.Process) {
-    adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
-                         DeviceState.HostConnectionType.USB)
-    if (device.featureLevel >= 29) {
-      transportService.addDevice(device)
-      transportService.addProcess(device, process)
-    }
-  }
-
-  /**
-   * Remember a position in the event list for the specified stream.
-   */
-  fun saveEventPositionMark(streamId: Long) {
-    transportService.saveEventPositionMark(streamId)
-  }
-
-  /**
-   * Remove all events added added after the previously saved mark in the events for the specified stream.
-   *
-   * This is useful if we want the process event to remain in a Bleak test.
-   */
-  fun revertToEventPositionMark(streamId: Long) {
-    transportService.revertToEventPositionMark(streamId)
-  }
-
-  override fun apply(base: Statement, description: Description): Statement {
-    return grpcServer.apply(adbRule.apply(
-      object: Statement() {
-        override fun evaluate() {
-          before()
-          base.evaluate()
+      private var attachHandler: CommandHandler = object : CommandHandler(timer) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+          if (command.type == Commands.Command.CommandType.ATTACH_AGENT) {
+            events.add(
+              Common.Event.newBuilder().apply {
+                pid = command.pid
+                kind = Common.Event.Kind.AGENT
+                agentData = Common.AgentData.newBuilder().setStatus(if (shouldConnectSuccessfully) ATTACHED else UNATTACHABLE).build()
+              }.build()
+            )
+          }
         }
-      }, description
-    ), description)
-  }
+      }
 
-  private fun before() {
-    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
-    transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
+      private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+          val handler = commandHandlers[command.layoutInspector.type]
+          handler?.invoke(command, events)
+        }
+      }
 
-    // Start ADB with fake server and its port.
-    AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-  }
+      /**
+       * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
+       */
+      fun withCommandHandler(type: LayoutInspectorProto.LayoutInspectorCommand.Type,
+                             handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
+        apply { commandHandlers[type] = handler }
+
+      fun withFile(id: Int, bytes: ByteArray) = apply {
+        transportService.addFile(id.toString(), ByteString.copyFrom(bytes))
+      }
+
+      fun addEventToStream(device: Common.Device, event: Common.Event) {
+        transportService.addEventToStream(device.deviceId, event)
+      }
+
+      fun withDeviceCommandHandler(handler: DeviceCommandHandler) = apply {
+        adbRule.withDeviceCommandHandler(handler)
+      }
+
+      /**
+       * Add the given process and stream to the transport service.
+       */
+      fun addProcess(device: Common.Device, process: Common.Process) {
+        adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
+                             DeviceState.HostConnectionType.USB)
+        if (device.featureLevel >= 29) {
+          transportService.addDevice(device)
+          transportService.addProcess(device, process)
+        }
+      }
+
+      /**
+       * Remember a position in the event list for the specified stream.
+       */
+      fun saveEventPositionMark(streamId: Long) {
+        transportService.saveEventPositionMark(streamId)
+      }
+
+      /**
+       * Remove all events added added after the previously saved mark in the events for the specified stream.
+       *
+       * This is useful if we want the process event to remain in a Bleak test.
+       */
+      fun revertToEventPositionMark(streamId: Long) {
+        transportService.revertToEventPositionMark(streamId)
+      }
+
+      override fun apply(base: Statement, description: Description): Statement {
+        return grpcServer.apply(adbRule.apply(
+          object: Statement() {
+            override fun evaluate() {
+              before()
+              base.evaluate()
+            }
+          }, description
+        ), description)
+      }
+
+      private fun before() {
+        transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
+        transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
+
+        // Start ADB with fake server and its port.
+        AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
+      }*/
 }

@@ -55,15 +55,6 @@ object DemoExample {
     return createDemoViewNodes(body)
   }
 
-  /**
-   * Helper function that sets up the demo and extracts the root [ViewNode] from it.
-   *
-   * This probably should not be called if [setUpDemo] was also called.
-   */
-  fun extractViewRoot(fixture: CodeInsightTestFixture): ViewNode {
-    return model(fixture.project, FakeTreeSettings(), setUpDemo(fixture)).root.children.single()
-  }
-
   private fun createDemoViewNodes(body: InspectorViewDescriptor.() -> Unit): InspectorModelDescriptor.() -> Unit = {
     val namespace = ResourceNamespace.fromPackageName("com.example")
     val layout = ResourceReference(namespace, ResourceType.LAYOUT, "demo")

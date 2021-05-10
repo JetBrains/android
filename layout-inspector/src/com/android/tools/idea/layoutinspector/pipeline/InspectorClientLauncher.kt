@@ -20,12 +20,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -61,8 +59,6 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
       stats: SessionStatistics,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
-      val transportComponents = TransportInspectorClient.TransportComponents()
-      Disposer.register(parentDisposable, transportComponents)
 
       return InspectorClientLauncher(
         adb,
@@ -70,12 +66,7 @@ class InspectorClientLauncher(private val adb: AndroidDebugBridge,
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_INSPECTION.get()) {
-                AppInspectionInspectorClient(params.adb, params.process, model, stats)
-              }
-              else {
-                TransportInspectorClient(params.adb, params.process, model, stats, transportComponents)
-              }
+              AppInspectionInspectorClient(params.adb, params.process, model, stats)
             }
             else {
               null
