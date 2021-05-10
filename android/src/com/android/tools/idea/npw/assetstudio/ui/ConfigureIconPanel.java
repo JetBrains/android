@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
 import com.android.tools.idea.npw.assetstudio.ActionBarIconGenerator;
-import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
@@ -51,6 +50,7 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -89,6 +89,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ConfigureIconPanel extends JPanel implements Disposable, ConfigureIconView {
   private static final AssetType DEFAULT_ASSET_TYPE = AssetType.CLIP_ART;
+  // @formatter:off
+  private static final Map<Shape, String> SHAPE_NAMES = ImmutableMap.of(
+    Shape.NONE, "None",
+    Shape.CIRCLE, "Circle",
+    Shape.SQUARE, "Square",
+    Shape.VRECT, "Vertical",
+    Shape.HRECT, "Horizontal");
+  // @formatter:on
 
   private static final String OUTPUT_NAME_PROPERTY = "outputName";
   private static final String ASSET_TYPE_PROPERTY = "assetType";
@@ -176,15 +184,6 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   private JBLabel myShapeLabel;
   private JBLabel myEffectLabel;
 
-  // @formatter:off
-  private final Map<Shape, String> myShapeNames = ImmutableMap.of(
-      Shape.NONE, "None",
-      Shape.CIRCLE, "Circle",
-      Shape.SQUARE, "Square",
-      Shape.VRECT, "Vertical",
-      Shape.HRECT, "Horizontal");
-  // @formatter:on
-
   @NotNull private final List<ActionListener> myAssetListeners = new ArrayList<>(1);
 
   @NotNull private final AndroidIconType myIconType;
@@ -225,10 +224,10 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myThemeComboBox.setModel(themesModel);
 
     DefaultComboBoxModel<Shape> shapesModel = new DefaultComboBoxModel<>();
-    for (Shape shape : myShapeNames.keySet()) {
+    for (Shape shape : SHAPE_NAMES.keySet()) {
       shapesModel.addElement(shape);
     }
-    myShapeComboBox.setRenderer(SimpleListCellRenderer.create("", myShapeNames::get));
+    myShapeComboBox.setRenderer(SimpleListCellRenderer.create("", SHAPE_NAMES::get));
     myShapeComboBox.setModel(shapesModel);
     myShapeComboBox.setSelectedItem(Shape.SQUARE);
 
