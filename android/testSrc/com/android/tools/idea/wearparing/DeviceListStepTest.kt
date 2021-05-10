@@ -37,6 +37,7 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseEvent
+import javax.swing.JEditorPane
 import javax.swing.JMenuItem
 import javax.swing.Popup
 import javax.swing.PopupFactory
@@ -80,20 +81,23 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val wizardTest = WizardActionTest()
     val fakeUi = createDeviceListStepUi(wizardTest)
 
-    fakeUi.getPhoneList().apply {
-      assertThat(isEmpty).isTrue()
-      assertThat(emptyText.component.getCharSequence(true)).isEqualTo("No devices available.")
-      assertThat(emptyText.secondaryComponent.getCharSequence(true)).isEqualTo("Create a phone emulator in")
+    fakeUi.getPhoneEmptyComponent().apply {
+      assertThat(isVisible).isTrue()
+      assertThat(text).contains("No devices available.")
+      assertThat(text).contains("Create a phone emulator in")
     }
 
-    fakeUi.getWearList().apply {
-      assertThat(isEmpty).isTrue()
-      assertThat(emptyText.component.getCharSequence(true)).isEqualTo("No Wear OS emulators")
-      assertThat(emptyText.secondaryComponent.getCharSequence(true)).isEqualTo("available. Create a Wear OS")
+    fakeUi.getWearEmptyComponent().apply {
+      assertThat(isVisible).isTrue()
+      assertThat(text).contains("No Wear OS emulators")
+      assertThat(text).contains("available. Create a Wear OS")
     }
 
     assertThat(wizardTest.closeCalled).isFalse()
-    fakeUi.mouse.click(150, 260)
+    val emptyComponent = fakeUi.getPhoneEmptyComponent()
+    val linkPoint = fakeUi.getPosition(emptyComponent)
+    linkPoint.translate(emptyComponent.width / 2, emptyComponent.height - 10)
+    fakeUi.mouse.click(linkPoint.x, linkPoint.y)
     assertThat(wizardTest.closeCalled).isTrue()
   }
 
@@ -102,7 +106,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val fakeUi = createDeviceListStepUi()
     model.wearList.set(listOf(wearDevice))
 
-    assertThat(fakeUi.getPhoneList().isEmpty).isTrue()
+    assertThat(fakeUi.getPhoneEmptyComponent().isVisible).isTrue()
     assertThat(fakeUi.getWearList().isEmpty).isFalse()
   }
 
@@ -112,7 +116,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     model.phoneList.set(listOf(phoneDevice))
 
     assertThat(fakeUi.getPhoneList().isEmpty).isFalse()
-    assertThat(fakeUi.getWearList().isEmpty).isTrue()
+    assertThat(fakeUi.getWearEmptyComponent().isVisible).isTrue()
   }
 
   @Test
@@ -204,6 +208,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     model.phoneList.set(listOf(
       phoneDevice.copy(isPaired = true),
     ))
+    fakeUi.layoutAndDispatchEvents()
 
     val phoneList = Mockito.spy(fakeUi.getPhoneList())
     Mockito.doReturn(Point(0, 0)).`when`(phoneList).locationOnScreen // Work around for headless UI
@@ -225,6 +230,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone3", hasPlayStore = false),
       phoneDevice.copy(deviceID = "id4", displayName = "My Phone3", apiLevel = 29, isEmulator = false),
     ))
+    fakeUi.layoutAndDispatchEvents()
 
     val phoneList = fakeUi.getPhoneList()
 
@@ -247,12 +253,16 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     invokeStrategy.updateAllSteps()
 
     modelWizard.contentPanel.size = Dimension(600, 400)
-    return FakeUi(modelWizard.contentPanel)
+    return FakeUi(modelWizard.contentPanel).apply { layoutAndDispatchEvents() }
   }
 
   private fun FakeUi.getPhoneList(): JBList<PairingDevice> = findComponent { it.name == "phoneList" }!!
 
   private fun FakeUi.getWearList(): JBList<PairingDevice> = findComponent { it.name == "wearList" }!!
+
+  private fun FakeUi.getPhoneEmptyComponent(): JEditorPane = findComponent { it.name == "phoneListEmptyText" }!!
+
+  private fun FakeUi.getWearEmptyComponent(): JEditorPane = findComponent { it.name == "wearListEmptyText" }!!
 
   private fun FakeUi.getLabelWithText(text: String): JBLabel? = findComponent { it.text == text }
 
