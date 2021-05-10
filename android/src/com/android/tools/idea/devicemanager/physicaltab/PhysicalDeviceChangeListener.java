@@ -134,6 +134,10 @@ final class PhysicalDeviceChangeListener implements Disposable, IDeviceChangeLis
    */
   @WorkerThread
   private void buildPhysicalDevice(@NotNull IDevice device) {
+    if (device.isEmulator()) {
+      return;
+    }
+
     // noinspection UnstableApiUsage
     FluentFuture.from(myEdtExecutorService.submit(myBuilderServiceGetInstance::get))
       .transformAsync(builderService -> Objects.requireNonNull(builderService).build(device), myEdtExecutorService)
