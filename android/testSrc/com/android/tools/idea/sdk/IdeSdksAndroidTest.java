@@ -26,14 +26,22 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.JavaSdkVersionUtil;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkTypeId;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
+import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Tests for {@link IdeSdks}
@@ -158,5 +166,41 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   public void testIsJdkCompatibleEmbedded() throws IOException {
     @Nullable Sdk jdk = Jdks.getInstance().createJdk(myIdeSdks.getEmbeddedJdkPath().toString());
     assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
+  }
+
+  /**
+   * Recreated JDK should have same class roots
+   */
+  public void testRecreateJdkInTableSameClassRoots() {
+    Sdk originalJdk = myIdeSdks.getJdk();
+    assertThat(originalJdk).isNotNull();
+    assertThat(originalJdk).isInstanceOf(ProjectJdkImpl.class);
+
+    VirtualFile[] originalClassRoots = ((ProjectJdkImpl)originalJdk).getRoots(OrderRootType.CLASSES);
+    SdkTypeId sdkType = originalJdk.getSdkType();
+    assertThat(sdkType).isInstanceOf(JavaSdk.class);
+
+    ProjectJdkTable spyJdkTable = spy(ProjectJdkTable.getInstance());
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ProjectJdkTable.class, spyJdkTable, getProject());
+
+
+    myIdeSdks.recreateProjectJdkTable();
+    // JDK should be updated
+    ArgumentCaptor<Sdk> sdkCaptor = ArgumentCaptor.forClass(Sdk.class);
+    verify(spyJdkTable).updateJdk(eq(originalJdk), sdkCaptor.capture());
+
+    // Jdk used to update should not be the same but must have same class roots
+    Sdk newSdk = sdkCaptor.getValue();
+    assertThat(newSdk).isNotNull();
+    assertThat(newSdk).isNotSameAs(originalJdk);
+    VirtualFile[] newClassRoots = ((ProjectJdkImpl)newSdk).getRoots(OrderRootType.CLASSES);
+    assertThat(newClassRoots).isEqualTo(originalClassRoots);
+
+    // Jdk should be the same as it was updated, not replaced
+    Sdk recreatedJdk = myIdeSdks.getJdk();
+    assertThat(recreatedJdk).isNotNull();
+    assertThat(recreatedJdk).isSameAs(originalJdk);
+    VirtualFile[] recreatedClassRoots = ((ProjectJdkImpl)recreatedJdk).getRoots(OrderRootType.CLASSES);
+    assertThat(recreatedClassRoots).isEqualTo(originalClassRoots);
   }
 }
