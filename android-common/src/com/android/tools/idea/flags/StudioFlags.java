@@ -294,7 +294,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR = Flag.create(
     NELE, "visualization.apply.config", "Apply Selected Configuration in Validation Tool to Layout Editor",
     "Apply the configuration to Layout Editor by double clicking the preview in Validation Tool",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
