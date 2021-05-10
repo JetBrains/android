@@ -17,5 +17,11 @@
   <name>NavEditor Tests</name>
   <id>com.android.tools.idea.naveditor.tests</id>
 
+  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/designer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/naveditor.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/layoutlib.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
