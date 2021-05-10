@@ -203,7 +203,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
                                        result.getConsoleHyperlinkInfo());
             }
 
-            notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR, null).setImportant(true).notify(myProject);
+            notificationGroup.createNotification("Error", result.getError(), NotificationType.ERROR).setImportant(true).notify(myProject);
 
             // Show the tool window when we have an error.
             RunContentManager.getInstance(myProject).toFrontRunContent(myLaunchInfo.executor, myProcessHandler);
@@ -220,7 +220,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
           indicator.setFraction((double)(elapsed / totalDuration + deviceIndex) / devices.size());
         }
 
-        notificationGroup.createNotification("Success", "Operation succeeded", NotificationType.INFORMATION, null).setImportant(false).notify(myProject);
+        notificationGroup.createNotification("Success", "Operation succeeded", NotificationType.INFORMATION).setImportant(false).notify(myProject);
 
         // A debug session task should be performed at last.
         if (debugSessionTask != null) {

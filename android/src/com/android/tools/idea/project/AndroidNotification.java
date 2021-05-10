@@ -130,7 +130,8 @@ public class AndroidNotification {
                                 @NotNull NotificationType type,
                                 @NotNull NotificationGroup group,
                                 @Nullable NotificationListener listener) {
-    Notification notification = group.createNotification(title, text, type, listener);
+    Notification notification = group.createNotification(title, text, type);
+    if (listener != null) notification.setListener(listener);
     Runnable notificationTask = () -> {
       if (myProject.isDisposed()) {
         return;

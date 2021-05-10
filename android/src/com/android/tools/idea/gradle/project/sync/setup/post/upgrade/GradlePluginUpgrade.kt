@@ -186,8 +186,11 @@ class ProjectUpgradeNotification(listener: NotificationListener)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId,
                  "Plugin Update Recommended",
                  IdeBundle.message("updates.ready.message", "Android Gradle Plugin"),
-                 NotificationType.INFORMATION,
-                 listener)
+                 NotificationType.INFORMATION) {
+    init {
+      setListener(listener)
+    }
+  }
 
 fun expireProjectUpgradeNotifications(project: Project?) {
   NotificationsManager

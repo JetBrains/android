@@ -42,7 +42,6 @@ import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
-import javax.swing.JMenuItem;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -405,9 +404,10 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   }
 
   private static void createNotification(@NotNull String message, @NotNull NotificationType type) {
-    Notifications.Bus.notify(new Notification(
+    new Notification(
       NotificationGroup.createIdWithTitle("Layout Inspector", AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group")),
-                                              AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"), message, type, null));
+      AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"), message, type
+    ).notify(null);
   }
 
   private class RenderSubtreePreviewActionListener implements ActionListener {

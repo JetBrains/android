@@ -107,7 +107,8 @@ class SketchImporter : ResourceImporter {
     val notificationContent = "$generalInfo<br/>$versionInfo"
     val notificationTitle = "Invalid sketch file"
 
-    Notification(INVALID_SKETCH_FILE_ID, null, notificationTitle, fileName, notificationContent, NotificationType.ERROR, null)
+    Notification(INVALID_SKETCH_FILE_ID, notificationTitle, notificationContent, NotificationType.ERROR)
+      .setSubtitle(fileName)
       .notify(project)
   }
 }

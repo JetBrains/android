@@ -430,24 +430,25 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
       moduleList.append(facet.getModule().getName()).append("<br>");
     }
     myNotification = PROPERTY_FILES_UPDATING_NOTIFICATION.createNotification(
-      AndroidBundle.message("android.update.project.properties.dialog.title"),
-      AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
-      NotificationType.INFORMATION, new NotificationListener.Adapter() {
-      @Override
-      protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-        final String desc = event.getDescription();
-        if ("once".equals(desc)) {
-          callback.process(MyResult.ONCE);
+        AndroidBundle.message("android.update.project.properties.dialog.title"),
+        AndroidBundle.message("android.update.project.properties.dialog.text", moduleList.toString()),
+        NotificationType.INFORMATION)
+      .setListener(new NotificationListener.Adapter() {
+        @Override
+        protected void hyperlinkActivated(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+          final String desc = event.getDescription();
+          if ("once".equals(desc)) {
+            callback.process(MyResult.ONCE);
+          }
+          else if ("never".equals(desc)) {
+            callback.process(MyResult.NEVER);
+          }
+          else {
+            callback.process(MyResult.ALWAYS);
+          }
+          notification.expire();
         }
-        else if ("never".equals(desc)) {
-          callback.process(MyResult.NEVER);
-        }
-        else {
-          callback.process(MyResult.ALWAYS);
-        }
-        notification.expire();
-      }
-    });
+      });
     myNotification.notify(project);
   }
 

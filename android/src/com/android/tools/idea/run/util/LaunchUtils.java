@@ -172,30 +172,32 @@ public class LaunchUtils {
         final String link = "toolWindow_" + sessionName;
         final String notificationMessage = String.format("Session <a href='%s'>'%s'</a>: %s", link, sessionName, message);
 
-        NotificationGroup group = getNotificationGroup(toolWindowId);
-        group.createNotification("", notificationMessage, type, new NotificationListener() {
-          @Override
-          public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-            boolean handled = false;
-            if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
-              for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
-                if (sessionName.equals(d.getDisplayName())) {
-                  final Content content = d.getAttachedContent();
-                  if (content != null) {
-                    content.getManager().setSelectedContent(content);
+        getNotificationGroup(toolWindowId)
+          .createNotification(notificationMessage, type)
+          .setListener(new NotificationListener() {
+            @Override
+            public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+              boolean handled = false;
+              if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED && link.equals(event.getDescription())) {
+                for (RunContentDescriptor d : ExecutionManagerImpl.getAllDescriptors(project)) {
+                  if (sessionName.equals(d.getDisplayName())) {
+                    final Content content = d.getAttachedContent();
+                    if (content != null) {
+                      content.getManager().setSelectedContent(content);
+                    }
+                    toolWindow.activate(null, true, true);
+                    handled = true;
+                    break;
                   }
-                  toolWindow.activate(null, true, true);
-                  handled = true;
-                  break;
                 }
               }
-            }
 
-            if (!handled && errorNotificationListener != null) {
-              errorNotificationListener.hyperlinkUpdate(notification, event);
+              if (!handled && errorNotificationListener != null) {
+                errorNotificationListener.hyperlinkUpdate(notification, event);
+              }
             }
-          }
-        }).notify(project);
+          })
+          .notify(project);
       }
 
       @NotNull
