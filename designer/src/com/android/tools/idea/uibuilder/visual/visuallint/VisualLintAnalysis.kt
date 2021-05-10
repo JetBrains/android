@@ -16,15 +16,26 @@
 package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.google.common.collect.ImmutableList
 
 /**
- * Returns all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult].
+ * Returns all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
  */
-fun analyze(result: RenderResult): ImmutableList<RenderErrorModel.Issue> {
+fun analyzeAfterModelUpdate(result: RenderResult): ImmutableList<RenderErrorModel.Issue> {
   return ImmutableList.copyOf(analyzeBounds(result))
+}
+
+/**
+ * Returns all the [VisualLintAtfIssue]  found when analyzing the given [RenderResult] after render is complete.
+ */
+fun analyzeAfterRenderComplete(renderResult: RenderResult, model: NlModel): ImmutableList<VisualLintAtfIssue> {
+  // TODO: This might change to return list of issues instead.
+  val atfAnalyzer = VisualLintAtfAnalysis(model)
+  return ImmutableList.copyOf(atfAnalyzer.validateAndUpdateLint(renderResult))
 }
 
 /**
