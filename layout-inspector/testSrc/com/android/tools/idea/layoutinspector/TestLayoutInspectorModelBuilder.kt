@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
@@ -246,7 +247,7 @@ class InspectorModelDescriptor(val project: Project) {
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationParamsBuilder(strings)
-      model.resourceLookup.updateConfiguration(config.makeSampleContext(project), strings, config.makeSampleProcess(project))
+      model.resourceLookup.updateConfiguration(FolderConfiguration(), config.makeSampleContext(project), strings, config.makeSampleProcess(project))
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->

@@ -20,5 +20,5 @@ package com.android.tools.idea.layoutinspector.resource.data
  */
 class AppContext(
   val theme: Resource = Resource(),
-  val configuration: Configuration = Configuration()
+  val fontScale: Float = 1f,
 )

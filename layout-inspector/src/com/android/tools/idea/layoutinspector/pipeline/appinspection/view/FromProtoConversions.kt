@@ -15,10 +15,92 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
+import com.android.ide.common.resources.configuration.CountryCodeQualifier
+import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.HighDynamicRangeQualifier
+import com.android.ide.common.resources.configuration.KeyboardStateQualifier
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
+import com.android.ide.common.resources.configuration.NavigationMethodQualifier
+import com.android.ide.common.resources.configuration.NavigationStateQualifier
+import com.android.ide.common.resources.configuration.NetworkCodeQualifier
+import com.android.ide.common.resources.configuration.NightModeQualifier
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier
+import com.android.ide.common.resources.configuration.ScreenOrientationQualifier
+import com.android.ide.common.resources.configuration.ScreenRatioQualifier
+import com.android.ide.common.resources.configuration.ScreenRoundQualifier
+import com.android.ide.common.resources.configuration.ScreenSizeQualifier
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier
+import com.android.ide.common.resources.configuration.SmallestScreenWidthQualifier
+import com.android.ide.common.resources.configuration.TextInputMethodQualifier
+import com.android.ide.common.resources.configuration.TouchScreenQualifier
+import com.android.ide.common.resources.configuration.UiModeQualifier
+import com.android.ide.common.resources.configuration.VersionQualifier
+import com.android.ide.common.resources.configuration.WideGamutColorQualifier
+import com.android.resources.Density
+import com.android.resources.HighDynamicRange
+import com.android.resources.Keyboard
+import com.android.resources.KeyboardState
+import com.android.resources.LayoutDirection
+import com.android.resources.Navigation
+import com.android.resources.NavigationState
+import com.android.resources.NightMode
+import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
+import com.android.resources.ScreenRound
+import com.android.resources.ScreenSize
+import com.android.resources.TouchScreen
+import com.android.resources.UiMode
+import com.android.resources.WideGamutColor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_MASK
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_NO
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_YES
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_MASK
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_NO
+import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_YES
+import com.android.tools.idea.layoutinspector.resource.HARDKEYBOARDHIDDEN_NO
+import com.android.tools.idea.layoutinspector.resource.HARDKEYBOARDHIDDEN_YES
+import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_NO
+import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_YES
+import com.android.tools.idea.layoutinspector.resource.KEYBOARD_12KEY
+import com.android.tools.idea.layoutinspector.resource.KEYBOARD_NOKEYS
+import com.android.tools.idea.layoutinspector.resource.KEYBOARD_QWERTY
+import com.android.tools.idea.layoutinspector.resource.NAVIGATIONHIDDEN_NO
+import com.android.tools.idea.layoutinspector.resource.NAVIGATIONHIDDEN_YES
+import com.android.tools.idea.layoutinspector.resource.NAVIGATION_DPAD
+import com.android.tools.idea.layoutinspector.resource.NAVIGATION_NONAV
+import com.android.tools.idea.layoutinspector.resource.NAVIGATION_TRACKBALL
+import com.android.tools.idea.layoutinspector.resource.NAVIGATION_WHEEL
+import com.android.tools.idea.layoutinspector.resource.ORIENTATION_LANDSCAPE
+import com.android.tools.idea.layoutinspector.resource.ORIENTATION_PORTRAIT
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LAYOUTDIR_LTR
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LAYOUTDIR_RTL
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LONG_NO
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LONG_YES
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_ROUND_NO
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_ROUND_YES
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_LARGE
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_MASK
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_NORMAL
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
+import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_XLARGE
+import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_FINGER
+import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_NOTOUCH
+import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_MASK
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_YES
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_APPLIANCE
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_CAR
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_DESK
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_MASK
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_TELEVISION
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_VR_HEADSET
+import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_WATCH
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
-import com.android.tools.idea.layoutinspector.resource.data.Configuration
 import com.android.tools.idea.layoutinspector.resource.data.Locale
 import com.android.tools.idea.layoutinspector.resource.data.Resource
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -41,33 +123,10 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
   return Locale(language, country, variant, script)
 }
 
-fun LayoutInspectorViewProtocol.Configuration.convert(): Configuration {
-  return Configuration(
-    fontScale,
-    countryCode,
-    networkCode,
-    locale.convert(),
-    screenLayout,
-    colorMode,
-    touchScreen,
-    keyboard,
-    keyboardHidden,
-    hardKeyboardHidden,
-    navigation,
-    navigationHidden,
-    uiMode,
-    smallestScreenWidth,
-    density,
-    orientation,
-    screenWidth,
-    screenHeight
-  )
-}
-
-fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
+fun LayoutInspectorViewProtocol.AppContext.convert(config: LayoutInspectorViewProtocol.Configuration): AppContext {
   return AppContext(
     theme.convert(),
-    configuration.convert()
+    config.fontScale
   )
 }
 
@@ -100,3 +159,145 @@ fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
 fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
   return Polygon(intArrayOf(x0, x1, x2, x3), intArrayOf(y0, y1, y2, y3), 4)
 }
+
+
+/**
+ * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto received from a device.
+ */
+fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConfiguration {
+  val config = FolderConfiguration()
+  config.countryCodeQualifier = CountryCodeQualifier(countryCode)
+  config.networkCodeQualifier = NetworkCodeQualifier(networkCode)
+  config.layoutDirectionQualifier = layoutDirectionFromRawValue(screenLayout)
+  config.screenRatioQualifier = ScreenRatioQualifier(screenRatioFromRawValue(screenLayout))
+  config.screenRoundQualifier = ScreenRoundQualifier(screenRoundFromRawValue(screenLayout))
+  config.screenSizeQualifier = ScreenSizeQualifier(screenSizeFromRawValue(screenLayout))
+  config.smallestScreenWidthQualifier = SmallestScreenWidthQualifier(smallestScreenWidth)
+  config.screenWidthQualifier = ScreenWidthQualifier(screenWidth)
+  config.screenHeightQualifier = ScreenHeightQualifier(screenHeight)
+  config.wideColorGamutQualifier = wideColorGamutFromRawValue(colorMode)
+  config.highDynamicRangeQualifier = highDynamicRangeFromRawValue(colorMode)
+  config.screenOrientationQualifier = orientationFromRawValue(orientation)
+  config.uiModeQualifier = uiModeFromRawValue(uiMode)
+  config.nightModeQualifier = nightModeFromRawValue(uiMode)
+  config.densityQualifier = Density.getEnum(density)?.let { DensityQualifier(it) }
+  config.touchTypeQualifier = touchScreenFromRawValue(touchScreen)
+  config.textInputMethodQualifier = keyboardFromRawValue(keyboard)
+  config.keyboardStateQualifier = keyboardStateFromRawValue(keyboardHidden, hardKeyboardHidden)
+  config.navigationMethodQualifier = navigationMethodFromRawValue(navigation)
+  config.navigationStateQualifier = navigationStateFromRawValue(navigationHidden)
+  config.screenWidthQualifier = ScreenWidthQualifier(screenWidth)
+  config.screenHeightQualifier = ScreenHeightQualifier(screenHeight)
+  config.versionQualifier = VersionQualifier(apiLevel)
+  return config
+}
+
+private fun layoutDirectionFromRawValue(value: Int): LayoutDirectionQualifier? =
+  when {
+    value.and(SCREENLAYOUT_LAYOUTDIR_LTR) != 0 -> LayoutDirection.LTR
+    value.and(SCREENLAYOUT_LAYOUTDIR_RTL) != 0 -> LayoutDirection.RTL
+    else -> null
+  }?.let { LayoutDirectionQualifier(it) }
+
+private fun screenRatioFromRawValue(value: Int): ScreenRatio? =
+  when {
+    value.and(SCREENLAYOUT_LONG_YES) != 0 -> ScreenRatio.LONG
+    value.and(SCREENLAYOUT_LONG_NO) != 0 -> ScreenRatio.NOTLONG
+    else -> null
+  }
+
+private fun screenRoundFromRawValue(value: Int): ScreenRound? =
+  when {
+    value.and(SCREENLAYOUT_ROUND_YES) != 0 -> ScreenRound.ROUND
+    value.and(SCREENLAYOUT_ROUND_NO) != 0 -> ScreenRound.NOTROUND
+    else -> null
+  }
+
+private fun screenSizeFromRawValue(value: Int): ScreenSize? =
+  when (value.and(SCREENLAYOUT_SIZE_MASK)) {
+    SCREENLAYOUT_SIZE_SMALL -> ScreenSize.SMALL
+    SCREENLAYOUT_SIZE_NORMAL -> ScreenSize.NORMAL
+    SCREENLAYOUT_SIZE_LARGE -> ScreenSize.LARGE
+    SCREENLAYOUT_SIZE_XLARGE -> ScreenSize.XLARGE
+    else -> null
+  }
+
+private fun wideColorGamutFromRawValue(value: Int): WideGamutColorQualifier? =
+  when (value.and(COLOR_MODE_WIDE_COLOR_GAMUT_MASK)) {
+    COLOR_MODE_WIDE_COLOR_GAMUT_YES -> WideGamutColor.WIDECG
+    COLOR_MODE_WIDE_COLOR_GAMUT_NO -> WideGamutColor.NOWIDECG
+    else -> null
+  }?.let { WideGamutColorQualifier(it) }
+
+private fun highDynamicRangeFromRawValue(value: Int): HighDynamicRangeQualifier? =
+  when (value.and(COLOR_MODE_HDR_MASK)) {
+    COLOR_MODE_HDR_YES -> HighDynamicRange.HIGHDR
+    COLOR_MODE_HDR_NO -> HighDynamicRange.LOWDR
+    else -> null
+  }?.let { HighDynamicRangeQualifier(it) }
+
+private fun orientationFromRawValue(value: Int): ScreenOrientationQualifier? =
+  when (value) {
+    ORIENTATION_PORTRAIT -> ScreenOrientation.PORTRAIT
+    ORIENTATION_LANDSCAPE -> ScreenOrientation.LANDSCAPE
+    else -> null
+  }?.let { ScreenOrientationQualifier(it) }
+
+private fun uiModeFromRawValue(value: Int): UiModeQualifier? =
+  when (value.and(UI_MODE_TYPE_MASK)) {
+    UI_MODE_TYPE_NORMAL -> UiMode.NORMAL
+    UI_MODE_TYPE_DESK -> UiMode.DESK
+    UI_MODE_TYPE_CAR -> UiMode.CAR
+    UI_MODE_TYPE_TELEVISION -> UiMode.TELEVISION
+    UI_MODE_TYPE_VR_HEADSET -> UiMode.VR_HEADSET
+    UI_MODE_TYPE_APPLIANCE -> UiMode.APPLIANCE
+    UI_MODE_TYPE_WATCH -> UiMode.WATCH
+    else -> null
+  }?.let { UiModeQualifier(it) }
+
+private fun nightModeFromRawValue(value: Int): NightModeQualifier? =
+  when (value.and(UI_MODE_NIGHT_MASK)) {
+    UI_MODE_NIGHT_YES -> NightMode.NIGHT
+    UI_MODE_NIGHT_NO -> NightMode.NOTNIGHT
+    else -> null
+  }?.let { NightModeQualifier(it) }
+
+private fun touchScreenFromRawValue(value: Int): TouchScreenQualifier? =
+  when (value) {
+    TOUCHSCREEN_NOTOUCH -> TouchScreen.NOTOUCH
+    TOUCHSCREEN_STYLUS -> TouchScreen.STYLUS
+    TOUCHSCREEN_FINGER -> TouchScreen.FINGER
+    else -> null
+  }?.let { TouchScreenQualifier(it) }
+
+private fun keyboardFromRawValue(value: Int): TextInputMethodQualifier? =
+  when (value) {
+    KEYBOARD_NOKEYS -> Keyboard.NOKEY
+    KEYBOARD_QWERTY -> Keyboard.QWERTY
+    KEYBOARD_12KEY -> Keyboard.TWELVEKEY
+    else -> null
+  }?.let { TextInputMethodQualifier(it) }
+
+private fun keyboardStateFromRawValue(value: Int, hardValue: Int): KeyboardStateQualifier? =
+  when {
+    hardValue == HARDKEYBOARDHIDDEN_NO -> KeyboardState.EXPOSED
+    value == KEYBOARDHIDDEN_YES -> KeyboardState.HIDDEN
+    hardValue == HARDKEYBOARDHIDDEN_YES && value == KEYBOARDHIDDEN_NO -> KeyboardState.SOFT
+    else -> null
+  }?.let { KeyboardStateQualifier(it) }
+
+private fun navigationStateFromRawValue(value: Int): NavigationStateQualifier? =
+  when (value) {
+    NAVIGATIONHIDDEN_NO -> NavigationState.EXPOSED
+    NAVIGATIONHIDDEN_YES -> NavigationState.HIDDEN
+    else -> null
+  }?.let { NavigationStateQualifier(it) }
+
+private fun navigationMethodFromRawValue(value: Int): NavigationMethodQualifier? =
+  when (value) {
+    NAVIGATION_NONAV -> Navigation.NONAV
+    NAVIGATION_DPAD -> Navigation.DPAD
+    NAVIGATION_TRACKBALL -> Navigation.TRACKBALL
+    NAVIGATION_WHEEL -> Navigation.WHEEL
+    else -> null
+  }?.let { NavigationMethodQualifier(it) }
