@@ -829,7 +829,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         }
         if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myScannerControl != null) {
           for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            myScannerControl.validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+            LayoutlibSceneManager manager = entry.getKey();
+            if (manager.getLayoutScannerConfig().isIntegrateWithDefaultIssuePanel()) {
+              myScannerControl.validateAndUpdateLint(entry.getValue(), manager.getModel());
+            }
           }
         }
 

@@ -147,7 +147,7 @@ class NlATFIncludeIssue(
 }
 
 /**  Issue created by [ValidatorData.Issue] */
-class NlAtfIssue(
+open class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: IssueSource,
   private val model: NlModel,
@@ -218,6 +218,7 @@ class NlAtfIssue(
 
   override val fixes: Stream<Fix>
     get() {
+      val source = source
       if (source is NlAttributesHolder) {
         val fixes:MutableList<Fix> = mutableListOf()
         result.mFix?.let {
@@ -265,6 +266,7 @@ class NlAtfIssue(
    * For compound fixes, all fixes should be gathered into one single undoable action.
    */
   private fun applyFixWrapper(fix: ValidatorData.Fix) {
+    val source = source
     if (fix is ValidatorData.SetViewAttributeFix && fix.mSuggestedValue.isEmpty()) {
       // If the suggested value is an empty string, let the user pick a string
       // resource as the suggested value
@@ -281,6 +283,7 @@ class NlAtfIssue(
    */
   private fun applySetViewAttributeFixWithEmptySuggestedValue (
     model: NlModel, viewAttribute: ValidatorData.ViewAttribute) {
+    val source = source
     val dialog: ResourcePickerDialog = createResourcePickerDialog(
       dialogTitle = PICK_A_RESOURCE,
       currentValue = null,

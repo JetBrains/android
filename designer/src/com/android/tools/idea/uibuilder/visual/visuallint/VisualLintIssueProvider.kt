@@ -22,13 +22,20 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.google.common.collect.ImmutableCollection
+import com.google.common.collect.ImmutableList
 
-class VisualLintIssueProvider(private val sourceModel: NlModel, val renderErrorModel: RenderErrorModel) : IssueProvider() {
+class VisualLintIssueProvider(
+  private val sourceModel: NlModel,
+  private val renderErrorModel: RenderErrorModel,
+  private val atfIssues: ImmutableList<VisualLintAtfIssue>
+) : IssueProvider() {
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
     renderErrorModel.issues.forEach { issue: RenderErrorModel.Issue ->
       issueListBuilder.add(VisualLintRenderIssueWrapper(issue, sourceModel))
     }
+
+    atfIssues.forEach { issue -> issueListBuilder.add(issue) }
   }
 
   class VisualLintRenderIssueWrapper(myIssue: RenderErrorModel.Issue, val sourceModel: NlModel) : Issue() {

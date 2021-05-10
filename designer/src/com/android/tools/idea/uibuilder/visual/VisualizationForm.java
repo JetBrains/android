@@ -35,6 +35,9 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
+import com.android.tools.idea.common.surface.LayoutScannerEnabled;
+import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -50,6 +53,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
@@ -184,12 +188,18 @@ public class VisualizationForm
     SurfaceLayoutManager surfaceLayoutManager = myCurrentConfigurationSet == ConfigurationSet.Tablets.INSTANCE ?
                                                 myTwoGridLayoutManager : myGridSurfaceLayoutManager;
 
+    final LayoutScannerConfiguration config = StudioFlags.NELE_VISUAL_LINT.get()
+                                              ? new LayoutScannerEnabled()
+                                              : LayoutScannerConfiguration.getDISABLED();
+    // Custom issue panel integration used.
+    config.setIntegrateWithDefaultIssuePanel(false);
+
     mySurface = NlDesignSurface.builder(myProject, VisualizationForm.this)
       .showModelNames()
       .setIsPreview(false)
       .setEditable(true)
       .setSceneManagerProvider((surface, model) -> {
-        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, LayoutScannerConfiguration.getDISABLED());
+        LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, config);
         sceneManager.setListenResourceChange(false);
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration());
         sceneManager.setRerenderWhenModelDerivedDataChanged(false);
@@ -622,30 +632,40 @@ public class VisualizationForm
     myIssueProviders.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
+
+      if (StudioFlags.NELE_VISUAL_LINT.get() && manager instanceof LayoutlibSceneManager) {
+        LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)manager;
+        RenderListener renderListener = new RenderListener() {
+          @Override
+          public void onRenderCompleted() {
+            NlModel model = layoutlibSceneManager.getModel();
+            RenderResult result = layoutlibSceneManager.getRenderResult();
+
+            ImmutableList<VisualLintAtfIssue> atfIssues = VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model);
+            Collection<RenderErrorModel.Issue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result);
+            IssueProvider newProvider = new VisualLintIssueProvider(model, new RenderErrorModel(renderIssues), atfIssues);
+
+            IssueProvider oldProvider = myIssueProviders.put(model, newProvider);
+            if (oldProvider != null) {
+              issueModel.removeIssueProvider(oldProvider);
+            }
+            issueModel.addIssueProvider(newProvider);
+
+            // Remove self. This will not cause ConcurrentModificationException.
+            // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
+            layoutlibSceneManager.removeRenderListener(this);
+          }
+        };
+
+        layoutlibSceneManager.addRenderListener(renderListener);
+      }
+
       renderFuture = renderFuture.thenCompose(it -> {
         if (isRenderingCanceled.get()) {
           return CompletableFuture.completedFuture(null);
         }
         else {
-          CompletableFuture<Void> modelUpdateFuture;
-          if (StudioFlags.NELE_VISUAL_LINT.get()) {
-            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModelAndProcessResults(result -> {
-              if (result != null) {
-                Collection<RenderErrorModel.Issue> issues = VisualLintAnalysisKt.analyze(result);
-                NlModel model = manager.getModel();
-                IssueProvider provider = new VisualLintIssueProvider(model, new RenderErrorModel(issues));
-                IssueProvider oldProvider = myIssueProviders.put(model, provider);
-                if (oldProvider != null) {
-                  issueModel.removeIssueProvider(oldProvider);
-                }
-                issueModel.addIssueProvider(provider);
-              }
-              return null;
-            });
-          }
-          else {
-            modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
-          }
+          CompletableFuture<Void> modelUpdateFuture = ((LayoutlibSceneManager)manager).updateModel();
           if (isRenderingCanceled.get()) {
             return CompletableFuture.completedFuture(null);
           }
