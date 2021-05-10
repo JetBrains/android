@@ -73,6 +73,7 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(f.filename.endswith("/BUILD") or f.filename.endswith("/BUILD.bazel"),
                            "Unexpected BUILD file in zip " + name + ": " + f.filename)
 
+  @unittest.skip("b/188085296")
   def test_game_tools_artifacts_are_present(self):
     all_required = [
         "plugins/android/lib/game-tools.jar",
