@@ -865,13 +865,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
         // selection in the emulator.
         return ProgressManager.getInstance().run(new Task.WithResult<Boolean, ExecutionException>(myProject,
                                                                                                   "Waiting for Emulator Snapshot Selection",
-                                                                                                  false) {
+                                                                                                  true) {
           @Override
           protected Boolean compute(@NotNull ProgressIndicator indicator) throws ExecutionException {
             int exitValue;
             // Launch the Emulator
             CapturingProcessHandler process = new CapturingProcessHandler(commandLine);
-            ProcessOutput output = process.runProcess();
+            ProcessOutput output = process.runProcessWithProgressIndicator(indicator);
             exitValue = output.getExitCode();
             return (exitValue == 0);
           }
