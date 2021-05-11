@@ -22,4 +22,6 @@ public class BuildOutputParserUtils {
   @NotNull public static final String MESSAGE_GROUP_STATISTICS_SUFFIX = " statistics";
   @NotNull public static final String MESSAGE_GROUP_WARNING_SUFFIX = " warnings";
   @NotNull public static final String MESSAGE_GROUP_ERROR_SUFFIX = " errors";
+
+  @NotNull public static final String BUILD_FAILED_WITH_EXCEPTION_LINE = "FAILURE: Build failed with an exception.";
 }
