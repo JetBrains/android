@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class TableCellRenderersTest {
+public final class TablesTest {
   @Test
   public void getBorderUnfocused() {
     // Arrange
@@ -37,7 +37,7 @@ public final class TableCellRenderersTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.cellNoFocusBorder", expectedBorder);
 
     // Act
-    Object actualBorder = TableCellRenderers.getBorder(false, false, getBorder);
+    Object actualBorder = Tables.getBorder(false, false, getBorder);
 
     // Assert
     assertEquals(expectedBorder, actualBorder);
@@ -50,7 +50,7 @@ public final class TableCellRenderersTest {
     Function<Object, Border> getBorder = mockGetBorder("Table.focusSelectedCellHighlightBorder", expectedBorder);
 
     // Act
-    Object actualBorder = TableCellRenderers.getBorder(true, true, getBorder);
+    Object actualBorder = Tables.getBorder(true, true, getBorder);
 
     // Assert
     assertEquals(expectedBorder, actualBorder);
@@ -68,7 +68,7 @@ public final class TableCellRenderersTest {
   @Test
   public void getBorder() {
     // Act
-    Object border = TableCellRenderers.getBorder(false, true);
+    Object border = Tables.getBorder(false, true);
 
     // Assert
     assertEquals(UIManager.getBorder("Table.focusCellHighlightBorder"), border);

@@ -47,7 +47,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   private final @NotNull BiFunction<@NotNull Boolean, @NotNull Boolean, @NotNull Border> myGetBorder;
 
   public DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
-    this(valueClass, TableCellRenderers::getBorder);
+    this(valueClass, Tables::getBorder);
   }
 
   @VisibleForTesting
@@ -108,7 +108,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myLine2Label.setForeground(brighten(foreground));
     myLine2Label.setText(getLine2(device));
 
-    myPanel.setBackground(TableCellRenderers.getBackground(table, selected));
+    myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(myGetBorder.apply(selected, focused));
 
     return myPanel;

@@ -23,8 +23,8 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
-public final class TableCellRenderers {
-  private TableCellRenderers() {
+public final class Tables {
+  private Tables() {
   }
 
   public static @NotNull Color getBackground(@NotNull JTable table, boolean selected) {
