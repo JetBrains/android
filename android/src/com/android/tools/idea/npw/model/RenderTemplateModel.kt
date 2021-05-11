@@ -193,7 +193,7 @@ class RenderTemplateModel private constructor(
 
       if (newTemplate.category == Category.Compose) {
         // b/187726308 HACK - Compose only supports Kotlin 1.4 - This only works for new projects
-        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.4.30"
+        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.4.32"
       }
 
       val context = RenderingContext(
