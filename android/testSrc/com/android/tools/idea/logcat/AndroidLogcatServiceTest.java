@@ -64,40 +64,6 @@ public class AndroidLogcatServiceTest {
       "Second Line1")
   );
 
-  private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
-
-    private final List<LogCatMessage> myReceivedMessages = new ArrayList<>();
-    private boolean myCleared;
-
-    @Override
-    public void onLogLineReceived(@NotNull LogCatMessage logCatMessage) {
-      myReceivedMessages.add(logCatMessage);
-    }
-
-    @Override
-    public void onCleared() {
-      myCleared = true;
-      myReceivedMessages.clear();
-    }
-
-    public void reset() {
-      myCleared = false;
-      myReceivedMessages.clear();
-    }
-
-    public void assertAllReceived() {
-      assertThat(myReceivedMessages).containsAllIn(EXPECTED_LOG_MESSAGES);
-    }
-
-    public void assertNothingReceived() {
-      assertEquals(0, myReceivedMessages.size());
-    }
-
-    private void assertCleared() {
-      assertTrue(myCleared);
-    }
-  }
-
   private TestLogcatListener myLogcatListener;
   private final IDevice mockDevice = mock(IDevice.class);
   private AndroidLogcatService myLogcatService;
@@ -117,31 +83,6 @@ public class AndroidLogcatServiceTest {
 
     myBufferSize = System.setProperty("idea.cycle.buffer.size", "disabled");
     myProject = mock(Project.class);
-  }
-
-  private void stubExecuteLogcatHelp() throws Exception {
-    Answer<Void> answer = invocation -> {
-      ((MultiLineReceiver)invocation.getArgument(1)).processNewLines(new String[]{"epoch"});
-      myExecuteShellCommandLatch.countDown();
-
-      return null;
-    };
-
-    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat --help"), any(), eq(10L), eq(TimeUnit.SECONDS));
-  }
-
-  private void stubExecuteLogcatVLongVEpoch() throws Exception {
-    Answer<Void> answer = invocation -> {
-      AndroidLogcatReceiver receiver = invocation.getArgument(1);
-
-      receiver.processNewLines(LOG_LINES);
-      receiver.cancel();
-
-      myExecuteShellCommandLatch.countDown();
-      return null;
-    };
-
-    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat -v long -v epoch"), any(), eq(0L), eq(TimeUnit.MILLISECONDS));
   }
 
   @After
@@ -292,5 +233,64 @@ public class AndroidLogcatServiceTest {
     myLogcatService.clearLogcat(mockDevice, myProject);
 
     myLogcatListener.assertCleared();
+  }
+
+  private void stubExecuteLogcatHelp() throws Exception {
+    Answer<Void> answer = invocation -> {
+      ((MultiLineReceiver)invocation.getArgument(1)).processNewLines(new String[]{"epoch"});
+      myExecuteShellCommandLatch.countDown();
+
+      return null;
+    };
+
+    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat --help"), any(), eq(10L), eq(TimeUnit.SECONDS));
+  }
+
+  private void stubExecuteLogcatVLongVEpoch() throws Exception {
+    Answer<Void> answer = invocation -> {
+      AndroidLogcatReceiver receiver = invocation.getArgument(1);
+
+      receiver.processNewLines(LOG_LINES);
+      receiver.cancel();
+
+      myExecuteShellCommandLatch.countDown();
+      return null;
+    };
+
+    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat -v long -v epoch"), any(), eq(0L), eq(TimeUnit.MILLISECONDS));
+  }
+
+  private static class TestLogcatListener implements AndroidLogcatService.LogcatListener {
+
+    private final List<LogCatMessage> myReceivedMessages = new ArrayList<>();
+    private boolean myCleared;
+
+    @Override
+    public void onLogLineReceived(@NotNull LogCatMessage logCatMessage) {
+      myReceivedMessages.add(logCatMessage);
+    }
+
+    @Override
+    public void onCleared() {
+      myCleared = true;
+      myReceivedMessages.clear();
+    }
+
+    public void reset() {
+      myCleared = false;
+      myReceivedMessages.clear();
+    }
+
+    public void assertAllReceived() {
+      assertThat(myReceivedMessages).containsAllIn(EXPECTED_LOG_MESSAGES);
+    }
+
+    public void assertNothingReceived() {
+      assertEquals(0, myReceivedMessages.size());
+    }
+
+    private void assertCleared() {
+      assertTrue(myCleared);
+    }
   }
 }
