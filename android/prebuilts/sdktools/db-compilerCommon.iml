@@ -4,8 +4,8 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" exported="" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module-library">
       <library name="juniversalchardet" type="repository">

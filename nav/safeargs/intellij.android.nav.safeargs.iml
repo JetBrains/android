@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="jcip" level="project" />
     <orderEntry type="library" name="Guava" level="project" />

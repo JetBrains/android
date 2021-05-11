@@ -84,10 +84,10 @@
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="library" name="jna" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" />
-    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" />
-    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
-    <orderEntry type="module" module-name="android.sdktools.db-compiler" />
+    <orderEntry type="module" module-name="db-baseLibrary" />
+    <orderEntry type="module" module-name="db-baseLibrarySupport" />
+    <orderEntry type="module" module-name="db-compilerCommon" />
+    <orderEntry type="module" module-name="db-compiler" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="module" module-name="intellij.gradle" />
@@ -98,8 +98,8 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" />
@@ -107,7 +107,7 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -129,7 +129,7 @@
     </orderEntry>
     <orderEntry type="library" name="batik-transcoder" level="project" />
     <orderEntry type="library" name="xml-apis-ext" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
+    <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library">
       <library name="pepk">
@@ -166,9 +166,9 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
-    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.terminal" />
-    <orderEntry type="module" module-name="intellij.android.lint" />
+    <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
