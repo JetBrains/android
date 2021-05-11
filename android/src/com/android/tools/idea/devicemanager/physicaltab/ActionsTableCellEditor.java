@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.TableCellRenderers;
+import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.intellij.openapi.project.Project;
 import java.awt.Component;
@@ -40,8 +40,8 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     viewColumnIndex = table.convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
     myComponent.setDevice((PhysicalDevice)table.getValueAt(viewRowIndex, viewColumnIndex));
 
-    myComponent.setBackground(TableCellRenderers.getBackground(table, selected));
-    myComponent.setBorder(TableCellRenderers.getBorder(selected, true));
+    myComponent.setBackground(Tables.getBackground(table, selected));
+    myComponent.setBorder(Tables.getBorder(selected, true));
 
     return myComponent;
   }

@@ -15,29 +15,84 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import static org.junit.Assert.assertEquals;
-
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
-import com.intellij.ui.table.JBTable;
-import javax.swing.JTable;
-import javax.swing.UIManager;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
+import com.intellij.openapi.project.Project;
+import java.util.function.BiConsumer;
+import javax.swing.AbstractButton;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ActionsComponentTest {
+  @SuppressWarnings("unchecked")
+  private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice = Mockito.mock(BiConsumer.class);
+
   @Test
-  public void getTableCellRendererComponent() {
+  public void initDeviceFileExplorerButtonProjectIsNull() {
     // Arrange
-    ActionsComponent component = new ActionsComponent(null);
-    JTable table = new JBTable();
+    AbstractButton button = new ActionsComponent(null, myOpenAndShowDevice).getDeviceFileExplorerButton();
 
     // Act
-    component.getTableCellRendererComponent(table, Actions.INSTANCE, false, true, 0, 3);
+    button.doClick();
 
     // Assert
-    assertEquals(table.getBackground(), component.getBackground());
-    assertEquals(UIManager.getBorder("Table.focusCellHighlightBorder"), component.getBorder());
+    Mockito.verify(myOpenAndShowDevice, Mockito.never()).accept(ArgumentMatchers.any(), ArgumentMatchers.any());
+  }
+
+  @Test
+  public void initDeviceFileExplorerButtonDeviceIsNull() {
+    // Arrange
+    AbstractButton button = new ActionsComponent(Mockito.mock(Project.class), myOpenAndShowDevice).getDeviceFileExplorerButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    Mockito.verify(myOpenAndShowDevice, Mockito.never()).accept(ArgumentMatchers.any(), ArgumentMatchers.any());
+  }
+
+  @Test
+  public void initDeviceFileExplorerButtonDeviceIsntOnline() {
+    // Arrange
+    ActionsComponent component = new ActionsComponent(Mockito.mock(Project.class), myOpenAndShowDevice);
+    component.setDevice(TestPhysicalDevices.GOOGLE_PIXEL_3);
+
+    AbstractButton button = component.getDeviceFileExplorerButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    Mockito.verify(myOpenAndShowDevice, Mockito.never()).accept(ArgumentMatchers.any(), ArgumentMatchers.any());
+  }
+
+  @Test
+  public void initDeviceFileExplorerButton() {
+    // Arrange
+    Project project = Mockito.mock(Project.class);
+
+    PhysicalDevice device = new PhysicalDevice.Builder()
+      .setSerialNumber("86UX00F4R")
+      .setName("Google Pixel 3")
+      .setOnline(true)
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .setConnectionType(ConnectionType.USB)
+      .build();
+
+    ActionsComponent component = new ActionsComponent(project, myOpenAndShowDevice);
+    component.setDevice(device);
+
+    AbstractButton button = component.getDeviceFileExplorerButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    Mockito.verify(myOpenAndShowDevice).accept(project, device.getSerialNumber());
   }
 }

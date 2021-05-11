@@ -15,24 +15,23 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.TableCellRenderers;
 import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
-import java.awt.Component;
+import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
-import javax.swing.JTable;
-import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ActionsComponent extends JBPanel<ActionsComponent> implements TableCellRenderer {
+final class ActionsComponent extends JBPanel<ActionsComponent> {
   private final @Nullable Project myProject;
+  private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
 
   private @Nullable AbstractButton myDeviceFileExplorerButton;
   private @Nullable AbstractButton myMoreButton;
@@ -40,8 +39,15 @@ final class ActionsComponent extends JBPanel<ActionsComponent> implements TableC
   private @Nullable PhysicalDevice myDevice;
 
   ActionsComponent(@Nullable Project project) {
+    this(project, DeviceExplorerToolWindowFactory::openAndShowDevice);
+  }
+
+  @VisibleForTesting
+  ActionsComponent(@Nullable Project project, @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice) {
     super(null);
+
     myProject = project;
+    myOpenAndShowDevice = openAndShowDevice;
 
     initDeviceFileExplorerButton();
     initMoreButton();
@@ -69,7 +75,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> implements TableC
         return;
       }
 
-      DeviceExplorerToolWindowFactory.openAndShowDevice(myProject, myDevice.getSerialNumber());
+      myOpenAndShowDevice.accept(myProject, myDevice.getSerialNumber());
     });
   }
 
@@ -101,20 +107,19 @@ final class ActionsComponent extends JBPanel<ActionsComponent> implements TableC
     setLayout(layout);
   }
 
-  void setDevice(@NotNull PhysicalDevice device) {
-    myDevice = device;
+  @VisibleForTesting
+  @NotNull AbstractButton getDeviceFileExplorerButton() {
+    assert myDeviceFileExplorerButton != null;
+    return myDeviceFileExplorerButton;
   }
 
-  @Override
-  public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
-                                                          @NotNull Object value,
-                                                          boolean selected,
-                                                          boolean focused,
-                                                          int viewRowIndex,
-                                                          int viewColumnIndex) {
-    setBackground(TableCellRenderers.getBackground(table, selected));
-    setBorder(TableCellRenderers.getBorder(selected, focused));
+  @VisibleForTesting
+  @NotNull PhysicalDevice getDevice() {
+    assert myDevice != null;
+    return myDevice;
+  }
 
-    return this;
+  void setDevice(@NotNull PhysicalDevice device) {
+    myDevice = device;
   }
 }

@@ -129,7 +129,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     }
 
     myTable.setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
-    myTable.setDefaultRenderer(Actions.class, new ActionsComponent(null));
+    myTable.setDefaultRenderer(Actions.class, new ActionsTableCellRenderer());
 
     myTable.getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
