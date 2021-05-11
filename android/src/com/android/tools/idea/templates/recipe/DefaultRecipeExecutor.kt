@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -98,7 +99,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   private val moduleTemplateData: ModuleTemplateData? get() = context.moduleTemplateData
   private val repositoryUrlManager: RepositoryUrlManager by lazy { RepositoryUrlManager.get() }
 
-  private val projectBuildModel: ProjectBuildModel? by lazy { ProjectBuildModel.getOrLog(project) }
+  private val projectBuildModel: ProjectBuildModel? by lazy {
+    ProjectBuildModel.getOrLog(project)
+      ?.also { it.context.agpVersion = GradleVersion.parseAndroidGradlePluginVersion(projectTemplateData.gradlePluginVersion) }
+  }
   private val projectSettingsModel: GradleSettingsModel? by lazy { projectBuildModel?.projectSettingsModel }
   private val projectGradleBuildModel: GradleBuildModel? by lazy { projectBuildModel?.projectBuildModel }
   private val moduleGradleBuildModel: GradleBuildModel? by lazy {
