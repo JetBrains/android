@@ -83,12 +83,14 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
+    {"namespace", property, NAMESPACE, VAR},
     {"ndkVersion", property, NDK_VERSION, VAR},
     {"setPublishNonDefault", exactly(1), PUBLISH_NON_DEFAULT, SET},
     {"resourcePrefix", property, RESOURCE_PREFIX, VAL}, // no setResourcePrefix: not a VAR
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET},
     {"targetProjectPath", property, TARGET_PROJECT_PATH, VAR},
     {"targetProjectPath", exactly(1), TARGET_PROJECT_PATH, SET},
+    {"testNamespace", property, TEST_NAMESPACE, VAR},
   }).collect(toModelMap());
 
   private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
@@ -104,6 +106,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
+    {"namespace", property, NAMESPACE, VAR},
+    {"namespace", exactly(1), NAMESPACE, SET},
     {"ndkVersion", property, NDK_VERSION, VAR},
     {"ndkVersion", exactly(1), NDK_VERSION, SET},
     {"publishNonDefault", property, PUBLISH_NON_DEFAULT, VAR},
@@ -112,6 +116,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"resourcePrefix", exactly(1), RESOURCE_PREFIX, SET},
     {"targetProjectPath", property, TARGET_PROJECT_PATH, VAR},
     {"targetProjectPath", exactly(1), TARGET_PROJECT_PATH, SET},
+    {"testNamespace", property, TEST_NAMESPACE, VAR},
+    {"testNamespace", exactly(1), TEST_NAMESPACE, SET},
   }).collect(toModelMap());
 
   @Override

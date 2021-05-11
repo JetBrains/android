@@ -90,6 +90,9 @@ public interface AndroidModel extends GradleDslModel {
   LintOptionsModel lintOptions();
 
   @NotNull
+  ResolvedPropertyModel namespace();
+
+  @NotNull
   ResolvedPropertyModel ndkVersion();
 
   @NotNull
@@ -124,6 +127,9 @@ public interface AndroidModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel targetProjectPath();
+
+  @NotNull
+  ResolvedPropertyModel testNamespace();
 
   @NotNull
   TestOptionsModel testOptions();
