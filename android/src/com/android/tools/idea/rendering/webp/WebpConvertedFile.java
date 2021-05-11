@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.rendering.webp;
 
+import static com.android.SdkConstants.DOT_9PNG;
+import static com.android.SdkConstants.DOT_GIF;
+import static com.android.SdkConstants.DOT_PNG;
+import static com.android.SdkConstants.DOT_WEBP;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.adtui.webp.WebpImageWriterSpi;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageTypeSpecifier;
-import java.awt.image.BufferedImage;
-import java.io.*;
-
-import static com.android.SdkConstants.*;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /** Represents a file to be converted to WEBP by the {@link ConvertToWebpAction} */
 class WebpConvertedFile {
@@ -45,17 +53,18 @@ class WebpConvertedFile {
   public void apply(@Nullable Object requestor) throws IOException {
     VirtualFile folder = sourceFile.getParent();
     VirtualFile output = folder.createChildData(requestor, sourceFile.getNameWithoutExtension() + DOT_WEBP);
-    try (OutputStream fos = new BufferedOutputStream(output.getOutputStream(requestor))) {
-      fos.write(encoded);
+    try (OutputStream stream = new BufferedOutputStream(output.getOutputStream(requestor))) {
+      stream.write(encoded);
     }
     sourceFile.delete(requestor);
   }
 
   public boolean convert(@NotNull WebpConversionSettings settings) {
     try {
-      InputStream stream = new BufferedInputStream(sourceFile.getInputStream());
-      BufferedImage image = ImageIO.read(stream);
-      stream.close();
+      BufferedImage image;
+      try (InputStream stream = new BufferedInputStream(sourceFile.getInputStream())) {
+        image = ImageIO.read(stream);
+      }
 
       return convert(image, settings);
     }
