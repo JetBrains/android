@@ -743,7 +743,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     val newStatus = ComposePreviewManager.Status(
       !isRefreshing && hasErrorsAndNeedsBuild(),
       !isRefreshing && hasSyntaxErrors(),
-      !isRefreshing && projectBuildStatusManager.status == OutOfDate,
+      !isRefreshing && projectBuildStatusManager.status == ProjectStatus.OutOfDate,
       isRefreshing,
       interactiveMode)
 

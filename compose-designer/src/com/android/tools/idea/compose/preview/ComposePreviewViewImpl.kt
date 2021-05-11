@@ -369,7 +369,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
    * Calling this method will also update the FileEditor notifications.
    */
   override fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
-    if (isMessageVisible && projectBuildStatusManager.status == NeedsBuild) {
+    if (isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
       log.debug("Needs successful build")
       val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
       showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
