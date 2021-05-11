@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.issue.BuildIssue
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
@@ -64,6 +65,7 @@ fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
   }
   val jdk: Sdk? =
     if (StringUtils.isNotBlank(projectPath)) {
+      @Suppress("UnstableApiUsage")
       AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, projectPath!!)
     }
     else {
@@ -241,5 +243,14 @@ private fun validateJdk(jdk: Sdk?): String? {
     "with the current OS. For example, for x86 systems please choose a 32 bits download option.\n" +
     selectedJdkMsg
   }
-  else null
+  else {
+    val ideInfo = IdeInfo.getInstance()
+    if (ideInfo.isAndroidStudio || ideInfo.isGameTools) {
+      // Recreate JDK table information for this JDK (b/187205058)
+      WriteAction.runAndWait<RuntimeException> {
+        IdeSdks.getInstance().recreateOrAddJdkInTable(jdk)
+      }
+    }
+    return null
+  }
 }
