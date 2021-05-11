@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.layoutinspector.SkiaViewNode
+import java.awt.Shape
 import java.util.LinkedList
 
 /**
@@ -32,27 +33,27 @@ class ComponentImageLoader(
   val checkedTreeIds = mutableSetOf<Long>()
 
   fun loadImages(window: AndroidWindow) {
-    loadImages(window.root)
+    loadImages(window.root, window.deviceClip)
     window.skpLoadingComplete()
   }
 
-  private fun loadImages(viewRoot: ViewNode) {
+  private fun loadImages(viewRoot: ViewNode, clip: Shape?) {
     viewRoot.drawChildren().clear()
-    addImages(viewRoot)
+    addImages(viewRoot, clip)
     var firstImage = skiaNodes.peek()
     viewRoot.children.forEach { child ->
       viewRoot.drawChildren().add(DrawViewChild(child))
-      loadImages(child)
+      loadImages(child, clip)
       // If the child consumed any images, check again to see whether we can add.
       if (skiaNodes.size > 0 && skiaNodes[0] != firstImage) {
-        addImages(viewRoot)
+        addImages(viewRoot, clip)
         firstImage = skiaNodes.peek()
       }
     }
     checkedTreeIds.add(viewRoot.drawId)
   }
 
-  private fun addImages(viewRoot: ViewNode) {
+  private fun addImages(viewRoot: ViewNode, clip: Shape?) {
     while (skiaNodes.isNotEmpty() &&
            // The next image is drawn by this node, or some previous node but postponed until now.
            (skiaNodes.peek().id in checkedTreeIds.plus(viewRoot.drawId) ||
@@ -64,7 +65,7 @@ class ComponentImageLoader(
             (skiaNodes.any { it.id == viewRoot.drawId } && viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))) {
       val skiaNode = skiaNodes.poll()
       val correspondingNode = nodeMap[skiaNode.id]
-      viewRoot.drawChildren().add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue))
+      viewRoot.drawChildren().add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip))
     }
   }
 }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.resources.ScreenRound
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
@@ -38,6 +40,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Rectangle
+import java.awt.geom.Ellipse2D
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.Inflater
@@ -53,11 +56,24 @@ class ViewAndroidWindow(
   private val skiaParser: SkiaParser,
   root: ViewNode,
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
+  folderConfiguration: FolderConfiguration,
   private val isInterrupted: () -> Boolean,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit)
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
   private var bytes = event.screenshot.bytes.toByteArray()
+
+  override val deviceClip =
+    if (folderConfiguration.screenRoundQualifier?.value == ScreenRound.ROUND) {
+      val width = folderConfiguration.screenWidthQualifier?.value
+      val height = folderConfiguration.screenHeightQualifier?.value
+      val dpi = folderConfiguration.densityQualifier?.value?.dpiValue
+      if (width != null && height != null && dpi != null) {
+        Ellipse2D.Float(0f, 0f, width * dpi / 160f, height * dpi / 160f)
+      }
+      else null
+    }
+    else null
 
   override fun copyFrom(other: AndroidWindow) {
     super.copyFrom(other)
@@ -135,7 +151,7 @@ class ViewAndroidWindow(
 
     ViewNode.writeDrawChildren { drawChildren ->
       root.flatten().forEach { it.drawChildren().clear() }
-      root.drawChildren().add(DrawViewImage(image, root))
+      root.drawChildren().add(DrawViewImage(image, root, deviceClip))
       root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
     }
     logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
