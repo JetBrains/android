@@ -44,7 +44,7 @@ import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
 import com.android.tools.lint.detector.api.Severity
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.*
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.CUSTOM_TEMPLATE
 import com.google.wireless.android.sdk.stats.KotlinSupport
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.module.ModuleManager
@@ -80,8 +80,6 @@ internal fun isBroken(templateName: String): Boolean {
     if ("AIDL File" == templateName) return true // b/37139315
     if ("Native C++" == templateName) return true // b/158067606
   }
-
-  if ("Empty Compose Activity" == templateName) return true // b/182477583
 
   return false
 }
