@@ -77,7 +77,7 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @NotNull
   private Collection<AbstractTreeNode<?>> wrapInAndroidViewNodes(@NotNull Collection<AbstractTreeNode<?>> folderChildren,
-                                                                 @NotNull PsiDirectory psiDirectory) {
+                                                                @NotNull PsiDirectory psiDirectory) {
     List<AbstractTreeNode<?>> children = new ArrayList<>(folderChildren.size());
     assert myProject != null;
     for (AbstractTreeNode<?> child : folderChildren) {

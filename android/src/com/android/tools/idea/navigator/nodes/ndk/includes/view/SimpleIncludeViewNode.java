@@ -81,7 +81,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
       //noinspection unchecked
       return Collections.EMPTY_LIST;
     }
-    return new PsiIncludeDirectoryView(getProject(), ImmutableList.of(), false, directory, getSettings()).getChildren();
+    return new PsiIncludeDirectoryView(getProject(), ImmutableList.of(), false, directory, getSettings(), null).getChildren();
   }
 
   @Override

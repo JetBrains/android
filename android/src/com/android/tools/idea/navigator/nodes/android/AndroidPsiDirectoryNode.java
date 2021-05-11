@@ -23,6 +23,7 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
+import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -36,11 +37,22 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   @Nullable private final PsiDirectory myRootSourceFolder;
 
   public AndroidPsiDirectoryNode(@NotNull Project project,
-                          @NotNull PsiDirectory directory,
-                          @NotNull ViewSettings settings,
-                          @Nullable String sourceSetName,
-                          @Nullable PsiDirectory rootSourceFolder) {
+                                 @NotNull PsiDirectory directory,
+                                 @NotNull ViewSettings settings,
+                                 @Nullable String sourceSetName,
+                                 @Nullable PsiDirectory rootSourceFolder) {
     super(project, directory, settings);
+    mySourceSetName = sourceSetName;
+    myRootSourceFolder = rootSourceFolder;
+  }
+
+  public AndroidPsiDirectoryNode(@NotNull Project project,
+                                 @NotNull PsiDirectory directory,
+                                 @NotNull ViewSettings settings,
+                                 @Nullable String sourceSetName,
+                                 @Nullable PsiDirectory rootSourceFolder,
+                                 @Nullable PsiFileSystemItemFilter filter) {
+    super(project, directory, settings, filter);
     mySourceSetName = sourceSetName;
     myRootSourceFolder = rootSourceFolder;
   }
@@ -67,10 +79,10 @@ public class AndroidPsiDirectoryNode extends PsiDirectoryNode {
   }
 
   /**
-   * Copy from PsiDirectoryNode, delete when not needed.
+   * Copy from PsiDirectoryNode, delete when not needed. See: TODO(b/187891410)
    */
   @Nullable
-  private static VirtualFile tempGetVirtualFile(Object element) {
+  public static VirtualFile tempGetVirtualFile(Object element) {
     if (element instanceof PsiDirectory) {
       PsiDirectory directory = (PsiDirectory)element;
       return directory.getVirtualFile();

@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk
 
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
+import com.android.tools.idea.navigator.nodes.android.AndroidPsiDirectoryNode
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNodeV2
 import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.util.toIoFile
@@ -37,7 +38,8 @@ fun getContentRootBasedNativeNodes(module: Module,
 
   val nativeWorkspaceService = NativeWorkspaceService.getInstance(module.project)
   var sourceRootNodes: Collection<AbstractTreeNode<*>> = sourceRootPsiDirs.map {
-    PsiDirectoryNode(project, it, settings) { item ->
+    val folderLabel = null // We don't want to label ndk content root nodes
+    AndroidPsiDirectoryNode(project, it, settings, folderLabel, it) { item ->
       nativeWorkspaceService.shouldShowInProjectView(module, item.virtualFile.toIoFile())
     }
   }
