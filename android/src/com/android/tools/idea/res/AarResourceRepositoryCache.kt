@@ -29,7 +29,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
@@ -139,9 +139,7 @@ class AarResourceRepositoryCache private constructor() {
       val aarRepository = cache.getAndUnwrap(key, { factory() })
 
       if (libraryName != aarRepository.libraryName) {
-        assert(false) { "Library name mismatch: $libraryName vs ${aarRepository.libraryName}" }
-        val logger = Logger.getInstance(AarResourceRepositoryCache::class.java)
-        logger.error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
+        thisLogger().error(Exception("Library name mismatch: $libraryName vs ${aarRepository.libraryName}"))
       }
 
       return aarRepository
