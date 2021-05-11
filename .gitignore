@@ -9,3 +9,4 @@ out
 .knownPackages
 **/stale_outputs_checked
 **/testData/KotlinDsl/.gradle
+/tools-base
