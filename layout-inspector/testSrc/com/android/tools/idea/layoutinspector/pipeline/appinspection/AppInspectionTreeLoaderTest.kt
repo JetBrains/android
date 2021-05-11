@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
@@ -43,11 +39,9 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.SkiaViewNode
-import com.android.tools.layoutinspector.toBytes
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.testFramework.ProjectRule
@@ -58,44 +52,12 @@ import org.junit.Test
 import org.mockito.Mockito.`when`
 import java.awt.Image
 import java.awt.Polygon
-import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
 import java.util.zip.Deflater
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
-private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
-
 class AppInspectionTreeLoaderTest {
-
-  /**
-   * Process a target image png file and create the data that normally would have been generated on a target device.
-   */
-  private class Screenshot(filename: String, bitmapType: BitmapType) {
-    val image: BufferedImage
-    val bytes: ByteArray
-
-    init {
-      val origImage = getWorkspaceRoot().resolve("$TEST_DATA_PATH/$filename").readImage()
-      val buffer = ByteBuffer.allocate(origImage.width * origImage.height * bitmapType.pixelSize)
-      image = bitmapType.createImage(buffer, origImage.width, origImage.height)
-      val graphics = image.graphics
-      graphics.drawImage(origImage, 0, 0, null)
-      val imageBytes = ArrayList<Byte>(image.width * image.height * bitmapType.pixelSize + BITMAP_HEADER_SIZE)
-      if (bitmapType == BitmapType.RGB_565) {
-        val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
-                                                        ShortArray(image.width * image.height)) as ShortArray
-        dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-      }
-      else {
-        val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
-                                                        IntArray(image.width * image.height)) as IntArray
-        dataElements.flatMapTo(imageBytes) { it.toBytes().asIterable() }
-      }
-      bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + bitmapType.byteVal + imageBytes).toByteArray().compress()
-    }
-  }
 
   @get:Rule
   val projectRule = ProjectRule()
@@ -387,19 +349,4 @@ class AppInspectionTreeLoaderTest {
     val resultImage2 = ViewNode.readDrawChildren { drawChildren -> (window2.root.drawChildren()[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
   }
-}
-
-private fun ByteArray.compress(): ByteArray {
-  val deflater = Deflater(Deflater.BEST_SPEED)
-  deflater.setInput(this)
-  deflater.finish()
-  val buffer = ByteArray(1024 * 100)
-  val baos = ByteArrayOutputStream()
-  while (!deflater.finished()) {
-    val count = deflater.deflate(buffer)
-    if (count <= 0) break
-    baos.write(buffer, 0, count)
-  }
-  baos.flush()
-  return baos.toByteArray()
 }

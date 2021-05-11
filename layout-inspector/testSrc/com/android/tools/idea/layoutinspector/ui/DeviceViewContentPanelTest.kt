@@ -17,7 +17,14 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.ScreenHeightQualifier
+import com.android.ide.common.resources.configuration.ScreenRoundQualifier
+import com.android.ide.common.resources.configuration.ScreenWidthQualifier
+import com.android.resources.Density
 import com.android.resources.ResourceType
+import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getWorkspaceRoot
@@ -42,8 +49,13 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
+import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
@@ -64,6 +76,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import junit.framework.TestCase.assertEquals
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -927,5 +940,50 @@ class DeviceViewContentPanelTest {
       assertThat(selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId  })
         .containsExactlyElementsIn(expected.toList())
     }
+  }
+
+  @Suppress("UndesirableClassUsage")
+  @Test
+  fun testPaintRound() {
+    val screenshot = Screenshot("wear.png", BitmapType.RGB_565)
+
+    val viewLayoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply {
+      screenshotBuilder.apply {
+        type = LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
+        bytes = ByteString.copyFrom(screenshot.bytes)
+      }
+    }.build()
+
+    val model = model {}
+    val folderConfiguration = FolderConfiguration().apply {
+      screenRoundQualifier = ScreenRoundQualifier(ScreenRound.ROUND)
+      screenWidthQualifier = ScreenWidthQualifier.getQualifier("454")
+      screenHeightQualifier = ScreenHeightQualifier.getQualifier("454")
+      densityQualifier = DensityQualifier(Density.MEDIUM)
+    }
+
+    val window = ViewAndroidWindow(
+      projectRule.project, mock(),
+      view(1, 0, 0, 454, 454) {
+        view(2, 10, 10, 100, 100)
+        view(3, 300, 400, 50, 50)
+      },
+      viewLayoutEvent, folderConfiguration, { false }, {}
+    )
+    model.update(window, listOf(1L), 2)
+    model.windows[1L]?.refreshImages(1.0)
+
+    val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
+    val graphics = generatedImage.createGraphics()
+
+    val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+    val panel = DeviceViewContentPanel(model, SessionStatistics(model, treeSettings), treeSettings, settings, disposable.disposable)
+    panel.setSize(350, 450)
+
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(getWorkspaceRoot().resolve("$TEST_DATA_PATH/wear_round_expected.png"), generatedImage, DIFF_THRESHOLD)
   }
 }

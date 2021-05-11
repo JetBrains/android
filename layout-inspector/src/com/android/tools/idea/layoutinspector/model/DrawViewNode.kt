@@ -225,10 +225,11 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
 /**
  * A draw view that paints an image. The [owner] should be the view that does the painting, and is also the "draw parent" of this node.
  */
-class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode) : DrawViewNode(owner) {
+class DrawViewImage(@VisibleForTesting val image: Image, owner: ViewNode, private val deviceClip: Shape? = null) : DrawViewNode(owner) {
   override fun canCollapse(treeSettings: TreeSettings) = true
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {
+    deviceClip?.let { g2.clip(deviceClip) }
     val bounds = bounds.bounds
     UIUtil.drawImage(
       g2, image,

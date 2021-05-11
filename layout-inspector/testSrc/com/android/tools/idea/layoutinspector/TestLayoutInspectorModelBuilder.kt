@@ -247,7 +247,8 @@ class InspectorModelDescriptor(val project: Project) {
     if (ModuleManager.getInstance(project) != null) {
       val strings = TestStringTable()
       val config = ConfigurationParamsBuilder(strings)
-      model.resourceLookup.updateConfiguration(FolderConfiguration(), config.makeSampleContext(project), strings, config.makeSampleProcess(project))
+      model.resourceLookup.updateConfiguration(
+        FolderConfiguration.createDefault(), config.makeSampleContext(project), strings, config.makeSampleProcess(project))
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->

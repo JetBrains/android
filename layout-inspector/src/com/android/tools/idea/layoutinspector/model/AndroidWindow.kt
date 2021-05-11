@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import java.awt.Shape
 
 /**
  * Container for window-level information in the layout inspector.
@@ -64,6 +65,8 @@ abstract class AndroidWindow(
 
   val height: Int
     get() = root.height
+
+  open val deviceClip: Shape? = null
 
   @OverridingMethodsMustInvokeSuper
   open fun copyFrom(other: AndroidWindow) {
