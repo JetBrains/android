@@ -46,7 +46,7 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
 
         linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
-        unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+        linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest")
 
         // Write Perfgate metadata (e.g. benchmark descriptions).
         val perfData = PerfData()

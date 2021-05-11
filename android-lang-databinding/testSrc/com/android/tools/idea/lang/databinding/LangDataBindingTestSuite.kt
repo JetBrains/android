@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 class LangDataBindingTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+      linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
     }
