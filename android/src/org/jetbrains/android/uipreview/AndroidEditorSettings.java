@@ -52,6 +52,19 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     }
   }
 
+  /**
+   * The minimum magnify sensitivity value. Can't be zero. Otherwise the magnify function is disabled.
+   */
+  public static final double MIN_MAGNIFY_SENSITIVITY = 0.1;
+  /**
+   * The maximum magnify sensitivity value.
+   */
+  public static final double MAX_MAGNIFY_SENSITIVITY = 2.1;
+  /**
+   * The default value of magnify sensitivity.
+   */
+  public static final double DEFAULT_MAGNIFY_SENSITIVITY = (MIN_MAGNIFY_SENSITIVITY + MAX_MAGNIFY_SENSITIVITY) / 2;
+
   private GlobalState myGlobalState = new GlobalState();
 
   public static AndroidEditorSettings getInstance() {
@@ -99,6 +112,7 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private EditorMode myPreferredDrawableEditorMode;
     private EditorMode myPreferredComposableEditorMode;
     private EditorMode myPreferredKotlinEditorMode;
+    private double myMagnifySensitivity = DEFAULT_MAGNIFY_SENSITIVITY;
 
     public boolean isRetina() {
       return myRetina;
@@ -186,6 +200,14 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setPreferredKotlinEditorMode(EditorMode preferredKotlinEditorMode) {
       myPreferredKotlinEditorMode = preferredKotlinEditorMode;
+    }
+
+    public double getMagnifySensitivity() {
+      return myMagnifySensitivity;
+    }
+
+    public void setMagnifySensitivity(double magnifySensitivity) {
+      myMagnifySensitivity = magnifySensitivity;
     }
   }
 }

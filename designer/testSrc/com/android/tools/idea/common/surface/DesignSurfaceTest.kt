@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.surface.DesignSurface.MAGNIFICATION_SENSITIVITY
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
@@ -35,6 +34,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import junit.framework.TestCase
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
@@ -44,6 +44,19 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DesignSurfaceTest : LayoutTestCase() {
+
+  private var originalSensitivity: Double = 0.0
+
+  override fun setUp() {
+    super.setUp()
+    originalSensitivity = AndroidEditorSettings.getInstance().globalState.magnifySensitivity
+  }
+
+  override fun tearDown() {
+    // Reset sensitivity
+    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = originalSensitivity
+    super.tearDown()
+  }
 
   fun testAddAndRemoveModel() {
     val model1 = model("model1.xml", component(RELATIVE_LAYOUT)).build()
@@ -188,19 +201,62 @@ class DesignSurfaceTest : LayoutTestCase() {
 
   fun testMagnify() {
     val surface = TestDesignSurface(project, testRootDisposable)
+
+    // Test magnifying when sensitivity is 0.25
+    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 0.25
+
+    // test positive magnifying with sensitivity 0.25
     surface.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(1.0)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.0 + MAGNIFICATION_SENSITIVITY * 1.0, surface.scale)
+    TestCase.assertEquals(1.25, surface.scale)
 
+    // test negative magnifying with sensitivity 0.25
     surface.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-1.5)
     surface.magnificationFinished(0.0)
-    TestCase.assertEquals(1.0 + MAGNIFICATION_SENSITIVITY * -1.5, surface.scale)
+    TestCase.assertEquals(0.625, surface.scale)
+
+    // test sequential magnifying with sensitivity 0.25. The sequential magnifying should only take last magnify value as result.
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(0.3)
+    surface.magnify(-0.5)
+    surface.magnify(0.7)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(1.175, surface.scale)
+
+    // Test magnifying when sensitivity is 1.5
+    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.5
+
+    // test positive magnifying with sensitivity 1.5
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(1.0)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(2.5, surface.scale)
+
+    // test negative magnifying with sensitivity 1.5
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(-0.5)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(0.25, surface.scale)
+
+    // test sequential magnifying with sensitivity 1.5
+    surface.setScale(1.0)
+    surface.magnificationStarted(Point())
+    surface.magnify(-0.3)
+    surface.magnify(1.4)
+    surface.magnify(-0.1)
+    surface.magnificationFinished(0.0)
+    TestCase.assertEquals(0.85, surface.scale)
 
     // Test magnifying is bounded by min and max scale allowances.
+    AndroidEditorSettings.getInstance().globalState.magnifySensitivity = 1.0
+
     surface.setScale(1.0)
     surface.magnificationStarted(Point())
     surface.magnify(-100000.0)

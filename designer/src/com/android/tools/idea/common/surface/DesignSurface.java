@@ -122,6 +122,7 @@ import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -179,16 +180,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @SurfaceZoomLevel
   protected static final double SCALING_THRESHOLD = 0.005;
-
-  /**
-   * The factor of magnification when evaluating the new scale value.
-   * This factor is a percentage, and increase/decrease the speed of increasing/decreasing the zoom level by magnifying.
-   * For example, when this value is 0.25 (25%), the speed of changing zoom level is reduce to 25%.
-   *
-   * TODO(b/187714279): Make this configurable in preference setting.
-   */
-  @VisibleForTesting
-  public static final double MAGNIFICATION_SENSITIVITY = 0.25;
 
   /**
    * Filter got {@link #getModels()} to avoid returning disposed elements
@@ -978,7 +969,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       // In headless mode we assume the scale point is at the center.
       mouse = new Point(getWidth() / 2, getHeight() / 2);
     }
-    @SurfaceScale double newScale = myMagnificationStartedScale + magnification * MAGNIFICATION_SENSITIVITY;
+    double sensitivity = AndroidEditorSettings.getInstance().getGlobalState().getMagnifySensitivity();
+    @SurfaceScale double newScale = myMagnificationStartedScale + magnification * sensitivity;
     setScale(newScale, mouse.x, mouse.y);
   }
 
