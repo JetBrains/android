@@ -31,7 +31,7 @@ public class GradleProjectSystemUpgradeTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/kgp1.3.72.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
   }

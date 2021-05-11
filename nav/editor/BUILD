@@ -46,7 +46,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//prebuilts/studio/sdk:platforms/latest",
     ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],

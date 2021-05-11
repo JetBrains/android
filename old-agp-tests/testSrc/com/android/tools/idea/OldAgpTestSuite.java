@@ -33,7 +33,7 @@ public class OldAgpTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.3.2.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.5.0.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.0.0.manifest");

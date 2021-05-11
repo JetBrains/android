@@ -8,7 +8,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:gradle-distrib-6.1.1",

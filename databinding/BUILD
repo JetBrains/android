@@ -43,7 +43,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/databinding/testData",
         "//tools/base/build-system:gradle-distrib",

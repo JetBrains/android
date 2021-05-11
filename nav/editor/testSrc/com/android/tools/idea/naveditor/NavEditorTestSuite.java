@@ -27,6 +27,6 @@ public class NavEditorTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
   }
 }

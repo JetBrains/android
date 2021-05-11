@@ -29,7 +29,7 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/databinding/testapp_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");

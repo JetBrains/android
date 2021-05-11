@@ -25,6 +25,6 @@ import org.junit.runner.RunWith;
 public class MlModelBindingTestSuite extends IdeaTestSuiteBase {
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
   }
 }

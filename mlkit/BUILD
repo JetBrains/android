@@ -44,7 +44,7 @@ iml_module(
         "//prebuilts/tools/common/mlkit/testData",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/mlkit/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",

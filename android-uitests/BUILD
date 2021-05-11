@@ -14,7 +14,7 @@ COMMON_DATA = [
     "//tools/adt/idea/android-uitests:aspects_baseline",
     "//tools/adt/idea/android-uitests:aspect_rules",
     "//tools/base/aspects_agent:aspects_agent",
-    "//tools/adt/idea/android:test_deps.zip",
+    "//tools/adt/idea/android:test_deps",
     "//prebuilts/studio/jdk",
     "//prebuilts/studio/sdk:build-tools/latest",
     "//prebuilts/studio/sdk:cmake",

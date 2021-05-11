@@ -29,7 +29,7 @@ public final class SafeArgsTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");

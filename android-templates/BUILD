@@ -8,7 +8,7 @@ iml_module(
     iml_files = ["intellij.android.templates.tests.iml"],
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_data = [
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",

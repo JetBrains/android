@@ -26,7 +26,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
         "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlin/kotlin-gradle-plugin/1.5.10:jar",
-        "//tools/adt/idea/android:test_deps.zip",
+        "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",

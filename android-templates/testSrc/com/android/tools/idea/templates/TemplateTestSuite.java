@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 })
 public class TemplateTestSuite extends IdeaTestSuiteBase {
   static {
-    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    linkIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
