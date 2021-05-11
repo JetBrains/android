@@ -83,7 +83,8 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
     val path = tempDir.newPath("styles.xml")
     val absolutePath = StringUtil.escapeBackSlashes(path.toAbsolutePath().toString())
-    val output = """Executing tasks: [clean, :app:assembleDebug]
+    val output = """
+                    Executing tasks: [clean, :app:assembleDebug]
                     > Task :clean UP-TO-DATE
                     > Task :app:clean
                     > Task :app:preBuild UP-TO-DATE

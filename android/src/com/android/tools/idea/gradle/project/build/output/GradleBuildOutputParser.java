@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.output;
 
 import static com.android.ide.common.blame.parser.JsonEncodedGradleMessageParser.STDOUT_ERROR_TAG;
 import static com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP;
+import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.BUILD_FAILED_WITH_EXCEPTION_LINE;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_ERROR_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_INFO_SUFFIX;
 import static com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils.MESSAGE_GROUP_STATISTICS_SUFFIX;
@@ -61,6 +62,11 @@ public class GradleBuildOutputParser implements BuildOutputParser {
    */
   @NotNull private final Map<Object, Set<String>> futureOutputMap = new HashMap<>();
 
+  /**
+   * Contains buildIds which contained an error parsed by this parser.
+   */
+  @NotNull private final Set<Object> buildIdsWithAGPErrors = new HashSet<>();
+
   @NotNull private final Gson myGson;
 
   public GradleBuildOutputParser() {
@@ -81,6 +87,12 @@ public class GradleBuildOutputParser implements BuildOutputParser {
       return true;
     }
 
+    // consume the build failed message if there were some errors parsed before, this makes sure that GradleBuildScriptErrorParser will not
+    // re-parse and duplicate the errors
+    if (currentLine.startsWith(BUILD_FAILED_WITH_EXCEPTION_LINE) && buildIdsWithAGPErrors.contains(reader.getParentEventId())) {
+      return true;
+    }
+
     // consume the line without producing a message, and remove it from the map
     if (futureOutputMap.getOrDefault(reader.getParentEventId(), Collections.emptySet()).contains(currentLine)) {
       futureOutputMap.get(reader.getParentEventId()).remove(currentLine);
@@ -98,12 +110,10 @@ public class GradleBuildOutputParser implements BuildOutputParser {
     try {
       Message msg = myGson.fromJson(jsonString, Message.class);
 
-      Set<String> futureOutput = futureOutputMap.get(buildId);
-      if (futureOutput == null) {
-        futureOutput = new HashSet<>();
-        futureOutputMap.put(buildId, futureOutput);
+      Set<String> futureOutput = futureOutputMap.computeIfAbsent(buildId, k -> new HashSet<>());
+      if (msg.getKind() == Kind.ERROR) {
+        buildIdsWithAGPErrors.add(buildId);
       }
-
       futureOutput.addAll(Arrays.asList(msg.getRawMessage().split("\\n")));
       boolean validPosition = false;
       for (SourceFilePosition sourceFilePosition : msg.getSourceFilePositions()) {
