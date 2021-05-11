@@ -233,7 +233,7 @@ sudo apt install android-fetch-artifact""")
 
   for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
-        "%s %s --bid %s --target studio-sdk '%s' %s"
+        "%s %s --bid %s --target studio '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
 
   return dir
