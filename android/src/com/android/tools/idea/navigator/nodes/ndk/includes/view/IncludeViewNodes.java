@@ -80,7 +80,7 @@ public class IncludeViewNodes {
           if (element instanceof PsiDirectory) {
             PsiDirectory concrete = (PsiDirectory)element;
             PsiIncludeDirectoryView node =
-              new PsiIncludeDirectoryView(project, excludesVirtualFiles, folderParentIsObvious, concrete, settings);
+              new PsiIncludeDirectoryView(project, excludesVirtualFiles, folderParentIsObvious, concrete, settings, psiDirectory);
             if (!node.getChildren().isEmpty()) {
               result.add(node);
             }

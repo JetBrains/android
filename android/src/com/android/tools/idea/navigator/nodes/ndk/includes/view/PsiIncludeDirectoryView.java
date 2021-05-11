@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
+import static com.android.tools.idea.navigator.nodes.android.AndroidPsiDirectoryNode.tempGetVirtualFile;
+
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.util.VirtualFiles;
 import com.google.common.collect.ImmutableList;
@@ -41,6 +43,7 @@ import java.util.List;
  */
 public class PsiIncludeDirectoryView extends PsiDirectoryNode {
   @NotNull private final ImmutableList<VirtualFile> myVirtualFileExcludes;
+  @Nullable private final PsiDirectory myOwner;
 
   private final boolean myFolderParentIsObvious;
 
@@ -48,10 +51,12 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
                                  @NotNull ImmutableList<VirtualFile> virtualFileExcludes,
                                  boolean folderParentIsObvious,
                                  @NotNull PsiDirectory value,
-                                 @NotNull ViewSettings viewSettings) {
+                                 @NotNull ViewSettings viewSettings,
+                                 @Nullable PsiDirectory owner) {
     super(project, value, viewSettings);
     this.myFolderParentIsObvious = folderParentIsObvious;
     this.myVirtualFileExcludes = virtualFileExcludes;
+    this.myOwner = owner;
   }
 
   @NotNull
@@ -65,8 +70,8 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
   @NotNull
   public Collection<AbstractTreeNode<?>> getChildrenImpl() {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
-    PsiDirectory value = getPsiDirectory();
-    value.processChildren(element -> {
+    PsiDirectory nodeValue = getPsiDirectory();
+    nodeValue.processChildren(element -> {
       if (VirtualFiles.isElementAncestorOfExclude(element, myVirtualFileExcludes)) {
         // This file or folder is in the set to be excluded.
         return true;
@@ -74,7 +79,7 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
 
       if (element instanceof PsiDirectory) {
         PsiDirectory concrete = (PsiDirectory)element;
-        PsiDirectoryNode node = new PsiIncludeDirectoryView(getProject(), myVirtualFileExcludes, true, concrete, getSettings());
+        PsiDirectoryNode node = new PsiIncludeDirectoryView(getProject(), myVirtualFileExcludes, true, concrete, getSettings(), nodeValue);
         result.add(node);
         return true;
       }
@@ -96,8 +101,18 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
     super.updateImpl(data);
     String location = data.getLocationString();
     if ((location == null || location.isEmpty()) && !myFolderParentIsObvious) {
-      PsiDirectory value = getPsiDirectory();
-      data.setLocationString(ProjectViewDirectoryHelper.getInstance(getProject()).getLocationString(value, true, true));
+      PsiDirectory nodeValue = getPsiDirectory();
+      data.setLocationString(ProjectViewDirectoryHelper.getInstance(getProject()).getLocationString(nodeValue, true, true));
     }
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    if (super.canRepresent(element)) return true;
+    VirtualFile file = tempGetVirtualFile(element);
+    PsiDirectory nodeValue = getValue();
+    if (file == null || nodeValue == null || myOwner == null) return false;
+    return ProjectViewDirectoryHelper.getInstance(myProject)
+      .canRepresent(file, nodeValue, myOwner, getSettings());
   }
 }
