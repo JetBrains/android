@@ -35,6 +35,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Template
@@ -189,6 +190,11 @@ class RenderTemplateModel private constructor(
       dryRun: Boolean, project: Project, paths: AndroidModulePaths
     ): Boolean {
       paths.moduleRoot ?: return false
+
+      if (newTemplate.category == Category.Compose) {
+        // b/187726308 HACK - Compose only supports Kotlin 1.4 - This only works for new projects
+        moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = "1.4.30"
+      }
 
       val context = RenderingContext(
         project = project,
