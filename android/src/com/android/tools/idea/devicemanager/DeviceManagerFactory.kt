@@ -46,9 +46,8 @@ class DeviceManagerFactory : ToolWindowFactory, DumbAware {
       createTab(DeviceGroupsTabPanel(project).component, deviceGroupsTabName)
     }
 
-    // FIXME(qumeric): create and use custom icon
     toolWindow.apply {
-      setIcon(StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR)
+      setIcon(StudioIcons.Shell.ToolWindows.MULTI_PREVIEW)
       show(null)
       stripeTitle = "Device Manager"
     }
