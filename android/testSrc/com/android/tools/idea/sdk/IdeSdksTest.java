@@ -57,18 +57,23 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -339,5 +344,38 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(jdk8).isNotNull();
     Sdk newJdk = myIdeSdks.getJdk();
     assertThat(newJdk).isSameAs(jdk8);
+  }
+
+  /**
+   * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
+   * If this test fails, we need to confirm the changes are included as needed in
+   * {@link IdeSdks#jdksWithDifferentSettings(ProjectJdkImpl, ProjectJdkImpl)}..
+   */
+  public void testProjectJdkImplFieldsAndMethods() {
+    List<String> expectedFieldNames = Arrays.asList("ATTRIBUTE_VALUE", "ELEMENT_ADDITIONAL", "ELEMENT_NAME", "ELEMENT_TYPE");
+    List<String> currentFieldNames = Arrays.stream(ProjectJdkImpl.class.getFields())
+      .map(Field::getName)
+      .distinct()
+      .sorted()
+      .collect(Collectors.toList());
+    assertThat(currentFieldNames).isEqualTo(expectedFieldNames);
+
+    List<String> expectedMethodNames = Arrays.asList(
+      "accumulateAndGet", "addRoot", "changeType", "clone", "commitChanges", "compareAndExchange", "compareAndExchangeAcquire",
+      "compareAndExchangeRelease", "compareAndSet", "copyCopyableDataTo", "copyUserDataTo", "dispose", "equals", "get", "getAcquire",
+      "getAndAccumulate", "getAndSet", "getAndUpdate", "getClass", "getCopyableUserData", "getGlobalVirtualFilePointerListener",
+      "getHomeDirectory", "getHomePath", "getName", "getOpaque", "getPlain", "getRootProvider", "getRoots", "getSdkAdditionalData",
+      "getSdkModificator", "getSdkType", "getUrls", "getUserData", "getUserDataString", "getVersionString", "hashCode", "isUserDataEmpty",
+      "isWritable", "lazySet", "notify", "notifyAll", "putCopyableUserData", "putUserData", "putUserDataIfAbsent", "readExternal",
+      "removeAllRoots", "removeRoot", "removeRoots", "replace", "resetVersionString", "set", "setHomePath", "setName", "setOpaque",
+      "setPlain", "setRelease", "setSdkAdditionalData", "setVersionString", "toString", "updateAndGet", "wait", "weakCompareAndSet",
+      "weakCompareAndSetAcquire", "weakCompareAndSetPlain", "weakCompareAndSetRelease", "weakCompareAndSetVolatile", "writeExternal"
+    );
+    List<String> currentMethodNames = Arrays.stream(ProjectJdkImpl.class.getMethods())
+      .map(Method::getName)
+      .distinct()
+      .sorted()
+      .collect(Collectors.toList());
+    assertThat(currentMethodNames).isEqualTo(expectedMethodNames);
   }
 }
