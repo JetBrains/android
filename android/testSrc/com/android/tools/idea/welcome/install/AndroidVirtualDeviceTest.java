@@ -45,6 +45,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -147,6 +148,25 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
     assertEquals(DEVICE_ID, skin.getName());
+  }
+
+  public void testRequiredSysimgPath() {
+
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+
+    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(23);
+    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+
+    Map<String, RemotePackage> remotes = new HashMap<>();
+    remotes.put("platforms;android-23", remotePlatform);
+
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
+    avd.sdkHandler = sdkHandler;
+
+    assertEquals("system-images;android-23;google_apis;x86", avd.getRequiredSysimgPath(false));
+    assertEquals("system-images;android-23;google_apis;arm64-v8a", avd.getRequiredSysimgPath(true));
   }
 
   public void testSelectedByDefault() throws Exception {
