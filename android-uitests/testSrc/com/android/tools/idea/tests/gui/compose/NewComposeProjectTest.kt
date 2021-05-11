@@ -55,7 +55,6 @@ class NewComposeProjectTest {
    * 3. Check Gradle Sync to success
    */
   @Test
-  fun newComposeProjectDisabled() {} // b/187726308
   fun newComposeProject() {
     WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
 
