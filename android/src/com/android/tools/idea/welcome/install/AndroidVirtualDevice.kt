@@ -46,6 +46,11 @@ import com.google.common.collect.ImmutableSet
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.diagnostic.Logger
 import java.nio.file.Path
+import com.google.wireless.android.sdk.stats.ProductDetails
+
+import com.android.tools.analytics.CommonMetricsData.osArchitecture
+import com.intellij.openapi.util.SystemInfo
+
 
 /**
  * Logic for setting up Android virtual device
@@ -55,6 +60,7 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates
 ) {
+  private val IS_ARM64_HOST_OS = SystemInfo.isArm64 || osArchitecture == ProductDetails.CpuArchitecture.X86_ON_ARM
   private lateinit var myProgressStep: ProgressStep
   private var myLatestVersion: AndroidVersion? = null
 
@@ -96,12 +102,17 @@ class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackag
     )
   }
 
+  @VisibleForTesting
+  fun getRequiredSysimgPath(isArm64HostOs: Boolean): String =
+    DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG,
+                               if (isArm64HostOs) SdkConstants.ABI_ARM64_V8A else SdkConstants.ABI_INTEL_ATOM)
+
   override val requiredSdkPackages: Collection<String>
     get() {
       val result = mutableListOf<String>()
       if (myLatestVersion != null) {
         result.add(DetailsTypes.getAddonPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG))
-        result.add(DetailsTypes.getSysImgPath(ID_VENDOR_GOOGLE, myLatestVersion, ID_ADDON_GOOGLE_API_IMG, SdkConstants.ABI_INTEL_ATOM))
+        result.add(getRequiredSysimgPath(IS_ARM64_HOST_OS))
       }
       return result
     }
