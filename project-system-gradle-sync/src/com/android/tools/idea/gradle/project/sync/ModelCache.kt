@@ -19,79 +19,26 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
-import com.android.build.FilterData
 import com.android.build.OutputFile
-import com.android.builder.model.AaptOptions
-import com.android.builder.model.AndroidArtifact
-import com.android.builder.model.AndroidGradlePluginProjectFlags
 import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
-import com.android.builder.model.ApiVersion
-import com.android.builder.model.BaseArtifact
-import com.android.builder.model.BuildType
-import com.android.builder.model.BuildTypeContainer
-import com.android.builder.model.ClassField
-import com.android.builder.model.JavaArtifact
-import com.android.builder.model.JavaCompileOptions
-import com.android.builder.model.JavaLibrary
-import com.android.builder.model.Library
-import com.android.builder.model.LintOptions
-import com.android.builder.model.MavenCoordinates
 import com.android.builder.model.NativeAndroidProject
-import com.android.builder.model.NativeArtifact
-import com.android.builder.model.NativeFile
-import com.android.builder.model.NativeSettings
-import com.android.builder.model.NativeToolchain
 import com.android.builder.model.NativeVariantAbi
-import com.android.builder.model.ProductFlavor
-import com.android.builder.model.ProductFlavorContainer
-import com.android.builder.model.SigningConfig
-import com.android.builder.model.SourceProvider
-import com.android.builder.model.SourceProviderContainer
 import com.android.builder.model.TestOptions
-import com.android.builder.model.TestedTargetVariant
 import com.android.builder.model.Variant
-import com.android.builder.model.VectorDrawablesOptions
-import com.android.builder.model.ViewBindingOptions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeDependencies
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
-import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
-import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
-import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
-import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
-import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
-import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
-import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
-import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeArtifactImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeFileImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeSettingsImpl
-import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeToolchainImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.ide.common.repository.GradleVersion
@@ -130,39 +77,6 @@ interface ModelCache {
       default
     }
   }
-}
-
-interface ModelCacheTesting : ModelCache {
-  fun aaptOptionsFrom(original: AaptOptions): IdeAaptOptionsImpl
-  fun androidArtifactFrom(artifact: AndroidArtifact, agpVersion: GradleVersion?): IdeAndroidArtifactImpl
-  fun apiVersionFrom(version: ApiVersion): IdeApiVersionImpl
-  fun buildTypeContainerFrom(container: BuildTypeContainer): IdeBuildTypeContainerImpl
-  fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl
-  fun classFieldFrom(classField: ClassField): IdeClassFieldImpl
-  fun filterDataFrom(data: FilterData): IdeFilterDataImpl
-  fun javaArtifactFrom(artifact: JavaArtifact): IdeJavaArtifactImpl
-  fun javaCompileOptionsFrom(options: JavaCompileOptions): IdeJavaCompileOptionsImpl
-  fun productFlavorContainerFrom(container: ProductFlavorContainer): IdeProductFlavorContainerImpl
-  fun productFlavorFrom(flavor: ProductFlavor): IdeProductFlavorImpl
-  fun signingConfigFrom(config: SigningConfig): IdeSigningConfigImpl
-  fun sourceProviderContainerFrom(container: SourceProviderContainer): IdeSourceProviderContainerImpl
-  fun testedTargetVariantFrom(variant: TestedTargetVariant): IdeTestedTargetVariantImpl
-  fun testOptionsFrom(testOptions: TestOptions): IdeTestOptionsImpl
-  fun vectorDrawablesOptionsFrom(options: VectorDrawablesOptions): IdeVectorDrawablesOptionsImpl
-  fun viewBindingOptionsFrom(model: ViewBindingOptions): IdeViewBindingOptionsImpl
-  fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl
-  fun lintOptionsFrom(options: LintOptions, modelVersion: GradleVersion?): IdeLintOptionsImpl
-  fun nativeToolchainFrom(toolchain: NativeToolchain): IdeNativeToolchainImpl
-  fun nativeArtifactFrom(artifact: NativeArtifact): IdeNativeArtifactImpl
-  fun nativeFileFrom(file: NativeFile): IdeNativeFileImpl
-  fun nativeSettingsFrom(settings: NativeSettings): IdeNativeSettingsImpl
-  fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl
-  fun dependenciesFrom(artifact: BaseArtifact): IdeDependencies
-  fun libraryFrom(javaLibrary: JavaLibrary): IdeLibrary
-  fun libraryFrom(projectPath: String, artifactAddress: String, buildId: String?): IdeLibrary
-  fun computeAddress(library: Library): String
-  fun isLocalAarModule(androidLibrary: AndroidLibrary): Boolean
-  fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl
 }
 
 internal val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
