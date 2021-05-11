@@ -108,10 +108,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NonNls public static final ModelPropertyDescription DYNAMIC_FEATURES = new ModelPropertyDescription("mDynamicFeatures", MUTABLE_SET);
   @NonNls public static final String FLAVOR_DIMENSIONS = "mFlavorDimensions";
   @NonNls public static final String GENERATE_PURE_SPLITS = "mGeneratePureSplits";
+  @NonNls public static final String NAMESPACE = "mNamespace";
   @NonNls public static final String NDK_VERSION = "mNdkVersion";
   @NonNls public static final String PUBLISH_NON_DEFAULT = "mPublishNonDefault";
   @NonNls public static final String RESOURCE_PREFIX = "mResourcePrefix";
   @NonNls public static final String TARGET_PROJECT_PATH = "mTargetProjectPath";
+  @NonNls public static final String TEST_NAMESPACE = "mTestNamespace";
   // TODO(xof): Add support for useLibrary
 
   public AndroidModelImpl(@NotNull AndroidDslElement dslElement) {
@@ -281,6 +283,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
   @Override
   @NotNull
+  public ResolvedPropertyModel namespace() {
+    return getModelForProperty(NAMESPACE);
+  }
+
+  @Override
+  @NotNull
   public PackagingOptionsModel packagingOptions() {
     PackagingOptionsDslElement packagingOptionsDslElement = myDslElement.ensurePropertyElement(PACKAGING_OPTIONS);
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
@@ -366,6 +374,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ResolvedPropertyModel targetProjectPath() {
     return getModelForProperty(TARGET_PROJECT_PATH);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel testNamespace() {
+    return getModelForProperty(TEST_NAMESPACE);
   }
 
   @Override
