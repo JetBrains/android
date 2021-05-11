@@ -52,7 +52,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
     assertThat(notifications[0].content).isEqualTo(
-        "2 files were converted<br/>62 bytes saved<br>2 files were skipped because there was no net space savings")
+        "1 file was converted<br/>31 bytes saved<br>1 file was skipped because there was no net space saving")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
@@ -79,13 +79,13 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].content).isEqualTo("6 files were converted<br/>-722 bytes saved")
+    assertThat(notifications[0].content).isEqualTo("3 files were converted<br/>size increased by 361 bytes")
     // Check that we converted both images
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
     assertThat(mdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(mdpiFolder.findChild("ic_action_name.webp")).isNotNull()
-    assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull()
     assertThat(mdpiFolder.findChild("ic_arrow_back.png")).isNull()
+    assertThat(mdpiFolder.findChild("ic_arrow_back.webp")).isNotNull()
   }
 }
