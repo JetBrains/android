@@ -183,7 +183,7 @@ fun toUpperCamelCase(enumValue: Enum<*>): String = CaseFormat.UPPER_UNDERSCORE.t
 fun getBundledImage(dir: String, fileName: String): File {
   val homePath = Paths.get(PathManager.getHomePath())
   val releaseImagesDir = homePath.resolve("plugins/android/resources/images/$dir")
-  val devImagesDir = homePath.resolve("../../tools/adt/idea/android/resources/images/$dir")
+  val devImagesDir = homePath.resolve("../../../../../../tools/adt/idea/android/resources/images/$dir")
   val releaseImage = releaseImagesDir.resolve(fileName)
   val devImage = devImagesDir.resolve(fileName)
 
