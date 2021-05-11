@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.android.tools.idea.rendering.webp.ConvertToWebpAction.WebpConversionTask;
+import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
+import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
+
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -29,14 +31,9 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -44,12 +41,18 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-
-import static com.intellij.util.Alarm.ThreadToUse.POOLED_THREAD;
-import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
+import javax.imageio.ImageIO;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, KeyListener {
-  private final WebpConversionTask myTask;
   private final Project myProject;
   private final WebpConversionSettings mySettings;
   private JBLabel myPngSizeLabel;
@@ -76,13 +79,9 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
   private MergingUpdateQueue myRenderingQueue;
   private AcceptAllAction myAcceptAll;
 
-  WebpPreviewDialog(@NotNull WebpConversionTask task,
-                    @NotNull Project project,
-                    @NotNull WebpConversionSettings settings,
-                    @NotNull List<WebpConvertedFile> files) {
+  WebpPreviewDialog(@NotNull Project project, @NotNull WebpConversionSettings settings, @NotNull List<WebpConvertedFile> files) {
     super(project);
     setTitle("Preview and Adjust Converted Images");
-    myTask = task;
     myProject = project;
     mySettings = settings;
     myFiles = files;
@@ -227,7 +226,6 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
 
     @Override
     protected void doAction(ActionEvent e) {
-      myTask.encode(myFiles, true);
       doOKAction();
     }
   }
@@ -369,7 +367,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
   }
 
   private void updateQualityText() {
-    myQualityText.setText(Integer.toString(myQualitySlider.getValue()) + "%");
+    myQualityText.setText(myQualitySlider.getValue() + "%");
   }
 
   // Implements ChangeListener
