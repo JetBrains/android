@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.ANDROID_STUDIO_DEFAULT_JDK_NAME;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
@@ -28,7 +27,6 @@ import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 
 import com.android.SdkConstants;
@@ -68,6 +66,8 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -81,6 +81,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +89,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -1153,6 +1155,44 @@ public class IdeSdks {
     ApplicationManager.getApplication().runWriteAction(cleanJdkTableAction);
   }
 
+  /**
+   * Recreates a project JDK from the ProjectJDKTable, using only the path from {@param jdk} but settings its properties from scratch and
+   * and updates it in the ProjectJDKTable if there are differences. Must be run on a write action.
+   * If the home path of {@param jdk} is not valid, then the JDK is removed from the table.
+   * If {@param jdk} is valid and is not found in the ProjectJDKTable then it is created and added to it.
+   * @param jdk JDK to be recreated or added.
+   */
+  public void recreateOrAddJdkInTable(@NotNull Sdk jdk) {
+    // Look if the JDK is in the table
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    Sdk jdkInTable = jdkTable.findJdk(jdk.getName());
+
+    // Try to recreate it
+    Sdk updatedJdk = recreateJdk(jdk);
+    if (updatedJdk == null) {
+      // Could not recreate it, remove from table
+      if (jdkInTable != null) {
+        jdkTable.removeJdk(jdkInTable);
+      }
+      return;
+    }
+
+    if (jdkInTable != null) {
+      // Try to update only if there are differences
+      boolean shouldUpdate = true;
+      if ((jdkInTable instanceof ProjectJdkImpl) && (updatedJdk instanceof ProjectJdkImpl)) {
+        shouldUpdate = jdksWithDifferentSettings((ProjectJdkImpl)jdkInTable, (ProjectJdkImpl)updatedJdk);
+      }
+      if (shouldUpdate) {
+        ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
+      }
+    }
+    else {
+      // Could not find JDK in JDK table, add as new entry
+      jdkTable.addJdk(updatedJdk);
+    }
+  }
+
   @Nullable
   private Sdk recreateJdk(@NotNull Sdk originalJdk) {
     String jdkPath = originalJdk.getHomePath();
@@ -1160,6 +1200,25 @@ public class IdeSdks {
       return JavaSdk.getInstance().createJdk(originalJdk.getName(), jdkPath, false);
     }
     return null;
+  }
+
+  @VisibleForTesting
+  boolean jdksWithDifferentSettings(@NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
+    if (!StringUtils.equals(jdkA.getName(), jdkB.getName())) return true;
+    if (!StringUtils.equals(jdkA.getHomePath(), jdkB.getHomePath())) return true;
+    if (!StringUtils.equals(jdkA.getVersionString(), jdkB.getVersionString())) return true;
+    if (jdkA.getSdkAdditionalData() != jdkB.getSdkAdditionalData()) return true;
+    if (differentRootsOfType(OrderRootType.CLASSES, jdkA, jdkB)) return true;
+    if (differentRootsOfType(OrderRootType.SOURCES, jdkA, jdkB)) return true;
+    return differentRootsOfType(OrderRootType.DOCUMENTATION, jdkA, jdkB);
+  }
+
+  private boolean differentRootsOfType(@NotNull OrderRootType orderRootType, @NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
+    return differentRoots(jdkA.getRoots(orderRootType), jdkB.getRoots(orderRootType));
+  }
+
+  private boolean differentRoots(VirtualFile[] rootsA, VirtualFile[] rootsB) {
+    return !Arrays.equals(rootsA, rootsB);
   }
 
   private class EnvVariableSettings {
