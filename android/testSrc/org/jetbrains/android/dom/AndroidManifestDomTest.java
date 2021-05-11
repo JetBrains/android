@@ -184,6 +184,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
       "    <queries>\n" +
       "        <intent>\n" +
       "            <action android:name=\"android.intent.action.BATTERY_LOW\"/>\n" +
+      "            <category android:name=\"android.intent.category.BROWSABLE\"/>\n" +
       "            <data android:mimeType=\"basic string\"/>\n" +
       "        </intent>\n" +
       "    </queries>\n" +
@@ -229,7 +230,7 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     // Testing Intent subtags
-    assertThat(myFixture.getLookupElementStrings()).containsExactly("data", "action");
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("data", "action", "category");
 
     // Testing Package tag attributes
     AndroidTestUtils.moveCaret(myFixture, "<package |/>");
@@ -240,6 +241,21 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     AndroidTestUtils.moveCaret(myFixture, " <provider |/>");
     myFixture.completeBasic();
     assertThat(myFixture.getLookupElementStrings()).containsExactly("android:authorities");
+  }
+
+  public void testQueriesCategoryNameCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "    <queries>\n" +
+      "        <intent>\n" +
+      "            <category android:name=\"<caret>\"/>\n" +
+      "        </intent>\n" +
+      "    </queries>\n" +
+      "</manifest>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("android.intent.category.BROWSABLE");
   }
 
   public void testUsesFeatureCompletion() {
@@ -514,54 +530,40 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
-  /* b/144507473
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",
                              "android.intent.action.CALL_BUTTON",
                              "android.intent.action.CARRIER_SETUP");
   }
-  */
 
-  /* b/144507473
   public void testIntentActionCompletion2() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml", "android.intent.action.CAMERA_BUTTON",
                              "android.intent.action.NEW_OUTGOING_CALL");
   }
-  */
 
-  /* b/144507473
   public void testIntentActionCompletion3() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion3.xml", "IntentActionCompletion3_after.xml");
   }
-  */
 
-  /* b/144507473
   // Regression test for http://b.android.com/154004
   public void testIntentActionCompletion4() throws Throwable {
     toTestFirstCompletion("IntentActionCompletion4.xml", "IntentActionCompletion4_after.xml");
   }
-  */
 
-  /* b/144507473
   public void testIntentCategoryCompletion1() throws Throwable {
     doTestCompletion(false);
   }
-  */
 
-  /* b/144507473
   public void testIntentCategoryCompletion2() throws Throwable {
     doTestCompletion(false);
   }
-  */
 
-  /* b/144507473
   // Tests for completion of actions outside of set of constants defined in android.intent.Intent
   // Regression test for http://b.android.com/187026
   public void testTelephonyActionCompletion() throws Throwable {
     toTestCompletion("TelephonyActionCompletion.xml", "TelephonyActionCompletion_after.xml");
   }
-  */
 
   // Test support for tools: namespace attribute completion in manifest files,
   // tools:node in this particular case
@@ -632,11 +634,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     }
   }
 
-  /* b/144507473
   public void testIntentsCompletion1() throws Throwable {
     toTestFirstCompletion("intentsCompletion1.xml", "intentsCompletion1_after.xml");
   }
-  */
 
   public void testIntentsCompletion2() throws Throwable {
     doTestCompletion();
