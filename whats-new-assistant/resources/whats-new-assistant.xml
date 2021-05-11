@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="2020.3.01">
+    version="2021.1.01">
   <feature
-      name="What's New in 2020.3.1">
+      name="What's New in 2021.1.01">
     <tutorial
         key="whats-new"
-        label=" What's New in 2020.3.1"
+        label=" What's New in 2021.1.01"
         icon="preview/whats_new_icon.png"
-        remoteLink="https://developer.android.com/studio/preview/features#2020.3.1"
+        remoteLink="https://developer.android.com/studio/preview/features"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,30 +37,11 @@
           from the main menu.
           ]]>
       </description>
-      <step label="Support for Jetpack Compose">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <a href="http://d.android.com/jetpack?utm_source=android-studio-2020-3-1&utm_medium=studio-assistant-preview">Jetpack Compose</a>
-              is a modern toolkit for building native Android UI. The toolkit also brings all of
-              Kotlin's benefits, such as helping you to write concise and idiomatic code that's
-              fully interoperable with Java.
-              <br><br>
-              When using Android Studio to develop your app with Jetpack Compose, you benefit from
-              smart editor features, such as a New Project template, code completion enhancements,
-              and a live preview of your Compose UI.
-              <br><br>
-              <a href="https://developer.android.com/studio/preview/features?utm_source=android-studio-2020-3-1&utm_medium=studio-assistant-preview#jetpack-compose">Learn more</a>
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
       <footerStep label="">
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 11/16/2020</em><br><br>
+              <br><em>Last updated 05/11/2021</em><br><br>
             ]]>
           </section>
         </stepElement>
