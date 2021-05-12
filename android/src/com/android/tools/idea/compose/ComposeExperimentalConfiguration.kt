@@ -31,6 +31,7 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
   class State: BaseState() {
     var isDeployToDeviceEnabled by property(true)
     var isInteractiveEnabled by property(false)
+    var isPreviewPickerEnabled by property(false)
   }
 
   /**
@@ -43,10 +44,7 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
         state.isDeployToDeviceEnabled = value
         // Force update of the actions to hide/show deploy to device icon
         ActivityTracker.getInstance().inc()
-        // Force update of the highlights so the gutter icons are updated
-        ProjectManager.getInstance().openProjects.forEach {
-          DaemonCodeAnalyzer.getInstance(it).restart()
-        }
+        updateGutterIcons()
       }
     }
 
@@ -61,8 +59,27 @@ class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeE
       ActivityTracker.getInstance().inc()
     }
 
+  /**
+   * True if the @Preview picker from the Gutter is enabled.
+   */
+  var isPreviewPickerEnabled
+    get() = state.isPreviewPickerEnabled
+    set(value) {
+      state.isPreviewPickerEnabled = value
+      updateGutterIcons()
+    }
+
   companion object {
     @JvmStatic
     fun getInstance(): ComposeExperimentalConfiguration = ApplicationManager.getApplication().getService(ComposeExperimentalConfiguration::class.java)
+  }
+}
+
+/**
+ * Force update of the highlights so the gutter icons are updated
+ */
+private fun updateGutterIcons() {
+  ProjectManager.getInstance().openProjects.forEach {
+    DaemonCodeAnalyzer.getInstance(it).restart()
   }
 }

@@ -1192,6 +1192,9 @@
     <option name="enable" hit="Enable @Preview deploy to device" />
     <option name="preview" hit="Enable @Preview deploy to device" />
     <option name="to" hit="Enable @Preview deploy to device" />
+    <option name="enable" hit="Enable @Preview picker" />
+    <option name="picker" hit="Enable @Preview picker" />
+    <option name="preview" hit="Enable @Preview picker" />
     <option name="enable" hit="Enable Live Layout Inspector" />
     <option name="inspector" hit="Enable Live Layout Inspector" />
     <option name="layout" hit="Enable Live Layout Inspector" />
@@ -1218,6 +1221,17 @@
     <option name="preview" hit="Live preview to test gestures and inspect animations" />
     <option name="test" hit="Live preview to test gestures and inspect animations" />
     <option name="to" hit="Live preview to test gestures and inspect animations" />
+    <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="for" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="from" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="gutter" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="popup" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="preview" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="the" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="tools" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+    <option name="with" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
     <option name="location" hit="Specified location" />
