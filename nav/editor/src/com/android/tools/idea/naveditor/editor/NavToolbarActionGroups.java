@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +39,10 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
   protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(IssueNotificationAction.getInstance());
-    group.add(ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID));
+    AnAction assistantAction = ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID);
+    if (assistantAction != null) {
+      group.add(assistantAction);
+    }
     return group;
   }
 }
