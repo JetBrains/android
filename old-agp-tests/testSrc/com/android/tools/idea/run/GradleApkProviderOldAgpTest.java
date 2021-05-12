@@ -66,7 +66,7 @@ public class GradleApkProviderOldAgpTest extends GradleApkProviderTestCase {
     // Use a plugin with instant app support
     loadProject(INSTANT_APP, null, null, "3.5.0");
     File apk = mock(File.class);
-    GradleApkProviderTest.PostBuildModelProviderStub outputProvider = new GradleApkProviderTest.PostBuildModelProviderStub();
+    GradleApkProviderTestCase.PostBuildModelProviderStub outputProvider = new GradleApkProviderTestCase.PostBuildModelProviderStub();
     GradleApkProvider provider =
       new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, false);
     outputProvider.setInstantAppProjectBuildOutput(myAndroidFacet, createInstantAppProjectBuildOutputMock("debug", apk));
