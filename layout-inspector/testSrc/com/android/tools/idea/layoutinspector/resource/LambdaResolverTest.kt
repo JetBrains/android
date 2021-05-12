@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -43,39 +43,39 @@ class LambdaResolverTest {
 
   @Test
   fun testFindLambdaLocation() {
-    checkLambda("f1$1", 32, 32, "MyLambdas.kt:32", "{ 1 }")
-    checkLambda("f1$2", 32, 32, "MyLambdas.kt:32", "{ 2 }")
-    checkLambda("f1$3", 32, 32, "MyLambdas.kt:32", "{ f2({ 3 }, { 4 }) }")
-    checkLambda("f1$3$1", 32, 32, "MyLambdas.kt:32", "{ 3 }")
-    checkLambda("f1$3$2", 32, 32, "MyLambdas.kt:32", "{ 4 }")
-    checkLambda("f2$1", 36, 36, "MyLambdas.kt:36", "{ -1 }")
-    checkLambda("$1", 24, 24, "MyLambdas.kt:24", "{ 1 }")
-    checkLambda("$2", 24, 24, "MyLambdas.kt:24", "{ 2 }")
-    checkLambda("$3", 24, 24, "MyLambdas.kt:24", "{ f2({ 3 }, { 4 }) }")
-    checkLambda("$3$1", 24, 24, "MyLambdas.kt:24", "{ 3 }")
-    checkLambda("$3$2", 24, 24, "MyLambdas.kt:24", "{ 4 }")
-    checkLambda("$9$2", 26, 26, "MyLambdas.kt:26", "{ 2 }")
-    checkLambda("l1$1", 3, 3, "MyLambdas.kt:3", "{ it }")
-    checkLambda("l2$1", 6, 7, "MyLambdas.kt:6", """
+    checkLambda("1", 32, 32, 32, "{ 1 }")
+    checkLambda("2", 32, 32, 32, "{ 2 }")
+    checkLambda("3", 32, 32, 32, "{ f2({ 3 }, { 4 }) }")
+    checkLambda("3$1", 32, 32, 32, "{ 3 }")
+    checkLambda("3$2", 32, 32, 32, "{ 4 }")
+    checkLambda("1", 36, 36, 36, "{ -1 }")
+    checkLambda("1", 24, 24, 24, "{ 1 }")
+    checkLambda("2", 24, 24, 24, "{ 2 }")
+    checkLambda("3", 24, 24, 24, "{ f2({ 3 }, { 4 }) }")
+    checkLambda("3$1", 24, 24, 24, "{ 3 }")
+    checkLambda("3$2", 24, 24, 24, "{ 4 }")
+    checkLambda("9$2", 26, 26, 26, "{ 2 }")
+    checkLambda("1", 3, 3, 3, "{ it }")
+    checkLambda("1", 6, 7, 4, """
        { number ->
          // The line numbers from JVMTI of this lambda, starts AFTER this comment...
          number * number
        }
        """.trimIndent())
-    checkLambda("l3$1", 8, 8, "MyLambdas.kt:unknown", null) // A function reference should not be found as a lambda expr
-    checkLambda("i$1", 100, 120, "MyLambdas.kt:unknown", null) // Lambda of inline function (lines are out of range)
+    checkLambda("1", 8, 8, 8, null) // A function reference should not be found as a lambda expr
+    checkLambda("1", 100, 120, 45, null) // Lambda of inline function (lines are out of range)
   }
 
   @Test
   fun testFindFunctionReferenceLocation() {
-    check("l3$1", "f3", 8, 8, "MyLambdas.kt:8", "::f3")
-    check("l4$1", "fx", 21, 21, "MyLambdas.kt:21", "::fx")
-    check("$4", "f3", 25, 25, "MyLambdas.kt:25", "::f3")
-    check("$5", "f4", 25, 25, "MyLambdas.kt:25", "::f4")
-    check("$6$1", "f5", 25, 25, "MyLambdas.kt:25", "::f5")
-    check("$6$2", "f6", 25, 25, "MyLambdas.kt:25", "::f6")
-    check("$8", "f6", 26, 26, "MyLambdas.kt:26", "::f6")
-    check("l1$1", "f1", 3, 3, "MyLambdas.kt:unknown", null) // A lambda expression should not be found as a fct ref
+    check("1", "f3", 8, 8, 8, "::f3")
+    check("1", "fx", 21, 21, 21, "::fx")
+    check("4", "f3", 25, 25, 25, "::f3")
+    check("5", "f4", 25, 25, 25, "::f4")
+    check("1", "f5", 25, 25, 25, "::f5")
+    check("2", "f6", 25, 25, 25, "::f6")
+    check("8", "f6", 26, 26, 26, "::f6")
+    check("1", "f1", 3, 3, 3, null) // A lambda expression should not be found as a fct ref
   }
 
   @Test
@@ -86,22 +86,25 @@ class LambdaResolverTest {
     assertThat(result.navigatable).isNull()
   }
 
-  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedLocation: String, expectedText: String?) =
-    check(lambdaName, functionName = "", startLine, endLine, expectedLocation, expectedText)
+  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedStartLine: Int, expectedText: String?) =
+    check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
 
   private fun check(
     lambdaName: String,
     functionName: String,
     startLine: Int,
     endLine: Int,
-    expectedLocation: String?,
+    expectedStartLine: Int,
     expectedText: String?
   ) {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result = resourceLookup.findLambdaLocation("com.example", "MyLambdas.kt", lambdaName, functionName, startLine, endLine)
-    assertThat(result.source).isEqualTo(expectedLocation)
+    assertThat(result.source).isEqualTo("MyLambdas.kt:$expectedStartLine")
     if (expectedText == null) {
-      assertThat(result.navigatable as? PsiFile).isNotNull()
+      val fileDescriptor = result.navigatable as? OpenFileDescriptor
+      assertThat(fileDescriptor).isNotNull()
+      assertThat(fileDescriptor?.line).isEqualTo(expectedStartLine - 1)
+      assertThat(fileDescriptor?.column).isEqualTo(0)
     }
     else {
       assertThat((result.navigatable as? PsiElement)?.text).isEqualTo(expectedText)
