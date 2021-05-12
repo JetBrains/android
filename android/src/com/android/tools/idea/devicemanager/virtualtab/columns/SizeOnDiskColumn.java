@@ -31,7 +31,7 @@ public final class SizeOnDiskColumn extends AvdColumnInfo {
   private final TableView<AvdInfo> myTable;
 
   public SizeOnDiskColumn(@NotNull TableView<AvdInfo> table) {
-    super("Size on disk");
+    super("Size on Disk");
 
     myDeviceToSizeOnDiskMap = new HashMap<>();
     myTable = table;
