@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslEleme
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -82,6 +83,8 @@ public final class BuildModelContext {
   private final DependencyManager myDependencyManager;
   @Nullable
   private GradleBuildFile myRootProjectFile;
+  @Nullable
+  private GradleVersion agpVersion;
 
   public void setRootProjectFile(@NotNull GradleBuildFile rootProjectFile) {
     myRootProjectFile = rootProjectFile;
@@ -90,6 +93,15 @@ public final class BuildModelContext {
   @Nullable
   public GradleBuildFile getRootProjectFile() {
     return myRootProjectFile;
+  }
+
+  public void setAgpVersion(@Nullable GradleVersion agpVersion) {
+    this.agpVersion = agpVersion;
+  }
+
+  @Nullable
+  public GradleVersion getAgpVersion() {
+    return agpVersion;
   }
 
   @NotNull
