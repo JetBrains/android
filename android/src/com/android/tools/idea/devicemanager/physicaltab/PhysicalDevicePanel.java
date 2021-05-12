@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.devicemanager.Device;
@@ -22,6 +23,8 @@ import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -30,7 +33,9 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.ui.JBDimension;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,8 +45,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JButton;
+import javax.swing.JSeparator;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +60,8 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   private final @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> myNewPhysicalDeviceChangeListener;
 
   private @Nullable AbstractButton myPairUsingWiFiButton;
+  private @Nullable Component mySeparator;
+  private @Nullable AbstractButton myHelpButton;
   private @Nullable JBTable myTable;
 
   @VisibleForTesting
@@ -99,6 +109,8 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     myNewPhysicalDeviceChangeListener = newPhysicalDeviceChangeListener;
 
     initPairUsingWiFiButton();
+    initSeparator();
+    initHelpButton();
     initTable();
     setLayout();
 
@@ -121,6 +133,23 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     myPairUsingWiFiButton.addActionListener(event -> service.createPairingDialogController().showDialog());
   }
 
+  private void initSeparator() {
+    if (myPairUsingWiFiButton == null) {
+      return;
+    }
+
+    Dimension size = new JBDimension(3, 20);
+
+    mySeparator = new JSeparator(SwingConstants.VERTICAL);
+    mySeparator.setPreferredSize(size);
+    mySeparator.setMaximumSize(size);
+  }
+
+  private void initHelpButton() {
+    myHelpButton = new CommonButton(AllIcons.Actions.Help);
+    myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/physical"));
+  }
+
   private void initTable() {
     myTable = new JBTable(new PhysicalDeviceTableModel());
 
@@ -138,21 +167,33 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     Component scrollPane = new JBScrollPane(myTable);
 
     GroupLayout layout = new GroupLayout(this);
-    Group horizontalGroup = layout.createParallelGroup();
+    Group toolbarHorizontalGroup = layout.createSequentialGroup();
 
     if (myPairUsingWiFiButton != null) {
-      horizontalGroup.addComponent(myPairUsingWiFiButton);
+      toolbarHorizontalGroup
+        .addComponent(myPairUsingWiFiButton)
+        .addComponent(mySeparator);
     }
 
-    horizontalGroup.addComponent(scrollPane);
+    toolbarHorizontalGroup.addComponent(myHelpButton);
 
-    Group verticalGroup = layout.createSequentialGroup();
+    Group horizontalGroup = layout.createParallelGroup()
+      .addGroup(toolbarHorizontalGroup)
+      .addComponent(scrollPane);
+
+    Group toolbarVerticalGroup = layout.createParallelGroup(Alignment.CENTER);
 
     if (myPairUsingWiFiButton != null) {
-      verticalGroup.addComponent(myPairUsingWiFiButton);
+      toolbarVerticalGroup
+        .addComponent(myPairUsingWiFiButton)
+        .addComponent(mySeparator);
     }
 
-    verticalGroup.addComponent(scrollPane);
+    toolbarVerticalGroup.addComponent(myHelpButton);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGroup(toolbarVerticalGroup)
+      .addComponent(scrollPane);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
