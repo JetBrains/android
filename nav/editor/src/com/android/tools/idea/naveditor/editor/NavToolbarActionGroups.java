@@ -41,7 +41,10 @@ public class NavToolbarActionGroups extends ToolbarActionGroups {
     addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     // FIXME-ank4: IDEA-247246: add assistant to IDEA
     group.add(IssueNotificationAction.getInstance());
-    group.add(ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID));
+    AnAction assistantAction = ActionManager.getInstance().getAction(NAV_EDITOR_BUNDLE_ID);
+    if (assistantAction != null) {
+      group.add(assistantAction);
+    }
     return group;
   }
 }
