@@ -38,9 +38,9 @@ final class VirtualTableView extends TableView<AvdInfo> {
       .forEach(viewColumnIndex -> {
         int preferredWidth = getPreferredColumnWidth(viewColumnIndex);
         TableColumn column = columnModel.getColumn(viewColumnIndex);
-        column.setPreferredWidth(preferredWidth);
         column.setMinWidth(preferredWidth);
         column.setMaxWidth(preferredWidth);
+        column.setPreferredWidth(preferredWidth);
       });
   }
 
