@@ -42,6 +42,7 @@ import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -53,6 +54,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiPackage;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.EditorTextFieldWithBrowseButton;
 import com.intellij.ui.TextAccessor;
@@ -78,6 +80,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
+  private static final String RETENTION_ENABLE_TOOLTIP = "Enabling this feature instructs virtual devices to capture an Emulator " +
+                                                        "snapshot when a test encounters a Java assertion failure. Snapshots are then " +
+                                                        "available for you to load onto the device from the test results panel.";
+  private static final String RETENTION_ENABLE_URL = "https://developer.android.com/studio/preview/features#automated-test-snapshots";
   private JRadioButton myAllInPackageTestButton;
   private JRadioButton myClassTestButton;
   private JRadioButton myMethodTestButton;
@@ -93,6 +99,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private JCheckBox myCompressSnapshotsCheckBox;
   private TitledSeparator myTestExecutionOptionsSeparator;
   private LabeledComponent myEnableEmulatorSnapshotsComponent;
+  private JBLabel myEmulatorSnapshotsForTestFailuresHelper;
   private ComboBox<EnableRetention> myEnableEmulatorSnapshotItemsComboBox;
 
   private final Project myProject;
@@ -113,6 +120,11 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
 
   private boolean myIncludeGradleExtraParams = true;
   private String myUserModifiedInstrumentationExtraParams = "";
+
+  private void createUIComponents() {
+    myEmulatorSnapshotsForTestFailuresHelper = ContextHelpLabel.createWithLink(null, RETENTION_ENABLE_TOOLTIP, "Learn more",
+                                                                               () -> BrowserUtil.browse(RETENTION_ENABLE_URL));
+  }
 
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
