@@ -52,7 +52,7 @@ public class ConfigureBenchmarkModuleStepFixture<W extends AbstractWizardFixture
 
   @NotNull
   public ConfigureBenchmarkModuleStepFixture<W> selectTargetApplicationModule(@NotNull String targetModuleName) {
-    findComboBoxWithLabel("Target application module").selectItem(targetModuleName);
+    findComboBoxWithLabel("Target application").selectItem(targetModuleName);
     return this;
   }
 
