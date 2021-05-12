@@ -71,12 +71,12 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
   private BufferedImage myDeltaImage;
   private int myPngBytes;
   private int myWebpBytes;
-  private boolean myAllowLossless;
-  private List<WebpConvertedFile> myFiles;
+  private final boolean myAllowLossless;
+  private final List<WebpConvertedFile> myFiles;
   private int myFileIndex;
   private PrevAction myPrevAction;
   private NextAction myNextAction;
-  private MergingUpdateQueue myRenderingQueue;
+  private final MergingUpdateQueue myRenderingQueue;
   private AcceptAllAction myAcceptAll;
 
   WebpPreviewDialog(@NotNull Project project, @NotNull WebpConversionSettings settings, @NotNull List<WebpConvertedFile> files) {
@@ -230,9 +230,8 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     }
   }
 
-  @NotNull
   @Override
-  protected Action[] createActions() {
+  protected @NotNull Action @NotNull [] createActions() {
     myPrevAction = new PrevAction();
     myNextAction = new NextAction();
     myAcceptAll = new AcceptAllAction();
@@ -241,10 +240,10 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
     myNextAction.setEnabled(myFiles.size() > 1);
 
     if (SystemInfo.isMac) {
-      return new Action[]{getCancelAction(), myPrevAction, myNextAction, myAcceptAll};
+      return new Action[] { getCancelAction(), myPrevAction, myNextAction, myAcceptAll };
     }
 
-    return new Action[]{myPrevAction, myNextAction, myAcceptAll, getCancelAction()};
+    return new Action[] { myPrevAction, myNextAction, myAcceptAll, getCancelAction() };
   }
 
   private void updatePreview() {
