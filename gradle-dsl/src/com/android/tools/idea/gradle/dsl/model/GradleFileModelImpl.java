@@ -54,6 +54,12 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
     return myGradleDslFile.getProject();
   }
 
+  @NotNull
+  @Override
+  public BuildModelContext getContext() {
+    return myGradleDslFile.getContext();
+  }
+
   @Override
   public void reparse() {
     myGradleDslFile.reparse();

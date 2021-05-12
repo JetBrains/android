@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import static com.android.tools.idea.gradle.dsl.api.GradleBuildModel.tryOrLog;
 
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -79,6 +80,12 @@ public interface ProjectBuildModel {
   static ProjectBuildModel getOrLog(@NotNull Project project) {
     return tryOrLog(() -> get(project));
   }
+
+  /**
+   * @return the {@link BuildModelContext} associated with this project build model.
+   */
+  @NotNull
+  BuildModelContext getContext();
 
   /**
    * @return the {@link GradleBuildModel} for this projects root build file, null if no file was found.

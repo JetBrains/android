@@ -51,6 +51,11 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
     myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
   }
 
+  @Override
+  @NotNull
+  public BuildModelContext getContext() {
+    return myBuildModelContext;
+  }
 
   @Override
   @Nullable
