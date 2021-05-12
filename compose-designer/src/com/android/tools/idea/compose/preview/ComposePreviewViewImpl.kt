@@ -378,11 +378,16 @@ internal class ComposePreviewViewImpl(private val project: Project,
 
     init(issueErrorSplitter, mainSurface, listOf(), false)
     hideContent()
-    showLoading(when {
-                  projectBuildStatusManager.isBuilding -> message("panel.building")
-                  DumbService.getInstance(project).isDumb -> message("panel.indexing")
-                  else -> message("panel.initializing")
-                })
+    if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
+      showNeedsToBuildErrorPanel()
+    }
+    else {
+      showLoading(when {
+                    projectBuildStatusManager.isBuilding -> message("panel.building")
+                    DumbService.getInstance(project).isDumb -> message("panel.indexing")
+                    else -> message("panel.initializing")
+                  })
+    }
   }
 
   override fun updateProgress(message: String) = UIUtil.invokeLaterIfNeeded {
@@ -436,6 +441,17 @@ internal class ComposePreviewViewImpl(private val project: Project,
   }
 
   /**
+   * Shows an error message saying a successful build is needed and a link to trigger a new build.
+   */
+  private fun showNeedsToBuildErrorPanel() {
+    val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
+    showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
+      psiFilePointer.element?.module?.let { requestBuild(project, it, true) }
+      repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
+    })
+  }
+
+  /**
    * Updates the surface visibility and displays the content or an error message depending on the build state. This method is called after
    * certain updates like a build or a preview refresh has happened.
    * Calling this method will also update the FileEditor notifications.
@@ -443,11 +459,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
   override fun updateVisibilityAndNotifications() = UIUtil.invokeLaterIfNeeded {
     if (isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
       log.debug("Needs successful build")
-      val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
-      showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
-        psiFilePointer.element?.module?.let { requestBuild(project, it, true) }
-        repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
-      })
+      showNeedsToBuildErrorPanel()
     }
     else {
       if (hasRendered) {
