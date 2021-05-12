@@ -1,8 +1,5 @@
 package org.jetbrains.android.uipreview;
 
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
-import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_VIEW_HOLDER;
 import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
@@ -36,7 +33,6 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
@@ -332,17 +328,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
       return super.findClass(name);
     }
     catch (ClassNotFoundException e) {
-      byte[] clazz = null;
-      if (RecyclerViewHelper.CN_CUSTOM_ADAPTER.equals(name)) {
-        clazz = RecyclerViewHelper.getAdapterClass(DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_V7),
-                                                   DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_VIEW_HOLDER),
-                                                   DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_ADAPTER));
-      }
-      if (RecyclerViewHelper.CN_CUSTOM_VIEW_HOLDER.equals(name)) {
-        clazz = RecyclerViewHelper.getViewHolder(DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_V7),
-                                                 DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_VIEW_HOLDER),
-                                                 DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_ADAPTER));
-      }
+      byte[] clazz = RecyclerViewHelper.getAdapterHelperClass(name);
       if (clazz != null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("  Defining RecyclerView helper class");

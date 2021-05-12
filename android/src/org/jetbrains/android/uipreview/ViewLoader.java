@@ -25,15 +25,15 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 import com.android.annotations.NonNull;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
-import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
@@ -129,8 +129,15 @@ public class ViewLoader {
   public Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs) {
     // RecyclerView.Adapter is an abstract class, but its instance is needed for RecyclerView to work correctly. So, when LayoutLib asks for
     // its instance, we define a new class which extends the Adapter class.
-    if (CLASS_RECYCLER_VIEW_ADAPTER.isEquals(className)) {
-      className = RecyclerViewHelper.CN_CUSTOM_ADAPTER;
+    // We check whether the class being loaded is the support or the androidx one and use the appropiate adapter that references to the
+    // right namespace.
+    if (CLASS_RECYCLER_VIEW_ADAPTER.newName().equals(className)) {
+      className = RecyclerViewHelper.CN_ANDROIDX_CUSTOM_ADAPTER;
+      constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
+      constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+    else if (CLASS_RECYCLER_VIEW_ADAPTER.oldName().equals(className)) {
+      className = RecyclerViewHelper.CN_SUPPORT_CUSTOM_ADAPTER;
       constructorSignature = ArrayUtil.EMPTY_CLASS_ARRAY;
       constructorArgs = ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
