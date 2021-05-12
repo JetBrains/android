@@ -45,6 +45,42 @@
         "name": "strict-version-matcher-plugin"
       },
       "configurationCachingCompatibleFrom": "1.2.2"
+    },
+    {
+      "name": "com.google.android.gms.oss-licenses-plugin",
+      "pluginClasses": ["com.google.gms.oss.licenses.plugin.OssLicensesPlugin"],
+      "pluginArtifact": {
+        "group": "com.google.android.gms",
+        "name": "play-services-oss-licenses"
+      },
+      "configurationCachingCompatibleFrom": ""
+    },
+    {
+      "name": "dagger.hilt.android.plugin",
+      "pluginClasses": ["dagger.hilt.android.plugin.HiltGradlePlugin"],
+      "pluginArtifact": {
+        "group": "com.google.dagger",
+        "name": "hilt-android-gradle-plugin"
+      },
+      "configurationCachingCompatibleFrom": "2.33-beta"
+    },
+    {
+      "name": "androidx.navigation.safeargs",
+      "pluginClasses": ["androidx.navigation.safeargs.gradle."],
+      "pluginArtifact": {
+        "group": "androidx.navigation",
+        "name": "navigation-safe-args-gradle-plugin"
+      },
+      "configurationCachingCompatibleFrom": "2.3.1"
     }
-  ]
+  ],
+  "pluginEntryTemplate": {
+    "name": "",
+    "pluginClasses": [""],
+    "pluginArtifact": {
+      "group": "",
+      "name": ""
+    },
+    "configurationCachingCompatibleFrom": ""
+  }
 }
