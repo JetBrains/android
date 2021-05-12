@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -27,6 +28,9 @@ import org.jetbrains.annotations.Nullable;
 public interface GradleFileModel extends GradleDslModel {
   @NotNull
   Project getProject();
+
+  @NotNull
+  BuildModelContext getContext();
 
   void reparse();
 

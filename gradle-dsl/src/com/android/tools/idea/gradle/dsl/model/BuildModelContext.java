@@ -54,7 +54,8 @@ import org.jetbrains.annotations.SystemIndependent;
  * A context object used to hold information relevant to each unique instance of the project/build model.
  * This means there is one {@link BuildModelContext} for each call to the following methods,
  * {@link GradleBuildModel#parseBuildFile(VirtualFile, Project)}, {@link GradleBuildModel#get(Module)}
- * and {@link ProjectBuildModel#get(Project)}. This can be accessed from each of the {@link GradleDslFile}s.
+ * and {@link ProjectBuildModel#get(Project)}. This can be accessed from each of the {@link GradleDslFile}s
+ * and their associated models.
  */
 public final class BuildModelContext {
 

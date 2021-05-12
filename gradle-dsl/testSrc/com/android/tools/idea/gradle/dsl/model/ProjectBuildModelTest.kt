@@ -342,6 +342,19 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     assertEquals(listOf(1 to null, 2 to null, 3 to 4, 4 to 4), args)
   }
 
+  @Test
+  fun testGetContext() {
+    val pbm = projectBuildModel
+    val settingsModel = pbm.projectSettingsModel!!
+    val buildModel = pbm.projectBuildModel!!
+
+    assertEquals(pbm.context, settingsModel.context)
+    assertEquals(pbm.context, buildModel.context)
+    buildModel.involvedFiles.forEach {
+      assertEquals(pbm.context, it.context)
+    }
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
