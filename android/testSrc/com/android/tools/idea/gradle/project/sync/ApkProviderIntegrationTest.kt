@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.GradleApkProvider
+import com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
+import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -42,34 +46,243 @@ class ApkProviderIntegrationTest : GradleIntegrationTest {
   @get:Rule
   var testName = TestName()
 
+  private val device = mockDeviceFor(30, listOf(Abi.X86_64, Abi.X86))
+
   @Test
   fun `APPLICATION_ID_SUFFIX before build`() {
     prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
     openPreparedProject("project") { project ->
       val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-      // Testing through GradleApkProvider to avoid stubbing of IDevice.
-      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration) as GradleApkProvider
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
 
-      val apks = runCatching { apkProvider.getApks(listOf(Abi.X86_64.toString(), Abi.X86.toString()), AndroidVersion(30)) }
+      val apks = runCatching { apkProvider.getApks(device) }
       assertThat(apks.exceptionOrNull()).isInstanceOf(ApkProvisionException::class.java)
     }
   }
 
   @Test
-  fun `APPLICATION_ID_SUFFIX after build`() {
+  fun `APPLICATION_ID_SUFFIX run configuration`() {
     prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
     openPreparedProject("project") { project ->
-      val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-      runConfiguration.executeMakeBeforeRunStepInTest()
-      // Testing through GradleApkProvider to avoid stubbing of IDevice.
-      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration) as GradleApkProvider
+      val runConfiguration = runReadAction {
+        RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
 
-      val apks = runCatching { apkProvider.getApks(listOf(Abi.X86_64.toString(), Abi.X86.toString()), AndroidVersion(30)) }
+      val apks = runCatching { apkProvider.getApks(device) }
       assertThat(apks.toTestString()).isEqualTo("""
         ApplicationId: one.name.debug
         File: project/app/build/outputs/apk/debug/app-debug.apk
-        Files: Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
+        Files:
+          Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
         RequiredInstallationOptions: []""".trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `SIMPLE_APPLICATION test run configuration`() {
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        createAndroidTestConfigurationFromClass(project, "google.simpleapplication.ApplicationTest")!!
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.simpleapplication
+        File: project/app/build/outputs/apk/debug/app-debug.apk
+        Files:
+          project.app -> project/app/build/outputs/apk/debug/app-debug.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: google.simpleapplication.test
+        File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        Files:
+           -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `TEST_ONLY_MODULE test run configuration`() {
+    prepareGradleProject(TestProjectPaths.TEST_ONLY_MODULE, "project")
+
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        createAndroidTestConfigurationFromClass(project, "com.example.android.app.ExampleTest")!!
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: com.example.android.app
+        File: project/app/build/outputs/apk/debug/app-debug.apk
+        Files:
+           -> project/app/build/outputs/apk/debug/app-debug.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: com.example.android.app.testmodule
+        File: project/test/build/outputs/apk/debug/test-debug.apk
+        Files:
+          project.test -> project/test/build/outputs/apk/debug/test-debug.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `DYNAMIC_APP run configuration`() {
+    prepareGradleProject(TestProjectPaths.DYNAMIC_APP, "project")
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.simpleapplication
+        File: *>java.lang.IllegalArgumentException
+        Files:
+          simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
+          simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
+          simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `DYNAMIC_APP test run configuration`() {
+    prepareGradleProject(TestProjectPaths.DYNAMIC_APP, "project")
+
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        createAndroidTestConfigurationFromClass(project, "google.simpleapplication.ApplicationTest")!!
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.simpleapplication
+        File: *>java.lang.IllegalArgumentException
+        Files:
+          simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
+          simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
+          simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: google.simpleapplication.test
+        File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        Files:
+           -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `DYNAMIC_APP feature test run configuration`() {
+    prepareGradleProject(TestProjectPaths.DYNAMIC_APP, "project")
+
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        createAndroidTestConfigurationFromClass(project, "com.example.instantapp.ExampleInstrumentedTest")!!
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.simpleapplication
+        File: *>java.lang.IllegalArgumentException
+        Files:
+          base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+          base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: com.example.feature1.test
+        File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+        Files:
+           -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `BUDDY_APKS test run configuration`() {
+    prepareGradleProject(TestProjectPaths.BUDDY_APKS, "project")
+
+    openPreparedProject("project") { project ->
+      val runConfiguration = runReadAction {
+        createAndroidTestConfigurationFromClass(project, "google.testapplication.ApplicationTest")!!
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.testapplication
+        File: project/app/build/outputs/apk/debug/app-debug.apk
+        Files:
+          project.app -> project/app/build/outputs/apk/debug/app-debug.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: google.testapplication.test
+        File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        Files:
+           -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+        RequiredInstallationOptions: []
+
+        ApplicationId: com.linkedin.android.testbutler
+        File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
+        Files:
+           -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
+        RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
+      """.trimIndent())
+      assertThat(apkProvider.validate()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `SIMPLE_APPLICATION validate release`() {
+    prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
+
+    openPreparedProject("project") { project ->
+      switchVariant(project, ":app", "release")
+      val runConfiguration = runReadAction {
+        RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
+      }
+      runConfiguration.executeMakeBeforeRunStepInTest(device)
+      val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
+
+      assertThat(apkProvider.validate().joinToString { it.message })
+        .isEqualTo("The apk for your currently selected variant (app-release-unsigned.apk) is not signed." +
+                   " Please specify a signing configuration for this variant (release).")
+
+      val apks = runCatching { apkProvider.getApks(device) }
+      assertThat(apks.toTestString()).isEqualTo("""
+        ApplicationId: google.simpleapplication
+        File: project/app/build/outputs/apk/release/app-release-unsigned.apk
+        Files:
+          project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
+        RequiredInstallationOptions: []
+      """.trimIndent())
     }
   }
 
@@ -78,13 +291,30 @@ class ApkProviderIntegrationTest : GradleIntegrationTest {
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 
-  private fun ApkInfo.toTestString() = """
-    ApplicationId: ${this.applicationId}
-    File: ${this.file.relativeTo(File(getBaseTestPath()))}
-    Files: ${this.files.joinToString("\n      ") { "${it.moduleName} -> ${it.apkFile.relativeTo(File(getBaseTestPath()))}" }}
-    RequiredInstallationOptions: ${this.requiredInstallOptions}""".trimIndent()
+  private val m2Dirs by lazy {
+    (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths() +
+     TestUtils.getPrebuiltOfflineMavenRepo().toFile())
+      .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
+  }
 
-  private fun List<ApkInfo>.toTestString() = joinToString("\n\n") { it.toTestString() }
+  private fun File.toTestString(): String {
+    val m2Root = m2Dirs.find { path.startsWith(it.path) }
+    return if (m2Root != null) "<M2>/${relativeTo(m2Root).path}" else relativeTo(File(getBaseTestPath())).path
+  }
 
-  private fun Result<List<ApkInfo>>.toTestString() = getOrNull()?.toTestString() ?: exceptionOrNull()?.message.orEmpty()
+  private fun ApkInfo.toTestString(): String {
+    val filesString = files
+      .sortedBy { it.apkFile.toTestString() }
+      .joinToString("\n        ") { "${it.moduleName} -> ${it.apkFile.toTestString()}" }
+    return """
+      ApplicationId: ${this.applicationId}
+      File: ${runCatching { file.toTestString() }.let { it.getOrNull() ?: "*>${it.exceptionOrNull()}" }}
+      Files:
+        $filesString
+      RequiredInstallationOptions: ${this.requiredInstallOptions}""".trimIndent()
+  }
+
+  private fun Collection<ApkInfo>.toTestString() = joinToString("\n\n") { it.toTestString() }
+
+  private fun Result<Collection<ApkInfo>>.toTestString() = getOrNull()?.toTestString() ?: exceptionOrNull()?.message.orEmpty()
 }
