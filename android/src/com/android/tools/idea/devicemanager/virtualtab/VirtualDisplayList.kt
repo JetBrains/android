@@ -31,11 +31,11 @@ import com.android.tools.idea.avdmanager.DeleteAvdAction
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.EditAvdAction
 import com.android.tools.idea.avdmanager.RunAvdAction
-import com.android.tools.idea.avdmanager.SizeOnDiskColumn
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
+import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets
 import com.google.common.util.concurrent.FutureCallback
@@ -319,8 +319,6 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
         }
       },
 
-      // TODO (b/171512149): add parameter
-      //SizeOnDiskColumn(table, JBUI.scale(30)),
       SizeOnDiskColumn(table),
 
       AvdActionsColumnInfo("Actions", 3, this)
