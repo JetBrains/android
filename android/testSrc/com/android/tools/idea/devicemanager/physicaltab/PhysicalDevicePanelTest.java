@@ -80,7 +80,7 @@ public final class PhysicalDevicePanelTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     mySupplier = Mockito.mock(PhysicalDeviceAsyncSupplier.class);

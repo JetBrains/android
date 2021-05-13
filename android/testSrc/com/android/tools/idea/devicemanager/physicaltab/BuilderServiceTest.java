@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.Futures;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.EnumSet;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +67,7 @@ public final class BuilderServiceTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     assertEquals(device, future.get(256, TimeUnit.MILLISECONDS));
@@ -93,6 +94,6 @@ public final class BuilderServiceTest {
     Future<PhysicalDevice> future = myService.build(myDevice);
 
     // Assert
-    assertEquals(ConnectionType.WI_FI, future.get(256, TimeUnit.MILLISECONDS).getConnectionType());
+    assertEquals(EnumSet.of(ConnectionType.WI_FI), future.get(256, TimeUnit.MILLISECONDS).getConnectionTypes());
   }
 }

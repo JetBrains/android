@@ -23,7 +23,7 @@ public final class TestPhysicalDevices {
     .setName("Google Pixel 3")
     .setTarget("Android 12 Preview")
     .setApi("S")
-    .setConnectionType(ConnectionType.USB)
+    .addConnectionType(ConnectionType.USB)
     .build();
 
   public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
@@ -31,7 +31,7 @@ public final class TestPhysicalDevices {
     .setName("Google Pixel 5")
     .setTarget("Android 11.0")
     .setApi("30")
-    .setConnectionType(ConnectionType.USB)
+    .addConnectionType(ConnectionType.USB)
     .build();
 
   private TestPhysicalDevices() {

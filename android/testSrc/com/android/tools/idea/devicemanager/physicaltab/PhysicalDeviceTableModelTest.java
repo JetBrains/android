@@ -45,7 +45,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, onlinePixel5);
@@ -71,7 +71,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     // Act
@@ -97,7 +97,7 @@ public final class PhysicalDeviceTableModelTest {
       .setOnline(true)
       .setTarget("Android 11.0")
       .setApi("30")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     // Act
