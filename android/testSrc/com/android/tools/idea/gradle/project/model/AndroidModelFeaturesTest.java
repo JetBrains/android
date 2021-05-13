@@ -30,7 +30,6 @@ public class AndroidModelFeaturesTest {
   @Test
   public void withoutPluginVersion() {
     AndroidModelFeatures features = new AndroidModelFeatures(null);
-    assertTrue(features.isShadersSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
@@ -40,7 +39,6 @@ public class AndroidModelFeaturesTest {
   public void withPluginVersion3_1_0() {
     GradleVersion version = GradleVersion.parse("3.1.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isShadersSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -51,7 +49,6 @@ public class AndroidModelFeaturesTest {
   public void withPluginVersion3_2_0() {
     GradleVersion version = GradleVersion.parse("3.2.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isShadersSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -62,7 +59,6 @@ public class AndroidModelFeaturesTest {
   public void withPluginVersion3_3_0() {
     GradleVersion version = GradleVersion.parse("3.3.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isShadersSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -73,7 +69,6 @@ public class AndroidModelFeaturesTest {
   public void withPluginVersion4_0_0() {
     GradleVersion version = GradleVersion.parse("4.0.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isShadersSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -84,7 +79,6 @@ public class AndroidModelFeaturesTest {
   public void withPluginVersion4_1_0() {
     GradleVersion version = GradleVersion.parse("4.1.0");
     AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isShadersSupported());
     assertFalse(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());

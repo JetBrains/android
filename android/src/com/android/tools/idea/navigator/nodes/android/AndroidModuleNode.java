@@ -112,7 +112,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
-        if (androidModuleModel == null || !androidModuleModel.getFeatures().isShadersSupported()) {
+        if (androidModuleModel == null) {
           continue;
         }
       }
@@ -152,7 +152,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
     Set<VirtualFile> allSources = new HashSet<>();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      if (sourceType == AndroidSourceType.SHADERS && (androidModel == null || !androidModel.getFeatures().isShadersSupported())) {
+      if (sourceType == AndroidSourceType.SHADERS && (androidModel == null)) {
         continue;
       }
       Set<VirtualFile> sources;
