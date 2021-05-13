@@ -32,7 +32,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(null);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isBuildOutputFileSupported());
@@ -44,7 +43,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -57,7 +55,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -70,7 +67,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -83,7 +79,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
@@ -96,7 +91,6 @@ public class AndroidModelFeaturesTest {
     AndroidModelFeatures features = new AndroidModelFeatures(version);
     assertTrue(features.isShadersSupported());
     assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isExternalBuildSupported());
     assertFalse(features.isPostBuildSyncSupported());
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
