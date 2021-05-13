@@ -29,8 +29,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   SyncPerfTestSuite.class,               // a suite mustn't contain itself
-  AbstractGradleSyncPerfTestCase.class,  // Abstract class
-  AbstractGradleSyncSmokeTestCase.class, // Abstract class
 })
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
