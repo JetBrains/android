@@ -28,7 +28,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import icons.StudioIcons;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -110,9 +109,7 @@ public final class PhysicalDevicePanelTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
-
-    Object data = Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE));
-    assertEquals(data, myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", ConnectionType.USB, Actions.INSTANCE)), myPanel.getData());
   }
 
   @Test
@@ -133,8 +130,8 @@ public final class PhysicalDevicePanelTest {
 
     // @formatter:off
     Object data = Arrays.asList(
-      Arrays.asList(myOnlinePixel3,                     "S",  StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE),
-      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", StudioIcons.Common.CIRCLE_GREEN, Actions.INSTANCE));
+      Arrays.asList(myOnlinePixel3,                     "S",  ConnectionType.USB, Actions.INSTANCE),
+      Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", ConnectionType.USB, Actions.INSTANCE));
     // @formatter:on
 
     assertEquals(data, myPanel.getData());

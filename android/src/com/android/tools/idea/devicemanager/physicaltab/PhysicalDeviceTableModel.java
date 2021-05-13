@@ -17,13 +17,9 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
-import com.google.common.annotations.VisibleForTesting;
-import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.Icon;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,10 +27,7 @@ import org.jetbrains.annotations.NotNull;
 final class PhysicalDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
   private static final int API_MODEL_COLUMN_INDEX = 1;
-
-  @VisibleForTesting
-  static final int TYPE_MODEL_COLUMN_INDEX = 2;
-
+  private static final int TYPE_MODEL_COLUMN_INDEX = 2;
   private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
   private final @NotNull List<@NotNull PhysicalDevice> myDevices;
@@ -109,9 +102,8 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case API_MODEL_COLUMN_INDEX:
-        return Object.class;
       case TYPE_MODEL_COLUMN_INDEX:
-        return Icon.class;
+        return Object.class;
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.class;
       default:
@@ -132,23 +124,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return getIcon(myDevices.get(modelRowIndex).getConnectionType());
+        return myDevices.get(modelRowIndex).getConnectionType();
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.INSTANCE;
       default:
         throw new AssertionError(modelColumnIndex);
-    }
-  }
-
-  private static @NotNull Icon getIcon(@NotNull ConnectionType type) {
-    // TODO These are placeholder icons. Replace them with the real ones.
-    switch (type) {
-      case USB:
-        return StudioIcons.Common.CIRCLE_GREEN;
-      case WI_FI:
-        return StudioIcons.Common.CIRCLE_RED;
-      default:
-        throw new AssertionError(type);
     }
   }
 }
