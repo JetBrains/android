@@ -54,10 +54,6 @@ public class AndroidModelFeatures {
     return true;
   }
 
-  public boolean isExternalBuildSupported() {
-    return true;
-  }
-
   public boolean isPostBuildSyncSupported() {
     return myPostBuildSyncSupported;
   }

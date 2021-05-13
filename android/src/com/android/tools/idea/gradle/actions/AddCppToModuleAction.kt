@@ -111,7 +111,7 @@ class AddCppToModuleAction : AndroidStudioGradleAction(TITLE, DESCRIPTION, null)
   private val Module.canAddCppToIt: Boolean
     get() {
       val androidModuleModel = AndroidModuleModel.get(this)
-      if (androidModuleModel == null || !androidModuleModel.features.isExternalBuildSupported) {
+      if (androidModuleModel == null) {
         // Not Android module or it's too old.
         return false
       }
