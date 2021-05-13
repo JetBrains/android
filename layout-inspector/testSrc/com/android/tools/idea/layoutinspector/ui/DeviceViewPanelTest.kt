@@ -27,6 +27,7 @@ import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.appinspection.test.TestProcessNotifier
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -48,13 +49,10 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.transport.TransportInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
-import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
@@ -72,6 +70,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
 import org.junit.Ignore
@@ -89,17 +88,19 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JViewport
 
+private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
-  private val transportRule = TransportInspectorRule()
-  private val inspectorRule = LayoutInspectorRule(transportRule.createClientProvider())
+  private val appInspectorRule = AppInspectionInspectorRule()
+  private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider())  { listOf(MODERN_PROCESS.name) }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(transportRule).around(inspectorRule).around(EdtRule())!!
+  val ruleChain = RuleChain.outerRule(appInspectorRule).around(inspectorRule).around(EdtRule())!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
-  private val commands = mutableListOf<Type>()
+  private val commands = mutableListOf<LayoutInspectorViewProtocol.Command>()
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
@@ -135,7 +136,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
     installCommandHandlers()
     latch = CountDownLatch(1)
-    connect(MODERN_DEVICE.createProcess())
+    connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
     val settings = DeviceViewSettings()
@@ -148,7 +149,8 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(getPresentation(toggle).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).containsExactly(Type.START)
+    assertThat(commands).hasSize(1)
+    assertThat(commands[0].hasStartFetchCommand()).isTrue()
   }
 
   @Test
@@ -156,7 +158,7 @@ class DeviceViewPanelWithFullInspectorTest {
     InspectorClientSettings.isCapturingModeOn = false
     installCommandHandlers()
     latch = CountDownLatch(1)
-    connect(MODERN_DEVICE.createProcess())
+    connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -168,7 +170,8 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(getPresentation(toggle).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).containsExactly(Type.REFRESH)
+    assertThat(commands).hasSize(1)
+    assertThat(commands[0].startFetchCommand.continuous).isFalse()
   }
 
   @Test
@@ -226,11 +229,12 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testTurnOnSnapshotMode() {
     val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
-    latch = CountDownLatch(2)
+    latch = CountDownLatch(1)
 
     installCommandHandlers()
-    connect(MODERN_DEVICE.createProcess())
-
+    connect(MODERN_PROCESS)
+    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+    latch = CountDownLatch(2)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
@@ -245,7 +249,10 @@ class DeviceViewPanelWithFullInspectorTest {
       "impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).containsExactly(Type.START, Type.STOP).inOrder()
+    assertThat(commands).hasSize(3)
+    assertThat(commands[0].hasStartFetchCommand()).isTrue()
+    assertThat(commands[1].hasStopFetchCommand()).isTrue()
+    assertThat(commands[2].updateScreenshotTypeCommand.type).isEqualTo(LayoutInspectorViewProtocol.Screenshot.Type.SKP)
     assertThat(stats.currentModeIsLive).isFalse()
   }
 
@@ -253,11 +260,13 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testTurnOnLiveMode() {
     val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
-    latch = CountDownLatch(2)
+    latch = CountDownLatch(1)
 
     installCommandHandlers()
     InspectorClientSettings.isCapturingModeOn = false
-    connect(MODERN_DEVICE.createProcess())
+    connect(MODERN_PROCESS)
+    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+    latch = CountDownLatch(1)
 
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(
@@ -275,7 +284,10 @@ class DeviceViewPanelWithFullInspectorTest {
       " impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).containsExactly(Type.REFRESH, Type.START).inOrder()
+    assertThat(commands).hasSize(2)
+    assertThat(commands[0].startFetchCommand.continuous).isFalse()
+    assertThat(commands[1].startFetchCommand.continuous).isTrue()
+
     assertThat(stats.currentModeIsLive).isTrue()
   }
 
@@ -290,7 +302,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting, loading should show
-    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess()
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     assertThat(contentPanel.showEmptyText).isFalse()
@@ -306,7 +318,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(contentPanel.showEmptyText).isTrue()
 
     // Start connecting again, loading should show
-    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(pid = 2)
+    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId, pid = 2)
 
     waitForCondition(1, TimeUnit.SECONDS) { loadingPane.isLoading }
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
@@ -321,20 +333,14 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   private fun installCommandHandlers() {
-    for (type in Type.values()) {
-      transportRule.addCommandHandler(type, ::saveCommand)
+    appInspectorRule.viewInspector.listenWhen({ true }) { command ->
+      latch?.countDown()
+      commands.add(command)
     }
   }
 
-  @Suppress("UNUSED_PARAMETER")
-  private fun saveCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-    latch?.countDown()
-    commands.add(command.layoutInspector.type)
-  }
-
   private fun connect(process: ProcessDescriptor) {
-    inspectorRule.processes.selectedProcess = process
-    transportRule.scheduler.advanceBy(1100, TimeUnit.MILLISECONDS)
+    inspectorRule.processNotifier.fireConnected(process)
   }
 }
 
@@ -604,7 +610,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
 
   @Test
   fun testLiveControlDisabledWithProcessFromModernDevice() {
-    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess()
+    inspectorRule.processes.selectedProcess = MODERN_PROCESS
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
     val settings = DeviceViewSettings()
