@@ -75,7 +75,6 @@ iml_module(
         ":testData",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/tools/common/kotlin-plugin:kotlinc-files",
         "//tools/adt/idea/android/annotations",
     ],
     test_srcs = [

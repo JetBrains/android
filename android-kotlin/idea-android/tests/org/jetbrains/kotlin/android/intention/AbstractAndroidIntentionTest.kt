@@ -17,13 +17,13 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
 
 
@@ -38,10 +38,9 @@ abstract class AbstractAndroidIntentionTest : KotlinAndroidTestCase() {
         val checkManifest = InTextDirectivesUtils.isDirectiveDefined(testFileText, "// CHECK_MANIFEST")
 
         try {
-            val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
-            val compilerLib = "$kotlinPlugin/kotlinc/lib"
-            ConfigLibraryUtil.addLibrary(myModule, "parcelizeCompiler", compilerLib, arrayOf("parcelize-compiler.jar"))
-            ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))
+            val kotlinPaths = ConfigLibraryUtil.kotlinPaths
+            ConfigLibraryUtil.addLibrary(myModule, "parcelizeCompiler", kotlinPaths.basePath.resolve("parcelize-compiler.jar"))
+            ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", kotlinPaths.jar(KotlinPaths.Jar.StdLib))
 
             if (withRuntime) {
                 ConfigLibraryUtil.configureKotlinRuntime(myFixture.module)

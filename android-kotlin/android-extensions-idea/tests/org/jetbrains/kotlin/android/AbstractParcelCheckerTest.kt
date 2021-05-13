@@ -16,16 +16,13 @@
 
 package org.jetbrains.kotlin.android
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
-import org.jetbrains.kotlin.android.ConfigLibraryUtil
-import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
 
 abstract class AbstractParcelCheckerTest : KotlinAndroidTestCase() {
     override fun setUp() {
         super.setUp()
-        val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
-        ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", "$kotlinPlugin/kotlinc/lib", arrayOf(PathUtil.KOTLIN_JAVA_STDLIB_JAR))
+        ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", ConfigLibraryUtil.kotlinPaths.jar(KotlinPaths.Jar.StdLib))
     }
 
     override fun tearDown() {

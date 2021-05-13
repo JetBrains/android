@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.android
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.roots.ContentEntry
@@ -25,16 +24,12 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.NewLibraryEditor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightProjectDescriptor
-import org.jetbrains.kotlin.android.ConfigLibraryUtil
-import java.io.File
+import org.jetbrains.kotlin.utils.KotlinPaths
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).
 open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
 
   companion object {
-    private const val LIBRARY_NAME = "myLibrary"
-    private val KOTLIN_PLUGIN = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin").toFile()
-    private val KOTLIN_STDLIB = File(KOTLIN_PLUGIN, "kotlinc/lib/kotlin-stdlib.jar")
     val INSTANCE = KotlinLightProjectDescriptor()
   }
 
@@ -42,8 +37,9 @@ open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
     val editor = NewLibraryEditor()
-    editor.name = LIBRARY_NAME
-    editor.addRoot(VfsUtil.getUrlForLibraryRoot(KOTLIN_STDLIB), OrderRootType.CLASSES)
+    editor.name = "kotlin-stdlib"
+    val stdlibUrl = VfsUtil.getUrlForLibraryRoot(ConfigLibraryUtil.kotlinPaths.jar(KotlinPaths.Jar.StdLib))
+    editor.addRoot(stdlibUrl, OrderRootType.CLASSES)
     ConfigLibraryUtil.addLibrary(editor, model)
   }
 }
