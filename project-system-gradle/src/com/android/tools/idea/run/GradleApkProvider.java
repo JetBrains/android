@@ -216,9 +216,7 @@ public class GradleApkProvider implements ApkProvider {
 
       if (myTest) {
         if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-          if (androidModel.getFeatures().isTestedTargetVariantsSupported()) {
-            apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
-          }
+          apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
         }
         else {
           IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
