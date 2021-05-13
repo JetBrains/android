@@ -18,6 +18,7 @@ package com.android.tools.idea.help
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.ide.browsers.WebBrowser
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.help.HelpManager
 import com.intellij.openapi.help.WebHelpProvider
@@ -50,8 +51,9 @@ class AndroidStudioHelpTest : AndroidTestCase() {
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, TestBrowserLauncher, testRootDisposable)
     HelpManager.getInstance().invokeHelp(null)
 
+    val version = "${ApplicationInfo.getInstance().majorVersion}.${ApplicationInfo.getInstance().minorVersion}"
     assertThat(TestBrowserLauncher.lastUrl)
-      .isEqualTo("https://www.jetbrains.com/idea/webhelp/2020.3/?top")
+      .isEqualTo("https://www.jetbrains.com/idea/webhelp/$version/?top")
   }
 
   object TestBrowserLauncher : BrowserLauncher() {
