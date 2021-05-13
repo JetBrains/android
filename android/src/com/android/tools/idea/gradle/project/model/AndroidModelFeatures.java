@@ -50,10 +50,6 @@ public class AndroidModelFeatures {
     return true;
   }
 
-  public boolean isTestedTargetVariantsSupported() {
-    return true;
-  }
-
   public boolean isPostBuildSyncSupported() {
     return myPostBuildSyncSupported;
   }

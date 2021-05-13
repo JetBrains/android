@@ -277,7 +277,6 @@ public class GradleTaskFinder {
     AndroidModuleModel testAndroidModel = AndroidModuleModel.get(testOnlyModule);
 
     if (testAndroidModel == null ||
-        !testAndroidModel.getFeatures().isTestedTargetVariantsSupported() ||
         testAndroidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       // If we don't have the target module and variant to be tested, no task should be added.
       return;
