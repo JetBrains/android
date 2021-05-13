@@ -16,14 +16,13 @@
 
 package org.jetbrains.kotlin.android.lint
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
-import com.intellij.util.PathUtil
-import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.utils.KotlinPaths
 import java.io.File
 
 abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
@@ -32,10 +31,9 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
         super.setUp()
         (myFixture as CodeInsightTestFixtureImpl).setVirtualFileFilter { false } // Allow access to tree elements.
 
-        val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
-        val compilerLib = "$kotlinPlugin/kotlinc/lib"
-        ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", compilerLib, arrayOf("android-extensions-runtime.jar"))
-        ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", compilerLib, arrayOf("kotlin-stdlib.jar"))
+        val kotlinPaths = ConfigLibraryUtil.kotlinPaths
+        ConfigLibraryUtil.addLibrary(myModule, "kotlinStdlib", kotlinPaths.jar(KotlinPaths.Jar.StdLib))
+        ConfigLibraryUtil.addLibrary(myModule, "androidExtensionsRuntime", kotlinPaths.basePath.resolve("android-extensions-runtime.jar"))
     }
 
     override fun tearDown() {
@@ -73,12 +71,12 @@ abstract class AbstractKotlinLintTest : KotlinAndroidTestCase() {
             }
         }
 
-        val virtualFile = myFixture.copyFileToProject(ktFile.absolutePath, "src/${PathUtil.getFileName(path)}")
+        val virtualFile = myFixture.copyFileToProject(ktFile.absolutePath, "src/${com.intellij.util.PathUtil.getFileName(path)}")
         myFixture.configureFromExistingVirtualFile(virtualFile)
 
         dependencies.forEach { dependency ->
             val (dependencyFile, dependencyTargetPath) = dependency.split(" -> ").map(String::trim)
-            myFixture.copyFileToProject("${PathUtil.getParentPath(path)}/$dependencyFile", "src/$dependencyTargetPath")
+            myFixture.copyFileToProject("${com.intellij.util.PathUtil.getParentPath(path)}/$dependencyFile", "src/$dependencyTargetPath")
         }
 
         myFixture.checkHighlighting(true, false, true)

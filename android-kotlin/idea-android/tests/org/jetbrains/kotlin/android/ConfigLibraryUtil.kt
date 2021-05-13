@@ -25,9 +25,9 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.roots.libraries.PersistentLibraryKind
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.NewLibraryEditor
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
+import org.jetbrains.kotlin.utils.KotlinPathsFromHomeDir
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 
@@ -123,21 +123,22 @@ object ConfigLibraryUtil {
     }
   }
 
-  fun addLibrary(module: Module, libraryName: String, rootPath: String?, jarPaths: Array<String>) {
+  fun addLibrary(module: Module, libraryName: String, vararg jarFiles: File) {
     val editor = NewLibraryEditor()
     editor.name = libraryName
-    for (jarPath in jarPaths) {
-      val jarFile = rootPath?.let {
-        File(rootPath, jarPath).takeIf { it.exists() }
-        ?: FileUtil.findFilesByMask(jarPath.toPattern(), File(rootPath)).firstOrNull()
-      } ?: File(jarPath)
-
-      require(jarFile.exists()) {
-        "Cannot configure library with given path, file doesn't exists $jarPath"
-      }
+    for (jarFile in jarFiles) {
+      require(jarFile.exists()) { "Cannot configure library with given path, file doesn't exists $jarFile" }
       editor.addRoot(VfsUtil.getUrlForLibraryRoot(jarFile), OrderRootType.CLASSES)
     }
-
     addLibrary(editor, module)
+  }
+
+  val kotlinPaths = run {
+    // Ideally we could just use PathUtil.kotlinPathsForIdeaPlugin, but that does not work for us
+    // because our directory layout during tests is different than that of the Kotlin dev setup.
+    // So we have to compute the path ourselves, copying parts of PathUtil.compilerPathForIdeaPlugin.
+    val kotlinPluginHome = PathUtil.pathUtilJar.parentFile.parentFile
+    val kotlinCompilerHome = File(kotlinPluginHome, PathUtil.HOME_FOLDER_NAME)
+    KotlinPathsFromHomeDir(kotlinCompilerHome)
   }
 }

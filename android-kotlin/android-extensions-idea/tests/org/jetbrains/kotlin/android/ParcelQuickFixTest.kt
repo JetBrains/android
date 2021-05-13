@@ -16,9 +16,7 @@
 package org.jetbrains.kotlin.android
 
 import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.resolveWorkspacePath
 import org.jetbrains.kotlin.android.quickfix.AbstractAndroidQuickFixMultiFileTest
-import org.jetbrains.kotlin.android.ConfigLibraryUtil
 
 abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
 
@@ -31,10 +29,10 @@ abstract class ParcelQuickFixTest : AbstractAndroidQuickFixMultiFileTest() {
 
     val androidSdk = getSdk()
     val androidJarDir = androidSdk.resolve("platforms").toFile().listFiles().first { it.name.startsWith("android-") }
-    ConfigLibraryUtil.addLibrary(myFixture.module, "androidJar", androidJarDir.absolutePath, arrayOf("android.jar"))
+    ConfigLibraryUtil.addLibrary(myFixture.module, "androidJar", androidJarDir.resolve("android.jar"))
 
-    val kotlinPlugin = resolveWorkspacePath("prebuilts/tools/common/kotlin-plugin/Kotlin")
-    ConfigLibraryUtil.addLibrary(myFixture.module, "parcelizeCompiler", "$kotlinPlugin/kotlinc/lib", arrayOf("parcelize-compiler.jar"))
+    val kotlinPaths = ConfigLibraryUtil.kotlinPaths
+    ConfigLibraryUtil.addLibrary(myFixture.module, "parcelizeCompiler", kotlinPaths.basePath.resolve("parcelize-compiler.jar"))
   }
 
   override fun tearDown() {
