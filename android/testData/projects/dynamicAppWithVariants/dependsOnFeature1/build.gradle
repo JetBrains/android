@@ -4,8 +4,6 @@ android {
     compileSdkVersion 27
     defaultConfig {
         minSdkVersion 19
-        versionCode 1
-        versionName "1.0"
     }
     flavorDimensions "dim1", "dim2", "dim3"
     productFlavors {
