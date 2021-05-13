@@ -23,6 +23,7 @@ import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
+import com.intellij.usages.impl.rules.UsageGroupingRulesDefaultRanks
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
@@ -47,7 +48,7 @@ class ResourcePackageGroupingRule : SingleParentUsageGroupingRule() {
     return ResourcePackageUsageGroup(packageName)
   }
 
-  override fun getRank(): Int = -1
+  override fun getRank(): Int = UsageGroupingRulesDefaultRanks.BEFORE_ALL.absoluteRank
 }
 
 /**
