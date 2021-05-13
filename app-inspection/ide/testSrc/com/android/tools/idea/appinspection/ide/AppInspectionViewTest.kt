@@ -935,7 +935,6 @@ class AppInspectionViewTest {
     launchParamsVerifiedDeferred.await()
   }
 
-  @Ignore("b/184467010")
   @Test
   fun appInspectionView_canToggleAutoConnectedState() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
