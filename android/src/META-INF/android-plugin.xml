@@ -975,7 +975,6 @@
 
   <extensions defaultExtensionNs="com.android.rendering">
     <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
-    <renderErrorContributor implementation="com.android.tools.idea.gradle.rendering.GradleRenderErrorContributor$GradleProvider"/>
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
