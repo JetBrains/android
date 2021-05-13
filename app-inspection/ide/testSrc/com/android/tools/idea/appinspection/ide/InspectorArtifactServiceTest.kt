@@ -61,6 +61,6 @@ class InspectorArtifactServiceTest {
     )
 
     assertThat(resolvedArtifactPath).isNotNull()
-    assertThat(resolvedArtifactPath!!.fileName.toString()).isEqualTo("inspector.jar")
+    assertThat(resolvedArtifactPath!!.fileName.toString()).isEqualTo("androidx.work-work-runtime-2.5.0-beta01-inspector.jar")
   }
 }
