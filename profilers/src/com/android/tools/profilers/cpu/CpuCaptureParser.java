@@ -520,36 +520,43 @@ public class CpuCaptureParser {
         metadata.setCaptureDurationMs(TimeUnit.MICROSECONDS.toMillis(capture.getDurationUs()));
         metadata.setRecordDurationMs(calculateRecordDurationMs(capture));
       }
-      else if (throwable.getCause() instanceof CancellationException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
-      }
-      else if (throwable.getCause() instanceof PreProcessorFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
-        myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
-      }
-      else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-      }
-      else if (throwable.getCause() instanceof ReadErrorParsingFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-      }
-      else if (throwable.getCause() instanceof UnknownParserParsingFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-      }
-      else if (throwable.getCause() instanceof FileHeaderParsingFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
-      }
-      else if (throwable.getCause() instanceof ParsingFailureException) {
-        metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR);
-        myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+      else if (throwable != null) {
+        LOGGER.warn("Unable to parse capture: " + throwable.getMessage(), throwable.getCause());
+        if (throwable.getCause() instanceof CancellationException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
+        }
+        else if (throwable.getCause() instanceof PreProcessorFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PREPROCESS_FAILURE);
+          myServices.showNotification(CpuProfilerNotifications.PREPROCESS_FAILURE);
+        }
+        else if (throwable.getCause() instanceof InvalidPathParsingFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PATH_INVALID);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+        else if (throwable.getCause() instanceof ReadErrorParsingFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_READ_ERROR);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+        else if (throwable.getCause() instanceof UnknownParserParsingFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_UNKNOWN);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+        else if (throwable.getCause() instanceof FileHeaderParsingFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_FILE_HEADER_ERROR);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+        else if (throwable.getCause() instanceof ParsingFailureException) {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
+        else {
+          metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN);
+          myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
+        }
       }
       else {
-        LOGGER.warn("Unable to parse capture: " + throwable.getMessage(), throwable);
+        LOGGER.warn("Unable to parse capture: no throwable.");
         metadata.setStatus(CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN);
         myServices.showNotification(CpuProfilerNotifications.PARSING_FAILURE);
       }
