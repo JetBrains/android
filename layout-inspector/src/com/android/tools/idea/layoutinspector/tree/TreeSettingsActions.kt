@@ -32,11 +32,13 @@ import icons.StudioIcons
 /**
  * Filter menu group
  */
-object FilterGroupAction : DropDownAction("Filter", null, StudioIcons.Common.FILTER) {
+object FilterGroupAction : DropDownAction("Filter", "View options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
     add(SystemNodeFilterAction)
     add(MergedSemanticsFilterAction)
     add(UnmergedSemanticsFilterAction)
+    add(CallstackAction)
+    add(SupportLines)
   }
 
   override fun update(event: AnActionEvent) {

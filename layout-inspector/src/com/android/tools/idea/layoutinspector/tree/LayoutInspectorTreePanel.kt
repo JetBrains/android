@@ -134,8 +134,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
-  override fun getGearActions() = listOf(CallstackAction, SupportLines)
-
   override fun getAdditionalActions() = additionalActions
 
   override fun getComponent() = componentTree
