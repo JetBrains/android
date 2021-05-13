@@ -46,7 +46,7 @@ public final class DeviceTableCellRendererTest {
       .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
-      .setConnectionType(ConnectionType.USB)
+      .addConnectionType(ConnectionType.USB)
       .build();
 
     // Act

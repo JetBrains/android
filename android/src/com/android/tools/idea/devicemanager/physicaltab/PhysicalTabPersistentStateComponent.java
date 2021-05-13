@@ -32,6 +32,7 @@ import com.intellij.util.xmlb.annotations.XCollection.Style;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -106,11 +107,12 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "api", nameAttribute = "")
     private @Nullable String api;
 
-    @OptionTag(tag = "connectionType", nameAttribute = "")
-    private @Nullable ConnectionType connectionType;
+    @XCollection(elementName = "connectionType", style = Style.v2)
+    private final @NotNull Collection<@NotNull ConnectionType> connectionTypes;
 
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
+      connectionTypes = EnumSet.noneOf(ConnectionType.class);
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
@@ -119,13 +121,13 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       name = device.getName();
       target = device.getTarget();
       api = device.getApi();
-      connectionType = device.getConnectionType();
+      connectionTypes = device.getConnectionTypes();
     }
 
     private @Nullable PhysicalDevice asPhysicalDevice() {
       // Check all non-nullable fields are initialized. If the file used for persistence has been
       // tampered with for some reason, some of these fields could be null.
-      if (serialNumber == null || name == null || target == null || api == null || connectionType == null) {
+      if (serialNumber == null || name == null || target == null || api == null) {
         Logger.getInstance(PhysicalTabPersistentStateComponent.class).warn("Skipping device entry because some values are not set");
         return null;
       }
@@ -136,7 +138,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         .setName(name)
         .setTarget(target)
         .setApi(api)
-        .setConnectionType(connectionType)
+        .addAllConnectionTypes(connectionTypes)
         .build();
     }
 
@@ -148,7 +150,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + Objects.hashCode(name);
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
-      hashCode = 31 * hashCode + Objects.hashCode(connectionType);
+      hashCode = 31 * hashCode + connectionTypes.hashCode();
 
       return hashCode;
     }
@@ -166,7 +168,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              Objects.equals(name, device.name) &&
              Objects.equals(target, device.target) &&
              Objects.equals(api, device.api) &&
-             Objects.equals(connectionType, device.connectionType);
+             connectionTypes.equals(device.connectionTypes);
     }
   }
 }

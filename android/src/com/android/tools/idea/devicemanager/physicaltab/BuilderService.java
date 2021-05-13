@@ -94,7 +94,7 @@ final class BuilderService {
       .setOnline(online)
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString())
-      .setConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB)
+      .addConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB)
       .build();
   }
 }
