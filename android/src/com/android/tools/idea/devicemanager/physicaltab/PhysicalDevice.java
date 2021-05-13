@@ -81,7 +81,15 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     }
   }
 
-  public enum ConnectionType {USB, WI_FI}
+  public enum ConnectionType {
+    USB,
+    WI_FI;
+
+    @Override
+    public final @NotNull String toString() {
+      return this.equals(USB) ? super.toString() : "Wi-Fi";
+    }
+  }
 
   private PhysicalDevice(@NotNull Builder builder) {
     super(builder);

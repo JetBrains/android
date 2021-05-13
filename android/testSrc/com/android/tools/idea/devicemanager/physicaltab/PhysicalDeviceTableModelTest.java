@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.testing.swing.TableModelEventArgumentMatcher;
 import com.google.common.collect.Lists;
-import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -131,25 +130,5 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, value);
-  }
-
-  @Test
-  public void getIcon() {
-    // Arrange
-    PhysicalDevice device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
-      .setName("Google Pixel 3")
-      .setTarget("Android 12 Preview")
-      .setApi("S")
-      .setConnectionType(ConnectionType.WI_FI)
-      .build();
-
-    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(device));
-
-    // Act
-    Object value = model.getValueAt(0, PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
-
-    // Assert
-    assertEquals(value, StudioIcons.Common.CIRCLE_RED);
   }
 }
