@@ -58,7 +58,7 @@ class AppInspectionInspectorClient(
   adb: AndroidDebugBridge,
   process: ProcessDescriptor,
   private val model: InspectorModel,
-  stats: SessionStatistics,
+  private val stats: SessionStatistics,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val scope: CoroutineScope = model.project.coroutineScope.createChildScope(true),
 ) : AbstractInspectorClient(process) {
@@ -147,6 +147,7 @@ class AppInspectionInspectorClient(
 
   override fun startFetching() {
     scope.launch(exceptionHandler) {
+      stats.live.toggledToLive()
       viewInspector.startFetching(continuous = true)
     }
   }
@@ -160,12 +161,14 @@ class AppInspectionInspectorClient(
       else {
         viewInspector.updateScreenshotType(null, 1.0f)
       }
+      stats.live.toggledToRefresh()
       viewInspector.stopFetching()
     }
   }
 
   override fun refresh() {
     scope.launch(exceptionHandler) {
+      stats.live.toggledToRefresh()
       viewInspector.startFetching(continuous = false)
     }
   }
