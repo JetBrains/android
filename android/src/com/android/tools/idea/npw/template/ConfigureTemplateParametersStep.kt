@@ -80,20 +80,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.Label
 import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.FlowLayout
-import java.awt.Font
 import java.util.EnumSet
 import java.util.Optional
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 
@@ -126,10 +124,12 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
    */
   private val invalidParameterMessage = StringValueProperty()
 
-  private val templateDescriptionLabel = JLabel().apply {
-    font = Font("Default", Font.PLAIN, 11)
+  private val templateDescriptionLabel = JBLabel().apply {
+    font = JBFont.label().lessOn(1f)
   }
-  private val templateTitleLabel: JLabel = Label("", bold = true)
+  private val templateTitleLabel = JBLabel(title).apply {
+    font = JBFont.label().asBold()
+  }
 
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
