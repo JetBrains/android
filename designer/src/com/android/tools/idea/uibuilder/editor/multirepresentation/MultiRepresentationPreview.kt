@@ -108,9 +108,10 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   private var representationNeverShown = true
 
   /**
-   * Whether updateRepresentations has executed once and loaded the representations from the providers or not.
+   * [MultiRepresentationPreviewFileEditorState] deserialized from disk, if any.
    */
-  private var representationsLoaded = false
+  private var stateFromDisk: MultiRepresentationPreviewFileEditorState? = null
+
   private val representations: MutableMap<RepresentationName, PreviewRepresentation> = mutableMapOf()
 
   override val currentRepresentation: PreviewRepresentation?
@@ -156,16 +157,6 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
    * Indicates whether the current preview is active. If false, the preview might be hidden or in the background.
    */
   private val isActive = AtomicBoolean(false)
-
-  /**
-   * We only restore the state once when the initial creation happens. After that, we do not restore it anymore.
-   */
-  private var hasRestoredState = false
-
-  /**
-   * Callback called the first time the representations are loaded. This allows restoring the initial editor status.
-   */
-  private var onRepresentationsLoaded: (() -> Unit)? = null
 
   private val caretListener = object : CaretListener {
     /**
@@ -230,21 +221,31 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
         Disposer.dispose(it)
       }
     }
+
+    val hadAnyRepresentationsInitialized = representations.isNotEmpty()
     // Add new
-    val addedRepresentations = mutableSetOf<RepresentationName>()
     for (provider in providers.filter { it.displayName !in representations.keys }) {
+      if (representations.containsKey(provider.displayName)) continue
       val representation = provider.createRepresentation(file)
       Disposer.register(this, representation)
       shortcutsApplicableComponent?.let {
         representation.registerShortcuts(it)
       }
       representations[provider.displayName] = representation
-      addedRepresentations.add(provider.displayName)
+
+      // Restore the state of the representation
+      stateFromDisk
+        ?.representations
+        ?.find { it.key == provider.displayName }
+        ?.let {
+          representation.setState(it.settings)
+        }
     }
 
-    onRepresentationsLoaded?.invoke()
-    onRepresentationsLoaded = null
-    representationsLoaded = true
+    if (!hadAnyRepresentationsInitialized) {
+      // The first time we load one representation, we try to set it to the one we had saved on disk when saving the state.
+      stateFromDisk?.selectedRepresentationName?.let { currentRepresentationName = it }
+    }
 
     // update current if it was deleted
     validateCurrentRepresentationName()
@@ -268,22 +269,19 @@ open class MultiRepresentationPreview(psiFile: PsiFile,
   }
 
   override fun setState(state: FileEditorState) {
-    if (hasRestoredState) return
-    hasRestoredState = true
+    if (stateFromDisk != null) return
     if (state is MultiRepresentationPreviewFileEditorState) {
-      onRepresentationsLoaded = {
-        currentRepresentationName = state.selectedRepresentationName
+      stateFromDisk = state
+
+      // For any already loaded representations, restore the state.
+      representations.forEach { (representationName, representation) ->
         state.representations
-          .filter { it.key.isNotEmpty() && it.settings.isNotEmpty() }
-          .forEach { (name, settings) -> representations[name]?.setState(settings) }
+          .find { it.key == representationName }
+          ?.let { representation.setState(it.settings)  }
       }
 
-      // If the representations have been initialized already, apply the changes immediately
-      if (representationsLoaded) {
-        onRepresentationsLoaded?.invoke()
-        onRepresentationsLoaded = null
-        updateRepresentations()
-      }
+      currentRepresentationName = state.selectedRepresentationName
+      updateRepresentations()
     }
   }
 
