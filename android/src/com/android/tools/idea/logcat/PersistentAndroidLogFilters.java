@@ -78,6 +78,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
     @Nullable private String myName;
     @Nullable private String myLogMessagePattern;
     private boolean myLogMessageIsRegex = true;
+    @Nullable private String myExpression;
     @Nullable private String myLogLevel;
     @Nullable private String myLogTagPattern;
     private boolean myLogTagIsRegex = true;
@@ -90,6 +91,7 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
 
     public FilterData(@NotNull FilterData otherEntry) {
       myName = otherEntry.myName;
+      myExpression = otherEntry.myExpression;
       myLogMessagePattern = otherEntry.myLogMessagePattern;
       myLogMessageIsRegex = otherEntry.myLogMessageIsRegex;
       myLogLevel = otherEntry.myLogLevel;
@@ -103,6 +105,11 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
     @Nullable
     public String getName() {
       return myName;
+    }
+
+    @Nullable
+    public String getExpression() {
+      return myExpression;
     }
 
     @Nullable
@@ -135,6 +142,10 @@ public final class PersistentAndroidLogFilters implements PersistentStateCompone
 
     public void setName(@Nullable String name) {
       myName = name;
+    }
+
+    public void setExpression(@Nullable String expression) {
+      myExpression = expression;
     }
 
     public void setLogMessagePattern(@Nullable String logMessagePattern) {
