@@ -18,6 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -39,6 +41,7 @@ import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.testframework.sm.runner.ui.SMPoolOfTestIcons
 import com.intellij.icons.AllIcons
 import com.intellij.ide.CommonActionsManager
@@ -547,6 +550,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
       Location.DATA_KEY.`is`(dataId) -> {
         val psiElement = getData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
         PsiLocation.fromPsiElement(psiElement, testArtifactSearchScopes?.module)
+      }
+      RunConfiguration.DATA_KEY.`is`(dataId) -> {
+        return AndroidTestRunConfiguration(javaPsiFacade.project, AndroidTestRunConfigurationType.getInstance().factory)
       }
       else -> null
     }
