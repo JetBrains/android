@@ -128,13 +128,6 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   @VisibleForTesting
-  public GradleApkProvider(@NotNull AndroidFacet facet,
-                           @NotNull GradleApplicationIdProvider applicationIdProvider,
-                           boolean test) {
-    this(facet, applicationIdProvider, () -> null, test, version -> OutputKind.Default);
-  }
-
-  @VisibleForTesting
   GradleApkProvider(@NotNull AndroidFacet facet,
                     @NotNull GradleApplicationIdProvider applicationIdProvider,
                     @NotNull PostBuildModelProvider outputModelProvider,

@@ -15,98 +15,148 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.gradle.project.sync.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.gradle.project.sync.MakeBeforeRunTaskProviderTestUtilKt;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.GradleIntegrationTest;
+import com.android.tools.idea.testing.TestProjectPaths;
+import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunnerSettings;
+import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.File;
+import java.util.Collection;
 import java.util.List;
+import kotlin.Unit;
+import one.util.streamex.MoreCollectors;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
+import org.jetbrains.annotations.SystemIndependent;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
 
-public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
+public class AndroidLaunchTaskProviderTest implements GradleIntegrationTest {
+  @Rule
+  public AndroidProjectRule projectRule = AndroidProjectRule.withAndroidModels();
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-
-    loadProject();
-
-    if (myAndroidFacet == null) {
-      fail("AndroidFacet was null");
-    }
-  }
-
-  private void loadProject() throws Exception {
-    super.loadProject(DYNAMIC_APP);
-    // Run build task for main variant.
-    String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
-    invokeGradleTasks(getProject(), taskName);
-  }
+  @Rule
+  public TestName testName = new TestName();
 
   @NotNull
   private static String getDebuggerType() {
     return AndroidJavaDebugger.ID;
   }
 
+  @Test
   public void testDynamicAppApks() throws Exception {
-    // Prepare
-    final boolean debug = true;
+    prepareGradleProject(this, DYNAMIC_APP, "project");
+    openPreparedProject(this, "project", project -> {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(gradleModule(project, ":app"));
+      // Prepare
+      final boolean debug = true;
 
-    RunnerAndConfigurationSettings configSettings = RunManager.getInstance(getProject()).
-      createRunConfiguration("debug", AndroidRunConfigurationType.getInstance().getFactory());
-    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
-    config.setModule(myAndroidFacet.getModule());
-    configSettings.checkSettings();
-    if (debug) {
-      config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
-    }
+      RunnerAndConfigurationSettings configSettings =
+        RunManager.getInstance(project)
+          .getAllSettings()
+          .stream()
+          .filter(it -> it.getConfiguration() instanceof AndroidRunConfiguration)
+          .collect(MoreCollectors.onlyOne())
+          .get();
+      AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
 
-    ProgramRunner runner = new DefaultStudioProgramRunner();
+      config.setModule(androidFacet.getModule());
+      try {
+        configSettings.checkSettings();
+      }
+      catch (RuntimeConfigurationException e) {
+        fail(e.getMessage());
+      }
+      if (debug) {
+        config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
+      }
+      IDevice device = mockDeviceFor(26, ImmutableList.of(Abi.X86, Abi.X86_64));
+      MakeBeforeRunTaskProviderTestUtilKt.executeMakeBeforeRunStepInTest(config, device);
 
-    Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
-    ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
+      ProgramRunner<RunnerSettings> runner = new DefaultStudioProgramRunner();
 
-    GradleApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+      Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
+      ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, project);
 
-    ApkProvider apkProvider = new GradleApkProvider(myAndroidFacet, appIdProvider, false);
+      AndroidProjectSystem projectSystem = getProjectSystem(project);
+      ApplicationIdProvider appIdProvider = projectSystem.getApplicationIdProvider(config);
+      ApkProvider apkProvider = projectSystem.getApkProvider(config);
 
-    LaunchOptions launchOptions = LaunchOptions.builder()
-      .setClearLogcatBeforeStart(false)
-      .setSkipNoopApkInstallations(true)
-      .setForceStopRunningApp(true)
-      .setDebug(debug)
-      .build();
+      LaunchOptions launchOptions = LaunchOptions.builder()
+        .setClearLogcatBeforeStart(false)
+        .setSkipNoopApkInstallations(true)
+        .setForceStopRunningApp(true)
+        .setDebug(debug)
+        .build();
 
-    AndroidLaunchTasksProvider provider = new AndroidLaunchTasksProvider(
-      (AndroidRunConfiguration)configSettings.getConfiguration(),
-      env,
-      myAndroidFacet,
-      appIdProvider,
-      apkProvider,
-      launchOptions);
+      AndroidLaunchTasksProvider provider = new AndroidLaunchTasksProvider(
+        (AndroidRunConfiguration)configSettings.getConfiguration(),
+        env,
+        androidFacet,
+        appIdProvider,
+        apkProvider,
+        launchOptions);
 
-    IDevice device = mock(IDevice.class);
-    when(device.getVersion()).thenReturn(new AndroidVersion(26, null));
-    LaunchStatus launchStatus = mock(LaunchStatus.class);
-    ConsolePrinter consolePrinter = mock(ConsolePrinter.class);
+      LaunchStatus launchStatus = mock(LaunchStatus.class);
+      ConsolePrinter consolePrinter = mock(ConsolePrinter.class);
 
-    // Act
-    List<LaunchTask> launchTasks = provider.getTasks(device, launchStatus, consolePrinter);
+      // Act
+      List<LaunchTask> launchTasks = provider.getTasks(device, launchStatus, consolePrinter);
 
-    // Assert
-    launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
+      // Assert
+      launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
+      return Unit.INSTANCE;
+    });
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return testName.getMethodName();
+  }
+
+  @NotNull
+  @Override
+  public @SystemDependent String getBaseTestPath() {
+    return projectRule.fixture.getTempDirPath();
+  }
+
+  @NotNull
+  @Override
+  public @SystemIndependent String getTestDataDirectoryWorkspaceRelativePath() {
+    return TestProjectPaths.TEST_DATA_PATH;
+  }
+
+  @NotNull
+  @Override
+  public Collection<File> getAdditionalRepos() {
+    return emptyList();
   }
 }
