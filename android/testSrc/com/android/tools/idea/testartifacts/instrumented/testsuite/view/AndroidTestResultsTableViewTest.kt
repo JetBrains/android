@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -34,6 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.lang.jvm.JvmMethod
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -691,6 +693,8 @@ class AndroidTestResultsTableViewTest {
     val locationForClass = (table.getTableViewForTesting() as DataProvider).getData(Location.DATA_KEY.name)
     assertThat(locationForClass).isInstanceOf(PsiLocation::class.java)
     assertThat((locationForClass as PsiLocation<*>).psiElement).isSameAs(mockPsiClass)
+    val runConfiguration = (table.getTableViewForTesting() as DataProvider).getData(RunConfiguration.DATA_KEY.name)
+    assertThat(runConfiguration).isInstanceOf(AndroidTestRunConfiguration::class.java)
 
     // Clear the selection.
     table.clearSelection()
