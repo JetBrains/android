@@ -24,8 +24,6 @@ public class AndroidModelFeatures {
 
   private final boolean myBuildOutputFileSupported;
   private final boolean myPostBuildSyncSupported;
-  private final boolean mySingleVariantSyncSupported;
-
   public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
     myModelVersion = modelVersion;
     myBuildOutputFileSupported = modelVersionIsAtLeast("4.1.0");
@@ -38,7 +36,6 @@ public class AndroidModelFeatures {
     else {
       myPostBuildSyncSupported = false;
     }
-    mySingleVariantSyncSupported = modelVersionIsAtLeast("3.3.0");
   }
 
   private boolean modelVersionIsAtLeast(@NotNull String revision) {
@@ -57,15 +54,7 @@ public class AndroidModelFeatures {
     return true;
   }
 
-  public boolean isProductFlavorVersionSuffixSupported() {
-    return true;
-  }
-
   public boolean isExternalBuildSupported() {
-    return true;
-  }
-
-  public boolean isConstraintLayoutSdkLocationSupported() {
     return true;
   }
 
@@ -83,9 +72,5 @@ public class AndroidModelFeatures {
 
   public boolean isVfsRefreshAfterBuildRequired() {
     return false;
-  }
-
-  public boolean isSingleVariantSyncSupported() {
-    return mySingleVariantSyncSupported;
   }
 }
