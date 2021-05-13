@@ -67,7 +67,7 @@ open class MouseEventBuilder(@SwingCoordinate private val myX: Int, @SwingCoordi
     return createMockEvent(MouseEvent::class.java);
   }
 
-  protected fun <T: MouseEvent, U: Class<out T>> createMockEvent(clazz: U): T {
+  protected fun <T : MouseEvent, U : Class<out T>> createMockEvent(clazz: U): T {
     val event = Mockito.mock(clazz)
     Mockito.`when`(event.source).thenReturn(mySource)
     Mockito.`when`(event.x).thenReturn(myX)
