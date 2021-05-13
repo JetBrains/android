@@ -598,6 +598,14 @@ public final class StudioFlags {
     "Enables the Coroutine Debugger, that shows up as a panel in the debugger when debugging an app that uses coroutines",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
+    RUNDEBUG,
+    "logcat.expression.filter.enable",
+    "Enable expression filter in Logcat",
+    "Enables the expression filter in Logcat",
+    false
+  );
   //endregion
 
   //region Gradle Project System
