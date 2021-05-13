@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import static com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER;
-import static com.android.tools.idea.gradle.project.sync.idea.SourcesAndJavadocCollectorKt.idToString;
+import static com.android.tools.idea.gradle.project.sync.idea.AdditionalClassifierArtifactsModelCollectorKt.idToString;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
