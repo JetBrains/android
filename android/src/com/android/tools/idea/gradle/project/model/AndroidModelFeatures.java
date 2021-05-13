@@ -69,10 +69,6 @@ public class AndroidModelFeatures {
     return true;
   }
 
-  public boolean isLayoutRenderingIssuePresent() {
-    return false;
-  }
-
   public boolean isPostBuildSyncSupported() {
     return myPostBuildSyncSupported;
   }
