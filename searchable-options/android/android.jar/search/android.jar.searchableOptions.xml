@@ -636,11 +636,11 @@
     <option name="verbose" hit="Verbose" />
     <option name="warning" hit="Warning" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Editing of literals" configurable_name="Live Editing of literals">
-    <option name="editing" hit="Live Editing of literals" />
-    <option name="literals" hit="Live Editing of literals" />
-    <option name="live" hit="Live Editing of literals" />
-    <option name="of" hit="Live Editing of literals" />
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of literals" configurable_name="Live Edit of literals">
+    <option name="edit" hit="Live Edit of literals" />
+    <option name="literals" hit="Live Edit of literals" />
+    <option name="live" hit="Live Edit of literals" />
+    <option name="of" hit="Live Edit of literals" />
     <option name="decorations" hit="Literals decorations" />
     <option name="literals" hit="Literals decorations" />
   </configurable>
@@ -842,32 +842,32 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="android.live.literals" configurable_name="Live Editing of literals">
-    <option name="" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="after" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="building" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="can" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="editing" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="enabling" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="feature" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="is" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="literals" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="live" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="of" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="properly" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="required" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="so" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="the" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="work" hit="   Building is required after enabling live editing of literals so the feature can work properly.   " />
-    <option name="editing" hit="Enable Live Editing of literals" />
-    <option name="enable" hit="Enable Live Editing of literals" />
-    <option name="literals" hit="Enable Live Editing of literals" />
-    <option name="live" hit="Enable Live Editing of literals" />
-    <option name="of" hit="Enable Live Editing of literals" />
-    <option name="editing" hit="Live Editing of literals" />
-    <option name="literals" hit="Live Editing of literals" />
-    <option name="live" hit="Live Editing of literals" />
-    <option name="of" hit="Live Editing of literals" />
+  <configurable id="android.live.literals" configurable_name="Live Edit of literals">
+    <option name="" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="after" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="building" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="can" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="edit" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="enabling" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="feature" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="is" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="literals" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="live" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="of" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="properly" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="required" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="so" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="the" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="work" hit="   Building is required after enabling live edit of literals so the feature can work properly.   " />
+    <option name="edit" hit="Enable Live Edit of literals" />
+    <option name="enable" hit="Enable Live Edit of literals" />
+    <option name="literals" hit="Enable Live Edit of literals" />
+    <option name="live" hit="Enable Live Edit of literals" />
+    <option name="of" hit="Enable Live Edit of literals" />
+    <option name="edit" hit="Live Edit of literals" />
+    <option name="literals" hit="Live Edit of literals" />
+    <option name="live" hit="Live Edit of literals" />
+    <option name="of" hit="Live Edit of literals" />
   </configurable>
   <configurable id="AndroidSdkUpdater" configurable_name="Android SDK">
     <option name="" path="SDK Tools" hit=" Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check &quot;show package details&quot; to display available versions of an SDK Tool. " />
