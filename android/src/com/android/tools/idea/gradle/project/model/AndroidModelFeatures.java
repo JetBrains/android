@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidModelFeatures {
   @Nullable private final GradleVersion myModelVersion;
-
   private final boolean myBuildOutputFileSupported;
   private final boolean myPostBuildSyncSupported;
   public AndroidModelFeatures(@Nullable GradleVersion modelVersion) {
@@ -43,10 +42,6 @@ public class AndroidModelFeatures {
   }
 
   public boolean isIssueReportingSupported() {
-    return true;
-  }
-
-  public boolean isShadersSupported() {
     return true;
   }
 
