@@ -2,7 +2,7 @@
   "pluginsInfo": [
     {
       "name": "Kotlin Gradle Plugin",
-      "pluginClasses": ["org.jetbrains.kotlin.gradle."],
+      "pluginClasses": ["org.jetbrains.kotlin.gradle.", "org.jetbrains.kotlin.gradle.internal."],
       "pluginContactInstructions": "https://github.com/JetBrains/kotlin/tree/master/libraries/tools/kotlin-gradle-plugin",
       "pluginArtifact": {
         "group": "org.jetbrains.kotlin",
