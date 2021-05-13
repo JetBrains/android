@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -44,17 +45,12 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
     const val TOOL_WINDOW_ID = "Layout Validation"
   }
 
-  /**
-   * [isApplicable] is called first before other functions.
-   */
-  private lateinit var project: Project
-
   override fun isApplicable(project: Project): Boolean {
-    this.project = project
     return true
   }
 
   override fun init(toolWindow: ToolWindow) {
+    val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
       object : FileEditorManagerListener {
         override fun fileOpened(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow, file)
