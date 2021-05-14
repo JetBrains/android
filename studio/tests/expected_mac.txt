@@ -545,10 +545,10 @@ Android Studio Preview.app/Contents/lib/imageio-metadata-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imageio-tiff-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imgscalr-lib-4.2.jar
 Android Studio Preview.app/Contents/lib/ini4j-0.5.5-2.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.573.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.575.jar
 Android Studio Preview.app/Contents/lib/intellij-deps-fastutil-8.4.1-5.jar
 Android Studio Preview.app/Contents/lib/intellij-dvcs.jar
-Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.573.jar
+Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.575.jar
 Android Studio Preview.app/Contents/lib/intellij-xml.jar
 Android Studio Preview.app/Contents/lib/ion-java-1.6.2-3.jar
 Android Studio Preview.app/Contents/lib/isorelax-20030108.jar
@@ -571,7 +571,7 @@ Android Studio Preview.app/Contents/lib/jcip-annotations-1.0.jar
 Android Studio Preview.app/Contents/lib/jcodings-1.0.55.jar
 Android Studio Preview.app/Contents/lib/jdkAnnotations.jar
 Android Studio Preview.app/Contents/lib/jdom.jar
-Android Studio Preview.app/Contents/lib/jediterm-pty-2.34.jar
+Android Studio Preview.app/Contents/lib/jediterm-pty-2.37.jar
 Android Studio Preview.app/Contents/lib/jetCheck-0.2.2.jar
 Android Studio Preview.app/Contents/lib/jing-20030619.jar
 Android Studio Preview.app/Contents/lib/jna-platform.jar
@@ -627,12 +627,13 @@ Android Studio Preview.app/Contents/lib/netty-handler-4.1.56.Final.jar
 Android Studio Preview.app/Contents/lib/netty-handler-proxy-4.1.56.Final.jar
 Android Studio Preview.app/Contents/lib/netty-resolver-4.1.56.Final.jar
 Android Studio Preview.app/Contents/lib/netty-transport-4.1.56.Final.jar
+Android Studio Preview.app/Contents/lib/ngram-slp-0.0.3.jar
 Android Studio Preview.app/Contents/lib/objenesis-3.1.jar
 Android Studio Preview.app/Contents/lib/openapi.jar
 Android Studio Preview.app/Contents/lib/opencensus-api-0.21.0.jar
 Android Studio Preview.app/Contents/lib/opencensus-contrib-grpc-metrics-0.21.0.jar
-Android Studio Preview.app/Contents/lib/org.eclipse.lsp4j-0.7.1.jar
-Android Studio Preview.app/Contents/lib/org.eclipse.lsp4j.jsonrpc-0.7.1.jar
+Android Studio Preview.app/Contents/lib/org.eclipse.lsp4j-0.10.0.jar
+Android Studio Preview.app/Contents/lib/org.eclipse.lsp4j.jsonrpc-0.10.0.jar
 Android Studio Preview.app/Contents/lib/org.eclipse.sisu.inject-0.3.4.jar
 Android Studio Preview.app/Contents/lib/org.eclipse.xtend.lib-2.17.0.jar
 Android Studio Preview.app/Contents/lib/org.eclipse.xtend.lib.macro-2.17.0.jar
@@ -645,9 +646,10 @@ Android Studio Preview.app/Contents/lib/platform-statistics-devkit.jar
 Android Studio Preview.app/Contents/lib/plexus-interpolation-1.25.jar
 Android Studio Preview.app/Contents/lib/plexus-utils-3.3.0.jar
 Android Studio Preview.app/Contents/lib/proto-google-common-protos-1.12.0.jar
+Android Studio Preview.app/Contents/lib/protobuf-java-3.11.4.jar
 Android Studio Preview.app/Contents/lib/protobuf-java-3.13.0.jar
 Android Studio Preview.app/Contents/lib/proxy-vole-1.0.5-jb.2.jar
-Android Studio Preview.app/Contents/lib/pty4j-0.11.3.jar
+Android Studio Preview.app/Contents/lib/pty4j-0.11.4.jar
 Android Studio Preview.app/Contents/lib/pty4j-native/darwin/libpty.dylib
 Android Studio Preview.app/Contents/lib/purejavacomm-0.0.11.1.jar
 Android Studio Preview.app/Contents/lib/qdox-2.0.0.jar
@@ -692,6 +694,7 @@ Android Studio Preview.app/Contents/lib/xmlrpc-2.0.1.jar
 Android Studio Preview.app/Contents/lib/xpp3_min-1.1.4c.jar
 Android Studio Preview.app/Contents/lib/xstream-1.4.11.1.jar
 Android Studio Preview.app/Contents/lib/xz-1.8.jar
+Android Studio Preview.app/Contents/lib/zip-signer-0.8.jar
 Android Studio Preview.app/Contents/license/XStream_license.txt
 Android Studio Preview.app/Contents/license/ant_license.txt
 Android Studio Preview.app/Contents/license/antlr4-runtime-4.5.3.jar-NOTICE
@@ -2730,7 +2733,6 @@ Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/antlr4-runtime-
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
-Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-go-0.2.1.jar
@@ -2738,7 +2740,7 @@ Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/comple
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-js-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.3.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-python-0.1.4.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-python-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.1.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
