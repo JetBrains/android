@@ -22,9 +22,16 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshi
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.base.Splitter
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -33,18 +40,10 @@ import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.ui.Messages
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import java.util.concurrent.CompletableFuture
-import java.util.regex.Pattern
-
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CLASS_NOT_FOUND
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.METHOD_NOT_FOUND
-import com.intellij.build.FilePosition
-import com.intellij.build.events.BuildEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
+import java.util.regex.Pattern
 
 class ClassLoadingIssueChecker: GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
@@ -64,14 +63,14 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     val jdk7Hint = buildString {
       val jdk = IdeSdks.getInstance().jdk ?: return@buildString
       val jdkHomePath = jdk.homePath
-      val jdkVersion = if (jdkHomePath != null) SdkVersionUtil.detectJdkVersion(jdkHomePath) else null
+      val jdkVersion = if (jdkHomePath != null) SdkVersionUtil.getJdkVersionInfo(jdkHomePath) else null
 
       if (JavaSdkVersion.JDK_1_7 != JavaSdk.getInstance().getVersion(jdk)) return@buildString
       // Otherwise, we are using Jdk7.
       when (jdkVersion) {
         null -> append("Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle. \n" +
                        "Please update to a newer version (e.g. 1.7.0_67).")
-        else -> append("You are using JDK version '${jdkVersion}'.")
+        else -> append("You are using JDK version '${jdkVersion.version.toFeatureMinorUpdateString()}'.")
       }
     }
 
