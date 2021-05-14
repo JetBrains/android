@@ -1,3 +1,4 @@
+rootProject.name='Dynamic Application'
 include ':app'
 include ':dynamicfeature'
 include ':instantdynamicfeature'
