@@ -59,6 +59,9 @@ class FakeInspectorState(
     ViewString(11, "android.view"),
     ViewString(12, "View"),
     ViewString(13, "ComposeView"),
+    ViewString(14, "androidx.compose.material.ripple"),
+    ViewString(15, "RippleContainer"),
+    ViewString(16, "RippleHostView"),
 
     // property names
     // TODO(b/177231212): Test remaining property types
@@ -139,6 +142,16 @@ class FakeInspectorState(
           id = 7
           packageName = 5
           className = 6
+        }
+        ViewNode {
+          id = 8
+          packageName = 14
+          className = 15
+          ViewNode {
+            id = 9
+            packageName = 14
+            className = 16
+          }
         }
       }
     },
@@ -327,6 +340,7 @@ class FakeInspectorState(
         }
       }
     }
+    addViewsToSkip(8)
   }
 
   // Composable tree that lives under ComposeView
