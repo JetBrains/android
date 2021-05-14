@@ -188,7 +188,8 @@ public class GradleApkProvider implements ApkProvider {
             //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
             List<ApkFileUnit> apkFileList = new ArrayList<>();
             apkFileList.add(new ApkFileUnit(androidModel.getModuleName(),
-                                            getApk(selectedVariant.getName(), selectedVariant.getMainArtifact(), deviceAbis, deviceVersion, myFacet
+                                            getApk(selectedVariant.getName(), selectedVariant.getMainArtifact(), deviceAbis, deviceVersion,
+                                                   myFacet
                                             )));
             apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
             apkList.add(new ApkInfo(apkFileList, pkgName));
@@ -222,8 +223,10 @@ public class GradleApkProvider implements ApkProvider {
         else {
           IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
           if (testArtifactInfo != null) {
-            File testApk = getApk(androidModel.getSelectedVariant().getName(), getAndroidTestArtifact(androidModel.getSelectedVariant()), deviceAbis, deviceVersion, myFacet
-            );
+            File testApk =
+              getApk(androidModel.getSelectedVariant().getName(), getAndroidTestArtifact(androidModel.getSelectedVariant()), deviceAbis,
+                     deviceVersion, myFacet
+              );
             String testPackageName = myApplicationIdProvider.getTestPackageName();
             assert testPackageName != null; // Cannot be null if initialized.
             apkList.add(new ApkInfo(testApk, testPackageName));
@@ -342,11 +345,14 @@ public class GradleApkProvider implements ApkProvider {
       return getApkFromPostBuildSync(variantName, artifact, deviceAbis, deviceVersion, facet
       );
     }
-    return getApkFromPreBuildSync(artifact, deviceAbis);
+    throw new IllegalStateException(
+      "AGP 3.1.0 and later support either post build models or build output listing files. " +
+      "However, neither is available.");
   }
 
   @NotNull
-  private File getApkFromBuildOutputFile(@NotNull IdeAndroidArtifact artifact, @NotNull List<String> deviceAbis) throws ApkProvisionException {
+  private File getApkFromBuildOutputFile(@NotNull IdeAndroidArtifact artifact, @NotNull List<String> deviceAbis)
+    throws ApkProvisionException {
     String outputFile = getOutputListingFile(artifact.getBuildInformation(), OutputType.Apk);
     if (outputFile == null) {
       throw new ApkProvisionException("Cannot get output listing file name from the build model");
@@ -357,13 +363,6 @@ public class GradleApkProvider implements ApkProvider {
     }
     return myBestOutputFinder
       .findBestOutput(artifact.getAbiFilters(), deviceAbis, builtArtifacts);
-  }
-
-  @NotNull
-  @VisibleForTesting
-  File getApkFromPreBuildSync(@NotNull IdeAndroidArtifact artifact, @NotNull List<String> deviceAbis) throws ApkProvisionException {
-    @SuppressWarnings("deprecation") List<IdeAndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return myBestOutputFinder.findBestOutput(artifact.getAbiFilters(), deviceAbis, outputs);
   }
 
   @NotNull
@@ -385,7 +384,8 @@ public class GradleApkProvider implements ApkProvider {
 
     PostBuildModel outputModels = myOutputModelProvider.getPostBuildModel();
     if (outputModels == null) {
-      return getApkFromPreBuildSync(artifact, deviceAbis);
+      throw new ApkProvisionException(
+        String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
     }
 
     ModelCache modelCache = ModelCache.create();
@@ -406,7 +406,8 @@ public class GradleApkProvider implements ApkProvider {
       @SuppressWarnings("deprecation")
       ProjectBuildOutput outputModel = outputModels.findProjectBuildOutput(getGradlePath(facet.getModule()));
       if (outputModel == null) {
-        return getApkFromPreBuildSync(artifact, deviceAbis);
+        throw new ApkProvisionException(
+          String.format("Couldn't get post build model. Module: %s Variant: %s", facet.getModule().getName(), variantName));
       }
 
       // Loop through the variants in the model and get the one that matches
@@ -437,11 +438,6 @@ public class GradleApkProvider implements ApkProvider {
       }
     }
 
-    // If empty, it means that either ProjectBuildOut has not been filled correctly or the variant was not found.
-    // In this case we try to get an APK known at sync time, if any.
-    if (outputs.isEmpty()) {
-      return getApkFromPreBuildSync(artifact, deviceAbis);
-    }
     Set<String> abiFilters = artifact.getAbiFilters();
     return myBestOutputFinder.findBestOutput(abiFilters, deviceAbis, outputs);
   }
@@ -558,8 +554,8 @@ public class GradleApkProvider implements ApkProvider {
    */
   @Nullable
   private static ApkInfo collectAppBundleOutput(@NotNull Module module,
-                                               @NotNull PostBuildModelProvider outputModelProvider,
-                                               @NotNull String pkgName) {
+                                                @NotNull PostBuildModelProvider outputModelProvider,
+                                                @NotNull String pkgName) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null) {
       getLogger().warn("Android model is null. Sync might have failed");
@@ -644,7 +640,8 @@ public class GradleApkProvider implements ApkProvider {
   @Nullable
   public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(), OutputType.Apk);
+      return getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
+                                                  OutputType.Apk);
     }
     else {
       //noinspection deprecation

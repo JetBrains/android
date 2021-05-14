@@ -43,7 +43,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -80,7 +79,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.ThreeState;
 import icons.StudioIcons;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -289,15 +287,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @VisibleForTesting
   @NotNull
-  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration, Collection<String> abis) {
-
-    // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
-    // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
-    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO && !isPostBuildModelsSupported(context, configuration)) {
-      return SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED;
-    }
-
-    // If the project has native modules, and there're any un-synced variants.
+  SyncNeeded isSyncNeeded(Collection<String> abis) {
+    // If the project has native modules, and there are any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
       AndroidModuleModel androidModel = AndroidModuleModel.get(module);
@@ -338,23 +329,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       result = errorMsgRef.get();
       return result;
     }
-  }
-
-  /**
-   * Returns true if there is no Android module, or all of Android modules support post build models (via sync or the build output file).
-   */
-  private boolean isPostBuildModelsSupported(@NotNull DataContext context,
-                                             @NotNull RunConfiguration configuration) {
-    Module[] modules = getModules(context, configuration);
-    for (Module module : modules) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
-      if (androidModuleModel != null &&
-          !androidModuleModel.getFeatures().isPostBuildSyncSupported() &&
-          !androidModuleModel.getFeatures().isBuildOutputFileSupported()) {
-        return false;
-      }
-    }
-    return true;
   }
 
   private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
@@ -412,7 +386,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
       // If the model needs a sync, we need to sync "synchronously" before running.
       Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
-      SyncNeeded syncNeeded = isSyncNeeded(context, configuration, targetAbis);
+      SyncNeeded syncNeeded = isSyncNeeded(targetAbis);
 
       if (syncNeeded != SyncNeeded.NOT_NEEDED) {
         String errorMsg = runSync(syncNeeded, targetAbis);
