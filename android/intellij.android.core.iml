@@ -156,5 +156,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="utp" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
   </component>
 </module>

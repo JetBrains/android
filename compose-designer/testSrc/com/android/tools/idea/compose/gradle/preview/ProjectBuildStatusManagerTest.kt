@@ -16,20 +16,23 @@
 package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.NeedsBuild
-import com.android.tools.idea.compose.preview.OutOfDate
 
 import com.android.tools.idea.compose.preview.ProjectBuildStatusManager
-import com.android.tools.idea.compose.preview.Ready
+import com.android.tools.idea.compose.preview.ProjectStatus
+import com.android.tools.idea.compose.preview.PsiFileSnapshotFilter
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -50,17 +53,13 @@ class ProjectBuildStatusManagerTest {
   fun testProjectStatusManagerStates() {
     val mainFile = projectRule.project.guessProjectDir()!!
       .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
-    // Force clean
-    projectRule.clean()
     WriteAction.run<Throwable> {
       projectRule.fixture.openFileInEditor(mainFile)
     }
 
     val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
-
-    assertEquals(NeedsBuild, statusManager.status)
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
-    assertTrue("Builds status is not Ready after successful build", statusManager.status is Ready)
+    assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
 
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
     WriteCommandAction.runWriteCommandAction(project) {
@@ -68,9 +67,9 @@ class ProjectBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-    assertEquals(OutOfDate, statusManager.status)
+    assertEquals(ProjectStatus.OutOfDate, statusManager.status)
     projectRule.clean()
-    assertEquals(NeedsBuild, statusManager.status)
+    assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
   }
 
   @RunsInEdt
@@ -93,9 +92,9 @@ class ProjectBuildStatusManagerTest {
     FileDocumentManager.getInstance().saveAllDocuments()
 
     val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file)
-    assertEquals(NeedsBuild, statusManager.status)
+    assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     assertFalse(projectRule.build().isBuildSuccessful)
-    assertEquals(NeedsBuild, statusManager.status)
+    assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
 
     WriteCommandAction.runWriteCommandAction(project) {
       // Fix the build
@@ -104,8 +103,42 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    assertEquals(OutOfDate, statusManager.status)
+    assertEquals(ProjectStatus.OutOfDate, statusManager.status)
     assertTrue(projectRule.build().isBuildSuccessful)
-    assertTrue("Builds status is not Ready after successful build", statusManager.status is Ready)
+    assertTrue("Builds status is not Ready after successful build", statusManager.status is ProjectStatus.Ready)
+  }
+
+  /**
+   * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
+   * [incModificationCount] should be called.
+   */
+  private class TestFilter: PsiFileSnapshotFilter, SimpleModificationTracker() {
+    var filter: (PsiElement) -> Boolean = { true }
+
+    override fun accepts(element: PsiElement): Boolean = filter(element)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testFilteringChange() {
+    val mainFile = projectRule.project.guessProjectDir()!!
+      .findFileByRelativePath("app/src/main/java/google/simpleapplication/MainActivity.kt")!!
+    WriteAction.run<Throwable> {
+      projectRule.fixture.openFileInEditor(mainFile)
+    }
+
+    val fileFilter = TestFilter()
+    val statusManager = ProjectBuildStatusManager(projectRule.fixture.testRootDisposable, projectRule.fixture.file, fileFilter)
+    assertTrue(projectRule.build().isBuildSuccessful)
+    assertEquals("Builds status is not Ready after successful build", ProjectStatus.Ready, statusManager.status)
+
+    var filterWasInvoked = false
+    fileFilter.filter = { filterWasInvoked = true; it !is KtLiteralStringTemplateEntry }
+    assertEquals(ProjectStatus.Ready, statusManager.status)
+    assertFalse("Filter should not have been invoked since change was not notified", filterWasInvoked)
+    // Notify the filter update
+    fileFilter.incModificationCount()
+    assertEquals(ProjectStatus.Ready, statusManager.status)
+    assertTrue("Filter should have been re-invoked after the change notification", filterWasInvoked)
   }
 }

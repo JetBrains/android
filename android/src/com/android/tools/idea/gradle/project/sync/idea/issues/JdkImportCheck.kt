@@ -16,13 +16,14 @@
 @file:JvmName("JdkImportCheck")
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
+import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsJavaHome
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
@@ -38,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JdkUtil
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
@@ -47,14 +49,43 @@ import java.util.concurrent.CompletableFuture
 class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
 
 /**
- * Validates the state of the JDK that is set in studio before the Gradle import is started.
+ * Validates the state of the project Gradle JDK.
  *
  * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
  * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
  * quick fixes.
  */
-fun validateJdk() {
-  val jdkValidationError = validateJdk(IdeSdks.getInstance().jdk) ?: return // Valid jdk
+fun validateProjectGradleJdk(project: Project?, projectPath: String?) {
+  // This method is a wrapper to provide a Jdk to checkJdkErrorMessage. Tests are run directly on checkJdkErrorMessage.
+  if (project == null) {
+    // If the project is not defined, assume default project
+    validateDefaultGradleJdk()
+    return
+  }
+  val jdk: Sdk? =
+    if (StringUtils.isNotBlank(projectPath)) {
+      AndroidStudioGradleInstallationManager.getInstance().getGradleJdk(project, projectPath!!)
+    }
+    else {
+      null
+    }
+  checkJdkErrorMessage(jdk)
+}
+
+/**
+ * Validates the state of the default Gradle JDK.
+ *
+ * If we find that the JDK is not valid then we throw a [JdkImportCheckException] which is then
+ * caught in the [JdkImportIssueChecker] which creates an errors message with the appropriate
+ * quick fixes.
+ */
+fun validateDefaultGradleJdk() {
+  checkJdkErrorMessage(IdeSdks.getInstance().jdk)
+}
+
+@VisibleForTesting
+fun checkJdkErrorMessage(jdk: Sdk?) {
+  val jdkValidationError = validateJdk(jdk) ?: return // Valid jdk
   throw JdkImportCheckException(jdkValidationError)
 }
 

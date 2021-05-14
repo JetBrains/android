@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearparing
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -33,7 +34,6 @@ import com.intellij.ui.CollectionListModel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES
 import com.intellij.ui.TooltipWithClickableLinks
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -59,6 +59,7 @@ import javax.swing.BoxLayout
 import javax.swing.DefaultListSelectionModel
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
@@ -66,6 +67,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.isRightMouseButton
+import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 import com.intellij.ui.TooltipWithClickableLinks.ForBrowser as TooltipForBrowser
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
@@ -73,11 +75,13 @@ internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wear
 class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wizardAction: WizardAction) :
   ModelWizardStep<WearDevicePairingModel>(model, "") {
   private val listeners = ListenerManager()
-  private val phoneList = createList(
+  private val phoneListPanel = createDeviceListPanel(
+    title = message("wear.assistant.device.list.phone.header"),
     listName = "phoneList",
     emptyTextTitle = message("wear.assistant.device.list.no.phone")
   )
-  private val wearList = createList(
+  private val wearListPanel = createDeviceListPanel(
+    title = message("wear.assistant.device.list.phone.header"),
     listName = "wearList",
     emptyTextTitle = message("wear.assistant.device.list.no.wear")
   )
@@ -85,19 +89,18 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 
   override fun onWizardStarting(wizard: ModelWizard.Facade) {
     listeners.listenAndFire(model.phoneList) {
-      updateList(phoneList, model.phoneList.get())
+      updateList(phoneListPanel, model.phoneList.get())
     }
 
     listeners.listenAndFire(model.wearList) {
-      updateList(wearList, model.wearList.get())
+      updateList(wearListPanel, model.wearList.get())
     }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
     return listOf(
       NewConnectionAlertStep(model, project),
-      DevicesConnectionStep(model, project, true, wizardAction),
-      DevicesConnectionStep(model, project, false, wizardAction)
+      DevicesConnectionStep(model, project, wizardAction),
     )
   }
 
@@ -117,14 +120,14 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 
     add(Splitter(false, 0.5f).apply {
       alignmentX = Component.LEFT_ALIGNMENT
-      firstComponent = createDevicePanel(message("wear.assistant.device.list.phone.header"), phoneList)
-      secondComponent = createDevicePanel(message("wear.assistant.device.list.wear.header"), wearList)
+      firstComponent = phoneListPanel
+      secondComponent = wearListPanel
     })
   }
 
   override fun onProceeding() {
-    model.selectedPhoneDevice.setNullableValue(phoneList.selectedValue)
-    model.selectedWearDevice.setNullableValue(wearList.selectedValue)
+    model.selectedPhoneDevice.setNullableValue(phoneListPanel.list.selectedValue)
+    model.selectedWearDevice.setNullableValue(wearListPanel.list.selectedValue)
   }
 
   override fun canGoForward(): ObservableBool = canGoForward
@@ -132,24 +135,15 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
   override fun dispose() = listeners.releaseAll()
 
   private fun updateGoForward() {
-    canGoForward.set(phoneList.selectedValue != null && wearList.selectedValue != null)
+    canGoForward.set(phoneListPanel.list.selectedValue != null && wearListPanel.list.selectedValue != null)
   }
 
-  private fun createDevicePanel(title: String, list: JBList<PairingDevice>): JPanel {
-    return JPanel(BorderLayout()).apply {
-      border = IdeBorderFactory.createBorder(SideBorder.ALL)
-
-      add(JBLabel(title).apply {
-        font = JBFont.label().asBold()
-        border = empty(4, 16)
-      }, BorderLayout.NORTH)
-      add(ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
-        border = IdeBorderFactory.createBorder(SideBorder.TOP)
-      }, BorderLayout.CENTER)
-    }
+  private fun createDeviceListPanel(title: String, listName: String, emptyTextTitle: String): DeviceListPanel {
+    val list = createList(listName)
+    return DeviceListPanel(title, list, createEmptyListPanel(list, emptyTextTitle))
   }
 
-  private fun createList(listName: String, emptyTextTitle: String): JBList<PairingDevice> {
+  private fun createList(listName: String): JBList<PairingDevice> {
     return TooltipList<PairingDevice>().apply {
       name = listName
       setCellRenderer { _, value, _, isSelected, _ ->
@@ -201,12 +195,6 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       }
 
       selectionModel = SomeDisabledSelectionModel(this)
-      emptyTextTitle.split("\n").forEach {
-        emptyText.appendLine(it)
-      }
-      emptyText.appendLine(message("wear.assistant.device.list.open.avd"), LINK_PLAIN_ATTRIBUTES) {
-        wizardAction.closeAndStartAvd(project)
-      }
 
       addListSelectionListener {
         if (!it.valueIsAdjusting) {
@@ -218,7 +206,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
     }
   }
 
-  fun updateList(uiList: JBList<PairingDevice>, deviceList: List<PairingDevice>) {
+  private fun updateList(deviceListPanel: DeviceListPanel, deviceList: List<PairingDevice>) {
+    val uiList: JBList<PairingDevice> = deviceListPanel.list
     if (uiList.model.size == deviceList.size) {
       deviceList.forEachIndexed { index, device ->
         val listDevice = uiList.model.getElementAt(index)
@@ -237,6 +226,8 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
     if (uiList.selectedValue?.state == DISCONNECTED) {
       uiList.clearSelection()
     }
+
+    deviceListPanel.showList(showEmpty = uiList.isEmpty)
     updateGoForward()
   }
 
@@ -291,6 +282,22 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       super.setSelectionInterval(n, n)
     }
   }
+
+  private fun createEmptyListPanel(list: JBList<PairingDevice>, emptyTextTitle: String): JPanel = JPanel(GridBagLayout()).apply {
+    background = list.background
+    border = IdeBorderFactory.createBorder(SideBorder.TOP)
+    add(JEditorPane().apply {
+      name = "${list.name}EmptyText"
+      border = empty(0, 16, 0, 16)
+      HtmlLabel.setUpAsHtmlLabel(this)
+      text = "<div style='text-align:center'>$emptyTextTitle</div>" // Center text horizontally
+      addHyperlinkListener {
+        if (it.eventType == ACTIVATED) {
+          wizardAction.closeAndStartAvd(project)
+        }
+      }
+    }, gridConstraint(x = 0, y = 0, weightx = 1.0, fill = GridBagConstraints.HORIZONTAL))
+  }
 }
 
 private fun PairingDevice.isDisabled(): Boolean {
@@ -331,5 +338,26 @@ private class TooltipList<E> : JBList<E>() {
     manager.setCustomTooltip(this, tooltip)
 
     return toolTipText
+  }
+}
+
+private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, val emptyListPanel: JPanel): JPanel(BorderLayout()) {
+  val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
+    border = IdeBorderFactory.createBorder(SideBorder.TOP)
+  }
+
+  init {
+    border = IdeBorderFactory.createBorder(SideBorder.ALL)
+
+    add(JBLabel(title).apply {
+      font = JBFont.label().asBold()
+      border = empty(4, 16)
+    }, BorderLayout.NORTH)
+    add(scrollPane, BorderLayout.CENTER)
+  }
+
+  fun showList(showEmpty: Boolean) {
+    val view = if (showEmpty) emptyListPanel else list
+    scrollPane.setViewportView(view)
   }
 }

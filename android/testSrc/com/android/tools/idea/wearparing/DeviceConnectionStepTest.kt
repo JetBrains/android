@@ -153,7 +153,7 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
   }
 
   private fun createDeviceConnectionStepUi(wizardAction: WizardAction = WizardActionTest()): Pair<FakeUi, ModelWizard> {
-    val deviceConnectionStep = DevicesConnectionStep(model, project, true, wizardAction)
+    val deviceConnectionStep = DevicesConnectionStep(model, project, wizardAction)
     val modelWizard = ModelWizard.Builder().addStep(deviceConnectionStep).build()
     Disposer.register(testRootDisposable, modelWizard)
     invokeStrategy.updateAllSteps()
@@ -189,6 +189,10 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
       val byteArray = "$reply\n".toByteArray(Charsets.UTF_8)
       receiver.addOutput(byteArray, 0, byteArray.size)
     }
+
+    Mockito.`when`(iDevice.arePropertiesSet()).thenReturn(true)
+    Mockito.`when`(iDevice.getProperty("dev.bootcomplete")).thenReturn("1")
+
     return iDevice
   }
 }

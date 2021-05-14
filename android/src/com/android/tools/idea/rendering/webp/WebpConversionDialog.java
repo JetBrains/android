@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class WebpConversionDialog extends DialogWrapper implements DocumentListener, ChangeListener, ActionListener {
+  @Nls(capitalization = Nls.Capitalization.Title) public static final String TITLE = "Converting Images to WebP";
+
   private JSlider myQualitySlider;
   private JBTextField myQualityField;
   private JBRadioButton myLossyButton;
@@ -56,7 +59,7 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
   public WebpConversionDialog(@NotNull Project project, int minSdkVersion, @NotNull WebpConversionSettings settings,
                               boolean singleFile) {
     super(project);
-    setTitle(ConvertToWebpAction.TITLE);
+    setTitle(TITLE);
     fromSettings(settings);
     myQualityField.getDocument().addDocumentListener(this);
     myQualitySlider.addChangeListener(this);

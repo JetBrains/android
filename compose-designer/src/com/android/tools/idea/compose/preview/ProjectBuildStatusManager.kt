@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.util.PsiFileChangeDetector
 import com.android.tools.idea.compose.preview.util.hasBeenBuiltSuccessfully
-import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -25,25 +24,57 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * This represents the build status of the project without taking into account any file modifications.
+ */
+private sealed class ProjectBuildStatus {
+  /** The project is indexing or not synced yet */
+  object NotReady : ProjectBuildStatus()
+
+  /** The project has not been built */
+  object NeedsBuild : ProjectBuildStatus()
+
+  /** The project is compiled and up to date */
+  object Built : ProjectBuildStatus()
+}
+
 /** The project status */
-sealed class ProjectStatus
+sealed class ProjectStatus {
+  /** The project is indexing or not synced yet */
+  object NotReady : ProjectStatus()
 
-/** The project is indexing or not synced yet */
-object NotReady : ProjectStatus()
+  /** The project needs to be built */
+  object NeedsBuild : ProjectStatus()
 
-/** The project has not been built */
-object NeedsBuild : ProjectStatus()
+  /** The project is compiled but one or more files are out of date **/
+  object OutOfDate : ProjectStatus()
 
-/** The project is compiled but one or more files are out of date **/
-object OutOfDate : ProjectStatus()
-
-/** The project is compiled and up to date */
-class Ready(val successfulBuild: Boolean = true) : ProjectStatus()
+  /** The project is compiled and up to date */
+  object Ready : ProjectStatus()
+}
 
 private val LOG = Logger.getInstance(ProjectStatus::class.java)
+
+/**
+ * A filter to be applied to the file change detection in [ProjectBuildStatusManager]. This allows to ignore some [PsiElement]s when
+ * comparing two snapshots of a file, for example, ignore literals.
+ * If the filtering set changes, the modification count MUST change.
+ */
+interface PsiFileSnapshotFilter : ModificationTracker {
+  fun accepts(element: PsiElement): Boolean
+}
+
+/**
+ * A [PsiFileSnapshotFilter] that does not do filtering.
+ */
+object NopPsiFileSnapshotFilter : PsiFileSnapshotFilter, ModificationTracker by ModificationTracker.NEVER_CHANGED {
+  override fun accepts(element: PsiElement): Boolean = true
+}
 
 /**
  * Class managing the build status of a project and its state.
@@ -52,24 +83,39 @@ private val LOG = Logger.getInstance(ProjectStatus::class.java)
  * @param editorFile the file in the editor to track changes and the build status. If the project has not been
  *  built since it was open, this file is used to find if there are any existing .class files that indicate that has
  *  been built before.
+ * @param psiFilter the filter to apply while detecting the changes in the [editorFile].
  */
-class ProjectBuildStatusManager(parentDisposable: Disposable, private val editorFile: PsiFile) {
+class ProjectBuildStatusManager(parentDisposable: Disposable,
+                                private val editorFile: PsiFile,
+                                private val psiFilter: PsiFileSnapshotFilter = NopPsiFileSnapshotFilter) {
   private val project: Project = editorFile.project
-  private val fileChangeDetector = PsiFileChangeDetector.getInstance {
-    !LiveLiteralsService.getInstance(project).isElementManaged(it)
-  }
+  private val fileChangeDetector = PsiFileChangeDetector.getInstance { psiFilter.accepts(it) }
   private val _isBuilding = AtomicBoolean(false)
-  var status: ProjectStatus = NotReady
-    get() = if (isBuildOutOfDate()) {
-      OutOfDate
-    }
-    else field
-    private set(value) {
+  private var projectBuildStatus: ProjectBuildStatus = ProjectBuildStatus.NotReady
+    set(value) {
       if (field != value) {
         LOG.debug("Status change old = $field, new = $value")
         field = value
       }
     }
+  private var lastFilterModificationCount = psiFilter.modificationCount
+  val status: ProjectStatus
+    get() {
+      if (psiFilter.modificationCount != lastFilterModificationCount) {
+        lastFilterModificationCount = psiFilter.modificationCount
+
+        if (projectBuildStatus !is ProjectBuildStatus.NotReady) {
+          fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
+        }
+      }
+      return when {
+        projectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
+        isBuildOutOfDate() -> ProjectStatus.OutOfDate
+        projectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
+        else -> ProjectStatus.Ready
+      }
+    }
+
   val isBuilding: Boolean get() = _isBuilding.get()
 
   init {
@@ -81,7 +127,7 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, private val editor
         _isBuilding.set(true)
         LOG.debug("buildStarted $mode")
         if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
-          status = NeedsBuild
+          projectBuildStatus = ProjectBuildStatus.NeedsBuild
         }
       }
 
@@ -90,34 +136,20 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, private val editor
         LOG.debug("buildFinished $result")
         if (result.mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
           fileChangeDetector.markFileAsUpToDate(editorFile)
-          if (status is Ready) {
-            // After a clean build, we mark the preview as out of date to indicate we need a build to be available.
-            status = OutOfDate
-          }
           return
         }
-        status = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
+        projectBuildStatus = if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS) {
           fileChangeDetector.markFileAsUpToDate(editorFile)
-          Ready()
+          ProjectBuildStatus.Built
         }
         else {
-          when (status) {
+          when (projectBuildStatus) {
             // If the project was ready before, we keep it as Ready since it was just the new build
             // that failed.
-            is Ready -> Ready(false)
+            ProjectBuildStatus.Built -> ProjectBuildStatus.Built
             // If the project was not ready, then it needs a build since this one failed.
-            else -> NeedsBuild
+            else -> ProjectBuildStatus.NeedsBuild
           }
-        }
-      }
-    })
-
-    LiveLiteralsService.getInstance(project).addOnManagedElementsUpdatedListener(parentDisposable, object: LiveLiteralsService.ManagedElementsUpdatedListener {
-      override fun onChange(file: PsiFile) {
-        // The managed elements for a file have changed. If it's for the file we are monitoring, we need to mark the file as updated
-        // to ensure the new PsiElement filter is applied.
-        if (file.isEquivalentTo(editorFile) && status is Ready) {
-          fileChangeDetector.forceMarkFileAsUpToDate(editorFile)
         }
       }
     })
@@ -125,9 +157,9 @@ class ProjectBuildStatusManager(parentDisposable: Disposable, private val editor
     project.runWhenSmartAndSyncedOnEdt(parentDisposable, {
       fileChangeDetector.markFileAsUpToDate(editorFile)
 
-      if (status === NotReady) {
+      if (projectBuildStatus === ProjectBuildStatus.NotReady) {
         // Set the initial state of the project and initialize the modification count.
-        status = if (hasBeenBuiltSuccessfully(project) { editorFile }) Ready() else NeedsBuild
+        projectBuildStatus = if (hasBeenBuiltSuccessfully(project) { editorFile }) ProjectBuildStatus.Built else ProjectBuildStatus.NeedsBuild
       }
     })
   }

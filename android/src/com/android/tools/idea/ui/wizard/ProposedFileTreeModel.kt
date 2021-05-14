@@ -18,10 +18,12 @@ package com.android.tools.idea.ui.wizard
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.io.FileUtil.filesEqual
+import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.util.PlatformIcons
 import com.intellij.util.SmartList
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import javax.swing.Icon
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.TreeModel
@@ -129,7 +131,7 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
 
     fun getChild(index: Int) = children[index]
 
-    private fun findChildByFile(childFile: File) = children.find { it.file == childFile }
+    private fun findChildByFile(childFile: File) = children.find { FileUtilRt.filesEqual(it.file, childFile) }
 
     private fun addChild(childNode: Node) {
       if (icon == DEFAULT_ICON) {
@@ -226,18 +228,34 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
        *         of [rootDir]
        */
       fun makeTree(rootDir: File, proposedFiles: Set<File>, getIconForFile: (File) -> Icon?): Node {
-        val rootNode = Node(rootDir, emptyList(), DIR_ICON)
-        val conflictChecker = ConflictChecker(rootDir)
+        val root = getCommonAncestor(rootDir, proposedFiles)
+        val rootNode = Node(root, emptyList(), DIR_ICON)
+        val conflictChecker = ConflictChecker(root)
 
         for (file in proposedFiles) {
           val icon = getIconForFile(file)
-          val relativeFile = if (file.isAbsolute) file.relativeTo(rootDir) else file.normalize()
+          val relativeFile = if (file.isAbsolute) file.relativeTo(root) else file.normalize()
 
-          if (relativeFile.startsWith("..")) throw IllegalArgumentException("$rootDir is not an ancestor of $file")
+          if (relativeFile.startsWith("..")) {
+            throw IllegalArgumentException("$root is not an ancestor of $file")
+          }
           rootNode.addDescendant(relativeFile.invariantSeparatorsPath.split("/"), icon, conflictChecker)
         }
 
         return rootNode
+      }
+
+      private fun getCommonAncestor(rootDir: File, files: Collection<File>): File {
+        var root = rootDir.toPath()
+        outer@ while (true) {
+          for (file in files) {
+            if (!file.toPath().startsWith(root)) {
+              root = root.parent ?: break
+              continue@outer
+            }
+          }
+          return root.toFile()
+        }
       }
     }
   }

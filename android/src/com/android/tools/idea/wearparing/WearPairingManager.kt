@@ -96,7 +96,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  suspend fun removePairedDevices() {
+  suspend fun removePairedDevices(restartWearGmsCore: Boolean = true) {
     try {
       val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return
       val wearDeviceID = pairedWearDevice?.deviceID ?: return
@@ -109,8 +109,10 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
         LOG.warn("[$name] Remove AUTO-forward")
         runCatching { removeForward(5601, 5601) }
       }
-      connectedDevices[wearDeviceID]?.apply {
-        killGmsCore(this)
+      if (restartWearGmsCore) {
+        connectedDevices[wearDeviceID]?.apply {
+          restartGmsCore(this)
+        }
       }
     }
     catch (ex: Throwable) {
@@ -229,8 +231,21 @@ suspend fun IDevice.runShellCommand(cmd: String): String = withContext(Dispatche
 
 suspend fun IDevice.loadNodeID(): String {
   val localIdPattern = "local: "
-  val phoneOutput = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
-  return phoneOutput.replace(localIdPattern, "").trim()
+  val output = runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
+  return output.replace(localIdPattern, "").trim()
+}
+
+suspend fun IDevice.loadCloudNetworkID(): String {
+  val cloudNetworkIdPattern = "cloud network id: "
+  val output = runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
+  return output.replace(cloudNetworkIdPattern, "").replace("null", "").trim()
+}
+suspend fun IDevice.retrieveUpTime(): Double {
+  runCatching {
+    val uptimeRes = runShellCommand("cat /proc/uptime")
+    return uptimeRes.split(' ').firstOrNull()?.toDoubleOrNull() ?: 0.0
+  }
+  return 0.0
 }
 
 suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
@@ -240,8 +255,7 @@ suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
 
 private suspend fun killGmsCore(device: IDevice) {
   runCatching {
-    val uptimeRes = device.runShellCommand("cat /proc/uptime")
-    val uptime = uptimeRes.split(' ').firstOrNull()?.toDoubleOrNull() ?: 0.0
+    val uptime = device.retrieveUpTime()
     // Killing gmsCore during cold boot will hang booting for a while, so skip it
     if (uptime > 120.0) {
       LOG.warn("[${device.name}] Killing Google Play Services/gmsCore")
