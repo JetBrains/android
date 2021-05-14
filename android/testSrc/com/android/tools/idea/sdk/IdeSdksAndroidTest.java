@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import com.android.testutils.ignore.OnWindows;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.utils.FileUtils;
@@ -123,6 +124,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Calling doGetJdkFromPathOrParent should not result in NPE if it is not a valid path (b/132219284)
    */
   public void testDoGetJdkFromPathOrParentSpaces() {
+    if (new OnWindows().present()) return;  // b/188112686
     String path = IdeSdks.doGetJdkFromPathOrParent("  ");
     assertThat(path).isNull();
   }
