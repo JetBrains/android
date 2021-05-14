@@ -318,7 +318,7 @@ public class IdeSdks {
   /**
    * Check if the JDK Location pointed by {@value JDK_LOCATION_ENV_VARIABLE_NAME} is valid
    * @return {@code true} iff the variable is defined and it points to a valid JDK Location (as checked by
-   *          {@link IdeSdks#validateJdkPath(File)})
+   *          {@link IdeSdks#validateJdkPath(Path)})
    */
   public boolean isJdkEnvVariableValid() {
     return myEnvVariableSettings.IsJdkEnvVariableValid();
@@ -1156,7 +1156,7 @@ public class IdeSdks {
   @Nullable
   private Sdk recreateJdk(@NotNull Sdk originalJdk) {
     String jdkPath = originalJdk.getHomePath();
-    if (jdkPath != null && (validateJdkPath(new File(jdkPath)) != null)) {
+    if (jdkPath != null && (validateJdkPath(Paths.get(jdkPath)) != null)) {
       return JavaSdk.getInstance().createJdk(originalJdk.getName(), jdkPath, false);
     }
     return null;
