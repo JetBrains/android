@@ -1245,7 +1245,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
     DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
     "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
-    false
+    true
   );
   public static final Flag<Boolean> POINT_AVD_MANAGER_TO_DEVICE_MANAGER = Flag.create(
     DEVICE_MANAGER, "point.avd.manager.to.device.manager", "Point AVD Manager to Device Manager",
