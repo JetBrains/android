@@ -65,14 +65,14 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
     val jdk7Hint = buildString {
       val jdk = IdeSdks.getInstance().jdk ?: return@buildString
       val jdkHomePath = jdk.homePath
-      val jdkVersion = if (jdkHomePath != null) SdkVersionUtil.detectJdkVersion(jdkHomePath) else null
+      val jdkVersion = if (jdkHomePath != null) SdkVersionUtil.getJdkVersionInfo(jdkHomePath) else null
 
       if (JavaSdkVersion.JDK_1_7 != JavaSdk.getInstance().getVersion(jdk)) return@buildString
       // Otherwise, we are using Jdk7.
       when (jdkVersion) {
         null -> append("Some versions of JDK 1.7 (e.g. 1.7.0_10) may cause class loading errors in Gradle. \n" +
                        "Please update to a newer version (e.g. 1.7.0_67).")
-        else -> append("You are using JDK version '${jdkVersion}'.")
+        else -> append("You are using JDK version '${jdkVersion.version.toFeatureMinorUpdateString()}'.")
       }
     }
 
