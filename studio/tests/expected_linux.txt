@@ -545,10 +545,10 @@ android-studio/lib/imageio-metadata-3.6.1.jar
 android-studio/lib/imageio-tiff-3.6.1.jar
 android-studio/lib/imgscalr-lib-4.2.jar
 android-studio/lib/ini4j-0.5.5-2.jar
-android-studio/lib/intellij-coverage-agent-1.0.573.jar
+android-studio/lib/intellij-coverage-agent-1.0.575.jar
 android-studio/lib/intellij-deps-fastutil-8.4.1-5.jar
 android-studio/lib/intellij-dvcs.jar
-android-studio/lib/intellij-test-discovery-agent-1.0.573.jar
+android-studio/lib/intellij-test-discovery-agent-1.0.575.jar
 android-studio/lib/intellij-xml.jar
 android-studio/lib/ion-java-1.6.2-3.jar
 android-studio/lib/isorelax-20030108.jar
@@ -572,7 +572,7 @@ android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jdom.jar
-android-studio/lib/jediterm-pty-2.34.jar
+android-studio/lib/jediterm-pty-2.37.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jffi-1.2.19-native.jar
 android-studio/lib/jffi-1.2.19.jar
@@ -637,12 +637,13 @@ android-studio/lib/netty-handler-4.1.56.Final.jar
 android-studio/lib/netty-handler-proxy-4.1.56.Final.jar
 android-studio/lib/netty-resolver-4.1.56.Final.jar
 android-studio/lib/netty-transport-4.1.56.Final.jar
+android-studio/lib/ngram-slp-0.0.3.jar
 android-studio/lib/objenesis-3.1.jar
 android-studio/lib/openapi.jar
 android-studio/lib/opencensus-api-0.21.0.jar
 android-studio/lib/opencensus-contrib-grpc-metrics-0.21.0.jar
-android-studio/lib/org.eclipse.lsp4j-0.7.1.jar
-android-studio/lib/org.eclipse.lsp4j.jsonrpc-0.7.1.jar
+android-studio/lib/org.eclipse.lsp4j-0.10.0.jar
+android-studio/lib/org.eclipse.lsp4j.jsonrpc-0.10.0.jar
 android-studio/lib/org.eclipse.sisu.inject-0.3.4.jar
 android-studio/lib/org.eclipse.xtend.lib-2.17.0.jar
 android-studio/lib/org.eclipse.xtend.lib.macro-2.17.0.jar
@@ -655,9 +656,10 @@ android-studio/lib/platform-statistics-devkit.jar
 android-studio/lib/plexus-interpolation-1.25.jar
 android-studio/lib/plexus-utils-3.3.0.jar
 android-studio/lib/proto-google-common-protos-1.12.0.jar
+android-studio/lib/protobuf-java-3.11.4.jar
 android-studio/lib/protobuf-java-3.13.0.jar
 android-studio/lib/proxy-vole-1.0.5-jb.2.jar
-android-studio/lib/pty4j-0.11.3.jar
+android-studio/lib/pty4j-0.11.4.jar
 android-studio/lib/pty4j-native/linux/aarch64/libpty.so
 android-studio/lib/pty4j-native/linux/mips64el/libpty.so
 android-studio/lib/pty4j-native/linux/ppc64le/libpty.so
@@ -706,6 +708,7 @@ android-studio/lib/xmlrpc-2.0.1.jar
 android-studio/lib/xpp3_min-1.1.4c.jar
 android-studio/lib/xstream-1.4.11.1.jar
 android-studio/lib/xz-1.8.jar
+android-studio/lib/zip-signer-0.8.jar
 android-studio/license/XStream_license.txt
 android-studio/license/ant_license.txt
 android-studio/license/antlr4-runtime-4.5.3.jar-NOTICE
@@ -2737,7 +2740,6 @@ android-studio/plugins/cidr-base-plugin/lib/antlr4-runtime-4.1.jar
 android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 android-studio/plugins/cidr-base-plugin/lib/resources_en.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar
 android-studio/plugins/completionMlRanking/lib/resources_en.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-go-0.2.1.jar
@@ -2745,7 +2747,7 @@ android-studio/plugins/completionMlRankingModels/lib/completion-ranking-java-0.3
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-js-0.2.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-kotlin-0.3.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.3.jar
-android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0.1.4.jar
+android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0.3.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.2.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.1.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar

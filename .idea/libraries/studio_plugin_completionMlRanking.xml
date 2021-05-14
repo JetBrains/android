@@ -2,7 +2,6 @@
   <library name="studio-plugin-completionMlRanking">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/completionMlRanking/lib/completionMlRanking.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/completionMlRanking/lib/ngram-slp-0.0.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/completionMlRanking/lib/resources_en.jar!/" />
     </CLASSES>
     <JAVADOC />
