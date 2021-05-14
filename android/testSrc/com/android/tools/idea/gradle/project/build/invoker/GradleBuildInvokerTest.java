@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
@@ -44,7 +45,6 @@ import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -211,7 +211,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     Semaphore sema = new Semaphore(0);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myBuildInvoker.executeTasks(request);
+      myBuildInvoker.executeTasks(request, mock(ExternalSystemTaskNotificationListener.class));
       sema.release();
     });
     // Block until execute tasks has been run.
@@ -247,7 +247,9 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     @Override
     @NotNull
-    public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request, @NotNull BuildStopper buildStopper) {
+    public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
+                                      @NotNull BuildStopper buildStopper,
+                                      @NotNull ExternalSystemTaskNotificationListener listener) {
       myRequest = request;
       return myTasksExecutor;
     }

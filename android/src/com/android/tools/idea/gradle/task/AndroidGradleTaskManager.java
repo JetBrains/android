@@ -83,11 +83,10 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
              .setCommandLineArguments(effectiveSettings.getArguments())
              .withEnvironmentVariables(effectiveSettings.getEnv())
              .passParentEnvs(effectiveSettings.isPassParentEnvs())
-             .setTaskListener(listener)
              .waitForCompletion();
       // @formatter:on
 
-      gradleBuildInvoker.executeTasks(request);
+      gradleBuildInvoker.executeTasks(request, listener);
       return true;
     }
     // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.

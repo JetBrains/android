@@ -65,9 +65,9 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
         // If this was not requested by a user action, then do not automatically pop-up the build output panel on error.
         doNotShowBuildOutputOnFailure()
       }
-      taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(this, "Build")
     }
-    GradleBuildInvoker.getInstance(project).executeTasks(request)
+    val taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(request, "Build")
+    GradleBuildInvoker.getInstance(project).executeTasks(request, taskListener)
   }
 }
 

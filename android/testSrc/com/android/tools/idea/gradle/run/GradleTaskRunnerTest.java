@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
@@ -98,7 +99,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     }
 
     @Override
-    public void executeTasks(@NotNull Request request) {
+    public void executeTasks(@NotNull Request request, @NotNull ExternalSystemTaskNotificationListener listener) {
     }
 
     /**

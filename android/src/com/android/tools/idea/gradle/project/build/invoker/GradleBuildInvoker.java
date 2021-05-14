@@ -398,13 +398,11 @@ public class GradleBuildInvoker {
     Trace.addVmArgs(jvmArguments);
     Request request = new Request(myProject, buildFilePath, gradleTasks);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
-    // @formatter:off
-    request.setJvmArguments(jvmArguments)
-           .setCommandLineArguments(commandLineArguments)
-           .setBuildAction(buildAction)
-           .setTaskListener(buildTaskListener);
-    // @formatter:on
-    executeTasks(request);
+    request
+      .setJvmArguments(jvmArguments)
+      .setCommandLineArguments(commandLineArguments)
+      .setBuildAction(buildAction);
+    executeTasks(request, buildTaskListener);
   }
 
   @NotNull
@@ -423,7 +421,7 @@ public class GradleBuildInvoker {
     }
   }
 
-  public void executeTasks(@NotNull Request request) {
+  public void executeTasks(@NotNull Request request, @NotNull ExternalSystemTaskNotificationListener listener) {
     String buildFilePath = request.getBuildFilePath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(buildFilePath);
@@ -434,7 +432,8 @@ public class GradleBuildInvoker {
     if (gradleTasks.isEmpty()) {
       return;
     }
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
+
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, listener);
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
       myDocumentManager.saveAllDocuments();
@@ -498,8 +497,6 @@ public class GradleBuildInvoker {
     private final Map<String, String> myEnv;
     private boolean myPassParentEnvs = true;
     @NotNull private final ExternalSystemTaskId myTaskId;
-
-    @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
     @Nullable private BuildAction<?> myBuildAction;
     private boolean myWaitForCompletion;
     /** If true, the build output window will not automatically be shown on failure. */
@@ -576,17 +573,6 @@ public class GradleBuildInvoker {
 
     public boolean isPassParentEnvs() {
       return myPassParentEnvs;
-    }
-
-    @Nullable
-    public ExternalSystemTaskNotificationListener getTaskListener() {
-      return myTaskListener;
-    }
-
-    @NotNull
-    public Request setTaskListener(@Nullable ExternalSystemTaskNotificationListener taskListener) {
-      myTaskListener = taskListener;
-      return this;
     }
 
     @NotNull
@@ -794,7 +780,7 @@ public class GradleBuildInvoker {
         // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
         myBuildEventDispatcher.close();
         myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.myTaskId, myBuildViewManager);
-        executeTasks(myRequest);
+        executeTasks(myRequest, MyListener.this);
       }
     }
   }
