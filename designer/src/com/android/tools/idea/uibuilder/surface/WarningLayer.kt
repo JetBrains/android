@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.intellij.ui.scale.JBUIScale
 import icons.StudioIcons
 import java.awt.BasicStroke
@@ -46,8 +46,8 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
   override val isVisible: Boolean
     get() {
       val selectedIssue = screenView.surface.issuePanel.selectedIssue
-      if (selectedIssue is VisualLintIssueProvider.VisualLintRenderIssueWrapper) {
-        return selectedIssue.sourceModel == screenView.sceneManager.model
+      if (selectedIssue is VisualLintHighlightingIssue) {
+        return selectedIssue.shouldHighlight(screenView.sceneManager.model)
       }
       return false
     }

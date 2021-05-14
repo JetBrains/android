@@ -134,11 +134,19 @@ class VisualLintAtfAnalysis(
   }
 }
 
-class VisualLintAtfIssue(result: ValidatorData.Issue, component: NlComponent, model: NlModel) :
-  NlAtfIssue(result, IssueSource.fromNlComponent(component), model) {
+class VisualLintAtfIssue(
+  result: ValidatorData.Issue,
+  component: NlComponent,
+  private val sourceModel: NlModel) :
+  NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel), VisualLintHighlightingIssue {
 
-  private val visualLintIssueSource = VisualLintIssueProvider.VisualLintIssueSource(model)
+  private val visualLintIssueSource = VisualLintIssueProvider.VisualLintIssueSource(sourceModel)
   override val source: IssueSource
     get() = visualLintIssueSource
+
+  override fun shouldHighlight(model: NlModel): Boolean {
+    return sourceModel == model
+  }
+
 }
 
