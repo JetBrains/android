@@ -384,6 +384,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<String> cmdLineArgs;
     try {
       cmdLineArgs = getCommonArguments(modules, androidRunConfiguration, targetDeviceSpec);
+      cmdLineArgs.add("--stacktrace");
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);

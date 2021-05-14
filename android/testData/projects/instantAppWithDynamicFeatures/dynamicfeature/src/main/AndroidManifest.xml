@@ -4,7 +4,7 @@
 
     <dist:module
         dist:onDemand="true"
-        dist:title="dynamicfeature">
+        dist:title="@string/dynamicfeature">
         <dist:fusing dist:include="true" />
     </dist:module>
 </manifest>
