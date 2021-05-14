@@ -119,6 +119,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   @NotNull private final GradleBuildInvoker.Request myRequest;
   @NotNull private final BuildStopper myBuildStopper;
+  @NotNull private ExternalSystemTaskNotificationListener myListener;
 
   @GuardedBy("myCompletionLock")
   private int myCompletionCounter;
@@ -129,10 +130,13 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   @NotNull private volatile ProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
 
-  GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request, @NotNull BuildStopper buildStopper) {
+  GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request,
+                          @NotNull BuildStopper buildStopper,
+                          @NotNull ExternalSystemTaskNotificationListener listener) {
     super(request.getProject());
     myRequest = request;
     myBuildStopper = buildStopper;
+    myListener = listener;
   }
 
   @Override
@@ -220,7 +224,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
       Throwable buildError = null;
       ExternalSystemTaskId id = myRequest.getTaskId();
-      ExternalSystemTaskNotificationListener taskListener = getTaskListener();
+      ExternalSystemTaskNotificationListener taskListener = myListener;
       CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
       myBuildStopper.register(id, cancellationTokenSource);
 
@@ -418,7 +422,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
     try {
       myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings,
-                       myRequest.getTaskId(), myRequest.getTaskListener(), null, executeTasksFunction);
+                       myRequest.getTaskId(), myListener, null, executeTasksFunction);
     }
     catch (ExternalSystemException e) {
       if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
@@ -428,13 +432,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         throw e;
       }
     }
-  }
-
-  @NotNull
-  private ExternalSystemTaskNotificationListener getTaskListener() {
-    ExternalSystemTaskNotificationListener result = myRequest.getTaskListener();
-    if (result == null) result = new NoopExternalSystemTaskNotificationListener();
-    return result;
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {

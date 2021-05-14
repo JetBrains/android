@@ -128,8 +128,7 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
           }
         };
 
-      request.setTaskListener(listenerDelegate);
-      gradleBuildInvoker.executeTasks(request);
+      gradleBuildInvoker.executeTasks(request, listenerDelegate);
     }
   }
 

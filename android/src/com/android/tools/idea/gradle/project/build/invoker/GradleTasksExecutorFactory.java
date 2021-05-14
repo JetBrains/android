@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleTasksExecutorFactory {
   @NotNull
-  public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request, @NotNull BuildStopper buildStopper) {
-    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildStopper);
+  public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
+                                    @NotNull BuildStopper buildStopper,
+                                    @NotNull ExternalSystemTaskNotificationListener listener) {
+    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildStopper, listener);
     GradleBuildState.getInstance(request.getProject()).buildExecutorCreated(request);
     return executor;
   }

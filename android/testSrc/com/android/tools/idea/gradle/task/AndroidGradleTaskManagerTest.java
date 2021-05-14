@@ -90,7 +90,7 @@ b/144931276 */
     public boolean matches(GradleBuildInvoker.Request argument) {
       // skip generated init scripts args asserting
       argument.setCommandLineArguments(Collections.emptyList());
-      return myRequest.toString().equals(argument.toString()) && myRequest.getTaskListener() == argument.getTaskListener();
+      return myRequest.toString().equals(argument.toString());
     }
   }
 }
