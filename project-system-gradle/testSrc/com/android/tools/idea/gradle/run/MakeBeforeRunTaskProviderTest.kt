@@ -33,7 +33,6 @@ import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.PlatformTestCase
@@ -246,7 +245,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
@@ -256,17 +255,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
-  }
-
-  fun testRunGradleSyncWithPostBuildSyncNotSupported() {
-    setUpTestProject("2.0.0", ":" to AndroidProjectBuilder())
-    val syncState = IdeComponents(myProject).mockProjectService(GradleSyncState::class.java)
-    `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
-    `when`(myRunConfiguration.modules).thenReturn(myModules)
-    val provider = MakeBeforeRunTaskProvider(myProject)
-    // Gradle sync should be invoked to make sure Android models are up-to-date.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   companion object {

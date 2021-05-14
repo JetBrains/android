@@ -20,7 +20,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -30,14 +29,14 @@ import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ide.common.build.GenericBuiltArtifacts;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.model.stubs.AndroidArtifactOutputStub;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.model.AndroidModel;
@@ -75,7 +74,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     initMocks(this);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-//    BestOutputFinder bestOutputFinder = mock(BestOutputFinder.class);
 
     when(myVariant.getName()).thenReturn("myVariant");
     when(myVariant.getDisplayName()).thenReturn("myVariant (display name)");
@@ -93,8 +91,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
 
     IdeAndroidArtifact mainArtifact = mock(IdeAndroidArtifact.class);
     IdeAndroidArtifact testArtifact = mock(IdeAndroidArtifact.class);
-    when(mainArtifact.getOutputs()).thenReturn(mainOutputs);
-    when(testArtifact.getOutputs()).thenReturn(testOutputs);
     when(mainArtifact.getAbiFilters()).thenReturn(emptySet());
     when(testArtifact.getAbiFilters()).thenReturn(emptySet());
     when(testArtifact.isTestArtifact()).thenReturn(true);
@@ -128,17 +124,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     setUpProjectBuildOutputProvider(myAndroidFacet, myVariant.getName(), mainOutputs2, testOutputs2);
   }
 
-  public void testGetApkWithoutModelProvider() throws Exception {
-    when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(false);
-
-    File apk = myApkProvider.getApk(myVariant.getName(), myVariant.getMainArtifact(), emptyList(), new AndroidVersion(27), myAndroidFacet
-    );
-    assertEquals(myApkFile, apk);
-
-    // Pre 3.0 plugins should not use this.
-    verify(myOutputModelProvider, never()).getPostBuildModel();
-  }
-
   public void testGetApkWithModelProvider() throws Exception {
     when(myModelFeatures.isPostBuildSyncSupported()).thenReturn(true);
 
@@ -148,16 +133,6 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
 
     // Post 3.0 plugins should use this.
     verify(myOutputModelProvider, atLeastOnce()).getPostBuildModel();
-  }
-
-  public void testGetApkFromPreSyncBuild() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(myVariant.getMainArtifact(), emptyList());
-    assertEquals(myApkFile, apk);
-  }
-
-  public void testGetApkFromPreSyncBuildForTests() throws Exception {
-    File apk = myApkProvider.getApkFromPreBuildSync(Objects.requireNonNull(myVariant.getAndroidTestArtifact()), emptyList());
-    assertEquals(myTestApkFile, apk);
   }
 
   public void testGetApkFromPostBuild() throws Exception {

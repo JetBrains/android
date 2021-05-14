@@ -41,11 +41,7 @@ class ApkProviderOldAgpIntegrationTest : ApkProviderIntegrationTestCase() {
         testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
         expectApks = """
-          ApplicationId: one.name.debug
-          File: project/app/build/outputs/apk/debug/app-debug.apk
-          Files:
-            Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
-          RequiredInstallationOptions: []
+          ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
         """
       ),
       baseDefinition.copy(
