@@ -51,7 +51,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 private val LOG get() = logger<WearPairingManager>()
 
 object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
-  private val updateDevicesChannel = Channel<Unit>(1)
+  private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
 
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
@@ -242,10 +242,13 @@ suspend fun IDevice.loadNodeID(): String {
   return output.replace(localIdPattern, "").trim()
 }
 
-suspend fun IDevice.loadCloudNetworkID(): String {
+suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String {
   val cloudNetworkIdPattern = "cloud network id: "
   val output = runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
-  return output.replace(cloudNetworkIdPattern, "").replace("null", "").trim()
+  return output.replace(cloudNetworkIdPattern, "").run {
+    // The Wear Device may have a "null" cloud ID until ADB forward is established and a properly setup phone connects to it.
+    if (ignoreNullOutput) replace("null", "") else this
+  }.trim()
 }
 suspend fun IDevice.retrieveUpTime(): Double {
   runCatching {

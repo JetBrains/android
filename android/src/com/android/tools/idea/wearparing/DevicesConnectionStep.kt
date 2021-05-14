@@ -54,7 +54,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.apache.commons.lang.time.StopWatch
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
 import java.awt.BorderLayout
@@ -167,7 +166,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     val isNewWearPairingDevice = WearPairingManager.getPairedDevices().second?.deviceID != wearPairingDevice.deviceID
     WearPairingManager.removePairedDevices(restartWearGmsCore = isNewWearPairingDevice)
     WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
-    createDeviceBridge(phoneDevice, wearDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {
       // Companion App already installed, go to the next step
@@ -187,22 +185,20 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiInstallCompanionAppScanning(phoneDevice, scanningLabel = message("wear.assistant.device.connection.scanning.wear.os.lnk"))
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY) {
-      if (phoneDevice.isCompanionAppInstalled()) {
-        showUiInstallCompanionAppSuccess(phoneDevice)
-        canGoForward.set(true)
-        return
-      }
-      delay(1000)
+    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { phoneDevice.isCompanionAppInstalled() }) {
+      showUiInstallCompanionAppSuccess(phoneDevice)
+      canGoForward.set(true)
     }
-
-    showUiInstallCompanionAppRetry(phoneDevice) // After some time we give up and show the manual retry ui
+    else {
+      showUiInstallCompanionAppRetry(phoneDevice) // After some time we give up and show the manual retry ui
+    }
   }
 
   private suspend fun showSecondPhase(phoneDevice: IDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
-    if (devicesPaired(phoneIDevice, wearIDevice)) {
+    createDeviceBridge(phoneDevice, wearDevice)
+    // Note: createDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
+    if (waitForCondition(5_000) { checkDevicesPaired(phoneIDevice, wearIDevice) }) {
       showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
     else {
@@ -219,16 +215,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiPairingScanning(phoneDevice, wearDevice, scanningLabel = message("wear.assistant.device.connection.wait.pairing.lnk"))
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY) {
-      if (devicesPaired(phoneDevice, wearDevice)) {
-        showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
-        return
-      }
-      delay(1000)
+    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { checkDevicesPaired(phoneDevice, wearDevice) }) {
+      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
-
-    showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+    else {
+      showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+    }
   }
 
   private suspend fun showPairingSuccess(phoneName: String, watchName: String) {
@@ -256,7 +248,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
         showUiWaitingDeviceStatus()
         waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty() }
-        waitForCondition(10_000) { iDevice.loadCloudNetworkID().isNotEmpty() }
+        waitForCondition(10_000) { iDevice.loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
       }
 
       return iDevice
@@ -281,10 +273,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY && model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
-      delay(200)
-    }
+    waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { model.getNonSelectedRunningWearEmulators().isEmpty() }
   }
 
   private suspend fun showUI(
@@ -653,12 +642,14 @@ suspend fun <T> Future<T>.await(): T {
   return get() // If isDone() returned true, this call will not block
 }
 
-private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> Boolean) {
-  withTimeoutOrNull(timeMillis) {
+private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> Boolean): Boolean {
+  val res = withTimeoutOrNull(timeMillis) {
     while (!condition()) {
       delay(1000)
     }
+    true
   }
+  return res == true
 }
 
 private suspend fun IDevice.isCompanionAppInstalled(): Boolean {
@@ -666,7 +657,7 @@ private suspend fun IDevice.isCompanionAppInstalled(): Boolean {
   return output.contains("versionName=")
 }
 
-private suspend fun devicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
+private suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
   val phoneDeviceID = phoneDevice.loadNodeID()
   if (phoneDeviceID.isNotEmpty()) {
     val wearPattern = "connection to peer node: $phoneDeviceID"
