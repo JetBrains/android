@@ -25,8 +25,8 @@ import com.android.tools.editor.EditorActionsFloatingToolbarProvider
 import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,8 +39,6 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import icons.StudioIcons.LayoutInspector.MODE_3D
 import icons.StudioIcons.LayoutInspector.RESET_VIEW
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.Desktop
-import java.net.URI
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
@@ -135,6 +133,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     else {
       event.presentation.isEnabled = false
       val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel < 29
+      @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {
           model?.overlay != null -> "Rotation not available when overlay is active"
@@ -144,9 +143,10 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     }
   }
 
+  @Suppress("DialogTitleCapitalization")
   override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
     // TODO: link for performance issue
-    Desktop.getDesktop().browse(URI("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode"))
+    BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode")
   }
 }
 

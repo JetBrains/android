@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -59,7 +60,6 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
@@ -70,7 +70,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.net.URI
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -471,8 +470,9 @@ class DeviceViewPanel(
       }
     }
 
+    @Suppress("DialogTitleCapitalization")
     override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
-      Desktop.getDesktop().browse(URI("https://d.android.com/r/studio-ui/layout-inspector-live-updates"))
+      BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-live-updates")
     }
 
     // When disconnected: display the default value after the inspector is connected to the device.
