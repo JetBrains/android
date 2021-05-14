@@ -59,6 +59,13 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
   val androidViews = mutableMapOf<Long, ComposeViewNode>()
 
   /**
+   * Views created by Compose that should be skipped.
+   *
+   * This includes RippleContainers with RippleHostViews.
+   */
+  val viewsToSkip = response.rootsList.associateBy({ it.viewId }, { it.viewsToSkipList})
+
+  /**
    * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes
    * for any Composable children it may have.
    *
