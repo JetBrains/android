@@ -78,7 +78,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFontResource() {
       super.testFontResource("<root> (1)\n" +
-                             " Found usages (1)\n" +
+                             " Usages in (1)\n" +
                              "  Resource reference in code (1)\n" +
                              "   app (1)\n" +
                              "    p1.p2 (1)\n" +
@@ -89,7 +89,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFileResource() {
       super.testFileResource("<root> (3)\n" +
-                             " Found usages (3)\n" +
+                             " Usages in (3)\n" +
                              "  In Android resources XML (2)\n" +
                              "   app (2)\n" +
                              "    res" + File.separatorChar + "layout (1)\n" +
@@ -108,7 +108,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFileResourceNoEditor() {
       super.testFileResourceNoEditor("<root> (1)\n" +
-                                     " Found usages (1)\n" +
+                                     " Usages in (1)\n" +
                                      "  Resource reference in code (1)\n" +
                                      "   app (1)\n" +
                                      "    p1.p2 (1)\n" +
@@ -119,7 +119,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFileResourceField() {
       super.testFileResourceField("<root> (2)\n" +
-                                  " Found usages (2)\n" +
+                                  " Usages in (2)\n" +
                                   "  In Android resources XML (1)\n" +
                                   "   app (1)\n" +
                                   "    res" + File.separatorChar + "layout (1)\n" +
@@ -135,7 +135,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testIdDeclarations() {
       super.testIdDeclarations("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (2)\n" +
                                "   app (2)\n" +
                                "    res" + File.separatorChar + "layout (2)\n" +
@@ -146,7 +146,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testIdResource() {
       super.testIdResource("<root> (2)\n" +
-                           " Found usages (2)\n" +
+                           " Usages in (2)\n" +
                            "  In Android resources XML (1)\n" +
                            "   app (1)\n" +
                            "    res" + File.separatorChar + "layout (1)\n" +
@@ -162,7 +162,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testIdResourceDeclaration() {
       super.testIdResourceDeclaration("<root> (2)\n" +
-                                      " Found usages (2)\n" +
+                                      " Usages in (2)\n" +
                                       "  In Android resources XML (1)\n" +
                                       "   app (1)\n" +
                                       "    res" + File.separatorChar + "layout (1)\n" +
@@ -178,7 +178,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testIdResourceField() {
       super.testIdResourceField("<root> (2)\n" +
-                                " Found usages (2)\n" +
+                                " Usages in (2)\n" +
                                 "  In Android resources XML (1)\n" +
                                 "   app (1)\n" +
                                 "    res" + File.separatorChar + "layout (1)\n" +
@@ -194,7 +194,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStringArray() {
       super.testStringArray("<root> (2)\n" +
-                            " Found usages (2)\n" +
+                            " Usages in (2)\n" +
                             "  In Android resources XML (1)\n" +
                             "   app (1)\n" +
                             "    res" + File.separatorChar + "layout (1)\n" +
@@ -210,7 +210,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleable() throws Throwable {
       super.testStyleable("<root> (2)\n" +
-                          " Found usages (2)\n" +
+                          " Usages in (2)\n" +
                           "  Resource reference in code (2)\n" +
                           "   app (2)\n" +
                           "    p1.p2 (2)\n" +
@@ -222,7 +222,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleableAttr() throws Throwable {
       super.testStyleableAttr("<root> (3)\n" +
-                              " Found usages (3)\n" +
+                              " Usages in (3)\n" +
                               "  In Android resources XML (1)\n" +
                               "   app (1)\n" +
                               "    res" + File.separatorChar + "values (1)\n" +
@@ -239,7 +239,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleInheritance() {
       super.testStyleInheritance("<root> (3)\n" +
-                                 " Found usages (3)\n" +
+                                 " Usages in (3)\n" +
                                  "  In Android resources XML (3)\n" +
                                  "   app (3)\n" +
                                  "    res" + File.separatorChar + "values (3)\n" +
@@ -251,7 +251,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleInheritance1() {
       super.testStyleInheritance1("<root> (3)\n" +
-                                  " Found usages (3)\n" +
+                                  " Usages in (3)\n" +
                                   "  In Android resources XML (3)\n" +
                                   "   app (3)\n" +
                                   "    res" + File.separatorChar + "values (3)\n" +
@@ -263,7 +263,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleInheritance2() {
       super.testStyleInheritance2("<root> (3)\n" +
-                                  " Found usages (3)\n" +
+                                  " Usages in (3)\n" +
                                   "  In Android resources XML (3)\n" +
                                   "   app (3)\n" +
                                   "    res" + File.separatorChar + "values (3)\n" +
@@ -275,7 +275,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueItemResource() {
       super.testValueItemResource("<root> (2)\n" +
-                                  " Found usages (2)\n" +
+                                  " Usages in (2)\n" +
                                   "  In Android resources XML (1)\n" +
                                   "   app (1)\n" +
                                   "    res" + File.separatorChar + "layout (1)\n" +
@@ -291,7 +291,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource() {
       super.testValueResource("<root> (2)\n" +
-                              " Found usages (2)\n" +
+                              " Usages in (2)\n" +
                               "  In Android resources XML (1)\n" +
                               "   app (1)\n" +
                               "    res" + File.separatorChar + "layout (1)\n" +
@@ -307,7 +307,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource1() {
       super.testValueResource1("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -323,7 +323,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource2() {
       super.testValueResource2("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -339,7 +339,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource3() {
       super.testValueResource3("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -355,7 +355,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource4() {
       super.testValueResource4("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -371,7 +371,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource5() {
       super.testValueResource5("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -387,7 +387,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource6() {
       super.testValueResource6("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -403,7 +403,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource7() {
       super.testValueResource7("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -419,7 +419,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource8() {
       super.testValueResource8("<root> (2)\n" +
-                               " Found usages (2)\n" +
+                               " Usages in (2)\n" +
                                "  In Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -435,7 +435,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResource9() {
       super.testValueResource9("<root> (3)\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  In Android resources XML (2)\n" +
                                "   app (2)\n" +
                                "    res" + File.separatorChar + "layout (1)\n" +
@@ -454,7 +454,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueResourceField() {
       super.testValueResourceField("<root> (2)\n" +
-                                   " Found usages (2)\n" +
+                                   " Usages in (2)\n" +
                                    "  In Android resources XML (1)\n" +
                                    "   app (1)\n" +
                                    "    res" + File.separatorChar + "layout (1)\n" +
@@ -470,7 +470,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testValueItemResourceField() {
       super.testValueItemResourceField("<root> (2)\n" +
-                                       " Found usages (2)\n" +
+                                       " Usages in (2)\n" +
                                        "  In Android resources XML (1)\n" +
                                        "   app (1)\n" +
                                        "    res" + File.separatorChar + "layout (1)\n" +
@@ -486,7 +486,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testStyleItemAttrFromJava() throws Throwable {
       super.testStyleItemAttrFromJava("<root> (3)\n" +
-                                      " Found usages (3)\n" +
+                                      " Usages in (3)\n" +
                                       "  In Android resources XML (2)\n" +
                                       "   app (2)\n" +
                                       "    res/values (2)\n" +
@@ -540,7 +540,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
         .isEqualTo("<root> (4)\n" +
                    " Targets\n" +
                    "  @android:color/background_dark\n" +
-                   " Found usages (4)\n" +
+                   " Usages in (4)\n" +
                    "  Resource declaration in Android resources XML (1)\n" +
                    "   values (1)\n" +
                    "    colors.xml (1)\n" +
@@ -567,7 +567,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       assertEquals("<root> (3)\n" +
                    " Targets\n" +
                    "  @string/hello\n" +
-                   " Found usages (3)\n" +
+                   " Usages in (3)\n" +
                    "  Resource declaration in Android resources XML (1)\n" +
                    "   app (1)\n" +
                    "    res" + File.separatorChar + "values (1)\n" +
@@ -590,7 +590,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testFontResource("<root> (2)\n" +
                              " Targets\n" +
                              "  @font/new_font\n" +
-                             " Found usages (2)\n" +
+                             " Usages in (2)\n" +
                              "  Android resource file (1)\n" +
                              "   app (1)\n" +
                              "    res" + File.separatorChar + "font (1)\n" +
@@ -608,7 +608,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testFileResource("<root> (4)\n" +
                              " Targets\n" +
                              "  @drawable/picture3\n" +
-                             " Found usages (4)\n" +
+                             " Usages in (4)\n" +
                              "  Android resource file (1)\n" +
                              "   app (1)\n" +
                              "    res" + File.separatorChar + "drawable (1)\n" +
@@ -632,7 +632,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
 
     public void testFileResourceNoEditor() {
       super.testFileResourceNoEditor("<root> (2)\n" +
-                                     " Found usages (2)\n" +
+                                     " Usages in (2)\n" +
                                      "  Resource reference Android resources XML (1)\n" +
                                      "   app (1)\n" +
                                      "    res" + File.separatorChar + "layout (1)\n" +
@@ -650,7 +650,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testFileResourceField("<root> (3)\n" +
                                   " Targets\n" +
                                   "  @drawable/picture3\n" +
-                                  " Found usages (3)\n" +
+                                  " Usages in (3)\n" +
                                   "  Android resource file (1)\n" +
                                   "   app (1)\n" +
                                   "    res" + File.separatorChar + "drawable (1)\n" +
@@ -673,7 +673,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testIdDeclarations("<root> (3)\n" +
                                " Targets\n" +
                                "  @id/second\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (2)\n" +
                                "   app (2)\n" +
                                "    res" + File.separatorChar + "layout (2)\n" +
@@ -691,7 +691,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testIdResource("<root> (3)\n" +
                            " Targets\n" +
                            "  @id/anchor\n" +
-                           " Found usages (3)\n" +
+                           " Usages in (3)\n" +
                            "  Resource declaration in Android resources XML (1)\n" +
                            "   app (1)\n" +
                            "    res" + File.separatorChar + "layout (1)\n" +
@@ -714,7 +714,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testIdResourceDeclaration("<root> (3)\n" +
                                       " Targets\n" +
                                       "  @id/anchor\n" +
-                                      " Found usages (3)\n" +
+                                      " Usages in (3)\n" +
                                       "  Resource declaration in Android resources XML (1)\n" +
                                       "   app (1)\n" +
                                       "    res" + File.separatorChar + "layout (1)\n" +
@@ -737,7 +737,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testIdResourceField("<root> (3)\n" +
                                 " Targets\n" +
                                 "  @id/anchor\n" +
-                                " Found usages (3)\n" +
+                                " Usages in (3)\n" +
                                 "  Resource declaration in Android resources XML (1)\n" +
                                 "   app (1)\n" +
                                 "    res" + File.separatorChar + "layout (1)\n" +
@@ -760,7 +760,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStringArray("<root> (3)\n" +
                             " Targets\n" +
                             "  @array/str_arr\n" +
-                            " Found usages (3)\n" +
+                            " Usages in (3)\n" +
                             "  Resource declaration in Android resources XML (1)\n" +
                             "   app (1)\n" +
                             "    res" + File.separatorChar + "values (1)\n" +
@@ -783,7 +783,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleable("<root> (3)\n" +
                           " Targets\n" +
                           "  @styleable/MyView\n" +
-                          " Found usages (3)\n" +
+                          " Usages in (3)\n" +
                           "  Resource declaration in Android resources XML (1)\n" +
                           "   app (1)\n" +
                           "    res" + File.separatorChar + "values (1)\n" +
@@ -803,7 +803,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleableAttr("<root> (1)\n" +
                               " Targets\n" +
                               "  @styleable/MyView_answer\n" +
-                              " Found usages (1)\n" +
+                              " Usages in (1)\n" +
                               "  Resource reference in code (1)\n" +
                               "   app (1)\n" +
                               "    p1.p2 (1)\n" +
@@ -816,7 +816,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleInheritance("<root> (4)\n" +
                                  " Targets\n" +
                                  "  @style/myStyle\n" +
-                                 " Found usages (4)\n" +
+                                 " Usages in (4)\n" +
                                  "  Resource declaration in Android resources XML (1)\n" +
                                  "   app (1)\n" +
                                  "    res/values (1)\n" +
@@ -835,7 +835,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleInheritance1("<root> (4)\n" +
                                   " Targets\n" +
                                   "  @style/myStyle\n" +
-                                  " Found usages (4)\n" +
+                                  " Usages in (4)\n" +
                                   "  Resource declaration in Android resources XML (1)\n" +
                                   "   app (1)\n" +
                                   "    res/values (1)\n" +
@@ -854,7 +854,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleInheritance2("<root> (4)\n" +
                                   " Targets\n" +
                                   "  @style/myStyle\n" +
-                                  " Found usages (4)\n" +
+                                  " Usages in (4)\n" +
                                   "  Resource declaration in Android resources XML (1)\n" +
                                   "   app (1)\n" +
                                   "    res/values (1)\n" +
@@ -873,7 +873,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueItemResource("<root> (3)\n" +
                                   " Targets\n" +
                                   "  @string/hi\n" +
-                                  " Found usages (3)\n" +
+                                  " Usages in (3)\n" +
                                   "  Resource declaration in Android resources XML (1)\n" +
                                   "   app (1)\n" +
                                   "    res" + File.separatorChar + "values (1)\n" +
@@ -896,7 +896,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueItemResourceField("<root> (3)\n" +
                                        " Targets\n" +
                                        "  @string/hi\n" +
-                                       " Found usages (3)\n" +
+                                       " Usages in (3)\n" +
                                        "  Resource declaration in Android resources XML (1)\n" +
                                        "   app (1)\n" +
                                        "    res" + File.separatorChar + "values (1)\n" +
@@ -919,7 +919,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource("<root> (3)\n" +
                               " Targets\n" +
                               "  @string/hello\n" +
-                              " Found usages (3)\n" +
+                              " Usages in (3)\n" +
                               "  Resource declaration in Android resources XML (1)\n" +
                               "   app (1)\n" +
                               "    res" + File.separatorChar + "values (1)\n" +
@@ -942,7 +942,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource1("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -965,7 +965,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource2("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -988,7 +988,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource3("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1011,7 +1011,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource4("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1034,7 +1034,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource5("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1057,7 +1057,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource6("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1080,7 +1080,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource7("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1103,7 +1103,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource8("<root> (3)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (3)\n" +
+                               " Usages in (3)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1126,7 +1126,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResource9("<root> (4)\n" +
                                " Targets\n" +
                                "  @string/hello\n" +
-                               " Found usages (4)\n" +
+                               " Usages in (4)\n" +
                                "  Resource declaration in Android resources XML (1)\n" +
                                "   app (1)\n" +
                                "    res" + File.separatorChar + "values (1)\n" +
@@ -1152,7 +1152,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testValueResourceField("<root> (3)\n" +
                                    " Targets\n" +
                                    "  @string/hello\n" +
-                                   " Found usages (3)\n" +
+                                   " Usages in (3)\n" +
                                    "  Resource declaration in Android resources XML (1)\n" +
                                    "   app (1)\n" +
                                    "    res" + File.separatorChar + "values (1)\n" +
@@ -1211,7 +1211,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       String expected = "<root> (3)\n" +
                         " Targets\n" +
                         "  @attr/newAttr\n" +
-                        " Found usages (3)\n" +
+                        " Usages in (3)\n" +
                         "  Resource declaration in Android resources XML (1)\n" +
                         "   app (1)\n" +
                         "    res" + File.separatorChar + "values (1)\n" +
@@ -1235,7 +1235,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       super.testStyleItemAttrFromJava("<root> (3)\n" +
                                       " Targets\n" +
                                       "  @attr/newAttr\n" +
-                                      " Found usages (3)\n" +
+                                      " Usages in (3)\n" +
                                       "  Resource declaration in Android resources XML (1)\n" +
                                       "   app (1)\n" +
                                       "    res/values (1)\n" +
@@ -1513,7 +1513,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
     String expected = "<root> (1)\n" +
-                      " Found usages (1)\n" +
+                      " Usages in (1)\n" +
                       "  Unclassified (1)\n" +
                       "   app (1)\n" +
                       "    p1.p2 (1)\n" +
@@ -1539,7 +1539,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     Collection<UsageInfo> references = findUsages(file.getVirtualFile(), myFixture);
     String expected = "<root> (1)\n" +
-                      " Found usages (1)\n" +
+                      " Usages in (1)\n" +
                       "  Function call (1)\n" +
                       "   app (1)\n" +
                       "    p1.p2 (1)\n" +
