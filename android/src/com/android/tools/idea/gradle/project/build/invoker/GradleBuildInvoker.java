@@ -112,6 +112,7 @@ import org.jetbrains.annotations.TestOnly;
  * Invokes Gradle tasks directly. Results of tasks execution are displayed in both the "Messages" tool window and the new "Gradle Console"
  * tool window.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class GradleBuildInvoker {
   @NotNull private final Project myProject;
   @NotNull private final FileDocumentManager myDocumentManager;
@@ -356,7 +357,7 @@ public class GradleBuildInvoker {
   public void executeTasks(@NotNull ListMultimap<Path, String> tasks,
                            @Nullable BuildMode buildMode,
                            @NotNull List<String> commandLineArguments,
-                           @Nullable BuildAction buildAction) {
+                           @Nullable BuildAction<?> buildAction) {
     if (buildMode != null) {
       setProjectBuildMode(buildMode);
     }
@@ -371,7 +372,7 @@ public class GradleBuildInvoker {
   public void executeTasks(@NotNull File buildFilePath,
                            @NotNull List<String> gradleTasks,
                            @NotNull List<String> commandLineArguments,
-                           @Nullable BuildAction buildAction) {
+                           @Nullable BuildAction<?> buildAction) {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -407,127 +408,14 @@ public class GradleBuildInvoker {
   }
 
   @NotNull
-  public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, String executionName) {
-    BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
+  public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, @NotNull String executionName) {
+    @NotNull BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
+    @NotNull BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
     try {
-      return new ExternalSystemTaskNotificationListenerAdapter() {
-        @NotNull private BuildEventDispatcher myBuildEventDispatcher = eventDispatcher;
-        private boolean myBuildFailed = false;
-
-        @Override
-        public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
-          AnAction restartAction = new AnAction() {
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-              e.getPresentation().setEnabled(!myBuildStopper.contains(id));
-            }
-
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-              myBuildFailed = false;
-              // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
-              myBuildEventDispatcher.close();
-              myBuildEventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
-              executeTasks(request);
-            }
-          };
-
-          myBuildFailed = false;
-          Presentation presentation = restartAction.getTemplatePresentation();
-          presentation.setText("Restart");
-          presentation.setDescription("Restart");
-          presentation.setIcon(AllIcons.Actions.Compile);
-
-          long eventTime = System.currentTimeMillis();
-          DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, executionName, workingDir, eventTime);
-          if (request.myDoNotShowBuildOutputOnFailure) {
-            buildDescriptor.setActivateToolWindowWhenFailed(false);
-          }
-          StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
-          event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
-          if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-            event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
-          }
-          myBuildEventDispatcher.onEvent(id, event);
-        }
-
-        @Override
-        public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
-          if (event instanceof ExternalSystemBuildEvent) {
-            BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
-            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
-          }
-          else if (event instanceof ExternalSystemTaskExecutionEvent) {
-            BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
-            myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
-          }
-        }
-
-        @Override
-        public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-          myBuildEventDispatcher.setStdOut(stdOut);
-          myBuildEventDispatcher.append(text);
-        }
-
-        @Override
-        public void onEnd(@NotNull ExternalSystemTaskId id) {
-          CountDownLatch eventDispatcherFinished = new CountDownLatch(1);
-          myBuildEventDispatcher.invokeOnCompletion((t) -> {
-            if (myBuildFailed) {
-              ServiceManager.getService(myProject, BuildOutputParserManager.class).sendBuildFailureMetrics();
-            }
-            eventDispatcherFinished.countDown();
-          });
-          myBuildEventDispatcher.close();
-
-          // The underlying output parsers are closed asynchronously. Wait for completion in tests.
-          if (ApplicationManager.getApplication().isUnitTestMode()) {
-            try {
-              eventDispatcherFinished.await(10, SECONDS);
-            }
-            catch (InterruptedException ex) {
-              throw new RuntimeException("Timeout waiting for event dispatcher to finish.", ex);
-            }
-          }
-        }
-
-        @Override
-        public void onSuccess(@NotNull ExternalSystemTaskId id) {
-          addBuildAttributionLinkToTheOutput(id);
-          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
-                                                                new SuccessResultImpl());
-          myBuildEventDispatcher.onEvent(id, event);
-        }
-
-        private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
-          if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-            String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
-            onTaskOutput(id, "\n" + buildAttributionTabLinkLine, true);
-          }
-        }
-
-        @Override
-        public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
-          myBuildFailed = true;
-          String title = executionName + " failed";
-          DataProvider dataProvider = BuildConsoleUtils.getDataProvider(id, buildViewManager);
-          FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataProvider);
-          myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
-        }
-
-        @Override
-        public void onCancel(@NotNull ExternalSystemTaskId id) {
-          super.onCancel(id);
-          // Cause build view to show as skipped all pending tasks (b/73397414)
-          FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
-          myBuildEventDispatcher.onEvent(id, event);
-          myBuildEventDispatcher.close();
-        }
-      };
+      return new MyListener(eventDispatcher, request, buildViewManager, executionName);
     }
     catch (Exception exception) {
       eventDispatcher.close();
@@ -599,6 +487,7 @@ public class GradleBuildInvoker {
     void execute(@NotNull GradleInvocationResult result);
   }
 
+  @SuppressWarnings("rawtypes")
   public static class Request {
     @NotNull private final Project myProject;
     @NotNull private final File myBuildFilePath;
@@ -611,7 +500,7 @@ public class GradleBuildInvoker {
     @NotNull private final ExternalSystemTaskId myTaskId;
 
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
-    @Nullable private BuildAction myBuildAction;
+    @Nullable private BuildAction<?> myBuildAction;
     private boolean myWaitForCompletion;
     /** If true, the build output window will not automatically be shown on failure. */
     private boolean myDoNotShowBuildOutputOnFailure = false;
@@ -772,6 +661,141 @@ public class GradleBuildInvoker {
              ", myBuildAction=" + myBuildAction +
              ", myDoNotShowBuildOutputOnFailure=" + myDoNotShowBuildOutputOnFailure +
              '}';
+    }
+  }
+
+  private class MyListener extends ExternalSystemTaskNotificationListenerAdapter {
+    @NotNull private final Request myRequest;
+    @NotNull private final BuildViewManager myBuildViewManager;
+    @NotNull private final String myExecutionName;
+    @NotNull private BuildEventDispatcher myBuildEventDispatcher;
+    private boolean myBuildFailed;
+
+    public MyListener(@NotNull BuildEventDispatcher eventDispatcher,
+                      @NotNull Request request,
+                      @NotNull BuildViewManager buildViewManager,
+                      @NotNull String executionName) {
+      myRequest = request;
+      myBuildViewManager = buildViewManager;
+      myExecutionName = executionName;
+      myBuildEventDispatcher = eventDispatcher;
+      myBuildFailed = false;
+    }
+
+    @Override
+    public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
+      AnAction restartAction = new RestartAction(id);
+
+      myBuildFailed = false;
+      Presentation presentation = restartAction.getTemplatePresentation();
+      presentation.setText("Restart");
+      presentation.setDescription("Restart");
+      presentation.setIcon(AllIcons.Actions.Compile);
+
+      long eventTime = System.currentTimeMillis();
+      DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myExecutionName, workingDir, eventTime);
+      if (myRequest.myDoNotShowBuildOutputOnFailure) {
+        buildDescriptor.setActivateToolWindowWhenFailed(false);
+      }
+      StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
+      event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
+      if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
+        event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
+      }
+      myBuildEventDispatcher.onEvent(id, event);
+    }
+
+    @Override
+    public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
+      if (event instanceof ExternalSystemBuildEvent) {
+        BuildEvent buildEvent = ((ExternalSystemBuildEvent)event).getBuildEvent();
+        myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
+      }
+      else if (event instanceof ExternalSystemTaskExecutionEvent) {
+        BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
+        myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
+      }
+    }
+
+    @Override
+    public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
+      myBuildEventDispatcher.setStdOut(stdOut);
+      myBuildEventDispatcher.append(text);
+    }
+
+    @Override
+    public void onEnd(@NotNull ExternalSystemTaskId id) {
+      CountDownLatch eventDispatcherFinished = new CountDownLatch(1);
+      myBuildEventDispatcher.invokeOnCompletion((t) -> {
+        if (myBuildFailed) {
+          ServiceManager.getService(myProject, BuildOutputParserManager.class).sendBuildFailureMetrics();
+        }
+        eventDispatcherFinished.countDown();
+      });
+      myBuildEventDispatcher.close();
+
+      // The underlying output parsers are closed asynchronously. Wait for completion in tests.
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        try {
+          eventDispatcherFinished.await(10, SECONDS);
+        }
+        catch (InterruptedException ex) {
+          throw new RuntimeException("Timeout waiting for event dispatcher to finish.", ex);
+        }
+      }
+    }
+
+    @Override
+    public void onSuccess(@NotNull ExternalSystemTaskId id) {
+      addBuildAttributionLinkToTheOutput(id);
+      FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
+                                                            new SuccessResultImpl());
+      myBuildEventDispatcher.onEvent(id, event);
+    }
+
+    private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
+      if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
+        String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
+        onTaskOutput(id, "\n" + buildAttributionTabLinkLine, true);
+      }
+    }
+
+    @Override
+    public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
+      myBuildFailed = true;
+      String title = myExecutionName + " failed";
+      DataProvider dataProvider = BuildConsoleUtils.getDataProvider(id, myBuildViewManager);
+      FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataProvider);
+      myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+    }
+
+    @Override
+    public void onCancel(@NotNull ExternalSystemTaskId id) {
+      super.onCancel(id);
+      // Cause build view to show as skipped all pending tasks (b/73397414)
+      FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
+      myBuildEventDispatcher.onEvent(id, event);
+      myBuildEventDispatcher.close();
+    }
+
+    private class RestartAction extends AnAction {
+      private @NotNull final ExternalSystemTaskId myId;
+
+      public RestartAction(@NotNull ExternalSystemTaskId id) {myId = id;}
+
+      @Override
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabled(!myBuildStopper.contains(myId));
+      }
+
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e) {
+        myBuildFailed = false;
+        // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
+        myBuildEventDispatcher.close();
+        myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.myTaskId, myBuildViewManager);
+        executeTasks(myRequest);
+      }
     }
   }
 }
