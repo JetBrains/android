@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.common
 
+import com.android.testutils.ignore.OnWindows;
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
@@ -237,6 +238,7 @@ class LintIdeTest : UsefulTestCase() {
   }
 
   fun testLintJar() {
+    if (OnWindows().present()) return  // b/188112031
     // This lint test checks two things:
     // (1) loading custom lint jars from a lint.xml works in the IDE in a non-Android project 1
     // (2) the specific lint check has a quickfix which tests some advanced scenarios of
