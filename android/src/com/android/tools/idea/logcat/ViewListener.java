@@ -18,13 +18,8 @@ package com.android.tools.idea.logcat;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.diagnostic.logging.LogConsoleBase;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.Alarm;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * A logcat receiver that adds lines to an {@link AndroidLogcatView}.
@@ -45,7 +40,7 @@ final class ViewListener implements AndroidLogcatService.LogcatListener {
   ViewListener(@NotNull AndroidLogcatView view) {
     myView = view;
     // It seems that updateActionsImmediately() needs to run on the EDT.
-    myAlarm = new SafeAlarm(view.parentDisposable, SWING_THREAD);
+    myAlarm = new SafeAlarm(SWING_THREAD, view.parentDisposable);
   }
 
   @Override
@@ -67,38 +62,5 @@ final class ViewListener implements AndroidLogcatService.LogcatListener {
     }
 
     console.clear();
-  }
-
-  /**
-   * Delegates to an Alarm but synchronizes on disposal so we don't try to execute a request after it's disposed.
-   */
-  @VisibleForTesting
-  static final class SafeAlarm implements Disposable {
-    private final @NotNull Alarm myAlarm;
-
-    SafeAlarm(Disposable parentDisposable, Alarm.ThreadToUse threadToUse) {
-      myAlarm = new Alarm(threadToUse, this);
-      Disposer.register(parentDisposable, this);
-    }
-
-    @Override
-    public synchronized void dispose() {
-      myAlarm.dispose();
-    }
-
-    synchronized void addRequestIfNotEmpty(@NotNull Runnable request, long delayMillis) {
-      if (!myAlarm.isEmpty() || myAlarm.isDisposed()) {
-        return;
-      }
-      myAlarm.addRequest(request, delayMillis);
-    }
-
-    /**
-     * Add for test that needs to post a request bypassing addRequestIfNotEmpty
-     */
-    @TestOnly
-    void addRequest(@NotNull Runnable request, @SuppressWarnings("SameParameterValue") long delayMillis) {
-      myAlarm.addRequest(request, delayMillis);
-    }
   }
 }
