@@ -96,4 +96,6 @@ public interface Manifest extends ManifestElement {
   AndroidAttributeValue<Integer> getVersionCode();
 
   List<Overlay> getOverlays();
+
+  List<AttributeTag> getAttributes();
 }

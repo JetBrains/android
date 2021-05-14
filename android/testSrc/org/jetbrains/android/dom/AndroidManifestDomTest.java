@@ -38,6 +38,41 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     return SdkConstants.FN_ANDROID_MANIFEST_XML;
   }
 
+  public void testAttributeTagHighlighting() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <attribute android:tag=\"true\" android:label=\"true\"/>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.checkHighlighting();
+  }
+
+  public void testAttributeTagCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <<caret>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).contains("attribute");
+  }
+
+  public void testAttributeAttributesCompletion() {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.p2\">\n" +
+      "  <attribute <caret>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+    assertThat(myFixture.getLookupElementStrings()).containsAllOf("android:label", "android:tag");
+  }
+
   public void testPropertyHighlighting() {
     // UNRESOLVED errors do not relate to the <property> tag which is the purpose of the test.
     VirtualFile file = myFixture.addFileToProject(
