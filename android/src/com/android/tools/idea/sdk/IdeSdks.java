@@ -122,7 +122,7 @@ import org.jetbrains.annotations.TestOnly;
  * JDKs for different purposes.
  */
 public class IdeSdks {
-  @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
+  @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
