@@ -191,6 +191,8 @@ iml_module(
             "timeout": "long",
         },
         "AndroidLintCustomCheckTest": {
+            # b/188101357
+            "tags": ["no_windows"],
             "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
         },
         "navigator": {
