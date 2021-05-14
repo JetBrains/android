@@ -83,11 +83,12 @@ object CompilerLiveLiteralsManager {
    */
   fun findAsync(sourceFile: PsiFile, onCompilerLiteralsFound: (Finder) -> Unit = {}) {
     val project = sourceFile.project
+    val classOwner = sourceFile as? PsiClassOwner ?: return
 
     ReadAction.nonBlocking<List<CompilerLiteralDefinition>> {
-      (sourceFile as? PsiClassOwner)?.classes
-        ?.mapNotNull { it.name }
-        ?.flatMap { className ->
+      classOwner.classes
+        .mapNotNull { it.name }
+        .flatMap { className ->
           val classFileLiterals = findLiteralsInClass(
             findClassFileForSourceFileAndClassName(sourceFile, "${sourceFile.packageName}.LiveLiterals${'$'}$className"))
           classFileLiterals
