@@ -197,22 +197,6 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/profilers/sessions/SessionsView.java"
-            line="111"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/profilers/sessions/SessionsView.java"
-            line="112"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
             file="src/com/android/tools/profilers/network/details/TabUiUtils.java"
             line="42"/>
     </issue>
@@ -263,38 +247,6 @@
         <location
             file="src/com/android/tools/profilers/network/ThreadsView.java"
             line="74"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/sessions/SessionArtifactView.java"
-            line="162"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/sessions/SessionArtifactView.java"
-            line="164"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/sessions/SessionArtifactView.java"
-            line="170"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/profilers/sessions/SessionArtifactView.java"
-            line="172"/>
     </issue>
 
     <issue
