@@ -19,6 +19,8 @@ import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static com.android.tools.idea.gradle.util.BuildMode.CLEAN;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -29,8 +31,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
@@ -63,13 +69,14 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   private Module[] myModules;
   private BuildSettings myBuildSettings;
   private GradleTaskFinder myTaskFinder;
-  private GradleBuildInvoker myBuildInvoker;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+  }
 
+  private GradleBuildInvoker createBuildInvoker() {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
@@ -77,7 +84,17 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
     myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+    return new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+  }
+
+  private GradleBuildInvoker createBuildInvokerForConfiguredProject() {
+    myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
+    myModules = new Module[]{getModule()};
+
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
+
+    return new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
 
   @Override
@@ -91,13 +108,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     finally {
       super.tearDown();
       myBuildSettings = null;
-      myBuildInvoker = null;
     }
   }
 
   public void testCleanUp() {
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     // Invoke method to test.
-    myBuildInvoker.cleanProject();
+    buildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     // Verify task list includes clean.
     assertThat(request.getGradleTasks()).containsExactly("clean");
@@ -106,6 +123,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCleanupWithNativeDebugSessionAndUserTerminatesSession() {
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
@@ -113,12 +131,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     TestDialogManager.setTestDialog(TestDialog.OK);
 
-    myBuildInvoker.cleanProject();
+    buildInvoker.cleanProject();
 
     verify(nativeDebugSession).stop(); // expect that the session was stopped.
   }
 
   public void testCleanupWithNativeDebugSessionAndUserDoesNotTerminateSession() {
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
@@ -126,12 +145,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     TestDialogManager.setTestDialog(TestDialog.NO);
 
-    myBuildInvoker.cleanProject();
+    buildInvoker.cleanProject();
 
     verify(nativeDebugSession, never()).stop(); // expect that the session was never stopped.
   }
 
   public void testCleanupWithNativeDebugSessionAndUserCancelsBuild() {
+    GradleBuildInvoker buildInvoker = createBuildInvoker();
     setUpTasksForSourceGeneration();
 
     XDebugSession nativeDebugSession = mock(XDebugSession.class);
@@ -144,7 +164,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       }
     });
 
-    myBuildInvoker.cleanProject();
+    buildInvoker.cleanProject();
 
     verify(nativeDebugSession, never()).stop(); // expect that the session was never stopped.
 
@@ -165,53 +185,112 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   public void testCompileJava() {
-    List<String> tasks = Arrays.asList("compileJavaTask1", "compileJavaTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, COMPILE_JAVA, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    myBuildInvoker.compileJava(myModules, TestCompileType.ALL);
+    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    buildInvoker.compileJava(
+      ImmutableList.of(
+        gradleModule(myProject, ":app"),
+        gradleModule(myProject, ":lib")
+      ).toArray(new Module[0]),
+      TestCompileType.ALL
+    );
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).isEmpty();
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
+      ":lib:ideSetupTask1",
+      ":lib:ideSetupTask2",
+      ":lib:ideUnitTestSetupTask1",
+      ":lib:ideUnitTestSetupTask2",
+      ":lib:ideAndroidTestSetupTask1",
+      ":lib:ideAndroidTestSetupTask2",
+      ":lib:compileDebugUnitTestSources",
+      ":lib:compileDebugAndroidTestSources",
+      ":lib:compileDebugSources",
+      ":app:ideSetupTask1",
+      ":app:ideSetupTask2",
+      ":app:ideUnitTestSetupTask1",
+      ":app:ideUnitTestSetupTask2",
+      ":app:ideAndroidTestSetupTask1",
+      ":app:ideAndroidTestSetupTask2",
+      ":app:compileDebugUnitTestSources",
+      ":app:compileDebugAndroidTestSources",
+      ":app:compileDebugSources"
+    ));
 
     verifyInteractionWithMocks(COMPILE_JAVA);
   }
 
   public void testAssemble() {
-    List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    myBuildInvoker.assemble(myModules, TestCompileType.ALL);
+    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    buildInvoker.assemble(
+      ImmutableList.of(
+        gradleModule(myProject, ":app"),
+        gradleModule(myProject, ":lib")
+      ).toArray(new Module[0]),
+      TestCompileType.ALL,
+      null);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
     assertThat(request.getCommandLineArguments()).isEmpty();
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
 
   public void testAssembleWithCommandLineArgs() {
-    List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
-    when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
+    setupTestProjectFromAndroidModel(myProject,
+                                     getTempDir().createDir().toFile(),
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
-    myBuildInvoker.assemble(myModules, TestCompileType.ALL, null);
+    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+    buildInvoker.assemble(
+      ImmutableList.of(
+        gradleModule(myProject, ":app"),
+        gradleModule(myProject, ":lib")
+      ).toArray(new Module[0]),
+      TestCompileType.ALL,
+      null);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
+    assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
 
   public void testExecuteTasksWaitForCompletionNoDispatch() throws InterruptedException {
-    GradleBuildInvoker.Request request = mock(GradleBuildInvoker.Request.class);
-    when(request.getBuildFilePath()).thenReturn(new File("some/very/cool/path"));
-    when(request.getGradleTasks()).thenReturn(Arrays.asList("task1", "test2"));
-    when(request.isWaitForCompletion()).thenReturn(true);
+    File projectPath = getTempDir().createDir().toFile();
+    setupTestProjectFromAndroidModel(myProject,
+                                     projectPath,
+                                     JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
+                                     new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
+                                     new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
+    GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
+
+    GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(
+      myProject,
+      new File(projectPath, "build.gradle"),
+      ":app:assembleDebug",
+      ":lib:assembleDebug"
+    )
+      .waitForCompletion();
 
     Semaphore sema = new Semaphore(0);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      myBuildInvoker.executeTasks(request, mock(ExternalSystemTaskNotificationListener.class));
+      buildInvoker.executeTasks(request, null);
       sema.release();
     });
     // Block until execute tasks has been run.
