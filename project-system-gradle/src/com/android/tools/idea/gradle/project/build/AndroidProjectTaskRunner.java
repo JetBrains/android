@@ -91,11 +91,9 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
 
     ProjectTaskNotification aggregatedCallback = callback == null ? null : new MergedProjectTaskNotification(callback, rootPaths.size());
     for (Path projectRootPath : rootPaths) {
-      GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(project, projectRootPath.toFile(), tasks.get(projectRootPath));
 
       BuildSettings.getInstance(project).setBuildMode(buildMode);
       // the blocking mode required because of static behaviour of the BuildSettings.setBuildMode() method
-      request.waitForCompletion();
 
       @Nullable ExternalSystemTaskNotificationListener listenerDelegate =
         aggregatedCallback == null ? null : new ExternalSystemTaskNotificationListenerAdapter(null) {
@@ -118,7 +116,12 @@ public class AndroidProjectTaskRunner extends ProjectTaskRunner {
           }
         };
 
-      gradleBuildInvoker.executeTasks(request, listenerDelegate);
+      GradleBuildInvoker.Request request =
+        GradleBuildInvoker.Request.builder(project, projectRootPath.toFile(), tasks.get(projectRootPath))
+        .waitForCompletion()
+        .setListener(listenerDelegate)
+        .build();
+      gradleBuildInvoker.executeTasks(request);
     }
   }
 

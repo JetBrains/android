@@ -34,7 +34,7 @@ import java.io.File
 class BuildOutputParsersIntegrationTest: PlatformTestCase() {
   private lateinit var myTaskId: ExternalSystemTaskId
 
-  private lateinit var myBuildInvoker: GradleBuildInvoker
+  private lateinit var myBuildInvoker: GradleBuildInvokerImpl
   private lateinit var scheduler: VirtualTimeScheduler
   private lateinit var myTracker: TestUsageTracker
   private lateinit var myRequest: GradleBuildInvoker.Request
@@ -55,8 +55,10 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
 
     myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, myProject)
 
-    myBuildInvoker = GradleBuildInvoker(myProject, myFileDocumentManager,
-                                        GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor), myDebugSessionFinder)
+    myBuildInvoker = GradleBuildInvokerImpl(myProject,
+                                            myFileDocumentManager,
+                                            GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor),
+                                            myDebugSessionFinder)
     myRequest = GradleBuildInvoker.Request(myProject, File(myProject.basePath), emptyList(), myTaskId)
   }
 

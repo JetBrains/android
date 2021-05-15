@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerImpl;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -25,7 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
@@ -39,6 +40,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
@@ -93,13 +95,14 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     assertEquals("test", runner.getModel());
   }
 
-  private static class GradleBuildInvokerStub extends GradleBuildInvoker {
+  private static class GradleBuildInvokerStub extends GradleBuildInvokerImpl {
     GradleBuildInvokerStub(@NotNull Project project) {
       super(project, mock(FileDocumentManager.class));
     }
 
     @Override
-    public void executeTasks(@NotNull Request request, @NotNull ExternalSystemTaskNotificationListener listener) {
+    public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
+      return null;
     }
 
     /**

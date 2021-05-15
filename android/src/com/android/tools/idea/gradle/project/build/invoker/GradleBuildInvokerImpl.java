@@ -25,7 +25,6 @@ import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
 import static com.intellij.openapi.ui.Messages.CANCEL;
 import static com.intellij.openapi.ui.Messages.NO;
@@ -48,6 +47,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.build.BuildConsoleUtils;
 import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.BuildViewManager;
@@ -67,7 +68,6 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -94,13 +94,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +111,7 @@ import org.jetbrains.annotations.TestOnly;
  * tool window.
  */
 @SuppressWarnings("UnstableApiUsage")
-public class GradleBuildInvoker {
+public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @NotNull private final Project myProject;
   @NotNull private final FileDocumentManager myDocumentManager;
   @NotNull private final GradleTasksExecutorFactory myTaskExecutorFactory;
@@ -124,33 +122,29 @@ public class GradleBuildInvoker {
   @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
   @NotNull private final NativeDebugSessionFinder myNativeDebugSessionFinder;
 
-  @NotNull
-  public static GradleBuildInvoker getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleBuildInvoker.class);
-  }
-
-  public GradleBuildInvoker(@NotNull Project project) {
+  public GradleBuildInvokerImpl(@NotNull Project project) {
     this(project, FileDocumentManager.getInstance());
   }
 
   @NonInjectable
   @VisibleForTesting
-  public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
+  public GradleBuildInvokerImpl(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
     this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
   @NonInjectable
   @VisibleForTesting
-  protected GradleBuildInvoker(@NotNull Project project,
-                               @NotNull FileDocumentManager documentManager,
-                               @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
-                               @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
+  protected GradleBuildInvokerImpl(@NotNull Project project,
+                                   @NotNull FileDocumentManager documentManager,
+                                   @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
+                                   @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
     myProject = project;
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
     myNativeDebugSessionFinder = nativeDebugSessionFinder;
   }
 
+  @Override
   public void cleanProject() {
     if (stopNativeDebugSessionOrStopBuild()) {
       return;
@@ -166,11 +160,13 @@ public class GradleBuildInvoker {
     }
   }
 
+  @Override
   @TestOnly
   public void generateSources() {
     generateSources(false /* do not clean project */, ModuleManager.getInstance(myProject).getModules());
   }
 
+  @Override
   public void generateSourcesForModules(@NotNull Module[] modules) {
     generateSources(false, modules);
   }
@@ -264,6 +260,7 @@ public class GradleBuildInvoker {
    * @param testCompileType Kind of tests that the caller is interested in. Use {@link TestCompileType#ALL} if compiling just the
    *                        main sources, {@link TestCompileType#UNIT_TESTS} if class files for running unit tests are needed.
    */
+  @Override
   public void compileJava(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = COMPILE_JAVA;
     setProjectBuildMode(buildMode);
@@ -273,10 +270,12 @@ public class GradleBuildInvoker {
     }
   }
 
+  @Override
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
     assemble(modules, testCompileType, null);
   }
 
+  @Override
   public void assemble(@NotNull Module[] modules,
                        @NotNull TestCompileType testCompileType,
                        @Nullable BuildAction<?> buildAction) {
@@ -288,6 +287,7 @@ public class GradleBuildInvoker {
     }
   }
 
+  @Override
   public void bundle(@NotNull Module[] modules,
                      @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = BUNDLE;
@@ -299,6 +299,7 @@ public class GradleBuildInvoker {
     }
   }
 
+  @Override
   public void rebuild() {
     BuildMode buildMode = REBUILD;
     setProjectBuildMode(buildMode);
@@ -313,6 +314,7 @@ public class GradleBuildInvoker {
   /**
    * Execute the last run set of Gradle tasks, with the specified gradle options prepended before the tasks to run.
    */
+  @Override
   public void rebuildWithTempOptions(@NotNull File buildFilePath, @NotNull List<String> options) {
     myOneTimeGradleOptions.addAll(options);
     try {
@@ -342,8 +344,9 @@ public class GradleBuildInvoker {
   }
 
   /**
-   * @deprecated use {@link GradleBuildInvoker#executeTasks(File, List)}
+   * @deprecated use {@link GradleBuildInvokerImpl#executeTasks(File, List)}
    */
+  @Override
   @Deprecated
   public void executeTasks(@NotNull List<String> gradleTasks) {
     File path = getBaseDirPath(myProject);
@@ -354,6 +357,7 @@ public class GradleBuildInvoker {
     executeTasks(buildFilePath, gradleTasks, myOneTimeGradleOptions);
   }
 
+  @Override
   public void executeTasks(@NotNull ListMultimap<Path, String> tasks,
                            @Nullable BuildMode buildMode,
                            @NotNull List<String> commandLineArguments,
@@ -364,15 +368,17 @@ public class GradleBuildInvoker {
     tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
   }
 
+  @Override
   @VisibleForTesting
-  public void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
-    executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
+  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
+    return executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
   }
 
-  public void executeTasks(@NotNull File buildFilePath,
-                           @NotNull List<String> gradleTasks,
-                           @NotNull List<String> commandLineArguments,
-                           @Nullable BuildAction<?> buildAction) {
+  @Override
+  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File buildFilePath,
+                                                                         @NotNull List<String> gradleTasks,
+                                                                         @NotNull List<String> commandLineArguments,
+                                                                         @Nullable BuildAction<?> buildAction) {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -396,12 +402,12 @@ public class GradleBuildInvoker {
     // For development we might want to forward an agent to the daemon.
     // This is a no-op in production builds.
     Trace.addVmArgs(jvmArguments);
-    Request request = new Request(myProject, buildFilePath, gradleTasks);
-    request
+    Request request = Request.builder(myProject, buildFilePath, gradleTasks)
       .setJvmArguments(jvmArguments)
       .setCommandLineArguments(commandLineArguments)
-      .setBuildAction(buildAction);
-    executeTasks(request, null);
+      .setBuildAction(buildAction)
+      .build();
+    return executeTasks(request);
   }
 
   @TestOnly
@@ -422,7 +428,7 @@ public class GradleBuildInvoker {
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    @NotNull BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
+    @NotNull BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.getTaskId(), buildViewManager);
     try {
       return new MyListener(eventDispatcher, request, buildViewManager, executionName, delegate);
     }
@@ -432,7 +438,8 @@ public class GradleBuildInvoker {
     }
   }
 
-  public void executeTasks(@NotNull Request request, @Nullable ExternalSystemTaskNotificationListener listener) {
+  @Override
+  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
     String buildFilePath = request.getBuildFilePath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(buildFilePath);
@@ -441,30 +448,34 @@ public class GradleBuildInvoker {
 
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
-      return;
+      return null;
     }
     String executionName = getExecutionName(request);
-    ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, listener);
-    internalExecuteTasks(request, buildTaskListener);
+    ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, request.getListener());
+    return internalExecuteTasks(request, buildTaskListener);
   }
 
-  private void internalExecuteTasks(@NotNull Request request, ExternalSystemTaskNotificationListener buildTaskListener) {
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, buildTaskListener);
+  private ListenableFuture<@Nullable GradleInvocationResult> internalExecuteTasks(@NotNull Request request, ExternalSystemTaskNotificationListener buildTaskListener) {
+    SettableFuture<@Nullable GradleInvocationResult> resultFuture = SettableFuture.create();
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, buildTaskListener, resultFuture);
 
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      myDocumentManager.saveAllDocuments();
-      executor.queue();
+    ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
+    executor.queue();
+
+    if (request.isWaitForCompletion() && !ApplicationManager.getApplication().isDispatchThread()) {
+      //noinspection CatchMayIgnoreException
+      try {
+        resultFuture.get();
+      }
+      catch (InterruptedException e) {
+        resultFuture.cancel(true);
+        Thread.currentThread().interrupt();
+      }
+      catch (ExecutionException ignored) {
+        // Ignore. We've been asked to wait for any result. That's it.
+      }
     }
-    else if (request.isWaitForCompletion()) {
-      ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
-      executor.queueAndWaitForCompletion();
-    }
-    else {
-      TransactionGuard.getInstance().submitTransactionAndWait(() -> {
-        myDocumentManager.saveAllDocuments();
-        executor.queue();
-      });
-    }
+    return resultFuture;
   }
 
   @NotNull
@@ -487,6 +498,7 @@ public class GradleBuildInvoker {
     return Logger.getInstance(GradleBuildInvoker.class);
   }
 
+  @Override
   public boolean stopBuild(@NotNull ExternalSystemTaskId id) {
     if (myBuildStopper.contains(id)) {
       myBuildStopper.attemptToStopBuild(id, null);
@@ -495,6 +507,7 @@ public class GradleBuildInvoker {
     return false;
   }
 
+  @Override
   public void add(@NotNull AfterGradleInvocationTask task) {
     myAfterTasks.add(task);
   }
@@ -505,183 +518,15 @@ public class GradleBuildInvoker {
     return myAfterTasks.toArray(new AfterGradleInvocationTask[0]);
   }
 
+  @Override
   public void remove(@NotNull AfterGradleInvocationTask task) {
     myAfterTasks.remove(task);
   }
 
+  @Override
   @NotNull
   public Project getProject() {
     return myProject;
-  }
-
-  public interface AfterGradleInvocationTask {
-    void execute(@NotNull GradleInvocationResult result);
-  }
-
-  @SuppressWarnings("rawtypes")
-  public static class Request {
-    @NotNull private final Project myProject;
-    @NotNull private final File myBuildFilePath;
-    @NotNull private final List<String> myGradleTasks;
-    @NotNull private final List<String> myJvmArguments;
-    @NotNull private final List<String> myCommandLineArguments;
-    @NotNull
-    private final Map<String, String> myEnv;
-    private boolean myPassParentEnvs = true;
-    @NotNull private final ExternalSystemTaskId myTaskId;
-    @Nullable private BuildAction<?> myBuildAction;
-    private boolean myWaitForCompletion;
-    /**
-     * If true, the build output window will not automatically be shown on failure.
-     */
-    private boolean myDoNotShowBuildOutputOnFailure = false;
-
-    public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull String... gradleTasks) {
-      this(project, buildFilePath, Arrays.asList(gradleTasks));
-    }
-
-    public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
-      this(project, buildFilePath, gradleTasks, ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, EXECUTE_TASK, project));
-    }
-
-    public Request(@NotNull Project project,
-                   @NotNull File buildFilePath,
-                   @NotNull List<String> gradleTasks,
-                   @NotNull ExternalSystemTaskId taskId) {
-      myProject = project;
-      myBuildFilePath = buildFilePath;
-      myGradleTasks = new ArrayList<>(gradleTasks);
-      myJvmArguments = new ArrayList<>();
-      myCommandLineArguments = new ArrayList<>();
-      myTaskId = taskId;
-      myEnv = new LinkedHashMap<>();
-    }
-
-    @NotNull
-    Project getProject() {
-      return myProject;
-    }
-
-    @NotNull
-    List<String> getGradleTasks() {
-      return myGradleTasks;
-    }
-
-    @NotNull
-    List<String> getJvmArguments() {
-      return myJvmArguments;
-    }
-
-    @NotNull
-    public Request setJvmArguments(@NotNull List<String> jvmArguments) {
-      myJvmArguments.clear();
-      myJvmArguments.addAll(jvmArguments);
-      return this;
-    }
-
-    @NotNull
-    List<String> getCommandLineArguments() {
-      return myCommandLineArguments;
-    }
-
-    @NotNull
-    public Request setCommandLineArguments(@NotNull List<String> commandLineArguments) {
-      myCommandLineArguments.clear();
-      myCommandLineArguments.addAll(commandLineArguments);
-      return this;
-    }
-
-    public Request withEnvironmentVariables(Map<String, String> envs) {
-      myEnv.putAll(envs);
-      return this;
-    }
-
-    public Map<String, String> getEnv() {
-      return Collections.unmodifiableMap(myEnv);
-    }
-
-    public Request passParentEnvs(boolean passParentEnvs) {
-      myPassParentEnvs = passParentEnvs;
-      return this;
-    }
-
-    public boolean isPassParentEnvs() {
-      return myPassParentEnvs;
-    }
-
-    @NotNull
-    ExternalSystemTaskId getTaskId() {
-      return myTaskId;
-    }
-
-    @NotNull
-    File getBuildFilePath() {
-      return myBuildFilePath;
-    }
-
-    boolean isWaitForCompletion() {
-      return myWaitForCompletion;
-    }
-
-    @NotNull
-    public Request waitForCompletion() {
-      myWaitForCompletion = true;
-      return this;
-    }
-
-    @Nullable
-    public BuildAction getBuildAction() {
-      return myBuildAction;
-    }
-
-    @NotNull
-    public Request setBuildAction(@Nullable BuildAction buildAction) {
-      myBuildAction = buildAction;
-      return this;
-    }
-
-    /**
-     * If called, do not show automatically the build output window when errors are found.
-     */
-    @NotNull
-    public Request doNotShowBuildOutputOnFailure() {
-      myDoNotShowBuildOutputOnFailure = true;
-      return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      Request that = (Request)o;
-      // We only care about this fields because 'equals' is used for testing only. Production code does not care.
-      return Objects.equals(myBuildFilePath, that.myBuildFilePath) &&
-             Objects.equals(myGradleTasks, that.myGradleTasks) &&
-             Objects.equals(myJvmArguments, that.myJvmArguments) &&
-             Objects.equals(myCommandLineArguments, that.myCommandLineArguments) &&
-             myDoNotShowBuildOutputOnFailure == that.myDoNotShowBuildOutputOnFailure;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(myBuildFilePath, myGradleTasks, myJvmArguments, myCommandLineArguments);
-    }
-
-    @Override
-    public String toString() {
-      return "RequestSettings{" +
-             "myBuildFilePath=" + myBuildFilePath +
-             ", myGradleTasks=" + myGradleTasks +
-             ", myJvmArguments=" + myJvmArguments +
-             ", myCommandLineArguments=" + myCommandLineArguments +
-             ", myBuildAction=" + myBuildAction +
-             ", myDoNotShowBuildOutputOnFailure=" + myDoNotShowBuildOutputOnFailure +
-             '}';
-    }
   }
 
   private class MyListener extends ExternalSystemTaskNotificationListenerAdapter {
@@ -716,7 +561,7 @@ public class GradleBuildInvoker {
 
       long eventTime = System.currentTimeMillis();
       DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myExecutionName, workingDir, eventTime);
-      if (myRequest.myDoNotShowBuildOutputOnFailure) {
+      if (myRequest.getDoNotShowBuildOutputOnFailure()) {
         buildDescriptor.setActivateToolWindowWhenFailed(false);
       }
       StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
@@ -821,7 +666,7 @@ public class GradleBuildInvoker {
         myBuildFailed = false;
         // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
         myBuildEventDispatcher.close();
-        myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.myTaskId, myBuildViewManager);
+        myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.getTaskId(), myBuildViewManager);
 
         internalExecuteTasks(myRequest, MyListener.this);
       }

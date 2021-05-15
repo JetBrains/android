@@ -94,7 +94,11 @@ class BuildInvokerTest : AndroidGradleTestCase() {
 
     val invoker = GradleBuildInvoker.getInstance(project)
     // Add a post build task.
-    invoker.add { gradleBuildInvokedExecutedPostBuildTasks = true }
+    invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
+      override fun execute(result: GradleInvocationResult) {
+        gradleBuildInvokedExecutedPostBuildTasks = true
+      }
+    })
 
     val tasks = ArrayListMultimap.create<Path, String>().apply { put(File(project.basePath!!).toPath(), "assembleDebug") }
     // Run a slow build task which will run for 30 seconds unless cancelled.

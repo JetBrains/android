@@ -34,17 +34,4 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
   protected GradleTasksExecutor(@Nullable Project project) {
     super(project, "Gradle Build Running", true);
   }
-
-  /**
-   * Regular {@link #queue()} method might return immediately if current task is executed in a separate non-calling thread.
-   * <p/>
-   * However, sometimes we want to wait for the task completion, e.g. consider a use-case when we execute an IDE run configuration.
-   * It opens dedicated run/debug tool window and displays execution output there. However, it is shown as finished as soon as
-   * control flow returns. That's why we don't want to return control flow until the actual task completion.
-   * <p/>
-   * This method allows to achieve that target - it executes gradle tasks under the IDE 'progress management system' (shows progress
-   * bar at the bottom) in a separate thread and doesn't return control flow to the calling thread until all target tasks are actually
-   * executed.
-   */
-  public abstract void queueAndWaitForCompletion();
 }

@@ -70,23 +70,24 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     GradleBuildInvoker gradleBuildInvoker = findGradleInvoker(id, projectPath);
     if (gradleBuildInvoker != null) {
-      GradleBuildInvoker.Request request =
-        new GradleBuildInvoker.Request(gradleBuildInvoker.getProject(), new File(projectPath), taskNames, id);
 
       GradleExecutionSettings effectiveSettings =
         settings == null ? new GradleExecutionSettings(null, null, DistributionType.BUNDLED, false) : settings;
       setupGradleScriptDebugging(effectiveSettings);
       setupDebuggerDispatchPort(effectiveSettings);
       appendInitScriptArgument(taskNames, jvmParametersSetup, effectiveSettings);
-      // @formatter:off
-      request.setJvmArguments(effectiveSettings.getJvmArguments())
-             .setCommandLineArguments(effectiveSettings.getArguments())
-             .withEnvironmentVariables(effectiveSettings.getEnv())
-             .passParentEnvs(effectiveSettings.isPassParentEnvs())
-             .waitForCompletion();
-      // @formatter:on
+      GradleBuildInvoker.Request request =
+        GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), new File(projectPath), taskNames)
+          .setTaskId(id)
+          .setJvmArguments(effectiveSettings.getJvmArguments())
+          .setCommandLineArguments(effectiveSettings.getArguments())
+          .withEnvironmentVariables(effectiveSettings.getEnv())
+          .passParentEnvs(effectiveSettings.isPassParentEnvs())
+          .setListener(listener)
+          .waitForCompletion()
+          .build();
 
-      gradleBuildInvoker.executeTasks(request, listener);
+      gradleBuildInvoker.executeTasks(request);
       return true;
     }
     // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
