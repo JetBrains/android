@@ -80,7 +80,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
 
   @Test
   fun testAndroidGradlePluginErrors() {
-    val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
+    val buildListener = myBuildInvoker.temporaryCreateBuildTaskListenerForTests(myRequest, "")
     val path = tempDir.newPath("styles.xml")
     val absolutePath = StringUtil.escapeBackSlashes(path.toAbsolutePath().toString())
     val output = """
@@ -157,7 +157,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
 
   @Test
   fun testXmlParsingError() {
-    val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
+    val buildListener = myBuildInvoker.temporaryCreateBuildTaskListenerForTests(myRequest, "")
     val file = tempDir.createVirtualFile("AndroidManifest.xml")
     val path = file.toNioPath()
     val output = """Executing tasks: [clean, :app:assembleDebug]

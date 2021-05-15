@@ -66,8 +66,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
         doNotShowBuildOutputOnFailure()
       }
     }
-    val taskListener = GradleBuildInvoker.getInstance(project).createBuildTaskListener(request, "Build")
-    GradleBuildInvoker.getInstance(project).executeTasks(request, taskListener)
+    GradleBuildInvoker.getInstance(project).executeTasks(request, null)
   }
 }
 

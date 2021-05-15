@@ -397,23 +397,34 @@ public class GradleBuildInvoker {
     // This is a no-op in production builds.
     Trace.addVmArgs(jvmArguments);
     Request request = new Request(myProject, buildFilePath, gradleTasks);
-    ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, "Build");
     request
       .setJvmArguments(jvmArguments)
       .setCommandLineArguments(commandLineArguments)
       .setBuildAction(buildAction);
-    executeTasks(request, buildTaskListener);
+    executeTasks(request, null);
+  }
+
+  @TestOnly
+  @Deprecated
+  /**
+   * Do not use. This method exposes implementation details that may change. The existing usages need to be re-implemented.
+   */
+  public ExternalSystemTaskNotificationListener temporaryCreateBuildTaskListenerForTests(@NotNull Request request,
+                                                                                         @NotNull String executionName) {
+    return createBuildTaskListener(request, executionName, null);
   }
 
   @NotNull
-  public ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request, @NotNull String executionName) {
+  private ExternalSystemTaskNotificationListener createBuildTaskListener(@NotNull Request request,
+                                                                         @NotNull String executionName,
+                                                                         @Nullable ExternalSystemTaskNotificationListener delegate) {
     @NotNull BuildViewManager buildViewManager = ServiceManager.getService(myProject, BuildViewManager.class);
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
     @NotNull BuildEventDispatcher eventDispatcher = new ExternalSystemEventDispatcher(request.myTaskId, buildViewManager);
     try {
-      return new MyListener(eventDispatcher, request, buildViewManager, executionName);
+      return new MyListener(eventDispatcher, request, buildViewManager, executionName, delegate);
     }
     catch (Exception exception) {
       eventDispatcher.close();
@@ -421,7 +432,7 @@ public class GradleBuildInvoker {
     }
   }
 
-  public void executeTasks(@NotNull Request request, @NotNull ExternalSystemTaskNotificationListener listener) {
+  public void executeTasks(@NotNull Request request, @Nullable ExternalSystemTaskNotificationListener listener) {
     String buildFilePath = request.getBuildFilePath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(buildFilePath);
@@ -432,13 +443,19 @@ public class GradleBuildInvoker {
     if (gradleTasks.isEmpty()) {
       return;
     }
+    String executionName = getExecutionName(request);
+    ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, listener);
+    internalExecuteTasks(request, buildTaskListener);
+  }
 
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, listener);
+  private void internalExecuteTasks(@NotNull Request request, ExternalSystemTaskNotificationListener buildTaskListener) {
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, buildTaskListener);
 
     if (ApplicationManager.getApplication().isDispatchThread()) {
       myDocumentManager.saveAllDocuments();
       executor.queue();
-    } else if (request.isWaitForCompletion()) {
+    }
+    else if (request.isWaitForCompletion()) {
       ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
       executor.queueAndWaitForCompletion();
     }
@@ -448,6 +465,21 @@ public class GradleBuildInvoker {
         executor.queue();
       });
     }
+  }
+
+  @NotNull
+  private String getExecutionName(@NotNull Request request) {
+    File projectPath = request.getBuildFilePath().getParentFile();
+    final String projectName;
+    if (projectPath.isFile()) {
+      projectName = projectPath.getParentFile().getName();
+    }
+    else {
+      projectName = projectPath.getName();
+    }
+
+    String executionName = "Build " + projectName;
+    return executionName;
   }
 
   @NotNull
@@ -499,7 +531,9 @@ public class GradleBuildInvoker {
     @NotNull private final ExternalSystemTaskId myTaskId;
     @Nullable private BuildAction<?> myBuildAction;
     private boolean myWaitForCompletion;
-    /** If true, the build output window will not automatically be shown on failure. */
+    /**
+     * If true, the build output window will not automatically be shown on failure.
+     */
     private boolean myDoNotShowBuildOutputOnFailure = false;
 
     public Request(@NotNull Project project, @NotNull File buildFilePath, @NotNull String... gradleTasks) {
@@ -660,7 +694,9 @@ public class GradleBuildInvoker {
     public MyListener(@NotNull BuildEventDispatcher eventDispatcher,
                       @NotNull Request request,
                       @NotNull BuildViewManager buildViewManager,
-                      @NotNull String executionName) {
+                      @NotNull String executionName,
+                      @Nullable ExternalSystemTaskNotificationListener delegate) {
+      super(delegate);
       myRequest = request;
       myBuildViewManager = buildViewManager;
       myExecutionName = executionName;
@@ -689,6 +725,7 @@ public class GradleBuildInvoker {
         event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
       }
       myBuildEventDispatcher.onEvent(id, event);
+      super.onStart(id, workingDir);
     }
 
     @Override
@@ -701,12 +738,14 @@ public class GradleBuildInvoker {
         BuildEvent buildEvent = convert(((ExternalSystemTaskExecutionEvent)event));
         myBuildEventDispatcher.onEvent(event.getId(), buildEvent);
       }
+      super.onStatusChange(event);
     }
 
     @Override
     public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
       myBuildEventDispatcher.setStdOut(stdOut);
       myBuildEventDispatcher.append(text);
+      super.onTaskOutput(id, text, stdOut);
     }
 
     @Override
@@ -729,6 +768,7 @@ public class GradleBuildInvoker {
           throw new RuntimeException("Timeout waiting for event dispatcher to finish.", ex);
         }
       }
+      super.onEnd(id);
     }
 
     @Override
@@ -737,6 +777,7 @@ public class GradleBuildInvoker {
       FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
                                                             new SuccessResultImpl());
       myBuildEventDispatcher.onEvent(id, event);
+      super.onSuccess(id);
     }
 
     private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
@@ -753,15 +794,16 @@ public class GradleBuildInvoker {
       DataProvider dataProvider = BuildConsoleUtils.getDataProvider(id, myBuildViewManager);
       FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataProvider);
       myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+      super.onFailure(id, e);
     }
 
     @Override
     public void onCancel(@NotNull ExternalSystemTaskId id) {
-      super.onCancel(id);
       // Cause build view to show as skipped all pending tasks (b/73397414)
       FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
       myBuildEventDispatcher.onEvent(id, event);
       myBuildEventDispatcher.close();
+      super.onCancel(id);
     }
 
     private class RestartAction extends AnAction {
@@ -780,7 +822,8 @@ public class GradleBuildInvoker {
         // Recreate the reader since the one created with the listener can be already closed (see b/73102585)
         myBuildEventDispatcher.close();
         myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.myTaskId, myBuildViewManager);
-        executeTasks(myRequest, MyListener.this);
+
+        internalExecuteTasks(myRequest, MyListener.this);
       }
     }
   }
