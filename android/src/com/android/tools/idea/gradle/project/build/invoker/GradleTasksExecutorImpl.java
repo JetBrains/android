@@ -57,6 +57,7 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.openapi.application.Application;
@@ -119,6 +120,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   @NotNull private final GradleBuildInvoker.Request myRequest;
   @NotNull private final BuildStopper myBuildStopper;
+  @NotNull private final SettableFuture<GradleInvocationResult> myResultFuture;
   @NotNull private ExternalSystemTaskNotificationListener myListener;
 
   @GuardedBy("myCompletionLock")
@@ -132,11 +134,13 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request,
                           @NotNull BuildStopper buildStopper,
-                          @NotNull ExternalSystemTaskNotificationListener listener) {
+                          @NotNull ExternalSystemTaskNotificationListener listener,
+                          @NotNull SettableFuture<@Nullable GradleInvocationResult> resultFuture) {
     super(request.getProject());
     myRequest = request;
     myBuildStopper = buildStopper;
     myListener = listener;
+    myResultFuture = resultFuture;
   }
 
   @Override
@@ -148,41 +152,47 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   @Override
   public void run(@NotNull ProgressIndicator indicator) {
-    myProgressIndicator = indicator;
-
-    ProjectManager projectManager = ProjectManager.getInstance();
-    Project project = myRequest.getProject();
-    CloseListener closeListener = new CloseListener();
-    projectManager.addProjectManagerListener(project, closeListener);
-
-    Semaphore semaphore = ((CompilerManagerImpl)CompilerManager.getInstance(project)).getCompilationSemaphore();
-    boolean acquired = false;
     try {
+      myProgressIndicator = indicator;
+
+      ProjectManager projectManager = ProjectManager.getInstance();
+      Project project = myRequest.getProject();
+      CloseListener closeListener = new CloseListener();
+      projectManager.addProjectManagerListener(project, closeListener);
+
+      Semaphore semaphore = ((CompilerManagerImpl)CompilerManager.getInstance(project)).getCompilationSemaphore();
+      boolean acquired = false;
       try {
-        while (!acquired) {
-          acquired = semaphore.tryAcquire(300, MILLISECONDS);
-          if (myProgressIndicator.isCanceled()) {
-            // Give up obtaining the semaphore, let compile work begin in order to stop gracefully on cancel event.
-            break;
+        try {
+          while (!acquired) {
+            acquired = semaphore.tryAcquire(300, MILLISECONDS);
+            if (myProgressIndicator.isCanceled()) {
+              // Give up obtaining the semaphore, let compile work begin in order to stop gracefully on cancel event.
+              break;
+            }
+          }
+        }
+        catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+        addIndicatorDelegate();
+        myResultFuture.set(invokeGradleTasks());
+      }
+      finally {
+        try {
+          myProgressIndicator.stop();
+          projectManager.removeProjectManagerListener(project, closeListener);
+        }
+        finally {
+          if (acquired) {
+            semaphore.release();
           }
         }
       }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      }
-      addIndicatorDelegate();
-      invokeGradleTasks();
     }
-    finally {
-      try {
-        myProgressIndicator.stop();
-        projectManager.removeProjectManagerListener(project, closeListener);
-      }
-      finally {
-        if (acquired) {
-          semaphore.release();
-        }
-      }
+    catch (Throwable t) {
+      myResultFuture.setException(t);
+      throw t;
     }
   }
 
@@ -203,14 +213,14 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     buildAttributionManager.onBuildStart();
   }
 
-  private void invokeGradleTasks() {
+  private GradleInvocationResult invokeGradleTasks() {
 
     Project project = myRequest.getProject();
     GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
 
     AtomicReference<Object> model = new AtomicReference<>(null);
 
-    Function<ProjectConnection, Void> executeTasksFunction = connection -> {
+    Function<ProjectConnection, GradleInvocationResult> executeTasksFunction = connection -> {
       Stopwatch stopwatch = Stopwatch.createStarted();
 
       BuildAction<?> buildAction = myRequest.getBuildAction();
@@ -389,13 +399,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
           RuntimeException error = null;
-          for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
+          for (GradleBuildInvoker.AfterGradleInvocationTask task : ((GradleBuildInvokerImpl)(GradleBuildInvoker.getInstance(getProject())))
+            .getAfterInvocationTasks()) {
             try {
               task.execute(result);
-            } catch (ProcessCanceledException e) {
+            }
+            catch (ProcessCanceledException e) {
               // Ignore process cancellation exceptions.
               // We must run all post invocation tasks in order to ensure all relevant locks are released.
-            } catch (RuntimeException e) {
+            }
+            catch (RuntimeException e) {
               if (error == null) {
                 // Stash the first non-PCE exception to re-throw after all post invocation tasks had a chance to execute.
                 error = e;
@@ -405,6 +418,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           if (error != null) {
             throw error;
           }
+          return result;
         }
       }
       return null;
@@ -421,8 +435,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
 
     try {
-      myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings,
-                       myRequest.getTaskId(), myListener, null, executeTasksFunction);
+      return myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings,
+                              myRequest.getTaskId(), myListener, null, executeTasksFunction);
     }
     catch (ExternalSystemException e) {
       if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
@@ -432,6 +446,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         throw e;
       }
     }
+    return null;
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
@@ -462,7 +477,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> setJdkAsProjectJdk(myRequest.getProject(), jdkHome)));
+          invokeLaterIfNeeded(
+            () -> ApplicationManager.getApplication().runWriteAction(() -> setJdkAsProjectJdk(myRequest.getProject(), jdkHome)));
         }
       }
     };
@@ -523,53 +539,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     myBuildStopper.attemptToStopBuild(myRequest.getTaskId(), myProgressIndicator);
   }
 
-  /**
-   * Regular {@link #queue()} method might return immediately if current task is executed in a separate non-calling thread.
-   * <p/>
-   * However, sometimes we want to wait for the task completion, e.g. consider a use-case when we execute an IDE run configuration.
-   * It opens dedicated run/debug tool window and displays execution output there. However, it is shown as finished as soon as
-   * control flow returns. That's why we don't want to return control flow until the actual task completion.
-   * <p/>
-   * This method allows to achieve that target - it executes gradle tasks under the IDE 'progress management system' (shows progress
-   * bar at the bottom) in a separate thread and doesn't return control flow to the calling thread until all target tasks are actually
-   * executed.
-   */
   @Override
-  public void queueAndWaitForCompletion() {
-    int counterBefore;
-    synchronized (myCompletionLock) {
-      counterBefore = myCompletionCounter;
-    }
-    queue();
-    synchronized (myCompletionLock) {
-      while (true) {
-        if (myCompletionCounter > counterBefore) {
-          break;
-        }
-        try {
-          myCompletionLock.wait();
-        }
-        catch (InterruptedException e) {
-          // Just stop waiting.
-          break;
-        }
-      }
-    }
-  }
-
-  @Override
-  public void onSuccess() {
-    super.onSuccess();
-    onCompletion();
-  }
-
-  @Override
-  public void onCancel() {
-    super.onCancel();
-    onCompletion();
-  }
-
-  private void onCompletion() {
+  public void onFinished() {
+    super.onFinished();
     synchronized (myCompletionLock) {
       myCompletionCounter++;
       myCompletionLock.notifyAll();

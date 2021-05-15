@@ -23,6 +23,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,8 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -55,7 +58,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
@@ -84,7 +90,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
     myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    return new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
 
   private GradleBuildInvoker createBuildInvokerForConfiguredProject() {
@@ -94,7 +100,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     IdeComponents ideComponents = new IdeComponents(myProject);
     myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    return new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
 
   @Override
@@ -280,17 +286,20 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
 
-    GradleBuildInvoker.Request request = new GradleBuildInvoker.Request(
+    GradleBuildInvoker.Request request = GradleBuildInvoker.Request.builder(
       myProject,
       new File(projectPath, "build.gradle"),
       ":app:assembleDebug",
       ":lib:assembleDebug"
     )
-      .waitForCompletion();
+      .waitForCompletion()
+      .build();
 
     Semaphore sema = new Semaphore(0);
+
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      buildInvoker.executeTasks(request, null);
+      ListenableFuture<GradleInvocationResult> futureResult = buildInvoker.executeTasks(request);
+      assertThat(futureResult.isDone()).isTrue();
       sema.release();
     });
     // Block until execute tasks has been run.
@@ -300,7 +309,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     while (!sema.tryAcquire());
 
     verify(myFileDocumentManager).saveAllDocuments();
-    verify(myTasksExecutor).queueAndWaitForCompletion();
   }
 
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
@@ -328,8 +336,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     @NotNull
     public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
                                       @NotNull BuildStopper buildStopper,
-                                      @NotNull ExternalSystemTaskNotificationListener listener) {
+                                      @NotNull ExternalSystemTaskNotificationListener listener,
+                                      @NotNull SettableFuture<@Nullable GradleInvocationResult> resultFuture) {
       myRequest = request;
+      doAnswer(invocation -> {
+        resultFuture.set(null);
+        return null;
+      }).when(myTasksExecutor).queue();
       return myTasksExecutor;
     }
 

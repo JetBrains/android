@@ -78,19 +78,4 @@ b/144931276 */
     when(module.getOptionValue("external.linked.project.path")).thenReturn(projectPath);
     return gradleBuildInvoker;
   }
-
-  private static class RequestMatcher implements ArgumentMatcher<GradleBuildInvoker.Request> {
-    private final GradleBuildInvoker.Request myRequest;
-
-    public RequestMatcher(GradleBuildInvoker.Request request) {
-      myRequest = request;
-    }
-
-    @Override
-    public boolean matches(GradleBuildInvoker.Request argument) {
-      // skip generated init scripts args asserting
-      argument.setCommandLineArguments(Collections.emptyList());
-      return myRequest.toString().equals(argument.toString());
-    }
-  }
 }

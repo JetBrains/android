@@ -390,7 +390,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="388"/>
+            line="392"/>
     </issue>
 
     <issue
@@ -430,7 +430,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="87"/>
+            line="88"/>
     </issue>
 
     <issue
@@ -438,7 +438,7 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="88"/>
+            line="89"/>
     </issue>
 
     <issue
@@ -455,14 +455,6 @@
         <location
             file="src/com/android/tools/idea/fonts/DownloadableFontCacheServiceImpl.java"
             line="272"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/project/build/invoker/GradleBuildInvoker.java"
-            line="753"/>
     </issue>
 
     <issue
@@ -510,7 +502,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="995"/>
+            line="989"/>
     </issue>
 
     <issue
