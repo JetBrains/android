@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
+import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
@@ -204,7 +205,7 @@ class EmulatorToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
     assertThat(emulator.extendedControlsVisible).isFalse()
-    emulatorController.showExtendedControls(PaneIndex.KEEP_CURRENT)
+    emulatorController.showExtendedControls(PaneEntry.newBuilder().setIndex(PaneIndex.KEEP_CURRENT).build())
     // Wait for the extended controls to show.
     waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
 

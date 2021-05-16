@@ -33,10 +33,11 @@ import org.jetbrains.annotations.VisibleForTesting
 class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
-    val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
     val emulatorView = getEmulatorView(event) ?: return
-    showManageSnapshotsDialog(emulatorView, project)
+    showManageSnapshotsDialog(emulatorView, getProject(event))
   }
+
+  protected fun getProject(event: AnActionEvent) = event.getRequiredData(CommonDataKeys.PROJECT)
 }
 
 /**
