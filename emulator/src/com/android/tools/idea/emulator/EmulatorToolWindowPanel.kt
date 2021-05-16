@@ -221,7 +221,7 @@ class EmulatorToolWindowPanel(
           showManageSnapshotsDialog(emulatorView, project)
         }
         if (uiState.extendedControlsShown) {
-          showExtendedControls(emulator)
+          showExtendedControls(emulator, project)
         }
       }
     }

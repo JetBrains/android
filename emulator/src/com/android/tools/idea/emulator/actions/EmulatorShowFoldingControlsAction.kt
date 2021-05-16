@@ -25,7 +25,7 @@ class EmulatorShowFoldingControlsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
-    showExtendedControls(emulatorController, PaneIndex.VIRT_SENSORS)
+    showExtendedControls(emulatorController, getProject(event), PaneIndex.VIRT_SENSORS)
   }
 
   override fun update(event: AnActionEvent) {

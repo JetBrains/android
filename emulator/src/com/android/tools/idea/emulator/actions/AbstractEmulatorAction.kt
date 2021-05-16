@@ -22,7 +22,9 @@ import com.android.tools.idea.emulator.EmulatorView
 import com.android.tools.idea.emulator.NUMBER_OF_DISPLAYS
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
 
 /**
  * Common superclass for toolbar actions of the Emulator window.
@@ -36,6 +38,9 @@ abstract class AbstractEmulatorAction : AnAction(), DumbAware {
   protected open fun isEnabled(event: AnActionEvent): Boolean =
     isEmulatorConnected(event)
 }
+
+internal fun getProject(event: AnActionEvent): Project =
+  event.getRequiredData(CommonDataKeys.PROJECT)
 
 internal fun getEmulatorController(event: AnActionEvent): EmulatorController? =
   event.dataContext.getData(EMULATOR_CONTROLLER_KEY)
