@@ -17,16 +17,16 @@ package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -42,7 +42,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.compiler.DummyCompileContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
@@ -225,7 +224,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
     // Trigger build.
-    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.create(getProject()));
+    PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion();
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
