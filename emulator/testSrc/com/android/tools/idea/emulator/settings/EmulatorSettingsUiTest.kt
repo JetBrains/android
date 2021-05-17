@@ -64,20 +64,20 @@ class EmulatorSettingsUiTest {
 
     settingsUi.reset()
 
-    assertThat(launchInToolWindowCheckBox.isSelected).isFalse()
+    assertThat(launchInToolWindowCheckBox.isSelected).isTrue()
     assertThat(snapshotAutoDeletionPolicyComboBox.selectedItem).isEqualTo(SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING)
-    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
+    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
     assertThat(settingsUi.isModified).isFalse()
 
-    launchInToolWindowCheckBox.isSelected = true
+    launchInToolWindowCheckBox.isSelected = false
 
     assertThat(settingsUi.isModified).isTrue()
-    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
+    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
 
     snapshotAutoDeletionPolicyComboBox.selectedItem = SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY
     settingsUi.apply()
 
-    assertThat(settings.launchInToolWindow).isTrue()
+    assertThat(settings.launchInToolWindow).isFalse()
     assertThat(settings.snapshotAutoDeletionPolicy).isEqualTo(SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY)
   }
 }
