@@ -95,6 +95,7 @@ iml_module(
         "//tools/adt/idea/studio[module, test]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
     ],
 )
 
