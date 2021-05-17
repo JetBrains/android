@@ -28,8 +28,8 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperim
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.FeatureSurveyCompleted
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldInvokeFeatureSurvey
+import com.android.tools.idea.stats.FeatureSurveys.featureSurveyInvoked
+import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
 import com.android.utils.DateProvider
 import com.google.common.truth.Truth
@@ -229,7 +229,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    FeatureSurveyCompleted("featureSurvey", -5, -5)
+    featureSurveyInvoked("featureSurvey", -5, -5)
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey"))
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
@@ -238,7 +238,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    FeatureSurveyCompleted("featureSurvey", 5, 5)
+    featureSurveyInvoked("featureSurvey", 5, 5)
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
     // Test before general interval elapses
@@ -246,7 +246,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    FeatureSurveyCompleted("featureSurvey", -5, 5)
+    featureSurveyInvoked("featureSurvey", -5, 5)
     assertFalse(shouldInvokeFeatureSurvey("featureSurvey"))
 
     // Test after both intervals elapse
@@ -254,7 +254,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
       optedIn = true
     })
-    FeatureSurveyCompleted("featureSurvey1", -5, -5)
+    featureSurveyInvoked("featureSurvey1", -5, -5)
     assertTrue(shouldInvokeFeatureSurvey("featureSurvey2"))
   }
 

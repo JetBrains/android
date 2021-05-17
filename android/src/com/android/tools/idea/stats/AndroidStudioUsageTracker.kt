@@ -19,19 +19,18 @@ import com.android.ddmlib.IDevice
 import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.analytics.AnalyticsSettings.nextFeatureSurveyDate
-import com.android.tools.analytics.AnalyticsSettings.nextFeatureSurveyDateMap
 import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.serverflags.protos.Survey
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.Survey
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Strings
@@ -69,11 +68,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.ArrayList
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
@@ -83,6 +85,8 @@ import java.util.TimeZone
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
+import com.android.tools.idea.imports.MavenClassRegistryManager
+import org.jetbrains.kotlin.tools.projectWizard.core.ignore
 
 /**
  * Tracks Android Studio specific metrics
@@ -94,8 +98,6 @@ object AndroidStudioUsageTracker {
   private const val DAYS_IN_LEAP_YEAR = 366
   private const val DAYS_IN_NON_LEAP_YEAR = 365
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
-
-  private var isFeatureSurveyPending = false
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -177,6 +179,7 @@ object AndroidStudioUsageTracker {
     scheduler.scheduleWithFixedDelay({ runHourlyReports() }, 0, 1, TimeUnit.HOURS)
 
     subscribeToEvents()
+    setupFeatureSurveys()
   }
 
   private fun subscribeToEvents() {
@@ -409,48 +412,21 @@ object AndroidStudioUsageTracker {
     }
   }
 
-
-  // Determines whether the specified feature survey should be invoked.
-  // If so, sets the isFeatureSurveyPending flag to true.
-  fun shouldInvokeFeatureSurvey(name: String): Boolean {
-    if (!optedIn || isFeatureSurveyPending) {
-      return false
-    }
-
-    val now = AnalyticsSettings.dateProvider.now()
-
-    // Is it too early to invoke any feature survey?
-    nextFeatureSurveyDate?.let {
-      if (now.before(it)) {
-        return false
+  fun setupFeatureSurveys() {
+    // Create a coroutine scope tied to a disposable application service
+    val scope = AndroidCoroutineScope(MavenClassRegistryManager.getInstance())
+    val channel = BroadcastChannel<AndroidStudioEvent.Builder>(BUFFERED)
+    UsageTracker.listener = { event ->
+      scope.launch {
+        channel.send(event)
       }
     }
 
-    // Is it too early to invoke this specific feature survey?
-    nextFeatureSurveyDateMap?.let { map ->
-      map[name]?.let {
-        if (now.before(it)) {
-          return false
-        }
+    scope.launch {
+      channel.openSubscription().consumeEach {
+        FeatureSurveys.processEvent(it)
       }
     }
-
-    isFeatureSurveyPending = true
-
-    return true
-  }
-
-  // Indicates that a feature survey has been responded to, and the countdowns until
-  // the next feature survey should be updated
-  fun FeatureSurveyCompleted(name: String, generalInterval: Int, specificInterval: Int) {
-    isFeatureSurveyPending = false
-    val now = AnalyticsSettings.dateProvider.now()
-
-    nextFeatureSurveyDate = daysFromNow(now, generalInterval)
-
-    val map = nextFeatureSurveyDateMap ?: mutableMapOf()
-    map[name] = daysFromNow(now, specificInterval)
-    nextFeatureSurveyDateMap = map
   }
 
   private fun isWithinPastYear(now: Date, date: Date?): Boolean {
@@ -463,7 +439,7 @@ object AndroidStudioUsageTracker {
     return date.after(newDate)
   }
 
-  private fun daysFromNow(now: Date, days: Int): Date {
+  fun daysFromNow(now: Date, days: Int): Date {
     val calendar = Calendar.getInstance()
     calendar.time = now
     calendar.add(Calendar.DATE, days)
@@ -473,7 +449,8 @@ object AndroidStudioUsageTracker {
   private fun daysInYear(now: Date): Int {
     return if (GregorianCalendar().isLeapYear(now.year + 1900)) {
       DAYS_IN_LEAP_YEAR
-    } else {
+    }
+    else {
       DAYS_IN_NON_LEAP_YEAR
     }
   }
