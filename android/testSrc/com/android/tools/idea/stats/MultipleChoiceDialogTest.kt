@@ -16,8 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.Option
-import com.android.tools.idea.Survey
+import com.android.tools.idea.serverflags.protos.Option
+import com.android.tools.idea.serverflags.protos.Survey
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Ref

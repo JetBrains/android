@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// Defines configuration properties for feature surveys.
+// Intervals refer to the time to wait before showing another survey.
+// General: interval between showing any two surveys
+// Specific: interval between showing the same survey again
+// Completed: interval after a completed survey
+// Cancelled: interval after a cancelled survey
+message FeatureSurveyConfig {
+  // general interval after completion
+  optional int32 general_interval_completed = 1;
+  // general interval after cancellation
+  optional int32 general_interval_cancelled = 2;
+  // specific interval after completion
+  optional int32 specific_interval_completed = 3;
+  // specific interval after cancellation
+  optional int32 specific_interval_cancelled = 4;
+  // How much idle time must pass before showing a survey
+  optional int32 idle_interval_ms = 5;
+}

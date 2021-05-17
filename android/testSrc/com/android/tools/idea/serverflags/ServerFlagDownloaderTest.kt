@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlagList
+import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.utils.FileUtils
 import com.google.common.base.Charsets
 import com.google.common.truth.Truth.assertThat

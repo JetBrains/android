@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlagList
+import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.PathManager
 import java.io.File

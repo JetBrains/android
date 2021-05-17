@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlagList
-import com.android.tools.idea.ServerFlagTest
+import com.android.tools.idea.serverflags.protos.ServerFlagList
+import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil

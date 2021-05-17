@@ -16,7 +16,7 @@
 package com.android.tools.idea.serverflags
 
 import com.android.tools.analytics.AnalyticsSettings
-import com.android.tools.idea.ServerFlagData
+import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.google.common.hash.Hashing
 import com.intellij.openapi.diagnostic.Logger
 import java.nio.file.Path

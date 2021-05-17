@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlag
-import com.android.tools.idea.ServerFlagData
-import com.android.tools.idea.ServerFlagList
-import com.android.tools.idea.ServerFlagTest
+import com.android.tools.idea.serverflags.protos.ServerFlag
+import com.android.tools.idea.serverflags.protos.ServerFlagData
+import com.android.tools.idea.serverflags.protos.ServerFlagList
+import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.google.protobuf.Any
 import com.intellij.util.io.createFile
 import java.nio.file.Path
