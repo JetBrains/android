@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.issues;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -110,8 +111,30 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     );
   }
 
-  public void testDoCheckWithJdkValid() {
-    String versionString = myValidJdk.getVersionString();
+  public void testDoCheckWithJdkValidRecreate() {
+    StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true);
+    try {
+      runCheckWithValid();
+      verify(myMockIdeSdks).recreateOrAddJdkInTable(any());
+    }
+    finally {
+      StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
+    }
+  }
+
+  public void testDoCheckWithJdkValidNoRecreate() {
+    StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(false);
+    try {
+      runCheckWithValid();
+      verify(myMockIdeSdks, never()).recreateOrAddJdkInTable(any());
+    }
+    finally {
+      StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
+    }
+  }
+
+  private void runCheckWithValid() {
+  String versionString = myValidJdk.getVersionString();
     assertThat(versionString).isNotNull();
     JavaSdkVersion javaVersion = JavaSdkVersion.fromVersionString(versionString);
     assertThat(javaVersion).isNotNull();
@@ -124,7 +147,6 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     String message = runCheckJdkErrorMessage(myValidJdk);
 
     assertThat(message).isEmpty();
-    verify(myMockIdeSdks).recreateOrAddJdkInTable(any());
   }
 
   private static String runCheckJdkErrorMessage(@Nullable Sdk jdk) {
