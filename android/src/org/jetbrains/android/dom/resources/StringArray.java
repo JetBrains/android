@@ -16,8 +16,16 @@
 
 package org.jetbrains.android.dom.resources;
 
+import com.intellij.util.xml.Attribute;
+import com.intellij.util.xml.Convert;
+import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
+import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 
 public interface StringArray extends ResourceElement {
+  @Convert(AndroidBooleanValueConverter.class)
+  @Attribute("translatable")
+  GenericAttributeValue<Boolean> isTranslatable();
+
   List<ArrayElement> getItems();
 }
