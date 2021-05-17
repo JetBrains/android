@@ -232,8 +232,7 @@ object GuiTestLauncher {
       return urls.filter { !it.toString().contains("android.core.tests") }.map { Paths.get(it.toURI()).toFile() }
     } else {
       // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
-      // Fortunately, under these circumstances, java.class.path has everything we need. ἑλληνικός ἀλφάβητος hellēnikós
-
+      // Fortunately, under these circumstances, java.class.path has everything we need.
       return System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
     }
   }
