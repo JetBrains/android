@@ -60,10 +60,7 @@ class KnownGradlePluginsServiceImplTest {
       "name": "MyPlugin",
       "pluginDescription": "Fake test plugin description.<br/>",
       "pluginContactInstructions": "<a href='linkToPluginRepo'>Plugin repository</a>",
-      "pluginArtifact": {
-        "group": "org.my",
-        "name": "gradle-plugin"
-      },
+      "pluginArtifact": "org.my:gradle-plugin",
       "configurationCachingCompatibleFrom": "1.0.0"
     }
   ]
