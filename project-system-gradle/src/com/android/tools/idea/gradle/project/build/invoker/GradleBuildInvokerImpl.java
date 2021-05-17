@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,10 +81,17 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.ex.StatusBarEx;
+import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
@@ -248,6 +255,30 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     return value.equals("true") ? YES : NO;
   }
 
+  @Override
+  public boolean getInternalIsBuildRunning() {
+    return isBuildInProgress(getProject());
+  }
+
+  private static boolean isBuildInProgress(@NotNull Project project) {
+    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
+    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
+    if (statusBar == null) {
+      return false;
+    }
+    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
+      TaskInfo task = backgroundProcess.getFirst();
+      if (task instanceof GradleTasksExecutor) {
+        ProgressIndicator second = backgroundProcess.getSecond();
+        if (second.isRunning()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
   @NotNull
   private static String createGenerateSourcesOnlyProperty() {
     return createProjectProperty(AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY, true);
@@ -410,11 +441,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     return executeTasks(request);
   }
 
-  @TestOnly
-  @Deprecated
   /**
    * Do not use. This method exposes implementation details that may change. The existing usages need to be re-implemented.
    */
+  @TestOnly
+  @Deprecated
   public ExternalSystemTaskNotificationListener temporaryCreateBuildTaskListenerForTests(@NotNull Request request,
                                                                                          @NotNull String executionName) {
     return createBuildTaskListener(request, executionName, null);
@@ -512,7 +543,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     myAfterTasks.add(task);
   }
 
-  @VisibleForTesting
   @NotNull
   protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
     return myAfterTasks.toArray(new AfterGradleInvocationTask[0]);

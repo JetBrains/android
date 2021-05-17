@@ -27,7 +27,7 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
@@ -100,7 +100,8 @@ public class GradleSyncInvoker {
     if (GradleSyncState.getInstance(project).isSyncInProgress()) {
       return;
     }
-    if (isBuildInProgress(project)) {
+    //noinspection deprecation
+    if (GradleBuildInvoker.getInstance(project).getInternalIsBuildRunning()) {
       setSyncRequestedDuringBuild(project, true);
       return;
     }
@@ -122,24 +123,6 @@ public class GradleSyncInvoker {
     else {
       ApplicationManager.getApplication().invokeAndWait(syncTask);
     }
-  }
-
-  private static boolean isBuildInProgress(@NotNull Project project) {
-    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
-    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
-    if (statusBar == null) {
-      return false;
-    }
-    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
-      TaskInfo task = backgroundProcess.getFirst();
-      if (task instanceof GradleTasksExecutor) {
-        ProgressIndicator second = backgroundProcess.getSecond();
-        if (second.isRunning()) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   private static boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {

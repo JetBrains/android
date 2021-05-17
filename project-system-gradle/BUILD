@@ -32,6 +32,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/tracer:studio.android.sdktools.tracer[module]",
     ],
 )
 
