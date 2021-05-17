@@ -32,7 +32,7 @@ class FakeEmulatorRule(private val tempDirectory: TempDirectory) : ExternalResou
     super.before()
     RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-    registrationDirectory = tempDirectory.newFolder("avd/running").toPath()
+    registrationDirectory = tempDirectory.newDirectory("avd/running").toPath()
     emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
   }
 
