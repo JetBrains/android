@@ -66,17 +66,6 @@ public final class Jdks {
     myIdeInfo = IdeInfo.getInstance();
   }
 
-  /**
-   * @return {@code true} if JDK can be safely used as a project JDK for a project with android modules,
-   * parent JDK for Android SDK or as a gradle JVM to run builds with Android modules
-   * @deprecated use {@link IdeSdks#isJdkCompatible(Sdk)} instead
-   */
-  @Deprecated
-  @ApiStatus.ScheduledForRemoval(inVersion = "2020.3")
-  public boolean isApplicableJdk(@NotNull Sdk jdk) {
-    return IdeSdks.getInstance().isJdkCompatible(jdk);
-  }
-
   @Nullable
   public JavaSdkVersion findVersion(@NotNull Path jdkRoot) {
     return getVersion(jdkRoot.toString());
