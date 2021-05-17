@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.run.OutputBuildAction;
-import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -33,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * if there're multiple apks, returns the parent folder of apk files;
  * if it's app bundle, returns the bundle file.
  * <p>
- * {@link PostBuildModel} being built from the result of {@link OutputBuildAction} contains paths information of each of the build.
+ * PostBuildModel being built from the result of OutputBuildAction contains paths information of each of the build.
  */
 public abstract class BuildsToPathsMapper {
   @NotNull
