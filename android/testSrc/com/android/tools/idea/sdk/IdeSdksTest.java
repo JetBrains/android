@@ -47,7 +47,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -329,10 +328,6 @@ public class IdeSdksTest extends PlatformTestCase {
    * Confirm that the default JDK is used when it is in the JDK table
    */
   public void testDefaultJdkIsUsed() throws IOException {
-    // Only test if per project JDK is enabled
-    if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-      return;
-    }
     Sdk currentJdk = myIdeSdks.getJdk();
     assertThat(currentJdk).isNotNull();
     String homePath = currentJdk.getHomePath();

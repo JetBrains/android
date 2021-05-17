@@ -17,21 +17,17 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidGradleProjectSettingsControlBuilder.Companion.ANDROID_STUDIO_DEFAULT_JDK_NAME
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation
 import com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError
 import com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton
-import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.ui.validation.validators.PathValidator
 import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VirtualFile
@@ -110,12 +106,7 @@ class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model,
 
   override fun onProceeding() {
     val path = jdkLocation.toAbsolutePath().normalize()
-    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-      IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path!!)
-    }
-    else {
-      ApplicationManager.getApplication().runWriteAction { IdeSdks.getInstance().setJdkPath(path!!) }
-    }
+    IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path!!)
   }
 
   override fun getPreferredFocusComponent() = jdkPanel
