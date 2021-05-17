@@ -7,10 +7,7 @@
         "org.jetbrains.kotlin.gradle.internal."
       ],
       "pluginContactInstructions": "https://github.com/JetBrains/kotlin/tree/master/libraries/tools/kotlin-gradle-plugin",
-      "pluginArtifact": {
-        "group": "org.jetbrains.kotlin",
-        "name": "kotlin-gradle-plugin"
-      },
+      "pluginArtifact": "org.jetbrains.kotlin:kotlin-gradle-plugin",
       "configurationCachingCompatibleFrom": "1.4.20"
     },
     {
@@ -18,10 +15,7 @@
       "pluginClasses": [
         "com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.firebase",
-        "name": "firebase-crashlytics-gradle"
-      },
+      "pluginArtifact": "com.google.firebase:firebase-crashlytics-gradle",
       "configurationCachingCompatibleFrom": "2.5.1"
     },
     {
@@ -29,10 +23,7 @@
       "pluginClasses": [
         "com.google.gms.googleservices.GoogleServicesPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.gms",
-        "name": "google-services"
-      },
+      "pluginArtifact": "com.google.gms:google-services",
       "configurationCachingCompatibleFrom": "4.3.5"
     },
     {
@@ -40,10 +31,7 @@
       "pluginClasses": [
         "com.google.firebase.perf.plugin.FirebasePerfPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.firebase",
-        "name": "perf-plugin"
-      },
+      "pluginArtifact": "com.google.firebase:perf-plugin",
       "configurationCachingCompatibleFrom": "1.3.5"
     },
     {
@@ -51,10 +39,7 @@
       "pluginClasses": [
         "com.google.android.gms.StrictVersionMatcherPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.android.gms",
-        "name": "strict-version-matcher-plugin"
-      },
+      "pluginArtifact": "com.google.android.gms:strict-version-matcher-plugin",
       "configurationCachingCompatibleFrom": "1.2.2"
     },
     {
@@ -62,10 +47,7 @@
       "pluginClasses": [
         "com.google.gms.oss.licenses.plugin.OssLicensesPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.android.gms",
-        "name": "play-services-oss-licenses"
-      },
+      "pluginArtifact": "com.google.android.gms:play-services-oss-licenses",
       "configurationCachingCompatibleFrom": ""
     },
     {
@@ -73,10 +55,7 @@
       "pluginClasses": [
         "dagger.hilt.android.plugin.HiltGradlePlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.google.dagger",
-        "name": "hilt-android-gradle-plugin"
-      },
+      "pluginArtifact": "com.google.dagger:hilt-android-gradle-plugin",
       "configurationCachingCompatibleFrom": "2.33-beta"
     },
     {
@@ -84,10 +63,7 @@
       "pluginClasses": [
         "androidx.navigation.safeargs.gradle."
       ],
-      "pluginArtifact": {
-        "group": "androidx.navigation",
-        "name": "navigation-safe-args-gradle-plugin"
-      },
+      "pluginArtifact": "androidx.navigation:navigation-safe-args-gradle-plugin",
       "configurationCachingCompatibleFrom": "2.3.1"
     },
     {
@@ -95,10 +71,7 @@
       "pluginClasses": [
         "org.gradle.testretry.TestRetryPlugin"
       ],
-      "pluginArtifact": {
-        "group": "org.gradle",
-        "name": "test-retry-gradle-plugin"
-      },
+      "pluginArtifact": "org.gradle:test-retry-gradle-plugin",
       "configurationCachingCompatibleFrom": "1.1.2"
     },
     {
@@ -106,10 +79,7 @@
       "pluginClasses": [
         "org.gradle.android.AndroidCacheFixPlugin"
       ],
-      "pluginArtifact": {
-        "group": "gradle.plugin.org.gradle.android",
-        "name": "android-cache-fix-gradle-plugin"
-      },
+      "pluginArtifact": "gradle.plugin.org.gradle.android:android-cache-fix-gradle-plugin",
       "configurationCachingCompatibleFrom": "2.1.1"
     },
     {
@@ -117,10 +87,7 @@
       "pluginClasses": [
         "com.github.jengelman.gradle.plugins.shadow."
       ],
-      "pluginArtifact": {
-        "group": "gradle.plugin.com.github.jengelman.gradle.plugins",
-        "name": "shadow"
-      },
+      "pluginArtifact": "gradle.plugin.com.github.jengelman.gradle.plugins:shadow",
       "configurationCachingCompatibleFrom": "6.1.0"
     },
     {
@@ -128,10 +95,7 @@
       "pluginClasses": [
         "org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin"
       ],
-      "pluginArtifact": {
-        "group": "org.jfrog.buildinfo",
-        "name": "build-info-extractor-gradle"
-      },
+      "pluginArtifact": "org.jfrog.buildinfo:build-info-extractor-gradle",
       "configurationCachingCompatibleFrom": "N/A"
     },
     {
@@ -139,10 +103,7 @@
       "pluginClasses": [
         "com.github.benmanes.gradle.versions.VersionsPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.github.ben-manes",
-        "name": "gradle-versions-plugin"
-      },
+      "pluginArtifact": "com.github.ben-manes:gradle-versions-plugin",
       "configurationCachingCompatibleFrom": "N/A"
     },
     {
@@ -150,10 +111,7 @@
       "pluginClasses": [
         "de.undercouch.gradle.tasks.download.DownloadTaskPlugin"
       ],
-      "pluginArtifact": {
-        "group": "de.undercouch",
-        "name": "gradle-download-task"
-      },
+      "pluginArtifact": "de.undercouch:gradle-download-task",
       "configurationCachingCompatibleFrom": "4.1.0"
     },
     {
@@ -161,10 +119,7 @@
       "pluginClasses": [
         "io.gitlab.arturbosch.detekt.DetektPlugin"
       ],
-      "pluginArtifact": {
-        "group": "io.gitlab.arturbosch.detekt",
-        "name": "detekt-gradle-plugin"
-      },
+      "pluginArtifact": "io.gitlab.arturbosch.detekt:detekt-gradle-plugin",
       "configurationCachingCompatibleFrom": "1.10.0"
     },
     {
@@ -172,10 +127,7 @@
       "pluginClasses": [
         "net.ltgt.gradle.errorprone."
       ],
-      "pluginArtifact": {
-        "group": "net.ltgt.gradle",
-        "name": "gradle-errorprone-plugin"
-      },
+      "pluginArtifact": "net.ltgt.gradle:gradle-errorprone-plugin",
       "configurationCachingCompatibleFrom": "1.2.0"
     },
     {
@@ -183,10 +135,7 @@
       "pluginClasses": [
         "org.jlleitschuh.gradle.ktlint."
       ],
-      "pluginArtifact": {
-        "group": "org.jlleitschuh.gradle",
-        "name": "ktlint-gradle"
-      },
+      "pluginArtifact": "org.jlleitschuh.gradle:ktlint-gradle",
       "configurationCachingCompatibleFrom": "9.3.0"
     },
     {
@@ -194,10 +143,7 @@
       "pluginClasses": [
         "com.google.protobuf.gradle.ProtobufPlugin"
       ],
-      "pluginArtifact": {
-        "group": "gradle.plugin.com.google.protobuf",
-        "name": "protobuf-gradle-plugin"
-      },
+      "pluginArtifact": "gradle.plugin.com.google.protobuf:protobuf-gradle-plugin",
       "configurationCachingCompatibleFrom": "0.8.15"
     },
     {
@@ -205,10 +151,7 @@
       "pluginClasses": [
         "com.slack.keeper.KeeperPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.slack.keeper",
-        "name": "keeper"
-      },
+      "pluginArtifact": "com.slack.keeper:keeper",
       "configurationCachingCompatibleFrom": "0.6.0"
     },
     {
@@ -216,10 +159,7 @@
       "pluginClasses": [
         "com.squareup.wire.gradle.WirePlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.squareup.wire",
-        "name": "wire-gradle-plugin"
-      },
+      "pluginArtifact": "com.squareup.wire:wire-gradle-plugin",
       "configurationCachingCompatibleFrom": "3.3.0"
     },
     {
@@ -227,10 +167,7 @@
       "pluginClasses": [
         "com.getkeepsafe.dexcount.DexMethodCountPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.getkeepsafe.dexcount",
-        "name": "dexcount-gradle-plugin"
-      },
+      "pluginArtifact": "com.getkeepsafe.dexcount:dexcount-gradle-plugin",
       "configurationCachingCompatibleFrom": "2.0.0"
     },
     {
@@ -238,10 +175,7 @@
       "pluginClasses": [
         "com.squareup.anvil.plugin.AnvilPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.squareup.anvil",
-        "name": "gradle-plugin"
-      },
+      "pluginArtifact": "com.squareup.anvil:gradle-plugin",
       "configurationCachingCompatibleFrom": "2.0.5"
     },
     {
@@ -249,10 +183,7 @@
       "pluginClasses": [
         "com.squareup.sqldelight.gradle.SqlDelightPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.squareup.sqldelight",
-        "name": "gradle-plugin"
-      },
+      "pluginArtifact": "com.squareup.sqldelight:gradle-plugin",
       "configurationCachingCompatibleFrom": "1.4.4"
     },
     {
@@ -260,10 +191,7 @@
       "pluginClasses": [
         "com.google.gradle.osdetector.OsDetectorPlugin"
       ],
-      "pluginArtifact": {
-        "group": "gradle.plugin.com.google.gradle",
-        "name": "osdetector-gradle-plugin"
-      },
+      "pluginArtifact": "gradle.plugin.com.google.gradle:osdetector-gradle-plugin",
       "configurationCachingCompatibleFrom": "1.7.0"
     },
     {
@@ -271,10 +199,7 @@
       "pluginClasses": [
         "com.diffplug.gradle.spotless.SpotlessPlugin"
       ],
-      "pluginArtifact": {
-        "group": "com.diffplug.spotless",
-        "name": "spotless-plugin-gradle"
-      },
+      "pluginArtifact": "com.diffplug.spotless:spotless-plugin-gradle",
       "configurationCachingCompatibleFrom": "N/A"
     }
   ],

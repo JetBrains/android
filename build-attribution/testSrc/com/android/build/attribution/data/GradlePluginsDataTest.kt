@@ -27,7 +27,7 @@ class GradlePluginsDataTest {
     {"pluginsInfo":[{
       "name": "MyPlugin",
       "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-      "pluginArtifact": {"group":"org.my", "name":"gradle-plugin"},
+      "pluginArtifact": "org.my:gradle-plugin",
       "configurationCachingCompatibleFrom": "1.0.0"
     }]}
     """.trimIndent()
@@ -77,7 +77,7 @@ class GradlePluginsDataTest {
     { "pluginsInfo": [{
         "name": "MyPlugin",
         "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-        "pluginArtifact": {"group":"org.my", "name":"gradle-plugin"},
+        "pluginArtifact": "org.my:gradle-plugin",
         "configurationCachingCompatibleFrom": "1.0.0",
         "newField": "newValue"
       }]}
@@ -106,7 +106,7 @@ class GradlePluginsDataTest {
     { "pluginsInfo": [{
         "name": "MyPlugin",
         "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
-        "pluginArtifact": {"group":"org.my", "name":"gradle-plugin"},
+        "pluginArtifact": "org.my:gradle-plugin",
         "configurationCachingCompatibleFrom": "N/A"
       }]}
     """.trimIndent()
