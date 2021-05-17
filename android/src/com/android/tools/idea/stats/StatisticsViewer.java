@@ -34,12 +34,15 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
-import java.io.IOException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A non-modal dialog displaying statistics as they're logged.
@@ -83,7 +86,8 @@ public class StatisticsViewer extends JPanel implements Disposable {
         }
         catch (InvalidProtocolBufferException e) {
           // This should not be happening as the server side expects an AndroidStudioEvent, so log an error.
-          myConsoleView.print("Unable to parse AndroidStudioEvent from LogEvent: " + logEvent.build().toString(), ConsoleViewContentType.ERROR_OUTPUT);
+          myConsoleView
+            .print("Unable to parse AndroidStudioEvent from LogEvent: " + logEvent.build().toString(), ConsoleViewContentType.ERROR_OUTPUT);
         }
       }
 
@@ -121,7 +125,7 @@ public class StatisticsViewer extends JPanel implements Disposable {
       @NotNull
       @Override
       protected Action[] createActions() {
-        return new Action[] {new AbstractAction("Close") {
+        return new Action[]{new AbstractAction("Close") {
           @Override
           public void actionPerformed(ActionEvent e) {
             doOKAction();
