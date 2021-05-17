@@ -328,35 +328,37 @@ final class EditLogFilterDialog extends DialogWrapper {
     final String name = myFilterNameField.getText().trim();
 
     if (name.isEmpty()) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.not.specified.error"),
-                                myFilterNameField);
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.not.specified.error"), myFilterNameField);
     }
 
     if (name.equals(AndroidLogcatView.getNoFilters())
         || name.equals(AndroidLogcatView.getSelectedAppFilter())
         || name.equals(AndroidLogcatView.getEditFilterConfiguration())) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name), myFilterNameField);
     }
 
     for (FilterData filter : myFilters) {
       if (filter != myActiveFilter && name.equals(filter.getName())) {
-        return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
+        return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name), myFilterNameField);
       }
     }
 
     if (myTagField.getParseError() != null) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.log.tag.pattern.error") + '\n'
-                                + myTagField.getParseError());
+      return new ValidationInfo(
+        AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.log.tag.pattern.error", myTagField.getParseError()),
+        myTagField);
     }
 
     if (myLogMessageField.getParseError() != null) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.message.pattern.error") + '\n'
-                                + myLogMessageField.getParseError());
+      return new ValidationInfo(
+        AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.message.pattern.error", myLogMessageField.getParseError()),
+        myLogMessageField);
     }
 
     if (myPackageNameField.getParseError() != null) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.application.name.pattern.error") + '\n'
-                                + myPackageNameField.getParseError());
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.application.name.pattern.error",
+                                                      myPackageNameField.getParseError()),
+                                myPackageNameField);
     }
 
     boolean validPid = false;
@@ -371,7 +373,7 @@ final class EditLogFilterDialog extends DialogWrapper {
     catch (NumberFormatException ignored) {
     }
     if (!validPid) {
-      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.pid.error"));
+      return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.incorrect.pid.error"), myPidField);
     }
 
     return null;
