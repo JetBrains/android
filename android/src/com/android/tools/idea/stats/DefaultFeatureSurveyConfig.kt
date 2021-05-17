@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.serverflags
+package com.android.tools.idea.stats
 
-const val SATISFACTION_SURVEY = "analytics/surveys/satisfaction"
-const val FOLLOWUP_SURVEY = "analytics/surveys/followup"
-const val FEATURE_SURVEY_CONFIG = "analytics/surveys/featureSurveyConfig"
-const val FEATURE_SURVEY_ROOT = "analytcs/surveys/feature/"
+import com.android.tools.idea.serverflags.protos.FeatureSurveyConfig
+
+val DEFAULT_FEATURE_SURVEY_CONFIG: FeatureSurveyConfig = FeatureSurveyConfig.newBuilder().apply {
+  generalIntervalCompleted = 30
+  generalIntervalCancelled = 7
+  specificIntervalCompleted = 365
+  specificIntervalCancelled = 7
+  idleIntervalMs = 30000
+}.build()
