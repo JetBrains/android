@@ -64,7 +64,7 @@ data class GradlePluginsData(
     fun loadFromJson(jsonString: String): GradlePluginsData {
       val gradleVersionType = object : TypeToken<GradleVersion>() {}.type
       val gradleVersionDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
-        GradleVersion.parse(json.asString)
+        json.asString.takeIf { it != "N/A" }?.let { GradleVersion.parse(it) }
       } as JsonDeserializer<GradleVersion>
       val gson = GsonBuilder()
         .registerTypeAdapter(gradleVersionType, gradleVersionDeserializer)

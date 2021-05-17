@@ -131,7 +131,8 @@
       "pluginArtifact": {
         "group": "org.jfrog.buildinfo",
         "name": "build-info-extractor-gradle"
-      }
+      },
+      "configurationCachingCompatibleFrom": "N/A"
     },
     {
       "name": "com.github.ben-manes.versions",
@@ -141,7 +142,8 @@
       "pluginArtifact": {
         "group": "com.github.ben-manes",
         "name": "gradle-versions-plugin"
-      }
+      },
+      "configurationCachingCompatibleFrom": "N/A"
     },
     {
       "name": "de.undercouch.download",
@@ -272,7 +274,8 @@
       "pluginArtifact": {
         "group": "com.diffplug.spotless",
         "name": "spotless-plugin-gradle"
-      }
+      },
+      "configurationCachingCompatibleFrom": "N/A"
     }
   ],
   "pluginEntryTemplate": {
