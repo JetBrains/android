@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.importing
 
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -148,12 +147,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     projectInfo.isImportedProject = true
     silenceUnlinkedGradleProjectNotificationIfNecessary(newProject)
     WriteAction.runAndWait<RuntimeException> {
-      if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-        val jdk = IdeSdks.getInstance().jdk
-        if (jdk != null) {
-          ProjectRootManager.getInstance(newProject).projectSdk = jdk
-        }
-      }
       if (request.javaLanguageLevel != null) {
         val extension = LanguageLevelProjectExtension.getInstance(newProject)
         if (extension != null) {

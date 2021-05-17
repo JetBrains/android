@@ -106,18 +106,10 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
     return BuildIssueComposer(message).apply {
       if (IdeInfo.getInstance().isAndroidStudio) {
-        if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-          val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
-          if (ideaProject != null) {
-            val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-            if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
-              addUseJavaHomeQuickFix(this)
-            }
-          }
-        }
-        else {
-          val ideSdks = IdeSdks.getInstance()
-          if (!ideSdks.isUsingJavaHomeJdk) {
+        val ideaProject = fetchIdeaProjectForGradleProject(issueData.projectPath)
+        if (ideaProject != null) {
+          val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+          if (!gradleInstallation.isUsingJavaHomeJdk(ideaProject)) {
             addUseJavaHomeQuickFix(this)
           }
         }

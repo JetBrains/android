@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_TOOLTIP
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL;
 import static com.android.tools.idea.gradle.ui.SdkUiStrings.generateChooseValidJdkDirectoryError;
 import static com.android.tools.idea.gradle.ui.SdkUiUtils.getLocationFromComboBoxWithBrowseButton;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.wizard.WizardConstants.KEY_JDK_LOCATION;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
@@ -56,7 +55,6 @@ public class JdkSetupStep extends FirstRunWizardStep {
   @SuppressWarnings("unused") private ComboboxWithBrowseButton myJdkLocationComboBox;
   private JBLabel myJdkLocationHelp;
   private JBScrollPane myContents;
-  private boolean myIsJavaHomeValid;
 
   public JdkSetupStep() {
     super("Select default JDK Location");
@@ -88,8 +86,8 @@ public class JdkSetupStep extends FirstRunWizardStep {
     String javaHomePath = getJdkFromJavaHome();
     if (javaHomePath != null) {
       File validatedPath = validateJdkPath(new File(javaHomePath));
-      myIsJavaHomeValid = validatedPath != null;
-      if (myIsJavaHomeValid) {
+      boolean isJavaHomeValid = validatedPath != null;
+      if (isJavaHomeValid) {
         comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
       }
     }
@@ -191,14 +189,9 @@ public class JdkSetupStep extends FirstRunWizardStep {
     if (!isValidJdkPath()) {
       return false;
     }
-    File path = toSystemDependentPath(getJdkLocation().getPath());
-    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-      IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path);
-    }
-    else {
-      ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(path);});
-    }
-    myState.put(KEY_JDK_LOCATION, path.getPath());
+    File path = getJdkLocation();
+    IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, path);
+    myState.put(KEY_JDK_LOCATION, path.toString());
     return true;
   }
 

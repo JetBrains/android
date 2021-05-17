@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.util.GradleProjects.getGradleModuleP
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
@@ -139,7 +138,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
 
   @Override
   public void chooseJdkLocation() {
-    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get() && myProject != null) {
+    if (myProject != null) {
       showGradleSettings(myProject);
     }
     else {

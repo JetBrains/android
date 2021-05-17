@@ -21,13 +21,10 @@ import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
-import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
@@ -39,9 +36,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.ui.LabelAndFileForLocation;
-import com.android.tools.idea.gradle.ui.SdkUiStrings;
 import com.android.tools.idea.gradle.ui.SdkUiUtils;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -57,7 +52,6 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -73,11 +67,9 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.KeyStrokeAdapter;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.navigation.History;
 import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
@@ -102,7 +94,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -122,7 +113,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
-  private static final String JDK_TITLE_TEXT = "<html><b>JDK location</b><br>The Java Development Kit (JDK) you want Gradle to use when building your project.</html>";
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
@@ -131,27 +121,21 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NotNull private final BiMap<String, Component> myComponentsById = HashBiMap.create();
 
   // These paths are system-dependent.
-  @NotNull private String myUserSelectedJdkHomePath = "";
   @Nullable private String myOriginalNdkHomePath;
   @Nullable private String myOriginalSdkHomePath;
-  @Nullable private String myOriginalJdkHomePath;
 
   private HyperlinkLabel myNdkDownloadHyperlinkLabel;
   private TextFieldWithBrowseButton mySdkLocationTextField;
   @SuppressWarnings("unused") private JPanel myWholePanel;
   @SuppressWarnings("unused") private JPanel myNdkDownloadPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
-  private ComboboxWithBrowseButton myJdkLocationComboBox;
   private ComboboxWithBrowseButton myNdkLocationComboBox;
-  private JBLabel myJdkLocationHelp;
-  private JLabel myJdkTitleLabel;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
 
   private String mySelectedComponentId;
   private boolean mySdkLoadingRequested = false;
-  private boolean myIsJavaHomeValid;
 
   public IdeSdksConfigurable(@Nullable Project project) {
     myProject = project;
@@ -194,7 +178,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     };
 
     addHistoryUpdater("mySdkLocationTextField", mySdkLocationTextField.getTextField(), historyUpdater);
-    addHistoryUpdater("myJdkLocationComboBox", myJdkLocationComboBox.getComboBox(), historyUpdater);
     if (!supportsSideBySideNdk) {
       addHistoryUpdater("myNdkLocationComboBox", myNdkLocationComboBox.getComboBox(), historyUpdater);
     }
@@ -239,21 +222,14 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   public void reset() {
     myOriginalSdkHomePath = getIdeAndroidSdkPath();
     myOriginalNdkHomePath = getIdeNdkPath();
-    myOriginalJdkHomePath = getIdeJdkPath();
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationComboBox.getComboBox().setSelectedItem(myOriginalNdkHomePath);
-    myJdkLocationComboBox.getComboBox().setSelectedItem(myOriginalJdkHomePath);
-    myJdkLocationComboBox.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
-    myUserSelectedJdkHomePath = myOriginalJdkHomePath;
   }
 
   @Override
   public void apply() throws ConfigurationException {
     if (!isModified()) {
       return;
-    }
-    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
-      throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
     }
     List<ProjectConfigurationError> errors = validateState();
     if (!errors.isEmpty()) {
@@ -265,15 +241,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      Sdk chosenJdk;
-      if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-        // Null causes to use the default JDK, as returned by IdeSdks.getJdk()
-        chosenJdk = null;
-      }
-      else {
-        chosenJdk = ideSdks.setJdkPath(getJdkLocation());
-      }
-      ideSdks.setAndroidSdkPath(getSdkLocation(), chosenJdk, myProject);
+      ideSdks.setAndroidSdkPath(getSdkLocation(), null, myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         IdeSdks.updateWelcomeRunAndroidSdkAction();
@@ -312,20 +280,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     createSdkLocationTextField();
     createNdkLocationComboBox();
     createNdkDownloadLink();
-    createJdkTitle();
-    createJdkLocationHelp();
-    createJdkLocationComboBox();
-  }
-
-  private void createJdkTitle() {
-    myJdkTitleLabel = new JBLabel(JDK_TITLE_TEXT);
-    myJdkTitleLabel.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
-  }
-
-  private void createJdkLocationHelp() {
-    myJdkLocationHelp = ContextHelpLabel.createWithLink(null, SdkUiStrings.JDK_LOCATION_TOOLTIP, "Learn more",
-                                                        () -> BrowserUtil.browse(SdkUiStrings.JDK_LOCATION_WARNING_URL));
-    myJdkLocationHelp.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
   }
 
   private void createNdkLocationComboBox() {
@@ -368,78 +322,10 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
         }
       }
     });
-    addTootlTipListener(comboBox);
+    addToolTipListener(comboBox);
   }
 
-  private void createJdkLocationComboBox() {
-    FileChooserDescriptor descriptor = createSingleFolderDescriptor("Choose JDK Location", file -> {
-      File validatedFile = validateJdkPath(file);
-      if (validatedFile == null) {
-        throw new IllegalArgumentException(SdkUiStrings.generateChooseValidJdkDirectoryError());
-      }
-      setJdkLocationComboBox(file);
-      return null;
-    });
-
-    myJdkLocationComboBox = new ComboboxWithBrowseButton();
-    myJdkLocationComboBox.addBrowseFolderListener(myProject, descriptor);
-
-    JComboBox comboBox = myJdkLocationComboBox.getComboBox();
-
-    IdeSdks ideSdks = IdeSdks.getInstance();
-    File embeddedPath = ideSdks.getEmbeddedJdkPath();
-    if (embeddedPath != null) {
-      File validatedPath = validateJdkPath(embeddedPath);
-      if (validatedPath != null) {
-        comboBox.addItem(new LabelAndFileForLocation("Embedded JDK", validatedPath));
-      }
-    }
-
-    String javaHomePath = getJdkFromJavaHome();
-    if (javaHomePath != null) {
-      File validatedPath = validateJdkPath(new File(javaHomePath));
-      myIsJavaHomeValid = validatedPath != null;
-      if (myIsJavaHomeValid) {
-        comboBox.addItem(new LabelAndFileForLocation("JAVA_HOME", validatedPath));
-      }
-    }
-
-    File envVarPath = ideSdks.getEnvVariableJdkFile();
-    if (envVarPath != null) {
-      comboBox.addItem(new LabelAndFileForLocation(JDK_LOCATION_ENV_VARIABLE_NAME, envVarPath));
-    }
-    else {
-      // If environment variable is defined but invalid, show anyway so users can see it
-      if (ideSdks.isJdkEnvVariableDefined()) {
-        String value = ideSdks.getEnvVariableJdkValue();
-        if (value != null) {
-          comboBox.addItem(new LabelAndPath(JDK_LOCATION_ENV_VARIABLE_NAME, ideSdks.getEnvVariableJdkValue()));
-        }
-      }
-    }
-
-    comboBox.setEditable(true);
-    setComboBoxFile(comboBox, getJdkLocation());
-
-    comboBox.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent event) {
-        if (event.getStateChange() == ItemEvent.SELECTED) {
-          Object selectedItem = event.getItem();
-          if (selectedItem instanceof LabelAndFileForLocation) {
-            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndFileForLocation)selectedItem).getFile()));
-          }
-          else if (selectedItem instanceof LabelAndPath) {
-            ApplicationManager.getApplication().invokeLater(() -> setJdkLocationComboBox(((LabelAndPath)selectedItem).getPath()));
-          }
-        }
-      }
-    });
-    addTootlTipListener(comboBox);
-    myJdkLocationComboBox.setVisible(!StudioFlags.ALLOW_JDK_PER_PROJECT.get());
-  }
-
-  private static void addTootlTipListener(@NotNull JComboBox comboBox) {
+  private static void addToolTipListener(@NotNull JComboBox comboBox) {
     Component component = comboBox.getEditor().getEditorComponent();
 
     component.addMouseMotionListener(new MouseAdapter() {
@@ -598,8 +484,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Override
   public boolean isModified() {
     return !Objects.equals(myOriginalSdkHomePath, getSdkLocation().getPath()) ||
-           !Objects.equals(myOriginalNdkHomePath, getNdkLocation().getPath()) ||
-           !Objects.equals(myOriginalJdkHomePath, getJdkLocation().getPath());
+           !Objects.equals(myOriginalNdkHomePath, getNdkLocation().toString());
   }
 
   /**
@@ -701,10 +586,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       throw new ConfigurationException(msg);
     }
 
-    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
-      throw new ConfigurationException(SdkUiStrings.generateChooseValidJdkDirectoryError());
-    }
-
     msg = validateAndroidNdkPath();
     if (msg != null) {
       throw new ConfigurationException(msg);
@@ -720,12 +601,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     String msg = validateAndroidSdkPath();
     if (msg != null) {
       ProjectConfigurationError error = new ProjectConfigurationError(msg, mySdkLocationTextField.getTextField());
-      errors.add(error);
-    }
-
-    if ((!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) && validateJdkPath(getJdkLocation()) == null) {
-      ProjectConfigurationError error =
-        new ProjectConfigurationError(SdkUiStrings.generateChooseValidJdkDirectoryError(), myJdkLocationComboBox.getComboBox());
       errors.add(error);
     }
 
@@ -797,40 +672,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     myNdkDownloadPanel.setVisible(false);
   }
 
-  @NotNull
-  private File getUserSelectedJdkLocation() {
-    String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
-    return toSystemDependentPath(jdkLocation);
-  }
-
-  @NotNull
-  private File getJdkLocation() {
-    return SdkUiUtils.getLocationFromComboBoxWithBrowseButton(myJdkLocationComboBox);
-  }
-
-  /**
-   * Validates that the given directory belongs to a valid JDK installation.
-   * @param file the directory to validate.
-   * @return the path of the JDK installation if valid, or {@code null} if the path is not valid.
-   */
-  @Nullable
-  private File validateJdkPath(@NotNull File file) {
-    File possiblePath = IdeSdks.getInstance().validateJdkPath(file);
-    if (possiblePath != null) {
-      setJdkLocationComboBox(possiblePath);
-      return possiblePath;
-    }
-    return null;
-  }
-
-  private void setJdkLocationComboBox(@NotNull File file) {
-    setJdkLocationComboBox(file.getPath());
-  }
-
-  private void setJdkLocationComboBox(@NotNull String path) {
-    setComboBoxPath(myJdkLocationComboBox.getComboBox(), path);
-  }
-
   /**
    * @return {@code true} if the configurable is needed: e.g. if we're missing a JDK or an Android SDK setting.
    */
@@ -868,30 +709,5 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @Override
   public void queryPlace(@NotNull Place place) {
     place.putPath(SDKS_PLACE, mySelectedComponentId);
-  }
-
-  public static class LabelAndPath {
-    @NotNull private String myLabel;
-    @NotNull private String myPath;
-
-    public LabelAndPath(@NotNull String label, @NotNull String path) {
-      myLabel = label;
-      myPath = path;
-    }
-
-    @NotNull
-    public String getLabel() {
-      return myLabel;
-    }
-
-    @NotNull
-    public String getPath() {
-      return myPath;
-    }
-
-    @Override
-    public String toString() {
-      return myLabel + ": " + myPath;
-    }
   }
 }
