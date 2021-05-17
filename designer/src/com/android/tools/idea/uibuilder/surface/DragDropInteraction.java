@@ -50,6 +50,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.awt.Cursor;
 import java.awt.Graphics2D;
@@ -224,10 +225,15 @@ public class DragDropInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    assert event instanceof DropEvent : "The instance of event should be DropEvent but it is " + event.getClass() +
-                                        "; The dragged component is " + myDraggedComponents +
-                                        "; The SceneView is " + mySceneView +
-                                        ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+    if (!(event instanceof DropEvent)) {
+      String errorMessage = "The instance of event should be DropEvent but it is " + event.getClass() +
+                            "; The dragged component is " + myDraggedComponents +
+                            "; The SceneView is " + mySceneView +
+                            ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+      Logger.getInstance(getClass()).info("Unexpected event type: " + errorMessage);
+      cancel(event);
+      return;
+    }
 
     DropTargetDropEvent dropEvent = ((DropEvent)event).getEventObject();
     NlDropEvent nlDropEvent = new NlDropEvent(dropEvent);
