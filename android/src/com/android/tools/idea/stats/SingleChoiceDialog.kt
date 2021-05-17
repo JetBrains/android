@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.stats
 
-import com.android.tools.idea.Option
-import com.android.tools.idea.Survey
+import com.android.tools.idea.serverflags.protos.Option
+import com.android.tools.idea.serverflags.protos.Survey
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction

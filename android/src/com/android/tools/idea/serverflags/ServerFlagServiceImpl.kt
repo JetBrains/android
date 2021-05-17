@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlag
+import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.Message
 

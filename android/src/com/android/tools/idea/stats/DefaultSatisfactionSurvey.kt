@@ -1,7 +1,7 @@
 package com.android.tools.idea.stats
 
-import com.android.tools.idea.Option
-import com.android.tools.idea.Survey
+import com.android.tools.idea.serverflags.protos.Option
+import com.android.tools.idea.serverflags.protos.Survey
 
 val DEFAULT_SATISFACTION_SURVEY: Survey = Survey.newBuilder().apply {
   title = "Android Studio Feedback"

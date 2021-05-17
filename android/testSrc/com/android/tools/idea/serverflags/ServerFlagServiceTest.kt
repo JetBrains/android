@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.serverflags
 
-import com.android.tools.idea.ServerFlag
-import com.android.tools.idea.ServerFlagTest
+import com.android.tools.idea.serverflags.protos.ServerFlag
+import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.Any
 import com.google.protobuf.ByteString
