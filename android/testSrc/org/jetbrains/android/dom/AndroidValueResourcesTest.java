@@ -32,6 +32,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -99,6 +100,26 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       return "res-overlay/values/" + testFileName;
     }
     return "res/values/" + testFileName;
+  }
+
+  public void testStringArrayHighlighting() {
+    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+                                              "<resources>\n" +
+                                              "    <string-array name=\"foo\" translatable=\"false\"/>\n" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.checkHighlighting();
+  }
+
+  public void testStringArrayCompletion() {
+    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+                                              "<resources>\n" +
+                                              "    <string-array name=\"foo\" <caret>/>\n" +
+                                              "</resources>");
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    myFixture.completeBasic();
+    List<String> lookupElementStrings = myFixture.getLookupElementStrings();
+    assertThat(lookupElementStrings).contains("translatable");
   }
 
   public void testHtmlTags() throws Throwable {
