@@ -655,6 +655,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_USE_V2_MODEL = Flag.create(
     GRADLE_IDE, "gradle.sync.use.v2", "Use V2 Builder models", "Enable fetching V2 builder models from AGP when syncing.", false);
 
+  public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
+    GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
+
 
   //endregion
 

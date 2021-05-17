@@ -247,8 +247,10 @@ private fun validateJdk(jdk: Sdk?): String? {
     val ideInfo = IdeInfo.getInstance()
     if (ideInfo.isAndroidStudio || ideInfo.isGameTools) {
       // Recreate JDK table information for this JDK (b/187205058)
-      WriteAction.runAndWait<RuntimeException> {
-        IdeSdks.getInstance().recreateOrAddJdkInTable(jdk)
+      if (StudioFlags.GRADLE_SYNC_RECREATE_JDK.get()) {
+        WriteAction.runAndWait<RuntimeException> {
+          IdeSdks.getInstance().recreateOrAddJdkInTable(jdk)
+        }
       }
     }
     return null
