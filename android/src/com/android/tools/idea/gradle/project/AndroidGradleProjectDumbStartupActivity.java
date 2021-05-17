@@ -56,7 +56,7 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
   private void registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(Project project) {
     GradleBuildInvoker.getInstance(project).add(result -> {
       if (project.isDisposed()) return;
-      PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
+      PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion();
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(project).notifyBuildComplete(newContext);
 
@@ -74,7 +74,7 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
   private void registerAfterTaskForAndroidGradleProjectCompiledViaJPS(Project project) {
     CompilerManager.getInstance(project).addAfterTask(context -> {
       if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
+        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion();
 
         JpsBuildContext newContext = new JpsBuildContext(context);
         AndroidProjectBuildNotifications.getInstance(project).notifyBuildComplete(newContext);
