@@ -28,6 +28,7 @@ import org.junit.rules.TemporaryFolder
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
+import java.io.IOException
 
 class KnownGradlePluginsServiceImplTest {
   @get:Rule
@@ -35,6 +36,16 @@ class KnownGradlePluginsServiceImplTest {
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()
+
+  @Test
+  fun testLocalGradlePluginsServiceParsesFileCorrectly() {
+    val data = LocalKnownGradlePluginsServiceImpl().gradlePluginsData
+
+    assertThat(data).isNotEqualTo(GradlePluginsData.emptyData)
+    assertThat(data.pluginsInfo).hasSize(25)
+    assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(3)
+    assertThat(data.pluginsInfo.filter { it.pluginArtifact == null }).isEmpty()
+  }
 
   @Test
   fun testGetsDownloadedFile() {
@@ -78,13 +89,24 @@ class KnownGradlePluginsServiceImplTest {
     assertThat(service.gradlePluginsData).isNotEqualTo(GradlePluginsData.emptyData)
   }
 
+  @Test
+  fun testDownloadFailure() {
+    val outputDir = temporaryFolder.newFolder()
+    val localCache = FileUtils.join(outputDir, "cache")
+    val downloader = Mockito.mock(FileDownloader::class.java)
+    Mockito.`when`(downloader.download(ArgumentMatchers.any(File::class.java)))
+      .thenThrow(IOException())
+
+    val service = KnownGradlePluginsServiceImpl(downloader, localCache)
+    service.refreshSynchronously()
+    assertThat(service.gradlePluginsData).isNotEqualTo(GradlePluginsData.emptyData)
+  }
+
 /*
   TODO (b/173784161): add tests:
       normal - downloaded from url (mock is triggered), copied to temp
       test second request in a row doesn't try to download
-      test failed request, no prev download => takes from local
       test failed request => tries to load previous download
       (if possible and have time) test long async then sync => sync waits for async to finish
-   */
-
+*/
 }
