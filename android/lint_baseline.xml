@@ -389,14 +389,6 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="392"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/stats/StatisticsViewer.java"
             line="68"/>
     </issue>

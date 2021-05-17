@@ -30,5 +30,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.tracer" />
   </component>
 </module>

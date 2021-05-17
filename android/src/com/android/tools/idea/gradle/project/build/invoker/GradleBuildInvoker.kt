@@ -188,4 +188,7 @@ interface GradleBuildInvoker {
       return ServiceManager.getService(project, GradleBuildInvoker::class.java)
     }
   }
+
+  @Deprecated("This property does not return anything useful as its state can change at any moment. It should not be used.")
+  val internalIsBuildRunning: Boolean
 }
