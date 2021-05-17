@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.build;
 
 import static com.android.tools.idea.gradle.util.BuildMode.DEFAULT_BUILD_MODE;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 import static com.android.tools.idea.gradle.util.GradleProjects.isSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD;
@@ -30,13 +29,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.AbstractIterator;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
-import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
@@ -47,13 +42,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 /**
  * After a build is complete, this class will execute the following tasks:
@@ -80,12 +71,8 @@ public class PostProjectBuildTasksExecutor {
   }
 
   public void onBuildCompletion(@NotNull CompileContext context) {
-    Iterator<String> errors = Collections.emptyIterator();
     CompilerMessage[] errorMessages = context.getMessages(CompilerMessageCategory.ERROR);
-    if (errorMessages.length > 0) {
-      errors = new CompilerMessageIterator(errorMessages);
-    }
-    onBuildCompletion(errors, errorMessages.length);
+    onBuildCompletion(errorMessages.length);
   }
 
   @Nullable
@@ -93,64 +80,14 @@ public class PostProjectBuildTasksExecutor {
     return myProject.getUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY);
   }
 
-  private static class CompilerMessageIterator extends AbstractIterator<String> {
-    @NotNull private final CompilerMessage[] myErrors;
-    private int counter;
-
-    CompilerMessageIterator(@NotNull CompilerMessage[] errors) {
-      myErrors = errors;
-    }
-
-    @Override
-    @Nullable
-    protected String computeNext() {
-      if (counter >= myErrors.length) {
-        return endOfData();
-      }
-      return myErrors[counter++].getMessage();
-    }
-  }
-
-  private static class MessageIterator extends AbstractIterator<String> {
-    private final Iterator<Message> myIterator;
-
-    MessageIterator(@NotNull Collection<Message> compilerMessages) {
-      myIterator = compilerMessages.iterator();
-    }
-
-    @Override
-    @Nullable
-    protected String computeNext() {
-      if (!myIterator.hasNext()) {
-        return endOfData();
-      }
-      Message msg = myIterator.next();
-      return msg != null ? msg.getText() : null;
-    }
-  }
-
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
-    Iterator<String> errors = Collections.emptyIterator();
     List<Message> errorMessages = result.getCompilerMessages(Message.Kind.ERROR);
-    if (!errorMessages.isEmpty()) {
-      errors = new MessageIterator(errorMessages);
-    }
-    onBuildCompletion(errors, errorMessages.size());
+    onBuildCompletion(errorMessages.size());
   }
 
   @VisibleForTesting
-  void onBuildCompletion(Iterator<String> errorMessages, int errorCount) {
+  void onBuildCompletion(int errorCount) {
     if (AndroidProjectInfo.getInstance(myProject).requiresAndroidModel()) {
-      if (isOfflineBuildModeEnabled(myProject)) {
-        while (errorMessages.hasNext()) {
-          String error = errorMessages.next();
-          if (error != null && unresolvedDependenciesFound(error)) {
-            notifyUnresolvedDependenciesInOfflineMode();
-            break;
-          }
-        }
-      }
-
       BuildSettings buildSettings = BuildSettings.getInstance(myProject);
       BuildMode buildMode = buildSettings.getBuildMode();
       String runConfigurationTypeId = buildSettings.getRunConfigurationTypeId();
@@ -232,22 +169,6 @@ public class PostProjectBuildTasksExecutor {
     else {
       application.invokeLater(task);
     }
-  }
-
-  private static boolean unresolvedDependenciesFound(@NotNull String errorMessage) {
-    return errorMessage.contains("Could not resolve all dependencies");
-  }
-
-  private void notifyUnresolvedDependenciesInOfflineMode() {
-    NotificationHyperlink disableOfflineModeHyperlink = new NotificationHyperlink("disable.gradle.offline.mode", "Disable offline mode") {
-      @Override
-      protected void execute(@NotNull Project project) {
-        GradleSettings.getInstance(myProject).setOfflineWork(false);
-      }
-    };
-    String title = "Unresolved Dependencies";
-    String text = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again.";
-    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, disableOfflineModeHyperlink);
   }
 
   /**
