@@ -153,8 +153,10 @@ class DeviceViewPanel(
         val view = scrollPane.viewport.viewSize
         val p = scrollPane.viewport.viewPosition
         p.translate(lastLocation.x - newLocation.x, lastLocation.y - newLocation.y)
-        p.x = p.x.coerceIn(0, view.width - extent.width)
-        p.y = p.y.coerceIn(0, view.height - extent.height)
+        val availableWidth = (view.width - extent.width).coerceAtLeast(0)
+        val availableHeight = (view.height - extent.height).coerceAtLeast(0)
+        p.x = p.x.coerceIn(0, availableWidth)
+        p.y = p.y.coerceIn(0, availableHeight)
 
         scrollPane.viewport.viewPosition = p
         e.consume()
