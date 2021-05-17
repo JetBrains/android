@@ -24,9 +24,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import java.lang.RuntimeException
-import java.util.concurrent.TimeUnit
+import io.grpc.netty.NettyChannelBuilder
 
 /**
  * gRPC client used to communicate with the daemon (which runs a gRPC server).
@@ -71,7 +69,7 @@ class TraceProcessorDaemonClient(ticker: Ticker): Disposable {
       // Lets set up the new channel now
       cachedChannelPort = daemonManager.daemonPort
       LOGGER.debug("TPD Client: building new channel to localhost:$cachedChannelPort")
-      cachedChannel = ManagedChannelBuilder.forAddress("localhost", cachedChannelPort)
+      cachedChannel = NettyChannelBuilder.forAddress("localhost", cachedChannelPort)
         .usePlaintext()
         .maxInboundMessageSize(512 * 1024 * 1024) // 512 Mb
         .build()
