@@ -27,7 +27,6 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SdkMerger;
@@ -411,7 +410,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
 
       ApplicationUtils.invokeWriteActionAndWait(myModalityState, () -> {
         IdeSdks.getInstance().setAndroidSdkPath(input, myJdk, ProjectManager.getInstance().getDefaultProject());
-        if (myJdk != null && !isEmpty(myJdk.getHomePath()) && StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
+        if (myJdk != null && !isEmpty(myJdk.getHomePath())) {
           // Add as Android Studio default JDK
           IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, Paths.get(myJdk.getHomePath()));
         }

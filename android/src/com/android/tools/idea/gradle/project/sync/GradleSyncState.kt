@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
@@ -31,7 +30,6 @@ import com.android.tools.idea.gradle.project.sync.projectsystem.GradleSyncResult
 import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.BuildProgressListener
@@ -297,24 +295,13 @@ open class GradleSyncState @NonInjectable constructor(private val project: Proje
     // Using the IdeSdks requires us to be on the dispatch thread
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    val namePrefix: String
-    val jdkPath: String?
-    if (StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-      val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-      if (gradleInstallation.isUsingJavaHomeJdk(project)) {
-        return
-      }
-      namePrefix = "Project ${project.name}"
-      jdkPath = gradleInstallation.getGradleJvmPath(project, project.basePath!!)
+    val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
+    if (gradleInstallation.isUsingJavaHomeJdk(project)) {
+      return
     }
-    else {
-      val ideSdks = IdeSdks.getInstance()
-      if (ideSdks.isUsingJavaHomeJdk) {
-        return
-      }
-      namePrefix = "Android Studio"
-      jdkPath = ideSdks.jdkPath?.toAbsolutePath().toString()
-    }
+    val namePrefix = "Project ${project.name}"
+    val jdkPath: String? = gradleInstallation.getGradleJvmPath(project, project.basePath!!)
+
 
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
