@@ -99,4 +99,27 @@ class GradlePluginsDataTest {
       )
     )
   }
+
+  @Test
+  fun testJsonParsedWithWrongVersionFormat() {
+    val fileContent = """
+    { "pluginsInfo": [{
+        "name": "MyPlugin",
+        "pluginClasses": ["my.plugin.pluginA","my.plugin.pluginB"],
+        "pluginArtifact": {"group":"org.my", "name":"gradle-plugin"},
+        "configurationCachingCompatibleFrom": "N/A"
+      }]}
+    """.trimIndent()
+
+
+    val parsedData = GradlePluginsData.loadFromJson(fileContent)
+    Truth.assertThat(parsedData).isEqualTo(GradlePluginsData(listOf(
+      GradlePluginsData.PluginInfo(
+        pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
+        name = "MyPlugin",
+        pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
+        configurationCachingCompatibleFrom = null
+      )
+    )))
+  }
 }
