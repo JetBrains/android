@@ -720,6 +720,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
     "If enabled, display semantic information found in the agent.", false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
+    "Enable saving and loading snapshots in the layout inspector.", false);
 
   //endregion
 
