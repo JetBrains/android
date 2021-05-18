@@ -59,10 +59,10 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
   val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
 
   createBuildTasks(modules).forEach {
-    val path = moduleFinder.getRootProjectPath(it.key)
+    val rootProjectPath = moduleFinder.getRootProjectPath(it.key)
     val request = GradleBuildInvoker.Request.Builder(
       project = project,
-      buildFilePath = path.toFile(),
+      rootProjectPath = rootProjectPath.toFile(),
       gradleTasks = it.value
     )
       // If this was not requested by a user action, then do not automatically pop-up the build output panel on error.
