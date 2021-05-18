@@ -389,7 +389,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         application.invokeLater(() -> notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(MILLISECONDS)));
 
         if (!getProject().isDisposed()) {
-          GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildError, model.get());
+          GradleInvocationResult result =
+            new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), buildError, model.get());
           RuntimeException error = null;
           for (GradleBuildInvoker.AfterGradleInvocationTask task : ((GradleBuildInvokerImpl)(GradleBuildInvoker.getInstance(getProject())))
             .getAfterInvocationTasks()) {
