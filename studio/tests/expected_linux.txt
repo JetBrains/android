@@ -5,6 +5,7 @@ android-studio/bin/appletviewer.policy
 android-studio/bin/format.sh
 android-studio/bin/fsnotifier
 android-studio/bin/fsnotifier64
+android-studio/bin/game-tools.sh
 android-studio/bin/helpers/jb_declarative_formatters/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/natvis/__init__.py
@@ -35,6 +36,7 @@ android-studio/bin/lldb/helpers/renderers/jb_lldb_utils.py
 android-studio/bin/log.xml
 android-studio/bin/ltedit.sh
 android-studio/bin/printenv.py
+android-studio/bin/profiler.sh
 android-studio/bin/restart.py
 android-studio/bin/studio.png
 android-studio/bin/studio.sh
@@ -2724,6 +2726,9 @@ android-studio/plugins/android/resources/transport/x86_64/transport
 android-studio/plugins/c-clangd/lib/LICENSE.txt
 android-studio/plugins/c-clangd/lib/c-clangd.jar
 android-studio/plugins/c-clangd/lib/resources_en.jar
+android-studio/plugins/c-plugin/bin/clang/linux/clang-tidy
+android-studio/plugins/c-plugin/bin/clang/linux/clangd
+android-studio/plugins/c-plugin/bin/clang/linux/libc++.so.1
 android-studio/plugins/c-plugin/lib/LICENSE.txt
 android-studio/plugins/c-plugin/lib/c-plugin.jar
 android-studio/plugins/c-plugin/lib/resources_en.jar
