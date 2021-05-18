@@ -103,7 +103,6 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
 
   final override fun selectNotify() {
     super.selectNotify()
-    if (!isEditorSelected()) return
 
     if (firstActivation) {
       // This is the first time the editor is being activated so trigger the onInit initialization.

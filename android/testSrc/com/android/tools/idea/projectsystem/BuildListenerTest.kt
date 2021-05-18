@@ -92,11 +92,13 @@ class BuildListenerTest {
   private val project: Project
     get() = projectRule.project
 
-  private fun setupBuildListener(buildMode: ProjectSystemBuildManager.BuildMode): Triple<TestProjectSystemBuildManager, ProjectSystemBuildManager.BuildMode, TestBuildListener> {
+  private fun setupBuildListener(buildMode: ProjectSystemBuildManager.BuildMode)
+    : Triple<TestProjectSystemBuildManager, ProjectSystemBuildManager.BuildMode, TestBuildListener> {
     // Make sure there are no pending call before setting up the listener
     processEvents()
     val listener = TestBuildListener()
-    setupBuildListener(project, listener, projectRule.fixture.testRootDisposable, buildManager = testBuildManager)
+    setupBuildListener(project, listener, projectRule.fixture.testRootDisposable, buildManager = testBuildManager,
+                       allowMultipleSubscriptionsPerProject = false)
     return Triple(testBuildManager,
                   buildMode,
                   listener)
@@ -168,5 +170,69 @@ class BuildListenerTest {
       Build Started
       Build Succeeded
     """.trimIndent(), buildListener.getLog())
+  }
+
+  @Test
+  fun testAllowMultipleSubscriptionsPerProject() {
+    var firstListenerCalls = 0
+    val firstListener = object : BuildListener {
+      override fun buildStarted() {
+        firstListenerCalls++
+      }
+    }
+    val firstDisposable = Disposer.newDisposable()
+    setupBuildListener(project, firstListener, firstDisposable, buildManager = testBuildManager,
+                       allowMultipleSubscriptionsPerProject = false)
+
+    var secondListenerCalls = 0
+    val secondListener = object : BuildListener {
+      override fun buildStarted() {
+        secondListenerCalls++
+      }
+    }
+    val secondDisposable = Disposer.newDisposable()
+    setupBuildListener(project, secondListener, secondDisposable, buildManager = testBuildManager,
+                       allowMultipleSubscriptionsPerProject = false)
+
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    processEvents()
+
+    assertEquals(1, firstListenerCalls)
+    assertEquals(1, secondListenerCalls)
+
+    Disposer.dispose(firstDisposable)
+
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.ASSEMBLE)
+    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    processEvents()
+
+    assertEquals(1, firstListenerCalls)
+    // The second disposable was not disposed, but the second listener was not called since we didn't allow multiple listener subscriptions
+    // per project. Therefore, after the first subscription was disposed, further subscriptions were ignored.
+    assertEquals(1, secondListenerCalls)
+
+    var thirdListenerCalls = 0
+    val thirdListener = object : BuildListener {
+      override fun buildStarted() {
+        thirdListenerCalls++
+      }
+    }
+    val thirdDisposable = Disposer.newDisposable()
+    setupBuildListener(project, thirdListener, thirdDisposable, buildManager = testBuildManager,
+                       allowMultipleSubscriptionsPerProject = true)
+
+    testBuildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE)
+    testBuildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
+    processEvents()
+
+
+    assertEquals(1, thirdListenerCalls)
+    // The second disposable was not disposed, and now we're allowing multiple listener subscriptions per project. Therefore, the second
+    // listener will also be called.
+    assertEquals(2, secondListenerCalls)
+
+    Disposer.dispose(secondDisposable)
+    Disposer.dispose(thirdDisposable)
   }
 }

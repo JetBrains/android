@@ -51,7 +51,7 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
     val buildListener = mutableListOf<BuildListener>()
     val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
                                                                    { },
-                                                                   { _, listener, _ -> buildListener.add(listener) },
+                                                                   { _, listener, _, _ -> buildListener.add(listener) },
                                                                    projectRule.fixture.testRootDisposable)
     action.updateAndRun {
       assertFalse(it.presentation.isVisible)
@@ -82,7 +82,7 @@ internal class LayoutlibSceneManagerRefreshIconActionTest {
     val renderListeners = mutableListOf<RenderListener>()
     val action = LayoutlibSceneManagerRefreshIconAction.forTesting(project,
                                                                    { renderListeners.add(it) },
-                                                                   { _, _, _ -> },
+                                                                   { _, _, _, _ -> },
                                                                    projectRule.fixture.testRootDisposable)
     action.updateAndRun {
       assertFalse(it.presentation.isVisible)
