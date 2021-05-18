@@ -22,9 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevice extends Device {
+  private final boolean myOnline;
   private final @NotNull String myCpuArchitecture;
 
   static final class Builder extends Device.Builder {
+    private boolean myOnline;
     private @Nullable String myCpuArchitecture;
 
     @NotNull Builder setCpuArchitecture(@NotNull String cpuArchitecture) {
@@ -55,6 +57,7 @@ final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
+    myOnline = builder.myOnline;
 
     assert builder.myCpuArchitecture != null;
     myCpuArchitecture = builder.myCpuArchitecture;
@@ -67,5 +70,10 @@ final class VirtualDevice extends Device {
   @Override
   protected @NotNull Icon getIcon() {
     return StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
+  }
+
+  @Override
+  public boolean isOnline() {
+    return myOnline;
   }
 }

@@ -77,7 +77,6 @@ public final class PhysicalDevicePanelTest {
       .setSerialNumber("86UX00F4R")
       .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
       .setName("Google Pixel 3")
-      .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
       .addConnectionType(ConnectionType.USB)

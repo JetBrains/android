@@ -57,11 +57,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
       return this;
     }
 
-    public @NotNull Builder setOnline(boolean online) {
-      myOnline = online;
-      return this;
-    }
-
     public @NotNull Builder setTarget(@NotNull String target) {
       myTarget = target;
       return this;
@@ -125,6 +120,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
   }
 
+  @Override
+  public boolean isOnline() {
+    return !myConnectionTypes.isEmpty();
+  }
+
   @NotNull String getApi() {
     return myApi;
   }
@@ -139,7 +139,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
     hashCode = 31 * hashCode + myName.hashCode();
-    hashCode = 31 * hashCode + Boolean.hashCode(myOnline);
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myApi.hashCode();
     hashCode = 31 * hashCode + myConnectionTypes.hashCode();
@@ -158,7 +157,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return mySerialNumber.equals(device.mySerialNumber) &&
            Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
            myName.equals(device.myName) &&
-           myOnline == device.myOnline &&
            myTarget.equals(device.myTarget) &&
            myApi.equals(device.myApi) &&
            myConnectionTypes.equals(device.myConnectionTypes);
