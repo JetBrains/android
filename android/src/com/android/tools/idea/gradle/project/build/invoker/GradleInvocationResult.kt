@@ -18,8 +18,10 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.tools.idea.gradle.util.GradleUtil
 import org.gradle.tooling.BuildCancelledException
 import org.jetbrains.annotations.TestOnly
+import java.io.File
 
 class GradleInvocationResult @JvmOverloads constructor (
+  val rootProjectPath: File,
   val tasks: List<String>,
 
   /**

@@ -156,7 +156,7 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
   }
 
   @NotNull
-  private static GradleInvocationResult createBuildResult(@Nullable Throwable buildError) {
-    return new GradleInvocationResult(Collections.emptyList(), buildError);
+  private GradleInvocationResult createBuildResult(@Nullable Throwable buildError) {
+    return new GradleInvocationResult(new File(getProject().getBasePath()), Collections.emptyList(), buildError);
   }
 }
