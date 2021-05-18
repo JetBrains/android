@@ -88,6 +88,7 @@ public final class BuilderServiceTest {
   @Test
   public void buildMdnsAutoConnectTls() throws Exception {
     // Arrange
+    Mockito.when(myDevice.isOnline()).thenReturn(true);
     Mockito.when(myDevice.getSerialNumber()).thenReturn("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp");
 
     // Act

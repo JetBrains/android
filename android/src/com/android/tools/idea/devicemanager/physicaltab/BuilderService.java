@@ -87,14 +87,18 @@ final class BuilderService {
 
     AndroidVersion version = device.getVersion();
 
-    return new PhysicalDevice.Builder()
+    PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
       .setSerialNumber(serialNumber)
       .setLastOnlineTime(time)
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
       .setOnline(online)
       .setTarget(Targets.toString(version))
-      .setApi(version.getApiString())
-      .addConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB)
-      .build();
+      .setApi(version.getApiString());
+
+    if (online) {
+      builder.addConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB);
+    }
+
+    return builder.build();
   }
 }
