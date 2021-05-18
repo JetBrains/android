@@ -47,6 +47,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.build.BuildConsoleUtils;
@@ -128,10 +129,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @NotNull private final Multimap<String, String> myLastBuildTasks = ArrayListMultimap.create();
   @NotNull private final BuildStopper myBuildStopper = new BuildStopper();
   @NotNull private final NativeDebugSessionFinder myNativeDebugSessionFinder;
-
-  public GradleBuildInvokerImpl(@NotNull Project project) {
-    this(project, FileDocumentManager.getInstance());
-  }
 
   @NonInjectable
   @VisibleForTesting
@@ -401,11 +398,13 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   @VisibleForTesting
+  @NotNull
   public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
     return executeTasks(rootProjectPath, gradleTasks, commandLineArguments, null);
   }
 
   @Override
+  @NotNull
   public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath,
                                                                          @NotNull List<String> gradleTasks,
                                                                          @NotNull List<String> commandLineArguments,
@@ -470,6 +469,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   @Override
+  @NotNull
   public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
     String rootProjectPath = request.getRootProjectPath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
@@ -479,7 +479,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
-      return null;
+      return Futures.immediateFuture(null);
     }
     String executionName = getExecutionName(request);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, request.getListener());
