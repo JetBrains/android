@@ -25,6 +25,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -35,6 +36,7 @@ import com.android.tools.idea.wearparing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -93,6 +95,15 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   @Synchronized
   fun getPairedDevices(): Pair<PairingDevice?, PairingDevice?> {
     return Pair(pairedPhoneDevice, pairedWearDevice)
+  }
+
+  suspend fun checkCloudSyncIsEnabled(phone: PairingDevice): Boolean {
+    getConnectedDevices()[phone.deviceID]?.also {
+      val localIdPattern = "Cloud Sync setting: true"
+      val output = it.runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
+      return output.isNotEmpty()
+    }
+    return false
   }
 
   @Synchronized
@@ -160,14 +171,16 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     addDisconnectedPairedDeviceIfMissing(pairedPhoneDevice, deviceTable)
     addDisconnectedPairedDeviceIfMissing(pairedWearDevice, deviceTable)
 
-    // Broadcast data to listeners
-    val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
-    model.phoneList.set(phones)
-    model.wearList.set(wears)
-    updateSelectedDevice(phones, model.selectedPhoneDevice)
-    updateSelectedDevice(wears, model.selectedWearDevice)
+    withContext(uiThread(ModalityState.any())) {
+      // Broadcast data to listeners
+      val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
+      model.phoneList.set(phones)
+      model.wearList.set(wears)
+      updateSelectedDevice(phones, model.selectedPhoneDevice)
+      updateSelectedDevice(wears, model.selectedWearDevice)
 
-    updateForwardState(connectedDevices)
+      updateForwardState(connectedDevices)
+    }
   }
 
   private fun getConnectedDevices(): Map<String, IDevice> {
