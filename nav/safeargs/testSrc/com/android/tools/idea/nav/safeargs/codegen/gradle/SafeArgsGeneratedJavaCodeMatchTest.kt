@@ -18,7 +18,6 @@
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
 import com.android.flags.junit.RestoreFlagRule
-import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
@@ -104,8 +103,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
 
   private fun compile(): Collection<ClassDescription> {
     val assembleDebug = projectRule.invokeTasks(GENERATE_TASK)
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
+    assertThat(assembleDebug.isBuildSuccessful).isTrue()
 
     LocalFileSystem.getInstance().refresh(false)
     val codeOutDir = File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {

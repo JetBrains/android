@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.datasource
 
-import com.android.ide.common.blame.Message
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
@@ -54,10 +53,6 @@ class ParametrizedPreviewTest {
     if (!gradleInvocationResult.isBuildSuccessful) {
       Assert.fail("""
         The project must compile correctly for the test to pass.
-
-        Compiler errors:
-        ${gradleInvocationResult.getCompilerMessages(Message.Kind.ERROR).joinToString("\n\n") { it.rawMessage }}
-
 
         ${gradleInvocationResult.buildError}
       """.trimIndent())

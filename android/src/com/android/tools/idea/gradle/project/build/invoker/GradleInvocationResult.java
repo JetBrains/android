@@ -15,50 +15,36 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.ide.common.blame.Message;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
+
+import java.util.List;
 import org.gradle.tooling.BuildCancelledException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-
-import static com.android.tools.idea.gradle.util.GradleUtil.hasCause;
+import org.jetbrains.annotations.TestOnly;
 
 public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
-  @NotNull private final ListMultimap<Message.Kind, Message> myCompilerMessagesByKind = ArrayListMultimap.create();
   @Nullable private final Object myModel;
   @Nullable private final Throwable myBuildError;
   private final boolean myBuildCancelled;
 
-  public GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, @Nullable Throwable buildError) {
-    this(tasks, compilerMessages, buildError, null);
+  public GradleInvocationResult(@NotNull List<String> tasks, @Nullable Throwable buildError) {
+    this(tasks, buildError, null);
   }
 
   public GradleInvocationResult(@NotNull List<String> tasks,
-                                @NotNull List<Message> compilerMessages,
                                 @Nullable Throwable buildError,
                                 @Nullable Object model) {
     myTasks = tasks;
     myBuildError = buildError;
     myBuildCancelled = (buildError != null && hasCause(buildError, BuildCancelledException.class));
-    for (Message msg : compilerMessages) {
-      myCompilerMessagesByKind.put(msg.getKind(), msg);
-    }
     myModel = model;
   }
 
   @NotNull
   public List<String> getTasks() {
     return myTasks;
-  }
-
-  @NotNull
-  public List<Message> getCompilerMessages(@NotNull Message.Kind kind) {
-    return myCompilerMessagesByKind.get(kind);
   }
 
   public boolean isBuildSuccessful() {
@@ -78,7 +64,7 @@ public class GradleInvocationResult {
    * In production, the build error is intentionally wrapped, with relevant information exposed
    * only through a public API, but for tests it could be useful to access it directly.
    */
-  @VisibleForTesting
+  @TestOnly
   @Nullable
   public Throwable getBuildError() {
     return myBuildError;
