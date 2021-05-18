@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -41,6 +42,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
@@ -740,13 +742,16 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
     element.setElementType(myPropertyType);
-    if (myElement != null) {
-      element.setExternalSyntax(myElement.getExternalSyntax());
-    }
-    // TODO(b/...): this is necessary until models store the properties they're associated with: for now, the models have only names
-    //  while the Dsl elements are annotated with model effect / properties.
-    if (myElement != null) {
-      element.setModelEffect(myElement.getModelEffect());
+    ModelEffectDescription effect = element.getModelEffect();
+    if (effect == null || effect.semantics != CREATE_WITH_VALUE) {
+      if (myElement != null) {
+        element.setExternalSyntax(myElement.getExternalSyntax());
+      }
+      // TODO(b/148657110): This is necessary until models store the properties they're associated with: for now, the models
+      //  have only names while the Dsl elements are annotated with model effect / properties.
+      if (myElement != null) {
+        element.setModelEffect(myElement.getModelEffect());
+      }
     }
     // We need to ensure the parent will be modified so this change takes effect.
     element.setModified();

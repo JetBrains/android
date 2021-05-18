@@ -28,10 +28,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import java.util.ArrayList
+import java.util.Arrays
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -186,6 +188,12 @@ internal fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslN
     i++
   }
 
+  effect?.let {
+    if (it.semantics == ModelSemanticsDescription.CREATE_WITH_VALUE && it.property.name != part) {
+      parts.add(part)
+      return ExternalNameInfo(parts, element.externalSyntax, name.isFake)
+    }
+  }
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
   parts.addAll(externalNameInfo.externalNameParts)
   return ExternalNameInfo(parts, externalNameInfo.syntax, name.isFake)
