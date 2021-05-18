@@ -17,8 +17,6 @@ package com.android.tools.idea.wearparing
 
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.HtmlLabel
-import com.android.tools.adtui.ui.SVGScaledImageProvider
-import com.android.tools.adtui.ui.ScalingImagePanel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -34,14 +32,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IconUtil
+import com.intellij.util.SVGLoader
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
@@ -56,7 +55,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
-import java.awt.BorderLayout
+import java.awt.EventQueue
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.LINE_START
 import java.awt.GridBagConstraints.RELATIVE
@@ -68,6 +67,7 @@ import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
 import javax.swing.Box
 import javax.swing.Box.createVerticalStrut
+import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -388,21 +388,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     border = empty(8, 2, 12, 4)
   }
 
-  private fun createSuccessPanel(successLabel: String): JPanel = JPanel(BorderLayout()).apply {
-    add(ScalingImagePanel().apply {
-      Disposer.register(this@DevicesConnectionStep, this)
-      preferredSize = JBUI.size(150, 150)
-      scaledImageProvider = SVGScaledImageProvider.create(StudioIcons.Common.SUCCESS)
-    }, BorderLayout.NORTH)
-    add(JBLabel(successLabel).apply {
-      verticalAlignment = SwingConstants.TOP
-      horizontalAlignment = SwingConstants.CENTER
-      font = JBFont.label().asBold()
-    }, BorderLayout.CENTER)
-
-    border = empty(32, 0, 0, 0)
-  }
-
   private suspend fun showUiLaunchingDevice(progressTopLabel: String, progressBottomLabel: String) = showUI(
     header = message("wear.assistant.device.connection.start.device.title"),
     description = message("wear.assistant.device.connection.start.device.subtitle"),
@@ -524,10 +509,38 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     scanningLabel = scanningLabel,
   )
 
-  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String) = showUI(
-    header = message("wear.assistant.device.connection.pairing.success.title"),
-    body = createSuccessPanel(message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName))
-  )
+  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String) {
+    // Load svg image offline
+    check(!EventQueue.isDispatchThread())
+    val svgUrl = (StudioIcons.Common.SUCCESS as IconLoader.CachedImageIcon).url!!
+    val imgSize = JBUI.size(150, 150)
+    val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), imgSize.getWidth(), imgSize.getHeight())
+    val successLabel = message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName)
+    val svgLabel = JBLabel(successLabel).apply {
+      horizontalAlignment = SwingConstants.CENTER
+      horizontalTextPosition = JLabel.CENTER
+      verticalTextPosition = JLabel.BOTTOM
+      font = JBFont.label().asBold()
+      icon = ImageIcon(svgImg)
+    }
+
+    // Show ui on UI Thread
+    withContext(uiThread(ModalityState.any())) {
+      mainPanel.apply {
+        removeAll()
+
+        add(JBLabel(message("wear.assistant.device.connection.pairing.success.title"), UIUtil.ComponentStyle.LARGE).apply {
+          font = JBFont.label().biggerOn(5.0f)
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL))
+        add(Box.createVerticalGlue(), gridConstraint(x = 0, y = RELATIVE, weighty = 1.0))
+        add(svgLabel, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL))
+        add(Box.createVerticalGlue(), gridConstraint(x = 0, y = RELATIVE, weighty = 1.0))
+
+        revalidate()
+        repaint()
+      }
+    }
+  }
 
   private suspend fun showUiNeedsFactoryReset(wearDeviceName: String) {
     val wipeButton = JButton(message("wear.assistant.factory.reset.button"))
