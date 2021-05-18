@@ -34,7 +34,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:licenses",
         "//tools/adt/idea/compose-ide-plugin/testData",

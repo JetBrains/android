@@ -46,7 +46,7 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

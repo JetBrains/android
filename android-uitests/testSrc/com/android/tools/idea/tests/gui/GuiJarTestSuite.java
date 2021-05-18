@@ -39,7 +39,7 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
-    unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
+    linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
     unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
 
     List<File> additionalPlugins = getExternalPlugins();

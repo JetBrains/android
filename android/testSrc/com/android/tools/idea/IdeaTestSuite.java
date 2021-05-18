@@ -49,7 +49,7 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
     try {
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
       unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
-      unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
+      linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
       // When using iml_module's split_test_target attribute, not all bazel targets will include this dependency.
       // Only bazel targets which rely on data_binding_runtime.zip will include this runtime dependency.
       if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
