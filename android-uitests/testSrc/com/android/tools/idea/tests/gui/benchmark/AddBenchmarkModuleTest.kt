@@ -195,7 +195,7 @@ class AddBenchmarkModuleTest {
       assertThat(this).contains("""id 'com.android.test'""")
       assertThat(this).contains("""implementation 'androidx.benchmark:benchmark-macro-junit4:""")
       assertThat(this).contains("""properties["android.experimental.self-instrumenting"] = true""")
-      assertThat(this).contains("""targetProjectPath = :app""")
+      assertThat(this).contains("""targetProjectPath = ":app"""")
     }
   }
 
@@ -253,7 +253,7 @@ class AddBenchmarkModuleTest {
       assertThat(this).contains("""id 'com.android.test'""")
       assertThat(this).contains("""implementation 'androidx.benchmark:benchmark-macro-junit4:""")
       assertThat(this).contains("""properties["android.experimental.self-instrumenting"] = true""")
-      assertThat(this).contains("""targetProjectPath = :app""")
+      assertThat(this).contains("""targetProjectPath = ":app"""")
     }
   }
 }
