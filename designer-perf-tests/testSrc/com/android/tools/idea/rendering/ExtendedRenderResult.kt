@@ -21,7 +21,7 @@ package com.android.tools.idea.rendering
 open class ExtendedRenderResult protected constructor(
   renderResult: RenderResult,
   val extendedStats: ExtendedStats) : RenderResult(
-  renderResult.file,
+  renderResult.renderedFile,
   renderResult.module,
   renderResult.logger,
   renderResult.renderContext,

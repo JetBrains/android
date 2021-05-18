@@ -16,13 +16,16 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.*;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -36,7 +39,7 @@ import java.util.Map;
 public class RenderResult {
   private static Logger LOG = Logger.getInstance(RenderResult.class);
 
-  @NotNull private final PsiFile myFile;
+  @NotNull private final PsiFile myRenderedFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
   @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
@@ -52,7 +55,7 @@ public class RenderResult {
   private boolean isDisposed;
   private final RenderResultStats myStats;
 
-  protected RenderResult(@NotNull PsiFile file,
+  protected RenderResult(@NotNull PsiFile renderedFile,
                          @NotNull Module module,
                          @NotNull RenderLogger logger,
                          @Nullable RenderContext renderContext,
@@ -67,7 +70,7 @@ public class RenderResult {
                          @NotNull RenderResultStats stats) {
     myModule = module;
     myRenderContext = renderContext;
-    myFile = file;
+    myRenderedFile = renderedFile;
     myLogger = logger;
     myRenderResult = renderResult;
     myRootViews = rootViews;
@@ -153,7 +156,7 @@ public class RenderResult {
   @NotNull
   RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
-      myFile,
+      myRenderedFile,
       myModule,
       myLogger,
       myRenderContext,
@@ -241,10 +244,30 @@ public class RenderResult {
     }
   }
 
+  /**
+   * Returns the source {@link PsiFile} if available. This might be different from the {@link #getRenderedFile()} in cases where the
+   * render is generated via a synthetic layout (like menus, drawables or Compose.).
+   * If you want to access the user source file name, use this method.
+   */
+  @SuppressWarnings("UnstableApiUsage")
   @NotNull
-  public PsiFile getFile() {
-    return myFile;
+  public PsiFile getSourceFile() {
+    VirtualFile renderedVirtualFile = myRenderedFile.getVirtualFile();
+    if (!renderedVirtualFile.isInLocalFileSystem() && renderedVirtualFile instanceof BackedVirtualFile) {
+      VirtualFile sourceVirtualFile = ((BackedVirtualFile)renderedVirtualFile).getOriginFile();
+      PsiFile sourcePsiFile = AndroidPsiUtils.getPsiFileSafely(myRenderedFile.getProject(), sourceVirtualFile);
+      if (sourcePsiFile != null) return sourcePsiFile;
+    }
+
+    return myRenderedFile;
   }
+
+  /**
+   * Returns the {@link PsiFile} being rendered. This might be different from the actual user source file when the render comes from a
+   * layout generated synthetically by the Layout Editor. This happens in cases like menus, drawables or Compose.
+   */
+  @NotNull
+  public PsiFile getRenderedFile() { return myRenderedFile; }
 
   @Nullable
   public RenderContext getRenderContext() {
@@ -300,7 +323,7 @@ public class RenderResult {
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add("renderResult", myRenderResult)
-      .add("psiFile", myFile)
+      .add("psiFile", myRenderedFile)
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .toString();
