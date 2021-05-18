@@ -27,7 +27,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.BuildAction
-import org.jetbrains.annotations.Nullable
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
@@ -52,7 +51,7 @@ interface GradleBuildInvoker {
   )
 
   fun rebuild()
-  fun rebuildWithTempOptions(buildFilePath: File, options: List<String>)
+  fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>)
 
   @Deprecated("")
   fun executeTasks(gradleTasks: List<String>)
@@ -65,13 +64,13 @@ interface GradleBuildInvoker {
 
   @VisibleForTesting
   fun executeTasks(
-    buildFilePath: File,
+    rootProjectPath: File,
     gradleTasks: MutableList<String>,
     commandLineArguments: MutableList<String>
   ): ListenableFuture<GradleInvocationResult?>
 
   fun executeTasks(
-    buildFilePath: File,
+    rootProjectPath: File,
     gradleTasks: MutableList<String>,
     commandLineArguments: MutableList<String>,
     buildAction: BuildAction<*>?
@@ -87,9 +86,9 @@ interface GradleBuildInvoker {
     fun execute(result: GradleInvocationResult)
   }
 
-  data class Request(
+  data class Request constructor(
     val project: Project,
-    val buildFilePath: File,
+    val rootProjectPath: File,
     val gradleTasks: List<String>,
     val taskId: ExternalSystemTaskId,
     val jvmArguments: List<String> = emptyList(),
@@ -109,26 +108,26 @@ interface GradleBuildInvoker {
       @JvmStatic
       fun builder(
         project: Project,
-        buildFilePath: File,
+        rootProjectPath: File,
         vararg gradleTasks: String
-      ): Builder = Builder(project, buildFilePath, gradleTasks.toList())
+      ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
 
       @JvmStatic
       fun builder(
         project: Project,
-        buildFilePath: File,
+        rootProjectPath: File,
         gradleTasks: List<String>
-      ): Builder = Builder(project, buildFilePath, gradleTasks.toList())
+      ): Builder = Builder(project, rootProjectPath, gradleTasks.toList())
     }
 
-    class Builder(
+    class Builder constructor(
       project: Project,
-      buildFilePath: File,
+      rootProjectPath: File,
       gradleTasks: List<String>
     ) {
       private var request: Request = Request(
         project = project,
-        buildFilePath = buildFilePath,
+        rootProjectPath = rootProjectPath,
         gradleTasks = gradleTasks,
         taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
       )

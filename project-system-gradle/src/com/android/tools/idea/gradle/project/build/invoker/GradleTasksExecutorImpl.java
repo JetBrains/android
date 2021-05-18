@@ -38,8 +38,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
 import com.android.builder.model.AndroidProject;
-import com.android.ide.common.blame.Message;
-import com.android.ide.common.blame.SourceFilePosition;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -70,7 +68,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -220,6 +217,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
     AtomicReference<Object> model = new AtomicReference<>(null);
 
+    String gradleRootProjectPath = myRequest.getRootProjectPath().getPath();
     Function<ProjectConnection, GradleInvocationResult> executeTasksFunction = connection -> {
       Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -227,7 +225,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       boolean isRunBuildAction = buildAction != null;
 
       List<String> gradleTasks = myRequest.getGradleTasks();
-      String executingTasksText = "Executing tasks: " + gradleTasks + " in project " + myRequest.getBuildFilePath().getPath();
+      String executingTasksText = "Executing tasks: " + gradleTasks + " in project " + gradleRootProjectPath;
       addToEventLog(executingTasksText, INFO);
 
       StringBuilder output = new StringBuilder();
@@ -238,7 +236,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       CancellationTokenSource cancellationTokenSource = GradleConnector.newCancellationTokenSource();
       myBuildStopper.register(id, cancellationTokenSource);
 
-      taskListener.onStart(id, myRequest.getBuildFilePath().getPath());
+      taskListener.onStart(id, gradleRootProjectPath);
       taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true);
 
       BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
@@ -263,7 +261,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
-          attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
+          attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getRootProjectPath());
           commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
@@ -374,7 +372,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             buildState.buildFinished(FAILED);
             GradleProjectResolverExtension projectResolverChain = GradleProjectResolver.createProjectResolverChain();
             ExternalSystemException userFriendlyError =
-              projectResolverChain.getUserFriendlyError(null, buildError, myRequest.getBuildFilePath().getPath(), null);
+              projectResolverChain.getUserFriendlyError(null, buildError, gradleRootProjectPath, null);
             taskListener.onFailure(id, userFriendlyError);
           }
         }
@@ -429,7 +427,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
 
     try {
-      return myHelper.execute(myRequest.getBuildFilePath().getPath(), executionSettings,
+      return myHelper.execute(gradleRootProjectPath, executionSettings,
                               myRequest.getTaskId(), myListener, null, executeTasksFunction);
     }
     catch (ExternalSystemException e) {

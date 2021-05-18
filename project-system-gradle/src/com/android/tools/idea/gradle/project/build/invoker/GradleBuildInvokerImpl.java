@@ -346,10 +346,10 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
    * Execute the last run set of Gradle tasks, with the specified gradle options prepended before the tasks to run.
    */
   @Override
-  public void rebuildWithTempOptions(@NotNull File buildFilePath, @NotNull List<String> options) {
+  public void rebuildWithTempOptions(@NotNull File rootProjectPath, @NotNull List<String> options) {
     myOneTimeGradleOptions.addAll(options);
     try {
-      Collection<String> tasks = myLastBuildTasks.get(buildFilePath.getPath());
+      Collection<String> tasks = myLastBuildTasks.get(rootProjectPath.getPath());
       if (tasks.isEmpty()) {
         // For some reason the IDE lost the Gradle tasks executed during the last build.
         rebuild();
@@ -361,7 +361,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
         // 3. the IDE re-runs the build, with the Gradle tasks that were executed when the build failed, and it adds "--stacktrace"
         //    to the command line arguments.
         List<String> tasksFromLastBuild = new ArrayList<>(tasks);
-        executeTasks(buildFilePath, tasksFromLastBuild);
+        executeTasks(rootProjectPath, tasksFromLastBuild);
       }
     }
     finally {
@@ -380,12 +380,12 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @Override
   @Deprecated
   public void executeTasks(@NotNull List<String> gradleTasks) {
-    File path = getBaseDirPath(myProject);
-    executeTasks(path, gradleTasks, myOneTimeGradleOptions);
+    File projectRoot = getBaseDirPath(myProject);
+    executeTasks(projectRoot, gradleTasks, myOneTimeGradleOptions);
   }
 
-  private void executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks) {
-    executeTasks(buildFilePath, gradleTasks, myOneTimeGradleOptions);
+  private void executeTasks(@NotNull File rootProjectPath, @NotNull List<String> gradleTasks) {
+    executeTasks(rootProjectPath, gradleTasks, myOneTimeGradleOptions);
   }
 
   @Override
@@ -401,12 +401,12 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   @VisibleForTesting
-  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File buildFilePath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
-    return executeTasks(buildFilePath, gradleTasks, commandLineArguments, null);
+  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
+    return executeTasks(rootProjectPath, gradleTasks, commandLineArguments, null);
   }
 
   @Override
-  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File buildFilePath,
+  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath,
                                                                          @NotNull List<String> gradleTasks,
                                                                          @NotNull List<String> commandLineArguments,
                                                                          @Nullable BuildAction<?> buildAction) {
@@ -433,7 +433,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     // For development we might want to forward an agent to the daemon.
     // This is a no-op in production builds.
     Trace.addVmArgs(jvmArguments);
-    Request request = Request.builder(myProject, buildFilePath, gradleTasks)
+    Request request = Request.builder(myProject, rootProjectPath, gradleTasks)
       .setJvmArguments(jvmArguments)
       .setCommandLineArguments(commandLineArguments)
       .setBuildAction(buildAction)
@@ -471,11 +471,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
-    String buildFilePath = request.getBuildFilePath().getPath();
+    String rootProjectPath = request.getRootProjectPath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
-    myLastBuildTasks.removeAll(buildFilePath);
+    myLastBuildTasks.removeAll(rootProjectPath);
     List<String> gradleTasks = request.getGradleTasks();
-    myLastBuildTasks.putAll(buildFilePath, gradleTasks);
+    myLastBuildTasks.putAll(rootProjectPath, gradleTasks);
 
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
@@ -511,17 +511,8 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @NotNull
   private String getExecutionName(@NotNull Request request) {
-    File projectPath = request.getBuildFilePath().getParentFile();
-    final String projectName;
-    if (projectPath.isFile()) {
-      projectName = projectPath.getParentFile().getName();
-    }
-    else {
-      projectName = projectPath.getName();
-    }
-
-    String executionName = "Build " + projectName;
-    return executionName;
+    File projectPath = request.getRootProjectPath();
+    return "Build " + projectPath.getName();
   }
 
   @NotNull
