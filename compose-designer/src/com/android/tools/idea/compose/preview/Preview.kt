@@ -590,7 +590,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // Force updating toolbar icons after build
         ActivityTracker.getInstance().inc()
       }
-    }, this)
+    }, this, allowMultipleSubscriptionsPerProject = true)
 
     if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
       setupOnSaveListener(project, psiFile,

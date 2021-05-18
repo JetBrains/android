@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.intellij.compiler.server.BuildManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -51,7 +50,7 @@ interface BuildListener {
   /**
    * Called when a build has completed except for clean builds.
    */
-  fun buildSucceeded()
+  fun buildSucceeded() {}
 
   /**
    * Called when a build has failed.
@@ -83,26 +82,36 @@ interface BuildListener {
  * build changes. This set up should be called in the constructor the last, so that all other members are initialized as it could call
  * [BuildListener.buildSucceeded] method straight away.
  */
-fun setupBuildListener(project: Project, buildable: BuildListener, parentDisposable: Disposable) =
-  setupBuildListener(project, buildable, parentDisposable, ProjectSystemService.getInstance(project).projectSystem.getBuildManager())
+fun setupBuildListener(project: Project,
+                       buildable: BuildListener,
+                       parentDisposable: Disposable,
+                       allowMultipleSubscriptionsPerProject: Boolean = false) =
+  setupBuildListener(project, buildable, parentDisposable, allowMultipleSubscriptionsPerProject,
+                     ProjectSystemService.getInstance(project).projectSystem.getBuildManager())
 
 @VisibleForTesting
 fun setupBuildListener(
   project: Project,
   buildable: BuildListener,
   parentDisposable: Disposable,
-  buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(project).projectSystem.getBuildManager()) {
+  allowMultipleSubscriptionsPerProject: Boolean,
+  buildManager: ProjectSystemBuildManager = ProjectSystemService.getInstance(project).projectSystem.getBuildManager(),
+) {
   if (Disposer.isDisposed(parentDisposable)) {
     Logger.getInstance("com.android.tools.idea.common.util.ChangeManager")
       .warn("calling setupBuildListener for a disposed component $parentDisposable")
     return
   }
-  // If we are not yet subscribed to this project, we should subscribe
-  if (projectSubscriptionsLock.withLock {
-      val notSubscribed = projectSubscriptions[project]?.isEmpty() != false
-      projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
-      notSubscribed
-    }) {
+  // If we are not yet subscribed to this project, we should subscribe. If allowMultipleSubscriptionsPerProject is set to true, a build
+  // listener is added anyway, so it's up to the caller to avoid setting up redundant build listeners.
+  val projectNotSubscribed = projectSubscriptionsLock.withLock {
+    val notSubscribed = projectSubscriptions[project]?.isEmpty() != false
+    projectSubscriptions.computeIfAbsent(project) { WeakHashMap() }
+    notSubscribed
+  }
+  // Double check that listener is properly disposed. Add test for it.
+
+  if (projectNotSubscribed || allowMultipleSubscriptionsPerProject) {
     buildManager.addBuildListener(
       parentDisposable,
       object : ProjectSystemBuildManager.BuildListener {
