@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -61,7 +62,7 @@ class LambdaPropertyItemTest {
     val link = property.link
     val selection = property.lookup.selection
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
+    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
 
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
@@ -81,7 +82,7 @@ class LambdaPropertyItemTest {
     val property = createProperty(location)
     val link = property.link
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
+    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 
@@ -102,7 +103,7 @@ class LambdaPropertyItemTest {
     assertThat(link.templateText).isEqualTo("Text.kt:34")
 
     val balloon = mockBalloonBuilder()
-    val inspector = LayoutInspector(mock(), model {}, mock(), mock())
+    val inspector = LayoutInspector(DisconnectedClient, model {}, mock(), mock())
     link.actionPerformed(event(inspector))
     UIUtil.dispatchAllInvocationEvents() // wait for invokeLater
 

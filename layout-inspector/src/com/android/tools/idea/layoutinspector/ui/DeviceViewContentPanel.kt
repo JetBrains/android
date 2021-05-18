@@ -74,11 +74,9 @@ class DeviceViewContentPanel(
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
   val currentClient: () -> InspectorClient?,
+  @VisibleForTesting val selectProcessAction: SelectProcessAction?,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
-
-  @VisibleForTesting
-  lateinit var selectProcessAction: SelectProcessAction
 
   @VisibleForTesting
   var showEmptyText = true
@@ -97,23 +95,26 @@ class DeviceViewContentPanel(
   }
 
   init {
-    emptyText.appendLine("No process connected")
+    selectProcessAction?.let { selectProcessAction ->
+      emptyText.appendLine("No process connected")
 
-    emptyText.appendLine("Deploy your app or ")
-    @Suppress("DialogTitleCapitalization")
-    emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
-      val button = selectProcessAction.button
-      val dataContext = DataManager.getInstance().getDataContext(button)
-      selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
-      val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation, dataContext)
-      selectProcessAction.actionPerformed(event)
-    }
-    @Suppress("DialogTitleCapitalization")
-    emptyText.appendText(" to begin inspection.")
+      emptyText.appendLine("Deploy your app or ")
+      @Suppress("DialogTitleCapitalization")
+      emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        val button = selectProcessAction.button
+        val dataContext = DataManager.getInstance().getDataContext(button)
+        selectProcessAction.templatePresentation.putClientProperty(CustomComponentAction.COMPONENT_KEY, button)
+        val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation,
+                                                        dataContext)
+        selectProcessAction.actionPerformed(event)
+      }
+      @Suppress("DialogTitleCapitalization")
+      emptyText.appendText(" to begin inspection.")
 
-    emptyText.appendLine("")
-    emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
-      BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
+      emptyText.appendLine("")
+      emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
+      }
     }
     isOpaque = true
     inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }

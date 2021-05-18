@@ -308,11 +308,11 @@ class DeviceViewPanelWithFullInspectorTest {
     waitForCondition(1, TimeUnit.SECONDS) { !contentPanel.showEmptyText }
 
     // Stop connecting, loading should stop
-    contentPanel.selectProcessAction.updateActions(mock())
+    contentPanel.selectProcessAction?.updateActions(mock())
     val actionEvent = mock<AnActionEvent>()
     `when`(actionEvent.actionManager).thenReturn(mock())
-    val stopAction = contentPanel.selectProcessAction.getChildren(actionEvent).first { it.templateText == "Stop inspector" }
-    stopAction.actionPerformed(mock())
+    val stopAction = contentPanel.selectProcessAction?.getChildren(actionEvent)?.first { it.templateText == "Stop inspector" }
+    stopAction?.actionPerformed(mock())
 
     waitForCondition(1, TimeUnit.SECONDS) { !loadingPane.isLoading }
     assertThat(contentPanel.showEmptyText).isTrue()
