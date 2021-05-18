@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -24,8 +25,8 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -37,6 +38,7 @@ import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditorState
+import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
@@ -46,45 +48,39 @@ import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Factory for [LayoutInspectorFileEditor]s. Note that for now [StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS] needs to be on or
- * else [com.android.tools.idea.profiling.capture.CaptureEditorProvider] will be used to create
- * `com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor`s
- */
-class LayoutInspectorFileEditorProvider : FileEditorProvider, DumbAware {
-  override fun accept(project: Project, file: VirtualFile): Boolean {
-    return file.extension == "li" && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get()
-  }
+class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserDataHolderBase(), FileEditor {
+  private val _file = file
+  override fun getFile() = _file
 
-  override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project)
-
-  override fun getEditorTypeId() = "dynamic-layout-inspector"
-
-  override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
-}
-
-/**
- * Viewer for layout inspector capture files.
- */
-class LayoutInspectorFileEditor(val project: Project) : UserDataHolderBase(), FileEditor {
   override fun dispose() {
     // TODO if necessary
   }
 
+  private var workbench: WorkBench<LayoutInspector>? = null
+  private var modificationCount = -1L
+
   override fun getComponent(): JComponent {
-    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
+    if (modificationCount < file.modificationCount) {
+      workbench = null
+    }
+    workbench?.let { return it }
+    modificationCount = file.modificationCount
+
+    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, this)
     val viewSettings = DeviceViewSettings()
 
     val contentPanel = JPanel(BorderLayout())
     contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
     contentPanel.add(workbench, BorderLayout.CENTER)
 
-    // TODO: load the file
     val model = InspectorModel(project)
+    // TODO: handle other snapshot types
+    val legacySnapshotLoader = LegacySnapshotLoader()
+    legacySnapshotLoader.loadFile(file, model)
 
     // TODO: persisted tree setting scoped to file
     val treeSettings = object: TreeSettings {
-      override var hideSystemNodes = true
+      override var hideSystemNodes = false
       override var composeAsCallstack = false
       override var mergedSemanticsTree = false
       override var unmergedSemanticsTree = false
@@ -92,12 +88,18 @@ class LayoutInspectorFileEditor(val project: Project) : UserDataHolderBase(), Fi
     }
     // TODO: indicate this is a snapshot session in the stats
     val stats = SessionStatistics(model, treeSettings)
-    val layoutInspector = LayoutInspector(DisconnectedClient, model, stats, treeSettings)
+    val client = object: InspectorClient by DisconnectedClient {
+      override val provider: PropertiesProvider
+        get() = legacySnapshotLoader.propertiesProvider
+    }
+    val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
     val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
     DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
+    model.updateConnection(client)
+    this.workbench = workbench
     return workbench
   }
 
@@ -122,4 +124,21 @@ class LayoutInspectorFileEditor(val project: Project) : UserDataHolderBase(), Fi
     return null
   }
 
+  /**
+   * Factory for [LayoutInspectorFileEditor]s. Note that for now [StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS] needs to be on or
+   * else [com.android.tools.idea.profiling.capture.CaptureEditorProvider] will be used to create
+   * `com.android.tools.idea.editors.layoutInspector.LayoutInspectorEditor`s
+   */
+  class Provider : FileEditorProvider, DumbAware {
+    override fun accept(project: Project, file: VirtualFile): Boolean {
+      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType.INSTANCE &&
+             StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS.get()
+    }
+
+    override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file)
+
+    override fun getEditorTypeId() = "dynamic-layout-inspector"
+
+    override fun getPolicy() = FileEditorPolicy.HIDE_DEFAULT_EDITOR
+  }
 }

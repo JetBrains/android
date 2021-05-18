@@ -27,23 +27,13 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Charsets
 import com.google.common.collect.Lists
 import org.apache.log4j.Logger
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.io.InputStreamReader
 import java.nio.ByteBuffer
-import java.util.Stack
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Function
-import java.util.function.Supplier
-import java.util.stream.Collector
 import javax.imageio.ImageIO
 
 /**
@@ -80,7 +70,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
-    val (rootNode, _) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
+    val (rootNode, _) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     getScreenshotPngBytes(ddmClient)?.let { client.latestScreenshots[windowName] = it }
 
     return LegacyAndroidWindow(client, rootNode, windowName)
@@ -114,91 +104,6 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     fun getData(): ByteArray? {
       waitForResult(15, TimeUnit.SECONDS)
       return mData.get()
-    }
-  }
-
-  /** Parses the flat string representation of a view node and returns the root node.  */
-  @VisibleForTesting
-  fun parseLiveViewNode(bytes: ByteArray, propertyUpdater: LegacyPropertiesProvider.Updater): Pair<ViewNode, String>?  {
-    var rootNodeAndHash: Pair<ViewNode, String>? = null
-    var lastNodeAndHash: Pair<ViewNode, String>? = null
-    var lastWhitespaceCount = Integer.MIN_VALUE
-    val stack = Stack<ViewNode>()
-
-    val input = BufferedReader(
-      InputStreamReader(ByteArrayInputStream(bytes), Charsets.UTF_8)
-    )
-
-    for (line in input.lines().collect(MergeNewLineCollector)) {
-      if ("DONE.".equals(line, ignoreCase = true)) {
-        break
-      }
-      // determine parent through the level of nesting by counting whitespaces
-      var whitespaceCount = 0
-      while (line[whitespaceCount] == ' ') {
-        whitespaceCount++
-      }
-
-      if (lastWhitespaceCount < whitespaceCount) {
-        stack.push(lastNodeAndHash?.first)
-      }
-      else if (!stack.isEmpty()) {
-        val count = lastWhitespaceCount - whitespaceCount
-        for (i in 0 until count) {
-          stack.pop()
-        }
-      }
-
-      lastWhitespaceCount = whitespaceCount
-      var parent: ViewNode? = null
-      if (!stack.isEmpty()) {
-        parent = stack.peek()
-      }
-      lastNodeAndHash = createViewNode(parent, line.trim(), propertyUpdater)
-      if (rootNodeAndHash == null) {
-        rootNodeAndHash = lastNodeAndHash
-      }
-    }
-
-    return rootNodeAndHash
-  }
-
-  private fun createViewNode(parent: ViewNode?, data: String, propertyLoader: LegacyPropertiesProvider.Updater): Pair<ViewNode, String> {
-    val (name, dataWithoutName) = data.split('@', limit = 2)
-    val (hash, properties) = dataWithoutName.split(' ', limit = 2)
-    val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, null, "", 0)
-    view.parent = parent
-    parent?.children?.add(view)
-    propertyLoader.parseProperties(view, properties)
-    return Pair(view, "$name@$hash")
-  }
-
-  /**
-   * A custom collector that handles a special case see b/79183623
-   * If a text field has text containing a new line it'll cause the view node output to be split
-   * across multiple lines so the collector processes the file output and merges those back into a
-   * single line so we can correctly create view nodes.
-   */
-  private object MergeNewLineCollector : Collector<String, MutableList<String>, List<String>> {
-    override fun characteristics(): Set<Collector.Characteristics> {
-      return setOf(Collector.Characteristics.CONCURRENT)
-    }
-
-    override fun supplier() = Supplier<MutableList<String>> { mutableListOf() }
-    override fun finisher() = Function<MutableList<String>, List<String>> { it.toList() }
-    override fun combiner() =
-      BinaryOperator<MutableList<String>> { t, u -> t.apply { addAll(u) } }
-
-    override fun accumulator() = BiConsumer<MutableList<String>, String> { stringGroup, line ->
-      val newLine = line.trim()
-      // add the original line because we need to keep the spacing to determine hierarchy
-      if (newLine.startsWith("\\n")) {
-        stringGroup[stringGroup.lastIndex] = stringGroup.last() + line
-      }
-      else {
-        stringGroup.add(line)
-      }
     }
   }
 

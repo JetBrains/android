@@ -34,5 +34,6 @@
     <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
     <orderEntry type="library" name="layoutinspector-compose-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="android-layout-inspector" />
   </component>
 </module>

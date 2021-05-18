@@ -47,6 +47,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-compose-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android-layout-inspector[module]",
     ],
 )
 

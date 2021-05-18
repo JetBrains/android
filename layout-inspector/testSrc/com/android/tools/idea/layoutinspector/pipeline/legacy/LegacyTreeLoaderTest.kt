@@ -130,8 +130,7 @@ DONE.
     val provider = LegacyPropertiesProvider()
     val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
 
-    val treeLoader = createSimpleLegacyClient().treeLoader
-    val (root, hash) = treeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
+    val (root, hash) = LegacyTreeParser.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
     propertiesUpdater.apply(provider)
     provider.requestProperties(root)
     assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
