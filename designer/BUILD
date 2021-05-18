@@ -30,7 +30,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",

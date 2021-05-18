@@ -61,11 +61,11 @@ import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -81,7 +81,6 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -449,7 +448,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
-      PathString pathString = IdeResourcesUtil.toFileResourcePathString(value);
+      PathString pathString = ResourcesUtil.toFileResourcePathString(value);
       if (pathString == null) {
         return null;
       }

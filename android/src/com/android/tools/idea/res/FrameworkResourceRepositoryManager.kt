@@ -17,10 +17,10 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants.DOT_JAR
 import com.android.annotations.concurrency.Slow
+import com.android.resources.aar.CachingData
+import com.android.resources.aar.FrameworkResourceRepository
+import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.android.tools.idea.concurrency.AndroidIoManager
-import com.android.tools.idea.resources.aar.CachingData
-import com.android.tools.idea.resources.aar.FrameworkResourceRepository
-import com.android.tools.idea.resources.aar.RESOURCE_CACHE_DIRECTORY
 import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager

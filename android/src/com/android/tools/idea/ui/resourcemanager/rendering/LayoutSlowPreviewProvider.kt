@@ -16,10 +16,10 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.toFileResourcePathString
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
@@ -29,10 +29,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.JBUIScale
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
-import java.util.function.Supplier
 
 /**
  * [SlowResourcePreviewProvider] for Layout and Menu resources.

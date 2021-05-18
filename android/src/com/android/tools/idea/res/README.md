@@ -23,8 +23,8 @@ The common superclass of all of them is [MultiResourceRepository](MultiResourceR
 
 All the values come from leaves in the tree, which are:
 - [ResourceFolderRepository](ResourceFolderRepository.java): resources from a single folder inside the project.
-- [AarResourceRepository](../../../../../../../resources-base/src/com/android/tools/idea/resources/aar/AarResourceRepository.java): resources
-  from a single AAR.
+- [AarResourceRepository](../../../../../../../../../base/resources-repository/main/java/com/android/resources/aar/AarResourceRepository.java):
+  resources from a single AAR.
 - [DynamicResourceValueRepository](DynamicResourceValueRepository.java): values defined in `build.gradle` and passed through the model.
 
 Another feature of the repository hierarchy is that children can invalidate caches in the parents. Currently we end up caching values
@@ -39,7 +39,7 @@ Repositories from the first list above are singletons in the scope of a given mo
 Instances of `ResourceFolderRepository` are unique per directory, managed by `ResourceFolderRegistry`. The registry uses 
 `ResourceFolderRepositoryFileCacheService` to manage cache files used to quickly load state of `ResourceFolderRepository`.
 Format of the cache files is described in
-[ResourceSerializationUtil](../../../../../../../resources-base/src/com/android/tools/idea/resources/base/ResourceSerializationUtil.java).
+[ResourceSerializationUtil](../../../../../../../../../base/resources-repository/main/java/com/android/resources/base/ResourceSerializationUtil.java).
 
 Instances of `AarResourceRepository` are unique per directory, managed by `AarResourceRepositoryCache`.
 

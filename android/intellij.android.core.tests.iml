@@ -22,6 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.resource-repository" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
@@ -76,7 +77,6 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.database" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />

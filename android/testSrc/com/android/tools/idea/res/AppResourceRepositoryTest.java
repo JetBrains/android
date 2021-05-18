@@ -28,8 +28,9 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
+import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
+import com.android.resources.aar.AarSourceResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -184,7 +185,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     LocalResourceRepository moduleRepository = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1), RES_AUTO, null);
     LocalResourceRepository projectResources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(moduleRepository));
 
-    AarSourceResourceRepository aar = ResourcesTestsUtil.getTestAarRepositoryFromExplodedAar();
+    AarSourceResourceRepository aar = AarTestUtils.getTestAarRepositoryFromExplodedAar();
     AppResourceRepository appResources =
         AppResourceRepository.createForTest(myFacet, ImmutableList.of(projectResources), ImmutableList.of(aar));
 

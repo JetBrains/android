@@ -20,9 +20,7 @@ import com.android.ide.common.rendering.api.PluralsResourceValue
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.ResourceQualifier
-import com.android.tools.idea.resources.base.BasicArrayResourceItem
-import com.android.tools.idea.resources.base.BasicFileResourceItem
-import com.android.tools.idea.resources.base.BasicPluralsResourceItem
+import com.android.resources.base.BasicFileResourceItem
 
 private const val DEFAULT_CONFIGURATION = "default"
 private const val NO_VALUE = "No value"

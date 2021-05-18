@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.DensityBasedResourceValue;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.resources.base.RepositoryConfiguration;
+import com.android.resources.base.RepositoryConfiguration;
 import com.android.utils.HashCodes;
 import com.google.common.base.MoreObjects;
 import com.intellij.openapi.vfs.VirtualFile;

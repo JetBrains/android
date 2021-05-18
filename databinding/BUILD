@@ -63,7 +63,6 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
-        "//tools/adt/idea/resources-base:intellij.android.resources-base[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/databinding:intellij.android.databinding[module, test]",
