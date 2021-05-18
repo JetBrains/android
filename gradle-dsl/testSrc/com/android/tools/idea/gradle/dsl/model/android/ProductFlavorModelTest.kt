@@ -1163,7 +1163,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var defaultConfig = android.defaultConfig()
-    assertMissingProperty("applicationId", defaultConfig.applicationId())
+    assertMissingProperty("minSdkVersion", defaultConfig.minSdkVersion())
     assertMissingProperty("targetSdkVersion", defaultConfig.targetSdkVersion())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
 
