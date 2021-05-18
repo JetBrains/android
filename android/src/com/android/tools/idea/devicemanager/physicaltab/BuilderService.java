@@ -91,7 +91,6 @@ final class BuilderService {
       .setSerialNumber(serialNumber)
       .setLastOnlineTime(time)
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
-      .setOnline(online)
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString());
 

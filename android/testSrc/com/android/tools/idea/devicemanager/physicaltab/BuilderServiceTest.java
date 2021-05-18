@@ -64,7 +64,6 @@ public final class BuilderServiceTest {
       .setSerialNumber("86UX00F4R")
       .setLastOnlineTime(TIME)
       .setName("Google Pixel 3")
-      .setOnline(true)
       .setTarget("Android 12 Preview")
       .setApi("S")
       .addConnectionType(ConnectionType.USB)
