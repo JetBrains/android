@@ -132,6 +132,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
     componentTreeModel.treeRoot = root
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
+    layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
   }
 
   override fun getAdditionalActions() = additionalActions

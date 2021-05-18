@@ -78,7 +78,9 @@ class LayoutInspector private constructor(
     layoutInspectorModel: InspectorModel,
     stats: SessionStatistics,
     treeSettings: TreeSettings
-  ) : this({ client }, layoutInspectorModel, stats, treeSettings, true)
+  ) : this({ client }, layoutInspectorModel, stats, treeSettings, true) {
+    clientChanged(client)
+  }
 
   private val latestLoadTime = AtomicLong(-1)
 
