@@ -122,6 +122,30 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver))
   }
 
+  private val renderer = AdtSecondaryPanel(BorderLayout())
+  private val thumbnailRenderer = JBLabel()
+  private val primaryTextRenderer = JBLabel()
+  private val secondaryTextRenderer = JBLabel()
+
+  init {
+    secondaryTextRenderer.foreground = SUBDUED_TEXT
+    val leftPanel = JPanel(VerticalLayout(0, SwingConstants.CENTER))
+    leftPanel.isOpaque = false
+    thumbnailRenderer.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    thumbnailRenderer.text = " "
+    secondaryTextRenderer.fontColor = UIUtil.FontColor.BRIGHTER
+    leftPanel.add(thumbnailRenderer, VerticalLayout.CENTER)
+    renderer.add(leftPanel, BorderLayout.WEST)
+    val rightPanel = JPanel(VerticalLayout(8))
+    rightPanel.isOpaque = false
+    rightPanel.border = JBUI.Borders.empty(14, 6, 10, 0)
+    rightPanel.add(primaryTextRenderer, VerticalLayout.CENTER)
+    rightPanel.add(secondaryTextRenderer, VerticalLayout.CENTER)
+    renderer.add(rightPanel, BorderLayout.CENTER)
+    renderer.background = LIST_MOUSEOVER
+    renderer.isOpaque = false
+  }
+
   @VisibleForTesting
   val destinations: List<Destination>
     get() {
@@ -241,12 +265,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
                              { index in list.firstVisibleIndex..list.lastVisibleIndex })
       }
 
-      THUMBNAIL_RENDERER.icon = ImageIcon(value.thumbnail(iconCallback))
-      THUMBNAIL_RENDERER.iconTextGap = (maxIconWidth - THUMBNAIL_RENDERER.icon.iconWidth).coerceAtLeast(0)
-      PRIMARY_TEXT_RENDERER.text = value.label
-      SECONDARY_TEXT_RENDERER.text = value.typeLabel
-      RENDERER.isOpaque = selected
-      RENDERER
+      thumbnailRenderer.icon = ImageIcon(value.thumbnail(iconCallback))
+      thumbnailRenderer.iconTextGap = (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
+      primaryTextRenderer.text = value.label
+      secondaryTextRenderer.text = value.typeLabel
+      renderer.isOpaque = selected
+      renderer
     }
     destinationsList.background = BACKGROUND_COLOR
 
@@ -445,32 +469,5 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     return resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
       .filterIsInstance<XmlFile>()
       .associateBy { AndroidUtils.getContextClass(module, it) }
-  }
-
-  companion object {
-
-    private val RENDERER = AdtSecondaryPanel(BorderLayout())
-    private val THUMBNAIL_RENDERER = JBLabel()
-    private val PRIMARY_TEXT_RENDERER = JBLabel()
-    private val SECONDARY_TEXT_RENDERER = JBLabel()
-
-    init {
-      SECONDARY_TEXT_RENDERER.foreground = SUBDUED_TEXT
-      val leftPanel = JPanel(VerticalLayout(0, SwingConstants.CENTER))
-      leftPanel.isOpaque = false
-      THUMBNAIL_RENDERER.border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
-      THUMBNAIL_RENDERER.text = " "
-      SECONDARY_TEXT_RENDERER.fontColor = UIUtil.FontColor.BRIGHTER
-      leftPanel.add(THUMBNAIL_RENDERER, VerticalLayout.CENTER)
-      RENDERER.add(leftPanel, BorderLayout.WEST)
-      val rightPanel = JPanel(VerticalLayout(8))
-      rightPanel.isOpaque = false
-      rightPanel.border = JBUI.Borders.empty(14, 6, 10, 0)
-      rightPanel.add(PRIMARY_TEXT_RENDERER, VerticalLayout.CENTER)
-      rightPanel.add(SECONDARY_TEXT_RENDERER, VerticalLayout.CENTER)
-      RENDERER.add(rightPanel, BorderLayout.CENTER)
-      RENDERER.background = LIST_MOUSEOVER
-      RENDERER.isOpaque = false
-    }
   }
 }
