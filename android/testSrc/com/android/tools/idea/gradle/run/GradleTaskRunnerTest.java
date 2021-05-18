@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -101,8 +102,9 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     }
 
     @Override
+    @NotNull
     public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
-      return null;
+      return Futures.immediateFuture(null);
     }
 
     /**
