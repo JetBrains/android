@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.integration.gradle
 
 import com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT
 import com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT
-import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
@@ -238,8 +237,7 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   fun testGeneratedCodeMatchesExpected() {
     // temporary fix until test model can detect dependencies properly
     val assembleDebug = projectRule.invokeTasks("assembleDebug")
-    assertWithMessage(assembleDebug.getCompilerMessages(Message.Kind.ERROR).joinToString("\n"))
-      .that(assembleDebug.isBuildSuccessful).isTrue()
+    assertThat(assembleDebug.isBuildSuccessful).isTrue()
 
     val syncState = GradleSyncState.getInstance(projectRule.project)
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()

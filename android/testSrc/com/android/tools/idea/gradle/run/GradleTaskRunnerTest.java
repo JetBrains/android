@@ -64,13 +64,13 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     });
 
     TimeoutUtil.sleep(1000);
-    int completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), Collections.emptyList(), null));
+    int completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), null));
     assertEquals(0, completed); // No tasks should be executed until we process the event queue
     assertEquals(1, countDownLatch.getCount()); // The runner should still be blocked
 
     UIUtil.dispatchAllInvocationEvents();
 
-    completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), Collections.emptyList(), null));
+    completed = buildInvoker.complete(new GradleInvocationResult(Collections.emptyList(), null));
     assertEquals(1, completed);
     countDownLatch.await(5, TimeUnit.SECONDS);
   }

@@ -140,6 +140,6 @@ public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
 
   @NotNull
   private static GradleInvocationResult createBuildResult(@Nullable Throwable buildError) {
-    return new GradleInvocationResult(Collections.emptyList(), Collections.emptyList(), buildError);
+    return new GradleInvocationResult(Collections.emptyList(), buildError);
   }
 }

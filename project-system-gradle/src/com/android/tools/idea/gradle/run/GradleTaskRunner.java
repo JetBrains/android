@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public interface GradleTaskRunner {
   boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
@@ -101,7 +102,7 @@ public interface GradleTaskRunner {
       return model.get();
     }
 
-    @VisibleForTesting
+    @TestOnly
     @Nullable
     BuildAction<?> getBuildAction() {
       return myBuildAction;
