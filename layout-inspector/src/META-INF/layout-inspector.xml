@@ -29,5 +29,7 @@
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.ui.InspectorBannerService"/>
+
+    <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditorProvider"/>
   </extensions>
 </idea-plugin>

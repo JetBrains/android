@@ -39,7 +39,6 @@ import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
-import com.intellij.ide.startup.ServiceNotReadyException
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.module.ModuleManager
@@ -63,7 +62,6 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
 /**
  * Create a [DataProvider] for the specified [layoutInspector].
  */
-@VisibleForTesting
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewPanel: DataProvider): DataProvider =
   DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
 
