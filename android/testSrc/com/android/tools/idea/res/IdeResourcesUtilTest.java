@@ -35,7 +35,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -410,12 +409,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertEquals(0x02_02_0001, IdeResourcesUtil.buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
   }
 
-  public void testToFileResourcePathString() {
-    assertThat(IdeResourcesUtil.toFileResourcePathString("apk:///foo.apk!/bar.baz")).isEqualTo(new PathString("apk", "/foo.apk!/bar.baz"));
-  }
-
   public void testPsiElementGetNamespace() {
-
     // Project XML:
     XmlFile layoutFile = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);
     assertThat(IdeResourcesUtil.getResourceNamespace(layoutFile)).isEqualTo(RES_AUTO);

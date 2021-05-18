@@ -106,8 +106,8 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
+    <orderEntry type="module" module-name="android.sdktools.resource-repository" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
-    <orderEntry type="module" module-name="intellij.android.resources-base" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />

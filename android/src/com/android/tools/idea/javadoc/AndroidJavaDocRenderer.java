@@ -28,11 +28,6 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
-import com.android.tools.idea.gradle.model.IdeSourceProvider;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -44,6 +39,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.ResourceQualifier;
@@ -51,10 +47,16 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
+import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
+import com.android.tools.idea.gradle.model.IdeProductFlavorContainer;
+import com.android.tools.idea.gradle.model.IdeSourceProvider;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -66,7 +68,6 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
-import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -1056,7 +1057,7 @@ public class AndroidJavaDocRenderer {
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
       if (IdeResourcesUtil.isFileResource(result)) {
-        VirtualFile file = toVirtualFile(IdeResourcesUtil.toFileResourcePathString(result));
+        VirtualFile file = toVirtualFile(ResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);
         }

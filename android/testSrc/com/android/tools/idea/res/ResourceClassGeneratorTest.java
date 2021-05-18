@@ -24,21 +24,20 @@ import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.TestResourceRepository;
+import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.resources.aar.AarSourceResourceRepository;
+import com.android.resources.aar.AarSourceResourceRepository;
+import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -218,7 +217,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
         "    </declare-styleable>" +
         "</resources>\n"});
     LocalResourceRepository resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
-    Path aarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, "my_aar_lib", "res");
+    Path aarPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/my_aar_lib/res");
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
     AppResourceRepository appResources =
         new AppResourceRepository(myFacet, ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));

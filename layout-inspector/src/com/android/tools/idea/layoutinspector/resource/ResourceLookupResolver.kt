@@ -37,6 +37,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.toFileResourcePathString
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
@@ -60,7 +61,6 @@ import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.res.resolveStateList
 import com.android.tools.idea.res.resourceNamespace
-import com.android.tools.idea.res.toFileResourcePathString
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.util.EditSourceUtil

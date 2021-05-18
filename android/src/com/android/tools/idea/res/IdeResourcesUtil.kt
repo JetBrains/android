@@ -61,8 +61,8 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.toFileResourcePathString
 import com.android.ide.common.util.PathString
-import com.android.ide.common.util.toPathString
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
@@ -137,8 +137,6 @@ import com.intellij.psi.xml.XmlTokenType
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Processor
-import com.intellij.util.io.URLUtil.FILE_PROTOCOL
-import com.intellij.util.io.URLUtil.JAR_PROTOCOL
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
@@ -175,7 +173,6 @@ private const val ROOT_TAG_PROPERTY = "ROOT_TAG"
 private const val LAYOUT_WIDTH_PROPERTY = "LAYOUT_WIDTH"
 private const val LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT"
 private val LOG: Logger = Logger.getInstance("IdeResourcesUtil.kt")
-private val RESOURCE_PROTOCOLS = arrayOf(ApkFileSystem.PROTOCOL, JAR_PROTOCOL, FILE_PROTOCOL)
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
 
@@ -850,30 +847,6 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
   }
 
   return null
-}
-
-/**
- * Converts a file resource path from [String] to [PathString]. The supported formats:
- * - file path, e.g. "/foo/bar/res/layout/my_layout.xml"
- * - file URL, e.g. "file:///foo/bar/res/layout/my_layout.xml"
- * - URL of a zipped element inside an APK file, e.g. "apk:///foo/bar/res.apk!/res/layout/my_layout.xml"
- *
- * @param resourcePath the file resource path to convert
- * @return the converted resource path, or null if the `resourcePath` doesn't point to a file resource
- */
-fun toFileResourcePathString(resourcePath: String): PathString? {
-  for (protocol in RESOURCE_PROTOCOLS) {
-    if (resourcePath.startsWith(protocol) && resourcePath.length > protocol.length && resourcePath[protocol.length] == ':') {
-      var prefixLength = protocol.length + 1
-      if (resourcePath.startsWith("//", prefixLength)) {
-        prefixLength += "//".length
-      }
-      return PathString(protocol, resourcePath.substring(prefixLength))
-    }
-  }
-
-  val file = File(resourcePath)
-  return if (file.isFile) file.toPathString() else null
 }
 
 /**

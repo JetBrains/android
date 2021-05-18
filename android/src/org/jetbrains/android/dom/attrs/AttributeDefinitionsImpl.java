@@ -35,7 +35,7 @@ import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.resources.base.CommentTrackingXmlPullParser;
+import com.android.resources.base.CommentTrackingXmlPullParser;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;

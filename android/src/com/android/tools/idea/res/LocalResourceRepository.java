@@ -55,7 +55,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * the module with dependencies will contain these components:
  * <ul>
  *   <li> A {@link AppResourceRepository} which contains a
- *          {@link com.android.tools.idea.resources.aar.AarResourceRepository} wrapping each AAR library dependency,
+ *          {@link com.android.ide.common.resources.aar.AarResourceRepository} wrapping each AAR library dependency,
  *          and merges this with the project resource repository </li>
  *   <li> A {@link ProjectResourceRepository} representing the collection of module repositories</li>
  *   <li> For each module (e.g. the main module and library module}, a {@link ModuleResourceRepository}</li>

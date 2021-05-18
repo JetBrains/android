@@ -19,8 +19,11 @@ import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
 
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
+import com.android.resources.AarTestUtils;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.util.FileExtensions;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.android.AndroidTestCase;
 import org.xmlpull.v1.XmlPullParser;
@@ -30,7 +33,7 @@ import org.xmlpull.v1.XmlPullParser;
  */
 public class FileResourceReaderTest extends AndroidTestCase {
   public void testReadBytes() throws Exception {
-    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
+    Path resApkPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/design_aar/" + FN_RESOURCE_STATIC_LIBRARY);
     String resourcePath = resApkPath + "!/res/drawable-mdpi-v4/design_ic_visibility.png";
     PathString pathString = new PathString("apk", resourcePath);
 
@@ -44,7 +47,7 @@ public class FileResourceReaderTest extends AndroidTestCase {
   }
 
   public void testCreateXmlPullParser() throws Exception {
-    String resApkPath = Paths.get(myFixture.getTestDataPath(), "design_aar", FN_RESOURCE_STATIC_LIBRARY).normalize().toString();
+    Path resApkPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/design_aar/" + FN_RESOURCE_STATIC_LIBRARY);
     String resourcePath = resApkPath + "!/res/layout/design_bottom_navigation_item.xml";
     PathString pathString = new PathString("apk", resourcePath);
 

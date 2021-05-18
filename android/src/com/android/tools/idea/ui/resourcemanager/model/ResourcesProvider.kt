@@ -27,10 +27,10 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
+import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
-import com.android.tools.idea.resources.aar.AarResourceRepository
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.xml.XmlFile
