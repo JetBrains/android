@@ -47,10 +47,6 @@ class BuildAnalyzerShowAction : AssistActionHandler {
     }
   }
 
-  //TODO(b/149682576): This is an ongoing discussion what build we should invoke here.
-  // For now the easiest way seem to be invoking same as project make action.
-  // It might be better to invoke project based on selected configuration and variant (as per deploy action)
-  // but this requires further research.
   private fun invokeProjectBuild(project: Project) {
     // Copied from com.android.tools.idea.gradle.actions.MakeGradleProjectAction
     val modules: List<Module> = ProjectStructure.getInstance(project).leafModules
