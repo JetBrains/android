@@ -133,6 +133,7 @@ internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
       .toKtsFunction("wearApp")
       .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
       .replace("minifyEnabled", "isMinifyEnabled")
+      .replace("debuggable", "isDebuggable")
       // The followings are for externalNativeBuild
       .toKtsFunction("cppFlags")
       .toKtsFunction("path")

@@ -37,6 +37,21 @@ fun buildGradle(
   targetModule: Module,
   benchmarkBuildTypeName: String,
 ): String {
+  fun String.addReceiverIfKts() = when {
+    useGradleKts -> "it.$this"
+    else -> this
+  }
+
+  val benchmarkBuildType: String = when {
+    useGradleKts -> """create("$benchmarkBuildTypeName")"""
+    else -> benchmarkBuildTypeName
+  }
+
+  val debugSigningConfig: String = when {
+    useGradleKts -> """getByName("debug").signingConfig"""
+    else -> "debug.signingConfig"
+  }
+
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -70,12 +85,12 @@ android {
     }
 
     buildTypes {
-        $benchmarkBuildTypeName {
+        $benchmarkBuildType {
             debuggable = true
-            signingConfig = debug.signingConfig
+            signingConfig = $debugSigningConfig
         }
     }
-    
+
     targetProjectPath = "$targetModuleGradlePath"
     properties["android.experimental.self-instrumenting"] = true
 }
@@ -85,7 +100,7 @@ dependencies {
 
 androidComponents {
     beforeVariants(selector().all()) {
-        enable = buildType == '$benchmarkBuildTypeName'
+        ${"enable".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
     }
 }
 

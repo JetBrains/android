@@ -73,8 +73,6 @@ android {
     defaultConfig {
         ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
         ${toAndroidFieldVersion("targetSdk", targetApiString, gradlePluginVersion)}
-        versionCode 1
-        versionName "1.0"
 
         testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
     }
