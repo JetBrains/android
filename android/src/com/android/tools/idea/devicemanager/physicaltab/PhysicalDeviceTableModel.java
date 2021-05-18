@@ -17,10 +17,10 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.devicemanager.Device;
-import com.google.common.collect.Iterables;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,7 +125,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       case API_MODEL_COLUMN_INDEX:
         return myDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return Iterables.getOnlyElement(myDevices.get(modelRowIndex).getConnectionTypes());
+        return myDevices.get(modelRowIndex).getConnectionTypes().stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(" "));
       case ACTIONS_MODEL_COLUMN_INDEX:
         return Actions.INSTANCE;
       default:
