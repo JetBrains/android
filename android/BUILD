@@ -286,7 +286,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-6.1.1",  # b/141628806
         "//tools/base/build-system:gradle-distrib-6.5",  # b/141628806
         "//tools/base/build-system:studio_repo",
-        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
@@ -459,7 +459,7 @@ filegroup(
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
-        "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+        "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/tracer:trace_agent",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:studio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:studio.android-test-plugin-host-retention-proto",

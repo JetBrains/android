@@ -28,7 +28,7 @@ COMMON_DATA = [
     "//tools/adt/idea/artwork:device-art-resources",
     "//tools/base/build-system:studio_repo",
     "//tools/base/build-system:gradle-distrib",
-    "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
+    "//tools/base/third_party/kotlin:kotlin-m2repository",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/vendor/google/testing/display:xvfb",
 ]
