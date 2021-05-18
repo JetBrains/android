@@ -18,6 +18,7 @@ package com.android.tools.idea.wearparing
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -26,9 +27,13 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.ide.IdeTooltipManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.JBMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.IdeBorderFactory
@@ -47,6 +52,8 @@ import icons.StudioIcons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Component
@@ -257,9 +264,23 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
             val peerDevice = if (pairedPhone.deviceID == listDevice.deviceID) pairedWear else pairedPhone
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
-              GlobalScope.launch(Dispatchers.IO) {
-                WearPairingManager.removePairedDevices()
+              val process = Runnable {
+                val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
+                  withTimeoutOrNull(5_000) {
+                    WearPairingManager.checkCloudSyncIsEnabled(pairedPhone)
+                  }
+                }
+                if (cloudSyncIsEnabled == true) {
+                  ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(pairedPhone) }, ModalityState.any())
+                }
+                GlobalScope.launch(ioThread) {
+                  WearPairingManager.removePairedDevices()
+                }
               }
+              val progressTitle = message("wear.assistant.device.list.forget.connection", peerDevice.displayName)
+              ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                process, progressTitle, true, project, this@addRightClickAction
+              )
             }
             val menu = JBPopupMenu()
             menu.add(item)
@@ -269,6 +290,18 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       }
     }
     addMouseListener(listener)
+  }
+
+  private fun showCloudSyncDialog(pairedPhone: PairingDevice) {
+    Messages.showIdeaMessageDialog(
+      project,
+      message("wear.assistant.device.list.cloud.sync.subtitle", pairedPhone.displayName, WEAR_DOCS_LINK),
+      message("wear.assistant.device.list.cloud.sync.title"),
+      arrayOf(Messages.getOkButton()),
+      0,
+      Messages.getWarningIcon(),
+      null
+    )
   }
 
   private class SomeDisabledSelectionModel(val list: JBList<PairingDevice>) : DefaultListSelectionModel() {
@@ -341,7 +374,7 @@ private class TooltipList<E> : JBList<E>() {
   }
 }
 
-private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, val emptyListPanel: JPanel): JPanel(BorderLayout()) {
+private class DeviceListPanel(title: String, val list: JBList<PairingDevice>, val emptyListPanel: JPanel) : JPanel(BorderLayout()) {
   val scrollPane = ScrollPaneFactory.createScrollPane(list, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER).apply {
     border = IdeBorderFactory.createBorder(SideBorder.TOP)
   }
