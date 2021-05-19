@@ -76,7 +76,7 @@ public final class ActionsComponentTest {
     Project project = Mockito.mock(Project.class);
 
     PhysicalDevice device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
+      .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")
@@ -92,6 +92,6 @@ public final class ActionsComponentTest {
     button.doClick();
 
     // Assert
-    Mockito.verify(myOpenAndShowDevice).accept(project, device.getSerialNumber());
+    Mockito.verify(myOpenAndShowDevice).accept(project, device.getKey().toString());
   }
 }

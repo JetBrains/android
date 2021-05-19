@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
+import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
@@ -41,7 +42,7 @@ public final class DeviceTableCellRendererTest {
     DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, (selected, focused) -> BORDER);
 
     Device device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
+      .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")

@@ -25,10 +25,10 @@ final class PhysicalDevices {
   }
 
   static int indexOf(@NotNull List<@NotNull PhysicalDevice> devices, @NotNull PhysicalDevice device) {
-    Object serialNumber = device.getSerialNumber();
+    Object key = device.getKey();
 
     OptionalInt optionalIndex = IntStream.range(0, devices.size())
-      .filter(index -> devices.get(index).getSerialNumber().equals(serialNumber))
+      .filter(index -> devices.get(index).getKey().equals(key))
       .findFirst();
 
     return optionalIndex.orElse(-1);

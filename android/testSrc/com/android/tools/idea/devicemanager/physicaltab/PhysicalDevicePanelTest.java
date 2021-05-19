@@ -74,7 +74,7 @@ public final class PhysicalDevicePanelTest {
   @Before
   public void mockSupplier() {
     myOnlinePixel3 = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
+      .setKey(new SerialNumber("86UX00F4R"))
       .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")

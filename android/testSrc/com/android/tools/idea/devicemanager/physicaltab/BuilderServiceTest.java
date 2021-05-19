@@ -61,7 +61,7 @@ public final class BuilderServiceTest {
 
     // Assert
     Object device = new PhysicalDevice.Builder()
-      .setSerialNumber("86UX00F4R")
+      .setKey(new SerialNumber("86UX00F4R"))
       .setLastOnlineTime(TIME)
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")

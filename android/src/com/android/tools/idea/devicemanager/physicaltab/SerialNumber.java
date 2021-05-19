@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-public final class TestPhysicalDevices {
-  public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("86UX00F4R"))
-    .setName("Google Pixel 3")
-    .setTarget("Android 12 Preview")
-    .setApi("S")
-    .build();
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("0A071FDD4003ZG"))
-    .setName("Google Pixel 5")
-    .setTarget("Android 11.0")
-    .setApi("30")
-    .build();
+public final class SerialNumber implements Key {
+  private final @NotNull String myValue;
 
-  private TestPhysicalDevices() {
+  public SerialNumber(@NotNull String value) {
+    myValue = value;
+  }
+
+  @Override
+  public int hashCode() {
+    return myValue.hashCode();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    return object instanceof SerialNumber && myValue.equals(((SerialNumber)object).myValue);
+  }
+
+  @Override
+  public @NotNull String toString() {
+    return myValue;
   }
 }
