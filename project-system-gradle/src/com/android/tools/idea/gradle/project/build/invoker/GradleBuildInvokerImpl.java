@@ -40,10 +40,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
-import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.tracer.Trace;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -98,7 +95,6 @@ import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -425,31 +421,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
                                                                @NotNull List<String> gradleTasks,
                                                                @NotNull List<String> commandLineArguments,
                                                                @Nullable BuildAction<?> buildAction) {
-    List<String> jvmArguments = new ArrayList<>();
-
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // Projects in tests may not have a local.properties, set ANDROID_SDK_ROOT JVM argument if that's the case.
-      LocalProperties localProperties;
-      try {
-        localProperties = new LocalProperties(myProject);
-      }
-      catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      if (localProperties.getAndroidSdkPath() == null) {
-        File androidHomePath = IdeSdks.getInstance().getAndroidSdkPath();
-        // In Android Studio, the Android SDK home path will never be null. It may be null when running in IDEA.
-        if (androidHomePath != null) {
-          jvmArguments.add(AndroidGradleSettings.createAndroidHomeJvmArg(androidHomePath.getPath()));
-        }
-      }
-    }
-
-    // For development we might want to forward an agent to the daemon.
-    // This is a no-op in production builds.
-    Trace.addVmArgs(jvmArguments);
     Request request = Request.builder(myProject, rootProjectPath, gradleTasks)
-      .setJvmArguments(jvmArguments)
       .setCommandLineArguments(commandLineArguments)
       .setBuildAction(buildAction)
       .build();
