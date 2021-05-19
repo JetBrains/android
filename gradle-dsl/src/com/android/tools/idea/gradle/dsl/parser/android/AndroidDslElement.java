@@ -76,7 +76,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"assetPacks", property, ASSET_PACKS, VAL}, // TODO(xof): was VAR some time ago
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
     {"buildToolsVersion", exactly(1), BUILD_TOOLS_VERSION, SET},
-    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR}, // TODO(b/148657110): type handling of this is tricky
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS},
     {"compileSdkVersion", exactly(1), COMPILE_SDK_VERSION, SET},
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
