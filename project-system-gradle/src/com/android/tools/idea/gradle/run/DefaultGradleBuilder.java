@@ -27,7 +27,7 @@ import java.util.List;
 
 public class DefaultGradleBuilder implements BeforeRunBuilder {
   private final ListMultimap<Path, String> myTasks;
-  private final BuildMode myBuildMode;
+  @Nullable private final BuildMode myBuildMode;
 
   public DefaultGradleBuilder(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode) {
     myTasks = tasks;
