@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.AndroidProjectTypes
+import com.android.SdkConstants
 import com.android.build.FilterData
 import com.android.build.OutputFile
 import com.android.build.VariantOutput
@@ -59,11 +61,13 @@ import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeDependencies
@@ -77,6 +81,7 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeVectorDrawablesOptions
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
@@ -411,6 +416,15 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     return address
   }
 
+  fun getSymbolFilePath(androidLibrary: AndroidLibrary): String {
+    return try {
+      androidLibrary.symbolFile.path
+    }
+    catch (e: UnsupportedOperationException) {
+      File(androidLibrary.folder, SdkConstants.FN_RESOURCE_TEXT).path
+    }
+  }
+
   /**
    * @param androidLibrary Instance of [AndroidLibrary] returned by android plugin.
    * path to build directory for all modules.
@@ -642,11 +656,30 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     }
   }
 
+  fun convertExecution(execution: TestOptions.Execution?): IdeTestOptions.Execution? {
+    return if (execution == null) null
+    else when (execution) {
+      TestOptions.Execution.HOST -> IdeTestOptions.Execution.HOST
+      TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
+      TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
+      else -> throw IllegalStateException("Unknown execution option: $execution")
+    }
+  }
+
   fun testOptionsFrom(testOptions: TestOptions): IdeTestOptionsImpl {
     return IdeTestOptionsImpl(
       animationsDisabled = testOptions.animationsDisabled,
       execution = convertExecution(testOptions.execution)
     )
+  }
+
+  fun convertCodeShrinker(codeShrinker: com.android.builder.model.CodeShrinker?): CodeShrinker? {
+    return if (codeShrinker == null) null
+    else when (codeShrinker) {
+      com.android.builder.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
+      com.android.builder.model.CodeShrinker.R8 -> CodeShrinker.R8
+      else -> throw IllegalStateException("Unknown code shrinker option: $codeShrinker")
+    }
   }
 
   fun androidArtifactFrom(
@@ -974,8 +1007,48 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     includeInBundle = model.includeInBundle
   )
 
+  fun Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>.getBooleanFlag(flag: AndroidGradlePluginProjectFlags.BooleanFlag): Boolean
+    = this[flag] ?: flag.legacyDefault
+
+  fun createIdeAndroidGradlePluginProjectFlagsImpl(
+    booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>
+  ): IdeAndroidGradlePluginProjectFlagsImpl {
+    return IdeAndroidGradlePluginProjectFlagsImpl(
+      applicationRClassConstantIds =
+      booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS),
+      testRClassConstantIds = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS),
+      transitiveRClasses = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
+      usesCompose = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
+      mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING)
+    )
+  }
+
+  /**
+   * Create an empty set of flags for older AGPs and for studio serialization.
+   */
+  fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap = emptyMap())
+
   fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
     createIdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
+
+  fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when(this) {
+    AndroidProjectTypes.PROJECT_TYPE_APP -> IdeAndroidProjectType.PROJECT_TYPE_APP
+    AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
+    AndroidProjectTypes.PROJECT_TYPE_TEST -> IdeAndroidProjectType.PROJECT_TYPE_TEST
+    AndroidProjectTypes.PROJECT_TYPE_ATOM -> IdeAndroidProjectType.PROJECT_TYPE_ATOM
+    AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP
+    AndroidProjectTypes.PROJECT_TYPE_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_FEATURE
+    AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
+    else -> error("Unknown Android project type: $this")
+  }
+
+  fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): IdeAndroidProjectType {
+    if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
+      return project.projectType.toIdeAndroidProjectType()
+    }
+    // Support for old Android Gradle Plugins must be maintained.
+    return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
+  }
 
   fun androidProjectFrom(project: AndroidProject): IdeAndroidProjectImpl {
     // Old plugin versions do not return model version.
@@ -1060,3 +1133,59 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     override fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project)
   }
 }
+
+val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
+
+private inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defaultValue: () -> T): T {
+  return try {
+    propertyInvoker()
+  }
+  catch (ignored: UnsupportedOperationException) {
+    defaultValue()
+  }
+}
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+private inline fun <T : Any> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): T {
+  return try {
+    propertyInvoker()
+  }
+  catch (ignored: UnsupportedOperationException) {
+    defaultValue
+  }
+}
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+@Suppress("unused", "UNUSED_PARAMETER")
+private inline fun <T : Collection<*>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
+  "Cannot be called. Use copy() method.")
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+@Suppress("unused", "UNUSED_PARAMETER")
+private inline fun <T : Map<*, *>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
+  "Cannot be called. Use copy() method.")
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+@JvmName("impossibleCopyNewCollectionProperty")
+@Suppress("unused", "UNUSED_PARAMETER")
+private inline fun <T : Collection<*>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
+
+/**
+ * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
+ *       Please use function references or anonymous functions which seeds type inference.
+ **/
+@JvmName("impossibleCopyNewMapProperty")
+@Suppress("unused", "UNUSED_PARAMETER")
+private inline fun <T : Map<*, *>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
