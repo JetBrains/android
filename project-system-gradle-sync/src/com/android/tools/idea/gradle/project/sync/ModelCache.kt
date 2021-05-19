@@ -79,8 +79,6 @@ interface ModelCache {
   }
 }
 
-internal val MODEL_VERSION_3_2_0 = GradleVersion.parse("3.2.0")
-
 internal inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
 
 internal inline fun <K : Any, R: Any, V> copyModel(key: K, key2: R, mappingFunction: (K, R) -> V): V = mappingFunction(key, key2)
@@ -105,51 +103,6 @@ internal inline fun <K, V : Any> copyNewModel(
  * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
  *       Please use function references or anonymous functions which seeds type inference.
  **/
-@Suppress("unused", "UNUSED_PARAMETER")
-internal inline fun <T : Collection<*>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
-  "Cannot be called. Use copy() method.")
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
-@Suppress("unused", "UNUSED_PARAMETER")
-private inline fun <T : Map<*, *>> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): Unit = error(
-  "Cannot be called. Use copy() method.")
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
-@JvmName("impossibleCopyNewCollectionProperty")
-@Suppress("unused", "UNUSED_PARAMETER")
-private inline fun <T : Collection<*>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
-@JvmName("impossibleCopyNewMapProperty")
-@Suppress("unused", "UNUSED_PARAMETER")
-private inline fun <T : Map<*, *>?> copyNewProperty(propertyInvoker: () -> T): Unit = error("Cannot be called. Use copy() method.")
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
-internal inline fun <T : Any> copyNewProperty(propertyInvoker: () -> T, defaultValue: T): T {
-  return try {
-    propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
-    defaultValue
-  }
-}
-
-/**
- * NOTE: Multiple overloads are intentionally ambiguous to prevent lambdas from being used directly.
- *       Please use function references or anonymous functions which seeds type inference.
- **/
 internal inline fun <T : Any?>copyNewProperty(propertyInvoker: () -> T?): T? {
   return try {
     propertyInvoker()
@@ -162,95 +115,13 @@ internal inline fun <T : Any?>copyNewProperty(propertyInvoker: () -> T?): T? {
 internal inline fun <K, V> copy(original: () -> Collection<K>, mapper: (K) -> V): List<V> =
   ModelCache.safeGet(original, listOf()).map(mapper)
 
-internal inline fun <K, R, V> copy(o1: () -> Collection<K>, o2: () -> Collection<R>,  mapper: (K, R) -> V): List<V> {
-  val original1 = ModelCache.safeGet(o1, listOf())
-  val original2 = ModelCache.safeGet(o2, listOf())
-  return original1.zip(original2).toMap().map { (k, v) -> mapper(k, v) }
-}
-
 internal inline fun <K, V> copy(original: () -> Set<K>, mapper: (K) -> V): Set<V> =
   ModelCache.safeGet(original, setOf()).map(mapper).toSet()
-
-@JvmName("copyNullableCollection")
-internal inline fun <K, V> copy(original: () -> Collection<K>?, mapper: (K) -> V): List<V>? =
-  ModelCache.safeGet(original, null)?.map(mapper)
 
 internal inline fun <K, V, R> copy(original: () -> Map<K, V>, mapper: (V) -> R): Map<K, R> =
   ModelCache.safeGet(original, mapOf()).mapValues { (_, v) -> mapper(v) }
 
-@JvmName("copyNullableMap")
-internal inline fun <K, V, R> copy(original: () -> Map<K, V>?, mapper: (V) -> R): Map<K, R>? =
-  ModelCache.safeGet(original, mapOf())?.mapValues { (_, v) -> mapper(v) }
-
-internal inline fun <K, V, R> copyMapList(original: () -> Map<K, V?>, mapper: (K, V?) -> R): List<R> =
-  ModelCache.safeGet(original, mapOf()).map { (k, v) -> mapper(k, v) }
-
-internal inline fun <T> copyNewPropertyWithDefault(propertyInvoker: () -> T, defaultValue: () -> T): T {
-  return try {
-    propertyInvoker()
-  }
-  catch (ignored: UnsupportedOperationException) {
-    defaultValue()
-  }
-}
-
 internal fun <T> MutableMap<T, T>.internCore(core: T): T = putIfAbsent(core, core) ?: core
-
-internal fun getSymbolFilePath(androidLibrary: AndroidLibrary): String {
-  return try {
-    androidLibrary.symbolFile.path
-  }
-  catch (e: UnsupportedOperationException) {
-    File(androidLibrary.folder, SdkConstants.FN_RESOURCE_TEXT).path
-  }
-}
-
-internal fun convertExecution(execution: TestOptions.Execution?): IdeTestOptions.Execution? {
-  return if (execution == null) null
-  else when (execution) {
-    TestOptions.Execution.HOST -> IdeTestOptions.Execution.HOST
-    TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
-    TestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR -> IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
-    else -> throw IllegalStateException("Unknown execution option: $execution")
-  }
-}
-
-internal fun convertCodeShrinker(codeShrinker: com.android.builder.model.CodeShrinker?): CodeShrinker? {
-  return if (codeShrinker == null) null
-  else when (codeShrinker) {
-    com.android.builder.model.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
-    com.android.builder.model.CodeShrinker.R8 -> CodeShrinker.R8
-    else -> throw IllegalStateException("Unknown code shrinker option: $codeShrinker")
-  }
-}
-
-internal fun convertCodeShrinker(codeShrinker: com.android.builder.model.v2.ide.CodeShrinker?): CodeShrinker? {
-  return if (codeShrinker == null) null
-  else when (codeShrinker) {
-    com.android.builder.model.v2.ide.CodeShrinker.PROGUARD -> CodeShrinker.PROGUARD
-    com.android.builder.model.v2.ide.CodeShrinker.R8 -> CodeShrinker.R8
-    else -> throw IllegalStateException("Unknown code shrinker option: $codeShrinker")
-  }
-}
-
-private fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when(this) {
-    AndroidProjectTypes.PROJECT_TYPE_APP -> IdeAndroidProjectType.PROJECT_TYPE_APP
-    AndroidProjectTypes.PROJECT_TYPE_LIBRARY -> IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
-    AndroidProjectTypes.PROJECT_TYPE_TEST -> IdeAndroidProjectType.PROJECT_TYPE_TEST
-    AndroidProjectTypes.PROJECT_TYPE_ATOM -> IdeAndroidProjectType.PROJECT_TYPE_ATOM
-    AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP
-    AndroidProjectTypes.PROJECT_TYPE_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_FEATURE
-    AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE -> IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
-    else -> error("Unknown Android project type: $this")
-}
-
-internal fun getProjectType(project: AndroidProject, modelVersion: GradleVersion?): IdeAndroidProjectType {
-  if (modelVersion != null && modelVersion.isAtLeast(2, 3, 0)) {
-    return project.projectType.toIdeAndroidProjectType()
-  }
-  // Support for old Android Gradle Plugins must be maintained.
-  return if (project.isLibrary) IdeAndroidProjectType.PROJECT_TYPE_LIBRARY else IdeAndroidProjectType.PROJECT_TYPE_APP
-}
 
 @VisibleForTesting
 /** For older AGP versions pick a variant name based on a heuristic  */
@@ -275,8 +146,6 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-
-
 /** Indicates whether the given library is a module wrapping an AAR file.  */
 @VisibleForTesting
 fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: AndroidLibrary): Boolean {
@@ -291,34 +160,9 @@ fun isLocalAarModule(buildFolderPaths: BuildFolderPaths, androidLibrary: Android
           !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
 }
 
-@JvmName("createIdeAndroidGradlePluginProjectFlagsImpl")
-fun createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap: Map<BooleanFlag, Boolean>): IdeAndroidGradlePluginProjectFlagsImpl {
-  return IdeAndroidGradlePluginProjectFlagsImpl(
-      applicationRClassConstantIds = booleanFlagMap.getBooleanFlag(BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS),
-      testRClassConstantIds = booleanFlagMap.getBooleanFlag(BooleanFlag.TEST_R_CLASS_CONSTANT_IDS),
-      transitiveRClasses = booleanFlagMap.getBooleanFlag(BooleanFlag.TRANSITIVE_R_CLASS),
-      usesCompose = booleanFlagMap.getBooleanFlag(BooleanFlag.JETPACK_COMPOSE),
-      mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(BooleanFlag.ML_MODEL_BINDING)
-    )
-}
-
-/**
- * Create an empty set of flags for older AGPs and for studio serialization.
- */
-internal fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap = emptyMap())
-
-internal fun Map<BooleanFlag, Boolean>.getBooleanFlag(flag: BooleanFlag): Boolean = this[flag] ?: flag.legacyDefault
-
 internal fun convertArtifactName(name: String): IdeArtifactName = when(name) {
   AndroidProject.ARTIFACT_MAIN -> IdeArtifactName.MAIN
   AndroidProject.ARTIFACT_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   AndroidProject.ARTIFACT_UNIT_TEST -> IdeArtifactName.UNIT_TEST
-  else -> error("Invalid android artifact name: $name")
-}
-
-internal fun convertV2ArtifactName(name: String): IdeArtifactName = when(name) {
-  "_main_" -> IdeArtifactName.MAIN
-  "_android_test_" -> IdeArtifactName.ANDROID_TEST
-  "_unit_test_" -> IdeArtifactName.UNIT_TEST
   else -> error("Invalid android artifact name: $name")
 }
