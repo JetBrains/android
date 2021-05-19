@@ -33,6 +33,7 @@
         <module name="aswb.third_party.intellij.bazel.plugin.common" />
         <module name="aswb.third_party.intellij.bazel.plugin.cpp" />
         <module name="aswb.third_party.intellij.bazel.plugin.java" />
+        <module name="aswb.third_party.intellij.bazel.plugin.kotlin" />
         <module name="aswb.jcgdi.blaze.plugin.java" />
         <module name="aswb.third_party.intellij.bazel.plugin.base" />
         <module name="aswb.jcgdi.blaze.plugin.base" />
