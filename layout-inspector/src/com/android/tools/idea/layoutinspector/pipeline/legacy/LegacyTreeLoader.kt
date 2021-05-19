@@ -60,6 +60,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
       ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
     }
     client.latestScreenshots.keys.retainAll(result)
+    client.latestData.keys.retainAll(result)
     return result
   }
 
@@ -70,6 +71,7 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
+    client.latestData[windowName] = hierarchyData
     val (rootNode, _) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     getScreenshotPngBytes(ddmClient)?.let { client.latestScreenshots[windowName] = it }
 

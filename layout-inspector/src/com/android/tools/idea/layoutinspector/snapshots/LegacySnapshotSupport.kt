@@ -25,9 +25,15 @@ import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.io.write
+import org.jetbrains.kotlin.idea.core.util.readString
+import org.jetbrains.kotlin.idea.core.util.writeString
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.nio.file.Path
 import javax.imageio.ImageIO
 
 class LegacySnapshotLoader {
@@ -40,36 +46,61 @@ class LegacySnapshotLoader {
       // Parse options
       options.parse(input.readUTF())
 
-      // Parse view node
-      val nodeBytes = ByteArray(input.readInt())
-      input.readFully(nodeBytes)
-      val propertyUpdater = LegacyPropertiesProvider.Updater(model)
-      val (node, _) = LegacyTreeParser.parseLiveViewNode(
-        nodeBytes, propertyUpdater
-      ) ?: throw IOException("Error parsing view node")
-      propertyUpdater.apply(propertiesProvider)
+      val windows = mutableListOf<String>()
+      while (input.available() > 0) {
+        // Parse view node
+        val nodeBytes = ByteArray(input.readInt())
+        input.readFully(nodeBytes)
+        val propertyUpdater = LegacyPropertiesProvider.Updater(model)
+        val (node, _) = LegacyTreeParser.parseLiveViewNode(
+          nodeBytes, propertyUpdater
+        ) ?: throw IOException("Error parsing view node")
+        propertyUpdater.apply(propertiesProvider)
 
-      // Preview image
-      val previewBytes = ByteArray(input.readInt())
-      input.readFully(previewBytes)
-      val image = ImageIO.read(ByteArrayInputStream(previewBytes))
-
-      val window = object: AndroidWindow(node, "window", ImageType.BITMAP_AS_REQUESTED) {
-        override fun refreshImages(scale: Double) {
-          ViewNode.writeDrawChildren { drawChildren ->
-            root.flatten().forEach { it.drawChildren().clear() }
-            if (image != null) {
-              root.drawChildren().add(DrawViewImage(image, root))
+        // Preview image
+        val previewBytes = ByteArray(input.readInt())
+        input.readFully(previewBytes)
+        val image = ImageIO.read(ByteArrayInputStream(previewBytes))
+        val windowName = input.readString()
+        windows.add(windowName)
+        val window = object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
+          override fun refreshImages(scale: Double) {
+            ViewNode.writeDrawChildren { drawChildren ->
+              root.flatten().forEach { it.drawChildren().clear() }
+              if (image != null) {
+                root.drawChildren().add(DrawViewImage(image, root))
+              }
+              root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
             }
-            root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
           }
         }
+        model.update(window, windows, 1)
       }
-      model.update(window, listOf("window"), 1)
     }
   }
 }
 
+fun saveLegacySnapshot(path: Path, data: Map<String, ByteArray>, images: Map<String, ByteArray>) {
+  val baos = ByteArrayOutputStream(4096)
+  ObjectOutputStream(baos).use { output ->
+
+    output.writeUTF(LayoutInspectorCaptureOptions().toString())
+
+    for ((name, windowData) in data) {
+      output.writeInt(windowData.size)
+      output.write(windowData)
+
+      // TODO: error handling?
+      val imageData = images[name] ?: throw Exception()
+      output.writeInt(imageData.size)
+      output.write(imageData)
+      output.writeString(name)
+    }
+  }
+  path.write(baos.toByteArray())
+}
+
+// The below is copied for compatibility with legacy captures
 enum class ProtocolVersion(val value: String) {
   Version1("1"),
   Version2("2")

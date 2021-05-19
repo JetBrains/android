@@ -75,6 +75,8 @@ class LegacyClient(
   override val treeLoader = treeLoaderForTest ?: LegacyTreeLoader(adb, this)
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
+  var latestData = mutableMapOf<String, ByteArray>()
+
 
   init {
     loggedInitialRender = false
