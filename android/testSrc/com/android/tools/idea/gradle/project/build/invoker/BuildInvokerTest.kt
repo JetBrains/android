@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.BuildViewManager
 import com.intellij.build.events.BuildEvent
@@ -32,7 +31,6 @@ import com.intellij.build.events.StartBuildEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import java.io.File
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -100,10 +98,17 @@ class BuildInvokerTest : AndroidGradleTestCase() {
       }
     })
 
-    val tasks = ArrayListMultimap.create<Path, String>().apply { put(File(project.basePath!!).toPath(), "assembleDebug") }
     // Run a slow build task which will run for 30 seconds unless cancelled.
-    invoker.executeTasks(tasks, BuildMode.ASSEMBLE, emptyList(), SlowTestBuildAction())
-
+    invoker.executeTasks(
+      GradleBuildInvoker.Request.Builder(
+        project = project,
+        rootProjectPath = File(project.basePath!!),
+        gradleTasks = listOf("assembleDebug")
+      )
+        .setMode(BuildMode.ASSEMBLE)
+        .setBuildAction(SlowTestBuildAction())
+        .build()
+    )
     lock.withLock {
       buildFinishedEventReceived.await(1, TimeUnit.SECONDS)
     }

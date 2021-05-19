@@ -25,6 +25,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.ModuleManager
 import org.hamcrest.CoreMatchers.hasItem
 import org.junit.After
 import org.junit.Assert.assertThat
@@ -69,7 +70,7 @@ class AndroidLintCustomCheckTest {
 
       val request = GradleSyncInvoker.Request.testRequest()
       myProjectRule.requestSyncAndWait(request)
-      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources()
+      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).getModules())
     }
   }
 

@@ -59,7 +59,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
                                             myFileDocumentManager,
                                             GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor),
                                             myDebugSessionFinder)
-    myRequest = GradleBuildInvoker.Request(myProject, File(myProject.basePath), emptyList(), myTaskId)
+    myRequest = GradleBuildInvoker.Request.builder(myProject, File(myProject.basePath)).setTaskId(myTaskId).build()
   }
 
   override fun tearDown() {

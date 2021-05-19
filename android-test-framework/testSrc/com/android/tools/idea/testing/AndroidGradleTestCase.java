@@ -326,7 +326,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
 
   protected void generateSources() throws InterruptedException {
-    GradleInvocationResult result = invokeGradle(getProject(), GradleBuildInvoker::generateSources);
+    GradleInvocationResult result =
+      invokeGradle(getProject(), invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
     assertTrue("Generating sources failed.", result.isBuildSuccessful());
     refreshProjectFiles();
   }
@@ -342,7 +343,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
     return invokeGradle(project, gradleInvoker ->
-      gradleInvoker.executeTasks(projectDir, Lists.newArrayList(tasks), Lists.newArrayList("--offline")), timeoutMillis);
+      gradleInvoker.executeTasks(
+        GradleBuildInvoker.Request.builder(project, projectDir, tasks)
+          .setCommandLineArguments(Lists.newArrayList("--offline"))
+          .build()
+      ), timeoutMillis);
   }
 
   @NotNull

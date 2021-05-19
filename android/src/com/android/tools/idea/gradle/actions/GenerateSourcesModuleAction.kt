@@ -37,6 +37,6 @@ class GenerateSourcesModuleAction : AndroidStudioGradleAction(ACTION_TEXT) {
 
   override fun doPerform(e: AnActionEvent, project: Project) {
     val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
-    GradleBuildInvoker.getInstance(project).generateSourcesForModules(modules)
+    GradleBuildInvoker.getInstance(project).generateSources(modules)
   }
 }

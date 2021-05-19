@@ -20,6 +20,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.PsiDirectory;
@@ -46,7 +47,7 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     loadSimpleApplication();
     // Generate buildConfig.
     requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
-    GradleBuildInvoker.getInstance(getProject()).generateSources();
+    GradleBuildInvoker.getInstance(getProject()).generateSources(ModuleManager.getInstance(getProject()).getModules());
 
     Project project = getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");
