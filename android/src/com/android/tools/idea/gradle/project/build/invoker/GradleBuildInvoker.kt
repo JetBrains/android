@@ -55,12 +55,17 @@ interface GradleBuildInvoker {
 
   @Deprecated("")
   fun executeTasks(gradleTasks: List<String>)
+
+  /**
+   * Executes Gradle tasks requested for each root in separate Gradle invocations. The results (including failed sub-builds) are reported as
+   * GradleInvocationResult, however, any unexpected failures are returned as a failed future.
+   */
   fun executeTasks(
     tasks: ListMultimap<Path, String>,
     buildMode: BuildMode?,
     commandLineArguments: List<String>,
     buildAction: BuildAction<*>?
-  )
+  ) : ListenableFuture<GradleMultiInvocationResult>
 
   @VisibleForTesting
   fun executeTasks(

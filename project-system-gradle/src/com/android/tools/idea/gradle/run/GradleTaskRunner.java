@@ -17,17 +17,18 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
@@ -65,38 +66,24 @@ public interface GradleTaskRunner {
       assert !ApplicationManager.getApplication().isDispatchThread();
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 
-      AtomicBoolean success = new AtomicBoolean();
-      CountDownLatch done = new CountDownLatch(1);
-
-      GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
-        @Override
-        public void execute(@NotNull GradleInvocationResult result) {
-          success.set(result.isBuildSuccessful());
-          model.set(result.getModel());
-          gradleBuildInvoker.remove(this);
-          done.countDown(); // Signal completion.
-        }
-      };
-
-      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use
-      // ApplicationManager.getApplication().invokeLater. IDEA also uses invokeLater in this scenario (see CompileStepBeforeRun.)
-      ApplicationManager.getApplication().invokeLater(() -> {
-        // If the project is disposed before this lambda executes, the following ensures that deadlock does not occur.
-        if (myProject.isDisposed()) {
-          done.countDown(); // Signal completion.
-          return;
-        }
-        gradleBuildInvoker.add(afterTask);
+      ListenableFuture<GradleMultiInvocationResult> future =
         gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments, myBuildAction);
-      });
 
       try {
-        done.await();
+        future.get().getModels().stream()
+          // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
+          // `PostBuildModel`s were not designed to handle this.
+          .findFirst()
+          .ifPresent(model::set);
+        return true;
       }
       catch (InterruptedException e) {
         throw new ProcessCanceledException();
       }
-      return success.get();
+      catch (ExecutionException e) {
+        Logger.getInstance(DefaultGradleTaskRunner.class).error(e);
+        return false;
+      }
     }
 
     @Nullable
