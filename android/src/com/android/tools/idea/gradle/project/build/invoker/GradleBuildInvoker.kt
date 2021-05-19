@@ -57,7 +57,7 @@ interface GradleBuildInvoker {
   fun executeTasks(gradleTasks: List<String>)
   fun executeTasks(
     tasks: ListMultimap<Path, String>,
-    buildMode: BuildMode,
+    buildMode: BuildMode?,
     commandLineArguments: List<String>,
     buildAction: BuildAction<*>?
   )
@@ -67,16 +67,16 @@ interface GradleBuildInvoker {
     rootProjectPath: File,
     gradleTasks: MutableList<String>,
     commandLineArguments: MutableList<String>
-  ): ListenableFuture<GradleInvocationResult?>
+  ): ListenableFuture<GradleInvocationResult>
 
   fun executeTasks(
     rootProjectPath: File,
     gradleTasks: MutableList<String>,
     commandLineArguments: MutableList<String>,
     buildAction: BuildAction<*>?
-  ): ListenableFuture<GradleInvocationResult?>
+  ): ListenableFuture<GradleInvocationResult>
 
-  fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult?>
+  fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
   fun stopBuild(id: ExternalSystemTaskId): Boolean
   fun add(task: AfterGradleInvocationTask)
   fun remove(task: AfterGradleInvocationTask)

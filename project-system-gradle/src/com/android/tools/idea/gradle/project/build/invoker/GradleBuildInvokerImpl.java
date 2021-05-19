@@ -399,16 +399,18 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @Override
   @VisibleForTesting
   @NotNull
-  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath, @NotNull List<String> gradleTasks, @NotNull List<String> commandLineArguments) {
+  public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull File rootProjectPath,
+                                                               @NotNull List<String> gradleTasks,
+                                                               @NotNull List<String> commandLineArguments) {
     return executeTasks(rootProjectPath, gradleTasks, commandLineArguments, null);
   }
 
   @Override
   @NotNull
-  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull File rootProjectPath,
-                                                                         @NotNull List<String> gradleTasks,
-                                                                         @NotNull List<String> commandLineArguments,
-                                                                         @Nullable BuildAction<?> buildAction) {
+  public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull File rootProjectPath,
+                                                               @NotNull List<String> gradleTasks,
+                                                               @NotNull List<String> commandLineArguments,
+                                                               @Nullable BuildAction<?> buildAction) {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -470,7 +472,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   @NotNull
-  public ListenableFuture<@Nullable GradleInvocationResult> executeTasks(@NotNull Request request) {
+  public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull Request request) {
     String rootProjectPath = request.getRootProjectPath().getPath();
     // Remember the current build's tasks, in case they want to re-run it with transient gradle options.
     myLastBuildTasks.removeAll(rootProjectPath);
@@ -479,15 +481,16 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
     getLogger().info("About to execute Gradle tasks: " + gradleTasks);
     if (gradleTasks.isEmpty()) {
-      return Futures.immediateFuture(null);
+      return Futures.immediateFuture(new GradleInvocationResult(request.getRootProjectPath(), request.getGradleTasks(), null));
     }
     String executionName = getExecutionName(request);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, request.getListener());
     return internalExecuteTasks(request, buildTaskListener);
   }
 
-  private ListenableFuture<@Nullable GradleInvocationResult> internalExecuteTasks(@NotNull Request request, ExternalSystemTaskNotificationListener buildTaskListener) {
-    SettableFuture<@Nullable GradleInvocationResult> resultFuture = SettableFuture.create();
+  private ListenableFuture<GradleInvocationResult> internalExecuteTasks(@NotNull Request request,
+                                                                        ExternalSystemTaskNotificationListener buildTaskListener) {
+    SettableFuture<GradleInvocationResult> resultFuture = SettableFuture.create();
     GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, buildTaskListener, resultFuture);
 
     ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);

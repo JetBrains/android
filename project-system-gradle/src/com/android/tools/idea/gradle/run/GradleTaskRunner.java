@@ -54,10 +54,13 @@ public interface GradleTaskRunner {
       myBuildAction = buildAction;
     }
 
-    /** This method will deadlock if invoked on the UI thread. */
+    /**
+     * This method will deadlock if invoked on the UI thread.
+     */
     @Override
     @WorkerThread
-    public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode,
+    public boolean run(@NotNull ListMultimap<Path, String> tasks,
+                       @Nullable BuildMode buildMode,
                        @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);

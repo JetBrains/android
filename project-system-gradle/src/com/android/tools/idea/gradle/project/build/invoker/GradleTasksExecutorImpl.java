@@ -126,7 +126,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request,
                           @NotNull BuildStopper buildStopper,
                           @NotNull ExternalSystemTaskNotificationListener listener,
-                          @NotNull SettableFuture<@Nullable GradleInvocationResult> resultFuture) {
+                          @NotNull SettableFuture<GradleInvocationResult> resultFuture) {
     super(request.getProject());
     myRequest = request;
     myBuildStopper = buildStopper;
@@ -204,6 +204,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     buildAttributionManager.onBuildStart();
   }
 
+  @NotNull
   private GradleInvocationResult invokeGradleTasks() {
 
     Project project = myRequest.getProject();
@@ -405,7 +406,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           return result;
         }
       }
-      return null;
+      return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), null);
     };
 
     if (GuiTestingService.getInstance().isGuiTestingMode()) {
@@ -425,12 +426,12 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     catch (ExternalSystemException e) {
       if (e.getOriginalReason().startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
         getLogger().info("Gradle execution cancelled.", e);
+        return new GradleInvocationResult(myRequest.getRootProjectPath(), myRequest.getGradleTasks(), e);
       }
       else {
         throw e;
       }
     }
-    return null;
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {

@@ -58,10 +58,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
@@ -337,7 +334,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
                                       @NotNull BuildStopper buildStopper,
                                       @NotNull ExternalSystemTaskNotificationListener listener,
-                                      @NotNull SettableFuture<@Nullable GradleInvocationResult> resultFuture) {
+                                      @NotNull SettableFuture<GradleInvocationResult> resultFuture) {
       myRequest = request;
       doAnswer(invocation -> {
         resultFuture.set(null);
