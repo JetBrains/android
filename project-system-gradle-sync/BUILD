@@ -29,7 +29,7 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.sync.tests.iml"],
     test_class = "com.android.tools.idea.projectsystem.gradle.sync.GradleProjectSystemSyncTestSuite",
     test_data = [
-        "//tools/base/build-system/previous-versions:2.2.0.zip",
+        "//tools/base/build-system/previous-versions:2.2.0",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
