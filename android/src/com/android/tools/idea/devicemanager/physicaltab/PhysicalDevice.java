@@ -31,19 +31,19 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
       .thenComparing(PhysicalDevice::getLastOnlineTime, Comparator.nullsLast(Comparator.reverseOrder()));
 
-  private final @NotNull String mySerialNumber;
+  private final @NotNull Key myKey;
   private final @Nullable Instant myLastOnlineTime;
   private final @NotNull String myApi;
   private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes;
 
   public static final class Builder extends Device.Builder {
-    private @Nullable String mySerialNumber;
+    private @Nullable Key myKey;
     private @Nullable Instant myLastOnlineTime;
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
 
-    public @NotNull Builder setSerialNumber(@NotNull String serialNumber) {
-      mySerialNumber = serialNumber;
+    public @NotNull Builder setKey(@NotNull Key key) {
+      myKey = key;
       return this;
     }
 
@@ -96,8 +96,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
   private PhysicalDevice(@NotNull Builder builder) {
     super(builder);
 
-    assert builder.mySerialNumber != null;
-    mySerialNumber = builder.mySerialNumber;
+    assert builder.myKey != null;
+    myKey = builder.myKey;
 
     myLastOnlineTime = builder.myLastOnlineTime;
 
@@ -107,8 +107,8 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     myConnectionTypes = builder.myConnectionTypes;
   }
 
-  @NotNull String getSerialNumber() {
-    return mySerialNumber;
+  @NotNull Key getKey() {
+    return myKey;
   }
 
   @Nullable Instant getLastOnlineTime() {
@@ -135,7 +135,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   @Override
   public int hashCode() {
-    int hashCode = mySerialNumber.hashCode();
+    int hashCode = myKey.hashCode();
 
     hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
     hashCode = 31 * hashCode + myName.hashCode();
@@ -154,7 +154,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     PhysicalDevice device = (PhysicalDevice)object;
 
-    return mySerialNumber.equals(device.mySerialNumber) &&
+    return myKey.equals(device.myKey) &&
            Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
            myName.equals(device.myName) &&
            myTarget.equals(device.myTarget) &&

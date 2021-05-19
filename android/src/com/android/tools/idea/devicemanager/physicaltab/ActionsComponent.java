@@ -75,7 +75,7 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
         return;
       }
 
-      myOpenAndShowDevice.accept(myProject, myDevice.getSerialNumber());
+      myOpenAndShowDevice.accept(myProject, myDevice.getKey().toString());
     });
   }
 

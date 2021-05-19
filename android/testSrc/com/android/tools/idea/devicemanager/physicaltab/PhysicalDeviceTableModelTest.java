@@ -39,7 +39,7 @@ public final class PhysicalDeviceTableModelTest {
   public void newPhysicalDeviceTableModel() {
     // Arrange
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setSerialNumber("0A071FDD4003ZG")
+      .setKey(new SerialNumber("0A071FDD4003ZG"))
       .setLastOnlineTime(Instant.parse("2021-03-24T22:38:05.890570Z"))
       .setName("Google Pixel 5")
       .setTarget("Android 11.0")
@@ -65,7 +65,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addTableModelListener(listener);
 
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setSerialNumber("0A071FDD4003ZG")
+      .setKey(new SerialNumber("0A071FDD4003ZG"))
       .setName("Google Pixel 5")
       .setTarget("Android 11.0")
       .setApi("30")
@@ -90,7 +90,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addTableModelListener(listener);
 
     PhysicalDevice onlinePixel5 = new PhysicalDevice.Builder()
-      .setSerialNumber("0A071FDD4003ZG")
+      .setKey(new SerialNumber("0A071FDD4003ZG"))
       .setName("Google Pixel 5")
       .setTarget("Android 11.0")
       .setApi("30")

@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 @UiThread
 @Service
 final class BuilderService {
-  private final @NotNull Map<@NotNull String, @Nullable Instant> mySerialNumberToOnlineTimeMap;
+  private final @NotNull Map<@NotNull Key, @Nullable Instant> myKeyToOnlineTimeMap;
   private final @NotNull Clock myClock;
 
   @SuppressWarnings("unused")
@@ -53,7 +53,7 @@ final class BuilderService {
   @VisibleForTesting
   @NonInjectable
   BuilderService(@NotNull Clock clock) {
-    mySerialNumberToOnlineTimeMap = new HashMap<>();
+    myKeyToOnlineTimeMap = new HashMap<>();
     myClock = clock;
   }
 
@@ -74,28 +74,32 @@ final class BuilderService {
   private @NotNull PhysicalDevice build(@NotNull IDevice device,
                                         @NotNull Future<@NotNull String> modelFuture,
                                         @NotNull Future<@NotNull String> manufacturerFuture) {
+    String keyValue = device.getSerialNumber();
+
+    boolean domainName = DeviceUtils.isMdnsAutoConnectTls(keyValue);
     boolean online = device.isOnline();
+
+    Key key = domainName ? new DomainName(keyValue) : new SerialNumber(keyValue);
     Instant time;
-    String serialNumber = device.getSerialNumber();
 
     if (online) {
-      time = mySerialNumberToOnlineTimeMap.computeIfAbsent(serialNumber, s -> myClock.instant());
+      time = myKeyToOnlineTimeMap.computeIfAbsent(key, k -> myClock.instant());
     }
     else {
-      time = mySerialNumberToOnlineTimeMap.remove(serialNumber);
+      time = myKeyToOnlineTimeMap.remove(key);
     }
 
     AndroidVersion version = device.getVersion();
 
     PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
-      .setSerialNumber(serialNumber)
+      .setKey(key)
       .setLastOnlineTime(time)
       .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
       .setTarget(Targets.toString(version))
       .setApi(version.getApiString());
 
     if (online) {
-      builder.addConnectionType(DeviceUtils.isMdnsAutoConnectTls(device) ? ConnectionType.WI_FI : ConnectionType.USB);
+      builder.addConnectionType(domainName ? ConnectionType.WI_FI : ConnectionType.USB);
     }
 
     return builder.build();

@@ -33,7 +33,7 @@ public final class PhysicalDeviceTest {
     Instant time2 = Instant.parse("2021-03-24T22:38:05.890570Z");
 
     Object device1 = new PhysicalDevice.Builder()
-      .setSerialNumber("serialNumber1")
+      .setKey(new SerialNumber("serialNumber1"))
       .setLastOnlineTime(time1)
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
@@ -42,7 +42,7 @@ public final class PhysicalDeviceTest {
       .build();
 
     Object device2 = new PhysicalDevice.Builder()
-      .setSerialNumber("serialNumber2")
+      .setKey(new SerialNumber("serialNumber2"))
       .setLastOnlineTime(time2)
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
@@ -51,7 +51,7 @@ public final class PhysicalDeviceTest {
       .build();
 
     Object device3 = new PhysicalDevice.Builder()
-      .setSerialNumber("serialNumber3")
+      .setKey(new SerialNumber("serialNumber3"))
       .setLastOnlineTime(time1)
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
@@ -59,7 +59,7 @@ public final class PhysicalDeviceTest {
       .build();
 
     Object device4 = new PhysicalDevice.Builder()
-      .setSerialNumber("serialNumber4")
+      .setKey(new SerialNumber("serialNumber4"))
       .setLastOnlineTime(time2)
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
@@ -67,7 +67,7 @@ public final class PhysicalDeviceTest {
       .build();
 
     Object device5 = new PhysicalDevice.Builder()
-      .setSerialNumber("serialNumber5")
+      .setKey(new SerialNumber("serialNumber5"))
       .setName("Google Pixel 3")
       .setTarget("Android 12 Preview")
       .setApi("S")

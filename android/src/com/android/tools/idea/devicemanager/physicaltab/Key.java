@@ -15,21 +15,5 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-public final class TestPhysicalDevices {
-  public static final PhysicalDevice GOOGLE_PIXEL_3 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("86UX00F4R"))
-    .setName("Google Pixel 3")
-    .setTarget("Android 12 Preview")
-    .setApi("S")
-    .build();
-
-  public static final PhysicalDevice GOOGLE_PIXEL_5 = new PhysicalDevice.Builder()
-    .setKey(new SerialNumber("0A071FDD4003ZG"))
-    .setName("Google Pixel 5")
-    .setTarget("Android 11.0")
-    .setApi("30")
-    .build();
-
-  private TestPhysicalDevices() {
-  }
+interface Key {
 }
