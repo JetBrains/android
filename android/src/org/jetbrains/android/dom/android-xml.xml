@@ -41,7 +41,7 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.raw.RawDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.manifest.ManifestDomFileDescription"/>
-    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewLayoutDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.LayoutViewElementDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.FragmentLayoutDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.layout.DataBindingDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.animation.fileDescriptions.TweenSetFileDescription"/>
@@ -60,19 +60,20 @@
     <dom.fileDescription implementation="org.jetbrains.android.dom.transitionManager.TransitionManagerDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.menu.MenuDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.resources.ResourcesDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.xml.PreferenceClassDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.xml.XmlResourceDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.lint.LintSettingsFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.font.FontFamilyDomFileDescription"/>
     <dom.fileDescription implementation="com.android.tools.idea.dom.xml.PathsDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.motion.MotionDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.MergeDomFileDescription"/>
+    <dom.fileDescription implementation="org.jetbrains.android.dom.layout.ViewTagDomFileDescription"/>
 
     <!--  The dynamic DOM extender:  -->
     <dom.extender domClass="org.jetbrains.android.dom.AndroidDomElement" extenderClass="org.jetbrains.android.dom.AndroidDomExtender"/>
-    <dom.extender domClass="org.jetbrains.android.dom.layout.LayoutViewElement" extenderClass="org.jetbrains.android.dom.AndroidLayoutDomExtender"/>
 
     <!-- Extensions affecting code completion and XML in general: -->
     <xml.elementDescriptorProvider implementation="org.jetbrains.android.dom.AndroidDomElementDescriptorProvider" order="first"/>
-    <xml.tagNameProvider implementation="org.jetbrains.android.dom.AndroidLayoutXmlTagNameProvider" order="first" />
     <xml.xmlExtension implementation="org.jetbrains.android.dom.AndroidXmlExtension" order="first"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.resources.ResourceStructureViewBuilderProvider"/>
     <xmlStructureViewBuilderProvider implementation="org.jetbrains.android.dom.structure.layout.LayoutStructureViewBuilderProvider"/>

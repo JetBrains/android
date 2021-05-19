@@ -20,11 +20,21 @@ import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.TraceParser
-import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.ProcessListSorter
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
 import java.io.File
 
 class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
                      private val ideProfilerServices: IdeProfilerServices) : TraceParser {
+
+  companion object {
+    // This lock controls access to TPD, see comment below in the synchronized block.
+    // We use this instead of @Synchronized, because CpuCaptureParser build and return new instances of PerfettoParser,
+    // so we need a static object to serve as the lock monitor.
+    val TPD_LOCK = Any()
+  }
 
   override fun parse(file: File, traceId: Long): CpuCapture {
     if (ideProfilerServices.featureConfig.isUseTraceProcessor) {
@@ -40,8 +50,33 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
   }
 
   private fun parseUsingTraceProcessor(file: File, traceId: Long): CpuCapture {
-    //noinspection StopShip
-    TODO("b/147099951 Use TraceProcessorService and return a PerfettoCapture.")
-  }
+    // We only allow one instance running here, because TPD currently doesn't handle the multiple loaded traces case (since we can only see
+    // one in the UI), so any attempt of doing so (like double clicking very fast in the UI to trigger two parses) might lead to a race
+    // condition and end up with a failure.
+    synchronized(TPD_LOCK) {
+      val traceProcessor = ideProfilerServices.traceProcessorService
 
+      val traceLoaded = traceProcessor.loadTrace(traceId, file, ideProfilerServices.featureTracker)
+      if (!traceLoaded) {
+        error("Unable to load trace with TPD.")
+      }
+
+      val processList = traceProcessor.getProcessMetadata(traceId, ideProfilerServices.featureTracker)
+      check(processList.isNotEmpty()) { "Invalid trace without any process information." }
+
+      val processListSorter = ProcessListSorter(mainProcessSelector.nameHint)
+      val selectedProcess = mainProcessSelector.apply(processListSorter.sort(processList))
+      checkNotNull(selectedProcess) { "It was not possible to select a process for this trace." }
+
+      val pidsToQuery = mutableListOf(selectedProcess)
+      processList.find {
+        it.getSafeProcessName().endsWith(SystemTraceSurfaceflingerManager.SURFACEFLINGER_PROCESS_NAME)
+      }?.let { pidsToQuery.add(it.id) }
+
+      val model = traceProcessor.loadCpuData(traceId, pidsToQuery, ideProfilerServices.featureTracker)
+
+      val builder = SystemTraceCpuCaptureBuilder(model)
+      return builder.build(traceId, selectedProcess)
+    }
+  }
 }

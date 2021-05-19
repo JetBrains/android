@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
@@ -47,7 +48,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
       )).build();
 
     GroupDragHandler handler = getMenuHandler(model);
-    handler.update(397, 0, 0);
+    handler.update(397, 0, 0, SceneContext.get());
 
     assertEquals(-1, handler.getInsertIndex());
   }
@@ -63,35 +64,35 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
     @AndroidDpCoordinate int y = 45;
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
   }
 
@@ -109,27 +110,27 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
     @AndroidDpCoordinate int y = 45;
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
   }
 
@@ -147,27 +148,27 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
     @AndroidDpCoordinate int y = 45;
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
   }
 
@@ -185,27 +186,27 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
     @AndroidDpCoordinate int y = 45;
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(0, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(1, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(2, handler.getInsertIndex());
 
     y += 24;
-    handler.update(0, y, 0);
+    handler.update(0, y, 0, SceneContext.get());
     assertEquals(-1, handler.getInsertIndex());
   }
 

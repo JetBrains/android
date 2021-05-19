@@ -116,7 +116,7 @@ public class GraphicGeneratorContext {
     VdPreview.TargetSize targetSize = VdPreview.TargetSize.createFromMaxDimension(Math.max(size.width, size.height));
     BufferedImage image = VdPreview.getPreviewFromVectorXml(targetSize, vectorDrawableText, null);
     if (image == null) {
-      image = AssetStudioUtils.createDummyImage();
+      image = AssetStudioUtils.createPlaceholderImage();
     }
     return Futures.immediateFuture(image);
   }

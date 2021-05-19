@@ -22,3 +22,6 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor
  */
 fun multiTransformOf(vararg transforms: (ClassVisitor) -> (ClassVisitor)): java.util.function.Function<ClassVisitor, ClassVisitor> =
   java.util.function.Function<ClassVisitor, ClassVisitor> { transforms.fold(it) { acc, visitor -> visitor(acc) } }
+
+fun combine(f1: java.util.function.Function<ClassVisitor, ClassVisitor>, f2: java.util.function.Function<ClassVisitor, ClassVisitor>) =
+  java.util.function.Function<ClassVisitor, ClassVisitor> { f2.apply(f1.apply(it)) }

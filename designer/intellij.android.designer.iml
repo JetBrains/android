@@ -7,6 +7,9 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="assistant" />
@@ -15,7 +18,6 @@
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
@@ -39,10 +41,9 @@
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.1.1.0" />
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.1.1.0/jb-layoutlib-native-jdk11-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -53,5 +54,7 @@
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="ASM" level="project" />
   </component>
 </module>

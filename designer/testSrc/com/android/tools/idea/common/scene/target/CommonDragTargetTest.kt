@@ -16,9 +16,11 @@
 package com.android.tools.idea.common.scene.target
 
 import com.android.SdkConstants
-import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
@@ -299,7 +301,7 @@ class CommonDragTargetTest : SceneTest() {
       // Drag textView should select both
       myScene.select(listOf(textView, textView2))
       target.mouseDown(10, 10)
-      target.mouseDrag(11, 11, listOf())
+      target.mouseDrag(11, 11, listOf(), SceneContext.get())
       target.mouseRelease(12, 12, listOf())
       val newSelection = target.newSelection()
       assertEquals(2, newSelection.size)
@@ -312,7 +314,7 @@ class CommonDragTargetTest : SceneTest() {
       // Drag textView2 should select both
       myScene.select(listOf(textView, textView2))
       target2.mouseDown(10, 10)
-      target2.mouseDrag(11, 11, listOf())
+      target2.mouseDrag(11, 11, listOf(), SceneContext.get())
       target2.mouseRelease(12, 12, listOf())
       val newSelection = target2.newSelection()
       assertEquals(2, newSelection.size)
@@ -337,7 +339,7 @@ class CommonDragTargetTest : SceneTest() {
       myScene.select(listOf(textView))
       val target = CommonDragTarget(textView)
       assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
-      assertEquals(AdtUiCursors.MOVE, target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
+      assertEquals(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE), target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
     }
   }
 

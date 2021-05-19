@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.ui;
 
+import static icons.StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES;
+
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -36,12 +38,15 @@ public class ApplyChangesAction extends BaseAction {
 
   public static final String ID = "android.deploy.ApplyChanges";
 
-  public static final String NAME = "&Apply Changes and Restart Activity";
+  public static final String DISPLAY_NAME = "Apply Changes and Restart Activity";
+
+  // The '&' is IJ markup to indicate the subsequent letter is the accelerator key.
+  public static final String ACCELERATOR_NAME = "&Apply Changes and Restart Activity";
 
   private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
 
   public ApplyChangesAction() {
-    super(NAME, SwapInfo.SwapType.APPLY_CHANGES, StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES, DESC);
+    super(DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CHANGES, APPLY_ALL_CHANGES, DESC);
   }
 
   @Override

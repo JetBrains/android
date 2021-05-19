@@ -38,7 +38,6 @@ import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil.readINT
 import com.intellij.util.io.DataInputOutputUtil.writeINT
 import com.intellij.util.io.IOUtil
-import com.intellij.util.text.CharArrayUtil
 import com.intellij.util.xml.NanoXmlBuilder
 import com.intellij.util.xml.NanoXmlUtil
 import org.jetbrains.kotlin.idea.search.projectScope
@@ -282,6 +281,8 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
   override fun getVersion() = 8
 }
 
+private const val COMMENT_START = "<!--"
+private const val COMMENT_END = "-->"
 /**
  * Reader that attempts to escape known codes (e.g. "&lt;") on the fly as it reads.
  *
@@ -289,45 +290,124 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
  * So, we have to intercept them ourselves. For the attributes we parse, we only care about a
  * subset of all potentially escaped characters -- specifically '<' and '>', which can be used
  * in generic types. The rest, we can skip over, which NanoXml would have done anyway.
+ *
+ * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that
+ * has an unescaped & inside it.
  */
 private class EscapingXmlReader(text: CharSequence): Reader() {
-  private val delegate = CharArrayUtil.readerFromCharSequence(text)
+  /**
+   * State associated with the input text.
+   *
+   * This state will live across multiple calls to [EscapingXmlReader.read].
+   */
+  private class InputState(val text: CharSequence) {
+    var srcIndex = 0
+    fun read(): Char = text[srcIndex++]
+    fun skip(numChars: Int = 1) { srcIndex += numChars }
+    fun beforeEnd() = srcIndex < text.length
+    fun atEnd() = srcIndex >= text.length
+  }
+
+  /**
+   * Helper class for simplifying writing to the output buffer.
+   *
+   * This class is created each time [EscapingXmlReader.read] is called.
+   */
+  private class OutputBuffer(val cbuf: CharArray, var dstIndex: Int, val maxWriteCount: Int) {
+    var numCharsWritten = 0
+    fun isFull() = numCharsWritten >= maxWriteCount
+    fun write(c: Char) {
+      assert(!isFull())
+      cbuf[dstIndex++] = c
+      numCharsWritten++
+    }
+  }
+
   private val buffer = StringBuilder()
+  private val state = InputState(text)
 
   override fun read(cbuf: CharArray, off: Int, len: Int): Int {
-    var numRead = 0
-    while (numRead < len) {
-      var nextChar: Char = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
-      var skipChar = false
-      if (nextChar == '&') {
-        assert(buffer.length == 0)
+    val output = OutputBuffer(cbuf, off, len)
+    while (!output.isFull() && prepareNextChar()) {
+      readNextCharInto(output)
+    }
+    return output.numCharsWritten.takeIf { it > 0 } ?: -1 // Indicate EOF so parser terminates
+  }
 
-        buffer.append(nextChar)
-        while (true) {
-          nextChar = delegate.read().takeIf { it >= 0 }?.toChar() ?: break
-          buffer.append(nextChar)
-          if (nextChar == ';')
-            break
-        }
+  /**
+   * Verify the input state is pointing at a valid character, potentially updating it if
+   * necessary (e.g. to skip over comments).
+   *
+   * If true is returned, you can safely call [readNextCharInto]; otherwise, you should abort as we
+   * are out of input text.
+   */
+  private fun prepareNextChar(): Boolean {
+    if (state.atEnd()) return false
 
-        when (buffer.toString()) {
-          "&lt;" -> nextChar = '<'
-          "&gt;" -> nextChar = '>'
-          else -> skipChar = true
-        }
-        buffer.clear()
-      }
+    if (skipIfMatch(COMMENT_START)) {
+      // We don't really need to save this into the buffer, as we don't use it, but this is an easy
+      // way to consume a bunch of text we don't care about.
+      readIntoBufferUntil(COMMENT_END)
+    }
+    return (state.beforeEnd())
+  }
 
-      if (!skipChar) {
-        cbuf[off + numRead] = nextChar
-        ++numRead
+  /**
+   * Read the next character out of the input text and write it into the output buffer.
+   *
+   * When done, the input state will be pointing at the next character to parse. This may be
+   * more than one character later, if the character that was just read in was escaped
+   * (e.g. '&lt;')
+   *
+   * It's expected that the state is valid before calling this method. In other words, callers
+   * should call [prepareNextChar] first.
+   */
+  private fun readNextCharInto(output: OutputBuffer) {
+    var nextChar: Char? = state.read()
+    if (nextChar == '&') {
+      readIntoBufferUntil(";")
+      when (buffer.toString()) {
+        "lt" -> nextChar = '<'
+        "gt" -> nextChar = '>'
+        else -> nextChar = null
       }
     }
 
-    return if (numRead > 0) numRead else -1
+    if (nextChar != null) {
+      output.write(nextChar)
+    }
   }
 
-  override fun close() {
-    delegate.close()
+  /**
+   * Keep reading characters out of the input text until you hit the [terminal] string or the
+   * end of the text, whichever comes first. Once finished, [buffer] will be populated with all
+   * text up to but not including [terminal]. However, [terminal] will still be consumed.
+   */
+  private fun readIntoBufferUntil(terminal: String) {
+    buffer.clear()
+    do {
+      buffer.append(state.read())
+    } while (state.beforeEnd() && !isMatch(terminal))
+    if (state.beforeEnd()) {
+      state.skip(terminal.length) // Consume `terminal`
+    }
   }
+
+  /**
+   * Check if the [target] text matches the current input position.
+   */
+  private fun isMatch(target: String): Boolean {
+    return (state.srcIndex + target.length <= state.text.length
+        && target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
+  }
+
+  private fun skipIfMatch(target: String): Boolean {
+    if (isMatch(target)) {
+      state.skip(target.length)
+      return true
+    }
+    return false
+  }
+
+  override fun close() {} // We just point at a String in memory, no need to close anything
 }

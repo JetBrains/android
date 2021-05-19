@@ -16,16 +16,14 @@
 package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.TestProjectPaths.CIRCULAR_MODULE_DEPS;
 import static com.android.tools.idea.testing.TestProjectPaths.SHARED_TEST_FOLDER;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
-import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_MULTIDEPENDENCIES;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.android.utils.FileUtils.toSystemDependentPath;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -36,8 +34,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
-import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
@@ -50,7 +48,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.VfsTestUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -213,11 +213,12 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   @NotNull
-  private VirtualFile createFileIfNotExists(@NotNull String relativePath) {
+  private VirtualFile createFileIfNotExists(@NotNull String relativePath) throws Exception {
     File file = new File(myFixture.getProject().getBasePath(), toSystemDependentPath(relativePath));
     FileUtil.createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
     assertNotNull(virtualFile);
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
     return virtualFile;
   }
 
@@ -230,13 +231,6 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
     return testArtifactSearchScopes;
   }
 
-  public void testMergeSubmoduleDependencies() throws Exception {
-    loadProject(TEST_ARTIFACTS_MULTIDEPENDENCIES);
-    Module module = TestModuleUtil.findModule(getProject(), "module1");
-    GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(module);
-    scopes.resolveDependencies();
-  }
-
   private static void assertScopeContainsLibrary(@NotNull GlobalSearchScope scope, @Nullable Library library, boolean contains) {
     assertNotNull(library);
     for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
@@ -245,39 +239,140 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   // See https://issuetracker.google.com/63897699
-  public void testCircularModuleDependencies() throws Exception {
+  public void testCircularModuleDependencies_testUtil() throws Exception {
     loadProject(CIRCULAR_MODULE_DEPS);
 
     // verify scope of test-util
     // implementation project(':lib')
     Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
     Module libModule = TestModuleUtil.findModule(getProject(), "lib");
+    Module lib2Module = TestModuleUtil.findModule(getProject(), "lib2");
 
     GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
-    scopes.resolveDependencies();
 
-    ImmutableCollection<ModuleDependency> moduleDependencies = scopes.getMainDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
+    Collection<Module> moduleDependencies = getModules(scopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
 
-    moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
+    moduleDependencies = getModules(scopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
 
-    moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, libModule));
+    moduleDependencies = getModules(scopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
 
     // verify scope of lib
     // testImplementation project(':test-util')
     scopes = GradleTestArtifactSearchScopes.getInstance(libModule);
-    scopes.resolveDependencies();
 
-    moduleDependencies = scopes.getMainDependencies().onModules();
+    moduleDependencies = getModules(scopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).contains(lib2Module);
+
+    moduleDependencies = getModules(scopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(testUtilModule);
+
+    moduleDependencies = getModules(scopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+  }
+
+  public void testCircularModuleDependencies_lib() throws Exception {
+    loadProject(CIRCULAR_MODULE_DEPS);
+
+    // verify scope of lib
+    // testImplementation project(':test-util')
+    Module testUtilModule = TestModuleUtil.findModule(getProject(), "test-util");
+    Module libModule = TestModuleUtil.findModule(getProject(), "lib");
+    Module lib2Module = TestModuleUtil.findModule(getProject(), "lib2");
+
+    GradleTestArtifactSearchScopes scopes = GradleTestArtifactSearchScopes.getInstance(libModule);
+
+    Collection<Module> moduleDependencies = getModules(scopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).contains(lib2Module);
+
+    moduleDependencies = getModules(scopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(testUtilModule);
+
+    moduleDependencies = getModules(scopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+
+    // verify scope of test-util
+    // implementation project(':lib')
+    scopes = GradleTestArtifactSearchScopes.getInstance(testUtilModule);
+
+    moduleDependencies = getModules(scopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+
+    moduleDependencies = getModules(scopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+
+    moduleDependencies = getModules(scopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+  }
+
+  public void testCircularModuleDependencies_canBuild() throws Exception {
+    loadProject(CIRCULAR_MODULE_DEPS);
+    assertThat(invokeGradleTasks(getProject(), "assembleDebug").isBuildSuccessful()).isTrue();
+  }
+
+  public void testCircularModuleDependencies_ab() throws Exception {
+    loadProject(CIRCULAR_MODULE_DEPS);
+
+    Module aModule = gradleModule(getProject(), ":a");
+    Module bModule = gradleModule(getProject(), ":b");
+    Module libModule = gradleModule(getProject(), ":lib");
+    Module lib2Module = gradleModule(getProject(), ":lib2");
+
+    GradleTestArtifactSearchScopes aScopes = GradleTestArtifactSearchScopes.getInstance(aModule);
+
+    Collection<Module> moduleDependencies = getModules(aScopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).contains(libModule);
+    assertThat(moduleDependencies).contains(lib2Module);
+
+    moduleDependencies = getModules(aScopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(aModule);
+    assertThat(moduleDependencies).contains(libModule);
+    assertThat(moduleDependencies).contains(lib2Module);
+
+    moduleDependencies = getModules(aScopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(aModule);
+    assertThat(moduleDependencies).contains(bModule);
+    assertThat(moduleDependencies).contains(libModule);
+    assertThat(moduleDependencies).contains(lib2Module);
+
+    GradleTestArtifactSearchScopes bScopes = GradleTestArtifactSearchScopes.getInstance(bModule);
+
+    moduleDependencies = getModules(bScopes.getMainDependencies().onModules());
     assertThat(moduleDependencies).isEmpty();
 
-    moduleDependencies = scopes.getUnitTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(TEST, testUtilModule));
+    moduleDependencies = getModules(bScopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(bModule);
 
-    moduleDependencies = scopes.getAndroidTestDependencies().onModules();
-    assertThat(moduleDependencies).contains(new ModuleDependency(COMPILE, libModule));
+    moduleDependencies = getModules(bScopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(aModule);
+    assertThat(moduleDependencies).contains(bModule);
+    assertThat(moduleDependencies).contains(libModule);
+    assertThat(moduleDependencies).contains(lib2Module);
+  }
+
+  public void testCircularModuleDependencies_ab_2() throws Exception {
+    loadProject(CIRCULAR_MODULE_DEPS);
+    // The second part of the test above (i.e. start resolving from module :b).
+    Module aModule = gradleModule(getProject(), ":a");
+    Module bModule = gradleModule(getProject(), ":b");
+    Module libModule = gradleModule(getProject(), ":lib");
+    Module lib2Module = gradleModule(getProject(), ":lib2");
+
+    GradleTestArtifactSearchScopes bScopes = GradleTestArtifactSearchScopes.getInstance(bModule);
+
+    Collection<Module> moduleDependencies = getModules(bScopes.getMainDependencies().onModules());
+    assertThat(moduleDependencies).isEmpty();
+
+    moduleDependencies = getModules(bScopes.getUnitTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(bModule);
+
+    moduleDependencies = getModules(bScopes.getAndroidTestDependencies().onModules());
+    assertThat(moduleDependencies).contains(aModule);
+    assertThat(moduleDependencies).contains(bModule);
+    assertThat(moduleDependencies).contains(libModule);
+    assertThat(moduleDependencies).contains(lib2Module);
   }
 
   public void testGeneratedTestSourcesIncluded() throws Exception {
@@ -292,5 +387,9 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
 
     assertTrue(scopes.isAndroidTestSource(androidTestSource));
     assertFalse(scopes.isAndroidTestSource(unitTestSource));
+  }
+
+  private static Collection<Module> getModules(@NotNull Collection<ModuleDependency> deps) {
+    return ContainerUtil.map(deps, it -> it.getModule());
   }
 }

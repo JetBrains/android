@@ -20,7 +20,7 @@ import static com.android.tools.lint.detector.api.TextFormat.RAW;
 import com.android.annotations.NonNull;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.Configuration;
-import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.ConfigurationHierarchy;
 import com.android.tools.lint.client.api.GradleVisitor;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.LintClient;
@@ -39,7 +39,6 @@ import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.tools.lint.model.LintModelLintOptions;
 import com.android.tools.lint.model.LintModelModule;
-import com.android.tools.lint.model.LintModelSeverity;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -59,7 +58,6 @@ import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -88,6 +86,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -98,6 +97,9 @@ import org.jetbrains.annotations.Nullable;
  * reading files, reporting issues, logging errors, etc.
  */
 public class LintIdeClient extends LintClient implements Disposable {
+  static {
+    LintClient.setClientName(CLIENT_STUDIO);
+  }
   /**
    * Whether we support running .class file checks. No class file checks are currently registered as inspections.
    * Since IntelliJ doesn't perform background compilation (e.g. only parsing, so there are no bytecode checks)
@@ -270,78 +272,24 @@ public class LintIdeClient extends LintClient implements Disposable {
   @NonNull
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
-    if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      LintModelModule model = project.getBuildModule();
-      if (model != null) {
-        try {
-          LintModelLintOptions lintOptions = model.getLintOptions();
-          final Map<String, LintModelSeverity> overrides = lintOptions.getSeverityOverrides();
-          if (overrides != null && !overrides.isEmpty()) {
-            return new DefaultConfiguration(this, project, null) {
-              @NonNull
-              @Override
-              public Severity getSeverity(@NonNull Issue issue) {
-                LintModelSeverity severity = overrides.get(issue.getId());
-                if (severity != null) {
-                  switch (severity) {
-                    case FATAL:
-                      return Severity.FATAL;
-                    case ERROR:
-                      return Severity.ERROR;
-                    case WARNING:
-                      return Severity.WARNING;
-                    case INFORMATIONAL:
-                      return Severity.INFORMATIONAL;
-                    case DEFAULT_ENABLED:
-                      return issue.getDefaultSeverity();
-                    case IGNORE:
-                    default:
-                      return Severity.IGNORE;
-                  }
-                }
+    return getConfigurations().getConfigurationForProject(project, (file, defaultConfiguration) -> createConfiguration(project, defaultConfiguration));
+  }
 
-                Set<Issue> issues = getIssues();
-                boolean known = issues.contains(issue);
-                if (!known) {
-                  if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
-                    return Severity.IGNORE;
-                  }
-
-                  // Allow third-party checks
-                  IssueRegistry builtin = LintIdeSupport.get().getIssueRegistry();
-                  if (builtin.isIssueId(issue.getId())) {
-                    return Severity.IGNORE;
-                  }
-                }
-
-                return super.getSeverity(issue);
-              }
-            };
-          }
-        }
-        catch (Exception e) {
-          LOG.error(e);
-        }
-      }
+  private Configuration createConfiguration(
+    @NonNull com.android.tools.lint.detector.api.Project project,
+    @NonNull Configuration defaultConfiguration
+  ) {
+    LintModelModule model = project.getBuildModule();
+    final ConfigurationHierarchy configurations = getConfigurations();
+    if (model != null) {
+      LintModelLintOptions options = model.getLintOptions();
+      return configurations.createLintOptionsConfiguration(
+        project, options, false, defaultConfiguration,
+        () -> new LintIdeGradleConfiguration(configurations, options, getIssues())
+      );
+    } else {
+      return new LintIdeConfiguration(configurations, project, getIssues());
     }
-    return new DefaultConfiguration(this, project, null) {
-      @Override
-      public boolean isEnabled(@NonNull Issue issue) {
-        Set<Issue> issues = getIssues();
-        boolean known = issues.contains(issue);
-        if (!known) {
-          if (issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED) {
-            return true;
-          }
-
-          // Allow third-party checks
-          IssueRegistry builtin = LintIdeIssueRegistry.get();
-          return !builtin.isIssueId(issue.getId());
-        }
-
-        return super.isEnabled(issue);
-      }
-    };
   }
 
   @Override
@@ -642,7 +590,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Nullable
   private String getFileContent(@NonNull LintEditorResult lintResult, final VirtualFile vFile) {
-    if (Comparing.equal(lintResult.getMainFile(), vFile)) {
+    if (Objects.equals(lintResult.getMainFile(), vFile)) {
       return lintResult.getMainFileContent();
     }
 

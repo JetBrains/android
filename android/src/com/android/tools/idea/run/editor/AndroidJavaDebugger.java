@@ -18,8 +18,8 @@ package com.android.tools.idea.run.editor;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.TestOptions;
 import com.android.ddmlib.Client;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
@@ -99,9 +99,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIds, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
-    TestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
+    IdeTestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
       .map(AndroidModuleModel::getTestExecutionStrategy)
-      .orElse(TestOptions.Execution.HOST);
+      .orElse(IdeTestOptions.Execution.HOST);
     switch (executionType) {
       case ANDROID_TEST_ORCHESTRATOR:
       case ANDROIDX_TEST_ORCHESTRATOR:
@@ -157,7 +157,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
           }
         };
         // Add the handler first, then check, as to avoid race condition where process terminates between checking then adding.
-        handler.addProcessListener(processAdapter, project);
+        handler.addProcessListener(processAdapter);
         if (handler.isProcessTerminated()) {
           handler.removeProcessListener(processAdapter);
           notifier.notifyClient();

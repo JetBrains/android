@@ -64,6 +64,7 @@ private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
 private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
 private const val TOTAL_ERROR_MESSAGE = "attributes with mismatched types"
 private const val RECYCLER_VIEW_V7_ID = "recyclerview-v7"
+private const val DEBUG_DUMP = false
 
 @RunsInEdt
 class TypeResolverSdkTest {
@@ -82,7 +83,7 @@ class TypeResolverSdkTest {
     val report = Report(ANDROID_VIEWS_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.name!!, report) }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -93,7 +94,7 @@ class TypeResolverSdkTest {
     val psiPackage = psiFacade.findPackage(PREFERENCE_PACKAGE)!!
     val report = Report(ANDROID_PREFERENCES_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -107,7 +108,7 @@ class TypeResolverSdkTest {
     val report = Report(APPCOMPAT_VIEWS_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -121,7 +122,7 @@ class TypeResolverSdkTest {
     val report = Report(CONSTRAINT_LAYOUT_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -135,7 +136,7 @@ class TypeResolverSdkTest {
     val report = Report(DESIGN_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -152,7 +153,7 @@ class TypeResolverSdkTest {
       folder.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
       folder.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -170,7 +171,7 @@ class TypeResolverSdkTest {
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach {
       checkViewLayoutAttributes(it.qualifiedName!!, report)
     }
-    report.dumpReport()
+    report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
@@ -247,7 +248,10 @@ class TypeResolverSdkTest {
       logError(mismatch.tag)
     }
 
-    fun dumpReport() {
+    fun dumpReport(hasErrors: Boolean) {
+      if (!DEBUG_DUMP && !hasErrors) {
+        return
+      }
       System.err.println("\n==============================================================>")
       System.err.println("           $name")
       if (mismatches.isNotEmpty()) {

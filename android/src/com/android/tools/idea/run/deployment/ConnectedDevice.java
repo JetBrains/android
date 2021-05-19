@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -91,6 +92,16 @@ final class ConnectedDevice extends Device {
   @Override
   Snapshot getSnapshot() {
     return null;
+  }
+
+  @Override
+  boolean matches(@NotNull Key key) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
+    throw new UnsupportedOperationException();
   }
 
   @NotNull

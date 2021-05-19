@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.intellij.openapi.module.Module;
@@ -150,6 +151,7 @@ public class MarginWidget extends JComboBox<String> {
       null,
       true,
       false,
+      true,
       tag.getContainingFile().getVirtualFile()
     );
 

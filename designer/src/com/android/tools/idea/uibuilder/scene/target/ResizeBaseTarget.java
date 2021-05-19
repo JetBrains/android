@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
@@ -134,21 +136,21 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     switch (myType) {
       case LEFT:
-        return Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.W_RESIZE);
       case RIGHT:
-        return Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.E_RESIZE);
       case TOP:
-        return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.N_RESIZE);
       case BOTTOM:
-        return Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.S_RESIZE);
       case LEFT_TOP:
-        return Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.NW_RESIZE);
       case LEFT_BOTTOM:
-        return Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SW_RESIZE);
       case RIGHT_TOP:
-        return Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.NE_RESIZE);
       case RIGHT_BOTTOM:
-        return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
+        return AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.SE_RESIZE);
       default:
         return Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
     }
@@ -217,7 +219,10 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext ignored) {
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);

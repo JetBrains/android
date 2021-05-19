@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
@@ -34,7 +35,7 @@ import org.junit.Assume;
 public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWizardFixture> {
   @NotNull
   public static NewProjectWizardFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Create New Project"));
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "New Project"));
     return new NewProjectWizardFixture(robot, dialog);
   }
 
@@ -44,12 +45,15 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> getConfigureNewAndroidProjectStep() {
-    JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.configure"));
+    JRootPane rootPane = findStepWithTitle("Minimum SDK");
     return new ConfigureNewAndroidProjectStepFixture<>(this, rootPane);
   }
 
   @NotNull
   public ChooseAndroidProjectStepFixture<NewProjectWizardFixture> getChooseAndroidProjectStep() {
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      return new ChooseAndroidProjectStepFixture<>(this, findStepWithTitle("Templates"));
+    }
     JRootPane rootPane = findStepWithTitle(message("android.wizard.project.new.choose"));
     return new ChooseAndroidProjectStepFixture<>(this, rootPane);
   }

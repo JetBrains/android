@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.java
 
+import com.android.tools.idea.flags.StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
@@ -22,17 +23,18 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
+import org.jetbrains.kotlin.idea.KotlinIcons
 import javax.swing.Icon
 
 class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
+    override val icon: Icon = if (NPW_NEW_MODULE_WITH_SIDE_BAR.get()) KotlinIcons.SMALL_LOGO else AndroidIcons.Wizards.AndroidModule
     override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
     override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")
     override fun toString() = name
-    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, projectSyncInvoker), name)
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
   }
 }

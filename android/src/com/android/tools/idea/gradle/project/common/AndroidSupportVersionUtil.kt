@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common
 
-import com.android.builder.model.AndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
@@ -26,7 +26,7 @@ fun addAndroidSupportVersionArg(allArgs: MutableList<String?>) {
     PluginId.getId("org.jetbrains.android"))
   if (androidSupport != null && !isDevBuild(androidSupport.version)) {
     // Example of version to pass: 2.4.0.6
-    allArgs.add(AndroidGradleSettings.createProjectProperty(AndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION, androidSupport.version))
+    allArgs.add(AndroidGradleSettings.createProjectProperty(IdeAndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION, androidSupport.version))
   }
 }
 

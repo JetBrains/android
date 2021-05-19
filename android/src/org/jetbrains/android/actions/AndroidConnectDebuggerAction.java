@@ -50,7 +50,7 @@ public class AndroidConnectDebuggerAction extends AnAction {
   }
 
   @Slow
-  private static void closeOldSessionAndRun(@NotNull Project project,
+  public static void closeOldSessionAndRun(@NotNull Project project,
                                             @NotNull AndroidDebugger androidDebugger,
                                             @NotNull Client client,
                                             @Nullable RunConfiguration configuration) {

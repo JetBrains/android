@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.SdkConstants.FD_RES_RAW;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fileTypes.FontFileType;
@@ -95,10 +96,10 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  @NotNull private final ResourceFolderRegistry myRegistry;
-  @NotNull private final Project myProject;
-  @NotNull private final ResourceNotificationManager myResourceNotificationManager;
-  @NotNull private final EditorNotifications myEditorNotifications;
+  private ResourceFolderRegistry myRegistry;
+  private Project myProject;
+  private ResourceNotificationManager myResourceNotificationManager;
+  private EditorNotifications myEditorNotifications;
 
   @Nullable private SampleDataListener mySampleDataListener;
 
@@ -107,10 +108,18 @@ public class AndroidFileChangeListener implements Disposable {
     return project.getService(AndroidFileChangeListener.class);
   }
 
-  public AndroidFileChangeListener(@NotNull Project project) {
+  public static class MyStartupActivity implements StartupActivity {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      AndroidFileChangeListener listener = getInstance(project);
+      listener.onProjectOpened(project);
+    }
+  }
+
+  private void onProjectOpened(@NotNull Project project) {
     myProject = project;
-    myResourceNotificationManager = ResourceNotificationManager.getInstance(project);
-    myRegistry = ResourceFolderRegistry.getInstance(project);
+    myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
+    myRegistry = ResourceFolderRegistry.getInstance(myProject);
     myEditorNotifications = EditorNotifications.getInstance(myProject);
   }
 
@@ -123,13 +132,6 @@ public class AndroidFileChangeListener implements Disposable {
     // TODO-ank3: replace with xml-declared listener
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener(myRegistry));
     connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener(myRegistry));
-  }
-
-  static final class SubscribeOnStartupActivity implements StartupActivity {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      getInstance(project).subscribe();
-    }
   }
 
   @Override
@@ -168,8 +170,30 @@ public class AndroidFileChangeListener implements Disposable {
     return false;
   }
 
+  /**
+   * Quickly checks if the file might be relevant based on the file extension without ever reading
+   * the contents of the file. For a more accurate check use {@link #isRelevantFile(VirtualFile)}.
+   */
+  public static boolean isPossiblyRelevantFile(@NotNull VirtualFile file) {
+    String extension = file.getExtension();
+    if (StringUtil.isEmpty(extension)) {
+      return false;
+    }
+
+    if (JavaFileType.INSTANCE.getDefaultExtension().equals(extension) || KotlinFileType.EXTENSION.equals(extension)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Checks if the file is relevant. May perform file I/O. For a faster approximate check use
+   * {@link #isPossiblyRelevantFile(VirtualFile)}.
+   */
+  @Slow
   public static boolean isRelevantFile(@NotNull VirtualFile file) {
-    // VirtualFile#getFileType will try to read from the file the first time it's
+    // VirtualFile.getFileType will try to read from the file the first time it's
     // called so we try to avoid it as much as possible. Instead we will just
     // try to infer the type based on the extension.
     String extension = file.getExtension();
@@ -185,35 +209,25 @@ public class AndroidFileChangeListener implements Disposable {
       return true;
     }
 
-    String fileName = file.getName();
-    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension) || SdkConstants.FN_ANDROID_MANIFEST_XML.equals(fileName)) {
+    if (SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
       return true;
     }
 
-    if (file.getFileType().equals(AndroidRenderscriptFileType.INSTANCE)) {
+    if (AidlFileType.DEFAULT_ASSOCIATED_EXTENSION.equals(extension)) {
       return true;
     }
 
-    // Unable to determine based on filename, use old slow method
-    FileType fileType = file.getFileType();
-    if (fileType == JavaFileType.INSTANCE || fileType == KotlinFileType.INSTANCE) {
-      return false;
-    }
-
-    if (isRelevantFileType(fileType)) {
-      return true;
-    }
-    else {
-      VirtualFile parent = file.getParent();
-      if (parent != null) {
-        String parentName = parent.getName();
-        if (parentName.startsWith(FD_RES_RAW)) {
-          return true;
-        }
+    VirtualFile parent = file.getParent();
+    if (parent != null) {
+      String parentName = parent.getName();
+      if (parentName.startsWith(FD_RES_RAW)) {
+        return true;
       }
     }
 
-    return false;
+    // Unable to determine based on filename, use the slow method.
+    FileType fileType = file.getFileType();
+    return fileType.equals(AndroidRenderscriptFileType.INSTANCE) || isRelevantFileType(fileType);
   }
 
   static boolean isRelevantFile(@NotNull PsiFile file) {
@@ -334,7 +348,9 @@ public class AndroidFileChangeListener implements Disposable {
       if (parent == null) {
         return;
       }
-
+      if (!parent.exists()) {
+        return;
+      }
       VirtualFile created = parent.findChild(childName);
       if (created == null) {
         return;

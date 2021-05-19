@@ -480,13 +480,11 @@ class ImagePoolImpl implements ImagePool {
 
     @Override
     public int getWidth() {
-      assertIfDisposed();
       return myWidth;
     }
 
     @Override
     public int getHeight() {
-      assertIfDisposed();
       return myHeight;
     }
 

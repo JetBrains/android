@@ -90,6 +90,18 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     myModules = ModuleManager.getInstance(project).modules
   }
 
+  fun testCommonArguments() {
+    setUpTestProject()
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, myRunConfiguration, deviceSpec())
+    assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
+  }
+
+  fun testCommonArguments_nonAndroidRunConfiguration() {
+    setUpTestProject()
+    val arguments = MakeBeforeRunTaskProvider.getCommonArguments(myModules, null, null)
+    assertTrue(arguments.contains("-Pandroid.injected.enableStableIds=true"))
+  }
+
   fun testDeviceSpecificArguments() {
     setUpTestProject()
     `when`(myDevice.version).thenReturn(AndroidVersion(20, null))
@@ -128,7 +140,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
                                                                          myRunConfiguration,
                                                                          deviceSpec(myDevice))
-    val expectedJson = "{\"sdk_version\":23,\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
+    val expectedJson = "{\"sdk_version\":23,\"codename\":\"N\",\"screen_density\":640,\"supported_abis\":[\"armeabi\"],\"supported_locales\":[\"es\",\"fr\"]}"
     assertExpectedJsonFile(arguments, expectedJson)
   }
 
@@ -188,11 +200,11 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi"))
   }
 
-  fun testMultipleDeviceArguments() {
+  fun testMultipleDeviceArgumentsMatchingApiLevels() {
     setUpTestProject()
     val device1 = mock(AndroidDevice::class.java)
     val device2 = mock(AndroidDevice::class.java)
-    `when`(device1.version).thenReturn(AndroidVersion(23, null))
+    `when`(device1.version).thenReturn(AndroidVersion(22, null))
     `when`(device1.density).thenReturn(640)
     `when`(device1.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
     `when`(device2.version).thenReturn(AndroidVersion(22, null))
@@ -207,6 +219,26 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     }
   }
 
+  fun testMultipleDeviceArgumentsDifferingApiLevels() {
+    setUpTestProject()
+    val device1 = mock(AndroidDevice::class.java)
+    val device2 = mock(AndroidDevice::class.java)
+    `when`(device1.version).thenReturn(AndroidVersion(23, null))
+    `when`(device1.density).thenReturn(640)
+    `when`(device1.abis).thenReturn(ImmutableList.of(Abi.ARMEABI, Abi.X86))
+    `when`(device2.version).thenReturn(AndroidVersion(22, null))
+    `when`(device2.density).thenReturn(480)
+    `when`(device2.abis).thenReturn(ImmutableList.of(Abi.X86, Abi.X86_64))
+    val arguments =
+      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, myRunConfiguration, deviceSpec(device1, device2))
+    for (argument in arguments) {
+      assertFalse("Api levels should not be passed to Gradle when there are multiple devices with different values",
+                  argument.startsWith("-Pandroid.injected.build.api"))
+      assertFalse("ABIs should not be passed to Gradle when there are multiple devices",
+                  argument.startsWith("-Pandroid.injected.build.abi"))
+    }
+  }
+
   fun testRunGradleSyncWithPostBuildSyncSupported() {
     setUpTestProject("3.5.0", ":" to AndroidProjectBuilder())
     `when`(myRunConfiguration.modules).thenReturn(arrayOf(module))
@@ -214,7 +246,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(syncState.isSyncNeeded()).thenReturn(ThreeState.YES)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
@@ -224,7 +256,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should not be invoked since the build output file is expected to be available.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.NOT_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.NOT_NEEDED)
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
@@ -234,7 +266,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     `when`(myRunConfiguration.modules).thenReturn(myModules)
     val provider = MakeBeforeRunTaskProvider(myProject)
     // Gradle sync should be invoked to make sure Android models are up-to-date.
-    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration)).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
+    assertThat(provider.isSyncNeeded(mock(DataContext::class.java), myRunConfiguration, listOf(Abi.ARMEABI.toString()))).isEqualTo(SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED)
   }
 
   companion object {
@@ -269,4 +301,4 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 private const val MAX_TIMEOUT_MILLISECONDS: Long = 50_000
 
 private fun deviceSpec(vararg devices: AndroidDevice): AndroidDeviceSpec? =
-  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!
+  createSpec(devices.toList(), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)

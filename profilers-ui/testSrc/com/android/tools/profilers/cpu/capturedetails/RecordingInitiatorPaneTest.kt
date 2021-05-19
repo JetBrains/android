@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.StudioProfilersView
@@ -30,8 +29,11 @@ import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.AtraceConfiguration
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -146,9 +148,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testSampledJavaTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Java",
-                                                                                        Cpu.CpuTraceType.ART,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ArtSampledConfiguration("Sampled Java")
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -160,9 +160,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testInstrumentedJavaTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Instrumented Java",
-                                                                                        Cpu.CpuTraceType.ART,
-                                                                                        Cpu.CpuTraceMode.INSTRUMENTED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = ArtInstrumentedConfiguration("Instrumented Java")
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -174,9 +172,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testSampledNativeTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("Sampled Native",
-                                                                                        Cpu.CpuTraceType.SIMPLEPERF,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = SimpleperfConfiguration("Sampled Native")
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()
@@ -188,9 +184,7 @@ class RecordingInitiatorPaneTest(newPipeline: Boolean) {
   fun testATraceTechnologyDescription() {
     cpuProfiler.ideServices.enableCpuNewRecordingWorkflow(true)
 
-    stageView.stage.profilerConfigModel.profilingConfiguration = ProfilingConfiguration("ATrace",
-                                                                                        Cpu.CpuTraceType.ATRACE,
-                                                                                        Cpu.CpuTraceMode.SAMPLED)
+    stageView.stage.profilerConfigModel.profilingConfiguration = AtraceConfiguration("ATrace")
     TreeWalker(RecordingInitiatorPane(stageView))
       .descendants()
       .filterIsInstance<HyperlinkLabel>()

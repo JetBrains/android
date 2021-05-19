@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static org.junit.Assert.assertTrue;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -122,8 +124,8 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
     String expectedApkName = "app-x86-debug.apk";
 
     // Request debugging and wait for build to complete.
-    ideFrame.actAndWaitForBuildToFinish(Wait.seconds(TIMEOUT_SECONDS), it ->
-      it.debugApp("app", "Google Nexus 5X"));
+    assertTrue("Build failed", ideFrame.actAndWaitForBuildToFinish(Wait.seconds(TIMEOUT_SECONDS), it ->
+      it.debugApp("app", "Google Nexus 5X")).isBuildSuccessful());
 
     // TODO: Handle the case when app installation failed: "Application Installation Failed" dialog shows up.
     // Currently, cannot reproduce this issue locally to get the screenshot with the "Application Installation Failed" dialog shows up.

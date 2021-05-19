@@ -18,14 +18,16 @@ package com.android.tools.idea.nav.safeargs.module
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
+import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
-import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
-import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
+import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
@@ -44,6 +46,7 @@ import org.jetbrains.android.facet.AndroidFacet
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(private val module: Module) {
   private class NavEntry(val resource: ResourceItem, val data: NavXmlData)
+
   private val LOG = Logger.getInstance(SafeArgsCacheModuleService::class.java)
 
   companion object {
@@ -70,6 +73,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var _directions = emptyList<LightDirectionsClass>()
   val directions: List<LightDirectionsClass>
     get() {
+      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
+
       refreshSafeArgsLightClassesIfNecessary()
       return _directions
     }
@@ -78,6 +83,8 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var _args = emptyList<LightArgsClass>()
   val args: List<LightArgsClass>
     get() {
+      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
+
       refreshSafeArgsLightClassesIfNecessary()
       return _args
     }
@@ -87,7 +94,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
     val modulePackage = getPackageName(facet) ?: return
 
     if (DumbService.getInstance(module.project).isDumb) {
-      LOG.warn("Safe Arg classes may by temporarily stale due to indices not being ready right now.")
+      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
       return
     }
 
@@ -119,16 +126,16 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   }
 
   private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
-    return entry.data.root.allDestinations
+    return entry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
       .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, entry.data, destination) }
       .toSet()
   }
 
   private fun createLightArgsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightArgsClass> {
-    return entry.data.root.allFragments
-      .filter { fragment -> fragment.arguments.isNotEmpty() }
-      .map { fragment -> LightArgsClass(facet, modulePackage, entry.resource, fragment) }
+    return entry.data.resolvedDestinations
+      .filter { destination -> destination.arguments.isNotEmpty() }
+      .map { destination -> LightArgsClass(facet, modulePackage, entry.resource, destination) }
       .toSet()
   }
 }

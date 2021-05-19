@@ -41,11 +41,13 @@ class MockIssueFactory {
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level) {
-    addLintIssue(model, level, Mockito.mock(NlComponent.class));
+    addLintIssue(model, level, Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS));
   }
 
   public static void addLintIssue(LintAnnotationsModel model, HighlightDisplayLevel level, NlComponent source) {
-    addLintIssue(model, level, Mockito.mock(NlComponent.class), Mockito.mock(PsiElement.class), Mockito.mock(PsiElement.class));
+    addLintIssue(model, level, Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS),
+                 Mockito.mock(PsiElement.class, Mockito.RETURNS_DEEP_STUBS),
+                 Mockito.mock(PsiElement.class, Mockito.RETURNS_DEEP_STUBS));
   }
 
   public static void addLintIssue(LintAnnotationsModel model,

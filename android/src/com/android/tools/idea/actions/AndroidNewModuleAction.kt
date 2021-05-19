@@ -18,11 +18,9 @@ package com.android.tools.idea.actions
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.module.createWithDefaultGallery
+import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
-import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -50,13 +48,10 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
         return
       }
 
-      val chooseModuleTypeStep = createWithDefaultGallery(project, getModulePath(e), ProjectSyncInvoker.DefaultProjectSyncInvoker())
-      val wizard = ModelWizard.Builder().addStep(chooseModuleTypeStep).build()
-
-      StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).build().show()
+      showDefaultWizard(project, getModulePath(e), ProjectSyncInvoker.DefaultProjectSyncInvoker())
     }
   }
 
   // Overwritten by subclasses to return the module path
-  protected open fun getModulePath(e: AnActionEvent): String? = null
+  protected open fun getModulePath(e: AnActionEvent): String = ":"
 }

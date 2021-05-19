@@ -26,7 +26,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
-import io.grpc.StatusRuntimeException
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -74,6 +73,7 @@ class LegacyMetricsTest {
     studioEvent = usages[1].studioEvent
     Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
     Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS, studioEvent.dynamicLayoutInspectorEvent.type)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
   }
 
   @Test
@@ -103,6 +103,7 @@ class LegacyMetricsTest {
     studioEvent = usages[1].studioEvent
     Assert.assertEquals(deviceInfo, studioEvent.deviceInfo)
     Assert.assertEquals(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE, studioEvent.dynamicLayoutInspectorEvent.type)
+    Assert.assertEquals(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!), studioEvent.projectId)
   }
 
   private fun findFirstConnectAction(selectProcessAction: SelectProcessAction, withProcessName: String): SelectProcessAction.ConnectAction {

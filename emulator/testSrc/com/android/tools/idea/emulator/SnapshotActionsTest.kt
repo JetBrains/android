@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator
+package com.android.tools.idea.emulator.actions
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.emulator.actions.BootMode
-import com.android.tools.idea.emulator.actions.BootType
-import com.android.tools.idea.emulator.actions.SnapshotInfo
-import com.android.tools.idea.emulator.actions.SnapshotManager
+import com.android.tools.idea.emulator.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.emulator.EMULATOR_VIEW_KEY
+import com.android.tools.idea.emulator.EmulatorController
+import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.emulator.FakeEmulator
+import com.android.tools.idea.emulator.FakeEmulatorRule
+import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.emulator.actions.dialogs.BootMode
+import com.android.tools.idea.emulator.actions.dialogs.BootType
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotInfo
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotManager
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -36,7 +44,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.rules.TempDirectory
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,31 +61,35 @@ import javax.swing.JTextField
 @RunsInEdt
 class SnapshotActionsTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val tempDirectory = TempDirectory()
-  private val emulatorRule = FakeEmulatorRule(tempDirectory)
-  private var nullableEmulator: FakeEmulator? = null
+  private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
+  private var nullableEmulator: FakeEmulator? = null
+  private var nullableEmulatorController: EmulatorController? = null
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
+
+  private var emulatorController: EmulatorController
+    get() = nullableEmulatorController ?: throw IllegalStateException()
+    set(value) { nullableEmulatorController = value }
 
   private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
 
   @Before
   fun setUp() {
-    FakeUi.setPortableUiFont()
+    setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
   }
 
   @Test
   fun testSnapshotActions() {
     val view = createEmulatorView()
-
-    val defaultBootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
-    assertThat(SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()).isEqualTo(defaultBootMode)
+    val snapshotManager = SnapshotManager(emulatorController)
+    val defaultBootMode = snapshotManager.readBootMode()
+    assertThat(snapshotManager.readBootMode()).isEqualTo(defaultBootMode)
 
     val configIni = emulator.avdFolder.resolve("config.ini")
     val oldSize = Files.size(configIni)
@@ -88,9 +99,9 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val textField = checkNotNull(ui.findComponent { it is JTextField }) as JTextField
+      val textField = ui.getComponent<JTextField>()
       textField.text = "first snapshot"
-      val checkBox = checkNotNull(ui.findComponent { it is JCheckBox && it.text == "Boot from this snapshot" }) as JCheckBox
+      val checkBox = ui.getComponent<JCheckBox> { it.text == "Boot from this snapshot" }
       checkBox.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")
@@ -103,7 +114,7 @@ class SnapshotActionsTest {
     call.completion.get(5, TimeUnit.SECONDS)
 
     waitForCondition(2, TimeUnit.SECONDS) { Files.size(configIni) != oldSize }
-    val bootMode = SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()
+    val bootMode = snapshotManager.readBootMode()
     assertThat(bootMode).isEqualTo(BootMode(BootType.SNAPSHOT, "first snapshot"))
 
     // Check switching to the quick boot mode.
@@ -111,14 +122,14 @@ class SnapshotActionsTest {
       // Executed when the CreateSnapshotDialog opens.
       val rootPane = dialog.rootPane
       val ui = FakeUi(rootPane)
-      val snapshotRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Boot from snapshot" }) as JRadioButton
+      val snapshotRadio = ui.getComponent<JRadioButton> { it.text == "Boot from snapshot" }
       assertThat(snapshotRadio.isSelected).isTrue()
-      val comboBox = checkNotNull(ui.findComponent { it is JComboBox<*> }) as JComboBox<*>
+      val comboBox = ui.getComponent<JComboBox<*>>()
       waitForCondition(2, TimeUnit.SECONDS) {
         comboBox.itemCount != 0
       }
       assertThat((comboBox.selectedItem as SnapshotInfo).displayName).isEqualTo("first snapshot")
-      val quickBootRadio = checkNotNull(ui.findComponent { it is JRadioButton && it.text == "Quick boot (default)" }) as JRadioButton
+      val quickBootRadio = ui.getComponent<JRadioButton> { it.text == "Quick boot (default)" }
       quickBootRadio.doClick()
       val okButton = rootPane.defaultButton
       assertThat(okButton.text).isEqualTo("OK")
@@ -126,7 +137,7 @@ class SnapshotActionsTest {
     }
 
     waitForCondition(2, TimeUnit.SECONDS) {
-      SnapshotManager(emulator.avdFolder, emulator.avdId).readBootMode()?.bootType == BootType.QUICK
+      snapshotManager.readBootMode()?.bootType == BootType.QUICK
     }
   }
 
@@ -143,14 +154,14 @@ class SnapshotActionsTest {
 
   private fun createEmulatorView(): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = tempDirectory.root.toPath()
+    val tempFolder = emulatorRule.root.toPath()
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
-    val emulatorController = emulators.first()
+    emulatorController = emulators.first()
     val view = EmulatorView(emulatorController, testRootDisposable, false)
-    waitForCondition(2, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }

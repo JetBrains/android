@@ -22,7 +22,8 @@ import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.annotations.concurrency.GuardedBy;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -56,17 +57,16 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**
- * A {@link LayoutLog} which records the problems it encounters and offers them as a
+ * A {@link ILayoutLog} which records the problems it encounters and offers them as a
  * single summary at the end
  */
-public class RenderLogger extends LayoutLog implements IRenderLogger {
+public class RenderLogger implements IRenderLogger {
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -199,7 +199,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     return myModule;
   }
 
-  // ---- extends LayoutLog ----
+  // ---- extends ILayoutLog ----
 
   @Nullable
   public Project getProject() {
@@ -305,11 +305,11 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
     // Workaround: older layout libraries don't provide a tag for this error
     if (tag == null && message != null &&
         (message.startsWith("Failed to find style ") || message.startsWith("Unable to resolve parent style name: "))) {
-      tag = LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+      tag = ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
     }
     addTag(tag);
 
-    if (LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
+    if (ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR.equals(tag) && myModule != null
         && BuildSettings.getInstance(myModule.getProject()).getBuildMode() == BuildMode.SOURCE_GEN) {
       AndroidFacet facet = AndroidFacet.getInstance(myModule);
       if (facet != null && AndroidModel.isRequired(facet)) {
@@ -771,20 +771,18 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
 
   /**
    * Android framework log priority levels.
-   * They are defined in system/core/liblog/include/android/log.h in the Android Framework code.
+   * They are defined in system/core/base/include/android-base/logging.h in the Android Framework code.
    */
-  private static final int ANDROID_LOG_UNKNOWN = 0;
-  private static final int ANDROID_LOG_DEFAULT = 1;
-  private static final int ANDROID_LOG_VERBOSE = 2;
-  private static final int ANDROID_LOG_DEBUG = 3;
-  private static final int ANDROID_LOG_INFO = 4;
-  private static final int ANDROID_LOG_WARN = 5;
-  private static final int ANDROID_LOG_ERROR = 6;
-  private static final int ANDROID_LOG_FATAL = 7;
-  private static final int ANDROID_LOG_SILENT = 8;
+  private static final int ANDROID_LOG_VERBOSE = 0;
+  private static final int ANDROID_LOG_DEBUG = 1;
+  private static final int ANDROID_LOG_INFO = 2;
+  private static final int ANDROID_LOG_WARN = 3;
+  private static final int ANDROID_LOG_ERROR = 4;
+  private static final int ANDROID_LOG_FATAL_WITHOUT_ABORT = 5;
+  private static final int ANDROID_LOG_FATAL = 6;
 
   @Override
-  public void logAndroidFramework(int priority, String tag, String message) {
+  public void logAndroidFramework(int priority, String tag, @NotNull String message) {
     if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
@@ -801,6 +799,7 @@ public class RenderLogger extends LayoutLog implements IRenderLogger {
           case ANDROID_LOG_ERROR:
             LOG.warn(fullMessage);
             break;
+          case ANDROID_LOG_FATAL_WITHOUT_ABORT:
           case ANDROID_LOG_FATAL:
             LOG.error(fullMessage);
             break;

@@ -21,6 +21,8 @@ import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_FINISHED
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitorState.PROCESS_NOT_FOUND
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.util.Ref
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +33,8 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.lang.Boolean.FALSE
+import java.util.concurrent.CountDownLatch
 
 @RunWith(JUnit4::class)
 class AndroidProcessMonitorManagerTest {
@@ -199,6 +203,47 @@ class AndroidProcessMonitorManagerTest {
     monitorManager.detachAndClose()
 
     verify(mockSingleDeviceAndroidProcessMonitors.getValue(device)).detachAndClose()
+  }
+
+  @Test
+  fun replaceDevice() {
+    val terminatedLatch = CountDownLatch(1)
+    val managerListener = object : AndroidProcessMonitorManagerListener {
+      override fun onAllTargetProcessesTerminated() {
+        terminatedLatch.countDown()
+      }
+    }
+    val isReplacing = Ref(false)
+
+    val targetDevice = createMockDevice(28)
+    monitorManager = AndroidProcessMonitorManager(TARGET_APP_NAME,
+                                                   mockDeploymentAppService,
+                                                   mockTextEmitter,
+                                                   /*captureLogcat=*/true,
+                                                   managerListener) {_, device, listener, deployService, logcat ->
+      if (::stateChangeListener.isInitialized) {
+        assertThat(listener).isSameAs(stateChangeListener)
+      }
+
+      if (isReplacing.get() == FALSE) {
+        assertThat(mockSingleDeviceAndroidProcessMonitors).doesNotContainKey(targetDevice)
+      }
+
+      stateChangeListener = listener
+
+      val textEmitter = mock(TextEmitter::class.java)
+      val monitor = SingleDeviceAndroidProcessMonitor(TARGET_APP_NAME, device, listener, deployService, logcat, textEmitter,
+                                                      SingleDeviceAndroidProcessMonitor.POLLING_INTERVAL_MILLIS,
+                                                      SingleDeviceAndroidProcessMonitor.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS,
+                                                      MoreExecutors.directExecutor())
+      mockSingleDeviceAndroidProcessMonitors[device] = monitor
+
+      monitor
+    }
+    monitorManager.add(targetDevice)
+    isReplacing.set(true)
+    monitorManager.closeAndReplace(targetDevice)
+    assertThat(terminatedLatch.count).isEqualTo(1)
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {

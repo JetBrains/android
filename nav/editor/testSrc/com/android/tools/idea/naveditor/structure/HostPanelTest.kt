@@ -19,10 +19,7 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.project.DumbServiceImpl
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.spy
-import org.mockito.Mockito.timeout
-import org.mockito.Mockito.verify
+import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import javax.swing.DefaultListModel
 
 class HostPanelTest : NavTestCase() {
@@ -41,23 +38,19 @@ class HostPanelTest : NavTestCase() {
                                                        "\n" +
                                                        "</LinearLayout>")
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
     val panel = HostPanel(model.surface as NavDesignSurface)
     var i = 0
-    while ((panel.list.model as DefaultListModel).isEmpty) {
-      Thread.sleep(10)
-      if (i++ > 500) {
-        fail("list was never populated")
-      }
-    }
-    val listModel = spy(panel.list.model) as DefaultListModel
+    val listModel = panel.list.model as DefaultListModel
+    waitFor("list was never populated") { !listModel.isEmpty }
     panel.list.model = listModel
 
     DumbServiceImpl.getInstance(project).isDumb = true
     try {
       model.activate(this)
-      verify(listModel, timeout(5000)).clear()
+      waitFor("list expected to be empty") { listModel.isEmpty }
       DumbServiceImpl.getInstance(project).isDumb = false
-      verify(listModel, timeout(5000)).addElement(any())
+      waitFor("list was never populated") { !listModel.isEmpty }
     }
     finally {
       DumbServiceImpl.getInstance(project).isDumb = false
@@ -111,6 +104,7 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)
@@ -143,10 +137,21 @@ class HostPanelTest : NavTestCase() {
       """.trimMargin("."))
 
     val model = model("nav.xml") { navigation() }
+    dispatchAllInvocationEvents()
 
     val references = findReferences(model.file, model.module)
     assertEquals(1, references.size)
     assertEquals("file1.xml", references[0].containingFile.name)
     assertEquals(174, references[0].textOffset)
+  }
+
+  private fun waitFor(error: String, condition: () -> Boolean) {
+    repeat(1000) {
+      if (condition()) {
+        return
+      }
+      Thread.sleep(10)
+    }
+    fail(error)
   }
 }

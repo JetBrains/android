@@ -202,15 +202,9 @@ public class VmWizard extends DynamicWizard {
       }
       finally {
         if (!myVm.isInstallerSuccessfullyCompleted() && myVm.installationIntention != InstallationIntention.UNINSTALL) {
-          try {
-            // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
-            sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
-            componentInstaller.ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
-          }
-          catch (WizardException e) {
-            LOG.warn(myType + " SDK package cleanup failed due to an exception", e);
-            installContext.print(sdkPackageCleanupFailedMessage(myType), ConsoleViewContentType.ERROR_OUTPUT);
-          }
+          // The intention was to install VM, but the installation failed. Ensure we don't leave the SDK package behind
+          sdkHandler.getSdkManager(myProgressIndicator).reloadLocalIfNeeded(myProgressIndicator);
+          componentInstaller.ensureSdkPackagesUninstalled(myVm.getRequiredSdkPackages(), myProgressIndicator);
         }
       }
       installContext.print("Done", ConsoleViewContentType.NORMAL_OUTPUT);

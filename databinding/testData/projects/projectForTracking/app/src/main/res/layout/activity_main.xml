@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
     <data>
-        <variable name="vo" type="com.android.example.appwithdatabinding.DummyVo"/>
-        <variable name="voArr" type="com.android.example.appwithdatabinding.DummyVo[]"/>
+        <variable name="vo" type="com.android.example.appwithdatabinding.SampleVo"/>
+        <variable name="voArr" type="com.android.example.appwithdatabinding.SampleVo[]"/>
         <variable name="snake_case_var" type="String"/>
     </data>
 

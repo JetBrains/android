@@ -22,20 +22,22 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
+import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.AppTopics
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
@@ -111,44 +113,43 @@ class NavigationResourcesModificationListener(
   }
 
   /**
-   * [ProjectComponent] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener]
+   * [StartupActivity] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener]
    * subscribed to listen for both VFS and Document changes when opening projects.
    */
-  private class SubscriptionComponent(
-    val project: Project
-  ) : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(NavigationResourcesModificationListener(project)),
-      Disposable,
-      ProjectComponent {
-    override fun projectOpened() {
-      if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
+  class SubscriptionStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) {
+      val resourceListener = NavigationResourcesModificationListener(project)
+      val subscriber = object : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(resourceListener, project) {
+        override fun subscribe() {
+          if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
 
-      DumbService.getInstance(project).runWhenSmart {
-        // We do subscribing once it's out of dumb mode when project opened. This is because we don't care any changes when projects just
-        // start up and indices are not ready. Querying during dumb read mode just throws indexNotReadyExceptions.
-        ensureSubscribed()
+          // To receive all changes happening in the VFS. File modifications may
+          // not be picked up immediately if such changes are not saved on the disk yet
+          VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+
+          // To receive all changes to documents that are open in an editor
+          EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+
+          // To receive notifications when any Documents are saved or reloaded from disk
+          project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+        }
       }
-    }
-
-    override fun subscribe() {
-      // To receive all changes happening in the VFS. File modifications may
-      // not be picked up immediately if such changes are not saved on the disk yet
-      VirtualFileManager.getInstance().addVirtualFileListener(listener, this)
-
-      // To receive all changes to documents that are open in an editor
-      EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this)
-
-      // To receive notifications when any Documents are saved or reloaded from disk
-      project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
-    }
-
-    override fun dispose() {
-
+      project.listenUntilNextSync(listener = object : SyncResultListener {
+        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
+      })
     }
   }
 
   companion object {
+    /**
+     * Normally, this listener waits for the project to finish syncing before subscribing
+     * to events, but for tests, we sometimes have to kickstart the subscription process
+     * manually.
+     */
     @TestOnly
-    fun ensureSubscribed(project: Project) = project.getComponent(
-      SubscriptionComponent::class.java).ensureSubscribed()
+    fun ensureSubscribed(project: Project) {
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+    }
   }
+
 }

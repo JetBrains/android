@@ -24,7 +24,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -60,8 +60,9 @@ public class CpuUsage extends LineChartModel {
         Common.Event.Kind.CPU_USAGE,
         profilers.getSession().getPid(),
         events -> extractData(events, false));
-      if (cpuCapture != null && (cpuCapture.getType() == Cpu.CpuTraceType.ATRACE || cpuCapture.getType() == Cpu.CpuTraceType.PERFETTO)) {
-        series = new MergeCaptureDataSeries<>(cpuCapture, series, new LazyDataSeries<>(() -> cpuCapture.getCpuUtilizationSeries()));
+      if (cpuCapture != null && cpuCapture.getSystemTraceData() != null) {
+        series = new MergeCaptureDataSeries<>(cpuCapture, series,
+                                              new LazyDataSeries<>(() -> cpuCapture.getSystemTraceData().getCpuUtilizationSeries()));
       }
     }
     else {

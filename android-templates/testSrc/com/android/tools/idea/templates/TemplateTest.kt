@@ -31,7 +31,6 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.util.SystemInfo
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.system.measureTimeMillis
@@ -87,13 +86,17 @@ open class TemplateTest : AndroidGradleTestCase() {
     vararg customizers: ProjectStateCustomizer,
     templateStateCustomizer: TemplateStateCustomizer = mapOf(),
     category: Category? = null,
-    formFactor: FormFactor? = null
+    formFactor: FormFactor? = null,
+    avoidModifiedModuleName: Boolean = false
   ) {
     if (DISABLED || isBroken(name)) {
       return
     }
     ensureSdkManagerAvailable()
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
+
+    // Name must be title-cased
+    assertThat(template.name).isEqualTo(template.name.split(" ").joinToString(" ") { it.capitalize() })
 
     // Description and help should not end with spaces or "."
     assertThat(template.description).doesNotContainMatch("[\\. ]$")
@@ -115,7 +118,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectChecker.checkProject(projectName, *customizers)
+      projectChecker.checkProject(projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }
@@ -141,7 +144,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewBasicActivityWithKotlin() {
-    checkCreateTemplate("Basic Activity", withKotlin)
+    checkCreateTemplate("Basic Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -171,7 +174,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewTabbedActivityWithKotlin() {
-    checkCreateTemplate("Tabbed Activity", withKotlin)
+    checkCreateTemplate("Tabbed Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -181,17 +184,17 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewNavigationDrawerActivityWithKotlin() {
-    checkCreateTemplate("Navigation Drawer Activity", withKotlin)
+    checkCreateTemplate("Navigation Drawer Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
-  fun testNewMasterDetailFlow() {
-    checkCreateTemplate("Master/Detail Flow")
+  fun testNewPrimaryDetailFlow() {
+    checkCreateTemplate("Primary/Detail Flow")
   }
 
   @TemplateCheck
-  fun testNewMasterDetailFlowWithKotlin() {
-    checkCreateTemplate("Master/Detail Flow", withKotlin)
+  fun testNewPrimaryDetailFlowWithKotlin() {
+    checkCreateTemplate("Primary/Detail Flow", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -201,7 +204,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFullscreenActivityWithKotlin() {
-    checkCreateTemplate("Fullscreen Activity", withKotlin)
+    checkCreateTemplate("Fullscreen Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -211,7 +214,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewLoginActivityWithKotlin() {
-    checkCreateTemplate("Login Activity", withKotlin)
+    checkCreateTemplate("Login Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -221,7 +224,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewScrollingActivityWithKotlin() {
-    checkCreateTemplate("Scrolling Activity", withKotlin)
+    checkCreateTemplate("Scrolling Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -241,7 +244,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("Bottom Navigation Activity", withKotlin)
+    checkCreateTemplate("Bottom Navigation Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -251,7 +254,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleAdMobAdsActivityWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Activity", withKotlin)
+    checkCreateTemplate("Google AdMob Ads Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -261,15 +264,13 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin)
+    checkCreateTemplate("Google Maps Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
-  /* disable in 4.1 Beta: b/157525027
   @TemplateCheck
-  fun testComposeActivity() {
+  fun ignoreTestComposeActivity() { // Disabled in 4.2 stable
     checkCreateTemplate("Empty Compose Activity", withKotlin) // Compose is always Kotlin
   }
-  */
 
   @TemplateCheck
   fun testNewBlankWearActivity() {
@@ -278,7 +279,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewBlankWearActivityWithKotlin() {
-    checkCreateTemplate("Blank Activity", withKotlin)
+    checkCreateTemplate("Blank Activity", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -288,7 +289,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testGoogleMapsWearActivityWithKotlin() {
-    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear)
+    checkCreateTemplate("Google Maps Activity", withKotlin, formFactor = FormFactor.Wear, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -311,6 +312,16 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Android Things Empty Activity", withKotlin)
   }
 
+  @TemplateCheck
+  fun testNewNativeCppActivity() {
+    checkCreateTemplate("Native C++")
+  }
+
+  @TemplateCheck
+  fun testNewNativeCppActivityWithKotlin() {
+    checkCreateTemplate("Native C++", withKotlin, avoidModifiedModuleName = true)
+  }
+
   //--- Fragment templates ---
   @TemplateCheck
   fun testNewListFragment() {
@@ -319,7 +330,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewListFragmentWithKotlin() {
-    checkCreateTemplate("Fragment (List)", withKotlin)
+    checkCreateTemplate("Fragment (List)", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -329,7 +340,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewModalBottomSheetWithKotlin() {
-    checkCreateTemplate("Modal Bottom Sheet", withKotlin)
+    checkCreateTemplate("Modal Bottom Sheet", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -379,7 +390,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFullscreenFragmentWithKotlin() {
-    checkCreateTemplate("Fullscreen Fragment", withKotlin)
+    checkCreateTemplate("Fullscreen Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -399,7 +410,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewGoogleAdMobFragmentWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin)
+    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
@@ -409,7 +420,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
-    checkCreateTemplate("Login Fragment", withKotlin)
+    checkCreateTemplate("Login Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
   //--- Other templates ---
@@ -481,6 +492,7 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Java Folder", templateStateCustomizer = withNewLocation("src/main/java"))
     checkCreateTemplate("JNI Folder", templateStateCustomizer = withNewLocation("src/main/jni"))
     checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+    checkCreateTemplate("Res Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
     checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
     checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
     checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
@@ -493,10 +505,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFiles() {
-    // Bug 37139315
-    if (!SystemInfo.isWindows) {
-      checkCreateTemplate("AIDL File")
-    }
+    checkCreateTemplate("AIDL File")
     checkCreateTemplate("App Actions XML File")
     checkCreateTemplate("Layout XML File")
     checkCreateTemplate("Values XML File")
@@ -504,32 +513,39 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testWatchFace() {
-    checkCreateTemplate("Watch Face")
+    val withJetifier: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.addJetifierSupport = true
+    }
+    checkCreateTemplate("Watch Face", withJetifier)
   }
 
   @TemplateCheck
   fun testWatchFaceWithKotlin() {
-    checkCreateTemplate("Watch Face", withKotlin)
+    val withJetifierAndKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.addJetifierSupport = true
+      withKotlin(moduleData, projectData)
+    }
+    checkCreateTemplate("Watch Face", withJetifierAndKotlin)
   }
 
   @TemplateCheck
   fun testAutomotiveMessagingService() {
-    checkCreateTemplate("Messaging service")
+    checkCreateTemplate("Messaging Service")
   }
 
   @TemplateCheck
   fun testAutomotiveMessagingServiceWithKotlin() {
-    checkCreateTemplate("Messaging service", withKotlin)
+    checkCreateTemplate("Messaging Service", withKotlin)
   }
 
   @TemplateCheck
   fun testAutomotiveMediaService() {
-    checkCreateTemplate("Media service")
+    checkCreateTemplate("Media Service")
   }
 
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
-    checkCreateTemplate("Media service", withKotlin)
+    checkCreateTemplate("Media Service", withKotlin)
   }
 
   fun testWizardUiContext() {
@@ -556,7 +572,8 @@ open class TemplateTest : AndroidGradleTestCase() {
       vararg customizers: ProjectStateCustomizer,
       templateStateCustomizer: TemplateStateCustomizer,
       category: Category?,
-      formFactor: FormFactor?
+      formFactor: FormFactor?,
+      avoidModifiedModuleName: Boolean
     ) {
       templatesChecked.add(name)
     }
@@ -569,7 +586,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
       val templatesWhichShouldBeCovered = TemplateResolver.getAllTemplates().map { it.name }.toSet()
 
-      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesWhichShouldBeCovered)
+      val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templatesChecked)
 
       val failurePrefix = """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover

@@ -52,17 +52,12 @@ class DesignSurfaceActionsToolbar(
   }
 
   override fun getActionGroups(): EditorActionsToolbarActionGroups {
-    return if (StudioFlags.NELE_DESIGN_SURFACE_ZOOM.get()) {
-      if (designSurface.isEditable) {
-        // Only editable file types support panning.
-        EditableDesignSurfaceActionGroups()
-      }
-      else {
-        BasicDesignSurfaceActionGroups()
-      }
+    return if (designSurface.isEditable) {
+      // Only editable file types support panning.
+      EditableDesignSurfaceActionGroups()
     }
     else {
-      DesignSurfaceEmptyActionGroups
+      BasicDesignSurfaceActionGroups()
     }
   }
 }

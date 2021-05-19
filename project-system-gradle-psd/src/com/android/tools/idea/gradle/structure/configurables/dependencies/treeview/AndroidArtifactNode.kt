@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview
 
-import com.android.builder.model.AndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsModelNode
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
 import com.android.tools.idea.gradle.structure.model.PsChildModel
@@ -32,9 +32,9 @@ class AndroidArtifactNode : AbstractPsModelNode<PsChildModel> {
     models = listOf(artifact)
     val additionalChildren =
       artifact
-        .takeUnless { it.resolvedName == AndroidProject.ARTIFACT_MAIN }
+        .takeUnless { it.resolvedName == ARTIFACT_MAIN }
         ?.parent
-        ?.findArtifact(AndroidProject.ARTIFACT_MAIN)
+        ?.findArtifact(ARTIFACT_MAIN)
         ?.let { AndroidArtifactNode(parent, it) }
     myChildren = listOfNotNull(additionalChildren) + createNodesForResolvedDependencies(this, artifact.dependencies)
     updateNameAndIcon()

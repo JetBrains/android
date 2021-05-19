@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.model;
 
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+import static org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension.getGradleOutputDir;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
@@ -41,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
-import org.jetbrains.plugins.gradle.model.ExternalSourceDirectorySet;
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet;
 import org.jetbrains.plugins.gradle.tooling.internal.IdeaCompilerOutputImpl;
 
@@ -62,13 +61,19 @@ public class IdeaJavaModuleModelFactory {
 
   @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
-                                @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
                                 boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
-    return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
-                                  getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
-                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject), isBuildable);
+    return JavaModuleModel.create(
+      ideaModule.getName(),
+                                  getContentRoots(ideaModule),
+                                  dependencies.first,
+                                  dependencies.second,
+                                  getArtifactsByConfiguration(externalProject),
+                                  getCompilerOutput(externalProject),
+                                  ideaModule.getGradleProject().getBuildDirectory(),
+                                  getLanguageLevel(externalProject),
+                                  isBuildable);
   }
 
   @NotNull
@@ -148,24 +153,5 @@ public class IdeaJavaModuleModelFactory {
     }
     ExternalSourceSet mainSourceSet = externalProject.getSourceSets().get("main");
     return mainSourceSet == null ? null : mainSourceSet.getSourceCompatibility();
-  }
-
-  // TODO(b/145023422): Once merged use CommonGradleProjectResolverExtension#getGradleOutputDir!
-  // See 521231749b2a2a0187593d6dd4fa14fe9c078db0
-  @Nullable
-  private static File getGradleOutputDir(@NotNull ExternalProject externalProject,
-                                         @NotNull String sourceSetName,
-                                         @NotNull ExternalSystemSourceType sourceType) {
-    ExternalSourceSet sourceSet = externalProject.getSourceSets().get(sourceSetName);
-    if (sourceSet == null) return null;
-    return getGradleOutputDir(sourceSet.getSources().get(sourceType));
-  }
-
-  // TODO(b/145023422): Once merged use CommonGradleProjectResolverExtension#getGradleOutputDir!
-  // See 521231749b2a2a0187593d6dd4fa14fe9c078db0
-  @Nullable
-  private static File getGradleOutputDir(@Nullable ExternalSourceDirectorySet sourceDirectorySet) {
-    if (sourceDirectorySet == null) return null;
-    return sourceDirectorySet.getGradleOutputDirs().stream().findFirst().orElse(null);
   }
 }

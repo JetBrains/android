@@ -20,25 +20,25 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.DummyDynamicWizardStep;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
 
 /**
  * Tests for {@link DynamicWizardPath}
  */
 public class DynamicWizardPathTest extends AndroidTestBase {
 
-  DummyDynamicWizardPath myPath;
-  DummyDynamicWizardStep myStep1;
-  DummyDynamicWizardStep myStep2;
+  SampleDynamicWizardPath myPath;
+  SampleDynamicWizardStep myStep1;
+  SampleDynamicWizardStep myStep2;
   private DynamicWizard myWizard;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myWizard = new DummyDynamicWizard();
-    myPath = new DummyDynamicWizardPath("TestPath");
-    myStep1 = new DummyDynamicWizardStep("TestStep1");
-    myStep2 = new DummyDynamicWizardStep("TestStep2");
+    myWizard = new SampleDynamicWizard();
+    myPath = new SampleDynamicWizardPath("TestPath");
+    myStep1 = new SampleDynamicWizardStep("TestStep1");
+    myStep2 = new SampleDynamicWizardStep("TestStep2");
   }
 
   @Override
@@ -137,7 +137,7 @@ public class DynamicWizardPathTest extends AndroidTestBase {
     assertEquals(myStep1, myPath.next());
   }
 
-  public static class DummyDynamicWizardPath extends DynamicWizardPath {
+  public static class SampleDynamicWizardPath extends DynamicWizardPath {
 
     protected final ScopedStateStore.Key<Boolean> VISIBLE_KEY;
     protected final ScopedStateStore.Key<Boolean> REQUIRED_KEY;
@@ -145,7 +145,7 @@ public class DynamicWizardPathTest extends AndroidTestBase {
     protected final ScopedStateStore.Key<Boolean> VALID_KEY;
     private String myName;
 
-    public DummyDynamicWizardPath(@NotNull String name) {
+    public SampleDynamicWizardPath(@NotNull String name) {
       myName = name;
       VALID_KEY = myState.createKey(getPathName() + ":inputValue", Boolean.class);
       DERIVED_KEY = myState.createKey(getPathName() + ":derivedValue", String.class);
@@ -198,9 +198,9 @@ public class DynamicWizardPathTest extends AndroidTestBase {
     }
   }
 
-  private static class DummyDynamicWizard extends DynamicWizard {
-    public DummyDynamicWizard() {
-      super(null, null, "DummyWizard");
+  private static class SampleDynamicWizard extends DynamicWizard {
+    public SampleDynamicWizard() {
+      super(null, null, "SampleWizard");
     }
 
     @Override
@@ -211,12 +211,12 @@ public class DynamicWizardPathTest extends AndroidTestBase {
     @NotNull
     @Override
     protected String getProgressTitle() {
-      return "dummy";
+      return "sample";
     }
 
     @Override
     protected String getWizardActionDescription() {
-      return "Dummy action";
+      return "Sample action";
     }
   }
 }

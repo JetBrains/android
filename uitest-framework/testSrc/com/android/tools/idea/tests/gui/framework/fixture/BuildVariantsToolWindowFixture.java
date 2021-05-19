@@ -19,12 +19,15 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory;
 import com.intellij.ui.content.Content;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.swing.data.TableCell.row;
 
@@ -67,9 +70,10 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     if (!variant.equals(selectedVariant)) {
       // Attempt to select variant if it is not already selected.
       JTableCellFixture variantCell = table.cell(variantCellCoordinates);
-      variantCell.enterValue(variant);
-
-      myProjectFrame.waitForBuildToFinish(BuildMode.SOURCE_GEN);
+      variantCell.startEditing();
+      waitForIdle();
+      new JListFixture(robot(), robot().finder().findByType(robot().findActivePopupMenu(), JList.class)).selectItem(variant);
+      waitForIdle();
     }
 
     return this;

@@ -15,51 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_FLAT_REPOSITORY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_FLAT_REPOSITORY_FROM_EMPTY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_CUSTOM_MAVEN_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_GOOGLE_DEFAULT_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_J_CENTER_CUSTOM_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_J_CENTER_DEFAULT_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel.RepositoryType;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
@@ -72,16 +27,20 @@ import static org.junit.Assume.assumeTrue;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -95,7 +54,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseJCenterDefaultRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_J_CENTER_DEFAULT_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_J_CENTER_DEFAULT_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -105,7 +64,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseJCenterCustomRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_J_CENTER_CUSTOM_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_J_CENTER_CUSTOM_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -121,7 +80,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_MAVEN_CENTRAL_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -137,7 +96,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepositoryWithMultipleArtifactUrls() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS);
+    writeToBuildFile(TestFile.PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -156,7 +115,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenCentralRepositoryWithSingleArtifactUrls() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS);
+    writeToBuildFile(TestFile.PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -173,7 +132,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCustomMavenRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_CUSTOM_MAVEN_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_CUSTOM_MAVEN_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -189,7 +148,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenRepositoryWithArtifactUrls() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS);
+    writeToBuildFile(TestFile.PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -208,7 +167,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMavenRepositoryWithCredentials() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS);
+    writeToBuildFile(TestFile.PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -230,7 +189,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_FLAT_DIR_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -245,7 +204,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepositoryWithSingleDirArgument() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT);
+    writeToBuildFile(TestFile.PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -260,7 +219,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFlatDirRepositoryWithDirListArgument() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT);
+    writeToBuildFile(TestFile.PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -276,7 +235,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMultipleRepositories() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES);
+    writeToBuildFile(TestFile.PARSE_MULTIPLE_REPOSITORIES);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -292,7 +251,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseGoogleDefaultRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_PARSE_GOOGLE_DEFAULT_REPOSITORY);
+    writeToBuildFile(TestFile.PARSE_GOOGLE_DEFAULT_REPOSITORY);
 
     RepositoriesModel repositoriesModel = getGradleBuildModel().repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -302,12 +261,12 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCall() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
-    verifyAddGoogleRepositoryByMethodCall(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EXPECTED);
+    verifyAddGoogleRepositoryByMethodCall(TestFile.ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EXPECTED);
 
     repositories = buildModel.repositories().repositories();
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
@@ -315,16 +274,16 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCallEmpty() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
-    verifyAddGoogleRepositoryByMethodCall(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY_EXPECTED);
+    verifyAddGoogleRepositoryByMethodCall(TestFile.ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY_EXPECTED);
   }
 
   @Test
   public void testAddGoogleRepositoryToEmptyBuildscript() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
@@ -335,7 +294,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT_EXPECTED);
 
     assertFalse(buildModel.isModified());
 
@@ -347,7 +306,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByMethodCallPresent() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -361,28 +320,28 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrl() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_BY_URL);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
-    verifyAddGoogleRepositoryByUrl(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EXPECTED);
+    verifyAddGoogleRepositoryByUrl(TestFile.ADD_GOOGLE_REPOSITORY_BY_URL_EXPECTED);
     repositories = buildModel.repositories().repositories();
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
   }
 
   @Test
   public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
+    writeToBuildFile(TestFile.ADD_REPOSITORY_BY_URL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
     assumeTrue(repositories.isEmpty());
-    verifyAddGoogleRepositoryByUrl(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+    verifyAddGoogleRepositoryByUrl(TestFile.ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED);
   }
 
   @Test
   public void testAddMavenCentralRepositoryByUrlEmpty() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
+    writeToBuildFile(TestFile.ADD_REPOSITORY_BY_URL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -393,7 +352,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED);
 
     assertFalse(buildModel.isModified());
 
@@ -405,7 +364,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddJCenterRepositoryByUrlEmpty() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
+    writeToBuildFile(TestFile.ADD_REPOSITORY_BY_URL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -416,7 +375,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addMavenRepositoryByUrl(JCENTER_DEFAULT_REPO_URL, "BintrayJCenter2");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED);
 
     assertFalse(buildModel.isModified());
 
@@ -428,7 +387,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrlPresent() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT);
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -439,7 +398,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
     assertFalse(buildModel.isModified());
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT);
+    verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT);
   }
 
   private static void verifyGoogleDefaultRepositoryModel(RepositoryModel google) {
@@ -524,7 +483,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addFlatDirRepository("/usr/local/repo");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_FLAT_REPOSITORY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_FLAT_REPOSITORY_EXPECTED);
 
     List<RepositoryModel> repos = buildModel.repositories().repositories();
     assertThat(repos).hasSize(1);
@@ -548,7 +507,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addFlatDirRepository("/usr/local/repo");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_FLAT_REPOSITORY_FROM_EMPTY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_FLAT_REPOSITORY_FROM_EMPTY_EXPECTED);
 
     List<RepositoryModel> repos = buildModel.repositories().repositories();
     assertThat(repos).hasSize(1);
@@ -562,7 +521,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToExistingFlatRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY);
+    writeToBuildFile(TestFile.ADD_TO_EXISTING_FLAT_REPOSITORY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -572,7 +531,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addFlatDirRepository(OTHER_TEST_DIR);
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED);
 
     List<RepositoryModel> repos = buildModel.repositories().repositories();
     assertThat(repos).hasSize(1);
@@ -589,7 +548,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDuplicateToExistingFlatRepository() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY);
+    writeToBuildFile(TestFile.ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -599,7 +558,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addFlatDirRepository(TEST_DIR);
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY_EXPECTED);
 
     List<RepositoryModel> repos = buildModel.repositories().repositories();
     assertThat(repos).hasSize(1);
@@ -613,7 +572,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetNameForMethodCall() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL);
+    writeToBuildFile(TestFile.SET_NAME_FOR_METHOD_CALL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -623,7 +582,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositories.get(0).name().setValue("hello");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_FOR_METHOD_CALL_EXPECTED);
 
     repositoriesModel = buildModel.repositories();
     repositories = repositoriesModel.repositories();
@@ -634,7 +593,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetUrlForMethodCall() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL);
+    writeToBuildFile(TestFile.SET_URL_FOR_METHOD_CALL);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -645,7 +604,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     ((UrlBasedRepositoryModel)repositories.get(0)).url().setValue("good.url");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_URL_FOR_METHOD_CALL_EXPECTED);
 
     repositoriesModel = buildModel.repositories();
     repositories = repositoriesModel.repositories();
@@ -656,7 +615,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetArtifactUrlsForMethodCall() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL);
+    writeToBuildFile(TestFile.SET_ARTIFACT_URLS_FOR_METHOD_CALL);
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
@@ -667,7 +626,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     ((MavenRepositoryModelImpl) repositoryModel).artifactUrls().addListValue().setValue("some.url");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED);
 
     repositoriesModel = buildModel.repositories();
     repositories = repositoriesModel.repositories();
@@ -678,7 +637,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetArtifactUrlsInMaven() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN);
+    writeToBuildFile(TestFile.SET_ARTIFACT_URLS_IN_MAVEN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -694,7 +653,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     ((MavenRepositoryModelImpl)repositories.get(1)).artifactUrls().addListValue().setValue("other.nice.url");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED);
 
     repositoriesModel = buildModel.repositories();
     repositories = repositoriesModel.repositories();
@@ -708,7 +667,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetCredentialsInMaven() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN);
+    writeToBuildFile(TestFile.SET_CREDENTIALS_IN_MAVEN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -724,7 +683,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     ((MavenRepositoryModelImpl)repositories.get(1)).credentials().password().setValue("12345678");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_CREDENTIALS_IN_MAVEN_EXPECTED);
 
     repositoriesModel = buildModel.repositories();
     repositories = repositoriesModel.repositories();
@@ -739,7 +698,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testMultipleLocalRepos() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS);
+    writeToBuildFile(TestFile.MULTIPLE_LOCAL_REPOS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
@@ -761,5 +720,128 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertEquals(RepositoryModel.RepositoryType.MAVEN, thirdModel.getType());
     assertThat(thirdModel).isInstanceOf(MavenRepositoryModelImpl.class);
     assertEquals("file:/some/repo", ((MavenRepositoryModelImpl)thirdModel).url().toString());
+  }
+
+  @Test
+  public void testMultipleGoogleRepos() throws IOException {
+    assumeTrue("KotlinScript parser does not recognize foo().run { ... } as foo() method call", !isKotlinScript()); // TODO(b/155156339)
+    writeToBuildFile(TestFile.ADD_GOOGLE_REPOSITORY_WITH_WITH);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
+
+    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    applyChangesAndReparse(buildModel);
+
+    verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_WITH_WITH);
+  }
+
+  @Test
+  public void testRemoveMavenRepository() throws IOException {
+    writeToBuildFile(TestFile.REMOVE_MAVEN_REPOSITORY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    RepositoryModel mavenModel = repositoriesModel.repositories().stream()
+      .filter((x) -> x instanceof MavenRepositoryModel && ((MavenRepositoryModel)x).url().forceString().equals("http://example.com/"))
+      .findFirst().get();
+    repositoriesModel.removeRepository(mavenModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_MAVEN_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testRemoveGoogleRepository() throws IOException {
+    writeToBuildFile(TestFile.REMOVE_GOOGLE_REPOSITORY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    RepositoryModel googleModel = repositoriesModel.repositories().stream()
+      .filter((x) -> x instanceof GoogleDefaultRepositoryModel)
+      .findFirst().get();
+    repositoriesModel.removeRepository(googleModel);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_GOOGLE_REPOSITORY_EXPECTED);
+  }
+
+  @Test
+  public void testGetPsiElement() throws IOException {
+    writeToBuildFile(TestFile.PARSE_MULTIPLE_REPOSITORIES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertNotNull(repositories.get(0).getPsiElement());
+    assertThat(repositories.get(0).getPsiElement().getText()).isEqualTo("jcenter()");
+    assertNotNull(repositories.get(1).getPsiElement());
+    assertThat(repositories.get(1).getPsiElement().getText()).isEqualTo("mavenCentral()");
+  }
+
+  // FIXME-ank5: remove duplicates from com.android.tools.idea.gradle.dsl.TestFileNameImpl (?)
+  enum TestFile implements TestFileName {
+    PARSE_J_CENTER_DEFAULT_REPOSITORY("parseJCenterDefaultRepository"),
+    PARSE_J_CENTER_CUSTOM_REPOSITORY("parseJCenterCustomRepository"),
+    PARSE_MAVEN_CENTRAL_REPOSITORY("parseMavenCentralRepository"),
+    PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_MULTIPLE_ARTIFACT_URLS("parseMavenCentralRepositoryWithMultipleArtifactUrls"),
+    PARSE_MAVEN_CENTRAL_REPOSITORY_WITH_SINGLE_ARTIFACT_URLS("parseMavenCentralRepositoryWithSingleArtifactUrls"),
+    PARSE_CUSTOM_MAVEN_REPOSITORY("parseCustomMavenRepository"),
+    PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS("parseMavenRepositoryWithArtifactUrls"),
+    PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS("parseMavenRepositoryWithCredentials"),
+    PARSE_FLAT_DIR_REPOSITORY("parseFlatDirRepository"),
+    PARSE_FLAT_DIR_REPOSITORY_WITH_SINGLE_DIR_ARGUMENT("parseFlatDirRepositoryWithSingleDirArgument"),
+    PARSE_FLAT_DIR_REPOSITORY_WITH_DIR_LIST_ARGUMENT("parseFlatDirRepositoryWithDirListArgument"),
+    PARSE_MULTIPLE_REPOSITORIES("parseMultipleRepositories"),
+    PARSE_GOOGLE_DEFAULT_REPOSITORY("parseGoogleDefaultRepository"),
+    ADD_FLAT_REPOSITORY_EXPECTED("addFlatRepositoryExpected"),
+    ADD_FLAT_REPOSITORY_FROM_EMPTY_EXPECTED("addFlatRepositoryFromEmptyExpected"),
+    ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL("addGoogleRepositoryByMethodCall"),
+    ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EXPECTED("addGoogleRepositoryByMethodCallExpected"),
+    ADD_GOOGLE_REPOSITORY_WITH_WITH("addGoogleRepositoryWithWith"),
+    ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY("addGoogleRepositoryByMethodCallEmpty"),
+    ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EMPTY_EXPECTED("addGoogleRepositoryByMethodCallEmptyExpected"),
+    ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT("addGoogleRepositoryToEmptyBuildscript"),
+    ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT_EXPECTED("addGoogleRepositoryToEmptyBuildscriptExpected"),
+    ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT("addGoogleRepositoryByMethodCallPresent"),
+    ADD_GOOGLE_REPOSITORY_BY_URL("addGoogleRepositoryByUrl"),
+    ADD_GOOGLE_REPOSITORY_BY_URL_EXPECTED("addGoogleRepositoryByUrlExpected"),
+    ADD_REPOSITORY_BY_URL_EMPTY("addRepositoryByUrlEmpty"),
+    ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED("addGoogleRepositoryByUrlEmptyExpected"),
+    ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED("addMavenCentralRepositoryByUrlEmptyExpected"),
+    ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED("addJCenterRepositoryByUrlEmptyExpected"),
+    ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT("addGoogleRepositoryByUrlPresent"),
+    ADD_TO_EXISTING_FLAT_REPOSITORY("addToExistingFlatRepository"),
+    ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED("addToExistingFlatRepositoryExpected"),
+    ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY("addDuplicateToExistingFlatRepository"),
+    ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY_EXPECTED("addDuplicateToExistingFlatRepositoryExpected"),
+    SET_ARTIFACT_URLS_FOR_METHOD_CALL("setArtifactUrlsForMethodCall"),
+    SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED("setArtifactUrlsForMethodCallExpected"),
+    SET_NAME_FOR_METHOD_CALL("setNameForMethodCall"),
+    SET_NAME_FOR_METHOD_CALL_EXPECTED("setNameForMethodCallExpected"),
+    SET_URL_FOR_METHOD_CALL("setUrlForMethodCall"),
+    SET_URL_FOR_METHOD_CALL_EXPECTED("setUrlForMethodCallExpected"),
+    SET_ARTIFACT_URLS_IN_MAVEN("setArtifactUrlsInMaven"),
+    SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED("setArtifactUrlsInMavenExpected"),
+    SET_CREDENTIALS_IN_MAVEN("setCredentialsInMaven"),
+    SET_CREDENTIALS_IN_MAVEN_EXPECTED("setCredentialsInMavenExpected"),
+    MULTIPLE_LOCAL_REPOS("multipleLocalRepos"),
+    REMOVE_MAVEN_REPOSITORY("removeMavenRepository"),
+    REMOVE_MAVEN_REPOSITORY_EXPECTED("removeMavenRepositoryExpected"),
+    REMOVE_GOOGLE_REPOSITORY("removeGoogleRepository"),
+    REMOVE_GOOGLE_REPOSITORY_EXPECTED("removeGoogleRepositoryExpected")
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/repositoriesModel/" + path, extension);
+    }
   }
 }

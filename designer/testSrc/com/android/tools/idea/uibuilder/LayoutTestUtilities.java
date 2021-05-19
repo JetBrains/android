@@ -23,6 +23,7 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.KeyEventBuilder;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -37,13 +38,14 @@ import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import org.jetbrains.annotations.NotNull;
@@ -89,7 +91,7 @@ public class LayoutTestUtilities {
     for (int i = 0; i < frames + 1; i++) {
       MouseEvent event = new MouseEventBuilder((int)x, (int)y)
         .withSource(layeredPane)
-        .withMask(modifiers)
+        .withMask(modifiers | InputEvent.BUTTON1_DOWN_MASK)
         .withId(MouseEvent.MOUSE_DRAGGED)
         .build();
       mouseListener.mouseDragged(event);
@@ -250,7 +252,7 @@ public class LayoutTestUtilities {
   public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
-    SelectionModel selectionModel = new SelectionModel();
+    SelectionModel selectionModel = new DefaultSelectionModel();
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     when(surface.getSelectionModel()).thenReturn(selectionModel);
@@ -262,7 +264,7 @@ public class LayoutTestUtilities {
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
     if (NlDesignSurface.class.equals(surfaceClass)) {
       when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
-      when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT);
+      when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
     }
     return surface;
   }

@@ -26,6 +26,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -125,6 +126,16 @@ final class PhysicalDevice extends Device {
   @Override
   Snapshot getSnapshot() {
     return null;
+  }
+
+  @Override
+  boolean matches(@NotNull Key key) {
+    return getKey().matches(key);
+  }
+
+  @Override
+  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
+    return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
   }
 
   @NotNull

@@ -33,11 +33,6 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
-import com.android.tools.adtui.model.legend.EventLegend;
-import com.android.tools.adtui.model.legend.Legend;
-import com.android.tools.adtui.model.legend.LegendComponentModel;
-import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
@@ -421,7 +416,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
       .setStartNativeSample(Memory.StartNativeSample.newBuilder()
                               // Note: This will use the config for the one that is loaded (in the drop down) vs the one used to launch
                               // the app.
-                              .setSamplingIntervalBytes(ide.getFeatureConfig().getNativeMemorySamplingRateForCurrentConfig())
+                              .setSamplingIntervalBytes(ide.getNativeMemorySamplingRateForCurrentConfig())
                               .setSharedMemoryBufferBytes(64 * 1024 * 1024)
                               .setAbiCpuArch(process.getAbiCpuArch())
                               .setTempPath(traceFilePath)
@@ -688,7 +683,7 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
   }
 
   @VisibleForTesting
-  void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
+  public void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                              @Nullable Executor joiner) {
     StudioProfilers profilers = getStudioProfilers();
     if (durationData != null &&
@@ -836,112 +831,6 @@ public class MemoryProfilerStage extends BaseMemoryProfilerStage implements Code
                              Runtime.getRuntime().totalMemory() +
                              Runtime.getRuntime().freeMemory();
     return requestableMemory >= MEMORY_HPROF_SAFE_FACTOR * fileSize + leeway;
-  }
-
-  public static class MemoryStageLegends extends LegendComponentModel {
-    @NotNull private final SeriesLegend myJavaLegend;
-    @NotNull private final SeriesLegend myNativeLegend;
-    @NotNull private final SeriesLegend myGraphicsLegend;
-    @NotNull private final SeriesLegend myStackLegend;
-    @NotNull private final SeriesLegend myCodeLegend;
-    @NotNull private final SeriesLegend myOtherLegend;
-    @NotNull private final SeriesLegend myTotalLegend;
-    @NotNull private final SeriesLegend myObjectsLegend;
-    @NotNull private final EventLegend<GcDurationData> myGcDurationLegend;
-    @NotNull private final EventLegend<AllocationSamplingRateDurationData> mySamplingRateDurationLegend;
-
-    public MemoryStageLegends(@NotNull MemoryProfilerStage memoryStage, @NotNull Range range, boolean isTooltip) {
-      super(range);
-      DetailedMemoryUsage usage = memoryStage.getDetailedMemoryUsage();
-      myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
-      myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
-      myGraphicsLegend = new SeriesLegend(usage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, range);
-      myStackLegend = new SeriesLegend(usage.getStackSeries(), MEMORY_AXIS_FORMATTER, range);
-      myCodeLegend = new SeriesLegend(usage.getCodeSeries(), MEMORY_AXIS_FORMATTER, range);
-      myOtherLegend = new SeriesLegend(usage.getOtherSeries(), MEMORY_AXIS_FORMATTER, range);
-      myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
-      myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range, usage.getObjectsSeries().getName(),
-                                         Interpolatable.RoundedSegmentInterpolator, r -> {
-        if (!memoryStage.isLiveAllocationTrackingReady()) {
-          // if live allocation is not enabled, show the object series as long as there is data.
-          return true;
-        }
-
-        // Controls whether the series should be shown by looking at whether there is a FULL tracking mode event within the query range.
-        List<SeriesData<AllocationSamplingRateDurationData>> data =
-          usage.getAllocationSamplingRateDurations().getSeries().getSeriesForRange(r);
-
-        if (data.isEmpty()) {
-          return false;
-        }
-
-        MemoryAllocSamplingData samplingInfo = data.get(data.size() - 1).value.getCurrentRate();
-        return LiveAllocationSamplingMode.getModeFromFrequency(samplingInfo.getSamplingNumInterval()) == LiveAllocationSamplingMode.FULL;
-      });
-      myGcDurationLegend =
-        new EventLegend<>("GC Duration", duration -> TimeAxisFormatter.DEFAULT
-          .getFormattedString(TimeUnit.MILLISECONDS.toMicros(1), duration.getDurationUs(), true));
-      mySamplingRateDurationLegend =
-        new EventLegend<>("Tracking", duration -> LiveAllocationSamplingMode
-          .getModeFromFrequency(duration.getCurrentRate().getSamplingNumInterval()).getDisplayName());
-
-      List<Legend> legends = isTooltip ? Arrays.asList(myOtherLegend, myCodeLegend, myStackLegend, myGraphicsLegend,
-                                                       myNativeLegend, myJavaLegend, myObjectsLegend, mySamplingRateDurationLegend,
-                                                       myGcDurationLegend, myTotalLegend)
-                                       : Arrays.asList(myTotalLegend, myJavaLegend, myNativeLegend,
-                                                       myGraphicsLegend, myStackLegend, myCodeLegend, myOtherLegend, myObjectsLegend);
-      legends.forEach(this::add);
-    }
-
-    @NotNull
-    public SeriesLegend getJavaLegend() {
-      return myJavaLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getNativeLegend() {
-      return myNativeLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getGraphicsLegend() {
-      return myGraphicsLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getStackLegend() {
-      return myStackLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getCodeLegend() {
-      return myCodeLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getOtherLegend() {
-      return myOtherLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getTotalLegend() {
-      return myTotalLegend;
-    }
-
-    @NotNull
-    public SeriesLegend getObjectsLegend() {
-      return myObjectsLegend;
-    }
-
-    @NotNull
-    public EventLegend<GcDurationData> getGcDurationLegend() {
-      return myGcDurationLegend;
-    }
-
-    @NotNull
-    public EventLegend<AllocationSamplingRateDurationData> getSamplingRateDurationLegend() {
-      return mySamplingRateDurationLegend;
-    }
   }
 
   private class CaptureElapsedTimeUpdatable implements Updatable {

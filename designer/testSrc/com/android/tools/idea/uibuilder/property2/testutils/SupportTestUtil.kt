@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.APP_PREFIX
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.XMLNS_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
@@ -39,6 +41,7 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import java.util.Arrays
 
 private const val DEFAULT_FILENAME = "layout.xml"
 
@@ -194,6 +197,9 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
           .withAttribute(XMLNS_PREFIX + "tools", TOOLS_URI)
           .withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
       }
+      if (tag.contains('.')) {
+        descriptor.withAttribute(XMLNS_PREFIX + APP_PREFIX, AUTO_URI)
+      }
       return descriptor
         .wrapContentWidth()
         .wrapContentHeight()
@@ -207,6 +213,9 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
       if (activityName.isNotEmpty()) {
         descriptor.withAttribute(TOOLS_URI, ATTR_CONTEXT, activityName)
+      }
+      if (parentTag.contains('.') || Arrays.stream(tags).anyMatch { tag -> tag.contains('.') }) {
+        descriptor.withAttribute(XMLNS_PREFIX + APP_PREFIX, AUTO_URI)
       }
       descriptor
         .matchParentWidth()

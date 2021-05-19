@@ -84,6 +84,10 @@ public class LiveAllocationCaptureObjectTest {
           .build();
       }
     }
+    @Override
+    public void stop() {
+
+    }
   };
 
   @NotNull private final FakeTimer myTimer = new FakeTimer();

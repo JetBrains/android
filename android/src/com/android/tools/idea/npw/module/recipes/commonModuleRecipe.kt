@@ -20,12 +20,13 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
-import com.android.tools.idea.npw.module.recipes.androidModule.cMakeListsTxt
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 
 enum class IconsGenerationStyle {
   ALL,
@@ -40,13 +41,13 @@ fun RecipeExecutor.generateCommonModule(
   useKts: Boolean,
   manifestXml: String,
   generateTests: Boolean = false,
-  includeCppSupport: Boolean = false,
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.themesData.main.name),
   themesXmlNight: String? = null,
   colorsXml: String? = androidModuleColors(),
-  cppFlags: String = "",
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
   ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -73,11 +74,11 @@ fun RecipeExecutor.generateCommonModule(
       apis.targetApi.apiString,
       useAndroidX,
       agpVersion,
-      includeCppSupport,
-      cppFlags,
       hasTests = generateTests,
       formFactorNames = projectData.includedFormFactorNames,
-      addLintOptions = addLintOptions
+      addLintOptions = addLintOptions,
+      enableCpp = enableCpp,
+      cppStandard = cppStandard
     ),
     moduleOut.resolve(buildFile)
   )
@@ -116,13 +117,6 @@ fun RecipeExecutor.generateCommonModule(
     }
     themesXmlNight?.let {
       save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
-    }
-  }
-
-  if (includeCppSupport) {
-    with(moduleOut.resolve("src/main/cpp")) {
-      createDirectory(this)
-      save(cMakeListsTxt(packageName), resolve("CMakeLists.txt"))
     }
   }
 }

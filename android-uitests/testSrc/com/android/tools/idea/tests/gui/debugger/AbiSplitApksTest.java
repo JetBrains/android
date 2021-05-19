@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import static org.junit.Assert.assertTrue;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
@@ -121,10 +123,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
 
     String expectedApkName = "app-x86_64-debug.apk";
     // Request debugging and wait for Gradle build to finish.
-    ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X"));
-
-    // Wait for build to complete
-    guiTest.waitForBackgroundTasks();
+    assertTrue("Build failed", ideFrame.actAndWaitForBuildToFinish(it -> it.debugApp("app", "Google Nexus 5X")).isBuildSuccessful());
 
     File projectRoot = ideFrame.getProjectPath();
     File expectedPathOfApk = new File(projectRoot, "app/build/outputs/apk/debug/" + expectedApkName);

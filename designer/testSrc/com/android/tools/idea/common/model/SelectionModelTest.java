@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.common.model;
 
-import com.intellij.openapi.util.Ref;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-public class SelectionModelTest {
+import com.intellij.openapi.util.Ref;
+import java.util.Arrays;
+import java.util.Collections;
+import org.junit.Test;
+
+public class DefaultSelectionModelTest {
   @Test
   public void testBasic() {
-    SelectionModel model = new SelectionModel();
+    SelectionModel model = new DefaultSelectionModel();
     assertTrue(model.isEmpty());
     final Ref<Boolean> called = new Ref<Boolean>(false);
 
@@ -85,7 +88,7 @@ public class SelectionModelTest {
   }
   @Test
   public void testSubSelection() {
-    SelectionModel model = new SelectionModel();
+    SelectionModel model = new DefaultSelectionModel();
     assertTrue(model.isEmpty());
     NlComponent component1 = mock(NlComponent.class);
     NlComponent component2 = mock(NlComponent.class);

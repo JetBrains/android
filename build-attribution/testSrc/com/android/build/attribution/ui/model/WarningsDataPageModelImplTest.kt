@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.model
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
+import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.google.common.truth.Truth.assertThat
@@ -47,7 +48,7 @@ class WarningsDataPageModelImplTest {
   fun testInitialSelection() {
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
@@ -88,6 +89,33 @@ class WarningsDataPageModelImplTest {
   }
 
   @Test
+  fun testDeselectNode() {
+    // Arrange
+    val lastChild = model.treeRoot.lastLeaf as WarningsTreeNode
+    model.selectNode(lastChild)
+
+    // Act
+    model.selectNode(null)
+
+    // Assert
+    assertThat(model.selectedNode).isNull()
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  ALWAYS_RUN_TASKS
+      |    ALWAYS_RUN_TASKS-:app:compile
+      |    ALWAYS_RUN_TASKS-:app:resources
+      |  TASK_SETUP_ISSUE
+      |    TASK_SETUP_ISSUE-:app:compile
+      |    TASK_SETUP_ISSUE-:lib:compile
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
+  }
+
+  @Test
   fun testSelectByPageId() {
     // Act
     val pageId = WarningsPageId.warning(task2.issues.first())
@@ -119,7 +147,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
@@ -141,7 +169,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:resources
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
@@ -162,7 +190,7 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |=>ALWAYS_RUN_TASKS
+      |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
@@ -173,7 +201,69 @@ class WarningsDataPageModelImplTest {
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("7 Warnings")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 7, Filtered: 7")
+  }
+
+  @Test
+  fun testFilterApplySelectedNodeRemains() {
+    val pageId = WarningsPageId.warning(task1.issues.first())
+    model.selectPageById(pageId)
+    modelUpdateListenerCallsCount = 0
+
+    model.filter = WarningsFilter.default().copy(
+      showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
+      showAnnotationProcessorWarnings = false
+    )
+
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  ALWAYS_RUN_TASKS
+      |===>ALWAYS_RUN_TASKS-:app:compile
+      |    ALWAYS_RUN_TASKS-:app:resources
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testFilterApplySelectedNodeDisappears() {
+    val pageId = WarningsPageId.warning(task1.issues.first())
+    model.selectPageById(pageId)
+    modelUpdateListenerCallsCount = 0
+
+    model.filter = WarningsFilter.default().copy(
+      showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE)
+    )
+
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  TASK_SETUP_ISSUE
+      |    TASK_SETUP_ISSUE-:app:compile
+      |    TASK_SETUP_ISSUE-:lib:compile
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testGroupedByPlugin() {
+    model.groupByPlugin = true
+
+    assertThat(model.print()).isEqualTo("""
+      |ROOT
+      |  compiler.plugin
+      |    :app:compile
+      |    :lib:compile
+      |  resources.plugin
+      |    :app:resources
+      |  ANNOTATION_PROCESSORS
+      |    com.google.auto.value.processor.AutoAnnotationProcessor
+      |    com.google.auto.value.processor.AutoValueBuilderProcessor
+      |    com.google.auto.value.processor.AutoOneOfProcessor
+    """.trimMargin())
+    assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
   }
 
   private fun WarningsDataPageModel.print(): String {

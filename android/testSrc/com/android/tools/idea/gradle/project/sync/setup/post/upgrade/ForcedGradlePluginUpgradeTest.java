@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.google.common.truth.Truth.assertThat;
@@ -24,9 +24,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
@@ -44,7 +43,6 @@ import org.mockito.Mock;
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
-  @Mock private GradleSyncState mySyncState;
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
@@ -57,7 +55,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     Project project = getProject();
     when(myPluginInfo.getModule()).thenReturn(getModule());
 
-    new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
   }
@@ -83,7 +80,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
     assertFalse(upgraded);
 
-    verify(mySyncState, never()).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
@@ -93,13 +89,20 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
 
     // Simulate user accepting the upgrade.
-    myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
+    //
+    // TODO(b/159995302): if the upgrade assistant is turned on, there are more user interaction points within performForcedPluginUpgrade,
+    //  which require overrides (e.g. of DialogWrapper.showAndGet()) just for testing purposes, and those tests end up not testing the
+    //  production codepaths anyway.  On moving to an asynchronous handling of plugin upgrades, this test and others will need to be
+    //  adapted, rewritten or removed.
+    if (!StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
-    assertTrue(upgraded);
+      boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
+      assertTrue(upgraded);
 
-    verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
-    assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+      verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
+      assertThat(mySyncMessages.getReportedMessages()).isEmpty();
+    }
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927

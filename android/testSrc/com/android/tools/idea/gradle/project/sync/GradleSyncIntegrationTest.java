@@ -16,15 +16,12 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.APP_WITH_BUILDSRC;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
-import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
 import static com.android.tools.idea.testing.TestProjectPaths.CUSTOM_BUILD_SCRIPT_DEPS;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
-import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
@@ -42,43 +39,36 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.appendToFile;
 import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
-import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
+import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
 import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.idea.issues.JdkImportCheckException;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.util.ContentEntries;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -111,16 +101,16 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testFramework.EdtTestUtil;
@@ -137,11 +127,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -182,11 +170,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
   }
 
   // https://code.google.com/p/android/issues/detail?id=233038
@@ -299,7 +282,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = TestModuleUtil.findModule(getProject(), "library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
-    assertEquals(JDK_1_7, javaLanguageLevel);
+    assertEquals(JDK_1_8, javaLanguageLevel);
   }
 
   @Nullable
@@ -314,8 +297,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
-    Collection<SyncIssue> issues = androidModel.getSyncIssues();
-    assertThat(issues).isEmpty();
 
     AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(getProject());
     assertNotNull(pluginInfo);
@@ -376,52 +357,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
 
     String failure = requestSyncAndGetExpectedFailure();
-    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=74259
-  public void testWithCentralBuildDirectoryInRootModule() throws Exception {
-    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
-    // outside the content root of the "app" module.
-    File projectRootPath = prepareProjectForImport(CENTRAL_BUILD_DIRECTORY);
-
-    // The bug appears only when the central build folder does not exist.
-    File centralBuildDirPath = new File(projectRootPath, join("central", "build"));
-    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
-    delete(centralBuildParentDirPath);
-
-    Project project = getProject();
-    GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.forceCreateDirs = true;
-    AndroidGradleTests.importProject(project, request, null);
-    Module app = TestModuleUtil.findAppModule(getProject());
-
-    // Now we have to make sure that if project import was successful, the build folder has included source folders.
-    File[] sourceFolderPaths = ApplicationManager.getApplication().runReadAction(
-            (Computable<File[]>)() -> {
-              ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
-              ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-              try {
-                Collection<ContentEntry> contentEntries =
-                        ContentEntries.findChildContentEntries(centralBuildDirPath, Arrays.stream(rootModel.getContentEntries()));
-
-                List<File> paths = new ArrayList<>();
-
-                for (SourceFolder source : contentEntries.stream().flatMap(contentEntry -> Arrays.stream(contentEntry.getSourceFolders()))
-                        .collect(Collectors.toSet())) {
-                  String path = urlToPath(source.getUrl());
-                  if (isNotEmpty(path)) {
-                    paths.add(FilePaths.stringToFile(path));
-                  }
-                }
-                return paths.toArray(new File[paths.size()]);
-              }
-              finally {
-                rootModel.dispose();
-              }
-            });
-
-    assertThat(sourceFolderPaths).isNotEmpty();
+    assertThat(failure).contains("No variants found for ':app'. Check build files to ensure at least one variant exists.");
   }
 
   public void testGradleSyncActionAfterFailedSync() throws Exception {
@@ -449,58 +385,24 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
 
     // DEPENDENT_MODULES project has two modules, app and lib, app module has dependency on lib module.
-    loadProject(DEPENDENT_MODULES);
-
+    prepareProjectForImport(DEPENDENT_MODULES, null, null, null);
     // Define new buildType qa in app module.
     // This causes sync issues, because app depends on lib module, but lib module doesn't have buildType qa.
     File appBuildFile = getBuildFilePath("app");
     appendToFile(appBuildFile, "\nandroid.buildTypes { qa { } }\n");
+    importProject();
+    prepareProjectForTest(getProject(), "app");
 
-    try {
-      requestSyncAndWait();
-    }
-    catch (AssertionError expected) {
-      // Sync issues are expected.
-    }
+    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicQa");
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
     List<NotificationData> relevantMessages = messages.stream()
       .filter(m -> m.getTitle().equals("Unresolved dependencies") &&
                    m.getMessage().contains(
-                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+                     "Unable to resolve dependency for ':app@basicQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
       .collect(toList());
     assertThat(relevantMessages).isNotEmpty();
-  }
-
-  public void testSyncWithAARDependencyAddsSources() throws Exception {
-    Project project = getProject();
-
-    loadProject(SIMPLE_APPLICATION);
-
-    Module appModule = getModule("app");
-
-    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
-            project, () -> {
-              GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-
-              buildModel.repositories().addFlatDirRepository(getTestDataPath() + "/res/aar-lib-sources/");
-
-              String newDependency = "com.foo.bar:bar:0.1@aar";
-              buildModel.dependencies().addArtifact(COMPILE, newDependency);
-              buildModel.applyChanges();
-            }));
-
-    requestSyncAndWait();
-
-    // Verify that the library has sources.
-    ProjectLibraries libraries = new ProjectLibraries(getProject());
-    String libraryNameRegex = "Gradle: com.foo.bar:bar:0.1@aar";
-    Library library = libraries.findMatchingLibrary(libraryNameRegex);
-
-    assertNotNull("Library com.foo.bar:bar:0.1 is missing", library);
-    VirtualFile[] files = library.getFiles(SOURCES);
-    assertThat(files).asList().hasSize(1);
   }
 
   // Verify that custom properties on local.properties are preserved after sync (b/70670394)
@@ -585,7 +487,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
           "org.gradle.language.base.plugins.LifecycleBasePlugin",
           "org.gradle.api.plugins.BasePlugin",
           "org.gradle.api.plugins.ReportingBasePlugin",
-          "org.gradle.api.plugins.JavaBasePlugin",
+          "org.gradle.api.plugins.JavaBasePlugin$Inject",
+          "org.gradle.api.plugins.JvmEcosystemPlugin",
           "com.android.build.gradle.AppPlugin",
           "com.android.build.gradle.internal.plugins.AppPlugin",
           "com.android.build.gradle.internal.plugins.VersionCheckPlugin"
@@ -699,20 +602,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 b/154962759 */
   }
 
-  public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
-    loadProject(HELLO_JNI);
-    // Verify artifacts is not empty.
-    assertThat(getNativeArtifacts()).isNotEmpty();
-
-    // Write empty CMakeLists file so that no artifacts can be built.
-    File cmakeFile = new File(getProjectFolderPath(), join("app", "src", "main", "cpp", "CMakeLists.txt"));
-    writeToFile(cmakeFile, "");
-    requestSyncAndWait();
-
-    // Verify Ndk model doesn't contain any artifact.
-    assertThat(getNativeArtifacts()).isEmpty();
-  }
-
   public void testWithPreSyncCheckFailure() throws Exception {
     Project project = getProject();
 
@@ -805,7 +694,7 @@ b/154962759 */
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // Default option value should be false.
-    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
 
     // Change the option in the build file and re-sync
     File appBuildFile = getBuildFilePath("app");
@@ -813,7 +702,7 @@ b/154962759 */
     requestSyncAndWait();
 
     // Check that the new option is visible from the IDE.
-    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().isEnabled());
+    assertTrue(AndroidModuleModel.get(appModule).getAndroidProject().getViewBindingOptions().getEnabled());
   }
 
   public void testDependenciesInfoOptionsAreCorrectlyVisibleFromIDE() throws Exception {
@@ -831,26 +720,6 @@ b/154962759 */
 
     assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInApk());
     assertFalse(AndroidModuleModel.get(appModule).getAndroidProject().getDependenciesInfo().getIncludeInBundle());
-  }
-
-  public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
-    loadProject(HELLO_JNI);
-
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
-    File appBuildFile = getBuildFilePath("app");
-
-    // Set the ndkVersion to something that doesn't exist.
-    appendToFile(appBuildFile, "android.ndkVersion 'i am a good version'");
-
-    List<SyncIssueData> expectedFailures = requestSyncAndGetExpectedSyncIssueErrors();
-    assertThat(expectedFailures).hasSize(1);
-    assertThat(expectedFailures.get(0).getMessage()).isEqualTo("Requested NDK version 'i am a good version' could not be parsed");
-
-
-    // Also check the notification is emitted correctly.
-    List<NotificationData> notifications = syncMessages.getNotifications();
-    assertThat(notifications).hasSize(1);
-    assertThat(notifications.get(0).getMessage()).startsWith("Requested NDK version 'i am a good version' could not be parsed\n");
   }
 
   public void testKaptIsEnabled() throws Exception {
@@ -872,10 +741,12 @@ b/154962759 */
     requestSyncAndGetExpectedFailure();
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
-    verify(viewManager, timeout(1000).atLeast(3)).onEvent(any(), eventCaptor.capture());
+    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to wait
+    verify(viewManager, after(1000).atLeast(0)).onEvent(any(), eventCaptor.capture());
 
     List<BuildEvent> events = eventCaptor.getAllValues();
+    // There should be at least two events
+    assertThat(events.size()).isAtLeast(2);
     // The first event should be a StartBuildEvent
     assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
     // And the last event should be a FinishBuildEvent. There may be other progress events in between.
@@ -887,7 +758,7 @@ b/154962759 */
   }
 
   public void testUnresolvedDependency() throws Exception {
-    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null);
+    prepareProjectForImport(SIMPLE_APPLICATION_UNRESOLVED_DEPENDENCY, null, null, null);
     GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     Project project = getProject();
@@ -909,25 +780,55 @@ b/154962759 */
    */
   public void testDaemonStops() throws Exception {
     loadSimpleApplication();
-    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
     GradleDaemonServices.stopDaemons();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-    for (DaemonState status : daemonStatus) {
-      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
-    }
+    assertThat(areGradleDaemonsRunning()).isFalse();
     requestSyncAndWait();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
+    assertThat(areGradleDaemonsRunning()).isTrue();
+    GradleDaemonServices.stopDaemons();
+    assertThat(areGradleDaemonsRunning()).isFalse();
   }
 
-  @NotNull
-  private List<NativeArtifact> getNativeArtifacts() {
-    return NdkModuleModel.get(getModule("app")).getVariants().stream()
-            .map(it -> it.getArtifacts())
-            .flatMap(Collection::stream)
-            .collect(toList());
+  public void testSyncWithAARDependencyAddsSources() throws Exception {
+    Project project = getProject();
+
+    loadProject(SIMPLE_APPLICATION);
+
+    Module appModule = getModule("app");
+
+    ApplicationManager.getApplication().invokeAndWait(() -> runWriteCommandAction(
+      project, () -> {
+        try {
+          VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+          VirtualFile buildGradle =  com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile(projectDir);
+
+          String currentBuildFileContents = VfsUtilCore.loadText(buildGradle);
+
+          String newBuildFileContents =
+            currentBuildFileContents +
+            "\nallprojects { repositories { maven { url \"file://" + getTestDataPath() + "/res/aar-lib-sources/maven/\" }}}";
+
+          VfsUtil.saveText(buildGradle, newBuildFileContents);
+
+          GradleBuildModel gradleBuildModel = ProjectBuildModel.get(project).getModuleBuildModel(appModule);
+          gradleBuildModel.dependencies().addArtifact("implementation", "com.test:bar:0.1@aar");
+
+          gradleBuildModel.applyChanges();
+        } catch (Exception e) {
+          e.printStackTrace(System.out);
+          fail(e.getMessage());
+        }
+      }));
+
+    requestSyncAndWait();
+
+    // Verify that the library has sources.
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    String libraryNameRegex = "Gradle: com.test:bar:0.1@aar";
+    Library library = libraries.findMatchingLibrary(libraryNameRegex);
+
+    assertNotNull("Library com.test:bar:0.1 is missing", library);
+    VirtualFile[] files = library.getFiles(SOURCES);
+    assertThat(files).asList().hasSize(1);
   }
 
   private boolean isModulePerSourceSet() {

@@ -21,12 +21,12 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawLasso;
 import com.google.common.collect.ImmutableList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.util.HashSet;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementation of a Lasso
@@ -41,17 +41,19 @@ public class LassoTarget extends BaseTarget {
   private boolean myShowRect;
   private final boolean mySelectWhileDragging;
   private final boolean myShowMargins;
+  private final boolean myRecurse;
   private final HashSet<SceneComponent> myIntersectingComponents = new HashSet<>();
   private boolean myHasChanged;
   private boolean myHasDragged;
 
   public LassoTarget() {
-    this(false, true);
+    this(false, true, false);
   }
 
-  public LassoTarget(boolean selectWhileDragging, boolean showMargins) {
+  public LassoTarget(boolean selectWhileDragging, boolean showMargins, boolean recurse) {
     mySelectWhileDragging = selectWhileDragging;
     myShowMargins = showMargins;
+    myRecurse = recurse;
   }
 
   public boolean getSelectWhileDragging() {
@@ -140,12 +142,15 @@ public class LassoTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext context) {
     myLastX = x;
     myLastY = y;
     myShowRect = true;
     myHasDragged = true;
-    fillSelectedComponents();
+    fillSelectedComponents(context);
     myComponent.getScene().needsRebuildList();
   }
 
@@ -160,8 +165,7 @@ public class LassoTarget extends BaseTarget {
    *
    * @param components
    */
-  private void fillSelectedComponents() {
-    int count = myComponent.getChildCount();
+  private void fillSelectedComponents(@NotNull SceneContext sceneTransform) {
     float x1 = Math.min(myOriginX, myLastX);
     float x2 = Math.max(myOriginX, myLastX);
     float y1 = Math.min(myOriginY, myLastY);
@@ -172,10 +176,20 @@ public class LassoTarget extends BaseTarget {
 
     Rectangle bounds = new Rectangle((int) x1, (int) y1, (int) (x2 - x1), (int) (y2 - y1));
 
-    for (int i = 0; i < count; i++) {
-      SceneComponent component = myComponent.getChild(i);
+    fillSelectedComponents(myComponent, bounds, sceneTransform);
+  }
 
-      boolean intersects = component.intersects(bounds);
+  private void fillSelectedComponents(@NotNull SceneComponent parent, @NotNull Rectangle bounds, @NotNull SceneContext sceneTransform) {
+    int count = parent.getChildCount();
+
+    for (int i = 0; i < count; i++) {
+      SceneComponent component = parent.getChild(i);
+
+      if (myRecurse) {
+        fillSelectedComponents(component, bounds, sceneTransform);
+      }
+
+      boolean intersects = component.intersects(sceneTransform, bounds);
       boolean contains = myIntersectingComponents.contains(component);
       if (intersects == contains) {
         continue;

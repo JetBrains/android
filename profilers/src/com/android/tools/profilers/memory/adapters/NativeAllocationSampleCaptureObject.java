@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.ClassGrouping;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -166,8 +167,11 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
     String abi = myStage.getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getProcessAbi();
     TraceProcessorService service = myStage.getStudioProfilers().getIdeServices().getTraceProcessorService();
-    service.loadTrace(myStartTimeNs, trace.getAbsoluteFile());
-    service.loadMemoryData(abi, myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer(), myDefaultHeapSet);
+    FeatureTracker tracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    long traceId = myStartTimeNs;
+    service.loadTrace(traceId, trace.getAbsoluteFile(), tracker);
+    service.loadMemoryData(
+      traceId, abi, myStage.getStudioProfilers().getIdeServices().getNativeFrameSymbolizer(), myDefaultHeapSet, tracker);
     myIsDoneLoading = true;
     return true;
   }

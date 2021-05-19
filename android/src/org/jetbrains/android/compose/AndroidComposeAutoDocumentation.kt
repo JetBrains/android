@@ -31,6 +31,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.Alarm
 import java.beans.PropertyChangeListener
 
@@ -61,10 +62,19 @@ internal class AndroidComposeAutoDocumentation(private val project: Project) {
     }
   }
 
-  init {
-    if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get () && !ApplicationManager.getApplication().isUnitTestMode) {
+  fun onProjectOpened() {
+    if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get() && !ApplicationManager.getApplication().isUnitTestMode) {
       LookupManager.getInstance(project).addPropertyChangeListener(lookupListener)
     }
+  }
+
+  class MyStartupActivity : StartupActivity {
+    override fun runActivity(project: Project) = getInstance(project).onProjectOpened()
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): AndroidComposeAutoDocumentation = project.getService(AndroidComposeAutoDocumentation::class.java)
   }
 
   private fun showJavaDoc(lookup: Lookup) {

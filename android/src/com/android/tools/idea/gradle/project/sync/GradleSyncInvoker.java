@@ -51,6 +51,7 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -165,15 +166,16 @@ public class GradleSyncInvoker {
   @WorkerThread
   private static void sync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(project).removeAllMessages());
-
-
-    if (!GradleSyncState.getInstance(project).syncStarted(request)) {
-      return;
-    }
-
     new GradleSyncExecutor(project).sync(request, listener);
   }
 
+  @WorkerThread
+  public void fetchAndMergeNativeVariants(@NotNull Project project,
+                                          @NotNull Set<@NotNull String> requestedAbis) {
+    new GradleSyncExecutor(project).fetchAndMergeNativeVariants(requestedAbis);
+  }
+
+  @WorkerThread
   @NotNull
   public List<GradleModuleModels> fetchGradleModels(@NotNull Project project) {
     return new GradleSyncExecutor(project).fetchGradleModels();
@@ -185,24 +187,13 @@ public class GradleSyncInvoker {
     public boolean runInBackground = true;
     public boolean forceFullVariantsSync;
     public boolean skipPreSyncChecks;
-    @TestOnly
-    public boolean forceCreateDirs;
 
     // Perform a variant-only sync if not null.
-    @Nullable public VariantOnlySyncOptions variantOnlySyncOptions;
-
-    @VisibleForTesting
-    @NotNull
-    public static Request testRequest(boolean forceCreateDirs) {
-      Request request = new Request(TRIGGER_TEST_REQUESTED);
-      request.forceCreateDirs = forceCreateDirs;
-      return request;
-    }
 
     @VisibleForTesting
     @NotNull
     public static Request testRequest() {
-      return testRequest(false);
+      return new Request(TRIGGER_TEST_REQUESTED);
     }
 
     public Request(@NotNull GradleSyncStats.Trigger trigger) {
@@ -226,16 +217,14 @@ public class GradleSyncInvoker {
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
-             skipPreSyncChecks == request.skipPreSyncChecks &&
-             forceCreateDirs == request.forceCreateDirs &&
-             Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
+             skipPreSyncChecks == request.skipPreSyncChecks;
     }
 
     @Override
     public int hashCode() {
       return Objects
         .hash(trigger, runInBackground,
-              forceFullVariantsSync, skipPreSyncChecks, forceCreateDirs, variantOnlySyncOptions);
+              forceFullVariantsSync, skipPreSyncChecks);
     }
 
     @Override
@@ -245,8 +234,6 @@ public class GradleSyncInvoker {
              ", runInBackground=" + runInBackground +
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
-             ", forceCreateDirs=" + forceCreateDirs +
-             ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
     }
   }

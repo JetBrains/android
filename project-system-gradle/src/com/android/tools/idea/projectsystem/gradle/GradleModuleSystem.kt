@@ -17,25 +17,23 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID
-import com.android.builder.model.BuildType
 import com.android.ide.common.gradle.model.GradleModelConverter
 import com.android.ide.common.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.ide.common.gradle.model.IdeBuildType
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.Library
+import com.android.projectmodel.ExternalLibrary
 import com.android.repository.io.FileOpUtils
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.queryPackageNameFromManifestIndex
+import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -57,12 +55,7 @@ import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
-import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.GradleApkProvider
-import com.android.tools.idea.run.GradleApkProvider.OutputKind
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
@@ -70,22 +63,13 @@ import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.CachedValue
-import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.manifest.cachedValueFromPrimaryManifest
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
@@ -93,7 +77,6 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Collections
-import java.util.function.Function
 import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 
 /**
@@ -111,7 +94,6 @@ import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
  */
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
-private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
 private val LOG: Logger get() = logger<GradleModuleSystem>()
 
 /** Creates a map for the given pairs, filtering out null values. */
@@ -168,12 +150,12 @@ class GradleModuleSystem(
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(
     module)
 
-  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<Library> {
+  override fun getResolvedLibraryDependencies(includeExportedTransitiveDeps: Boolean): Collection<ExternalLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
     return getResolvedLibraryDependencies(module)
   }
 
-  private fun getResolvedLibraryDependencies(module: Module): Collection<Library> {
+  private fun getResolvedLibraryDependencies(module: Module): Collection<ExternalLibrary> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)
@@ -452,7 +434,7 @@ class GradleModuleSystem(
     )
   }
 
-  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: BuildType): String? {
+  private fun getVersionNameOverride(facet: AndroidFacet, gradleModel: AndroidModuleModel, buildType: IdeBuildType): String? {
     val flavor = gradleModel.selectedVariant.mergedFlavor
     val versionName = flavor.versionName
     val flavorSuffix = if (gradleModel.features.isProductFlavorVersionSuffixSupported) flavor.versionNameSuffix.orEmpty() else ""
@@ -465,72 +447,13 @@ class GradleModuleSystem(
   }
 
   override fun getPackageName(): String? {
-    val facet = AndroidFacet.getInstance(module) ?: return null
-
-    if (AndroidManifestIndex.indexEnabled()) {
-      val packageNameFromIndex = DumbService.getInstance(module.project)
-        .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
-
-      if (packageNameFromIndex != null) {
-        return packageNameFromIndex
-      }
-    }
-    return getPackageNameByParsingPrimaryManifest(facet)
-  }
-
-  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider {
-    return GradleApplicationIdProvider(
-      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"),
-      { (runConfiguration as? UserDataHolder)?.let { it.getUserData(GradleApkProvider.POST_BUILD_MODEL) } }
-    )
+    return getPackageName(module)
   }
 
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
     return GradleApplicationIdProvider(
       AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
     )
-  }
-
-  override fun getApkProvider(runConfiguration: RunConfiguration, unused: AndroidDeviceSpec?): ApkProvider? {
-    if (runConfiguration !is AndroidRunConfigurationBase) return null
-    val facet = AndroidFacet.getInstance(module) ?: return null
-
-    fun outputKind(targetDeviceVersion: AndroidVersion?) =
-      when (DynamicAppUtils.useSelectApksFromBundleBuilder(facet.module, runConfiguration, targetDeviceVersion)) {
-        true -> OutputKind.AppBundleOutputModel
-        false -> OutputKind.Default
-      }
-
-    return GradleApkProvider(
-      facet,
-      getApplicationIdProvider(runConfiguration),
-      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
-      runConfiguration.isTestConfiguration,
-      Function { targetDeviceVersion -> outputKind(targetDeviceVersion) }
-    )
-  }
-
-  private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
-    val cachedValue = facet.cachedValueFromPrimaryManifest {
-      packageName.nullize(true)
-    }
-    return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
-  }
-
-  private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
-    if (DumbService.isDumb(module.project)) {
-      return null
-    }
-    return try {
-      facet.queryPackageNameFromManifestIndex()
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      LOG.debug(e)
-      null
-    }
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
@@ -575,6 +498,10 @@ class GradleModuleSystem(
   }
 
   override val isMlModelBindingEnabled: Boolean get() = readFromAgpFlags { it.mlModelBindingEnabled } ?: false
+
+  override val applicationRClassConstantIds: Boolean get() = readFromAgpFlags { it.applicationRClassConstantIds } ?: true
+
+  override val testRClassConstantIds: Boolean get() = readFromAgpFlags { it.testRClassConstantIds } ?: true
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].
@@ -718,7 +645,7 @@ class GradleModuleSystem(
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()
   val localLibManifests = dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
-  fun com.android.builder.model.level2.Library.manifestFile(): File = this.folder.resolve(this.manifest)
+  fun IdeLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
 
   val aarManifests =
     AndroidModuleModel.get(this)

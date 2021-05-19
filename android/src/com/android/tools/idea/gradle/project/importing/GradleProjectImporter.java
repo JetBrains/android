@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.GradleProjectInfo.beginInitializingGradleProjectAt;
 import static com.android.tools.idea.gradle.util.GradleUtil.BUILD_DIR_DEFAULT_NAME;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.openapi.project.ProjectTypeService.setProjectType;
@@ -62,6 +63,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.jetbrains.plugins.gradle.util.GradleJvmResolutionUtil;
 
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
@@ -121,8 +123,16 @@ public class GradleProjectImporter {
           null,
           null,
           -1,
-          -1, true, false, true, null, false, true, null, null, null
-          ));
+          -1,
+          true,
+          false,
+          true,
+          null,
+          false,
+          false,
+          null,
+          null,
+          null));
     }
     catch (Throwable e) {
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -227,7 +237,10 @@ public class GradleProjectImporter {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(gradleSettings);
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, newProject, Paths.get(externalProjectPath));
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
+    GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
+    // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio
+    projectSettings.setGradleJvm(USE_PROJECT_JDK);
     gradleSettings.setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);

@@ -87,12 +87,28 @@ public abstract class GroovyDslNameConverter implements GradleDslNameConverter {
 
   @NotNull
   @Override
-  public String convertReferenceToExternalText(@NotNull GradleDslElement context, @NotNull String referenceText, boolean forInjection) {
+  public String convertReferenceToExternalText(@NotNull GradleDslElement context,
+                                               @NotNull String referenceText,
+                                               boolean forInjection) {
     if (context instanceof GradleDslSimpleExpression) {
       return convertToExternalTextValue((GradleDslSimpleExpression)context, context.getDslFile(), referenceText, forInjection);
     }
     else {
       return referenceText;
+    }
+  }
+
+  @NotNull
+  @Override
+  public String convertReferenceToExternalText(@NotNull GradleDslElement context,
+                                               @NotNull GradleDslElement dslElement,
+                                               boolean forInjection) {
+    if (context instanceof GradleDslSimpleExpression) {
+      String externalText = convertToExternalTextValue(dslElement, (GradleDslSimpleExpression)context, context.getDslFile(), forInjection);
+      return externalText != null ? externalText : dslElement.getName();
+    }
+    else {
+      return dslElement.getName();
     }
   }
 

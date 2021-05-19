@@ -26,12 +26,15 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
+import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.TestStringTable
@@ -46,6 +49,9 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
@@ -55,6 +61,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.net.Socket
+import java.util.ArrayDeque
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -118,6 +125,8 @@ class LayoutInspectorTransportRule(
   lateinit var inspectorClient: InspectorClient
   lateinit var inspectorModel: InspectorModel
   val project: Project get() = projectRule.project
+  val testRootDisposable: Disposable get() = projectRule.fixture.testRootDisposable
+  val propertiesComponent = PropertiesComponentMock()
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
@@ -129,8 +138,6 @@ class LayoutInspectorTransportRule(
    */
   var initialRoot = view(0L)
 
-  // "2" since it's called for debug_view_attributes and debug_view_attributes_application_package
-  private val unsetSettingsLatch = CountDownLatch(2)
   private val scheduler = VirtualTimeScheduler()
   private var inspectorClientFactory: () -> InspectorClient = {
     DefaultInspectorClient(inspectorModel, projectRule.fixture.projectDisposable, grpcServer.name, scheduler)
@@ -148,6 +155,7 @@ class LayoutInspectorTransportRule(
         events.add(
           Common.Event.newBuilder().apply {
             pid = command.pid
+            timestamp = scheduler.currentTimeNanos
             kind = Common.Event.Kind.AGENT
             agentData = Common.AgentData.newBuilder().setStatus(if (shouldConnectSuccessfully) ATTACHED else UNATTACHABLE).build()
           }.build()
@@ -158,17 +166,20 @@ class LayoutInspectorTransportRule(
 
   private val startedLatch = CountDownLatch(1)
   private val startHandler : CommandHandler = object : CommandHandler(timer) {
-    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
-      if (command.layoutInspector.type == LayoutInspectorProto.LayoutInspectorCommand.Type.START) {
-        startedLatch.countDown()
+    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) =
+      when (command.layoutInspector.type) {
+        LayoutInspectorProto.LayoutInspectorCommand.Type.START,
+        LayoutInspectorProto.LayoutInspectorCommand.Type.REFRESH -> startedLatch.countDown()
+        else -> {
+        }
       }
-    }
   }
 
   private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+      startHandler.handleCommand(command, events)
       val handler = commandHandlers[command.layoutInspector.type]
-      handler?.invoke(command, events) ?: startHandler.handleCommand(command, events)
+      handler?.invoke(command, events)
     }
   }
 
@@ -180,31 +191,68 @@ class LayoutInspectorTransportRule(
       FeaturesHandler.CHUNK_TYPE, FeaturesHandler(emptyMap(), listOf(ClientData.FEATURE_VIEW_HIERARCHY))))
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-        when (args) {
-          "settings put global debug_view_attributes 1",
-          "settings put global debug_view_attributes_application_package com.example",
-          "settings delete global debug_view_attributes",
-          "settings delete global debug_view_attributes_application_package" -> {
-            com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-            if (args.startsWith("settings delete")) {
-              unsetSettingsLatch.countDown()
-            }
-            return true
-          }
-
+        val response = when (command) {
+          "shell" -> handleShellCommand(args) ?: return false
           else -> return false
         }
+        writeOkay(socket.getOutputStream())
+        writeString(socket.getOutputStream(), response)
+        return true
       }
     })
 
     scheduler.scheduleAtFixedRate({ timer.step() }, 0, FpsTimer.ONE_FRAME_IN_NS, TimeUnit.NANOSECONDS)
   }
 
+  var debugViewAttributesChanges = 0
+    private set
+  var debugViewAttributes: String? = null
+    private set
+  var debugViewAttributesApplicationPackage: String? = null
+    private set
+
+  /**
+   * Handle shell commands.
+   *
+   * Examples:
+   *  - "settings get global debug_view_attributes"
+   *  - "settings get global debug_view_attributes_application_package"
+   *  - "settings put global debug_view_attributes 1"
+   *  - "settings put global debug_view_attributes_application_package com.example.myapp"
+   *  - "settings delete global debug_view_attributes"
+   *  - "settings delete global debug_view_attributes_application_package"
+   */
+  private fun handleShellCommand(command: String): String? {
+    val args = ArrayDeque(command.split(' '))
+    if (args.poll() != "settings") {
+      return null
+    }
+    val operation = args.poll()
+    if (args.poll() != "global") {
+      return null
+    }
+    val variable = when (args.poll()) {
+      "debug_view_attributes" -> this::debugViewAttributes
+      "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
+      else -> return null
+    }
+    val argument = if (args.isEmpty()) "" else args.poll()
+    if (args.isNotEmpty()) {
+      return null
+    }
+    return when (operation) {
+      "get" -> { variable.get().toString() }
+      "put" -> { variable.set(argument); debugViewAttributesChanges++; ""}
+      "delete" -> { variable.set(null); debugViewAttributesChanges++; ""}
+      else -> null
+    }
+  }
+
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
   fun withLegacyClient() = apply { inspectorClientFactory = {
-    LegacyClient(inspectorModel.resourceLookup, projectRule.fixture.projectDisposable) }
+    LegacyClient(inspectorModel, projectRule.fixture.projectDisposable) }
   }
 
   /**
@@ -228,6 +276,14 @@ class LayoutInspectorTransportRule(
         addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
       }
     }
+  }
+
+  fun withDebugViewAttributes(value: String?) = apply {
+    debugViewAttributes = value
+  }
+
+  fun withDebugViewAttributesApplicationPackage(value: String?) = apply {
+    debugViewAttributesApplicationPackage = value
   }
 
   fun attach() = apply {
@@ -286,10 +342,24 @@ class LayoutInspectorTransportRule(
   }
 
   /**
+   * Make the next session in Snapshot mode (i.e. not in live mode)
+   */
+  fun inSnapshotMode() = apply {
+    isCapturingModeOn = false
+  }
+
+  /**
    * Advance the virtual time of the test. This will cause the [transportService] poller to fire, and will also advance [timer].
    */
   fun advanceTime(interval: Long, unit: TimeUnit) {
     scheduler.advanceBy(interval, unit)
+  }
+
+  /**
+   * @return the current virtual time of the scheduler.
+   */
+  fun getCurrentTimeNanos(): Long {
+    return scheduler.currentTimeNanos
   }
 
   /**
@@ -334,8 +404,8 @@ class LayoutInspectorTransportRule(
   }
 
   override fun apply(base: Statement, description: Description): Statement {
-    return grpcServer.apply(projectRule.apply(adbRule.apply(//disposableRule.apply(
-      object: Statement() {
+    return grpcServer.apply(projectRule.apply(adbRule.apply( //disposableRule.apply(
+      object : Statement() {
         override fun evaluate() {
           before()
           try {
@@ -352,6 +422,7 @@ class LayoutInspectorTransportRule(
   }
 
   private fun before() {
+    projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     initialActions.forEach { it() }
     inspectorModel = InspectorModel(project)
     originalClientFactory = InspectorClient.clientFactory
@@ -360,10 +431,11 @@ class LayoutInspectorTransportRule(
       InspectorClient.clientFactory = { _, _ -> listOf(inspectorClient) }
     }
     inspector = LayoutInspector(inspectorModel, project)
-    inspector.currentClient = inspectorClient
+    inspector.setCurrentTestClient(inspectorClient)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
+    (DataManager.getInstance() as? HeadlessDataManager)?.setTestDataProvider(dataProviderForLayoutInspector(inspector), testRootDisposable)
   }
 
   private fun after() {
@@ -374,29 +446,30 @@ class LayoutInspectorTransportRule(
       inspectorClient.disconnect().get(10, TimeUnit.SECONDS)
       grpcServer.channel.shutdown().awaitTermination(10, TimeUnit.SECONDS)
       assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
-      if (inspectorClient is DefaultInspectorClient) {
-        waitForUnsetSettings()
+      waitForCondition(10, TimeUnit.SECONDS) {
+        debugViewAttributes == null &&
+        debugViewAttributesApplicationPackage == null
       }
     }
   }
 
-  private fun waitForUnsetSettings() {
-    assertThat(unsetSettingsLatch.await(30, TimeUnit.SECONDS)).isTrue()
-  }
-
-  fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
+  fun createComponentTreeEvent(rootView: ViewNode?): Common.Event {
     val strings = TestStringTable()
     val tree = TreeBuilder(strings)
     val config = ConfigurationBuilder(strings)
     return Common.Event.newBuilder().apply {
       kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      timestamp = scheduler.currentTimeNanos
       pid = DEFAULT_PROCESS.pid
       groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
       layoutInspectorEventBuilder.treeBuilder.apply {
-        root = tree.makeViewTree(rootView)
-        resources = config.makeDummyConfiguration(project)
+        if (rootView != null) {
+          root = tree.makeViewTree(rootView)
+          addAllWindowIds(rootView.drawId)
+        }
+        resources = config.makeSampleConfiguration(project)
+        generation = inspectorModel.lastGeneration + 1
         addAllString(strings.asEntryList())
-        addAllWindowIds(rootView.drawId)
       }
     }.build()
   }

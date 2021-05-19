@@ -99,10 +99,10 @@ final class DevicesSelectedService {
       return devices.get(0);
     }
 
-    Key key = new Key(keyAsString);
+    Key key = Key.newKey(keyAsString);
 
     Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(device -> device.getKey().equals(key))
+      .filter(device -> device.matches(key))
       .findFirst();
 
     if (!optionalSelectedDevice.isPresent()) {
@@ -185,7 +185,7 @@ final class DevicesSelectedService {
   @NotNull
   List<Device> getDevicesSelectedWithDialog(@NotNull List<Device> devices) {
     Collection<Key> keys = getDeviceKeysSelectedWithDialog();
-    return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
+    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(keys));
   }
 
   void setDevicesSelectedWithDialog(@NotNull List<Device> devicesSelectedWithDialog) {
@@ -203,7 +203,7 @@ final class DevicesSelectedService {
     assert !Arrays.asList(keys).contains("") : Arrays.toString(keys);
 
     return Arrays.stream(keys)
-      .map(Key::new)
+      .map(Key::newKey)
       .collect(Collectors.toSet());
   }
 

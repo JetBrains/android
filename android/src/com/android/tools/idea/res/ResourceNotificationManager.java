@@ -20,6 +20,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -31,7 +32,6 @@ import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -56,7 +56,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -131,7 +130,7 @@ public class ResourceNotificationManager {
   private EnumSet<Reason> myEvents = EnumSet.noneOf(Reason.class);
 
   /**
-   * Do not instantiate directly; this is a {@link ProjectComponent} and its lifecycle is managed by the IDE;
+   * Do not instantiate directly; this is a Service and its lifecycle is managed by the IDE;
    * use {@link #getInstance(Project)} instead
    */
   public ResourceNotificationManager(Project project) {
@@ -342,7 +341,7 @@ public class ResourceNotificationManager {
 
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
-      myGeneration = ResourceRepositoryManager.getAppResources(facet).getModificationCount();
+      myGeneration = getAppResourcesModificationCount();
     }
 
     @Override
@@ -394,7 +393,7 @@ public class ResourceNotificationManager {
       if (myFacet.isDisposed()) {
         return;
       }
-      long generation = ResourceRepositoryManager.getAppResources(myFacet).getModificationCount();
+      long generation = getAppResourcesModificationCount();
       if (reason.size() == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
@@ -411,6 +410,11 @@ public class ResourceNotificationManager {
       for (ResourceChangeListener listener : listeners) {
         listener.resourcesChanged(reason);
       }
+    }
+
+    private long getAppResourcesModificationCount() {
+      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getExistingAppResources();
+      return appResources == null ? 0 : appResources.getModificationCount();
     }
 
     private boolean hasListeners() {

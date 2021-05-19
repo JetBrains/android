@@ -42,7 +42,7 @@ class PsProjectImplTest : DependencyTestCase() {
     val project = PsProjectImpl(myFixture.project)
 
     // settings.gradle does not list modules in the lexicographic order.
-    assumeThat(project.parsedModel.projectSettingsModel?.modulePaths(), equalTo(listOf(
+    assumeThat(project.parsedModel.projectSettingsModel?.modulePaths()?.toList(), equalTo(listOf(
       ":", ":app", ":lib", ":jav", ":nested1", ":nested2", ":nested1:deep", ":nested2:deep", ":nested2:trans:deep2", ":dyn_feature")))
 
     // Lexicographically ordered by gradlePath.

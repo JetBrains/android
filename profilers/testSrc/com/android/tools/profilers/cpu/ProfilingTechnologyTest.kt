@@ -17,50 +17,50 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.profiler.proto.Cpu.CpuTraceMode
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
+import com.android.tools.profilers.cpu.config.AtraceConfiguration
+import com.android.tools.profilers.cpu.config.ImportedConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class ProfilingTechnologyTest {
   @Test
   fun fromConfigArtSampled() {
-    val artSampledConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
-                                                         CpuTraceMode.SAMPLED)
+    val artSampledConfiguration = ArtSampledConfiguration("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(artSampledConfiguration)).isEqualTo(ProfilingTechnology.ART_SAMPLED)
   }
 
   @Test
   fun fromConfigArtInstrumented() {
-    val artInstrumentedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
-                                                              CpuTraceMode.INSTRUMENTED)
+    val artInstrumentedConfiguration = ArtInstrumentedConfiguration("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(artInstrumentedConfiguration))
       .isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
   }
 
   @Test
-  fun fromConfigArtUnspecified() {
-    val artUnspecifiedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ART,
-                                                             CpuTraceMode.UNSPECIFIED_MODE)
-    assertThat(ProfilingTechnology.fromConfig(artUnspecifiedConfiguration)).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED)
-  }
-
-  @Test
   fun fromConfigSimpleperf() {
-    val simpleperfConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.SIMPLEPERF,
-                                                         CpuTraceMode.SAMPLED)
+    val simpleperfConfiguration = SimpleperfConfiguration("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(simpleperfConfiguration)).isEqualTo(ProfilingTechnology.SIMPLEPERF)
   }
 
   @Test
   fun fromConfigAtrace() {
-    val atraceConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.ATRACE,
-                                                     CpuTraceMode.SAMPLED)
+    val atraceConfiguration = AtraceConfiguration("MyConfiguration")
     assertThat(ProfilingTechnology.fromConfig(atraceConfiguration)).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun fromConfigPerfetto() {
+    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration")
+    assertThat(ProfilingTechnology.fromConfig(perfettoConfiguration)).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
   }
 
   @Test(expected = IllegalStateException::class)
   fun fromConfigUnexpectedConfig() {
-    val unexpectedConfiguration = ProfilingConfiguration("MyConfiguration", CpuTraceType.UNSPECIFIED_TYPE,
-                                                         CpuTraceMode.SAMPLED)
+    val unexpectedConfiguration = ImportedConfiguration()
     assertThat(ProfilingTechnology.fromConfig(unexpectedConfiguration)).isEqualTo("any config. it should fail before.")
   }
 

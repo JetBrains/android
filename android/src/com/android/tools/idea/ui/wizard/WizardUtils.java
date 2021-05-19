@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.ui.wizard;
 
+import static com.intellij.util.ui.JBUI.Borders.empty;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
@@ -24,16 +28,18 @@ import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
 import com.intellij.util.SystemProperties;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * Static utility methods useful across wizards
@@ -41,6 +47,17 @@ import java.net.URL;
 public final class WizardUtils {
   // TODO: parentej needs to be updated to 4.0.0 when released
   public static final String COMPOSE_MIN_AGP_VERSION = "4.0.0-alpha02";
+
+  public enum WIZARD_BORDER {
+    EMPTY(empty()),
+    SMALL(empty(16)),
+    LARGE(empty(0, 72));
+
+    public final Border border;
+    WIZARD_BORDER(@NotNull Border border) {
+      this.border = border;
+    }
+  }
 
   /**
    * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
@@ -109,6 +126,27 @@ public final class WizardUtils {
       throw new RuntimeException(e);
     }
     return url;
+  }
+
+  /**
+   * When creating a WizardStepPanel which may be so tall as to require vertical scrolling,
+   * using this helper method to automatically wrap it with an appropriate JScrollPane.
+   */
+  @NotNull
+  public static JBScrollPane wrapWithVScroll(@NotNull JPanel innerPanel) {
+    return wrapWithVScroll(innerPanel, WIZARD_BORDER.LARGE);
+  }
+
+  /**
+   * When creating a WizardStepPanel which may be so tall as to require vertical scrolling,
+   * using this helper method to automatically wrap it with an appropriate JScrollPane.
+   */
+  @NotNull
+  public static JBScrollPane wrapWithVScroll(@NotNull JPanel innerPanel, WIZARD_BORDER wizardBorder) {
+    JBScrollPane sp = new JBScrollPane(innerPanel, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    sp.setBorder(WIZARD_BORDER.EMPTY.border); // Remove outer border line decoration
+    innerPanel.setBorder(wizardBorder.border);
+    return sp;
   }
 
   /**

@@ -53,6 +53,7 @@ import com.android.SdkConstants.FLEXBOX_LAYOUT
 import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
+import com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.GESTURE_OVERLAY_VIEW
 import com.android.SdkConstants.GRID_LAYOUT
@@ -269,6 +270,8 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       VIEW_PAGER.isEquals(viewTag) -> ViewPagerHandler()
       // ViewPager2 only exists on the androidx namespace so it does not need isEquals to check both old and new names.
       VIEW_PAGER2 == viewTag -> ViewPager2Handler()
+      // FragmentContainerView only exists  on the androidx namespace
+      FRAGMENT_CONTAINER_VIEW == viewTag -> FragmentContainerViewHandler()
       else -> null
     }
 }

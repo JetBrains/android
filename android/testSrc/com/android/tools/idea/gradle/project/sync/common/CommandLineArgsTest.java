@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
-import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
-import static com.android.builder.model.AndroidProject.PROPERTY_INVOKED_FROM_IDE;
-import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
-import static com.android.builder.model.AndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_ANDROID_SUPPORT_VERSION;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_MODEL_ONLY;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_MODEL_ONLY_VERSIONED;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_INVOKED_FROM_IDE;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_REFRESH_EXTERNAL_NATIVE_MODEL;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
@@ -86,7 +86,7 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     List<String> args = myArgs.get(getProject());
     check(args);
     // In tests the version of the plugin is reported as the build number.
-    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asString());
+    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asStringWithoutProductCode());
     assertThat(args).contains("-Dorg.gradle.internal.GradleProjectBuilderOptions=omit_all_tasks");
   }
 
@@ -101,7 +101,7 @@ public class CommandLineArgsTest extends HeavyPlatformTestCase {
     when(myIdeInfo.isAndroidStudio()).thenReturn(false);
     List<String> args = myArgs.get(getProject());
     check(args);
-    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asString());
+    assertThat(args).contains("-P" + PROPERTY_ANDROID_SUPPORT_VERSION + "=" + BuildNumber.currentVersion().asStringWithoutProductCode());
   }
 
   public void testGetWithExtraCommandLineOptions() {

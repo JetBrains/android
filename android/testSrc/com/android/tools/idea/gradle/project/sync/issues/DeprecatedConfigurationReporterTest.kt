@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
@@ -30,8 +30,8 @@ import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
-  private lateinit var syncIssue1: SyncIssue
-  private lateinit var syncIssue2: SyncIssue
+  private lateinit var syncIssue1: IdeSyncIssue
+  private lateinit var syncIssue2: IdeSyncIssue
   private lateinit var module1: Module
   private lateinit var module2: Module
   private lateinit var messageStub: GradleSyncMessagesStub
@@ -43,24 +43,24 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
     messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
-    syncIssue1 = mock(SyncIssue::class.java)
-    syncIssue2 = mock(SyncIssue::class.java)
+    syncIssue1 = mock(IdeSyncIssue::class.java)
+    syncIssue2 = mock(IdeSyncIssue::class.java)
     module1 = createModule("app")
     module2 = createModule("lib")
     usageReporter = TestSyncIssueUsageReporter()
 
-    `when`(syncIssue1.type).thenReturn(SyncIssue.TYPE_DEPRECATED_CONFIGURATION)
-    `when`(syncIssue2.type).thenReturn(SyncIssue.TYPE_DEPRECATED_CONFIGURATION)
+    `when`(syncIssue1.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
+    `when`(syncIssue2.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
   }
 
   @Test
   fun testDeduplicationInSameModule() {
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
     `when`(syncIssue2.message).thenReturn("Warning message!")
     `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(), usageReporter)
 
@@ -83,10 +83,10 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   fun testNoDeduplicationInSameModule() {
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key1")
-    `when`(syncIssue1.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
     `when`(syncIssue2.message).thenReturn("Warning message!")
     `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -116,10 +116,10 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   fun testDeduplicationAcrossModules() {
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
     `when`(syncIssue2.message).thenReturn("Warning message!")
     `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -142,10 +142,10 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   fun testNoDeduplicationAcrossModules() {
     `when`(syncIssue1.message).thenReturn("Warning message!")
     `when`(syncIssue1.data).thenReturn("key1")
-    `when`(syncIssue1.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
     `when`(syncIssue2.message).thenReturn("Warning message!")
     `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 
@@ -175,10 +175,10 @@ class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
   fun testDeduplicationHandlesErrors() {
     `when`(syncIssue1.message).thenReturn("Error message!")
     `when`(syncIssue1.data).thenReturn("key")
-    `when`(syncIssue1.severity).thenReturn(SyncIssue.SEVERITY_WARNING)
+    `when`(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
     `when`(syncIssue2.message).thenReturn("Error message!")
     `when`(syncIssue2.data).thenReturn("key")
-    `when`(syncIssue2.severity).thenReturn(SyncIssue.SEVERITY_ERROR)
+    `when`(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
 
     reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
 

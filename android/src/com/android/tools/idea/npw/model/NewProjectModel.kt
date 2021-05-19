@@ -38,13 +38,13 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
-import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.impl.OpenProjectTask
@@ -64,7 +64,6 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
@@ -81,10 +80,9 @@ interface ProjectModelData {
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val enableCppSupport: BoolProperty
   val useAppCompat: BoolProperty
   val useGradleKts: BoolProperty
-  val cppFlags: StringProperty
+  val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -97,10 +95,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val enableCppSupport = BoolValueProperty()
   override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
-  override val cppFlags = StringValueProperty()
+  // We can assume this is true for a new project because View binding is supported from AGP 3.6+
+  override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
@@ -226,7 +224,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       )
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
-        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
+        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(),
+                             projectTemplateDataBuilder.addJetifierSupport, useGradleKts.get())
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
@@ -298,7 +297,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     private val MODULE_NAME_GROUP = Pattern.compile(".*:") // Anything before ":" belongs to the module parent name
 
     /**
-     * Loads saved company domain, or generates a dummy one if no domain has been saved.
+     * Loads saved company domain, or generates a placeholder one if no domain has been saved.
      */
     @JvmStatic
     fun getInitialDomain(): String =

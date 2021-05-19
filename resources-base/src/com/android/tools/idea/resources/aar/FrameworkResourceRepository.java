@@ -41,6 +41,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
@@ -246,9 +247,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
   }
 
   private void loadFromPersistentCache(@NotNull CachingData cachingData, @Nullable Set<String> languagesToLoad,
-                                          @NotNull Set<String> loadedLanguages,
-                                          @NotNull Map<String, String> stringCache,
-                                          @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
+                                       @NotNull Set<String> loadedLanguages,
+                                       @NotNull Map<String, String> stringCache,
+                                       @Nullable Map<NamespaceResolver, NamespaceResolver> namespaceResolverCache) {
     CacheFileNameGenerator fileNameGenerator = new CacheFileNameGenerator((cachingData));
     Set<String> languages = languagesToLoad == null ? fileNameGenerator.getAllCacheFileLanguages() : languagesToLoad;
 
@@ -274,15 +275,25 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
             break;  // Don't try to load language-specific resources if language-neutral ones could not be loaded.
           }
         }
+        catch (ProcessCanceledException e) {
+          cleanupAfterFailedLoadingFromCache();
+          loadedLanguages.clear();
+          throw e;
+        }
         catch (Throwable e) {
           cleanupAfterFailedLoadingFromCache();
           loadedLanguages.clear();
-          myNumberOfLanguageGroupsLoadedFromCache = 0;
           LOG.warn("Failed to load from cache file " + cacheFile.toString(), e);
           break;
         }
       }
     }
+  }
+
+  @Override
+  protected void cleanupAfterFailedLoadingFromCache() {
+    super.cleanupAfterFailedLoadingFromCache();
+    myNumberOfLanguageGroupsLoadedFromCache = 0;
   }
 
   private void createPersistentCache(@NotNull CachingData cachingData, @NotNull Set<String> languagesToSkip) {
@@ -433,6 +444,9 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
         repository.populatePublicResourcesMap();
         repository.freezeResources();
+      }
+      catch (ProcessCanceledException e) {
+        throw e;
       }
       catch (Exception e) {
         LOG.error("Failed to load resources from " + myResourceDirectoryOrFile.toString(), e);

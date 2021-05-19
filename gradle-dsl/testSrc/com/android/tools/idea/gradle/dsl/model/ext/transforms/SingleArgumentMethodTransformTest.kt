@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -160,7 +161,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     val literal = createLiteral(parent = inputElement)
     literal.setValue("Hello")
     inputElement.addParsedExpression(literal)
-    val boundElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "newName")
+    val boundElement = transform.bind(gradleDslFile, inputElement, RawText("prop", "prop"), "newName")
     val resultElement = transform.replace(gradleDslFile, inputElement, boundElement, "newName") as GradleDslMethodCall
     assertThat(resultElement, sameInstance(inputElement))
     // Method call element name doesn't change, we are re-using the element instance

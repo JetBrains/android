@@ -55,13 +55,11 @@ PROJECT             : testNdkProjectSync
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/arm7Debug/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/arm7/debug
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/arm7/debug
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestArm7/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestArm7Debug/res
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/arm7/debug
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/arm7/debug
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -96,8 +94,6 @@ PROJECT             : testNdkProjectSync
             JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/arm7DebugUnitTest/out
             JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/arm7Debug/out
             JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/arm7DebugAndroidTest/out
-            JavaResource (test) : file://<PROJECT>/app/build/generated/res/resValues/androidTest/arm7/debug
-            JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/arm7/debug
             JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/arm7/debug
             JavaResource        : file://<PROJECT>/app/build/generated/res/rs/arm7/debug
             JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/arm7/debug
@@ -167,6 +163,7 @@ PROJECT             : testNdkProjectSync
             JavaSource          : file://<PROJECT>/app/src/debug/shaders
             JavaSource          : file://<PROJECT>/app/src/main/aidl
             JavaResource        : file://<PROJECT>/app/src/main/assets
+            JavaSource          : file://<PROJECT>/app/src/main/cpp
             JavaSource          : file://<PROJECT>/app/src/main/java
             JavaSource          : file://<PROJECT>/app/src/main/jni
             JavaResource        : file://<PROJECT>/app/src/main/ml

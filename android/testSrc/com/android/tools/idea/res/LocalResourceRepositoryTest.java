@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.res;
 
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
-
 import java.util.Collection;
-
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import org.jetbrains.android.AndroidTestCase;
 
 public class LocalResourceRepositoryTest extends AndroidTestCase {
   private static final String TEST_FILE = "xmlpull/layout.xml";
@@ -49,6 +49,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertEquals(generation, resources.getModificationCount());
 
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout3.xml");
+    dispatchAllInvocationEvents();
     PsiFile psiFile3 = PsiManager.getInstance(getProject()).findFile(file3);
     assertNotNull(psiFile3);
 
@@ -58,7 +59,8 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     Collection<String> drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(drawables.toString(), 0, drawables.size());
     VirtualFile file4 = myFixture.copyFileToProject(TEST_FILE, "res/drawable-mdpi/foo.png");
-    final PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
+    dispatchAllInvocationEvents();
+    PsiFile psiFile4 = PsiManager.getInstance(getProject()).findFile(file4);
     assertNotNull(psiFile4);
     drawables = resources.getResources(ResourceNamespace.TODO(), ResourceType.DRAWABLE).keySet();
     assertEquals(1, drawables.size());

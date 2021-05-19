@@ -112,9 +112,6 @@ public class SmartStepIntoTest extends DebuggerTestBase {
 
     ideFrame.debugApp(DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
 
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
     Wait.seconds(EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
       .expecting("Java file should be opened when breakpoint hit")
       .until(() -> (JAVA_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName())));

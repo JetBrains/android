@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.intellij.icons.AllIcons
@@ -97,10 +98,6 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       treeModel.root as DefaultMutableTreeNode
     }
 
-    refreshSchemaButton.isEnabled = true
-    runSqlButton.isEnabled = true
-    keepConnectionsOpenButton.isEnabled = true
-
     val schemaNode = DefaultMutableTreeNode(viewDatabase)
     schema?.tables?.sortedBy { it.name }?.forEach { table ->
       val tableNode = DefaultMutableTreeNode(table)
@@ -109,7 +106,19 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
 
     treeModel.insertNodeInto(schemaNode, root, index)
-    tree.expandPath(TreePath(schemaNode.path))
+
+    // if schema node has no children it cannot be expanded
+    // if we don't expand the root of the tree children are not visible, since the root itself is not visible
+    if (schema == null) {
+      tree.expandPath(TreePath(root))
+    }
+    else {
+      tree.expandPath(TreePath(schemaNode.path))
+    }
+
+    refreshSchemaButton.isEnabled = true
+    runSqlButton.isEnabled = true
+    keepConnectionsOpenButton.isEnabled = hasLiveDatabases()
   }
 
   // TODO(b/149920358) handle error by recreating the view.
@@ -155,12 +164,13 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val databaseNode = findDatabaseNode(viewDatabase)
     treeModel.removeNodeFromParent(databaseNode)
 
+    keepConnectionsOpenButton.isEnabled = hasLiveDatabases()
+
     if (databasesCount == 0) {
       tree.model = DefaultTreeModel(null)
 
       refreshSchemaButton.isEnabled = false
       runSqlButton.isEnabled = false
-      keepConnectionsOpenButton.isEnabled = false
     }
 
     return databasesCount
@@ -313,6 +323,20 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       .firstOrNull { (it.userObject as SqliteColumn).name == columnName }
   }
 
+  /** Returns true if at least one live database exists in this view */
+  private fun hasLiveDatabases(): Boolean {
+    val root = tree.model.root as DefaultMutableTreeNode
+    return root.children().asSequence()
+      .map { (it as DefaultMutableTreeNode).userObject as ViewDatabase }
+      .filter { it.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId }
+      .toList()
+      .isNotEmpty()
+  }
+
+  fun setRefreshButtonState(state: Boolean) {
+    refreshSchemaButton.isEnabled = state
+  }
+
   private class SchemaTreeCellRenderer : ColoredTreeCellRenderer() {
     private val colorTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_PLAIN, JBColor.gray)
 
@@ -331,7 +355,12 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
           is ViewDatabase -> {
             append(userObject.databaseId.name)
             if (userObject.isOpen) {
-              icon = StudioIcons.DatabaseInspector.DATABASE
+              icon = if (userObject.databaseId is SqliteDatabaseId.LiveSqliteDatabaseId) {
+                StudioIcons.DatabaseInspector.DATABASE
+              }
+              else {
+                StudioIcons.DatabaseInspector.DATABASE_OFFLINE
+              }
             }
             else {
               append(" (closed)", colorTextAttributes)

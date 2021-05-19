@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
 import com.android.tools.idea.run.SingleDeviceAndroidProcessMonitor.Companion.POLLING_INTERVAL_MILLIS
@@ -27,8 +28,8 @@ import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
-import javax.annotation.concurrent.GuardedBy
 import kotlin.properties.Delegates
 
 
@@ -57,12 +58,13 @@ import kotlin.properties.Delegates
 class SingleDeviceAndroidProcessMonitor(
   val targetApplicationId: String,
   val targetDevice: IDevice,
-  private val listener: SingleDeviceAndroidProcessMonitorStateListener,
+  var listener: SingleDeviceAndroidProcessMonitorStateListener,
   private val deploymentApplicationService: DeploymentApplicationService,
   private val androidLogcatOutputCapture: AndroidLogcatOutputCapture?,
   private val textEmitter: TextEmitter,
   pollingIntervalMillis: Long = POLLING_INTERVAL_MILLIS,
-  appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS
+  appProcessDiscoveryTimeoutMillis: Long = APP_PROCESS_DISCOVERY_TIMEOUT_MILLIS,
+  listenerExecutor: Executor = AppExecutorUtil.getAppExecutorService()
 ) : Closeable {
 
   companion object {
@@ -87,7 +89,7 @@ class SingleDeviceAndroidProcessMonitor(
   private var myState: SingleDeviceAndroidProcessMonitorState by Delegates.observable(WAITING_FOR_PROCESS) { _, _, newValue ->
     // This callback method can be invoked inside synchronization block. To avoid possible deadlock,
     // invoke the listener from different thread.
-    AppExecutorUtil.getAppExecutorService().submit {
+    listenerExecutor.execute {
       listener.onStateChanged(this, newValue)
     }
   }
@@ -163,6 +165,15 @@ class SingleDeviceAndroidProcessMonitor(
       myState = PROCESS_DETACHED
       close()
     }
+  }
+
+  @Synchronized()
+  fun replaceListenerAndClose(newListener: SingleDeviceAndroidProcessMonitorStateListener?) {
+    listener = newListener ?: object : SingleDeviceAndroidProcessMonitorStateListener {
+      // dummy listener
+      override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {}
+    }
+    close()
   }
 
   /**

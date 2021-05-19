@@ -23,6 +23,7 @@ import static com.android.SdkConstants.FN_HARDWARE_INI;
 import static com.android.SdkConstants.FN_SKIN_LAYOUT;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_AVD_ID;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
@@ -44,7 +45,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.device.DeviceArtDescriptor;
+import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -144,7 +145,7 @@ public class AvdWizardUtils {
   public static final List<IdDisplay> ALL_DEVICE_TAGS = ImmutableList.of(DEFAULT_TAG, WEAR_TAG, TV_TAG, CHROMEOS_TAG, AUTOMOTIVE_TAG);
   public static final List<IdDisplay> TAGS_WITH_GOOGLE_API = ImmutableList.of(GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG,
                                                                               PLAY_STORE_TAG, TV_TAG, WEAR_TAG, CHROMEOS_TAG,
-                                                                              AUTOMOTIVE_TAG);
+                                                                              AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
   public static final String CREATE_SKIN_HELP_LINK = "http://developer.android.com/tools/devices/managing-avds.html#skins";
 
@@ -302,6 +303,9 @@ public class AvdWizardUtils {
       else if (deviceName.equals("AndroidWearRound")) {
         deviceName = "wear_round";
       }
+      else if (deviceName.equals("AndroidWearRoundChin320x290")){
+        deviceName = "wear_round_chin_320_290";
+      }
       resourcePath = new File(resourceParent, deviceName);
     }
     // Find the local SDK and the directory for the local copy of the skin.
@@ -382,7 +386,6 @@ public class AvdWizardUtils {
     return resourcePath;
   }
 
-  @VisibleForTesting
   static boolean emulatorSupportsWebp(@NotNull AndroidSdkHandler sdkHandler) {
     return emulatorVersionIsAtLeast(sdkHandler, MIN_WEBP_VERSION);
   }

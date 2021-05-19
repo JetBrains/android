@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms
 
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import org.hamcrest.MatcherAssert.assertThat
@@ -53,8 +53,8 @@ class DefaultTransformTest : TransformTestCase() {
   @Test
   fun testBindReuseReference() {
     val inputElement = createLiteral()
-    inputElement.setValue(ReferenceTo("fakeRef"))
-    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslLiteral
+    inputElement.setValue(RawText("fakeRef", "fakeRef"))
+    val resultElement = transform.bind(gradleDslFile, inputElement, RawText("prop", "prop"), "unused") as GradleDslLiteral
     assertThat(resultElement.referenceText, equalTo("prop"))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))
   }
@@ -62,7 +62,7 @@ class DefaultTransformTest : TransformTestCase() {
   @Test
   fun testBindCreateReferenceReuseName() {
     val inputElement = createLiteral()
-    val resultElement = transform.bind(gradleDslFile, inputElement, ReferenceTo("prop"), "unused") as GradleDslLiteral
+    val resultElement = transform.bind(gradleDslFile, inputElement, RawText("prop", "prop"), "unused") as GradleDslLiteral
     assertThat(resultElement.referenceText, equalTo("prop"))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))
   }
@@ -70,7 +70,7 @@ class DefaultTransformTest : TransformTestCase() {
   @Test
   fun testBindCreateLiteralReuseName() {
     val inputElement = createLiteral()
-    inputElement.setValue(ReferenceTo("fakeRef"))
+    inputElement.setValue(RawText("fakeRef", "fakeRef"))
     val resultElement = transform.bind(gradleDslFile, inputElement, true, "unused") as GradleDslLiteral
     assertThat(resultElement.value as Boolean, equalTo(true))
     assertThat(resultElement.nameElement, equalTo(inputElement.nameElement))

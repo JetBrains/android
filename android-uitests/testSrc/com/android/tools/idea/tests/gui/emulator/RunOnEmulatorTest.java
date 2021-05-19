@@ -22,7 +22,6 @@ import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -117,13 +116,9 @@ public class RunOnEmulatorTest {
 
     ideFrameFixture.runApp(APP_NAME, "Google Nexus 5X");
 
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    guiTest.waitForBackgroundTasks();
-
-    String appModuleName = TestModuleUtil.findModule(ideFrameFixture.getProject(), APP_NAME).getName();
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ideFrameFixture.getRunToolWindow().findContent(appModuleName).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
-    ideFrameFixture.getRunToolWindow().findContent(appModuleName).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
+    ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
     ideFrameFixture.getAndroidLogcatToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
     ideFrameFixture.stopApp();

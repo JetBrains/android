@@ -4,6 +4,7 @@ package org.jetbrains.android.augment
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.resourceNameToFieldName
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.google.common.base.MoreObjects
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.NavigationItem
@@ -85,7 +86,9 @@ class ResourceLightField(
   myContext: PsiClass,
   myType: PsiType,
   fieldModifier: FieldModifier,
-  myConstantValue: Any?) : AndroidLightField(resourceName, myContext, myType, fieldModifier, myConstantValue) {
+  myConstantValue: Any?,
+  val resourceVisibility: ResourceVisibility
+) : AndroidLightField(resourceName, myContext, myType, fieldModifier, myConstantValue) {
 
   override fun getNameIdentifier(): LightIdentifier = LightIdentifier(manager, resourceNameToFieldName(_name))
   override fun getName(): String = resourceNameToFieldName(_name)

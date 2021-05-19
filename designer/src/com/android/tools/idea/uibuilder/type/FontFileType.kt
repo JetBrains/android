@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.common.editor.SetZoomActionGroups
+import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.intellij.psi.PsiFile
@@ -28,5 +28,5 @@ object FontFileType : DesignerEditorFileType {
   override fun isResourceTypeOf(file: PsiFile) =
     file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.FONT, setOf(SdkConstants.TAG_FONT_FAMILY))
 
-  override fun getToolbarActionGroups(surface: DesignSurface) = SetZoomActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface) = ToolbarActionGroups(surface)
 }

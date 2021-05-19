@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.util
 
+import com.android.annotations.concurrency.GuardedBy
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
-import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.schedule
 
 /**

@@ -227,19 +227,24 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   private fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): BufferedImage? {
     val renderService = RenderService.getInstance(module.project)
     val task = createTask(facet, xmlFile, configuration, renderService)
-    var renderResult: CompletableFuture<RenderResult>? = null
-    if (task != null) {
-      renderResult = task.render()
+    try {
+      var renderResult: CompletableFuture<RenderResult>? = null
+      if (task != null) {
+        renderResult = task.render()
+      }
+      var image: BufferedImage? = null
+      if (renderResult != null) {
+        // This should also be done in a listener if task.render() were actually async.
+        image = renderResult.get().renderedImage.copy
+        myImages.put(file, configuration, SoftReference<BufferedImage>(image))
+        myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
+        myRenderModStamps.put(file, configuration, file.timeStamp)
+      }
+      return image
     }
-    var image: BufferedImage? = null
-    if (renderResult != null) {
-      // This should also be done in a listener if task.render() were actually async.
-      image = renderResult.get().renderedImage.copy
-      myImages.put(file, configuration, SoftReference<BufferedImage>(image))
-      myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
-      myRenderModStamps.put(file, configuration, file.timeStamp)
+    finally {
+      task?.dispose()
     }
-    return image
   }
 
   protected open fun createTask(facet: AndroidFacet,

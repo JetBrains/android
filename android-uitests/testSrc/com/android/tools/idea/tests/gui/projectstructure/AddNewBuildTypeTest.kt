@@ -28,13 +28,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddNewBuildTypeTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @Before
   fun setUp() {
@@ -69,6 +70,7 @@ class AddNewBuildTypeTest {
   @Throws(Exception::class)
   fun addNewBuildType() {
     val ide = guiTest.importSimpleApplication()
+    guiTest.waitForBackgroundTasks()
 
     ide.openPsd().run {
       selectBuildVariantsConfigurable().run {

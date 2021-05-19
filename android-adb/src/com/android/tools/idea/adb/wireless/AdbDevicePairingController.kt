@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+import com.intellij.openapi.Disposable
+
 /**
  * Interface definition of the ADB device pairing controller.
  */
-interface AdbDevicePairingController {
+@UiThread
+interface AdbDevicePairingController : Disposable {
   /**
    * Starts the modal dialog allowing pairing devices using QR codes and pin codes.
    * The newly paired devices are added to the underlying adb service implementation.
    */
-  fun startPairingProcess()
+  fun showDialog()
 }

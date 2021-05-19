@@ -19,12 +19,12 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
     >
   <data>
-    <import type="p1.p2.DummyClass"/>
-    <variable name="dummy" type="DummyClass"/>
-    <variable name="dummyList" type="java.util.List<DummyClass>"/>
-    <variable name="dummyMap" type="java.util.Map<String, DummyClass>"/>
-    <variable name="dummyArray" type="DummyClass[]"/>
-    <variable name="dummyMultiDimArray" type="DummyClass[][][]"/>
+    <import type="p1.p2.SampleClass"/>
+    <variable name="sample" type="SampleClass"/>
+    <variable name="sampleList" type="java.util.List<SampleClass>"/>
+    <variable name="sampleMap" type="java.util.Map<String, SampleClass>"/>
+    <variable name="sampleArray" type="SampleClass[]"/>
+    <variable name="sampleMultiDimArray" type="SampleClass[][][]"/>
   </data>
   <LinearLayout
       android:orientation="horizontal" android:layout_width="wrap_content"

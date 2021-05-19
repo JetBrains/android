@@ -16,7 +16,7 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 /**
- * Dummy entry node for BlockGraph
+ * Placeholder entry node for BlockGraph
  */
 public interface BlockGraphEntryNode extends EntryNode {
 }

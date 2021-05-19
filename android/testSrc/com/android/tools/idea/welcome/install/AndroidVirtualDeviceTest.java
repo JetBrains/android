@@ -25,7 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.device.DeviceArtDescriptor;
+import com.android.tools.adtui.device.DeviceArtDescriptor;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;

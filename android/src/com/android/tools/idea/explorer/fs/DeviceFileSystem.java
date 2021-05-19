@@ -29,6 +29,12 @@ public interface DeviceFileSystem {
   String getName();
 
   /**
+   * A string created by adb to uniquely identify the device by its port number.
+   */
+  @NotNull
+  String getDeviceSerialNumber();
+
+  /**
    * The device state, as defined by {@link DeviceState}
    */
   @NotNull
@@ -45,6 +51,8 @@ public interface DeviceFileSystem {
    * Returns the {@link DeviceFileEntry} corresponding to the given <code>path</code>
    * The path follows the Unix syntax, i.e. starts with <code>/</code> and uses <code>/</code>
    * as name separator.
+   *
+   * If the path is not found the future fails with an IllegalArgumentException.
    */
   @NotNull
   ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path);

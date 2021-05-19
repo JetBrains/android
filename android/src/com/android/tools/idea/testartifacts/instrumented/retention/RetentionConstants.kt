@@ -26,4 +26,12 @@ import java.io.File
 
 @JvmField val EMULATOR_SNAPSHOT_FILE_KEY = DataKey.create<File>("EmulatorSnapshotFile")
 
+@JvmField val PACKAGE_NAME_KEY = DataKey.create<String>("PackageName")
+
+@JvmField val DEVICE_NAME_KEY = DataKey.create<String>("DeviceName")
+
+@JvmField val RETENTION_ON_FINISH_KEY = DataKey.create<Runnable>("RetentionOnFinish")
+
+@JvmField val RETENTION_AUTO_CONNECT_DEBUGGER_KEY = DataKey.create<Boolean>("RetentionAutoConnectDebugger")
+
 const val LOAD_RETENTION_ACTION_ID = "android.testRetention.load"

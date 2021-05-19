@@ -75,6 +75,12 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
+  public ConfigureDynamicFeatureStepFixture<W> setUseKtsBuildFiles(boolean select) {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+    return this;
+  }
+
+  @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureDynamicDelivery() {
     wizard().clickNext();
     waitUntilShowing(robot(), target(), JLabelMatcher.withText("Configure On-Demand Options"));
@@ -84,7 +90,7 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   @NotNull
   public ConfigureDynamicFeatureDeliveryStepFixture<W> clickNextToConfigureConditionalDelivery() {
     wizard().clickNext();
-    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Module Download Options"));
+    waitUntilShowing(robot(), target(), JLabelMatcher.withText("Module title (this may be visible to users)"));
     return new ConfigureDynamicFeatureDeliveryStepFixture<>(wizard(), (JRootPane)wizard().target());
   }
 

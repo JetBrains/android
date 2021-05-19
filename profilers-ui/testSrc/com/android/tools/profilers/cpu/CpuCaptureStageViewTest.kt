@@ -18,12 +18,17 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider
+import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -32,17 +37,23 @@ import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
-import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip
+import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
+import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Cursor
 import java.awt.HeadlessException
 import java.awt.Point
 import javax.swing.JLabel
@@ -77,6 +88,10 @@ class CpuCaptureStageViewTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH), 123L)
+
+    ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
   }
 
   @Test
@@ -185,6 +200,9 @@ class CpuCaptureStageViewTest {
     val vsyncTrackPos = trackGroups[0].trackList.indexToLocation(2)
     displayTrackUi.mouse.moveTo(vsyncTrackPos.x, vsyncTrackPos.y)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(VsyncTooltip::class.java)
+    val bufferQueuePos = trackGroups[0].trackList.indexToLocation(3)
+    displayTrackUi.mouse.moveTo(bufferQueuePos.x, bufferQueuePos.y)
+    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(BufferQueueTooltip::class.java)
 
     // Thread tooltip
     // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.
@@ -206,6 +224,12 @@ class CpuCaptureStageViewTest {
     stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
     assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+
+    // Validate feature tracking
+    val featureTracker = profilersView.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
+    featureTracker.resetZoomToSelectionCallCount()
+    profilersView.zoomToSelectionButton.doClick()
+    assertThat(featureTracker.zoomToSelectionCallCount).isEqualTo(1)
   }
 
   @Test
@@ -213,8 +237,6 @@ class CpuCaptureStageViewTest {
     profilersView.studioProfilers.stage = stage
     val stageView = profilersView.stageView as CpuCaptureStageView
     val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
-    stageView.deselectAllLabel.setBounds(0, 0, 100, 100)
-    val ui = FakeUi(stageView.deselectAllLabel)
 
     // Label should be visible when selection changes.
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
@@ -222,7 +244,7 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.deselectAllToolbar.isVisible).isTrue()
 
     // Clicking the label should clear the selection.
-    ui.mouse.click(0, 0)
+    stageView.deselectAllLabel.doClick()
     assertThat(stage.multiSelectionModel.isEmpty).isTrue()
     assertThat(stageView.deselectAllToolbar.isVisible).isFalse()
   }

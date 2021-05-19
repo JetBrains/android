@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="studio-plugin-webp">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/webp/lib/libwebp.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/webp/lib/webp.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import javax.swing.JComponent
 
@@ -41,4 +42,42 @@ interface PreviewRepresentation : Disposable {
    * of the [PreviewRepresentation] (e.g. in the entire editor or its parents).
    */
   fun registerShortcuts(applicableTo: JComponent) { }
+
+  // region Lifecycle handling
+  /**
+   * Method called by the [MultiRepresentationPreview] when this [PreviewRepresentation] becomes active. This means that this representation
+   * is visible or about to become visible. This method will be guaranteed to be called when the representation is added if it's
+   * immediately visible.
+   */
+  fun onActivate() {}
+
+  /**
+   * Analogous to [onActivate], called when the representation is hidden or goes to the background. This method can be used to stop certain
+   * listeners to avoid doing unnecessary background work.
+   * [onActivate] will be called if the representation becomes active again.
+   */
+  fun onDeactivate() {}
+  // endregion
+
+  // region State handling
+  /**
+   * Called to restore any saved state in [getState] after this preview is loaded. The method will not be called if there is no saved
+   * state.
+   *
+   * This method will only be invoked once after the representation has been instantiated.
+   */
+  fun setState(state: PreviewRepresentationState) {}
+
+  /**
+   * Called to retrieve any saved state for this [PreviewRepresentation].
+   */
+  fun getState(): PreviewRepresentationState? = null
+  // endregion
+
+  // region Text editor caret handling
+  /**
+   * Called when the caret position changes. This method must return ASAP and not block.
+   */
+  fun onCaretPositionChanged(event: CaretEvent) {}
+  // endregion
 }

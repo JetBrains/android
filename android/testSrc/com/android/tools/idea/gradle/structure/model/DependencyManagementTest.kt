@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
 import com.android.tools.idea.gradle.structure.model.android.DependencyTestCase
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.ReverseDependency

@@ -38,18 +38,18 @@ import javax.swing.JComponent
  * [WizardDelegate] class is specific to the IDEA New Project Wizard (see [AndroidModuleBuilder] for more details) so the
  * [IdeaWizardAdapter] does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-internal class IdeaWizardAdapter(
-  private val hostWizard: AbstractWizard<*>, private val guestWizard: ModelWizard
-) : ModelWizard.WizardListener, WizardDelegate, Disposable {
+class IdeaWizardAdapter(
+  private val ideaWizard: AbstractWizard<*>, private val modelWizard: ModelWizard
+) : ModelWizard.WizardListener, IdeaWizardDelegate {
   private val listeners = ListenerManager()
   private val customLayout = StudioWizardLayout()
 
   /**
    * Returns a [ModuleWizardStep] that embeds the guest wizard, for use in the host wizard.
    */
-  val proxyStep: ModuleWizardStep
+  private val proxyStep: ModuleWizardStep
     get() = object : ModuleWizardStep() {
-      override fun getComponent(): JComponent = customLayout.decorate(guestWizard.titleHeader, guestWizard.contentPanel)
+      override fun getComponent(): JComponent = customLayout.decorate(modelWizard.titleHeader, modelWizard.contentPanel)
       override fun updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
       }
@@ -57,54 +57,56 @@ internal class IdeaWizardAdapter(
     }
 
   init {
-    guestWizard.addResultListener(this)
-    listeners.listenAll(guestWizard.canGoBack(), guestWizard.canGoForward(), guestWizard.onLastStep())
+    modelWizard.addResultListener(this)
+    listeners.listenAll(modelWizard.canGoBack(), modelWizard.canGoForward(), modelWizard.onLastStep())
       .withAndFire { this.updateButtons() }
 
-    Disposer.register(hostWizard.disposable, this)
-    Disposer.register(this, guestWizard)
+    Disposer.register(ideaWizard.disposable, this)
+    Disposer.register(this, modelWizard)
     Disposer.register(this, customLayout)
   }
+
+  override fun getCustomOptionsStep(): ModuleWizardStep  = proxyStep
 
   /**
    * Update the buttons on the host wizard to reflect the state of the guest wizard
    */
-  private fun updateButtons() {
-    hostWizard.updateButtons(guestWizard.onLastStep().get(), guestWizard.canGoForward().get(), !guestWizard.canGoBack().get())
+  override fun updateButtons() {
+    ideaWizard.updateButtons(modelWizard.onLastStep().get(), modelWizard.canGoForward().get(), !modelWizard.canGoBack().get())
   }
 
   override fun onWizardFinished(result: ModelWizard.WizardResult) {
-    hostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished)
+    ideaWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished)
   }
 
   override fun onWizardAdvanceError(e: Exception) {
-    DialogEarthquakeShaker.shake(hostWizard.window)
+    DialogEarthquakeShaker.shake(ideaWizard.window)
   }
 
   override fun doNextAction() {
-    assert(guestWizard.canGoForward().get())
-    guestWizard.goForward()
+    assert(modelWizard.canGoForward().get())
+    modelWizard.goForward()
     updateButtons()
   }
 
   override fun doPreviousAction() {
-    assert(guestWizard.canGoBack().get())
-    guestWizard.goBack()
+    assert(modelWizard.canGoBack().get())
+    modelWizard.goBack()
     updateButtons()
   }
 
   override fun doFinishAction() {
-    assert(guestWizard.canGoForward().get())
-    assert(guestWizard.onLastStep().get())
-    guestWizard.goForward()
+    assert(modelWizard.canGoForward().get())
+    assert(modelWizard.onLastStep().get())
+    modelWizard.goForward()
     updateButtons()
   }
 
-  override fun canProceed(): Boolean = guestWizard.canGoForward().get()
+  override fun canProceed(): Boolean = modelWizard.canGoForward().get()
 
   override fun dispose() {
     listeners.releaseAll()
-    guestWizard.removeResultListener(this)
+    modelWizard.removeResultListener(this)
   }
 }
 

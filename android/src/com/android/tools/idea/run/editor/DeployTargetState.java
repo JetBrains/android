@@ -16,14 +16,16 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ValidationError;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-
 // Each DeployTarget should maintain its state as fields in this class such that they can be persisted by DefaultJDOMExternalizer
 public abstract class DeployTargetState {
+  public static final DeployTargetState DEFAULT_STATE = new DeployTargetState() {
+  };
+
   @NotNull
   public List<ValidationError> validate(@NotNull AndroidFacet facet) {
     return Collections.emptyList();

@@ -17,7 +17,7 @@ package com.android.tools.adtui.model.formatter
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import java.util.*
+import java.util.Locale
 
 class NumberFormatterTest {
 
@@ -39,5 +39,15 @@ class NumberFormatterTest {
     assertThat(NumberFormatter.formatFileSize(2000000)).isEqualTo("1.9 MB")
     assertThat(NumberFormatter.formatFileSize(200000000)).isEqualTo("191 MB")
     assertThat(NumberFormatter.formatFileSize(2000000000)).isEqualTo("1.9 GB")
+  }
+
+  @Test
+  fun testFormatNumberForFrequency() {
+    assertThat(NumberFormatter.formatFrequency(0)).isEqualTo("0.0 kHz")
+    assertThat(NumberFormatter.formatFrequency(50)).isEqualTo("50.0 kHz")
+    assertThat(NumberFormatter.formatFrequency(2000)).isEqualTo("2.0 MHz")
+    assertThat(NumberFormatter.formatFrequency(25500)).isEqualTo("25.5 MHz")
+    assertThat(NumberFormatter.formatFrequency(525100)).isEqualTo("525 MHz")
+    assertThat(NumberFormatter.formatFrequency(1500000)).isEqualTo("1.5 GHz")
   }
 }

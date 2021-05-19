@@ -16,14 +16,18 @@
 package com.android.tools.idea.sqlite
 
 import androidx.sqlite.inspection.SqliteInspectorProtocol
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 
 /**
@@ -33,54 +37,62 @@ import java.util.concurrent.Executor
  * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
+ * @param scope the coroutine scoped used to send messages to inspector.
+ * The job in this scope must be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient constructor(
-  messenger: CommandMessenger,
+  private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
   private val onDatabaseAddedListener: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit,
   private val onDatabasePossiblyChanged: () -> Unit,
   private val onDatabaseClosed: (databaseId: SqliteDatabaseId) -> Unit,
   private val taskExecutor: Executor,
+  scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
-) : AppInspectorClient(messenger) {
+) {
+  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, taskExecutor, errorsSideChannel)
-
-  override val rawEventListener = object : RawEventListener {
-    override fun onRawEvent(eventData: ByteArray) {
-      val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
-      when {
-        event.hasDatabaseOpened() -> {
-          val openedDatabase = event.databaseOpened
-          invokeLater {
-            val databaseId = SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
-            val databaseConnection = LiveDatabaseConnection(parentDisposable, dbMessenger, openedDatabase.databaseId, taskExecutor)
-            onDatabaseAddedListener(databaseId, databaseConnection)
-          }
-        }
-        event.hasDatabasePossiblyChanged() -> {
-          onDatabasePossiblyChanged()
-        }
-        event.hasDatabaseClosed() -> {
-          invokeLater {
-            onDatabaseClosed(SqliteDatabaseId.fromLiveDatabase(event.databaseClosed.path, event.databaseClosed.databaseId))
-          }
-        }
-        event.hasErrorOccurred() -> {
-          val errorContent = event.errorOccurred.content
-          val errorMessage = getErrorMessage((errorContent))
-          onErrorEventListener(errorMessage)
-        }
+  init {
+    scope.launch {
+      messenger.rawEventFlow.collect { eventData ->
+        onRawEvent(eventData)
       }
     }
   }
 
+  @VisibleForTesting
+  fun onRawEvent(eventData: ByteArray) {
+    val event = SqliteInspectorProtocol.Event.parseFrom(eventData)
+    when {
+      event.hasDatabaseOpened() -> {
+        val openedDatabase = event.databaseOpened
+        invokeLater {
+          val databaseId = SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
+          val databaseConnection = LiveDatabaseConnection(parentDisposable, dbMessenger, openedDatabase.databaseId, taskExecutor)
+          onDatabaseAddedListener(databaseId, databaseConnection)
+        }
+      }
+      event.hasDatabasePossiblyChanged() -> {
+        onDatabasePossiblyChanged()
+      }
+      event.hasDatabaseClosed() -> {
+        invokeLater {
+          onDatabaseClosed(SqliteDatabaseId.fromLiveDatabase(event.databaseClosed.path, event.databaseClosed.databaseId))
+        }
+      }
+      event.hasErrorOccurred() -> {
+        val errorContent = event.errorOccurred.content
+        val errorMessage = getErrorMessage((errorContent))
+        onErrorEventListener(errorMessage)
+      }
+    }
+  }
   /**
    * Sends a command to the on-device inspector to start looking for database connections.
    * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
-  fun startTrackingDatabaseConnections() {
+  suspend fun startTrackingDatabaseConnections() {
     dbMessenger.sendCommand(
       SqliteInspectorProtocol.Command.newBuilder()
         .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
@@ -94,14 +106,14 @@ class DatabaseInspectorClient constructor(
    * Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
    */
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-    val response = dbMessenger.sendCommand(
+    val response = dbMessenger.sendCommandAsync(
       SqliteInspectorProtocol.Command.newBuilder()
         .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen).build())
         .build()
     )
 
     return response.transform(taskExecutor) {
-      return@transform when(it.oneOfCase) {
+      return@transform when (it.oneOfCase) {
         SqliteInspectorProtocol.Response.OneOfCase.KEEP_DATABASES_OPEN -> keepOpen
         else -> null
       }

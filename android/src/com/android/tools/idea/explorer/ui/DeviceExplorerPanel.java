@@ -17,7 +17,7 @@ package com.android.tools.idea.explorer.ui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
-import com.android.tools.idea.apk.viewer.ApkViewPanel;
+import com.android.tools.adtui.util.HumanReadableUtil;
 import com.android.tools.idea.explorer.DeviceFileEntryNode;
 import com.android.tools.idea.explorer.ErrorNode;
 import com.android.tools.idea.explorer.MyLoadingNode;
@@ -239,12 +239,12 @@ public class DeviceExplorerPanel {
           // Transfer progress
           if (node.getTotalTransferredBytes() > 0) {
             append(String.format(" (%s / %s) ",
-                                 ApkViewPanel.getHumanizedSize(node.getCurrentTransferredBytes()),
-                                 ApkViewPanel.getHumanizedSize(node.getTotalTransferredBytes())),
+                                 HumanReadableUtil.getHumanizedSize(node.getCurrentTransferredBytes()),
+                                 HumanReadableUtil.getHumanizedSize(node.getTotalTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
           } else if (node.getCurrentTransferredBytes() > 0) {
             append(String.format(" (%s) ",
-                                 ApkViewPanel.getHumanizedSize(node.getCurrentTransferredBytes())),
+                                 HumanReadableUtil.getHumanizedSize(node.getCurrentTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
           } else {
             appendProgress(node.getTransferringTick());
@@ -351,7 +351,7 @@ public class DeviceExplorerPanel {
         long size = node.isUploading() ? node.getCurrentTransferredBytes() : node.getEntry().getSize();
         if (size >= 0) {
           setTextAlign(SwingConstants.RIGHT);
-          append(ApkViewPanel.getHumanizedSize(size));
+          append(HumanReadableUtil.getHumanizedSize(size));
         }
       }
       setIpad(JBUI.insets(0, TEXT_RENDERER_HORIZ_PADDING, 0, TEXT_RENDERER_HORIZ_PADDING));

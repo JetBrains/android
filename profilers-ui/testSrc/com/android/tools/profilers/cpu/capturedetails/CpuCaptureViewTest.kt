@@ -21,9 +21,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
-import com.android.tools.profiler.proto.Cpu.CpuTraceType.SIMPLEPERF
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ReferenceWalker
@@ -34,8 +32,9 @@ import com.android.tools.profilers.cpu.CpuProfilerToolbar
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuProfiler
 import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.cpu.ProfilingConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.ProfilingTechnology
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -238,7 +237,7 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
   @Test
   fun technologyIsPresentInParsingPane() {
     stageView.stage.profilerConfigModel.profilingConfiguration =
-      ProfilingConfiguration("simpleperf", SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED)
+      SimpleperfConfiguration("simpleperf")
     stageView.stage.captureParser.updateParsingStateWhenStarting()
     val parsingPane = getCapturePane()
     val technologyLabel = TreeWalker(parsingPane).descendants().filterIsInstance<JLabel>().first {

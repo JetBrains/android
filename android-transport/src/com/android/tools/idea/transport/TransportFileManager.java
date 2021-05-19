@@ -54,7 +54,7 @@ public final class TransportFileManager implements TransportFileCopier {
   private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
       .setReleaseDir(Constants.TRANSPORT_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.TRANSPORT_DEV_DIR))
+      .setDevDir(Constants.TRANSPORT_DEV_DIR)
       .setExecutable(true)
       .build();
 
@@ -64,42 +64,42 @@ public final class TransportFileManager implements TransportFileCopier {
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
       .setReleaseDir(Constants.JVMTI_AGENT_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.JVMTI_AGENT_DEV_DIR))
+      .setDevDir(Constants.JVMTI_AGENT_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
 
     @NotNull static final DeployableFile SIMPLEPERF = new DeployableFile.Builder("simpleperf")
       .setReleaseDir(Constants.SIMPLEPERF_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.SIMPLEPERF_DEV_DIR))
+      .setDevDir(Constants.SIMPLEPERF_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s") // e.g simpleperf_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO = new DeployableFile.Builder("perfetto")
       .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
+      .setDevDir(Constants.PERFETTO_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("perfetto_%s") // e.g perfetto_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO_SO = new DeployableFile.Builder("libperfetto.so")
       .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
+      .setDevDir(Constants.PERFETTO_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("%s/libperfetto.so") // e.g arm64/libperfetto.so
       .build();
 
     @NotNull static final DeployableFile TRACED = new DeployableFile.Builder("traced")
       .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
+      .setDevDir(Constants.PERFETTO_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_%s") // e.g traced_arm64
       .build();
 
     @NotNull static final DeployableFile TRACED_PROBE = new DeployableFile.Builder("traced_probes")
       .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
+      .setDevDir(Constants.PERFETTO_DEV_DIR)
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
       .build();
@@ -265,7 +265,7 @@ public final class TransportFileManager implements TransportFileCopier {
     try {
       // TODO: Handle the case where we don't have file for this platform.
       if (!Files.exists(localPath)) {
-        throw new RuntimeException(String.format("File %s could not be found for device: %s", fileName, myDevice));
+        throw new RuntimeException(String.format("File %s could not be found for device: %s", localPath.toString(), myDevice));
       }
       /*
        * If copying the agent fails, we will attach the previous version of the agent

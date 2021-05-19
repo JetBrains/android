@@ -23,6 +23,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -82,7 +83,10 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
         }
         else {
           try {
-            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider(myFacet);
+            ApplicationIdProvider applicationIdProvider = myAndroidRunConfigurationBase.getApplicationIdProvider();
+            if (applicationIdProvider == null) {
+              return new LaunchCompatibility(NO, "Cannot get applicationId.");
+            }
             Client client = device.getLaunchedDevice().get().getClient(applicationIdProvider.getPackageName());
             if (client == null) {
               launchCompatibility = new LaunchCompatibility(
@@ -116,14 +120,20 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     }
   }
 
-  public static LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
-                                                  @Nullable ExecutionEnvironment env,
-                                                  @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
-    AndroidVersion minSdkVersion = getMinSdkVersion(facet);
+  public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
+                                                            @Nullable ExecutionEnvironment env,
+                                                            @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
     AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
     if (platform == null) {
-      throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
+      return null;
     }
+
+    AndroidModel androidModel = AndroidModel.get(facet);
+    if (androidModel == null) {
+      return null;
+    }
+
+    AndroidVersion minSdkVersion = getMinSdkVersion(facet);
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     Set<String> supportedAbis = androidModuleModel != null ?
                                 androidModuleModel.getSelectedVariant().getMainArtifact().getAbiFilters() :

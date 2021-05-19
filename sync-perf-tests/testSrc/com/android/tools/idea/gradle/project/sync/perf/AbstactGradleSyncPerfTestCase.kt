@@ -53,14 +53,14 @@ import java.util.logging.Logger
  *   - testSyncTimes: Loads the project pointed by relativePath and syncs it initialDrops + numSamples, recording only the last numSamples
  *                    times.
  *
- *   This is a parameterized test class, running each test using a combination of {Single Variant Sync | Full Sync} and
- *     {Tip of tree AGP and Gradle | (Gradle 5.5, AGP 3.5.0)}
+ *   This is a parameterized test class, running each test using tip of tree AGP and Gradle or Gradle 5.5 and AGP 3.5.0.
  */
 @RunsInEdt
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(NoBracketsParametersRunnerFactory::class)
-abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncInfrastructure: Boolean, private val gradleVersion: String?,
+abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncInfrastructure: Boolean,
+                                              private val gradleVersion: String?,
                                               private val agpVersion: String?) {
   protected val projectRule = AndroidGradleProjectRule()
   @get:Rule
@@ -70,10 +70,8 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     @JvmStatic
     @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}")
     fun testParameters() = arrayOf<Array<Any?>>(
-      arrayOf(false, null, null),
-      arrayOf(false, "5.5", "3.5.0"),
-      arrayOf(true, null, null),
-      arrayOf(true, "5.5", "3.5.0")
+      // Keep first parameter even if it is the same to track results in perfgate
+      arrayOf(true, null, null)
     )
   }
 

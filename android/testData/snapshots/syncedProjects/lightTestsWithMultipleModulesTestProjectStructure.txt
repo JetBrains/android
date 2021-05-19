@@ -1,5 +1,5 @@
 PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
         LinkedProjectId     : LightSyncBasedTestsWithMultipleModulesTestProjectStructureTest
@@ -63,6 +63,46 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             TypeId              : android-gradle
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/c [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/cpp [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/renderscript [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/c [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/cpp [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/renderscript [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/c [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/cpp [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/renderscript [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/c [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/cpp [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/renderscript [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -118,6 +158,46 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             TypeId              : android-gradle
             GradlePath          : :lib
         CONENT_ENTRY        : file://<PROJECT>/lib
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/c [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/cpp [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/renderscript [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/c [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/cpp [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/renderscript [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/c [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/cpp [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/renderscript [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/c [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/cpp [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/renderscript [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

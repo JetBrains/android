@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="espresso" path="ActionManager" hit="Record Espresso Test" />
+    <option name="record" path="ActionManager" hit="Record Espresso Test" />
+    <option name="test" path="ActionManager" hit="Record Espresso Test" />
+    <option name="configuration" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="espresso" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="for" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="record" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="selected" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="test" path="ActionManager" hit="Record Espresso test for selected configuration" />
+    <option name="record" path="ActionManager" hit="Record Robo Script" />
+    <option name="robo" path="ActionManager" hit="Record Robo Script" />
+    <option name="script" path="ActionManager" hit="Record Robo Script" />
+    <option name="configuration" path="ActionManager" hit="Record Robo script for selected configuration" />
+    <option name="for" path="ActionManager" hit="Record Robo script for selected configuration" />
+    <option name="record" path="ActionManager" hit="Record Robo script for selected configuration" />
+    <option name="robo" path="ActionManager" hit="Record Robo script for selected configuration" />
+    <option name="script" path="ActionManager" hit="Record Robo script for selected configuration" />
+    <option name="selected" path="ActionManager" hit="Record Robo script for selected configuration" />
+  </configurable>
+  <configurable id="test.recorder" configurable_name="Espresso Test Recorder">
+    <option name="" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="affect" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="changing" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="could" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="impact" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="of" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="or" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="performance" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="quality" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="recorded" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="recorder" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="settings" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="test" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="tests" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="the" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="these" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="warning" hit="  Warning:  changing these settings could affect the performance of Test Recorder, or impact the quality of the recorded tests. " />
+    <option name="assertion" hit="Assertion depth" />
+    <option name="depth" hit="Assertion depth" />
+    <option name="after" hit="Clear app data after recording" />
+    <option name="app" hit="Clear app data after recording" />
+    <option name="clear" hit="Clear app data after recording" />
+    <option name="data" hit="Clear app data after recording" />
+    <option name="recording" hit="Clear app data after recording" />
+    <option name="app" hit="Clear app data before recording" />
+    <option name="before" hit="Clear app data before recording" />
+    <option name="clear" hit="Clear app data before recording" />
+    <option name="data" hit="Clear app data before recording" />
+    <option name="recording" hit="Clear app data before recording" />
+    <option name="and" hit="Data collection and code generation settings" />
+    <option name="code" hit="Data collection and code generation settings" />
+    <option name="collection" hit="Data collection and code generation settings" />
+    <option name="data" hit="Data collection and code generation settings" />
+    <option name="generation" hit="Data collection and code generation settings" />
+    <option name="settings" hit="Data collection and code generation settings" />
+    <option name="enable" hit="Enable test fragment recording" />
+    <option name="fragment" hit="Enable test fragment recording" />
+    <option name="recording" hit="Enable test fragment recording" />
+    <option name="test" hit="Enable test fragment recording" />
+    <option name="espresso" hit="Espresso Test Recorder" />
+    <option name="recorder" hit="Espresso Test Recorder" />
+    <option name="test" hit="Espresso Test Recorder" />
+    <option name="after" hit="Exit app after recording" />
+    <option name="app" hit="Exit app after recording" />
+    <option name="exit" hit="Exit app after recording" />
+    <option name="recording" hit="Exit app after recording" />
+    <option name="and" hit="Launch and tear down settings" />
+    <option name="down" hit="Launch and tear down settings" />
+    <option name="launch" hit="Launch and tear down settings" />
+    <option name="settings" hit="Launch and tear down settings" />
+    <option name="tear" hit="Launch and tear down settings" />
+    <option name="depth" hit="Limit max depth to identifiable elements" />
+    <option name="elements" hit="Limit max depth to identifiable elements" />
+    <option name="identifiable" hit="Limit max depth to identifiable elements" />
+    <option name="limit" hit="Limit max depth to identifiable elements" />
+    <option name="max" hit="Limit max depth to identifiable elements" />
+    <option name="to" hit="Limit max depth to identifiable elements" />
+    <option name="depth" hit="Max UI depth" />
+    <option name="max" hit="Max UI depth" />
+    <option name="ui" hit="Max UI depth" />
+    <option name="depth" hit="ScrollView detection depth" />
+    <option name="detection" hit="ScrollView detection depth" />
+    <option name="scrollview" hit="ScrollView detection depth" />
+    <option name="content" hit="Use content description for element matching" />
+    <option name="description" hit="Use content description for element matching" />
+    <option name="element" hit="Use content description for element matching" />
+    <option name="for" hit="Use content description for element matching" />
+    <option name="matching" hit="Use content description for element matching" />
+    <option name="use" hit="Use content description for element matching" />
+    <option name="element" hit="Use text for element matching" />
+    <option name="for" hit="Use text for element matching" />
+    <option name="matching" hit="Use text for element matching" />
+    <option name="text" hit="Use text for element matching" />
+    <option name="use" hit="Use text for element matching" />
+  </configurable>
+</options>
+

@@ -60,7 +60,7 @@ public final class OptionalPropertyTest {
 
   @Test
   public void testClearValue() {
-    OptionalProperty<String> optStringValue = OptionalValueProperty.of("Dummy text");
+    OptionalProperty<String> optStringValue = OptionalValueProperty.of("Unused text");
     optStringValue.clear();
     assertThat(optStringValue.get().isPresent()).isFalse();
   }

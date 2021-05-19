@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -28,6 +30,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -125,18 +129,33 @@ public final class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @Override
   public void reparse() {
-    // myBuildModelContext has all the files removed when reset() is called. We need to ensure we collect the files before calling reset.
     List<GradleDslFile> files = myBuildModelContext.getAllRequestedFiles();
-    myBuildModelContext.reset();
     files.forEach(GradleDslFile::reparse);
   }
 
   @NotNull
   @Override
   public List<GradleBuildModel> getAllIncludedBuildModels() {
+    return getAllIncludedBuildModels((i, j) -> {});
+  }
+
+  @NotNull
+  @Override
+  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func) {
+    final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
       allModels.add(new GradleBuildModelImpl(myProjectBuildFile));
+      func.accept(++nModelsSeen[0], null);
+    }
+
+    // TODO(b/166739137): buildSrc is actually more like an included build; buildSrc could in principle have sub-projects, libraries, etc.,
+    //  all themselves configured and built by the top-level Gradle build file in the buildSrc directory.
+    File buildSrc = new File(getBaseDirPath(myBuildModelContext.getProject()), "buildSrc");
+    VirtualFile buildSrcVirtualFile = myBuildModelContext.getGradleBuildFile(buildSrc);
+    if (buildSrcVirtualFile != null) {
+      allModels.add(getModuleBuildModel(buildSrcVirtualFile));
+      func.accept(++nModelsSeen[0], null);
     }
 
     GradleSettingsModel settingsModel = getProjectSettingsModel();
@@ -144,23 +163,23 @@ public final class ProjectBuildModelImpl implements ProjectBuildModel {
       return allModels;
     }
 
-    allModels.addAll(settingsModel.modulePaths().stream().map((modulePath) -> {
+    Set<String> modulePaths = settingsModel.modulePaths();
+    Integer nModelsToConsider = nModelsSeen[0] + modulePaths.size();
+
+    allModels.addAll(modulePaths.stream().map((modulePath) -> {
+      GradleBuildModel model = null;
       // This should have already been added above
-      if (modulePath.equals(":")) {
-        return null;
+      if (!modulePath.equals(":")) {
+        File moduleDir = settingsModel.moduleDirectory(modulePath);
+        if (moduleDir != null) {
+          VirtualFile file = myBuildModelContext.getGradleBuildFile(moduleDir);
+          if (file != null) {
+            model = getModuleBuildModel(file);
+          }
+        }
       }
-
-      File moduleDir = settingsModel.moduleDirectory(modulePath);
-      if (moduleDir == null) {
-        return null;
-      }
-
-      VirtualFile file = myBuildModelContext.getGradleBuildFile(moduleDir);
-      if (file == null) {
-        return null;
-      }
-
-      return getModuleBuildModel(file);
+      func.accept(++nModelsSeen[0], nModelsToConsider);
+      return model;
     }).filter(Objects::nonNull).collect(Collectors.toList()));
     return allModels;
   }

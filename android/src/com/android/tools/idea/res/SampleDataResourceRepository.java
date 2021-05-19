@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceVisitor;
@@ -45,7 +46,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;

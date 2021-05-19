@@ -28,4 +28,9 @@ public class GroovyDslRawText extends RawText {
   public String getKtsText() {
     throw(new UnsupportedOperationException("KotlinScript text request from Groovy raw text"));
   }
+
+  @Override
+  public String toString() {
+    return getGroovyText();
+  }
 }

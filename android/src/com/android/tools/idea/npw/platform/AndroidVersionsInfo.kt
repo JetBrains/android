@@ -37,7 +37,7 @@ import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks

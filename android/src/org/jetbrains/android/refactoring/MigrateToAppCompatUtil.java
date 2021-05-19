@@ -79,6 +79,7 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeCusto
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class MigrateToAppCompatUtil {
 
@@ -195,21 +196,27 @@ class MigrateToAppCompatUtil {
       LintBatchResult lintResult = new LintBatchResult(project, map, scope, issues);
       LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, project, null, Arrays.asList(modules), false) {
+        @Nullable com.android.tools.lint.detector.api.Project myMainProject = null;
         @NonNull
         @Override
         public com.android.tools.lint.detector.api.Project getMainProject(@NonNull com.android.tools.lint.detector.api.Project project) {
-          com.android.tools.lint.detector.api.Project mainProject = super.getMainProject(project);
-          return new com.android.tools.lint.detector.api.Project(mainProject.getClient(), mainProject.getDir(),
-                                                                 mainProject.getReferenceDir()) {
-            @Override
-            public Boolean dependsOn(@NotNull String artifact) {
-              // Make it look like the App already depends on AppCompat to get the warnings for custom views.
-              if (APPCOMPAT_LIB_ARTIFACT.equals(artifact) || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
-                return Boolean.TRUE;
+          if (myMainProject == null) {
+            com.android.tools.lint.detector.api.Project mainProject = super.getMainProject(project);
+            // Ensure it has its own directory to give it a unique identity; otherwise lint might
+            // confuse the two (assigning them the same configuration, which can lead to cycles, etc)
+            File dir = new File(mainProject.getDir().getParentFile(), mainProject.getName() + "-main");
+            myMainProject = new com.android.tools.lint.detector.api.Project(mainProject.getClient(), dir, dir) {
+              @Override
+              public Boolean dependsOn(@NotNull String artifact) {
+                // Make it look like the App already depends on AppCompat to get the warnings for custom views.
+                if (APPCOMPAT_LIB_ARTIFACT.equals(artifact) || ANDROIDX_APPCOMPAT_LIB_ARTIFACT.equals(artifact)) {
+                  return Boolean.TRUE;
+                }
+                return super.dependsOn(artifact);
               }
-              return super.dependsOn(artifact);
-            }
-          };
+            };
+          }
+          return myMainProject;
         }
       };
       request.setScope(Scope.JAVA_FILE_SCOPE);

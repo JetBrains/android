@@ -20,14 +20,12 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -37,10 +35,8 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenReposi
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.mockito.MockitoEx;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -49,19 +45,17 @@ import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradleTestCase {
-  private IdeComponents myIdeComponents;
-  private SyncIssue mySyncIssue;
+  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -69,11 +63,10 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue = mock(IdeSyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
-    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
     when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);
@@ -81,12 +74,8 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      mySyncMessagesStub = null;
-    }
-    finally {
-      super.tearDown();
-    }
+    mySyncMessagesStub = null;
+    super.tearDown();
   }
 
   public void testGetSupportedIssueType() {
@@ -205,10 +194,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     loadSimpleApplication();
     mySyncMessagesStub.removeAllMessages();
 
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    // Add Google repository
-    GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     Project project = getProject();
+    Module appModule = TestModuleUtil.findAppModule(project);
+
+    // Add Google repository
+    GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(appModule);
     RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), new GradleVersion(4, 0));
     runWriteCommandAction(project, buildModel::applyChanges);
 
@@ -254,16 +244,11 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-    Module spyAppModule = spy(appModule);
-    Project spyProject = MockitoEx.forceInlineMockMaker(() -> spy(spyAppModule.getProject()));
-    when(spyAppModule.getProject()).thenReturn(spyProject);
-    when(spyProject.isInitialized()).thenReturn(false);
-    doReturn(appModule.getProject().getComponent(ModuleManager.class)).when(spyProject).getComponent(ModuleManager.class);
-
     when(mySyncIssue.getData()).thenReturn("com.android.support:appcompat-v7:24.1.1");
 
-/* b/144931471
-    myReporter.report(mySyncIssue, spyAppModule, null, myUsageReporter);
+    myReporter.assumeProjectNotInitialized(true);
+    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    myReporter.assumeProjectNotInitialized(false);
 
     List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
@@ -296,7 +281,6 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
             .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.ADD_GOOGLE_MAVEN_REPOSITORY_HYPERLINK))
           .build()),
       myUsageReporter.getCollectedIssue());
-b/144931471 */
   }
 
   public void testReportWithPlayServices() throws Exception {
@@ -346,7 +330,7 @@ b/144931471 */
     Module appModule = TestModuleUtil.findAppModule(getProject());
     Module libModule = TestModuleUtil.findModule(getProject(), "lib");
 
-    List<SyncIssue> issues = ImmutableList.of(1, 2).stream().map((i) -> new SyncIssue() {
+    List<IdeSyncIssue> issues = ContainerUtil.map(ImmutableList.of(1, 2), (i) -> new IdeSyncIssue() {
       @Override
       public int hashCode() {
         return 7;
@@ -388,9 +372,9 @@ b/144931471 */
       public List<String> getMultiLineMessage() {
         return null;
       }
-    }).collect(Collectors.toList());
+    });
 
-    IdentityHashMap<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    IdentityHashMap<IdeSyncIssue, Module> moduleMap = new IdentityHashMap<>();
     moduleMap.put(issues.get(0), appModule);
     moduleMap.put(issues.get(1), libModule);
     myReporter
@@ -420,7 +404,7 @@ b/144931471 */
 
     when(mySyncIssue.getData()).thenReturn("com.google.guava:guava:19.0");
 
-    List<SyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
+    List<IdeSyncIssue> syncIssues = ImmutableList.of(mySyncIssue);
     OpenFileHyperlink link = myReporter.createModuleLink(getProject(), appModule, syncIssues, appFile);
     assertThat(link.getLineNumber()).isEqualTo(-1);
     assertThat(link.getFilePath()).isEqualTo(appFile.getPath());

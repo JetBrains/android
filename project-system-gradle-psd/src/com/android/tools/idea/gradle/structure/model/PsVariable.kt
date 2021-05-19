@@ -21,11 +21,28 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
-import com.android.tools.idea.gradle.structure.model.meta.*
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
+import com.android.tools.idea.gradle.structure.model.meta.KnownValues
+import com.android.tools.idea.gradle.structure.model.meta.ListProperty
+import com.android.tools.idea.gradle.structure.model.meta.MapProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
+import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
+import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
+import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
+import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
+import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.listProperty
+import com.android.tools.idea.gradle.structure.model.meta.mapProperty
+import com.android.tools.idea.gradle.structure.model.meta.property
+import com.android.tools.idea.gradle.structure.model.meta.setParsedValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.diagnostic.Logger
-import java.lang.IllegalStateException
 
 /**
  * Model for handling Gradle properties in the Project Structure Dialog
@@ -171,7 +188,7 @@ class PsVariable(
       potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
       return Futures
         .successfulAsList(collector.collectedReferences.map { it.getKnownValues() })
-        .transform { it.combineKnownValues() }
+        .transform(directExecutor()) { it.combineKnownValues() }
     }
   }
 

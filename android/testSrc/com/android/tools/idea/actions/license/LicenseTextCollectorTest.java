@@ -45,6 +45,7 @@ public class LicenseTextCollectorTest {
     if (SystemInfo.isWindows) {
       expected = expected.replace('/', '\\');
     }
+    expected = "<html>" + expected + "</html>";
 
     assertThat(cf.get(20, TimeUnit.SECONDS)).isEqualTo(expected);
   }

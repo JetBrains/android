@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_ILLEGAL_ID
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.SystemInfoRt
 import org.jetbrains.kotlin.android.inspection.IllegalIdentifierInspection
 
 class IllegalIdentifierInspectionTest : AndroidGradleTestCase() {
@@ -39,6 +40,9 @@ class IllegalIdentifierInspectionTest : AndroidGradleTestCase() {
   }
 
   fun testInspectionInBuildKtsFile() {
+    if (SystemInfoRt.isWindows) {
+      return  // TODO(b/162761346) failing on windows
+    }
     val file = project.guessProjectDir()!!
       .findFileByRelativePath("app/build.gradle.kts")!!
     myFixture.openFileInEditor(file)

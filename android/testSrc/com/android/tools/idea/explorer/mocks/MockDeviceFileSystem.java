@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final MockDeviceFileSystemService myService;
   @NotNull private final String myName;
+  @NotNull private final String mySerialNumber;
   @NotNull private final MockDeviceFileEntry myRoot;
   private long myDownloadChunkSize = 1024;
   private long myUploadChunkSize = 1024;
@@ -58,6 +59,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name, @NotNull Executor taskExecutor) {
     myService = service;
     myName = name;
+    mySerialNumber = name;
     myRoot = MockDeviceFileEntry.createRoot(this);
     myTaskExectuor = new FutureCallbackExecutor(taskExecutor);
   }
@@ -76,6 +78,11 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @Override
+  public @NotNull String getDeviceSerialNumber() {
+    return mySerialNumber;
   }
 
   @NotNull
@@ -101,7 +108,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     ListenableFuture<DeviceFileEntry> currentDir = getRootDirectory();
     myTaskExectuor.addCallback(currentDir, new FutureCallback<DeviceFileEntry>() {
       @Override
-      public void onSuccess(@javax.annotation.Nullable DeviceFileEntry result) {
+      public void onSuccess(@Nullable DeviceFileEntry result) {
         assert result != null;
 
         if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
@@ -134,7 +141,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     ListenableFuture<List<DeviceFileEntry>> entriesFuture = currentEntry.getEntries();
     myTaskExectuor.addCallback(entriesFuture, new FutureCallback<List<DeviceFileEntry>>() {
       @Override
-      public void onSuccess(@javax.annotation.Nullable List<DeviceFileEntry> result) {
+      public void onSuccess(@Nullable List<DeviceFileEntry> result) {
         assert result != null;
 
         Optional<DeviceFileEntry> entry = result

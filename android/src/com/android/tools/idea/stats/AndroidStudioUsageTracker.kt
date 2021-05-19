@@ -16,6 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
+import com.android.ide.common.util.isMdnsAutoConnectTls
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
@@ -44,6 +46,7 @@ import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
@@ -57,6 +60,7 @@ import java.util.concurrent.TimeUnit
  */
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
+  const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
 
   @JvmStatic
   val productDetails: ProductDetails
@@ -69,15 +73,26 @@ object AndroidStudioUsageTracker {
         else {
           ProductDetails.ProductKind.STUDIO
         }
-      return ProductDetails.newBuilder()
-        .setProduct(productKind)
-        .setBuild(application.build.asString())
-        .setVersion(application.strictVersion)
-        .setOsArchitecture(CommonMetricsData.osArchitecture)
-        .setChannel(lifecycleChannelFromUpdateSettings())
-        .setTheme(currentIdeTheme())
-        .build()
+      return ProductDetails.newBuilder().apply {
+        product = productKind
+        build = application.build.asString()
+        version = application.strictVersion
+        osArchitecture = CommonMetricsData.osArchitecture
+        channel = lifecycleChannelFromUpdateSettings()
+        theme = currentIdeTheme()
+        addAllExperimentId(buildActiveExperimentList())
+      }.build()
     }
+
+  /** Gets list of active experiments. */
+  @JvmStatic
+  fun buildActiveExperimentList(): Collection<String> {
+    val experimentOverrides = System.getProperty(STUDIO_EXPERIMENTS_OVERRIDE)
+    if (experimentOverrides.isNullOrEmpty()) {
+      return listOf()
+    }
+    return experimentOverrides.split(',')
+  }
 
   /** Gets information about all the displays connected to this machine.  */
   private val displayDetails: Iterable<DisplayDetails>
@@ -248,6 +263,11 @@ object AndroidStudioUsageTracker {
       .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
       .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
       .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+      .setMdnsConnectionType(when {
+                               device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+                               device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+                             })
       .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
   }
 

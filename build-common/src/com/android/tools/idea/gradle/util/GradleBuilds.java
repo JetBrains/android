@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NonNls;
 
 public final class GradleBuilds {
@@ -28,6 +29,8 @@ public final class GradleBuilds {
   @NonNls public static final String PARALLEL_BUILD_OPTION = "--parallel";
 
   @NonNls public static final String BUILD_SRC_FOLDER_NAME = "buildSrc";
+
+  public static final Key<Boolean> BUILD_SHOULD_EXECUTE = new Key<>("android.build.should_execute");
 
   private GradleBuilds() {
   }

@@ -33,12 +33,13 @@ object DesignerActions {
   //<editor-fold desc="Common Actions">
   const val ACTION_FORCE_REFRESH_PREVIEW = "$PREFIX.ForceRefreshPreview"
   const val ACTION_TOGGLE_ISSUE_PANEL = "$PREFIX.IssueNotificationAction"
-  const val ACTION_RUN_LAYOUT_VALIDATOR = "$PREFIX.LayoutValidatorAction"
+  const val ACTION_RUN_LAYOUT_SCANNER = "$PREFIX.LayoutScannerAction"
   //</editor-fold>
 
   //<editor-fold desc="Layout Editor Actions">
   const val ACTION_SWITCH_DESIGN_MODE = "$PREFIX.SwitchDesignMode"
   const val ACTION_TOGGLE_DEVICE_ORIENTATION = "$PREFIX.ToggleDeviceOrientation"
+  const val ACTION_TOGGLE_DEVICE_NIGHT_MODE = "$PREFIX.ToggleDeviceNightMode"
   const val ACTION_NEXT_DEVICE = "$PREFIX.NextDevice"
   const val ACTION_PREVIOUS_DEVICE = "$PREFIX.PreviousDevice"
   //</editor-fold>

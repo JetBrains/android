@@ -24,7 +24,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -60,15 +59,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
@@ -83,7 +81,7 @@ public class RenderService implements Disposable {
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
-    ourExecutor = new RenderExecutor();
+    ourExecutor = RenderExecutor.create();
     // Register the executor to be shutdown on close
     ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
@@ -94,7 +92,7 @@ public class RenderService implements Disposable {
   public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
-    ourExecutor = new RenderExecutor();
+    ourExecutor = RenderExecutor.create();
   }
 
   private static void shutdownRenderExecutor() {
@@ -118,6 +116,11 @@ public class RenderService implements Disposable {
 
   private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
 
+  @NotNull
+  public static RenderAsyncActionExecutor getRenderAsyncActionExecutor() {
+    return ourExecutor;
+  }
+
   /**
    * @return the {@linkplain RenderService} for the given facet.
    */
@@ -138,6 +141,13 @@ public class RenderService implements Disposable {
     synchronized (KEY) {
       project.putUserData(KEY, renderService);
     }
+  }
+
+  /**
+   * Returns true if the current thread is the render thread managed by this executor.
+   */
+  public static boolean isCurrentThreadARenderThread() {
+    return ourExecutor.isCurrentThreadARenderThread();
   }
 
   @VisibleForTesting
@@ -200,24 +210,18 @@ public class RenderService implements Disposable {
     Module module = facet.getModule();
     AndroidPlatform platform = AndroidPlatform.getInstance(module);
     if (platform == null && logger != null) {
-      if (!AndroidMavenUtil.isMavenizedModule(module)) {
-        RenderProblem.Html message = RenderProblem.create(ERROR);
-        logger.addMessage(message);
-        message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-           logger.getLinkManager().createRunnableLink(() -> {
-             Project project = module.getProject();
-             ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-             if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
-               ((AndroidProjectSettingsService)service).openSdkSettings();
-               return;
-             }
-             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-           }));
-      }
-      else {
-        String message = AndroidBundle.message("android.maven.cannot.parse.android.sdk.error", module.getName());
-        logger.addMessage(RenderProblem.createPlain(ERROR, message));
-      }
+      RenderProblem.Html message = RenderProblem.create(ERROR);
+      logger.addMessage(message);
+      message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
+         logger.getLinkManager().createRunnableLink(() -> {
+           Project project = module.getProject();
+           ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+           if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+             ((AndroidProjectSettingsService)service).openSdkSettings();
+             return;
+           }
+           AndroidSdkUtils.openModuleDependenciesConfigurable(module);
+         }));
     }
     return platform;
   }
@@ -225,7 +229,11 @@ public class RenderService implements Disposable {
   /**
    * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
+   *
+   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
+   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
    */
+  @Deprecated
   public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
     runRenderAction(Executors.callable(runnable));
   }
@@ -233,30 +241,20 @@ public class RenderService implements Disposable {
   /**
    * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
    * method.
+   *
+   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
+   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
    */
+  @Deprecated
   public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
     return ourExecutor.runAction(callable);
   }
 
   /**
-   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   * <p/>
-   * This method will run the passed action asynchronously and return a {@link CompletableFuture}
+   * @return true if the underlying {@link RenderExecutor} is busy, false otherwise.
    */
-  @NotNull
-  public static <T> CompletableFuture<T> runAsyncRenderAction(@NotNull Supplier<T> callable) {
-    return ourExecutor.runAsyncAction(callable);
-  }
-
-  /**
-   * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   * <p/>
-   * This method will run the passed action asynchronously
-   */
-  public static void runAsyncRenderAction(@NotNull Runnable runnable) {
-    ourExecutor.runAsyncAction(runnable);
+  public static boolean isBusy() {
+    return ourExecutor.isBusy();
   }
 
   /**
@@ -277,7 +275,7 @@ public class RenderService implements Disposable {
    * in the nearby range too.
    *
    * @param view the {@link ViewInfo} to check
-   * @return Normally the {@link ViewInfo} itself, but a dummy 0-bound {@link ViewInfo} if
+   * @return Normally the {@link ViewInfo} itself, but a placeholder 0-bound {@link ViewInfo} if
    * the view bounds are indeed invalid
    */
   @NotNull
@@ -357,9 +355,9 @@ public class RenderService implements Disposable {
     private boolean showWithToolsVisibilityAndPosition = true;
     private int myMaxRenderWidth = -1;
     private int myMaxRenderHeight = -1;
-    private boolean isShadowEnabled = StudioFlags.NELE_ENABLE_SHADOW.get();
-    private boolean useHighQualityShadows = StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
-    private boolean enableLayoutValidator = false;
+    private boolean isShadowEnabled = true;
+    private boolean useHighQualityShadows = true;
+    private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
     @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
@@ -383,6 +381,16 @@ public class RenderService implements Disposable {
      * framework. Having a dedicated ClassLoader also allows for clearing resources right after the RenderTask no longer used.
      */
     private boolean privateClassLoader = false;
+
+    /**
+     * Additional bytecode transform to apply to project classes when loaded.
+     */
+    private Function<ClassVisitor, ClassVisitor> myAdditionalProjectTransform = Function.identity();
+
+    /**
+     * Additional bytecode transform to apply to non project classes when loaded.
+     */
+    private Function<ClassVisitor, ClassVisitor> myAdditionalNonProjectTransform = Function.identity();
 
     private RenderTaskBuilder(@NotNull RenderService service,
                               @NotNull AndroidFacet facet,
@@ -423,8 +431,8 @@ public class RenderService implements Disposable {
       return this;
     }
 
-    public RenderTaskBuilder withLayoutValidation(Boolean enableLayoutValidator) {
-      this.enableLayoutValidator = enableLayoutValidator;
+    public RenderTaskBuilder withLayoutScanner(Boolean enableLayoutScanner) {
+      this.enableLayoutScanner = enableLayoutScanner;
       return this;
     }
 
@@ -529,6 +537,24 @@ public class RenderService implements Disposable {
     }
 
     /**
+     * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
+     */
+    @NotNull
+    public RenderTaskBuilder setProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+      myAdditionalProjectTransform = transform;
+      return this;
+    }
+
+    /**
+     * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
+     */
+    @NotNull
+    public RenderTaskBuilder setNonProjectClassesTransform(@NotNull Function<ClassVisitor, ClassVisitor> transform) {
+      myAdditionalNonProjectTransform = transform;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -588,7 +614,7 @@ public class RenderService implements Disposable {
             new RenderTask(myFacet, myService, myConfiguration, myLogger, layoutLib,
                            device, myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myDownscaleFactor, stackTraceCaptureElement, myManifestProvider,
-                           privateClassLoader);
+                           privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform);
           if (myPsiFile instanceof XmlFile) {
             task.setXmlFile((XmlFile)myPsiFile);
           }
@@ -598,7 +624,7 @@ public class RenderService implements Disposable {
             .setHighQualityShadows(useHighQualityShadows)
             .setShadowEnabled(isShadowEnabled)
             .setShowWithToolsVisibilityAndPosition(showWithToolsVisibilityAndPosition)
-            .setEnableLayoutValidator(enableLayoutValidator);
+            .setEnableLayoutScanner(enableLayoutScanner);
 
           if (myMaxRenderWidth != -1 && myMaxRenderHeight != -1) {
             task.setMaxRenderSize(myMaxRenderWidth, myMaxRenderHeight);

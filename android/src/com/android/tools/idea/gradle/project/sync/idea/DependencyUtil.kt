@@ -22,10 +22,9 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANNOTATIONS_ZIP
 import com.android.SdkConstants.FN_FRAMEWORK_LIBRARY
 import com.android.builder.model.level2.Library
-import com.android.builder.model.level2.Library.LIBRARY_ANDROID
-import com.android.builder.model.level2.Library.LIBRARY_JAVA
 import com.android.ide.common.gradle.model.IdeBaseArtifact
 import com.android.ide.common.gradle.model.IdeVariant
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
@@ -115,6 +114,11 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
 
   val selectedVariant = variant ?: androidModel.selectedVariant
 
+  // First set up any extra sdk libraries as these should really be in the SDK.
+  getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
+    processedLibraries[sdkLibraryDependency.target.externalName] = sdkLibraryDependency
+  }
+
   // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
   // This allows us to just skip the dependency if it is already present.
   setupAndroidDependenciesForArtifact(
@@ -130,8 +134,10 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     processedModuleDependencies
   )
 
+  val endCompileIndex = processedLibraries.size
+
   // Setup the dependencies of the test artifact.
-  selectedVariant.testArtifacts.forEach { testArtifact ->
+  listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
     setupAndroidDependenciesForArtifact(
       testArtifact,
       this,
@@ -153,16 +159,17 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   // TODO(rework-12): What is the correct order
   var orderIndex = 0
 
-  // First set up any extra sdk libraries as these should really be in the SDK.
-  getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
-    sdkLibraryDependency.order = orderIndex++
-    createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
-  }
-
+  val processedLibrarySize = processedLibraries.size
+  var tempOrderIndex = 0
   processedLibraries.forEach { (_, libraryDependencyData) ->
-    libraryDependencyData.order = orderIndex++
+    // We want the Test scope artifacts to appear on the classpath before the compile type artifacts. This is to prevent ensure that
+    // if the same dependency (with a different version) is present as both a test and compile dependency then we use the Test version
+    // when running tests. This should become irrelevant once we switch to running unit tests through Gradle.
+    libraryDependencyData.order =  orderIndex + Math.floorMod((tempOrderIndex++ - endCompileIndex), processedLibrarySize)
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
   }
+  orderIndex += tempOrderIndex
+
   // Due to the way intellij collects classpaths for test (using all transitive deps) we are putting all module dependencies last so that
   // their dependencies will be last on the classpath and not overwrite actual dependencies of the module being tested.
   // This should be removed once we have a way to correct the order of the classpath, or we start running tests via Gradle.
@@ -192,7 +199,7 @@ private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String) 
 /**
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
-private fun convertToLibraryName(library: Library, projectBasePath: String): String {
+private fun convertToLibraryName(library: IdeLibrary, projectBasePath: String): String {
   if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:"))  {
     return adjustLocalLibraryName(library.artifact, projectBasePath)
   }
@@ -225,7 +232,7 @@ private fun stripExtensionAndClassifier(libraryName: String) : String {
   return "${parts[0]}:${parts[1]}:${parts[2]}"
 }
 
-private fun Library.isModuleLevel(modulePath: String) = try {
+private fun IdeLibrary.isModuleLevel(modulePath: String) = try {
   FileUtil.isAncestor(modulePath, artifactAddress, false)
 } catch (e: UnsupportedMethodException) {
   false
@@ -245,7 +252,7 @@ private fun Library.isModuleLevel(modulePath: String) = try {
  *
  */
 private fun computeModuleIdForLibraryTarget(
-  library: Library,
+  library: IdeLibrary,
   projectData: ProjectData?,
   compositeData: CompositeBuildData?
 ) : String? {
@@ -298,10 +305,10 @@ private fun setupAndroidDependenciesForArtifact(
     // Add all the required binary paths from the library.
     val libraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
     when (library.type) {
-      LIBRARY_JAVA -> {
+      IdeLibrary.LibraryType.LIBRARY_JAVA -> {
         libraryData.addPath(BINARY, library.artifact.absolutePath)
       }
-      LIBRARY_ANDROID -> {
+      IdeLibrary.LibraryType.LIBRARY_ANDROID -> {
         libraryData.addPath(BINARY, library.compileJarFile)
         libraryData.addPath(BINARY, library.resFolder)
         // TODO: Should this be binary? Do we need the platform to allow custom types here?
@@ -319,18 +326,10 @@ private fun setupAndroidDependenciesForArtifact(
       sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     }
 
-    // It may be possible that we have local sources not obtained by Gradle. We look for those here.
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-sources.jar", true)?.also {
-      libraryData.addPath(SOURCE, it.absolutePath)
-    }
-    LibraryFilePaths.findArtifactFilePathInRepository(library.artifact, "-javadoc.jar", true)?.also {
-      libraryData.addPath(DOC, it.absolutePath)
-    }
-
     // Add external annotations.
     // TODO: Why do we only do this for Android modules?
     // TODO: Add this to the model instead!
-    if (library.type == LIBRARY_ANDROID) {
+    if (library.type == IdeLibrary.LibraryType.LIBRARY_ANDROID) {
       (library.localJars + library.compileJarFile + library.resFolder).mapNotNull {
         FilePaths.stringToFile(it)?.path
       }.forEach { binaryPath ->

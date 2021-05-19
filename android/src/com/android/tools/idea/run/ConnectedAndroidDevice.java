@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.idea.run.util.LaunchUtils;
@@ -57,7 +56,7 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
     myDevice = device;
 
     AvdInfo avdInfo = getAvdInfo(device, avdInfos);
-    myAvdName = avdInfo == null ? null : AvdManagerConnection.getAvdDisplayName(avdInfo);
+    myAvdName = avdInfo == null ? null : avdInfo.getDisplayName();
     myDeviceNameRenderer = getRendererExtension(device);
   }
 

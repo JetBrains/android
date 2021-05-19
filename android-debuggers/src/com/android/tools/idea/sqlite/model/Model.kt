@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.intellij.openapi.vfs.VirtualFile
 import java.sql.JDBCType
 
@@ -24,44 +23,51 @@ sealed class SqliteDatabaseId {
   abstract val name: String
 
   companion object {
-    fun fromFileDatabase(virtualFile: VirtualFile): SqliteDatabaseId {
-      val path = virtualFile.path
-      val name = virtualFile.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: virtualFile.path
-      return FileSqliteDatabaseId(path, name)
+    fun fromFileDatabase(databaseFileData: DatabaseFileData): SqliteDatabaseId {
+      val path =
+        "/data/data" +
+        (databaseFileData.mainFile.path.split("data/data").getOrNull(1) ?: databaseFileData.mainFile.path)
+
+      val name = path.substringAfterLast("/")
+      return FileSqliteDatabaseId(path, name, databaseFileData)
     }
 
     fun fromLiveDatabase(path: String, connectionId: Int): SqliteDatabaseId {
       val name = path.substringAfterLast("/")
-      return LiveSqliteDatabaseId(path, name, connectionId)
+
+      /**
+       * Converts the path of the database from user/0 to the global user
+       * User 0 path looks like this: /data/user/0/com.example.package/databases/db-file
+       * Global user path looks like this: /data/data/com.example.package/databases/db-file
+       *
+       * This won't work if the file is stored in another user's memory space, but multi user is not supported across studio: b/163315855
+       */
+      val systemUserPath = path
+        .replace("/user/0", "/data")
+        .replace("/storage/emulated/0", "/sdcard")
+
+      return LiveSqliteDatabaseId(systemUserPath, name, connectionId)
     }
   }
 
   data class LiveSqliteDatabaseId(override val path: String, override val name: String, val connectionId: Int) : SqliteDatabaseId()
-  data class FileSqliteDatabaseId(override val path: String, override val name: String) : SqliteDatabaseId()
+  data class FileSqliteDatabaseId(override val path: String, override val name: String, val databaseFileData: DatabaseFileData) : SqliteDatabaseId()
+}
+
+fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
+  return this.path.startsWith(":memory:")
 }
 
 /**
- * Representation of a database instance.
+ * Groups together files necessary to open a file-based database.
+ * @param mainFile the actual database file
+ * @param walFiles additional files needed to open the database, in case the database is using write ahead log.
+ * If not the list is empty.
+ *
+ * Note: these files need to be in the same directory of [mainFile], and are not going to be accessed directly.
+ *
  */
-sealed class SqliteDatabase {
-  abstract val id: SqliteDatabaseId
-
-  /**
-   * A connection to the database.
-   */
-  abstract val databaseConnection: DatabaseConnection
-}
-
-/**
- * [SqliteDatabase] accessed through live connection.
- */
-data class LiveSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
-
-/**
- * File based-[SqliteDatabase]. This database is accessed through a [VirtualFile].
- * The [DatabaseConnection] gets closed when the file is deleted.
- */
-data class FileSqliteDatabase(override val id: SqliteDatabaseId, override val databaseConnection: DatabaseConnection) : SqliteDatabase()
+data class DatabaseFileData(val mainFile: VirtualFile, val walFiles: List<VirtualFile> = emptyList())
 
 /** Representation of the Sqlite database schema */
 data class SqliteSchema(val tables: List<SqliteTable>)

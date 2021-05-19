@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import javax.swing.Icon
 
 interface AppInspectorTabProvider {
   companion object {
@@ -30,11 +32,36 @@ interface AppInspectorTabProvider {
 
   val inspectorId: String
   val displayName: String
-  val inspectorAgentJar: AppInspectorJar
+  val icon: Icon? get() = null
+  val inspectorLaunchParams: AppInspectorLaunchParams
   fun isApplicable(): Boolean = true
+
+  /**
+   * Whether this tab's UI can handle working with disposed inspectors or not.
+   *
+   * By default, after an inspector is disposed (i.e. the process its inspecting has stopped), its
+   * associated tab is closed, as it takes intentional effort to handle this case. After all,
+   * trying to interact with a disposed inspector will cause exceptions to get thrown.
+   *
+   * Children that override this method to return true are explicitly opting into a more complex UI
+   * lifecycle (with two states, mutable and immutable, depending on the state of its associated
+   * inspector).
+   */
+  fun supportsOffline(): Boolean = false
+
+  /**
+   * Extension point for creating UI that communicates with some target inspector and is shown in
+   * the app inspection tool window.
+   *
+   * @param ideServices Various functions which clients may use to request IDE-specific behaviors
+   * @param processDescriptor Information about the process and device that the associated inspector
+   *   that will drive this UI is attached to
+   * @param messenger A class for communicating to the associated inspector
+   */
   fun createTab(
     project: Project,
-    messenger: AppInspectorClient.CommandMessenger,
-    ideServices: AppInspectionIdeServices
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messenger: AppInspectorMessenger
   ): AppInspectorTab
 }

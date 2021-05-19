@@ -213,8 +213,12 @@ public class HeapDumpCaptureObject implements CaptureObject {
       return false;
     }
 
-    InMemoryBuffer buffer = new InMemoryBuffer(response.getContents().asReadOnlyByteBuffer());
+    load(new InMemoryBuffer(response.getContents().asReadOnlyByteBuffer()));
+    return true;
+  }
 
+  @VisibleForTesting
+  public final void load(InMemoryBuffer buffer) {
     NativeRegistryPostProcessor nativeRegistryPostProcessor = new NativeRegistryPostProcessor();
     Snapshot snapshot = Snapshot.createSnapshot(buffer,
                                                 myProguardMap != null ? myProguardMap : new ProguardMap(),
@@ -280,8 +284,6 @@ public class HeapDumpCaptureObject implements CaptureObject {
         }
       });
     }
-
-    return true;
   }
 
   private void addInstance(HeapSet heapSet, long id, InstanceObject instObj) {

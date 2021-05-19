@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.wizard
 
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import javax.swing.JTree
@@ -33,7 +32,7 @@ class ProposedFileTreeCellRenderer: ColoredTreeCellRenderer() {
     val node = value as ProposedFileTreeModel.Node
 
     append(node.file.name, when {
-      node.conflicted -> SimpleTextAttributes.ERROR_ATTRIBUTES
+      node.conflictedFiles.isNotEmpty() -> SimpleTextAttributes.ERROR_ATTRIBUTES
       node.file.exists() -> SimpleTextAttributes.REGULAR_ATTRIBUTES
       else -> SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES
     })

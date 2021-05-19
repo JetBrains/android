@@ -18,7 +18,9 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.run.ConsolePrinter
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.process.ProcessHandler
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,6 +37,8 @@ import org.mockito.MockitoAnnotations
 class AndroidTestApplicationLaunchTaskTest {
 
   @Mock lateinit var mockAndroidArtifact: IdeAndroidArtifact
+  @Mock lateinit var mockProcessHandler: ProcessHandler
+  @Mock lateinit var mockPrinter: ConsolePrinter
 
   @Before
   fun setup() {
@@ -49,15 +53,19 @@ class AndroidTestApplicationLaunchTaskTest {
 
   @Test
   fun statusReporterModeRawTextShouldBeUsedInApiLevel25() {
+    val mockDevice = createMockDevice(AndroidVersion(25))
     val launchTask = AndroidTestApplicationLaunchTask.allInPackageTest(
       "instrumentationTestRunner",
       "testApplicationId",
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
       mockAndroidArtifact,
+      mockProcessHandler,
+      mockPrinter,
+      mockDevice,
       "packageName")
 
-    val runner = launchTask.createRemoteAndroidTestRunner(createMockDevice(AndroidVersion(25)))
+    val runner = launchTask.createRemoteAndroidTestRunner(mockDevice)
 
     assertThat(runner.amInstrumentCommand).contains("-r")
     assertThat(runner.amInstrumentCommand).doesNotContain("-m")
@@ -65,15 +73,19 @@ class AndroidTestApplicationLaunchTaskTest {
 
   @Test
   fun statusReporterModeProtoStdShouldBeUsedInApiLevel26() {
+    val mockDevice = createMockDevice(AndroidVersion(26))
     val launchTask = AndroidTestApplicationLaunchTask.allInPackageTest(
       "instrumentationTestRunner",
       "testApplicationId",
       /*waitForDebugger=*/ false,
       "instrumentationOptions",
       mockAndroidArtifact,
+      mockProcessHandler,
+      mockPrinter,
+      mockDevice,
       "packageName")
 
-    val runner = launchTask.createRemoteAndroidTestRunner(createMockDevice(AndroidVersion(26)))
+    val runner = launchTask.createRemoteAndroidTestRunner(mockDevice)
 
     assertThat(runner.amInstrumentCommand).contains("-m")
     assertThat(runner.amInstrumentCommand).doesNotContain("-r")

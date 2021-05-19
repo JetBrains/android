@@ -24,11 +24,6 @@
                     serviceImplementation="com.android.tools.idea.explorer.DeviceFileDownloaderServiceImpl" />
   </extensions>
 
-  <extensionPoints>
-  <extensionPoint qualifiedName="com.android.tools.idea.explorer.fileHandler"
-                  interface="com.android.tools.idea.deviceExplorer.FileHandler"/>
-  </extensionPoints>
-
   <actions>
     <action id="Android.AdbDevicePairing"
             class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"

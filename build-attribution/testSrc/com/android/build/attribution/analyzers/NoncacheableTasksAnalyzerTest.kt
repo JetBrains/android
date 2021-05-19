@@ -50,7 +50,7 @@ class NoncacheableTasksAnalyzerTest {
     myProjectRule.load(SIMPLE_APPLICATION)
 
     FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
-      task dummy {
+      task sample {
           doLast {
               // do nothing
           }
@@ -59,7 +59,7 @@ class NoncacheableTasksAnalyzerTest {
       afterEvaluate { project ->
           android.applicationVariants.all { variant ->
               def mergeResourcesTask = tasks.getByPath("merge${"$"}{variant.name.capitalize()}Resources")
-              mergeResourcesTask.dependsOn dummy
+              mergeResourcesTask.dependsOn sample
           }
       }
     """.trimIndent())
@@ -77,7 +77,7 @@ class NoncacheableTasksAnalyzerTest {
     assertThat(buildAttributionManager.analyzersProxy.getNonCacheableTasks()).hasSize(1)
     val noncacheableTask = buildAttributionManager.analyzersProxy.getNonCacheableTasks()[0]
 
-    assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:dummy")
+    assertThat(noncacheableTask.getTaskPath()).isEqualTo(":app:sample")
     assertThat(noncacheableTask.taskType).isEqualTo("org.gradle.api.DefaultTask")
     assertThat(noncacheableTask.originPlugin.toString()).isEqualTo("script :app:build.gradle")
   }

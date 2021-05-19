@@ -20,10 +20,10 @@ import static com.android.tools.idea.gradle.project.sync.setup.module.dependency
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -45,6 +45,7 @@ import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
+import com.google.common.collect.Iterables;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -1001,7 +1002,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
         for (NamedIdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
-          if (provider.getResDirectories().contains(vResDir)) {
+          if (Iterables.contains(provider.getResDirectories(), vResDir)) {
             source += provider.getName() + " ";
             break;
           }
@@ -1118,7 +1119,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     String source = null;
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      Library library =
+      IdeLibrary library =
         GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
       if (library != null) {
         source = getDependencyDisplayName(library);

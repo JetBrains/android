@@ -48,7 +48,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myParallelBuildDocHyperlinkLabel;
 
   private JCheckBox myAutoMakeCheckBox;
-  private JCheckBox mySyncProjectBeforeBuildCheckBox;
 
   private RawCommandLineEditor myCommandLineOptionsEditor;
   @SuppressWarnings("UnusedDeclaration")
@@ -91,7 +90,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled() ||
            myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE != isAutoMakeEnabled() ||
-           myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD != isSyncBeforeBuildEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
@@ -102,7 +100,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     }
     myCompilerWorkspaceConfiguration.MAKE_PROJECT_ON_SAVE = isAutoMakeEnabled();
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
-    myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD = isSyncBeforeBuildEnabled();
   }
 
   private boolean isParallelBuildsEnabled() {
@@ -111,10 +108,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isAutoMakeEnabled() {
     return myAutoMakeCheckBox.isSelected();
-  }
-
-  private boolean isSyncBeforeBuildEnabled() {
-    return mySyncProjectBeforeBuildCheckBox.isSelected();
   }
 
   @NotNull
@@ -131,7 +124,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
                                ")");
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myCommandLineOptionsEditor.setText(commandLineOptions);
-    mySyncProjectBeforeBuildCheckBox.setSelected(myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD);
   }
 
   @Override

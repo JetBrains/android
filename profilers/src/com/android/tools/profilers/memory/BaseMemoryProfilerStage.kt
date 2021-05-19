@@ -23,9 +23,11 @@ import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
+import javax.swing.SwingUtilities
 
 
 abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val loader: CaptureObjectLoader)
@@ -113,16 +115,23 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
         joiner ?: MoreExecutors.directExecutor())
       profilerMode = ProfilerMode.EXPANDED
     }
-    if (captureObject.canSafelyLoad()) {
-      load.run()
-    }
-    else {
-      studioProfilers.ideServices
-        .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
-                         "it parses the data and afterwards. Do you want to continue?",
-                         "Heap Dump File Too Large",
-                         load, clear)
-    }
+
+    CompletableFuture
+      .supplyAsync(captureObject::canSafelyLoad, studioProfilers.ideServices.poolExecutor)
+      .whenComplete { canSafelyLoad, _ ->
+        if (canSafelyLoad) {
+          load.run()
+        }
+        else {
+          SwingUtilities.invokeAndWait {
+            studioProfilers.ideServices
+              .openYesNoDialog("The hprof file is large, and Android Studio may become unresponsive while " +
+                               "it parses the data and afterwards. Do you want to continue?",
+                               "Heap Dump File Too Large",
+                               load, clear)
+          }
+        }
+      }
   }
 }
 

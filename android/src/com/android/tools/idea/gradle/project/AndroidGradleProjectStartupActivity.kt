@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
@@ -31,12 +32,18 @@ import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.project.AndroidNotification
+import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings.Companion.getInstance
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -52,20 +59,12 @@ import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
-
-import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.project.AndroidProjectInfo
-
-import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
-
-import com.android.tools.idea.sdk.IdeSdks
-import com.intellij.notification.NotificationType
 
 /**
  * Syncs Android Gradle project with the persisted project data on startup.
@@ -100,32 +99,34 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     // See AndroidStudioPreferences for a full list.
     AndroidStudioPreferences.cleanUpPreferences(project)
 
-    // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-    showMigrateToGradleWarning(project)
-
-    // Check if the Gradle JDK environment variable is valid
-    showInvalidJdkEnvVariableWarning(project)
-  }
-
-  private fun showInvalidJdkEnvVariableWarning(project: Project) {
-    val ideSdks = IdeSdks.getInstance()
-    if (ideSdks.isJdkEnvVariableDefined && !ideSdks.isJdkEnvVariableValid) {
-      val msg = "$JDK_LOCATION_ENV_VARIABLE_NAME is being ignored since it is set to an invalid JDK Location: ${ideSdks.envVariableJdkValue}"
-      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
-                                                           SelectJdkFromFileSystemHyperlink.create(project)!!)
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      getInstance(project).autoReloadType = ExternalSystemProjectTrackerSettings.AutoReloadType.NONE
+      notifyOnLegacyAndroidProject(project) // FIXME-ank5: show notification in IDEA
+      notifyOnInvalidGradleJDKEnv(project)
     }
   }
+}
 
-  private fun showMigrateToGradleWarning(project: Project) {
-    val legacyAndroidProjects = LegacyAndroidProjects(project)
-    val androidProjectInfo = AndroidProjectInfo.getInstance(project)
-    if (androidProjectInfo.isLegacyIdeaAndroidProject() && !androidProjectInfo.isApkProject()) {
-      legacyAndroidProjects.trackProject()
-      if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
-        // Suggest that Android Studio users use Gradle instead of IDEA project builder.
-        legacyAndroidProjects.showMigrateToGradleWarning()
-      }
+fun notifyOnLegacyAndroidProject(project: Project) {
+  val legacyAndroidProjects = LegacyAndroidProjects(project)
+  if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject
+      && !AndroidProjectInfo.getInstance(project).isApkProject) {
+    legacyAndroidProjects.trackProject()
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
+      // Suggest that Android Studio users use Gradle instead of IDEA project builder.
+      legacyAndroidProjects.showMigrateToGradleWarning()
     }
+  }
+}
+
+fun notifyOnInvalidGradleJDKEnv(project: Project) {
+  val ideSdks = IdeSdks.getInstance()
+  if (ideSdks.isJdkEnvVariableDefined && !ideSdks.isJdkEnvVariableValid) {
+    val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
+              "is being ignored since it is set to an invalid JDK Location:\n" +
+              ideSdks.envVariableJdkValue
+    AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
+                                                         SelectJdkFromFileSystemHyperlink.create(project)!!)
   }
 }
 
@@ -166,9 +167,6 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
   val moduleManager = ModuleManager.getInstance(project)
   val projectDataManager = ProjectDataManager.getInstance()
 
-  fun findProjectDataNode(externalProjectPath: String): DataNode<ProjectData>? =
-    projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, externalProjectPath)?.externalProjectStructure
-
   fun DataNode<ProjectData>.modules(): Collection<DataNode<ModuleData>> =
     ExternalSystemApiUtil.findAllRecursively(this, ProjectKeys.MODULE)
 
@@ -180,13 +178,18 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(trigger))
   }
 
-  val projectDataNodes: Collection<DataNode<ProjectData>> =
+  val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
       .mapNotNull { it.externalProjectPath }
       .toSet()
       .map {
-        findProjectDataNode(it) ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
+        val externalProjectInfo = projectDataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, it)
+        if (externalProjectInfo != null && externalProjectInfo.lastImportTimestamp != externalProjectInfo.lastSuccessfulImportTimestamp) {
+          requestSync("Sync failed in last import attempt. Path: ${externalProjectInfo.externalProjectPath}")
+          return
+        }
+        externalProjectInfo?.externalProjectStructure ?: run { requestSync("DataNode<ProjectData> not found for $it"); return }
       }
 
   if (projectDataNodes.isEmpty()) {
@@ -203,7 +206,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           it.getFacetsByType(GradleFacet.getFacetTypeId()) +
           it.getFacetsByType(AndroidFacet.ID) +
           it.getFacetsByType(JavaFacet.getFacetTypeId()) +
-          it.getFacetsByType(NdkFacet.getFacetTypeId())
+          it.getFacetsByType(NdkFacet.facetTypeId)
         }
       }
       .toMutableSet()
@@ -213,6 +216,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       .orderEntries.filterIsInstance<LibraryOrderEntry>().asSequence()
       .mapNotNull { it.library }
       .filter { it.name?.startsWith("Gradle: ") ?: false }
+      // Module level libraries and libraries not listed in any library table usually represent special kinds of artifacts like local
+      // libraries in `lib` folders, generated code, etc. We are interested in libraries with JAR files in the shared Gradle cache.
+      //
+      .filter { it.table?.tableLevel == LibraryTablesRegistrar.PROJECT_LEVEL }
   }
     .distinct()
     .forEach { library ->
@@ -278,7 +285,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       prepare(ANDROID_MODEL, AndroidFacet::getInstance, AndroidModel::set, AndroidModuleModel::setModule) ?: return,
       prepare(JAVA_MODULE_MODEL, JavaFacet::getInstance, JavaFacet::setJavaModuleModel) ?: return,
       prepare(GRADLE_MODULE_MODEL, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
+      prepare(NDK_MODEL, { NdkFacet.getInstance(this) }, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 

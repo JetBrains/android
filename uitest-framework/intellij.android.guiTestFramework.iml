@@ -7,13 +7,16 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.java" scope="TEST" />
@@ -58,5 +61,6 @@
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
   </component>
 </module>

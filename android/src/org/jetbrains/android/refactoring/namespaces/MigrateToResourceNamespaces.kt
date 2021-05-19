@@ -17,12 +17,12 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.URI_PREFIX
-import com.android.builder.model.AaptOptions
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.ide.highlighter.XmlFileType
@@ -78,7 +78,7 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
   override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
 
   private fun isEnabledOnModule(module: Module?): Boolean {
-    return ResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == AaptOptions.Namespacing.DISABLED
+    return ResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == Namespacing.DISABLED
   }
 }
 
@@ -182,7 +182,7 @@ class MigrateToResourceNamespacesProcessor(
 
     for (facet in allFacets) {
       val repositoryManager = ResourceRepositoryManager.getInstance(facet)
-      if (repositoryManager.namespacing != AaptOptions.Namespacing.DISABLED) continue
+      if (repositoryManager.namespacing != Namespacing.DISABLED) continue
 
       for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
         // TODO(b/78765120): process the files in parallel?

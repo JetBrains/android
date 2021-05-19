@@ -32,6 +32,7 @@ import com.intellij.codeInsight.lookup.LookupManager
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Ref
 import com.intellij.util.containers.stream
+import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 
 /**
@@ -39,9 +40,19 @@ import org.jetbrains.android.AndroidTestCase
  */
 class AndroidImplementationViewSessionTest : AndroidTestCase() {
 
+  @Language("JAVA")
+  private val constraintLayout =
+    """
+      package androidx.constraintlayout.widget;
+
+      public class ConstraintLayout extends android.view.ViewGroup {
+      }
+      """.trimIndent()
+
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(true)
+    myFixture.addClass(constraintLayout)
   }
 
   override fun tearDown() {

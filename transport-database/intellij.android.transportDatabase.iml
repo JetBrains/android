@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testData" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="studio-grpc" level="project" />
@@ -29,5 +30,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
   </component>
 </module>

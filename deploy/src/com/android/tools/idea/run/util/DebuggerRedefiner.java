@@ -27,7 +27,6 @@ import com.intellij.debugger.engine.SuspendContextImpl;
 import com.intellij.debugger.engine.events.DebuggerCommandImpl;
 import com.intellij.debugger.impl.DebuggerContextImpl;
 import com.intellij.debugger.impl.DebuggerSession;
-import com.intellij.debugger.impl.DebuggerTask;
 import com.intellij.debugger.impl.MultiProcessCommand;
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
@@ -40,11 +39,7 @@ import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.xdebugger.XDebugSession;
 import com.sun.jdi.VirtualMachine;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
@@ -60,12 +55,14 @@ public class DebuggerRedefiner implements ClassRedefiner {
 
   // This is the port that the IntelliJ talks to (port opended by ddmlib).
   private final int debuggerPort;
+  private final boolean fallback;
 
   private RedefineClassSupportState supportState = null;
 
-  public DebuggerRedefiner(Project project, int debuggerPort) {
+  public DebuggerRedefiner(Project project, int debuggerPort, boolean fallback) {
     this.project = project;
     this.debuggerPort = debuggerPort;
+    this.fallback = fallback;
   }
 
   @Override
@@ -157,6 +154,10 @@ public class DebuggerRedefiner implements ClassRedefiner {
     task.waitFor();
 
     if (exception.get() != null) {
+      DeployerException e = exception.get();
+      if (fallback && e.getError() == DeployerException.Error.JDWP_REDEFINE_CLASSES_EXCEPTION) {
+        return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.SWAP_FAILED_BUT_OVERLAY_UPDATED).build();
+      }
       throw exception.get();
     }
 
@@ -204,7 +205,12 @@ public class DebuggerRedefiner implements ClassRedefiner {
     task.waitFor();
 
     if (exception.get() != null) {
-      throw exception.get();
+      if (fallback) {
+        return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.SWAP_FAILED_BUT_OVERLAY_UPDATED).build();
+      }
+      else {
+        throw exception.get();
+      }
     }
 
     return Deploy.SwapResponse.newBuilder().setStatus(Deploy.SwapResponse.Status.OK).build();

@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
@@ -43,15 +44,13 @@ import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -202,7 +201,7 @@ public class ModelBuilder {
       // TODO: Do we need a special version of ModelBuilder for Nele?
       if (mySurfaceClass.equals(NlDesignSurface.class)) {
         when(((NlDesignSurface)surface).getAdaptiveIconShape()).thenReturn(ShapeMenuAction.AdaptiveIconShape.getDefaultShape());
-        when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT);
+        when(((NlDesignSurface)surface).getScreenViewProvider()).thenReturn(NlScreenViewProvider.BLUEPRINT);
       }
 
       SceneManager sceneManager = myManagerFactory.apply(model);
@@ -218,6 +217,7 @@ public class ModelBuilder {
       when(surface.getScene()).thenReturn(scene);
       when(surface.getProject()).thenReturn(project);
       when(surface.getLayoutType()).thenCallRealMethod();
+      when(surface.canZoomToFit()).thenReturn(true);
 
       return model;
     });
@@ -241,7 +241,7 @@ public class ModelBuilder {
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(new JPanel());
     when(surface.getInteractionPane()).thenReturn(new JPanel());
-    SelectionModel selectionModel = new SelectionModel();
+    SelectionModel selectionModel = new DefaultSelectionModel();
     when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);

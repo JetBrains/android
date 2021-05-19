@@ -438,7 +438,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         @Nullable
         @Override
         public String valueOf(AvdInfo info) {
-          return AvdManagerConnection.getAvdDisplayName(info);
+          return info.getDisplayName();
         }
       },
       new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {

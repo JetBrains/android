@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.google.common.util.concurrent.Futures;
@@ -35,14 +37,16 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.LabeledComponent;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
-
 import com.intellij.ui.components.JBRadioButton;
 import com.intellij.ui.components.JBTextField;
-import javax.swing.*;
+import com.intellij.util.ui.UIUtil;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 
 /**
  * The configuration panel for the Android profiler settings.
@@ -67,6 +71,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   private ComboBox<CpuProfilerConfig> myStartupCpuConfigsComboBox;
   private JTextPane myStartupCpuProfilerDescription;
   private JBRadioButton myCpuRecordingRadio;
+  private JBRadioButton myMemoryRecordingRadio;
 
   public JComponent getComponent() {
     return myDescription;
@@ -91,28 +96,30 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   /**
    * Sets up startup CPU profiling options, there are two options:
    * - myStartupCpuProfileCheckBox - if the checkbox is selected, the next time when the user profiles an application
-   *                                 the method trace recording will start automatically with the application launch.
+   * the method trace recording will start automatically with the application launch.
    * - myStartupCpuConfigsComboBox - CPU Configurations that can be used to record a method trace on application launch
-   *                                 (e.g Sampled Java, Instrumented Java).
-   *                                 The combobox is disabled, if {@code myStartupCpuProfileCheckBox} is unchecked.
+   * (e.g Sampled Java, Instrumented Java).
+   * The combobox is disabled, if {@code myStartupCpuProfileCheckBox} is unchecked.
    */
   private void setUpStartupProfiling() {
     myStartupProfileCheckBox.addItemListener(e -> {
       myCpuRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
-      myCpuRecordingRadio.setSelected(myStartupProfileCheckBox.isSelected()); // Sync the state of the radio button to the checkbox.
+      myMemoryRecordingRadio.setEnabled(myStartupProfileCheckBox.isSelected());
       myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected() && myStartupProfileCheckBox.isSelected());
       myStartupProfileCheckBox.setSelected(myStartupProfileCheckBox.isSelected());
     });
 
     myCpuRecordingRadio.addItemListener(e -> {
       if (myCpuRecordingRadio.isSelected()) {
+        myMemoryRecordingRadio.setSelected(false);
         myStartupCpuConfigsComboBox.setEnabled(myCpuRecordingRadio.isSelected());
       }
-      // Prevent the user from deselecting the radio item when the checkbox is enabled.
-      // This prevents a case where startup profiling is checked but no radio button
-      // show as selected.
-      if (myStartupProfileCheckBox.isSelected()) {
-        myCpuRecordingRadio.setSelected(true);
+    });
+
+    myMemoryRecordingRadio.addItemListener(e -> {
+      if (myMemoryRecordingRadio.isSelected()) {
+        myCpuRecordingRadio.setSelected(false);
+        myStartupCpuConfigsComboBox.setEnabled(!myMemoryRecordingRadio.isSelected());
       }
     });
 
@@ -122,6 +129,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     myStartupCpuConfigsComboBox.setSelectedIndex(0);
 
     if (!StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get()) {
+      myMemoryRecordingRadio.setVisible(false);
       myNativeMemoryProfilerSampleRate.setVisible(false);
     }
   }
@@ -132,12 +140,18 @@ public class AndroidProfilersPanel implements HyperlinkListener {
   public void resetFrom(ProfilerState state) {
     boolean enabled = myAdvancedProfilingCheckBox.isEnabled();
     myAdvancedProfilingDescription.setBackground(myDescription.getBackground());
+    myAdvancedProfilingDescription.setForeground(UIUtil.getContextHelpForeground());
     myAdvancedProfilingCheckBox.setSelected(enabled && state.ADVANCED_PROFILING_ENABLED);
 
     myNativeMemoryProfilerSampleRate.getComponent().setText(Integer.toString(state.NATIVE_MEMORY_SAMPLE_RATE_BYTES));
+    myNativeMemoryRateProfilerDescription.setBackground(myDescription.getBackground());
+    myNativeMemoryRateProfilerDescription.setForeground(UIUtil.getContextHelpForeground());
+
     myStartupProfileCheckBox.setSelected(state.STARTUP_PROFILING_ENABLED);
     myCpuRecordingRadio.setSelected(state.STARTUP_CPU_PROFILING_ENABLED);
+    myMemoryRecordingRadio.setSelected(state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED);
     myStartupCpuProfilerDescription.setBackground(myDescription.getBackground());
+    myStartupCpuProfilerDescription.setForeground(UIUtil.getContextHelpForeground());
 
     String name = state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
     CpuProfilerConfig config = CpuProfilerConfigsState.getInstance(myProject).getConfigByName(name);
@@ -155,10 +169,12 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     state.STARTUP_CPU_PROFILING_ENABLED = StudioFlags.PROFILER_STARTUP_CPU_PROFILING.get() && myCpuRecordingRadio.isSelected();
     assert myStartupCpuConfigsComboBox.getSelectedItem() instanceof CpuProfilerConfig;
     state.STARTUP_CPU_PROFILING_CONFIGURATION_NAME = ((CpuProfilerConfig)myStartupCpuConfigsComboBox.getSelectedItem()).getName();
+    state.STARTUP_NATIVE_MEMORY_PROFILING_ENABLED = myMemoryRecordingRadio.isSelected();
     state.STARTUP_PROFILING_ENABLED = myStartupProfileCheckBox.isSelected();
     try {
       state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = Math.max(1, Integer.parseInt(myNativeMemoryProfilerSampleRate.getComponent().getText()));
-    } catch (NumberFormatException ex) {
+    }
+    catch (NumberFormatException ex) {
       state.NATIVE_MEMORY_SAMPLE_RATE_BYTES = ProfilerState.DEFAULT_NATIVE_MEMORY_SAMPLE_RATE_BYTES;
     }
   }
@@ -181,7 +197,8 @@ public class AndroidProfilersPanel implements HyperlinkListener {
         }
       }
     }
-    myHyperlinkLabel.setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ","Update project", "");
+    myHyperlinkLabel
+      .setHyperlinkText("This feature can only be enabled with a gradle plugin version of 2.4 or greater. ", "Update project", "");
     myHyperlinkLabel.setVisible(!supported);
     myHyperlinkLabel.setVisible(!supported);
     myDescription.setEnabled(supported);
@@ -205,7 +222,8 @@ public class AndroidProfilersPanel implements HyperlinkListener {
     AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion, null);
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       requestSync();
-    } else {
+    }
+    else {
       updateHyperlink("(Update failed)");
     }
   }
@@ -218,7 +236,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
       // TODO change trigger to plugin upgrade trigger if it is created
       syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
-        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
+                             .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
     });
 
     // Block until sync finishes

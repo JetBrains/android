@@ -24,11 +24,17 @@ import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import org.jetbrains.annotations.Nullable;
 
 public class SimulatedSyncErrors {
   private static Key<RuntimeException> SIMULATED_ERROR_KEY = Key.create("com.android.tools.idea.gradle.sync.simulated.errors");
 
   private SimulatedSyncErrors() {
+  }
+
+  public static void clear() {
+    verifyIsTestMode();
+    store(null);
   }
 
   public static void registerSyncErrorToSimulate(@NotNull String errorMessage) {
@@ -51,7 +57,7 @@ public class SimulatedSyncErrors {
     store(exception);
   }
 
-  private static void store(@NotNull RuntimeException exception) {
+  private static void store(@Nullable RuntimeException exception) {
     ApplicationManager.getApplication().putUserData(SIMULATED_ERROR_KEY, exception);
   }
 

@@ -15,25 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.truth.Truth.assertThat;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
+
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Frame;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.RuleChain;
 import org.junit.rules.Verifier;
 import org.junit.runner.RunWith;
-
-import javax.swing.*;
-import java.awt.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
-import static com.google.common.truth.Truth.assertThat;
-import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.containsString;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class GuiTestRuleTest {
@@ -53,13 +54,13 @@ public class GuiTestRuleTest {
 
   @Test
   public void makeSimpleApplication() throws Exception {
-    GradleInvocationResult result = guiTest.importSimpleApplication().invokeProjectMake();
+    BuildStatus result = guiTest.importSimpleApplication().invokeProjectMake();
     assertThat(result.isBuildSuccessful()).named("Gradle build successful").isTrue();
   }
 
   @Test
   public void createNewProjectDialogLeftShowing() {
-    exception.expectMessage("Create New Project");
+    exception.expectMessage("New Project");
     guiTest.welcomeFrame().createNewProject();
   }
 

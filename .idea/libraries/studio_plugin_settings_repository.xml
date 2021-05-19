@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="studio-plugin-settings-repository">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/settings-repository/lib/jgit.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/settings-repository/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/settings-repository/lib/settings-repository.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -28,4 +28,5 @@ object TestDataPaths {
   const val PROJECT_USING_KOTLIN_PLUGIN = "projects/safeArgsWithKotlinPlugin"
   const val MULTI_MODULE_PROJECT = "projects/safeArgsMultiModuleProject"
   const val SIMPLE_JAVA_PROJECT = "projects/SimpleJavaProject"
+  const val SIMPLE_KOTLIN_PROJECT = "projects/SimpleKotlinProject"
 }

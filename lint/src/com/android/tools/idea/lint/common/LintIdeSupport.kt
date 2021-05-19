@@ -17,7 +17,10 @@ package com.android.tools.idea.lint.common
 
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.client.api.LintClient
+import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Platform
@@ -46,6 +49,9 @@ import java.util.*
  * directly depend upon.
  */
 abstract class LintIdeSupport {
+  init {
+    LintClient.clientName = CLIENT_STUDIO
+  }
   companion object {
     private val EP_NAME = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
 
@@ -65,8 +71,9 @@ abstract class LintIdeSupport {
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
 
-  open fun getBaselineFile(module: Module): File? {
+  open fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val dir = module.getModuleDir() ?: return null
+    client.getConfiguration(dir)?.baselineFile?.let { baseline -> return baseline }
     val lintBaseline = File(dir, "lint_baseline.xml")
     if (lintBaseline.exists()) {
       return lintBaseline
@@ -144,6 +151,13 @@ abstract class LintIdeSupport {
 
   // Gradle
   open fun updateToLatest(module: Module, gc: GradleCoordinate) {
+  }
+  open fun recommendedAgpVersion(project: Project): GradleVersion? = null
+  open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
+  open fun updateAgpToLatest(project: Project) {
+  }
+  open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) : Boolean = false
+  open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
   }
 
   open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null

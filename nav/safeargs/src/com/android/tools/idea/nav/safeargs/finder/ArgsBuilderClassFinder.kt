@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
-import com.android.tools.idea.nav.safeargs.psi.LightArgsBuilderClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsBuilderClass
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -25,6 +25,8 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class ArgsBuilderClassFinder(project: Project) : SafeArgsClassFinderBase(project) {
   override fun findAll(facet: AndroidFacet): List<LightArgsBuilderClass> {
-    return SafeArgsCacheModuleService.getInstance(facet).args.map { it.builderClass }
+    return SafeArgsCacheModuleService.getInstance(facet).args
+      .flatMap { it.innerClasses.toList() }
+      .filterIsInstance<LightArgsBuilderClass>()
   }
 }

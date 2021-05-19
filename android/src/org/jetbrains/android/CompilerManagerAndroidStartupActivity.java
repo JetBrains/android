@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class CompilerManagerAndroidStartupActivity implements AndroidStartupActivity {
 
   @Override
+  @UiThread
   public void runActivity(@NotNull Project project, @NotNull Disposable disposable) {
     final CompilerManager manager = CompilerManager.getInstance(project);
     manager.addBeforeTask(new AndroidPrecompileTask());

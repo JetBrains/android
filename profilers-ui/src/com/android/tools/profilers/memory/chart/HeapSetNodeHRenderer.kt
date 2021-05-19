@@ -57,10 +57,12 @@ class HeapSetNodeHRenderer : HRenderer<ClassifierSetHNode?> {
     val marginPadding = 5
     val fontMetrics = g.getFontMetrics(font)
     val availableWidth = drawingArea.width.toFloat() - 2 * marginPadding // Left and right margin
-    val text = AdtUiUtils.shrinkToFit(node.name, fontMetrics, availableWidth)
-    val textPositionX = marginPadding + drawingArea.x.toFloat()
-    val textPositionY = (drawingArea.y + fontMetrics.ascent).toFloat()
-    g.drawString(text, textPositionX, textPositionY)
+    val text = AdtUiUtils.shrinkToFit(node.name, fontMetrics, availableWidth, 1.0f)
+    if (text.isNotEmpty()) {
+      val textPositionX = marginPadding + drawingArea.x.toFloat()
+      val textPositionY = (drawingArea.y + fontMetrics.ascent).toFloat()
+      g.drawString(text, textPositionX, textPositionY)
+    }
     g.font = restoreFont
   }
 }

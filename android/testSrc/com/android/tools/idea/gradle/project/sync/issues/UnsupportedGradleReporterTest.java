@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
@@ -45,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
  * Tests for {@link UnsupportedGradleReporter}.
  */
 public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
-  private SyncIssue mySyncIssue;
+  private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessagesStub;
   private UnsupportedGradleReporter myReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -53,14 +52,14 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(SyncIssue.class);
+    mySyncIssue = mock(IdeSyncIssue.class);
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnsupportedGradleReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
-    assertEquals(TYPE_GRADLE_TOO_OLD, myReporter.getSupportedIssueType());
+    assertEquals(IdeSyncIssue.TYPE_GRADLE_TOO_OLD, myReporter.getSupportedIssueType());
   }
 
   public void testReport() throws Exception {

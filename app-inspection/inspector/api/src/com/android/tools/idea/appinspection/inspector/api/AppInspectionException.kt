@@ -15,9 +15,46 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
+abstract class AppInspectionException(message: String) : Exception(message)
+
 /**
  * Signals the connection being used to send commands has encountered some sort of error.
  *
  * Example: inspector connection is disposed.
  */
-class AppInspectionConnectionException(message: String): Exception(message)
+open class AppInspectionConnectionException(message: String): AppInspectionException(message)
+
+/**
+ * Signals that the inspector crashed on device, a case particularly interesting to users that also
+ * will happen to interrupt the current exception.
+ */
+class AppInspectionCrashException(message: String): AppInspectionConnectionException(message)
+
+/**
+ * Base class for all service errors.
+ */
+abstract class AppInspectionServiceException(message: String) : Exception(message)
+
+/**
+ * Thrown when an error is encountered during inspector launch other than version incompatibility
+ * (see [AppInspectionVersionIncompatibleException]).
+ */
+class AppInspectionLaunchException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when trying to launch an inspector on a process that no longer exists.
+ *
+ * Note: This may not necessarily signal something is broken. We expect this to happen occasionally due to bad timing. For example: user
+ * selects a process for inspection on device X right when X is shutting down.
+ */
+class AppInspectionProcessNoLongerExistsException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when launching an inspector that is incompatible with the version of the library in the running app.
+ */
+class AppInspectionVersionIncompatibleException(message: String) : AppInspectionServiceException(message)
+
+/**
+ * Thrown when the targeted library does not exist in the app.
+ */
+class AppInspectionLibraryMissingException(message: String) : AppInspectionServiceException(message)

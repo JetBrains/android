@@ -477,6 +477,15 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
+  protected boolean isKeepingScaleWhenReopen() {
+    // TODO: Keeping same scale for Navigation Editor and remove this function from DesignSurface
+    // Navigation Editors calls zoom-to-fit automatically when NlModel is set. Some zoom-to-fit functions is called when editor is empty,
+    // which makes the scale value become 0%. We don't want to keep this 0% scale value here.
+    // To resolve this issue, the zoomToFit() function should be removed from NavSceneManager.requestRender().
+    return false;
+  }
+
+  @Override
   protected double getMinScale() {
     return isEmpty() ? 1.0 : 0.1;
   }

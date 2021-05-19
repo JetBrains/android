@@ -134,9 +134,15 @@ public class ReferenceWalker {
       collectInheritedDeclaredFields(object.getClass(), fields);
       for (Field field : fields) {
         if (!field.getType().isPrimitive()) {
-          field.setAccessible(true);
-          Object value = field.get(object);
-          collectReachable(value, object);
+          try {
+            field.setAccessible(true);
+            Object value = field.get(object);
+            collectReachable(value, object);
+          } catch (RuntimeException ignored) {
+            // Under JDK9+, setAccessible can throw InaccessibleObjectException. If that happens, we just skip that field.
+            // TODO(b/162916678): When we start compiling against JDK9+ (not only running under it), we can restrict this to catch
+            // InaccessibleObjectException only.
+          }
         }
       }
     }

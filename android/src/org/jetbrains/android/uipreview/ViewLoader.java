@@ -28,7 +28,7 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import android.view.Gravity;
 import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.layoutlib.bridge.MockView;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.IRenderLogger;
@@ -64,7 +64,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
@@ -94,31 +93,18 @@ public class ViewLoader {
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
-  @VisibleForTesting
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
-                    @Nullable Object credential) {
-    this(layoutLib, facet, logger, credential, ModuleClassLoaderManager.get()::getShared);
-  }
-
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
-                    @NotNull BiFunction<? super ClassLoader, ? super Module, ModuleClassLoader> classLoaderFactory) {
+                    @NotNull ModuleClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
-    // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-    try {
-      myModuleClassLoader = classLoaderFactory.apply(myLayoutLibrary.getClassLoader(), myModule);
-    }
-    finally {
-      RenderSecurityManager.exitSafeRegion(token);
-    }
+    myModuleClassLoader = classLoader;
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems.
+   * Sets the {@link ILayoutLog} logger to use for error messages during problems.
    *
    * @param logger the new logger to use
    */

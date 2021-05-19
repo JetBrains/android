@@ -24,4 +24,10 @@ import org.jetbrains.annotations.NotNull;
 public interface NativeFrameSymbolizer {
   @NotNull
   NativeCallStack.NativeFrame symbolize(String abi, NativeCallStack.NativeFrame unsymbolizedFrame);
+
+  /**
+   * Stop / Cleanup any processes or state created by the symbolizer. This is a call made outside the symbolize function as an optimization.
+   * It is the callers responsibility to call stop when done processing symbols allowing the symbolizer to reset state.
+   */
+  void stop();
 }

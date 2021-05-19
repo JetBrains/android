@@ -307,7 +307,7 @@ class ResourceExplorerListView(
         showDetailView(designAssetSet)
         return
       }
-      ResourceManagerTracking.logAssetOpened(asset.type)
+      ResourceManagerTracking.logAssetOpened(viewModel.facet, asset.type)
       viewModel.doSelectAssetAction(asset)
       return
     }
@@ -750,7 +750,7 @@ class ResourceExplorerListView(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       if (state) {
-        ResourceManagerTracking.logSwitchToGridMode()
+        ResourceManagerTracking.logSwitchToGridMode(viewModel.facet)
         gridMode = true
         previewSize = MIN_CELL_WIDTH
       }

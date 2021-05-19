@@ -61,7 +61,10 @@ public class MarqueeInteraction extends Interaction {
 
   @Override
   public void begin(@NotNull InteractionEvent event) {
-    assert event instanceof MouseDraggedEvent;
+    assert event instanceof MouseDraggedEvent : "The instance of event should be MouseDraggedEvent but it is " + event.getClass() +
+                                                "; The SceneView is " + mySceneView +
+                                                ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+
     MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
     begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }

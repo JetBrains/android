@@ -19,13 +19,10 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -33,25 +30,21 @@ import org.jetbrains.annotations.Nullable;
 
 public class IdeaSyncPopulateProjectTask {
   @NotNull private final Project myProject;
-  @NotNull private final PostSyncProjectSetup myProjectSetup;
   @NotNull private final ProjectDataManager myDataManager;
 
   public IdeaSyncPopulateProjectTask(@NotNull Project project) {
-    this(project, PostSyncProjectSetup.getInstance(project), ProjectDataManager.getInstance());
+    this(project, ProjectDataManager.getInstance());
   }
 
   @VisibleForTesting
   IdeaSyncPopulateProjectTask(@NotNull Project project,
-                              @NotNull PostSyncProjectSetup projectSetup,
                               @NotNull ProjectDataManager dataManager) {
     myProject = project;
-    myProjectSetup = projectSetup;
     myDataManager = dataManager;
   }
 
   @WorkerThread
   public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
-                              @Nullable PostSyncProjectSetup.Request setupRequest,
                               @Nullable GradleSyncListener syncListener) {
     invokeAndWaitIfNeeded((Runnable)() -> {
       if (myProject.isDisposed()) return;
@@ -59,15 +52,7 @@ public class IdeaSyncPopulateProjectTask {
     });
     myDataManager.importData(projectInfo, myProject, true /* synchronous */);
     if (syncListener != null) {
-      if (setupRequest != null && setupRequest.usingCachedGradleModels) {
-        syncListener.syncSkipped(myProject);
-      }
-      else {
         syncListener.syncSucceeded(myProject);
-      }
-    }
-    if (setupRequest != null) {
-      myProjectSetup.notifySyncFinished(setupRequest);
     }
   }
 }

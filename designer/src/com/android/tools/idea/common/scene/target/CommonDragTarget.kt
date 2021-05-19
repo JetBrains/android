@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.common.scene.target
 
-import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
@@ -31,9 +32,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
-import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutPlaceholder
-import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
@@ -257,7 +256,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     targetSnapper.gatherNotches(myComponent)
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>, ignored: SceneContext) {
     draggedComponents.forEach { it.isDragging = true }
     snap(x, y)
     myComponent.scene.repaint()
@@ -367,7 +366,6 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         draggedComponents.forEachIndexed { index, sceneComponent ->
           sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
         }
-        // When live rendering is enabled, we need to rollback the pending attributes.
         if (myComponent.scene.isLiveRenderingEnabled) {
           draggedComponents.forEach {
             if (it.authoritativeNlComponent.startAttributeTransaction().rollback()) {
@@ -378,7 +376,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       }
       newSelectedComponents = draggedComponents
     }
-    draggedComponents.forEach { it.authoritativeNlComponent.clearTransaction() }
+    draggedComponents.forEach { it.authoritativeNlComponent.attributeTransaction?.commit() }
     draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
@@ -442,8 +440,12 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
   override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
-    return if ((modifiersEx and InputEvent.ALT_DOWN_MASK) != 0 && myComponent.isSelected) AdtUiCursors.MOVE
-           else Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+    return if ((modifiersEx and InputEvent.ALT_DOWN_MASK) != 0 && myComponent.isSelected) {
+      AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
+    }
+    else {
+      Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+    }
   }
 
   override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true

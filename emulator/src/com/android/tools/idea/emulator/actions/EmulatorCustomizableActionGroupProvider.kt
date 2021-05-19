@@ -16,14 +16,11 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.emulator.EMULATOR_MAIN_TOOLBAR_ID
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.ui.customization.CustomizableActionGroupProvider
 
 class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider() {
 
   override fun registerGroups(registrar: CustomizableActionGroupRegistrar) {
-    if (StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()) {
-      registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Emulator Toolbar")
-    }
+    registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Emulator Toolbar")
   }
 }

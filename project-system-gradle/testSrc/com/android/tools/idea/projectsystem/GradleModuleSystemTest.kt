@@ -21,10 +21,12 @@ import com.android.ide.common.gradle.model.stubs.l2AndroidLibrary
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.ProjectBuildModelHandler
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -97,6 +99,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   override fun tearDown() {
     try {
+      StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.clearOverride()
       _gradleDependencyManager = null
       _gradleModuleSystem = null
       androidProject = null
@@ -352,6 +355,17 @@ class GradleModuleSystemTest : AndroidTestCase() {
       GradleCoordinate.parseCoordinateString("androidx.core:core-ktx:1.0.0"),
       GradleCoordinate.parseCoordinateString("androidx.navigation:navigation-runtime-ktx:2.0.0"))
     assertThat(missing).isEmpty()
+  }
+
+  fun testGetPackageName_noOverrides() {
+    val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
+    assertThat(packageName).isEqualTo("p1.p2")
+  }
+
+  fun testGetPackageName_noOverrides_noIndex() {
+    StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.override(false)
+    val packageName = (myModule.getModuleSystem() as DefaultModuleSystem).getPackageName()
+    assertThat(packageName).isEqualTo("p1.p2")
   }
 
   class Gradle : AndroidGradleTestCase() {

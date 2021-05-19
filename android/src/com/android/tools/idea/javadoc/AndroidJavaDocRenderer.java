@@ -28,11 +28,11 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
-import com.android.builder.model.SourceProvider;
-import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer;
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -59,10 +59,10 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
@@ -328,12 +328,12 @@ public class AndroidJavaDocRenderer {
           String facetModuleName = reachableFacet.getModule().getName();
           assert AndroidModel.isRequired(reachableFacet);
           IdeAndroidProject androidProject = androidModel.getAndroidProject();
-          Variant selectedVariant = androidModel.getSelectedVariant();
-          Set<SourceProvider> selectedProviders = new HashSet<>();
+          IdeVariant selectedVariant = androidModel.getSelectedVariant();
+          Set<IdeSourceProvider> selectedProviders = new HashSet<>();
 
-          BuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
+          IdeBuildTypeContainer buildType = androidModel.findBuildType(selectedVariant.getBuildType());
           assert buildType != null;
-          SourceProvider sourceProvider = buildType.getSourceProvider();
+          IdeSourceProvider sourceProvider = buildType.getSourceProvider();
           String buildTypeName = selectedVariant.getName();
           addItemsFromSourceSet(buildTypeName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, sourceProvider, type,
                                 resourceName, results, reachableFacet);
@@ -343,23 +343,23 @@ public class AndroidJavaDocRenderer {
           // Iterate in *reverse* order
           for (int i = productFlavors.size() - 1; i >= 0; i--) {
             String flavorName = productFlavors.get(i);
-            ProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
+            IdeProductFlavorContainer productFlavor = androidModel.findProductFlavor(flavorName);
             assert productFlavor != null;
-            SourceProvider provider = productFlavor.getSourceProvider();
+            IdeSourceProvider provider = productFlavor.getSourceProvider();
             addItemsFromSourceSet(flavorName + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, provider, type, resourceName,
                                   results, reachableFacet);
             selectedProviders.add(provider);
           }
 
-          SourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
+          IdeSourceProvider main = androidProject.getDefaultConfig().getSourceProvider();
           addItemsFromSourceSet("main" + " (" + facetModuleName + ")", MASK_FLAVOR_SELECTED, rank++, main, type, resourceName, results,
                                 reachableFacet);
           selectedProviders.add(main);
 
           // Next display any source sets that are *not* in the selected flavors or build types!
-          Collection<BuildTypeContainer> buildTypes = androidProject.getBuildTypes();
-          for (BuildTypeContainer container : buildTypes) {
-            SourceProvider provider = container.getSourceProvider();
+          Collection<IdeBuildTypeContainer> buildTypes = androidProject.getBuildTypes();
+          for (IdeBuildTypeContainer container : buildTypes) {
+            IdeSourceProvider provider = container.getSourceProvider();
             if (!selectedProviders.contains(provider)) {
               addItemsFromSourceSet(container.getBuildType().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider, type,
                                     resourceName, results, reachableFacet);
@@ -367,9 +367,9 @@ public class AndroidJavaDocRenderer {
             }
           }
 
-          Collection<ProductFlavorContainer> flavors = androidProject.getProductFlavors();
-          for (ProductFlavorContainer container : flavors) {
-            SourceProvider provider = container.getSourceProvider();
+          Collection<IdeProductFlavorContainer> flavors = androidProject.getProductFlavors();
+          for (IdeProductFlavorContainer container : flavors) {
+            IdeSourceProvider provider = container.getSourceProvider();
             if (!selectedProviders.contains(provider)) {
               addItemsFromSourceSet(container.getProductFlavor().getName() + " (" + facetModuleName + ")", MASK_NORMAL, rank++, provider,
                                     type, resourceName, results, reachableFacet);
@@ -398,7 +398,7 @@ public class AndroidJavaDocRenderer {
     private static void addItemsFromSourceSet(@Nullable String flavor,
                                               int mask,
                                               int rank,
-                                              @NotNull SourceProvider sourceProvider,
+                                              @NotNull IdeSourceProvider sourceProvider,
                                               @NotNull ResourceType type,
                                               @NotNull String name,
                                               @NotNull List<ItemInfo> results,
@@ -1136,6 +1136,9 @@ public class AndroidJavaDocRenderer {
           catch (InterruptedException | ExecutionException e) {
             renderError(builder, e.toString());
             return;
+          }
+          finally {
+            renderTask.dispose();
           }
           if (image != null) {
             // Need to write it somewhere.

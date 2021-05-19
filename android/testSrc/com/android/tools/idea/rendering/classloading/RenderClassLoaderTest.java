@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -22,6 +23,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.layoutlib.reflection.TrackingThreadLocal;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -30,11 +33,14 @@ import com.intellij.testFramework.TestLoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +71,12 @@ public class RenderClassLoaderTest {
     catch (IllegalAccessException | NoSuchFieldException ignore) {
     }
     Logger.setFactory(MyLoggerFactory.class);
+    ourLoggerInstance = new DefaultLogger("") {
+      @Override
+      public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String... details) {
+        fail("Logger shouldn't receive any error calls");
+      }
+    };
   }
 
   @After
@@ -76,12 +88,6 @@ public class RenderClassLoaderTest {
 
   @Test
   public void testRemovingJarFile() throws IOException, ClassNotFoundException {
-    ourLoggerInstance = new DefaultLogger("") {
-      @Override
-      public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String... details) {
-        fail("Logger shouldn't receive any error calls");
-      }
-    };
 
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/lib.jar");
     File testJarFile = File.createTempFile("RenderClassLoader", ".jar");
@@ -104,13 +110,6 @@ public class RenderClassLoaderTest {
 
   @Test
   public void testRemovingClassFile() throws IOException {
-    ourLoggerInstance = new DefaultLogger("") {
-      @Override
-      public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String... details) {
-        fail("Logger shouldn't receive any error calls");
-      }
-    };
-
     File classSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/MyJarClass.class");
     byte[] classBytes = Files.readAllBytes(classSource.toPath());
 
@@ -133,6 +132,50 @@ public class RenderClassLoaderTest {
     vFile = mock(VirtualFile.class);
     when(vFile.contentsToByteArray()).thenThrow(new FileNotFoundException(""));
     assertNull(loader.loadClassFile("com.myjar.MyJarClass", vFile));
+  }
+
+  @Test
+  public void testThreadLocalsRemapper_threadLocalAncestor() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
+
+    URL testJarFileUrl = jarSource.toURI().toURL();
+    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
+      @Override
+      protected List<URL> getExternalJars() {
+        return ImmutableList.of(testJarFileUrl);
+      }
+    };
+
+    Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.CustomThreadLocal");
+    Constructor<?> constructor = customThreadLocalClass.getConstructor();
+    Object threadLocal = constructor.newInstance();
+    assertTrue(threadLocal instanceof TrackingThreadLocal);
+
+    Set<ThreadLocal<?>> trackedThreadLocals = TrackingThreadLocal.Companion.clearThreadLocals(loader);
+    assertThat(trackedThreadLocals).containsExactly(threadLocal);
+    trackedThreadLocals.forEach(tl -> tl.remove());
+  }
+
+  @Test
+  public void testThreadLocalsRemapper_threadLocalContainer() throws Exception {
+    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
+
+    URL testJarFileUrl = jarSource.toURI().toURL();
+    RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
+      @Override
+      protected List<URL> getExternalJars() {
+        return ImmutableList.of(testJarFileUrl);
+      }
+    };
+
+    Class<?> customThreadLocalClass = loader.loadClassFromNonProjectDependency("com.mythreadlocalsjar.ThreadLocalContainer");
+    Field threadLocalField = customThreadLocalClass.getField("threadLocal");
+    Object threadLocal = threadLocalField.get(null);
+    assertTrue(threadLocal instanceof TrackingThreadLocal);
+
+    Set<ThreadLocal<?>> trackedThreadLocals = TrackingThreadLocal.Companion.clearThreadLocals(loader);
+    assertThat(trackedThreadLocals).containsExactly(threadLocal);
+    trackedThreadLocals.forEach(tl -> tl.remove());
   }
 
   public static class MyLoggerFactory implements Logger.Factory {

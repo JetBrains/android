@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.ProductFlavor
+import com.android.ide.common.gradle.model.IdeBaseConfig
+import com.android.ide.common.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.formatUnit
 import com.android.tools.idea.gradle.structure.model.helpers.installedSdksAsInts
@@ -47,8 +49,8 @@ import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.property
 import java.io.File
 
-object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, ProductFlavor, ProductFlavorModel> {
-  override fun getResolved(model: PsAndroidModuleDefaultConfig): ProductFlavor? =
+object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModuleDefaultConfig, IdeProductFlavor, ProductFlavorModel> {
+  override fun getResolved(model: PsAndroidModuleDefaultConfig): IdeProductFlavor? =
     model.module.resolvedModel?.androidProject?.defaultConfig?.productFlavor
 
   override fun getParsed(model: PsAndroidModuleDefaultConfig): ProductFlavorModel? =
@@ -115,9 +117,9 @@ object PsAndroidModuleDefaultConfigDescriptors : ModelDescriptor<PsAndroidModule
 
   val signingConfig: SimpleProperty<PsAndroidModuleDefaultConfig, Unit> = property(
     "Signing Config",
-    resolvedValueGetter = { null },
+    resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
     parsedPropertyGetter = { signingConfig() },
-    getter = { asUnit() },
+    getter = ResolvedPropertyModel::asUnit,
     setter = {},
     parser = ::parseReferenceOnly,
     formatter = ::formatUnit,

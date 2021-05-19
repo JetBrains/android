@@ -23,6 +23,11 @@ import com.android.xml.XmlBuilder
  */
 interface PreviewXmlBuilder {
   /**
+   * Sets the root tag name. This method *must* be called before calling buildString.
+   */
+  fun setRootTagName(name: String): PreviewXmlBuilder
+
+  /**
    * Adds a new attribute with [name] from the `tools` namespace with the given value.
    */
   fun toolsAttribute(name: String, value: String): PreviewXmlBuilder
@@ -33,7 +38,8 @@ interface PreviewXmlBuilder {
   fun androidAttribute(name: String, value: String): PreviewXmlBuilder
 
   /**
-   * Returns the formatted XML constructed by this builder.
+   * Returns the formatted XML constructed by this builder. If the root tag name has not been set by calling [setRootTagName], the
+   * call with throw an [IllegalStateException].
    */
   fun buildString(): String
 }
@@ -42,7 +48,8 @@ interface PreviewXmlBuilder {
 /**
  *  Implementation of [PreviewXmlBuilder] backed by [XmlBuilder]
  */
-private class PreviewXmlBuilderImpl(private val rootTagName: String = COMPOSE_VIEW_ADAPTER) : PreviewXmlBuilder {
+private class PreviewXmlBuilderImpl : PreviewXmlBuilder {
+  private var rootTagName: String? = null
   private val attributes: MutableMap<String, String> = mutableMapOf()
 
   private fun addAttribute(prefix: String, name: String, value: String): PreviewXmlBuilder {
@@ -51,10 +58,18 @@ private class PreviewXmlBuilderImpl(private val rootTagName: String = COMPOSE_VI
     return this
   }
 
+  override fun setRootTagName(name: String): PreviewXmlBuilder {
+    rootTagName = name
+
+    return this
+  }
+
   override fun toolsAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.TOOLS_NS_NAME, name, value)
   override fun androidAttribute(name: String, value: String): PreviewXmlBuilder = addAttribute(SdkConstants.ANDROID_NS_NAME, name, value)
 
   override fun buildString(): String {
+    val rootTagName = rootTagName ?: throw IllegalStateException("no root tag name specified")
+
     val xmlBuilder = XmlBuilder()
       .startTag(rootTagName)
       .attribute(SdkConstants.XMLNS, SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_URI)

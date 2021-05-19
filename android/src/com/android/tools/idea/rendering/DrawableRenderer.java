@@ -34,6 +34,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -101,6 +102,7 @@ public class DrawableRenderer implements Disposable {
         return null;
       }
     }, PooledThreadExecutor.INSTANCE);
+    Disposer.register(facet, this);
   }
 
   /**
@@ -119,7 +121,7 @@ public class DrawableRenderer implements Disposable {
 
     return myRenderTaskFuture.thenCompose(renderTask -> {
       if (renderTask == null) {
-        // Return a dummy image.
+        // Return a sample image.
         return CompletableFuture.completedFuture(new BufferedImage(1, 1, TYPE_INT_ARGB));
       }
 
@@ -137,9 +139,7 @@ public class DrawableRenderer implements Disposable {
   public void dispose() {
     myRenderTaskFuture.whenComplete((renderTask, throwable) -> {
       if (renderTask != null) {
-        synchronized (myRenderLock) {
-          renderTask.dispose();
-        }
+        renderTask.dispose();
       }
     });
   }

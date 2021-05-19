@@ -28,7 +28,7 @@ import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 
 public class ProjectFinder {
   @Nullable
-  public Project findProject(@NotNull String projectPath) {
+  private Project findProject(@NotNull String projectPath) {
     if (isNotEmpty(projectPath)) {
       File projectFolderPath = FilePaths.stringToFile(projectPath);
       for (Project project : ProjectManager.getInstance().getOpenProjects()) {

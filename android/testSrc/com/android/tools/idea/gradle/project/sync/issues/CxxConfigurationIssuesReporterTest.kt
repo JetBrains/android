@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -116,12 +116,12 @@ class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
       usageReporter.collectedIssue)
   }
 
-  private fun setUpMockSyncIssue(revision: String): SyncIssue {
-    val syncIssue = mock(SyncIssue::class.java)
+  private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {
+    val syncIssue = mock(IdeSyncIssue::class.java)
     `when`(syncIssue.data).thenReturn(null)
     `when`(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
-    `when`(syncIssue.severity).thenReturn(SyncIssue.SEVERITY_ERROR)
-    `when`(syncIssue.type).thenReturn(SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
+    `when`(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    `when`(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
     return syncIssue
   }
 }

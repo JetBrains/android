@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.mockito.MockitoThreadLocalsCleaner
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withAndroidModels
 import com.intellij.application.options.CodeStyle
@@ -25,10 +26,12 @@ import com.intellij.facet.FacetConfiguration
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
@@ -38,7 +41,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
@@ -47,6 +49,7 @@ import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
@@ -145,6 +148,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder]. Such a project will have a module from which an instance of [AndroidModel] can be retrieved.
      */
+    @JvmStatic
     fun withAndroidModel(
       androidProjectBuilder: AndroidProjectBuilder = createAndroidProjectBuilderForDefaultTestProjectStructure()
     ): AndroidProjectRule {
@@ -161,6 +165,7 @@ class AndroidProjectRule private constructor(
      * Returns an [AndroidProjectRule] that initializes the project from an instances of [AndroidProject] obtained from
      * [androidProjectBuilder].
      */
+    @JvmStatic
     fun withAndroidModels(vararg projectModuleBuilders: ModuleModelBuilder): AndroidProjectRule = AndroidProjectRule(
       initAndroid = false,
       lightFixture = false,
@@ -239,7 +244,7 @@ class AndroidProjectRule private constructor(
   private fun createLightFixture(): CodeInsightTestFixture {
     // This is a very abstract way to initialize a new Project and a single Module.
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
-    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureTestCase.JAVA_8)
+    val projectBuilder = factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor())
     return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
   }
 
@@ -318,6 +323,14 @@ class AndroidProjectRule private constructor(
         facets.clear()
       }
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
+      if (withAndroidSdk) {
+        val sdks = AndroidSdks.getInstance().allAndroidSdks
+        for (sdk in sdks) {
+          WriteAction.runAndWait<RuntimeException> {
+            ProjectJdkTable.getInstance().removeJdk(sdk!!)
+          }
+        }
+      }
     }
     fixture.tearDown()
     mockitoCleaner.cleanupAndTearDown()

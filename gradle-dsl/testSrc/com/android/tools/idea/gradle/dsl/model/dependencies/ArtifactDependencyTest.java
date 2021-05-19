@@ -1330,7 +1330,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradlePropertyModel name = extModel.findProperty("name");
 
     ArtifactDependencyModel firstModel = artifacts.get(0);
-    firstModel.version().setValue(new ReferenceTo("version"));
+    firstModel.version().setValue(ReferenceTo.createReferenceFromText("version", firstModel.version()));
     ArtifactDependencyModel secondModel = artifacts.get(1);
     secondModel.name().setValue(new ReferenceTo(name));
 
@@ -1449,7 +1449,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(2, artifacts);
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    model.setValue(new ReferenceTo("service"));
+    model.setValue(ReferenceTo.createReferenceFromText("service", model));
     model = artifacts.get(1).completeModel();
     model.setValue(iStr("com.${guavaPart}"));
 
@@ -1484,7 +1484,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(1, artifacts);
 
     ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    model.setValue(new ReferenceTo("service"));
+    model.setValue(ReferenceTo.createReferenceFromText("service", model));
 
     applyChangesAndReparse(buildModel);
 
@@ -1555,15 +1555,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertSize(4, artifacts);
 
     ArtifactDependencyModel model = artifacts.get(0);
-    model.completeModel().setValue(new ReferenceTo("dependency"));
+    model.completeModel().setValue(ReferenceTo.createReferenceFromText("dependency", model.completeModel()));
     model = artifacts.get(1);
-    model.group().setValue(new ReferenceTo("guavaGroup"));
-    model.name().setValue(new ReferenceTo("guavaName"));
+    model.group().setValue(ReferenceTo.createReferenceFromText("guavaGroup", model.group()));
+    model.name().setValue(ReferenceTo.createReferenceFromText("guavaName", model.name()));
     model = artifacts.get(2);
-    model.completeModel().setValue(new ReferenceTo("otherDependency"));
+    model.completeModel().setValue(ReferenceTo.createReferenceFromText("otherDependency", model.completeModel()));
     model = artifacts.get(3);
-    model.group().setValue(new ReferenceTo("guavaName"));
-    model.name().setValue(new ReferenceTo("guavaGroup"));
+    model.group().setValue(ReferenceTo.createReferenceFromText("guavaName", model.group()));
+    model.name().setValue(ReferenceTo.createReferenceFromText("guavaGroup", model.name()));
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_FULL_REFERENCE_MAP_EXPECTED);
@@ -1998,6 +1998,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
 
     assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("implementation");
     artifacts.get(0).setConfigurationName("customImplementation");
 
     applyChangesAndReparse(buildModel);
@@ -2006,6 +2007,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artifacts = buildModel.dependencies().artifacts();
     assertThat(artifacts).hasSize(1);
     assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
+  }
+
+  @Test
+  public void testSetConfigurationToStandard() throws IOException {
+    writeToBuildFile(TestFile.SET_CONFIGURATION_TO_STANDARD);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
+    artifacts.get(0).setConfigurationName("implementation");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_CONFIGURATION_TO_STANDARD_EXPECTED);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("implementation");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
@@ -2130,6 +2149,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_CONFIGURATION_TO_EMPTY("setConfigurationToEmpty"),
     SET_CONFIGURATION_TO_NON_STANDARD("setConfigurationToNonStandard"),
     SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED("setConfigurationToNonStandardExpected"),
+    SET_CONFIGURATION_TO_STANDARD("setConfigurationToStandard"),
+    SET_CONFIGURATION_TO_STANDARD_EXPECTED("setConfigurationToStandardExpected"),
     SET_VERSION_REFERENCE("setVersionReference"),
     SET_VERSION_REFERENCE_EXPECTED("setVersionReferenceExpected"),
     SET_EXCLUDES_BLOCK_TO_REFERENCES("setExcludesBlockToReferences"),

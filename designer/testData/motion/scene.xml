@@ -171,6 +171,14 @@
             motion:attributeName="pivotX"
             motion:customFloatValue=".7"/>
       </KeyTimeCycle>
+      <KeyAttribute
+          android:rotation="0"
+          motion:framePosition="13"
+          motion:motionTarget="@+id/button"/>
+      <KeyAttribute
+          android:rotation="0"
+          motion:framePosition="27"
+          motion:motionTarget=".*Window"/>
     </KeyFrameSet>
   </Transition>
 </MotionScene>

@@ -26,10 +26,10 @@ import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypes;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -648,7 +648,7 @@ public class DefaultTutorialBundle implements TutorialBundleData {
         return JavaFileType.INSTANCE;
       }
       if (type.equals("XML")) {
-        return StdFileTypes.XML;
+        return XmlFileType.INSTANCE;
       }
       if (type.equals("GROOVY")) {
         return GroovyFileType.GROOVY_FILE_TYPE;

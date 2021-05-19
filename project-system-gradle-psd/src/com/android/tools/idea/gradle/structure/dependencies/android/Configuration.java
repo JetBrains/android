@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_ANDROID_TEST;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_MAIN;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.ARTIFACT_UNIT_TEST;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
-
-import static com.android.builder.model.AndroidProject.*;
 
 class Configuration {
   static final Configuration MAIN = new Configuration("Main", ARTIFACT_MAIN);

@@ -28,10 +28,19 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel.PasswordType;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
+import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.saveText;
+import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -115,6 +124,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected VirtualFile myPropertiesFile;
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
+  protected VirtualFile myBuildSrcBuildFile;
 
   protected VirtualFile myProjectBasePath;
 
@@ -215,6 +225,12 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
       assertTrue(mySubModuleBuildFile.isWritable());
       mySubModulePropertiesFile = subModuleDirPath.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(mySubModulePropertiesFile.isWritable());
+
+      VirtualFile buildSrcDirPath = myProjectBasePath.createChildDirectory(this, "buildSrc");
+      assertTrue(myProjectBasePath.isDirectory());
+      myBuildSrcBuildFile = buildSrcDirPath.createChildData(this, getBuildFileName());
+      assertTrue(myBuildSrcBuildFile.isWritable());
+
       // Setup the project and the module as a Gradle project system so that their build files could be found.
       ExternalSystemModulePropertyManager
         .getInstance(myModule)
@@ -283,6 +299,10 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildFile);
+  }
+
+  protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {
+    prepareAndInjectInformationForTest(fileName, myBuildSrcBuildFile);
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
@@ -741,7 +761,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   public static void verifyPlugins(@NotNull List<String> names, @NotNull List<PluginModel> models) {
     List<String> actualNames = PluginModel.extractNames(models);
-    assertSameElements(names, actualNames);
+    assertSameElements(actualNames, names);
   }
 
   @NotNull

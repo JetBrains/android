@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlComponentBackendXml;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -64,7 +65,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     Mockito.when(item.getModel()).thenReturn(model);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
-    handler.update(350, 50, 0);
+    handler.update(350, 50, 0, SceneContext.get());
     handler.commit(700, 100, 0, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
@@ -94,7 +95,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     Mockito.when(item.getModel()).thenReturn(model);
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
-    handler.update(300, 50, 0);
+    handler.update(300, 50, 0, SceneContext.get());
     handler.commit(600, 100, 0, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();
@@ -120,7 +121,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     assert item != null;
 
     DragHandler handler = newGroupDragHandler(menuComponent, item);
-    handler.update(370, 50, 16);
+    handler.update(370, 50, 16, SceneContext.get());
     handler.commit(740, 100, 16, InsertType.MOVE_INTO);
 
     Iterator<NlComponent> i = menuComponent.getChildren().iterator();

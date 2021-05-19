@@ -22,17 +22,28 @@ package com.android.tools.idea.npw.ui
 
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.wizard.template.Template
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.IconLoader
 import icons.AndroidIcons
+
+private val logger = Logger.getInstance(TemplateIcon::class.java)
 
 fun getTemplateIcon(template: Template): TemplateIcon? {
   if (template == Template.NoActivity) {
     return TemplateIcon(AndroidIcons.Wizards.NoActivity)
   }
 
-  val icon = IconLoader.findIcon(template.thumb().path()) ?: return null
-  return TemplateIcon(icon)
+  return try {
+    val icon = IconLoader.findIcon(template.thumb().path()) ?: return null
+    TemplateIcon(icon)
+  } catch (e: Exception) {
+    logger.warn(e)
+    // Return the icon for No Activity to prevent other templates from not being rendered even if an exception is thrown.
+    // For example if a template has a wrong path name for its thumbnail, template.thumb() throws IllegalArgumentException
+    TemplateIcon(AndroidIcons.Wizards.NoActivity)
+  }
 }
+
 
 fun getTemplateTitle(template: Template): String =
   template.name.replace("${template.formFactor.toWizardFormFactor().displayName} ", "")

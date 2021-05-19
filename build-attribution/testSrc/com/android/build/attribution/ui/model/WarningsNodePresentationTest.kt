@@ -47,7 +47,8 @@ class WarningsNodePresentationTest {
 
   @Test
   fun testTaskWarningTypeRootPresentation() {
-    val descriptor = TaskWarningTypeNodeDescriptor(data.issues.first())
+    val taskIssuesGroup = data.issues.first()
+    val descriptor = TaskWarningTypeNodeDescriptor(taskIssuesGroup.type, taskIssuesGroup.issues)
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "Always-Run Tasks",

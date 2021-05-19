@@ -6,12 +6,17 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="library" scope="TEST" name="jna" level="project" />
+    <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.idea.community.main" scope="TEST" />
@@ -70,5 +75,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
   </component>
 </module>

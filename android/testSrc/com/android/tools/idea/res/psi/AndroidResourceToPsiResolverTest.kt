@@ -207,12 +207,10 @@ class ResourceManagerToPsiResolverTest : AndroidResourceToPsiResolverTest() {
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(false)
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   override fun tearDown() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     super.tearDown()
   }
 
@@ -267,7 +265,6 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(true)
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
 
     MAIN_MODULE_COLOR_FILE = myFixture.addFileToProject("/res/values/colors.xml", COLORS_XML).virtualFile
     MAIN_MODULE_USAGE_COLOR_FILE = myFixture.addFileToProject(
@@ -291,7 +288,6 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
 
   override fun tearDown() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     super.tearDown()
   }
 

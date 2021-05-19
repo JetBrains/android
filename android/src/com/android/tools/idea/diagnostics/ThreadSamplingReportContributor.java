@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.function.BiConsumer;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

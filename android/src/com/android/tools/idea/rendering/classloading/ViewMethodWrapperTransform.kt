@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import com.android.ide.common.rendering.api.LayoutLog
+import com.android.ide.common.rendering.api.ILayoutLog
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -25,11 +25,11 @@ import org.jetbrains.org.objectweb.asm.Type
 private const val ORIGINAL_SUFFIX = "_Original"
 
 /**
- * Find the LayoutLog#error method
+ * Find the ILayoutLog#error method
  */
 private val ERROR_METHOD_DESCRIPTION: String? = try {
   Type.getMethodDescriptor(
-    LayoutLog::class.java.getMethod("error", String::class.java, String::class.java, Throwable::class.java, Any::class.java))
+    ILayoutLog::class.java.getMethod("error", String::class.java, String::class.java, Throwable::class.java, Any::class.java, Any::class.java))
 }
 catch (e: NoSuchMethodException) {
   assert(false)
@@ -93,14 +93,15 @@ class ViewMethodWrapperTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.
     mw.visitVarInsn(Opcodes.ASTORE, throwableIndex)
     //  Bridge.getLog().warning()
     mw.visitMethodInsn(Opcodes.INVOKESTATIC, "com/android/layoutlib/bridge/Bridge", "getLog",
-                       "()Lcom/android/ide/common/rendering/api/LayoutLog;", false)
-    mw.visitLdcInsn(LayoutLog.TAG_BROKEN)
+                       "()Lcom/android/ide/common/rendering/api/ILayoutLog;", false)
+    mw.visitLdcInsn(ILayoutLog.TAG_BROKEN)
     mw.visitLdcInsn("$name error")
     mw.visitVarInsn(Opcodes.ALOAD, throwableIndex)
     mw.visitInsn(Opcodes.ACONST_NULL)
-    mw.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "com/android/ide/common/rendering/api/LayoutLog", "error",
+    mw.visitInsn(Opcodes.ACONST_NULL)
+    mw.visitMethodInsn(Opcodes.INVOKEINTERFACE, "com/android/ide/common/rendering/api/ILayoutLog", "error",
                        ERROR_METHOD_DESCRIPTION,
-                       false)
+                       true)
     if ("onMeasure" == name) { // For onMeasure we need to generate a call to setMeasureDimension to avoid an exception when no size is set
       mw.visitVarInsn(Opcodes.ALOAD, 0) // this
       mw.visitInsn(Opcodes.ICONST_0) // measuredWidth

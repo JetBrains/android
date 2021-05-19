@@ -17,86 +17,40 @@ package com.android.build.attribution.ui.panels
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
-import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.build.attribution.ui.controllers.TaskIssueReporter
-import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.PluginSourceType
-import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
-import com.android.build.attribution.ui.issueIcon
+import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
+import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
+import com.android.build.attribution.ui.wrapPathToSpans
 import com.android.tools.adtui.TabularLayout
-import com.android.utils.HtmlBuilder
 import com.intellij.openapi.ui.OnePixelDivider
-import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.SwingHelper
+import java.awt.BorderLayout
 import java.awt.FlowLayout
-import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-interface TreeLinkListener<T> {
-  fun clickedOn(target: T)
-}
-
-@Deprecated("Used only in old navigation model, to be removed with cleanup.")
-fun pluginInfoPanel(
-  pluginUiData: CriticalPathPluginUiData,
-  listener: TreeLinkListener<TaskIssueType>,
-  analytics: BuildAttributionUiAnalytics
-): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(0)).apply {
-  val pluginText = HtmlBuilder()
-    .openHtmlBody()
-    .add(
-      "This plugin has ${pluginUiData.criticalPathTasks.size} ${pluralize("task", pluginUiData.criticalPathTasks.size)} " +
-      "of total duration ${pluginUiData.criticalPathDuration.durationString()} (${pluginUiData.criticalPathDuration.percentageString()})"
-    )
-    .newline()
-    .add("determining this build's duration.")
-    .closeHtmlBody()
-  add(DescriptionWithHelpLinkLabel(pluginText.html, BuildAnalyzerBrowserLinks.CRITICAL_PATH, analytics::helpLinkClicked))
-  add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-    border = JBUI.Borders.emptyTop(15)
-    add(JBLabel("Warnings detected").apply { font = font.deriveFont(Font.BOLD) })
-    for (issueGroup in pluginUiData.issues) {
-      add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
-        addHyperlinkListener { listener.clickedOn(issueGroup.type) }
-        border = JBUI.Borders.emptyLeft(15)
-        setIcon(issueIcon(issueGroup.type))
-      })
-    }
-    if (pluginUiData.issues.isEmpty()) {
-      add(JLabel("No warnings detected"))
-    }
-  })
-  withPreferredWidth(400)
-}
-
-@Deprecated("Used only in old navigation model, to be removed with cleanup.")
-fun taskInfoPanel(
+fun taskDetailsPage(
   taskData: TaskUiData,
-  analytics: BuildAttributionUiAnalytics,
-  issueReporter: TaskIssueReporter
-): JPanel = taskDetailsPanel(
-  taskData,
-  helpLinkListener = analytics::helpLinkClicked,
-  generateReportClickedListener = {
-    analytics.bugReportLinkClicked()
-    issueReporter.reportIssue(taskData)
-  }
-)
+  helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
+  generateReportClickedListener: (TaskUiData) -> Unit
+): JPanel = JPanel().apply {
+  layout = BorderLayout()
+  add(htmlTextLabelWithFixedLines("<b>${taskData.taskPath}</b>"), BorderLayout.NORTH)
+  add(taskDetailsPanel( taskData, helpLinkListener, generateReportClickedListener), BorderLayout.CENTER)
+}
 
-fun taskDetailsPanel(
+private fun taskDetailsPanel(
   taskData: TaskUiData,
   helpLinkListener: (BuildAnalyzerBrowserLinks) -> Unit,
   generateReportClickedListener: (TaskUiData) -> Unit
@@ -108,7 +62,7 @@ fun taskDetailsPanel(
   val taskInfo = htmlTextLabelWithLinesWrap("""
       ${determinesBuildDurationLine}<br/>
       <br/>
-      <b>Duration:</b>  ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}<br/>
+      <b>Duration:</b>  ${taskData.executionTime.durationStringHtml()} / ${taskData.executionTime.percentageStringHtml()}<br/>
       Sub-project: ${taskData.module}<br/>
       Plugin: ${taskData.pluginName}<br/>
       Type: ${taskData.taskType}<br/>
@@ -161,17 +115,7 @@ private fun taskWarningDescriptionPanel(
   add(htmlTextLabelWithLinesWrap("<b>Recommendation:</b> ${issue.buildSrcRecommendation}"), TabularLayout.Constraint(3, 1))
 }
 
-@Deprecated("Left to support previous version.")
-fun generateReportLinkLabel(
-  analytics: BuildAttributionUiAnalytics,
-  issueReporter: TaskIssueReporter,
-  taskData: TaskUiData
-): JComponent = generateReportLinkLabel(taskData) {
-  analytics.bugReportLinkClicked()
-  issueReporter.reportIssue(taskData)
-}
-
-fun generateReportLinkLabel(
+private fun generateReportLinkLabel(
   taskData: TaskUiData,
   generateReportClicked: (TaskUiData) -> Unit
 ): JComponent = JPanel().apply {
@@ -182,8 +126,6 @@ fun generateReportLinkLabel(
   add(link)
 }
 
-fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabelWithLinesWrap(createReasonsText(taskData.reasonsToRun))
-
 private fun createReasonsText(reasons: List<String>): String = if (reasons.isEmpty()) {
   "No info"
 }
@@ -191,52 +133,9 @@ else {
   reasons.joinToString(separator = "<br/>") { wrapPathToSpans(it).replace("\n", "<br>") }
 }
 
-/**
- * Wraps long path to spans to make it possible to auto-wrap to a new line
- */
-fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
-
-fun verticalRuler(): JPanel = JBPanel<JBPanel<*>>()
-  .withBackground(OnePixelDivider.BACKGROUND)
-  .withPreferredWidth(1)
-  .withMaximumWidth(1)
-  .withMinimumWidth(1)
-
-fun horizontalRuler(): JPanel = JBPanel<JBPanel<*>>()
+private fun horizontalRuler(): JPanel = JBPanel<JBPanel<*>>()
   .withBackground(OnePixelDivider.BACKGROUND)
   .withPreferredHeight(1)
   .withMaximumHeight(1)
   .withMinimumHeight(1)
 
-fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkListener<TaskIssueUiData>): JComponent =
-  JBPanel<JBPanel<*>>().apply {
-    layout = VerticalLayout(6)
-    issuesGroup.issues.forEach {
-      add(HyperlinkLabel(it.task.taskPath).apply { addHyperlinkListener { _ -> listener.clickedOn(it) } })
-    }
-  }
-
-@Deprecated("Used only in old navigation model, to be removed with cleanup.")
-fun criticalPathHeader(prefix: String, duration: String): JComponent =
-  headerLabel("${prefix} determining this build's duration (${duration})")
-
-@Deprecated("Used only in old navigation model, to be removed with cleanup.")
-fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
-  name = "pageHeader"
-}
-
-/**
- * Label with auto-wrapping turned on that accepts html text.
- * Used in Build Analyzer to render long multi-line text.
- */
-fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JComponent =
-  SwingHelper.createHtmlViewer(true, null, null, null).apply {
-    border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, null)
-  }
-
-fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JComponent =
-  SwingHelper.createHtmlViewer(false, null, null, null).apply {
-    border = JBUI.Borders.empty()
-    SwingHelper.setHtml(this, htmlBodyContent, null)
-  }

@@ -19,20 +19,29 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.EmulatorControllerGrpc
+import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.ide.common.util.Cancelable
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS
+import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.protobuf.Empty
+import com.android.tools.idea.protobuf.ExtensionRegistryLite
+import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
+import com.android.tools.idea.protobuf.UnsafeByteOperations
+import com.android.tools.idea.protobuf.WireFormat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
@@ -43,15 +52,21 @@ import io.grpc.CallCredentials
 import io.grpc.CompressorRegistry
 import io.grpc.ConnectivityState
 import io.grpc.DecompressorRegistry
+import io.grpc.KnownLength
 import io.grpc.ManagedChannel
 import io.grpc.Metadata
 import io.grpc.MethodDescriptor
+import io.grpc.MethodDescriptor.Marshaller
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.grpc.stub.ClientCallStreamObserver
 import io.grpc.stub.ClientCalls
 import io.grpc.stub.ClientResponseObserver
 import io.grpc.stub.StreamObserver
+import java.io.IOException
+import java.io.InputStream
+import java.lang.ref.Reference
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -60,9 +75,13 @@ import java.util.concurrent.atomic.AtomicReference
  * Controls a running Emulator.
  */
 class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposable) : Disposable {
+  private val imageResponseMarshaller = ImageResponseMarshaller()
+  private val streamScreenshotMethod = EmulatorControllerGrpc.getStreamScreenshotMethod().toBuilder(
+      EmulatorControllerGrpc.getStreamScreenshotMethod().requestMarshaller, imageResponseMarshaller).build()
   private var channel: ManagedChannel? = null
   @Volatile private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub? = null
   @Volatile private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub? = null
+  @Volatile private var uiControllerStub: UiControllerGrpc.UiControllerStub? = null
   @Volatile private var emulatorConfigInternal: EmulatorConfiguration? = null
   @Volatile internal var skinDefinition: SkinDefinition? = null
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
@@ -127,6 +146,14 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       snapshotServiceStub = stub
     }
 
+  private var uiController: UiControllerGrpc.UiControllerStub
+    get() {
+      return uiControllerStub ?: throwNotYetConnected()
+    }
+    private inline set(stub) {
+      uiControllerStub = stub
+    }
+
   init {
     Disposer.register(parentDisposable, this)
   }
@@ -183,13 +210,15 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     val token = emulatorId.grpcToken
     if (token == null) {
-      emulatorController = EmulatorControllerGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
-      snapshotService = SnapshotServiceGrpc.newStub(channel).withDeadlineAfter(20, TimeUnit.SECONDS)
+      emulatorController = EmulatorControllerGrpc.newStub(channel)
+      snapshotService = SnapshotServiceGrpc.newStub(channel)
+      uiController = UiControllerGrpc.newStub(channel)
     }
     else {
       val credentials = TokenCallCredentials(token)
       emulatorController = EmulatorControllerGrpc.newStub(channel).withCallCredentials(credentials)
       snapshotService = SnapshotServiceGrpc.newStub(channel).withCallCredentials(credentials)
+      uiController = UiControllerGrpc.newStub(channel).withCallCredentials(credentials)
     }
 
     channel.notifyWhenStateChanged(channel.getState(false), connectivityStateWatcher)
@@ -216,7 +245,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets contents of the clipboard.
    */
-  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setClipboard(clipData: ClipData, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setClipboard(${shortDebugString(clipData)})")
     }
@@ -226,13 +255,13 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Streams contents of the clipboard.
    */
-  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable? {
+  fun streamClipboard(streamObserver: StreamObserver<ClipData>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("streamClipboard()")
     }
     val method = EmulatorControllerGrpc.getStreamClipboardMethod()
     val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
-    ClientCalls.asyncServerStreamingCall(call, Empty.getDefaultInstance(), DelegatingStreamObserver(streamObserver, method))
+    ClientCalls.asyncServerStreamingCall(call, EMPTY_PROTO, DelegatingStreamObserver(streamObserver, method))
     return object : Cancelable {
       override fun cancel() {
         call.cancel("Canceled by consumer", null)
@@ -243,7 +272,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sends a [KeyboardEvent] to the Emulator.
    */
-  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun sendKey(keyboardEvent: KeyboardEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("sendKey(${shortDebugString(keyboardEvent)})")
     }
@@ -253,7 +282,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sends a [MouseEvent] to the Emulator.
    */
-  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun sendMouse(mouseEvent: MouseEvent, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_HIGH_VOLUME_GRPC_CALLS.get()) {
       LOG.info("sendMouse(${shortDebugString(mouseEvent)})")
     }
@@ -275,7 +304,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets a physical model value.
    */
-  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setPhysicalModel(modelValue: PhysicalModelValue, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setPhysicalModel(${shortDebugString(modelValue)})")
     }
@@ -295,14 +324,16 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
   /**
    * Streams a series of screenshots.
+   *
+   * **Note**: The value returned by the [Image.getImage] method of the response object cannot be used
+   * outside of the [StreamObserver.onNext] method because it is backed by a mutable reusable byte array.
    */
-  fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable? {
+  fun streamScreenshot(imageFormat: ImageFormat, streamObserver: StreamObserver<Image>): Cancelable {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("streamScreenshot(${shortDebugString(imageFormat)})")
     }
-    val method = EmulatorControllerGrpc.getStreamScreenshotMethod()
-    val call = emulatorController.channel.newCall(method, emulatorController.callOptions)
-    ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, method))
+    val call = emulatorController.channel.newCall(streamScreenshotMethod, emulatorController.callOptions)
+    ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
     return object : Cancelable {
       override fun cancel() {
         call.cancel("Canceled by consumer", null)
@@ -311,17 +342,125 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 
   /**
+   * Retrieves the status of the emulator.
+   */
+  fun getStatus(streamObserver: StreamObserver<EmulatorStatus>) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("getStatus()")
+    }
+    emulatorController.getStatus(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getGetStatusMethod()))
+  }
+
+  /**
    * Sets a virtual machine state.
    */
-  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getDummyObserver()) {
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("setVmModel(${shortDebugString(vmState)})")
+      LOG.info("setVmState(${shortDebugString(vmState)})")
     }
     emulatorController.setVmState(vmState, DelegatingStreamObserver(streamObserver, EmulatorControllerGrpc.getSetVmStateMethod()))
   }
 
+  /**
+   * Lists existing snapshots. Only the snapshots compatible with the running emulator are returned.
+   *
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
+   */
+  fun listSnapshots(streamObserver: StreamObserver<SnapshotList> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("listSnapshots()")
+    }
+    snapshotService.listSnapshots(EMPTY_PROTO, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getListSnapshotsMethod()))
+  }
+
+  /**
+   * Loads a snapshot in the emulator.
+   *
+   * @param snapshotId the ID of the snapshot to load
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
+   */
+  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
+  }
+
+  /**
+   * Pushes snapshot packages into the emulator.
+   *
+   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more
+   * payload packages. The implementation of the stream observer must handle asynchronous events correctly,
+   * especially when pushing big files. This is usually done by overwriting [ClientResponseObserver.beforeStart]
+   * and calling [io.grpc.stub.CallStreamObserver.setOnReadyHandler] from there.
+   *
+   * @param streamObserver a client stream observer to handle events
+   * @return a StreamObserver that can be used to trigger the push
+   */
+  fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("pushSnapshot()")
+    }
+    return snapshotService.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
+  }
+
+  /**
+   * Creates a snapshot of the current emulator state.
+   *
+   * @param snapshotId the ID of the snapshot to create
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
+   */
+  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getEmptyObserver()) {
+    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
+    }
+    snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
+  }
+
+  /**
+   * Shows the extended controls of the emulator.
+   *
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun showExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("showExtendedControls()")
+    }
+    uiController.showExtendedControls(EMPTY_PROTO,
+                                      DelegatingStreamObserver(streamObserver, UiControllerGrpc.getShowExtendedControlsMethod()))
+  }
+
+  /**
+   * Closes the extended controls of the emulator.
+   *
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun closeExtendedControls(streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("closeExtendedControls()")
+    }
+    uiController.closeExtendedControls(EMPTY_PROTO,
+                                       DelegatingStreamObserver(streamObserver, UiControllerGrpc.getCloseExtendedControlsMethod()))
+  }
+
+  /**
+   * Sets the UI style for the extended controls of the emulator.
+   *
+   * @param style the style to set
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   */
+  fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+    val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("setUiTheme(${shortDebugString(themingStyle)})")
+    }
+    uiController.setUiTheme(themingStyle, DelegatingStreamObserver(streamObserver, UiControllerGrpc.getSetUiThemeMethod()))
+  }
+
   private fun sendKeepAlive() {
-    val responseObserver = object : DummyStreamObserver<VmRunState>() {
+    val responseObserver = object : EmptyStreamObserver<VmRunState>() {
       override fun onNext(response: VmRunState) {
         connectionState = ConnectionState.CONNECTED
         if (emulatorState.get() == EmulatorState.SHUTDOWN_REQUESTED) {
@@ -342,47 +481,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     val timeout = if (connectionState == ConnectionState.CONNECTED) 3L else 15L
     emulatorController.withDeadlineAfter(timeout, TimeUnit.SECONDS)
-        .getVmState(Empty.getDefaultInstance(), DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
-  }
-
-  fun saveSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
-    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("saveSnapshot(${shortDebugString(snapshot)})")
-    }
-    snapshotService.saveSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getSaveSnapshotMethod()))
-  }
-
-  /**
-   * Loads a snapshot in the emulator.
-   *
-   * @param snapshotId a snapshot ID in the emulator.
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
-   */
-  fun loadSnapshot(snapshotId: String, streamObserver: StreamObserver<SnapshotPackage> = getDummyObserver()) {
-    val snapshot = SnapshotPackage.newBuilder().setSnapshotId(snapshotId).build()
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("loadSnapshot(${shortDebugString(snapshot)})")
-    }
-    snapshotService.loadSnapshot(snapshot, DelegatingStreamObserver(streamObserver, SnapshotServiceGrpc.getLoadSnapshotMethod()))
-  }
-
-  /**
-   * Pushes snapshot packages into the emulator.
-   *
-   * Usually multiple packages need to be sent to push one snapshot file, including one header and one or more
-   * payload packages. The implementation of the stream observer must handle asynchronous events correctly,
-   * especially when pushing big files. This is usually done by overwriting [ClientResponseObserver.beforeStart]
-   * and calling [io.grpc.stub.CallStreamObserver.setOnReadyHandler] from there.
-   *
-   * @param streamObserver a client stream observer to handle events.
-   * @return a StreamObserver that can be used to trigger the push.
-   */
-  fun pushSnapshot(streamObserver: ClientResponseObserver<SnapshotPackage, SnapshotPackage>): StreamObserver<SnapshotPackage> {
-    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-      LOG.info("pushSnapshot()")
-    }
-    return snapshotService.pushSnapshot(DelegatingClientResponseObserver(streamObserver, SnapshotServiceGrpc.getPushSnapshotMethod()))
+      .getVmState(EMPTY_PROTO, DelegatingStreamObserver(responseObserver, EmulatorControllerGrpc.getGetVmStateMethod()))
   }
 
   private fun throwNotYetConnected(): Nothing {
@@ -490,12 +589,110 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   }
 }
 
+/**
+ * Marshaller for the [Image] objects that implements custom deserialization, which, unlike the standard
+ * one, doesn't allocate short-lived humongous objects (b/180151949).
+ */
+private class ImageResponseMarshaller : Marshaller<Image> {
+  private val reusableBuffer = ThreadLocal<Reference<ByteArray>>()
+
+  override fun stream(response: Image): InputStream {
+    throw UnsupportedOperationException() // This marshaller is never used for serialization.
+  }
+
+  override fun parse(stream: InputStream): Image {
+    try {
+      val codedStream = createCodedInputStream(stream) ?: return Image.getDefaultInstance()
+      return parseImage(codedStream)
+    } catch (e: InvalidProtocolBufferException) {
+      throw Status.INTERNAL.withDescription("Invalid protobuf byte sequence").withCause(e).asRuntimeException()
+    }
+  }
+
+  @Throws(InvalidProtocolBufferException::class)
+  private fun createCodedInputStream(stream: InputStream): CodedInputStream? {
+    val codedStream: CodedInputStream
+    try {
+      if (stream is KnownLength) {
+        val size = stream.available()
+        if (size == 0) {
+          return null
+        }
+
+        var buf = reusableBuffer.get()?.get()
+        if (buf == null || buf.size < size) {
+          buf = ByteArray(size)
+          reusableBuffer.set(WeakReference(buf))
+        }
+
+        var remaining = size
+        while (remaining > 0) {
+          val position = size - remaining
+          val count = stream.read(buf, position, remaining)
+          if (count == -1) {
+            break
+          }
+          remaining -= count
+        }
+
+        if (remaining != 0) {
+          val position = size - remaining
+          throw RuntimeException("Inaccurate size: $size != $position")
+        }
+        codedStream = UnsafeByteOperations.unsafeWrap(buf, 0, size).newCodedInput()
+        codedStream.enableAliasing(true)
+      }
+      else {
+        codedStream = CodedInputStream.newInstance(stream)
+      }
+    }
+    catch (e: IOException) {
+      throw InvalidProtocolBufferException(e)
+    }
+    // Pre-create the CodedInputStream so that we can remove the size limit restriction when parsing.
+    codedStream.setSizeLimit(Int.MAX_VALUE)
+    return codedStream
+  }
+
+  @Throws(InvalidProtocolBufferException::class)
+  private fun parseImage(input: CodedInputStream): Image {
+    val builder = Image.newBuilder()
+
+    try {
+      while (true) {
+        when (val tag = input.readTag()) {
+          0 -> break
+          FORMAT_FIELD_TAG -> builder.format = input.readMessage(ImageFormat.parser(), EMPTY_REGISTRY) as ImageFormat
+          IMAGE_FIELD_TAG -> builder.image = input.readBytes()
+          SEQ_FIELD_TAG-> builder.seq = input.readUInt32()
+          else -> if (!input.skipField(tag)) break
+        }
+      }
+      input.checkLastTagWas(0)
+      return builder.build()
+    }
+    catch (e: InvalidProtocolBufferException) {
+      throw e.setUnfinishedMessage(builder.build())
+    }
+    catch (e: IOException) {
+      throw InvalidProtocolBufferException(e).setUnfinishedMessage(builder.build())
+    }
+  }
+}
+
+private const val FORMAT_FIELD_TAG = Image.FORMAT_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
+private const val IMAGE_FIELD_TAG = Image.IMAGE_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_LENGTH_DELIMITED
+private const val SEQ_FIELD_TAG = Image.SEQ_FIELD_NUMBER shl 3 or WireFormat.WIRETYPE_VARINT
+
+private val EMPTY_REGISTRY = ExtensionRegistryLite.getEmptyRegistry()
+
 private val AUTHORIZATION_METADATA_KEY = Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER)
 private val KEEP_ALIVE_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(2)
 private val LOG = Logger.getInstance(EmulatorController::class.java)
-private val DUMMY_OBSERVER = DummyStreamObserver<Any>()
+private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
+private val EMPTY_PROTO = Empty.getDefaultInstance()
 
 @Suppress("UNCHECKED_CAST")
-fun <T> getDummyObserver(): StreamObserver<T> {
-  return DUMMY_OBSERVER as StreamObserver<T>
+fun <T> getEmptyObserver(): StreamObserver<T> {
+  return EMPTY_OBSERVER as StreamObserver<T>
 }

@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -33,22 +34,28 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ConnectedDevicesTaskTest {
+  private IDevice myDdmlibDevice;
   private AndroidDebugBridge myAndroidDebugBridge;
+
+  private Executor myExecutor;
 
   @Before
   public void mockAndroidDebugBridge() {
+    myDdmlibDevice = Mockito.mock(IDevice.class);
+
     myAndroidDebugBridge = Mockito.mock(AndroidDebugBridge.class);
+    Mockito.when(myAndroidDebugBridge.getConnectedDevices()).thenReturn(Futures.immediateFuture(Collections.singletonList(myDdmlibDevice)));
+  }
+
+  @Before
+  public void initExecutor() {
+    myExecutor = MoreExecutors.directExecutor();
   }
 
   @Test
   public void get() throws Exception {
     // Arrange
-    IDevice device = Mockito.mock(IDevice.class);
-
-    // noinspection UnstableApiUsage
-    Mockito.when(myAndroidDebugBridge.getConnectedDevices()).thenReturn(Futures.immediateFuture(Collections.singletonList(device)));
-
-    ConnectedDevicesTask task = new ConnectedDevicesTask(myAndroidDebugBridge, true, null, MoreExecutors.directExecutor(), d -> null);
+    AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> null);
 
     // Act
     Future<List<ConnectedDevice>> devices = task.get();
@@ -60,25 +67,89 @@ public final class ConnectedDevicesTaskTest {
   @Test
   public void getVirtualDeviceNameIsNull() throws Exception {
     // Arrange
-    IDevice ddmlibDevice = Mockito.mock(IDevice.class);
-
-    Mockito.when(ddmlibDevice.isOnline()).thenReturn(true);
-    Mockito.when(ddmlibDevice.isEmulator()).thenReturn(true);
-    Mockito.when(ddmlibDevice.getSerialNumber()).thenReturn("emulator-5554");
-
-    // noinspection UnstableApiUsage
-    Mockito.when(myAndroidDebugBridge.getConnectedDevices()).thenReturn(Futures.immediateFuture(Collections.singletonList(ddmlibDevice)));
+    Mockito.when(myDdmlibDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
-    AsyncSupplier task = new ConnectedDevicesTask(myAndroidDebugBridge, false, null, MoreExecutors.directExecutor(), d -> androidDevice);
+    AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> androidDevice);
 
     // Act
-    Future connectedDevices = task.get();
+    Future<List<ConnectedDevice>> connectedDevices = task.get();
 
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
-      .setName("Virtual Device")
-      .setKey(new Key("emulator-5554"))
+      .setName("emulator-5554")
+      .setKey(new SerialNumber("emulator-5554"))
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    assertEquals(Collections.singletonList(connectedDevice), connectedDevices.get(1, TimeUnit.SECONDS));
+  }
+
+  @Test
+  public void newKeyDeviceIsntEmulator() throws Exception {
+    // Arrange
+    Mockito.when(myDdmlibDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.getSerialNumber()).thenReturn("86UX00F4R");
+
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> androidDevice);
+
+    // Act
+    Future<List<ConnectedDevice>> connectedDevices = task.get();
+
+    // Assert
+    Object connectedDevice = new ConnectedDevice.Builder()
+      .setName("86UX00F4R")
+      .setKey(new SerialNumber("86UX00F4R"))
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    assertEquals(Collections.singletonList(connectedDevice), connectedDevices.get(1, TimeUnit.SECONDS));
+  }
+
+  @Test
+  public void newKeyPathIsntNull() throws Exception {
+    // Arrange
+    Mockito.when(myDdmlibDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.getAvdName()).thenReturn("Pixel_4_API_30");
+    Mockito.when(myDdmlibDevice.getAvdPath()).thenReturn("/home/juancnuno/.android/avd/Pixel_4_API_30.avd");
+
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> androidDevice);
+
+    // Act
+    Future<List<ConnectedDevice>> connectedDevices = task.get();
+
+    // Assert
+    Object connectedDevice = new ConnectedDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    assertEquals(Collections.singletonList(connectedDevice), connectedDevices.get(1, TimeUnit.SECONDS));
+  }
+
+  @Test
+  public void newKeyNameIsntNullAndDoesntEqualBuild() throws Exception {
+    // Arrange
+    Mockito.when(myDdmlibDevice.isOnline()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.isEmulator()).thenReturn(true);
+    Mockito.when(myDdmlibDevice.getAvdName()).thenReturn("Pixel_4_API_30");
+
+    AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
+    AsyncSupplier<List<ConnectedDevice>> task = new ConnectedDevicesTask(myAndroidDebugBridge, null, myExecutor, d -> androidDevice);
+
+    // Act
+    Future<List<ConnectedDevice>> connectedDevices = task.get();
+
+    // Assert
+    Object connectedDevice = new ConnectedDevice.Builder()
+      .setName("Pixel_4_API_30")
+      .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setAndroidDevice(androidDevice)
       .build();
 

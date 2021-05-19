@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -47,14 +46,11 @@ import java.io.IOException;
 import java.util.*;
 import org.jetbrains.annotations.SystemIndependent;
 
-import static com.android.tools.idea.projectsystem.AndroidProjectRootUtil.getAidlGenSourceRootPath;
-import static com.android.tools.idea.projectsystem.AndroidProjectRootUtil.getAptGenSourceRootPath;
 import static com.android.tools.idea.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.*;
-import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
 
@@ -112,7 +108,7 @@ public class AndroidRootUtil {
       VirtualFile moduleFileParentDir = LocalFileSystem.getInstance().findFileByPath(moduleFileParentDirPath);
       if (moduleFileParentDir != null) {
         for (VirtualFile contentRoot : contentRoots) {
-          if (Comparing.equal(contentRoot, moduleFileParentDir)) {
+          if (Objects.equals(contentRoot, moduleFileParentDir)) {
             root = contentRoot;
           }
         }
@@ -298,11 +294,7 @@ public class AndroidRootUtil {
   public static List<VirtualFile> getExternalLibraries(Module module) {
     Set<VirtualFile> files = new HashSet<>();
     OrderedSet<VirtualFile> libs = new OrderedSet<>();
-    // In a module imported from Maven dependencies are transitive, so we don't need to traverse all dependency tree
-    // and compute all jars referred by library modules. Moreover it would be incorrect,
-    // because Maven has dependency resolving algorithm based on versioning
-    boolean recursive = !isMavenizedModule(module);
-    fillExternalLibrariesAndModules(module, files, new HashSet<>(), libs, false, recursive);
+    fillExternalLibrariesAndModules(module, files, new HashSet<>(), libs, false, true);
 
     addAnnotationsJar(module, libs);
     return libs;

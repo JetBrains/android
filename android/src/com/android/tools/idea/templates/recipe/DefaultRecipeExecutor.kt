@@ -43,6 +43,8 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -241,11 +243,11 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
     if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
         resolvedConfiguration = GRADLE_API_CONFIGURATION
-    } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
-      return
     }
 
-    buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+    if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+      buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+    }
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
@@ -424,12 +426,54 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val feature = when (name) {
       "compose" -> buildModel.android().buildFeatures().compose()
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
+      "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
       else -> throw IllegalArgumentException("currently only compose build feature is supported")
     }
-    if (feature.valueType != ValueType.NONE) {
-      return // we do not override value if it exists. TODO(qumeric): ask user?
+
+    if (feature.valueType == ValueType.NONE) {
+      feature.setValue(value)
     }
-    feature.setValue(value)
+  }
+
+  override fun setViewBinding(value: Boolean) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().viewBinding().enabled().setValue(value)
+  }
+
+  /**
+   * Sets Compose Options field values
+   */
+  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?, kotlinCompilerVersion: String?) {
+    val buildModel = moduleGradleBuildModel ?: return
+    val composeOptionsModel = buildModel.android().composeOptions()
+
+    if (kotlinCompilerExtensionVersion != null) {
+      composeOptionsModel.kotlinCompilerExtensionVersion().setValueIfNone(kotlinCompilerExtensionVersion)
+    }
+
+    if (kotlinCompilerVersion != null) {
+      composeOptionsModel.kotlinCompilerVersion().setValueIfNone(kotlinCompilerVersion)
+    }
+  }
+
+  /**
+   * Sets Cpp Options field values
+   */
+  override fun setCppOptions(cppFlags: String, cppPath: String, cppVersion: String) {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().apply {
+      defaultConfig().externalNativeBuild().cmake().cppFlags().setValue(cppFlags)
+
+      externalNativeBuild().cmake().apply {
+        path().setValue(cppPath)
+        version().setValue(cppVersion)
+      }
+    }
+  }
+
+  override fun setUseKotlinIrCompiler() {
+    val buildModel = moduleGradleBuildModel ?: return
+    buildModel.android().kotlinOptions().useIR().setValue(true)
   }
 
   /**
@@ -445,8 +489,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val buildModel = moduleGradleBuildModel ?: return
 
     fun updateCompatibility(current: LanguageLevelPropertyModel) {
-      if (current.valueType == ValueType.NONE ||
-          current.toLanguageLevel()!!.isLessThan(languageLevel)) {
+      if (current.valueType == ValueType.NONE || current.toLanguageLevel()?.isAtLeast(languageLevel) != true) {
         current.setLanguageLevel(languageLevel)
       }
     }
@@ -472,6 +515,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   fun applyChanges() {
     if (!context.dryRun) {
       projectBuildModel?.applyChanges()
+    }
+  }
+
+  private fun ResolvedPropertyModel.setValueIfNone(value: String) {
+    if (valueType == ValueType.NONE) {
+      if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
+      else setValue(value)
     }
   }
 

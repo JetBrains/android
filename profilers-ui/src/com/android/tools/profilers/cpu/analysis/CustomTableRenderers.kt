@@ -16,13 +16,17 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.intellij.util.ui.JBUI
+import java.awt.Component
 import java.text.DecimalFormat
+import javax.swing.JTable
+import javax.swing.border.Border
 import javax.swing.table.DefaultTableCellRenderer
 
 /**
  * Renders duration in microseconds in human readable format.
  */
-internal class DurationRenderer : DefaultTableCellRenderer() {
+internal class DurationRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     val duration = value as Long
     text = TimeFormatter.getSingleUnitDurationString(duration)
@@ -32,7 +36,7 @@ internal class DurationRenderer : DefaultTableCellRenderer() {
 /**
  * Renders timestamp in microseconds in human readable format.
  */
-internal class TimestampRenderer : DefaultTableCellRenderer() {
+internal class TimestampRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     val timestamp = value as Long
     text = TimeFormatter.getSemiSimplifiedClockString(timestamp)
@@ -42,7 +46,7 @@ internal class TimestampRenderer : DefaultTableCellRenderer() {
 /**
  * Renders percentage number in human readable format.
  */
-internal class PercentRenderer : DefaultTableCellRenderer() {
+internal class PercentRenderer(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   private val percentFormatter = DecimalFormat("#.##%")
 
   override fun setValue(value: Any?) {
@@ -54,8 +58,31 @@ internal class PercentRenderer : DefaultTableCellRenderer() {
 /**
  * Renders an integer as String. May be used for consistent alignment.
  */
-internal class IntegerAsStringTableCellRender : DefaultTableCellRenderer() {
+internal class IntegerAsStringTableCellRender(border: Border = DEFAULT_CELL_BORDER) : CustomBorderTableCellRenderer(border) {
   override fun setValue(value: Any?) {
     text = (value as Long).toString()
+  }
+}
+
+/**
+ * Renders a cell with a custom border.
+ *
+ * @param customBorder a custom border to apply to the table cells.
+ */
+internal open class CustomBorderTableCellRenderer(private val customBorder: Border = DEFAULT_CELL_BORDER) : DefaultTableCellRenderer() {
+  override fun getTableCellRendererComponent(table: JTable?,
+                                             value: Any?,
+                                             isSelected: Boolean,
+                                             hasFocus: Boolean,
+                                             row: Int,
+                                             column: Int): Component {
+    super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+    border = JBUI.Borders.merge(border, customBorder, false)
+    return this
+  }
+
+  companion object {
+    // For aligning headers and cells.
+    val DEFAULT_CELL_BORDER = JBUI.Borders.empty(0, 5)
   }
 }

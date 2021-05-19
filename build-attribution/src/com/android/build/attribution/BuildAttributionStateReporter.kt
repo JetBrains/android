@@ -75,7 +75,7 @@ class BuildAttributionStateReporterImpl(
 
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-        if (status != BuildStatus.SUCCESS) {
+        if (!status.isBuildSuccessful) {
           changeStateTo(newStateOnBuildFail())
         }
       }

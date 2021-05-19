@@ -3,7 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
     >
   <data>
-    <variable name="dummy" type="p1.DummyClass"/>
+    <variable name="sample" type="p1.SampleClass"/>
   </data>
   <LinearLayout
       android:orientation="horizontal" android:layout_width="wrap_content"

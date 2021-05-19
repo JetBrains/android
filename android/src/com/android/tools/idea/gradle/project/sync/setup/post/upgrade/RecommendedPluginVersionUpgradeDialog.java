@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
+package com.android.tools.idea.gradle.project.upgrade;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.releaseNotesUrl;
+import static com.android.tools.idea.gradle.project.upgrade.UpgradeDialogMetricUtilsKt.recordUpgradeDialogEvent;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.CANCEL;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.DO_NOT_ASK_AGAIN;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
@@ -29,6 +30,7 @@ import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.PropertyBasedDoNotAskOption;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -78,8 +80,13 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     myCurrentPluginVersion = current;
     myRecommendedPluginVersion = recommended;
     myUpgradeReminder = upgradeReminder;
-    setTitle("Android Gradle Plugin Update Recommended");
-     myDoNotAskOption = new PropertyBasedDoNotAskOption(project, upgradeReminder.getDoNotAskForProjectPropertyString()) {
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      setTitle("Android Gradle Plugin Upgrade Assistant");
+    }
+    else {
+      setTitle("Android Gradle Plugin Update Recommended");
+    }
+    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, upgradeReminder.getDoNotAskForProjectPropertyString()) {
       @Override
       @NotNull
       public String getDoNotShowMessage() {
@@ -99,18 +106,31 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     init();
 
     setUpAsHtmlLabel(myMessagePane);
-    String msg = "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
-                 "that you update the Android Gradle plugin from the current version " + current
-                 + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
-                 "<a href='http://d.android.com/tools/revisions/gradle-plugin.html'>Release notes</a>";
+    String msg = "";
+    String url = releaseNotesUrl(recommended);
 
-    if (current.compareTo("3.2.0") < 0) {
-      msg += "<br/><br/>" +
-             "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
-             "a new upload format that defers APK generation and signing to compatible app stores, " +
-             "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
-             "and users get smaller, more optimized downloads. " +
-             "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      msg += "<p>To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
+             "that you upgrade the Android Gradle Plugin in this project (" + myProject.getName() +
+             ") from the current version " + current + " to version " +
+             recommended + ". " +
+             "<a href='" + url + "'>Release notes</a></p>";
+    }
+    else {
+      msg += "To take advantage of the latest features, improvements, and security fixes, we strongly recommend " +
+             "that you update the Android Gradle plugin in this project (" + myProject.getName() +
+             ") from the current version " + current
+             + " to version " + recommended + " and Gradle to version " + GRADLE_LATEST_VERSION + ". " +
+             "<a href='" + url + "'>Release notes</a>";
+
+      if (current.compareTo("3.2.0") < 0) {
+        msg += "<br/><br/>" +
+               "Android plugin 3.2.0 and higher now support building the <i>Android App Bundle</i>—" +
+               "a new upload format that defers APK generation and signing to compatible app stores, " +
+               "such as Google Play. With app bundles, you no longer have to build, sign, and manage multiple APKs, " +
+               "and users get smaller, more optimized downloads. " +
+               "<a href='http://d.android.com/r/studio-ui/dynamic-delivery/overview'>Learn more</a>";
+      }
     }
     myMessagePane.setText(msg);
     myMessagePane.addHyperlinkListener(new HyperlinkAdapter() {
@@ -159,7 +179,12 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull
   protected Action getOKAction() {
     Action action = super.getOKAction();
-    action.putValue(NAME, "Update");
+    if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) {
+      action.putValue(NAME, "Begin Upgrade");
+    }
+    else {
+      action.putValue(NAME, "Update");
+    }
     return action;
   }
 

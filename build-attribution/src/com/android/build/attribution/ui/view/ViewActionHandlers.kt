@@ -19,8 +19,10 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksFilter
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
+import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
 
 /**
@@ -45,21 +47,36 @@ interface ViewActionHandlers {
    */
   fun changeViewToWarningsLinkClicked()
 
-  /** Called when selection in tasks grouping combo box is changed by the user. */
+  /** Called when selection in tasks grouping control is changed by the user. */
   fun tasksGroupingSelectionUpdated(grouping: TasksDataPageModel.Grouping)
 
-  /** Called on tasks page tree node selection. */
-  fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode)
+  /** Called on tasks page tree node selection. Passing null means clearing selection to empty. */
+  fun tasksTreeNodeSelected(tasksTreeNode: TasksTreeNode?)
 
   /** Called on a link to another task details page click. */
   fun tasksDetailsLinkClicked(taskPageId: TasksPageId)
 
-  /** Called on warnings page tree node selection. */
-  fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode)
+  /** Called on warnings page tree node selection. Passing null means clearing selection to empty. */
+  fun warningsTreeNodeSelected(warningTreeNode: WarningsTreeNode?)
 
   /** Called on help link click. */
   fun helpLinkClicked(linkTarget: BuildAnalyzerBrowserLinks)
 
   /** Called on 'generate report' link click. */
   fun generateReportClicked(taskData: TaskUiData)
+
+  /** Called on 'Open memory settings' button click from gradle daemon high gc warning. */
+  fun openMemorySettings()
+
+  /** Called when user changes filters selection on tasks page. */
+  fun applyTasksFilter(filter: TasksFilter)
+
+  /** Called when user changes filters selection on warnings page. */
+  fun applyWarningsFilter(filter: WarningsFilter)
+
+  /** Called when selection in warnings grouping control is changed by the user. */
+  fun warningsGroupingSelectionUpdated(groupByPlugin: Boolean)
+
+  /** Called when user clicks and confirms on a GC warning hiding link.  */
+  fun dontShowAgainNoGCSettingWarningClicked()
 }

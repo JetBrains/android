@@ -10,13 +10,13 @@ import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.util.Objects;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,6 +106,6 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
 
     final Module contextModule = AndroidUtils.getAndroidModule(context);
     final Module confModule = configuration.getConfigurationModule().getModule();
-    return Comparing.equal(contextModule, confModule) && configuration.isLaunchingActivity(activityName);
+    return Objects.equals(contextModule, confModule) && configuration.isLaunchingActivity(activityName);
   }
 }

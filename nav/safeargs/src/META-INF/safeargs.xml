@@ -18,6 +18,7 @@
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
     <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker" />
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService" />
     <projectService serviceImplementation="com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker" />
     <projectService
         serviceInterface="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTracker"
@@ -29,33 +30,22 @@
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsClassFinder"/>
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsBuilderShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsBuilderClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ActionBuilderShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ActionBuilderClassFinder"/>
+    <completion.contributor language="kotlin" implementationClass="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsKtCompletionContributor" order="after KotlinCompletionContributor"/>
+
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService" />
+    <postStartupActivity implementation="com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionStartupActivity"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
+    <packageFragmentProviderExtension implementation="com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension"/>
+    <quickFixContributor implementation="com.android.tools.idea.nav.safeargs.psi.kotlin.SafeArgsImportKtResolver"/>
   </extensions>
-
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener$SubscriptionComponent</implementation-class>
-    </component>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectComponent</implementation-class>
-    </component>
-  </project-components>
 
   <projectListeners>
     <listener class="com.android.tools.idea.nav.safeargs.tracker.SafeArgsTrackerSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListener"/>
   </projectListeners>
-
-
-  <module-components>
-    <component>
-      <implementation-class>com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleComponent</implementation-class>
-    </component>
-  </module-components>
 </idea-plugin>

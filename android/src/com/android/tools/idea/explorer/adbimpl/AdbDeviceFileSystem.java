@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final IDevice myDevice;
@@ -93,6 +93,12 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @Override
   public String getName() {
     return myDevice.getName();
+  }
+
+  @NotNull
+  @Override
+  public String getDeviceSerialNumber() {
+    return myDevice.getSerialNumber();
   }
 
   @NotNull

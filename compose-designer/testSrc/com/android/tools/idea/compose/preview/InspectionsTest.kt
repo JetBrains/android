@@ -28,6 +28,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Returns the [HighlightInfo] description adding the relative line number
@@ -36,15 +38,22 @@ private fun HighlightInfo.descriptionWithLineNumber() = ReadAction.compute<Strin
   "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
 }
 
-class InspectionsTest  {
-  @get:Rule
-  val projectRule = ComposeProjectRule()
-  private val fixture get() = projectRule.fixture
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.clearOverride()
+@RunWith(Parameterized::class)
+class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
   }
+
+  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
+
+  @get:Rule
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
+  private val fixture get() = projectRule.fixture
 
   @Test
   fun testNeedsComposableInspection() {
@@ -53,8 +62,8 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview
@@ -74,16 +83,15 @@ class InspectionsTest  {
 
   @Test
   fun testNoParametersInPreview() {
-    StudioFlags.COMPOSE_PREVIEW_DATA_SOURCES.override(true)
     fixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.ui.tooling.preview.PreviewParameter
-      import androidx.ui.tooling.preview.PreviewParameterProvider
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Preview
       @Composable
@@ -143,10 +151,10 @@ class InspectionsTest  {
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.ui.tooling.preview.PreviewParameter
-      import androidx.ui.tooling.preview.PreviewParameterProvider
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
+      import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
+      import $COMPOSABLE_ANNOTATION_FQN
 
       class IntProvider: PreviewParameterProvider<Int> {
           override val values: Sequence<String> = sequenceOf(1, 2)
@@ -178,8 +186,8 @@ class InspectionsTest  {
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "top level preview")
@@ -252,8 +260,8 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", widthDp = 2001)
@@ -282,8 +290,8 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", heightDp = 2001)
@@ -312,8 +320,8 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
       @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
@@ -344,15 +352,15 @@ class InspectionsTest  {
     @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
-      @androidx.ui.tooling.preview.Preview
+      @$PREVIEW_TOOLING_PACKAGE.Preview
       fun Preview1() {
       }
 
       // Missing Composable annotation
-      @androidx.ui.tooling.preview.Preview(name = "preview2")
+      @$PREVIEW_TOOLING_PACKAGE.Preview(name = "preview2")
       fun Preview2() {
       }
     """.trimIndent()

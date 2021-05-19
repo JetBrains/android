@@ -32,7 +32,7 @@ class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
 
   override fun detect(file: VirtualFile, firstBytes: ByteSequence, firstCharsIfText: CharSequence?): FileType? {
     return when {
-      !DatabaseInspectorFlagController.isFeatureEnabled || !DatabaseInspectorFlagController.isFileSupportEnabled -> null
+      !DatabaseInspectorFlagController.isOpenFileEnabled -> null
       firstBytes.length() < SQLITE3_FORMAT_HEADER.size -> null
       firstBytes.subSequence(0, SQLITE3_FORMAT_HEADER.size).toBytes() contentEquals SQLITE3_FORMAT_HEADER -> SqliteFileType
       else -> null

@@ -30,7 +30,7 @@ import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.device.DeviceArtPainter;
+import com.android.tools.adtui.device.DeviceArtPainter;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.diagnostic.Logger;

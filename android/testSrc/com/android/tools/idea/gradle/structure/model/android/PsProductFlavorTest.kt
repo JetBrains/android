@@ -322,12 +322,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
     // productFlavor.versionCode = "3".asParsed()
     productFlavor.versionName = "3.0".asParsed()
     productFlavor.versionNameSuffix = "newFoo".asParsed()
-    // TODO(b/142454204): DslText is not language-agnostic
-    val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
-      is GroovyLanguage -> "signingConfigs.myConfig"
-      is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
-      else -> "***unknown language for signingConfig Dsl text***"
-    }
+    val mySigningConfigDslText = "signingConfigs.myConfig"
     PsProductFlavor.ProductFlavorDescriptors.signingConfig.bind(productFlavor).setParsedValue(
       ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)))
     PsProductFlavor.ProductFlavorDescriptors.matchingFallbacks.bind(productFlavor).addItem(0).setParsedValue("free".asParsed())

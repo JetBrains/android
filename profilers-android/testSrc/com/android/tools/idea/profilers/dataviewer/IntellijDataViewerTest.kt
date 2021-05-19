@@ -24,8 +24,8 @@ import com.intellij.testFramework.PlatformTestCase
 
 class IntellijDataViewerTest : PlatformTestCase() {
   fun testCanCreateRawTextViewer() {
-    val dummyText = "ASDF ".repeat(100)
-    val viewer = IntellijDataViewer.createRawTextViewer(dummyText.toByteArray())
+    val sampleText = "ASDF ".repeat(100)
+    val viewer = IntellijDataViewer.createRawTextViewer(sampleText.toByteArray())
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
@@ -41,8 +41,8 @@ class IntellijDataViewerTest : PlatformTestCase() {
   }
 
   fun testPlainTextCreatesPlainEditorViewerInsteadOfPrettyEditorViewer() {
-    val dummyText = "ASDF ".repeat(100)
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, dummyText.toByteArray(), PlainTextFileType.INSTANCE)
+    val sampleText = "ASDF ".repeat(100)
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, sampleText.toByteArray(), PlainTextFileType.INSTANCE)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)

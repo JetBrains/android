@@ -34,9 +34,7 @@ import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_REPLACED
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_RISKY_PROJECT_LOCATION;
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_UNHANDLED;
 import static com.android.tools.idea.gradle.adtimport.ImportSummary.MSG_USER_HOME_PROGUARD;
-import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.truth.Truth.assertAbout;
 import static java.io.File.separator;
 import static java.io.File.separatorChar;
 import static org.junit.Assert.assertNotEquals;
@@ -49,7 +47,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.util.PropertiesFiles;
@@ -3335,7 +3332,7 @@ public class GradleImportTest extends AndroidTestCase {
     summary = summary.replace("\r", "");
     summary = stripOutRiskyPathMessage(summary, rootDir);
 
-    summary = summary.replace(getSdk().getPath(), "$ANDROID_HOME");
+    summary = summary.replace(getSdk().getPath(), "$ANDROID_SDK_ROOT");
     summary = summary.replace(separatorChar, '/');
     summary = summary.replace(adtProjectDir.getPath().replace(separatorChar, '/'), "$ROOT");
     File parentFile = adtProjectDir.getParentFile();
@@ -3403,7 +3400,7 @@ public class GradleImportTest extends AndroidTestCase {
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
-    cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
+    cmdLine.withEnvironment(AndroidLocation.ANDROID_PREFS_ROOT, AndroidLocation.getFolder());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;

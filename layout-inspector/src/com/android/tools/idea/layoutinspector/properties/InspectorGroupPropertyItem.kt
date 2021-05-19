@@ -16,21 +16,13 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.property.ptable2.PTableGroupItem
 
 /**
- * PropertyItem instance that holds a value with resolution stack.
- *
- * The value of this item is the actual value of the property.
- * The overridden values are kept as a list of [ResolutionStackItem]s
- * which will appear as children in a properties table.
- *
- * @param stack is a map of ordered values for the property that are overridden by other values e.g. from styles.
-*/
+ * PropertyItem instance that holds child items.
+ */
 class InspectorGroupPropertyItem(
   namespace: String,
   name: String,
@@ -39,10 +31,31 @@ class InspectorGroupPropertyItem(
   val classLocation: SourceLocation?,
   group: PropertySection,
   source: ResourceReference?,
-  view: ViewNode,
-  resourceLookup: ResourceLookup,
-  stack: Map<ResourceReference, String?>
-): InspectorPropertyItem(namespace, name, name, type, value, group, source, view, resourceLookup), PTableGroupItem {
-  override val children: List<InspectorPropertyItem> =
-    stack.map { (reference, value) -> ResolutionStackItem(this, reference, value) }
+  viewId: Long,
+  lookup: ViewNodeAndResourceLookup,
+  override val children: List<InspectorPropertyItem>
+) : InspectorPropertyItem(namespace, name, name, type, value, group, source, viewId, lookup), PTableGroupItem {
+
+  /**
+   * PropertyItem instance that holds a value with resolution stack.
+   *
+   * The value of this item is the actual value of the property.
+   * The overridden values are kept as a list of [ResolutionStackItem]s
+   * which will appear as children in a properties table.
+   *
+   * @param stack is a map of ordered values for the property that are overridden by other values e.g. from styles.
+   */
+  constructor(namespace: String,
+              name: String,
+              type: LayoutInspectorProto.Property.Type,
+              value: String?,
+              classLocation: SourceLocation?,
+              group: PropertySection,
+              source: ResourceReference?,
+              viewId: Long,
+              lookup: ViewNodeAndResourceLookup,
+              stack: Map<ResourceReference, String?>) :
+    this(namespace, name, type, value, classLocation, group, source, viewId, lookup, mutableListOf<InspectorPropertyItem>()) {
+    stack.mapTo(children as MutableList) { (reference, value) -> ResolutionStackItem(this, reference, value) }
+  }
 }

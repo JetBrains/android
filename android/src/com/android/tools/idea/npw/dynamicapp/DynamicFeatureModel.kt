@@ -28,6 +28,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
@@ -35,17 +36,18 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer
 
 class DynamicFeatureModel(
   project: Project,
+  moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
   val isInstant: Boolean,
   val templateName: String,
-  val templateDescription: String,
-  moduleParent: String? = null
+  val templateDescription: String
 ) : ModuleModel(
-  "dynamicfeature",
-  "New Dynamic Feature Module",
-  false,
-  ExistingProjectModelData(project, projectSyncInvoker),
-  moduleParent = moduleParent
+  name = "dynamicfeature",
+  commandName = "New Dynamic Feature Module",
+  isLibrary = false,
+  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+  moduleParent = moduleParent,
+  wizardContext = NEW_MODULE
 ) {
   val featureTitle = StringValueProperty("Module Title")
   val baseApplication = OptionalValueProperty<Module>()
@@ -55,6 +57,9 @@ class DynamicFeatureModel(
   val downloadInstallKind =
     OptionalValueProperty(if (isInstant) DownloadInstallKind.INCLUDE_AT_INSTALL_TIME else DownloadInstallKind.ON_DEMAND_ONLY)
 
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
+
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(
@@ -63,12 +68,10 @@ class DynamicFeatureModel(
         featureTitle.get(),
         featureFusing.get(),
         downloadInstallKind.value,
-        deviceFeatures
+        deviceFeatures,
+        useGradleKts.get()
       )
     }
-
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
     @WorkerThread
     override fun init() {

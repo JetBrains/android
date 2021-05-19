@@ -61,7 +61,7 @@ class AddComposeTest {
   fun newComposeModule() {
     createNewProject(guiTest, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).doesNotContain("androidx.ui:ui-framework:")
+      assertThat(this).doesNotContain("androidx.compose.ui:ui:")
       assertThat(this).doesNotContain("androidx.ui:ui-tooling:")
     }
 
@@ -80,8 +80,8 @@ class AddComposeTest {
       .clickPath("compose")
 
     guiTest.getProjectFileText("compose/build.gradle").run {
-      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
+      assertThat(this).contains("implementation \"androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("compose/src/main/java/com/google/compose/MainActivity.kt").run {
@@ -111,7 +111,7 @@ class AddComposeTest {
 
     fun addComposeActivity(name: String) {
       NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Compose Activity"))
-        .configureActivityStep
+        .getConfigureActivityStep("Empty Compose Activity")
         .enterTextFieldValue(NAME, name)
         .wizard()
         .clickFinishAndWaitForSyncToFinish()
@@ -124,8 +124,8 @@ class AddComposeTest {
     addComposeActivity(activityTitle)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
+      assertThat(this).contains("implementation \"androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/$activityTitle.kt").run {

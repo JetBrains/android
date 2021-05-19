@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;

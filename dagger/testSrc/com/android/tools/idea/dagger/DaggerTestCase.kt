@@ -16,9 +16,9 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
+abstract class DaggerTestCase : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     StudioFlags.DAGGER_SUPPORT_ENABLED.override(true)
     super.setUp()
@@ -94,6 +94,50 @@ abstract class DaggerTestCase : JavaCodeInsightFixtureTestCase() {
          @interface Builder {}
          @interface Factory {}
          Class<?>[] modules() default {};
+      }
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package dagger.hilt;
+
+      public @interface EntryPoint {}
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package androidx.hilt.work;
+
+      public @interface WorkerInject {}
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package androidx.hilt.lifecycle;
+
+      public @interface ViewModelInject {}
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package dagger;
+
+      public interface Lazy<T> {
+        T get();
+      }
+      """.trimIndent()
+    )
+    myFixture.addClass(
+      // language=JAVA
+      """
+      package javax.inject;
+
+      public interface Provider<T> { 
+        T get();
       }
       """.trimIndent()
     )

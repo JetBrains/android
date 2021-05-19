@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.level2.Library
+import com.android.ide.common.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
@@ -151,7 +151,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       .mapValues { it.value.toSet() }
   }
 
-  private fun addLibrary(library: Library, artifact: PsAndroidArtifact) {
+  private fun addLibrary(library: IdeLibrary, artifact: PsAndroidArtifact) {
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.dependencies
 

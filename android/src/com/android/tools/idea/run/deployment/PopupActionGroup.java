@@ -63,13 +63,8 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     ActionManager manager = ActionManager.getInstance();
 
-    if (runOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
-      add(manager.getAction(RunOnMultipleDevicesAction.ID));
-    }
-    else {
-      add(manager.getAction(MultipleDevicesAction.ID));
-      add(manager.getAction(ModifyDeviceSetAction.ID));
-    }
+    String id = runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? RunOnMultipleDevicesAction.ID : SelectMultipleDevicesAction.ID;
+    add(manager.getAction(id));
 
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     add(manager.getAction(RunAndroidAvdManagerAction.ID));

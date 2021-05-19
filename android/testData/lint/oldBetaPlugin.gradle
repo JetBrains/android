@@ -1,0 +1,15 @@
+buildscript {
+  repositories {
+    google()
+    jcenter()
+  }
+  dependencies {
+    <warning>classpath 'com.android.tools.build:gradle:3.6.0'</warning>
+  }
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+}

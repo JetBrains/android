@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.model.h
@@ -59,14 +60,14 @@ class FrameDragHandler(editor: ViewEditor,
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
-    val result = super.update(x, y, modifiers)
+  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+    val result = super.update(x, y, modifiers, sceneContext)
     if (component == null) {
       return "undefined"
     }
     @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
-    dragTarget.mouseDrag(dx, dy, emptyList())
+    dragTarget.mouseDrag(dx, dy, emptyList(), sceneContext)
     return result
   }
 

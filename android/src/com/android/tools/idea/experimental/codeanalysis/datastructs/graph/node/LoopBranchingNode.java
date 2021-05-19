@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The LoopBranchingNode itself should be a dummy node
+ * The LoopBranchingNode itself should be a placeholder node
  * The initialization in the for loop should be inserted
  * before this node.
  * For the "for loop" and "while", the out edge's target

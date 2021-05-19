@@ -17,10 +17,11 @@ package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.gradle.project.model.NdkVariant
 import com.android.utils.FileUtils
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -39,10 +40,10 @@ class SymbolFilesLocator(private val cpuToSymbolDirs: Map<String, Set<File>>) {
     // basename as a given device module.
     val symDirs = cpuToSymbolDirs.getOrDefault(cpuArch, setOf<File>()).toList()
     val baseModuleName = File(File(module).name).nameWithoutExtension
-    val symNameCandidates = arrayListOf(baseModuleName + ".so", baseModuleName + ".dwo")
+    val symNameCandidates = arrayListOf("$baseModuleName.so", "$baseModuleName.dwo")
     val result = mutableListOf<File>()
     for (dir in symDirs) {
-      val files = dir.listFiles({ _, name -> symNameCandidates.contains(name) })
+      val files = dir.listFiles { _, name -> symNameCandidates.contains(name) }
       // If dir for some reason doesn't exist any more files will be null
       if (files != null) {
         result.addAll(files)
@@ -51,6 +52,8 @@ class SymbolFilesLocator(private val cpuToSymbolDirs: Map<String, Set<File>>) {
     return result
   }
 }
+
+private val log: Logger = Logger.getInstance(SymbolFilesLocator::class.java)
 
 /**
  * Builds a map from CPU architectures to possible directories where native symbols
@@ -61,12 +64,12 @@ fun getArchToSymDirsMap(project: Project): Map<String, Set<File>> {
 
   val symbolDirFilter = fun(subdir: File?): Boolean {
     if (subdir == null || !subdir.isDirectory) return false
-    val files = subdir.listFiles(
-        { f ->
-          val extension = f.extension.toLowerCase(Locale.US)
-          extension == "so" || extension == "dwo"
-        }
-    )
+    val files = subdir.listFiles { f ->
+      val extension = f.extension.toLowerCase(Locale.US)
+      extension == "so" || extension == "dwo"
+    } ?: emptyArray<File>().apply {
+      log.warn("Failed to list directory $subdir for native symbols. Will ignore it.")
+    }
     return files.isNotEmpty()
   }
 
@@ -77,7 +80,7 @@ fun getArchToSymDirsMap(project: Project): Map<String, Set<File>> {
   for (abi in allSupportedAbis) {
     for (module in ModuleManager.getInstance(project).modules) {
       val symDirs = getModuleSymbolsDirs(module, abi).filter(symbolDirFilter)
-      val existingDirs = result.computeIfAbsent(abi.cpuArch, { mutableSetOf() })
+      val existingDirs = result.computeIfAbsent(abi.cpuArch) { mutableSetOf() }
       existingDirs.addAll(symDirs)
     }
   }
@@ -107,13 +110,14 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
   }
 
   // 2. libs built in studio by NDK and gradle
+  val ndkFacet = NdkFacet.getInstance(module)
   val ndkModuleModel = NdkModuleModel.get(module)
-  if (ndkModuleModel != null) {
-    for (variant in ndkModuleModel.variants.filter { it.isDebugVariant() == ndkModuleModel.selectedVariant.isDebugVariant() }) {
-      val dirs = variant.artifacts
-        .filter { it.abi == abiName }
-        .mapNotNull { it.outputFile?.parentFile }
-      symDirs.addAll(dirs)
+  if (ndkModuleModel != null && ndkFacet != null) {
+    ndkModuleModel.symbolFolders.forEach { (variant, abiName), symbolFolders: Set<File> ->
+      val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return@forEach
+      if (abi.toString() == abiName && variant == selectedVariantAbi.variant) {
+        symDirs.addAll(symbolFolders)
+      }
     }
   }
 
@@ -124,15 +128,7 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
       .flatMap { it.jniLibsDirectories }
       .map { jniDir -> File(jniDir, abiName) }
     symDirs.addAll(jniDirs)
-
-    val nativeLibraries = androidModel.selectedVariant.mainArtifact.nativeLibraries.orEmpty()
-    val nativeLibDirs = nativeLibraries.filter { it.abi == abiName }.flatMap { it.debuggableLibraryFolders }
-    symDirs.addAll(nativeLibDirs)
   }
 
   return symDirs
-}
-
-fun NdkVariant.isDebugVariant(): Boolean {
-  return this.name.contains("debug")
 }

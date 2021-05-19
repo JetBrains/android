@@ -21,6 +21,7 @@ import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -35,6 +36,19 @@ public class DeployTask extends AbstractDeployTask {
   private static final Logger LOG = Logger.getInstance(DeployTask.class);
   private static final String ID = "DEPLOY";
 
+  // Those APKs provide services for executing tests and need to be installed with
+  // "--force-queryable" option if a target device API level is 30 or higher.
+  private static final ImmutableSet<String> ANDROIDX_TEST_SERVICE_PACKAGES = ImmutableSet.of(
+    "androidx.test.orchestrator",
+    "androidx.test.services",
+    "android.support.test.orchestrator",
+    "android.support.test.services"
+  );
+
+  private static boolean isAndroidXTestServicePackage(String applicationId) {
+    return ANDROIDX_TEST_SERVICE_PACKAGES.stream().anyMatch(applicationId::startsWith);
+  }
+
   private final String[] userInstallOptions;
   private final boolean installOnAllUsers;
 
@@ -48,8 +62,9 @@ public class DeployTask extends AbstractDeployTask {
                     @NotNull Map<String, List<File>> packages,
                     String userInstallOptions,
                     boolean installOnAllUsers,
+                    boolean alwaysInstallWithPm,
                     Computable<String> installPathProvider) {
-    super(project, packages, false, installPathProvider);
+    super(project, packages, false, alwaysInstallWithPm, installPathProvider);
     if (userInstallOptions != null && !userInstallOptions.isEmpty()) {
       userInstallOptions = userInstallOptions.trim();
       this.userInstallOptions = userInstallOptions.split("\\s");
@@ -66,7 +81,15 @@ public class DeployTask extends AbstractDeployTask {
   }
 
   @Override
-  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected boolean shouldTaskLaunchApp() {
+    return true;
+  }
+
+  @Override
+  protected Deployer.Result perform(IDevice device,
+                                    Deployer deployer,
+                                    String applicationId,
+                                    List<File> files) throws DeployerException {
     // All installations default to allow debuggable APKs
     InstallOptions.Builder options = InstallOptions.builder().setAllowDebuggable();
 
@@ -82,6 +105,13 @@ public class DeployTask extends AbstractDeployTask {
     // Installing with "-g" guarantees that the permissions are properly granted at install time.
     if (device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)) {
       options.setGrantAllPermissions();
+    }
+
+    // AndroidX Test services APKs provides services that requires permissions to be granted before
+    // executing tests. Installing them with "--force-queryable" option to make installed package
+    // be visible from the test services APKs.
+    if (device.getVersion().getApiLevel() >= 30 && isAndroidXTestServicePackage(applicationId)) {
+      options.setForceQueryable();
     }
 
     // API 28 changes how the instant property is set on app install.
@@ -100,7 +130,8 @@ public class DeployTask extends AbstractDeployTask {
     // Since the app has already been stopped from Studio, requesting "--dont-kill" prevent the package manager from
     // issuing a "force-stop", but still yield the expecting behavior that app is restarted after install. Note that
     // this functionality is only valid for Android Nougat or above.
-    if (device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N)) {
+    boolean isDontKillSupported = device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.N);
+    if (isDontKillSupported) {
       options.setDontKill();
     }
 
@@ -118,7 +149,14 @@ public class DeployTask extends AbstractDeployTask {
         installMode = Deployer.InstallMode.FULL;
     }
 
-    return deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+    Deployer.Result result = deployer.install(applicationId, getPathsToInstall(files), options.build(), installMode);
+
+    // Manually force-stop the application if we set --dont-kill above.
+    if (!result.skippedInstall && isDontKillSupported) {
+      device.forceStop(applicationId);
+    }
+
+    return result;
   }
 
   @NotNull

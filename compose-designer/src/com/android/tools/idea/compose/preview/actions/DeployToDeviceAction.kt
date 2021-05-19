@@ -79,7 +79,8 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     // TODO(b/152183978): listen to gradle events to disable the button when build is in progress.
+    val dataContext = dataContextProvider()
     e.presentation.isEnabled =
-      dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
+      dataContext.getData(COMPOSE_PREVIEW_ELEMENT)?.previewBodyPsi?.element?.module?.isNonLibraryAndroidModule() == true
   }
 }

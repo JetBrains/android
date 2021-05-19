@@ -46,8 +46,8 @@ class ProguardR8QualifiedNameManipulator : AbstractElementManipulator<ProguardR8
     val ast = ProguardR8Parser().parse(ProguardR8PsiTypes.QUALIFIED_NAME, builder)
     val qualifiedName = ast.psi as? ProguardR8QualifiedName ?: return null
     // Give the new PSI element a parent, otherwise it will be invalid.
-    val dummyHolder = DummyHolderFactory.createHolder(element.manager, element.language, element)
-    dummyHolder.treeElement.addChild(ast)
+    val holder = DummyHolderFactory.createHolder(element.manager, element.language, element)
+    holder.treeElement.addChild(ast)
 
     return qualifiedName
   }

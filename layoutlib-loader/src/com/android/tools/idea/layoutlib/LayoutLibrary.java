@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutlib;
 
 import com.android.ide.common.rendering.api.Bridge;
 import com.android.ide.common.rendering.api.DrawableParams;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.Result.Status;
@@ -93,7 +93,7 @@ public class LayoutLibrary implements Disposable {
      * @param icuDataPath the location of the ICU data used natively.
      * @param enumValueMap map attrName ⇒ { map enumFlagName ⇒ Integer value }. This is typically
      *          read from attrs.xml in the SDK target.
-     * @param log a {@link LayoutLog} object. Can be null.
+     * @param log a {@link ILayoutLog} object. Can be null.
      * @return true if success.
      */
     public boolean init(Map<String, String> platformProperties,
@@ -101,7 +101,7 @@ public class LayoutLibrary implements Disposable {
                         String nativeLibDirPath,
                         String icuDataPath,
                         Map<String, Map<String, Integer>> enumValueMap,
-                        LayoutLog log) {
+                        ILayoutLog log) {
         if (mBridge != null) {
             return mBridge.init(platformProperties, fontLocation, nativeLibDirPath, icuDataPath, enumValueMap, log);
         }

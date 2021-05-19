@@ -57,14 +57,14 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     assertFalse(prop2Model.isModified)
     assertFalse(prop1Model.isModified)
 
-    prop3Model.setValue(ReferenceTo("prop1"))
+    ReferenceTo.createReferenceFromText("prop1", prop3Model)?.let { prop3Model.setValue(it) }
     assertTrue(prop3Model.isModified)
     assertFalse(prop2Model.isModified)
     assertFalse(prop1Model.isModified)
     assertTrue(extModel.findProperty("prop3").isModified)
 
     // Set value back
-    prop3Model.setValue(ReferenceTo("prop2"))
+    ReferenceTo.createReferenceFromText("prop2", prop3Model)?.let { prop3Model.setValue(it) }
     assertFalse(prop3Model.isModified)
     assertFalse(prop2Model.isModified)
     assertFalse(prop1Model.isModified)
@@ -77,7 +77,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     assertFalse(prop1Model.isModified)
 
     // Setting back to a reference
-    prop3Model.setValue(ReferenceTo("prop2"))
+    ReferenceTo.createReferenceFromText("prop2", prop3Model)?.let { prop3Model.setValue(it) }
     assertFalse(prop3Model.isModified)
     assertFalse(prop2Model.isModified)
     assertFalse(prop1Model.isModified)
@@ -146,7 +146,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val otherListVal = prop5Model.toList()!![1]
     assertFalse(otherListVal.isModified)
-    otherListVal.setValue(ReferenceTo("prop5[0]"))
+    ReferenceTo.createReferenceFromText("prop5[0]", otherListVal)?.let { otherListVal.setValue(it) }
     assertTrue(prop5Model.isModified)
     assertTrue(otherListVal.isModified)
 
@@ -236,7 +236,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
 
-    val storeFile = buildModel.android().signingConfigs()[0]!!.storeFile()
+    val storeFile = buildModel.android().signingConfigs()[1]!!.storeFile()
     assertFalse(storeFile.isModified)
     storeFile.setValue("some_file_value.txt")
 
@@ -251,7 +251,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
-    val storePassword = buildModel.android().signingConfigs()[0]!!.storePassword()
+    val storePassword = buildModel.android().signingConfigs()[1]!!.storePassword()
     assertFalse(storePassword.isModified);
 
     storePassword.setValue("nice")

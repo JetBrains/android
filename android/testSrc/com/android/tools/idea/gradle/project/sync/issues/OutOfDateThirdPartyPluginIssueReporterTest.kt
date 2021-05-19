@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -75,10 +75,10 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
       usageReporter.collectedIssue)
   }
 
-  private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): SyncIssue = object : SyncIssue {
-    override val severity: Int = SyncIssue.SEVERITY_ERROR
+  private fun setUpMockSyncIssue(name: String, group: String, minVersion: String, paths: List<String>): IdeSyncIssue = object : IdeSyncIssue {
+    override val severity: Int = IdeSyncIssue.SEVERITY_ERROR
 
-    override val type: Int = SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+    override val type: Int = IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
 
     override val data: String? = listOf("Some Plugin", group, name, minVersion, paths.joinToString(",", "[", "]")).joinToString(";")
 

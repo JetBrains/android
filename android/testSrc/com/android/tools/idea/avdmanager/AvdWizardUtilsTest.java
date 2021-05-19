@@ -24,11 +24,14 @@ import com.android.repository.testframework.FakePackage.FakeLocalPackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.device.DeviceArtDescriptor;
-import com.android.tools.adtui.webp.WebpMetadata;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
+import com.android.tools.adtui.device.DeviceArtDescriptor;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.util.Pair;
+import com.intellij.testFramework.ApplicationRule;
+import java.util.Arrays;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,19 +45,19 @@ import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsSnapshotManagement;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.emulatorSupportsWebp;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class AvdWizardUtilsTest {
   @Rule
   public TemporaryFolder myFolder = new TemporaryFolder();
 
+  @Rule
+  public ApplicationRule myApplicationRule = new ApplicationRule();
+
   @Test
   public void testConvertWebpSkinToPng() throws IOException {
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
-
     DeviceArtDescriptor pixel = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
@@ -84,13 +87,6 @@ public class AvdWizardUtilsTest {
 
   @Test
   public void testConvertWebpSkinToPngFallthrough() throws IOException {
-    // Make sure that we correctly copy png assets
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
-
     DeviceArtDescriptor wearSquare = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
@@ -141,11 +137,6 @@ public class AvdWizardUtilsTest {
 
   @Test
   public void testEnsureSkinsAreCurrent() throws IOException {
-    WebpMetadata.ensureWebpRegistered();
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Can't run skin conversion test without native webp library");
-      return;
-    }
     DeviceArtDescriptor pixel = null;
     List<DeviceArtDescriptor> specs = DeviceArtDescriptor.getDescriptors(null);
     for (DeviceArtDescriptor spec : specs) {
@@ -209,6 +200,31 @@ public class AvdWizardUtilsTest {
     // No Studio resource, no destination path
     resultFile = AvdWizardUtils.ensureSkinsAreCurrent(null, null, deviceFile, true, fileOp);
     assertThat(resultFile).isEqualTo(deviceFile);
+  }
+
+  @Test
+  public void testWearOSResourcePathExists() {
+    AndroidSdkData sdkData = mock(AndroidSdkData.class);
+    MockFileOp fop = new MockFileOp();
+    File sdkRoot = new File("/sdk");
+    AndroidSdks androidSdks = spy(AndroidSdks.getInstance());
+    when(androidSdks.tryToChooseAndroidSdk()).thenReturn(sdkData);
+    when(sdkData.getLocation()).thenReturn(sdkRoot);
+    File skins = new File(sdkRoot, "skins");
+    fop.recordExistingFolder(skins);
+    when(sdkData.getSdkHandler()).thenReturn(createMockSdk("29.0.0", FD_EMULATOR));
+
+    List<Pair<String, String>> wearResources = Arrays
+      .asList(Pair.create("AndroidWearRound", "wear_round"), Pair.create("AndroidWearSquare", "wear_square"),
+              Pair.create("AndroidWearRoundChin320x290", "wear_round_chin_320_290"));
+
+    for (Pair<String, String> resourcePair : wearResources) {
+      String resourceName = resourcePair.first;
+      String assetName = resourcePair.second;
+      fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), assetName + "/layout"));
+      File skinPath = AvdWizardUtils.pathToUpdatedSkins(new File(resourceName), null, fop);
+      assertThat(fop.exists(new File(skinPath, "/layout"))).isTrue();
+    }
   }
 
   @NotNull

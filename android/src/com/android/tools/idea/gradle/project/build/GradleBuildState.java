@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build;
 
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -25,7 +26,6 @@ import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;

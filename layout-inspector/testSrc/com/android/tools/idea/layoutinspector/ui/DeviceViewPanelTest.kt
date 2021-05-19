@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.PropertySetterRule
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider
+import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
@@ -34,23 +39,30 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
+import com.android.tools.idea.layoutinspector.window
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand.Type
+import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.JBScrollPane
 import junit.framework.TestCase
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import java.awt.Container
+import java.awt.Cursor
 import java.awt.Dimension
-import java.awt.Image
 import java.awt.Point
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -59,23 +71,149 @@ import javax.swing.JViewport
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @get:Rule
   val edtRule = EdtRule()
 
   @get:Rule
-  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice().attach()
+  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice()
+
+  private var latch: CountDownLatch? = null
+  private val commands = mutableListOf<Type>()
 
   @Test
-  fun testLiveControlEnabled() {
+  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isTrue()
     assertThat(checkbox.toolTipText).isNull()
+  }
+
+  @Test
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
+    inspectorRule.inSnapshotMode()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isFalse()
+    assertThat(checkbox.toolTipText).isNull()
+  }
+
+  @Test
+  fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
+    installCommandHandlers()
+    inspectorRule.attach()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(commands).containsExactly(Type.START)
+  }
+
+  @Test
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
+    installCommandHandlers()
+    inspectorRule.inSnapshotMode().attach()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isFalse()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(commands).containsExactly(Type.REFRESH)
+  }
+
+  @Test
+  fun testTurnOnSnapshotModeWhenDisconnected() {
+    installCommandHandlers()
+    val stats = inspectorRule.inspectorModel.stats.live
+    stats.toggledToLive()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    FakeUi(checkbox).mouse.click(10, 10)
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isFalse()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(commands).isEmpty()
+    assertThat(isCapturingModeOn).isFalse()
+    assertThat(stats.currentModeIsLive).isTrue() // unchanged
+  }
+
+  @Test
+  fun testTurnOnLiveModeWhenDisconnected() {
+    installCommandHandlers()
+    inspectorRule.inSnapshotMode()
+    val stats = inspectorRule.inspectorModel.stats.live
+    stats.toggledToRefresh()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    toolbar.size = Dimension(800, 200)
+    toolbar.doLayout()
+    FakeUi(checkbox).mouse.click(10, 10)
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(commands).isEmpty()
+    assertThat(isCapturingModeOn).isTrue()
+    assertThat(stats.currentModeIsLive).isFalse() // unchanged
+  }
+
+  @Test
+  fun testTurnOnSnapshotMode() {
+    val stats = inspectorRule.inspectorModel.stats.live
+    stats.toggledToLive()
+    latch = CountDownLatch(2)
+    installCommandHandlers()
+    inspectorRule.attach()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    FakeUi(checkbox).mouse.click(10, 10)
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isFalse()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+    assertThat(commands).containsExactly(Type.START, Type.STOP).inOrder()
+    assertThat(stats.currentModeIsLive).isFalse()
+  }
+
+  @Test
+  fun testTurnOnLiveMode() {
+    val stats = inspectorRule.inspectorModel.stats.live
+    stats.toggledToRefresh()
+    latch = CountDownLatch(2)
+    installCommandHandlers()
+    inspectorRule.inSnapshotMode().attach()
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    toolbar.size = Dimension(800, 200)
+    toolbar.doLayout()
+    FakeUi(checkbox).mouse.click(10, 10)
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.isSelected).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
+    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+    assertThat(commands).containsExactly(Type.REFRESH, Type.START).inOrder()
+    assertThat(stats.currentModeIsLive).isTrue()
+  }
+
+  private fun installCommandHandlers() {
+    for (type in Type.values()) {
+      inspectorRule.withCommandHandler(type, ::saveCommand)
+    }
+  }
+
+  @Suppress("UNUSED_PARAMETER")
+  private fun saveCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+    latch?.countDown()
+    commands.add(command.layoutInspector.type)
   }
 }
 
@@ -93,8 +231,15 @@ class DeviceViewPanelTest {
 
   @get:Rule
   val clientFactoryRule = PropertySetterRule(
-    { _, _ -> listOf(mock(DefaultInspectorClient::class.java)) },
+    { _, _ -> listOf(mock<DefaultInspectorClient>()) },
     InspectorClient.Companion::clientFactory)
+
+  @Before
+  fun setup() {
+    ApplicationManager.getApplication().registerServiceInstance(AdtUiCursorsProvider::class.java, TestAdtUiCursorsProvider())
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
+  }
 
   @Test
   fun testZoomOnConnect() {
@@ -107,13 +252,13 @@ class DeviceViewPanelTest {
 
     assertThat(viewSettings.scalePercent).isEqualTo(100)
 
-    val newModel = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+    val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50) {
+          image()
+        }
       }
-    }
 
-    model.update(newModel.root, ROOT, listOf(ROOT))
+    model.update(newWindow, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
     assertThat(viewSettings.scalePercent).isEqualTo(135)
@@ -121,12 +266,12 @@ class DeviceViewPanelTest {
     viewSettings.scalePercent = 200
 
     // Update the model
-    val newModel2 = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW2, 50, 20, 30, 40, imageBottom = mock(Image::class.java))
+    val newWindow2 = window(ROOT, ROOT, 0, 0, 100, 200) {
+        view(VIEW2, 50, 20, 30, 40) {
+          image()
+        }
       }
-    }
-    model.update(newModel2.root, ROOT, listOf(ROOT))
+    model.update(newWindow2, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
     assertThat(viewSettings.scalePercent).isEqualTo(200)
@@ -134,7 +279,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testFocusableActionButtons() {
-    val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
+    val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
     val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
@@ -161,7 +306,9 @@ class DeviceViewPanelTest {
   private fun testPan(startPan: (FakeUi, DeviceViewPanel) -> Unit, endPan: (FakeUi, DeviceViewPanel) -> Unit, panButton: Button = LEFT) {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+        view(VIEW1, 25, 30, 50, 50) {
+          image()
+        }
       }
     }
 
@@ -194,9 +341,6 @@ class DeviceViewPanelTest {
 @RunsInEdt
 class DeviceViewPanelLegacyTest {
   @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
   val edtRule = EdtRule()
 
   @get:Rule
@@ -205,7 +349,7 @@ class DeviceViewPanelLegacyTest {
   @Test
   fun testLiveControlDisabled() {
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
@@ -214,9 +358,6 @@ class DeviceViewPanelLegacyTest {
 
 @RunsInEdt
 class DeviceViewPanelLegacyWithApi29DeviceTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
-
   @get:Rule
   val edtRule = EdtRule()
 
@@ -228,7 +369,7 @@ class DeviceViewPanelLegacyWithApi29DeviceTest {
     inspectorRule.addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
     inspectorRule.attachTo(DEFAULT_STREAM, DEFAULT_PROCESS)
     val settings = DeviceViewSettings()
-    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, inspectorRule.testRootDisposable))
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isFalse()
     assertThat(checkbox.toolTipText).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
@@ -338,4 +479,9 @@ class MyViewportLayoutManagerTest {
   }
 }
 
-private fun getToolbar(panel: DeviceViewPanel) = flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as Container
+private fun getToolbar(panel: DeviceViewPanel): JComponent =
+  (flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as JComponent).run {
+    size = Dimension(800, 200)
+    doLayout()
+    return this
+  }

@@ -46,6 +46,7 @@ public final class FakeCaptureObject implements CaptureObject {
   private final boolean myIsDoneLoading;
   private final boolean myIsError;
   private final String myInfoMessage;
+  private final boolean myCanSafelyLoad;
 
   private FakeCaptureObject(@NotNull String captureName,
                             @NotNull List<ClassifierAttribute> classifierAttributes,
@@ -56,7 +57,8 @@ public final class FakeCaptureObject implements CaptureObject {
                             boolean isLoadSuccessful,
                             boolean isDoneLoading,
                             boolean isError,
-                            String infoMessage) {
+                            String infoMessage,
+                            boolean canSafelyLoad) {
     myCaptureName = captureName;
     myClassifierAttributes = classifierAttributes;
     myInstanceAttributes = instanceAttributes;
@@ -67,6 +69,7 @@ public final class FakeCaptureObject implements CaptureObject {
     myIsDoneLoading = isDoneLoading;
     myIsError = isError;
     myInfoMessage = infoMessage;
+    myCanSafelyLoad = canSafelyLoad;
   }
 
   @NotNull
@@ -178,11 +181,16 @@ public final class FakeCaptureObject implements CaptureObject {
     return myInfoMessage;
   }
 
+  @Override
+  public boolean canSafelyLoad() {
+    return myCanSafelyLoad;
+  }
+
   public static class Builder {
     public static final int DEFAULT_HEAP_ID = 0;
     public static final String DEFAULT_HEAP_NAME = "default";
 
-    @NotNull private String myCaptureName = "DUMMY_CAPTURE";
+    @NotNull private String myCaptureName = "SAMPLE_CAPTURE";
     @NotNull private List<ClassifierAttribute> myClassifierAttributes = Arrays.asList(CaptureObject.ClassifierAttribute.values());
     @NotNull private List<InstanceAttribute> myInstanceAttributes = Arrays.asList(CaptureObject.InstanceAttribute.values());
     @NotNull private Map<Integer, String> myHeapIdToNameMap = Collections.singletonMap(DEFAULT_HEAP_ID, DEFAULT_HEAP_NAME);
@@ -192,6 +200,7 @@ public final class FakeCaptureObject implements CaptureObject {
     private boolean myIsDoneLoading = true;
     private boolean myIsError = false;
     private String myInfoMessage = null;
+    private boolean myCanSafelyLoad = true;
 
     @NotNull
     public Builder setCaptureName(@NotNull String captureName) {
@@ -254,9 +263,15 @@ public final class FakeCaptureObject implements CaptureObject {
     }
 
     @NotNull
+    public Builder setCanSafelyLoad(boolean canSafelyLoad) {
+      myCanSafelyLoad = canSafelyLoad;
+      return this;
+    }
+
+    @NotNull
     public FakeCaptureObject build() {
       return new FakeCaptureObject(myCaptureName, myClassifierAttributes, myInstanceAttributes, myHeapIdToNameMap, myStartTime, myEndTime,
-                                   myIsLoadSuccessful, myIsDoneLoading, myIsError, myInfoMessage);
+                                   myIsLoadSuccessful, myIsDoneLoading, myIsError, myInfoMessage, myCanSafelyLoad);
     }
   }
 }

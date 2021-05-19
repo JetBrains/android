@@ -31,6 +31,7 @@ import org.junit.Test
  * Tests for [BuildFeaturesModel].
  */
 class BuildFeaturesModelTest : GradleFileModelTestCase() {
+
   @Test
   fun testParseElements() {
     writeToBuildFile(BUILD_FEATURES_MODEL_PARSE_ELEMENTS)
@@ -39,6 +40,7 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     val buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", false, buildFeatures.viewBinding())
   }
 
   @Test
@@ -49,13 +51,16 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     var buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", false, buildFeatures.viewBinding())
     buildFeatures.compose().setValue(true)
     buildFeatures.mlModelBinding().setValue(true)
+    buildFeatures.viewBinding().setValue(true)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_EDIT_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", true, buildFeatures.compose())
     assertEquals("mlModelBinding", true, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", true, buildFeatures.viewBinding())
   }
 
   @Test
@@ -66,13 +71,16 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
+    assertMissingProperty("viewBinding", buildFeatures.viewBinding())
     buildFeatures.compose().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
+    buildFeatures.viewBinding().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", false, buildFeatures.viewBinding())
   }
 
   @Test
@@ -83,13 +91,16 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     var buildFeatures = buildModel.android().buildFeatures()
     assertMissingProperty("compose", buildFeatures.compose())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
+    assertMissingProperty("viewBinding", buildFeatures.viewBinding())
     buildFeatures.compose().setValue(false)
     buildFeatures.mlModelBinding().setValue(false)
+    buildFeatures.viewBinding().setValue(false)
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, BUILD_FEATURES_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED)
     buildFeatures = buildModel.android().buildFeatures()
     assertEquals("compose", false, buildFeatures.compose())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", false, buildFeatures.viewBinding())
   }
 
   @Test
@@ -101,13 +112,16 @@ class BuildFeaturesModelTest : GradleFileModelTestCase() {
     checkForValidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
     assertEquals("compose", false, buildFeatures.compose())
     assertEquals("mlModelBinding", false, buildFeatures.mlModelBinding())
+    assertEquals("viewBinding", false, buildFeatures.viewBinding())
     buildFeatures.compose().delete()
     buildFeatures.mlModelBinding().delete()
+    buildFeatures.viewBinding().delete()
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, "")
     buildFeatures = buildModel.android().buildFeatures()
     checkForInValidPsiElement(buildFeatures, BuildFeaturesModelImpl::class.java)
     assertMissingProperty("compose", buildFeatures.compose())
     assertMissingProperty("mlModelBinding", buildFeatures.mlModelBinding())
+    assertMissingProperty("viewBinding", buildFeatures.viewBinding())
   }
 }

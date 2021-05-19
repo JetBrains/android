@@ -30,12 +30,6 @@
 
     <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
-    <!--
-    Notification provider that is used to detect when PreviewEditor notifications should be updated.
-    See ComposePreviewEditorNotificationAdapter
-    -->
-    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposePreviewEditorNotificationAdapter"/>
-
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      bundle="messages.ComposePreviewBundle" groupKey="inspections.group.name"
                      language="kotlin"
@@ -76,11 +70,12 @@
 
     <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
     <configurationType implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType"/>
-    <runConfigurationProducer
-        implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
     <runLineMarkerContributor
         language="kotlin"
         implementationClass="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunLineMarkerContributor"/>
+    <annotator
+      language="kotlin"
+      implementationClass="com.android.tools.idea.compose.annotator.ComposePreviewPickerAnnotator"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">

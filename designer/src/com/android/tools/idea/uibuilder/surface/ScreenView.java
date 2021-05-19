@@ -19,6 +19,7 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.common.scene.draw.ColorSet;
@@ -26,6 +27,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
@@ -79,6 +81,7 @@ public class ScreenView extends ScreenViewBase {
    */
   public static final class ImageContentSizePolicy implements ContentSizePolicy {
     @NotNull private final ContentSizePolicy mySizePolicyDelegate;
+    private Dimension cachedDimension = null;
 
     public ImageContentSizePolicy(@NotNull ContentSizePolicy delegate) {
       mySizePolicyDelegate = delegate;
@@ -87,13 +90,27 @@ public class ScreenView extends ScreenViewBase {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
-      if (result != null) {
-        ImagePool.Image image = result.getRenderedImage();
+      if (result != null && result.getSystemRootViews().size() == 1) {
+        ViewInfo viewInfo = result.getSystemRootViews().get(0);
 
-        if (image.isValid()) {
-          outDimension.setSize(image.getWidth(), image.getHeight());
+        try {
+          outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
+          // Save in case a future render fails. This way we can keep a constant size for failed
+          // renders.
+          if (cachedDimension == null) {
+            cachedDimension = new Dimension(outDimension);
+          }
+          else {
+            cachedDimension.setSize(outDimension);
+          }
           return;
+        } catch (AssertionError e) {
         }
+      }
+
+      if (cachedDimension != null) {
+        outDimension.setSize(cachedDimension);
+        return;
       }
 
       mySizePolicyDelegate.measure(screenView, outDimension);
@@ -115,6 +132,11 @@ public class ScreenView extends ScreenViewBase {
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
+
+    if(StudioFlags.NELE_OVERLAY_PROVIDER.get()) {
+      builder.add(new OverlayLayer(screenView));
+    }
+
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
       builder.add(new CanvasResizeLayer(surface, screenView));
     }

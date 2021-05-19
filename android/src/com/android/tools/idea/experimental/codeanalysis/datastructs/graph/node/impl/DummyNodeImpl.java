@@ -16,14 +16,13 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl;
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.DummyNode;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.GraphNode;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.PlaceholderNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import java.util.HashSet;
 
-public class DummyNodeImpl extends GraphNodeImpl implements DummyNode {
+public class PlaceholderNodeImpl extends GraphNodeImpl implements PlaceholderNode {
 
-  public DummyNodeImpl(BlockGraph parentGraph) {
+  public PlaceholderNodeImpl(BlockGraph parentGraph) {
     this.mBlockGraph = parentGraph;
     this.mInNodes = new HashSet<GraphNode>();
     this.mOutNodes = new HashSet<GraphNode>();
@@ -31,7 +30,7 @@ public class DummyNodeImpl extends GraphNodeImpl implements DummyNode {
   }
 
   /**
-   * Dummy node should not contain any stmts.
+   * Placeholder node should not contain any stmts.
    *
    * @return an empty Stmt array
    */
@@ -42,7 +41,7 @@ public class DummyNodeImpl extends GraphNodeImpl implements DummyNode {
 
   @Override
   public String getSimpleName() {
-    return "DummyNode";
+    return "PlaceholderNode";
   }
 
 }

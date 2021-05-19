@@ -16,7 +16,11 @@
 package com.android.tools.idea.sqlite.ui.mainView
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.adtui.stdui.LabelData
+import com.android.tools.adtui.stdui.NewLineChunk
+import com.android.tools.adtui.stdui.TextChunk
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
@@ -68,10 +72,13 @@ class DatabaseInspectorViewImpl(
 
   private val openTabs = mutableMapOf<TabId, TabInfo>()
 
+  private val databaseInspectorHelpUrl = "https://d.android.com/r/studio-ui/db-inspector-help"
+  private val offlineModeHelpUrl = "https://d.android.com/r/studio-ui/db-inspector-help/offline"
+
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"))
+    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"), databaseInspectorHelpUrl)
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
@@ -97,16 +104,6 @@ class DatabaseInspectorViewImpl(
     listeners.remove(listener)
   }
 
-  override fun startLoading(text: String) {
-    // TODO(b/133320900) Should show proper loading UI.
-    //  This loading logic is not the best now that multiple databases can be opened.
-    //  This method is called each time a new database is opened.
-    workBench.setLoadingText(text)
-  }
-
-  override fun stopLoading() {
-  }
-
   override fun updateDatabases(databaseDiffOperations: List<DatabaseDiffOperation>) {
     for (databaseDiffOperation in databaseDiffOperations) {
       when (databaseDiffOperation) {
@@ -118,7 +115,7 @@ class DatabaseInspectorViewImpl(
     }
 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
-      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
     }
   }
 
@@ -128,11 +125,7 @@ class DatabaseInspectorViewImpl(
 
   override fun openTab(tabId: TabId, tabName: String, tabIcon: Icon, component: JComponent) {
     if (openTabs.isEmpty()) {
-      centerPanel.removeAll()
-      centerPanel.layout = BorderLayout()
-      centerPanel.add(tabs, BorderLayout.CENTER)
-      centerPanel.revalidate()
-      centerPanel.repaint()
+      resetCenterPanelAndAddView(tabs)
     }
 
     val tab = createTab(tabId, tabName, tabIcon, component)
@@ -150,12 +143,36 @@ class DatabaseInspectorViewImpl(
     tabs.removeTab(tab)
 
     if (openTabs.isEmpty()) {
-      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"))
+      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
     }
   }
 
   override fun reportError(message: String, throwable: Throwable?) {
     notifyError(message, throwable)
+  }
+
+  override fun setRefreshButtonState(state: Boolean) {
+    leftPanelView.setRefreshButtonState(state)
+  }
+
+  override fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int) {
+    val enterOfflineModePanel = EmptyStatePanel(
+      reason = LabelData(
+        TextChunk("Moving to offline mode"),
+        NewLineChunk,
+        TextChunk("($filesDownloaded/$totalFilesToDownload) databases downloaded..."),
+      ),
+      actionData = ActionData("Cancel") {
+        listeners.forEach { it.cancelOfflineModeInvoked() }
+      }
+    )
+    enterOfflineModePanel.name = "right-panel-offline-mode"
+
+    resetCenterPanelAndAddView(enterOfflineModePanel)
+  }
+
+  override fun showOfflineModeUnavailablePanel() {
+    addEmptyStatePanel("Offline mode unavailable.", offlineModeHelpUrl)
   }
 
   override fun updateKeepConnectionOpenButton(keepOpen: Boolean) {
@@ -165,15 +182,11 @@ class DatabaseInspectorViewImpl(
   override fun reportSyncProgress(message: String) {
   }
 
-  private fun addEmptyStatePanel(text: String) {
-    val emptyStatePanel = EmptyStatePanel(text, UrlData("Learn more", "https://d.android.com/r/studio-ui/db-inspector-help"))
+  private fun addEmptyStatePanel(text: String, url: String) {
+    val emptyStatePanel = EmptyStatePanel(text, UrlData("Learn more", url))
     emptyStatePanel.name = "right-panel-empty-state"
 
-    centerPanel.removeAll()
-    centerPanel.layout = BorderLayout()
-    centerPanel.add(emptyStatePanel)
-    centerPanel.revalidate()
-    centerPanel.repaint()
+    resetCenterPanelAndAddView(emptyStatePanel)
   }
 
   private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
@@ -199,6 +212,14 @@ class DatabaseInspectorViewImpl(
     tab.icon = tabIcon
     tab.text = tabName
     return tab
+  }
+
+  private fun resetCenterPanelAndAddView(component: JComponent) {
+    centerPanel.removeAll()
+    centerPanel.layout = BorderLayout()
+    centerPanel.add(component)
+    centerPanel.revalidate()
+    centerPanel.repaint()
   }
 
   private fun createToolWindowDefinition(): ToolWindowDefinition<SqliteViewContext> {

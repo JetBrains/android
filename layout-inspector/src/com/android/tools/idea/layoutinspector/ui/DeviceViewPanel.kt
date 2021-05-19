@@ -21,15 +21,17 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
-import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.adtui.common.AdtUiCursorsProvider
+import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.editor.ActionToolbarUtil
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
+import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorCommand
+import com.android.tools.idea.layoutinspector.transport.isCapturingModeOn
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -83,7 +85,7 @@ class DeviceViewPanel(
   override val scale
     get() = viewSettings.scaleFraction
 
-  override val screenScalingFactor = 1f
+  override val screenScalingFactor = 1.0
 
   override var isPanning = false
   private var isSpacePressed = false
@@ -105,7 +107,7 @@ class DeviceViewPanel(
 
     private fun showGrab() {
       if (isPanning) {
-        cursor = AdtUiCursors.GRAB
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
       }
       else {
         cursor = Cursor.getDefaultCursor()
@@ -115,7 +117,7 @@ class DeviceViewPanel(
     override fun mousePressed(e: MouseEvent) {
       contentPanel.requestFocus()
       if (currentlyPanning(e)) {
-        cursor = AdtUiCursors.GRABBING
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
         e.consume()
       }
@@ -127,7 +129,7 @@ class DeviceViewPanel(
       val newLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
       lastPanMouseLocation = newLocation
       if (currentlyPanning(e) && lastLocation != null) {
-        cursor = AdtUiCursors.GRABBING
+        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         val extent = scrollPane.viewport.extentSize
         val view = scrollPane.viewport.viewSize
         val p = scrollPane.viewport.viewPosition
@@ -142,7 +144,7 @@ class DeviceViewPanel(
 
     override fun mouseReleased(e: MouseEvent) {
       if (lastPanMouseLocation != null) {
-        cursor = if (isPanning) AdtUiCursors.GRAB else Cursor.getDefaultCursor()
+        cursor = if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB) else Cursor.getDefaultCursor()
         lastPanMouseLocation = null
         e.consume()
       }
@@ -216,16 +218,29 @@ class DeviceViewPanel(
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     // Zoom to fit on initial connect
-    layoutInspector.layoutInspectorModel.modificationListeners.add { old, _, _ ->
+    layoutInspector.layoutInspectorModel.modificationListeners.add { old, new, _ ->
       if (old == null) {
+        contentPanel.model.refresh()
         zoom(ZoomType.FIT)
+      }
+      else {
+        // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
+        // images upon first connecting.
+        new?.refreshImages(viewSettings.scaleFraction)
+        contentPanel.model.refresh()
       }
     }
     var prevZoom = viewSettings.scalePercent
     viewSettings.modificationListeners.add {
       if (prevZoom != viewSettings.scalePercent) {
-        deviceViewPanelActionsToolbar.zoomChanged()
-        prevZoom = viewSettings.scalePercent
+        ApplicationManager.getApplication().executeOnPooledThread {
+          deviceViewPanelActionsToolbar.zoomChanged()
+          prevZoom = viewSettings.scalePercent
+          layoutInspector.layoutInspectorModel.windows.values.forEach {
+            it.refreshImages(viewSettings.scaleFraction)
+          }
+          contentPanel.model.refresh()
+        }
       }
     }
   }
@@ -254,6 +269,7 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
+    viewSettings.scalePercent = viewSettings.scalePercent.coerceIn(MIN_ZOOM, MAX_ZOOM)
     contentPanel.revalidate()
 
     return true
@@ -301,8 +317,8 @@ class DeviceViewPanel(
     leftGroup.add(ToggleOverlayAction)
     leftGroup.add(AlphaSliderAction)
     leftGroup.add(Separator.getInstance())
-    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
-    leftGroup.add(CaptureAction(layoutInspector::currentClient))
+    leftGroup.add(PauseLayoutInspectorAction)
+    leftGroup.add(RefreshAction)
     leftGroup.add(Separator.getInstance())
     leftGroup.add(LayerSpacingSliderAction)
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
@@ -322,33 +338,39 @@ class DeviceViewPanel(
     return panel
   }
 
-  private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
+  object PauseLayoutInspectorAction : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
-      val currentClient = client()
+      val currentClient = client(event)
       val isLiveInspector = currentClient.isConnected && currentClient is DefaultInspectorClient
       val isLowerThenApi29 = currentClient.isConnected && currentClient.selectedStream.device.featureLevel < 29
-      event.presentation.isEnabled = isLiveInspector
+      event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
       super.update(event)
       event.presentation.description = when {
+        !currentClient.isConnected -> null
         isLowerThenApi29 -> "Live updates not available for devices below API 29"
         !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
         else -> null
       }
     }
 
-    // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.
+    // When disconnected: display the default value after the inspector is connected to the device.
     override fun isSelected(event: AnActionEvent): Boolean {
-      return !client().isConnected || client().isCapturing
+      return isCapturingModeOn
     }
 
     override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (!client().isConnected) {
-        return
+      val currentClient = client(event)
+      if (!currentClient.isConnected) {
+        isCapturingModeOn = state
       }
-      val command = if (client().isCapturing) LayoutInspectorCommand.Type.STOP else LayoutInspectorCommand.Type.START
-      client().execute(command)
+      else {
+        (currentClient as? DefaultInspectorClient)?.isCapturing = state
+      }
     }
+
+    private fun client(event: AnActionEvent): InspectorClient =
+      event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient ?: DisconnectedClient
   }
 }
 

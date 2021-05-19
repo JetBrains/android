@@ -54,6 +54,10 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
     return !suppressedWarnings.noncacheableTasks.contains(Pair(getTaskIdentifier(task), task.originPlugin.displayName))
   }
 
+  var suppressNoGCSettingWarning: Boolean
+    get() = suppressedWarnings.noGCSettingWarning
+    set(value) { suppressedWarnings.noGCSettingWarning = value }
+
   fun suppressAlwaysRunTaskWarning(taskIdentifier: String, pluginDisplayName: String) {
     suppressedWarnings.alwaysRunTasks.add(Pair(taskIdentifier, pluginDisplayName))
   }
@@ -76,6 +80,10 @@ class BuildAttributionWarningsFilter : PersistentStateComponent<SuppressedWarnin
 
   fun unsuppressNoncacheableTaskWarning(taskName: String, pluginDisplayName: String) {
     suppressedWarnings.noncacheableTasks.remove(Pair(taskName, pluginDisplayName))
+  }
+
+  fun suppressNoGCSettingWarning() {
+    suppressedWarnings.noGCSettingWarning = true
   }
 
   override fun getState(): SuppressedWarnings? {

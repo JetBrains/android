@@ -89,7 +89,11 @@ public class ScrollInteraction extends Interaction {
 
   @Override
   public void begin(@NotNull InteractionEvent event) {
-    assert event instanceof MouseWheelMovedEvent;
+    assert event instanceof MouseWheelMovedEvent : "The instance of event should be MouseWheelMovedEvent but it is " + event.getClass() +
+                                                   "; The Scroll Handler is  component is " + myHandler.getClass() +
+                                                   "; The SceneView is " + mySceneView +
+                                                   ", start (x, y) = " + myStartX + ", " + myStartY + ", start mask is " + myStartMask;
+
     MouseWheelEvent mouseEvent = ((MouseWheelMovedEvent)event).getEventObject();
     begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }

@@ -15,28 +15,48 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.util.containers.ContainerUtil.map;
+import static org.mockito.Mockito.mock;
+
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.*;
+import com.android.builder.model.AaptOptions;
+import com.android.builder.model.AndroidGradlePluginProjectFlags;
+import com.android.builder.model.AndroidProject;
+import com.android.builder.model.ArtifactMetaData;
+import com.android.builder.model.BuildTypeContainer;
+import com.android.builder.model.DependenciesInfo;
+import com.android.builder.model.LintOptions;
+import com.android.builder.model.NativeToolchain;
+import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.SigningConfig;
+import com.android.builder.model.SyncIssue;
+import com.android.builder.model.Variant;
+import com.android.builder.model.VariantBuildInformation;
+import com.android.builder.model.ViewBindingOptions;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.impl.ModelCache;
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
+import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub;
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-import java.util.function.Consumer;
-
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-import static org.mockito.Mockito.mock;
 
 public class AndroidProjectStub implements AndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
@@ -48,22 +68,18 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
   @NotNull private final List<String> myVariantNames = new ArrayList<>();
-  @Nullable private String myDefaultVariant = null;
   @NotNull private final List<SyncIssue> mySyncIssues = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
   @NotNull private final ProductFlavorContainerStub myDefaultConfig;
-  @NotNull private File myBuildFolder;
-  @NotNull private final File myBuildFile;
-
+  @NotNull private final File myBuildFolder;
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
   @NotNull private final ViewBindingOptionsStub myViewBindingOptions = new ViewBindingOptionsStub();
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
   private int myProjectType = AndroidProjectTypes.PROJECT_TYPE_APP;
-  private int myPluginGeneration;
 
   public AndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
@@ -78,7 +94,6 @@ public class AndroidProjectStub implements AndroidProject {
     myFileStructure = fileStructure;
     myBuildFolder = myFileStructure.createProjectDir("build");
     myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure, null);
-    myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
   }
 
   @Override
@@ -89,27 +104,6 @@ public class AndroidProjectStub implements AndroidProject {
 
   public void setModelVersion(@NotNull String modelVersion) {
     myModelVersion = modelVersion;
-  }
-
-  @Nullable
-  public GradleVersion getParsedModelVersion() {
-    return null;
-  }
-
-  public void forEachVariant(@NotNull Consumer<Variant> action) {
-    for (Variant next : myVariants.values()) {
-      action.accept(next);
-    }
-  }
-
-  public void addVariants(@NotNull Collection<Variant> variants, @NotNull IdeDependenciesFactory factory) {
-    for (Variant variant : variants) {
-      addVariant(variant.getName());
-    }
-  }
-
-  public void addSyncIssues(@NotNull Collection<SyncIssue> syncIssues) {
-    mySyncIssues.addAll(syncIssues);
   }
 
   @Override
@@ -128,14 +122,9 @@ public class AndroidProjectStub implements AndroidProject {
   public String getGroupId() {
     return null;
   }
-
   @Override
   public boolean isLibrary() {
     return myProjectType == AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-  }
-
-  public void setProjectType(int projectType) {
-    myProjectType = projectType;
   }
 
   @Override
@@ -162,11 +151,6 @@ public class AndroidProjectStub implements AndroidProject {
     return myBuildTypes.values();
   }
 
-  @Nullable
-  public BuildTypeContainer findBuildType(@NotNull String name) {
-    return myBuildTypes.get(name);
-  }
-
   @NotNull
   public ProductFlavorContainerStub addProductFlavor(@NotNull String flavorName, String flavorDimension) {
     if (!myFlavorDimensions.contains(flavorDimension)) {
@@ -181,12 +165,6 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public Collection<ProductFlavorContainer> getProductFlavors() {
     return myProductFlavors.values();
-  }
-
-  @Nullable
-  public ProductFlavorContainerStub findProductFlavor(@NotNull String name) {
-    ProductFlavorContainer flavorContainer = myProductFlavors.get(name);
-    return (ProductFlavorContainerStub)flavorContainer;
   }
 
   @NotNull
@@ -207,51 +185,17 @@ public class AndroidProjectStub implements AndroidProject {
     }
     myVariants.put(variant.getName(), variant);
 
-    myVariantsBuiltInformation.add(new VariantBuildInformation() {
-      @NotNull
-      @Override
-      public String getVariantName() {
-        return variant.getName();
-      }
-
-      @NotNull
-      @Override
-      public String getAssembleTaskName() {
-        return "assemble" + capitalize(variant.getName());
-      }
-
-      @NonNull
-      @Override
-      public String getAssembleTaskOutputListingFile() {
-        return new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + variant.getName() + "/output.json").getAbsolutePath();
-      }
-
-      @Nullable
-      @Override
-      public String getBundleTaskName() {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public String getBundleTaskOutputListingFile() {
-        return new File(myFileStructure.getRootFolderPath(),
-                        "build/intermediates/bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
-      }
-
-      @Nullable
-      @Override
-      public String getApkFromBundleTaskName() {
-        return null;
-      }
-
-      @Nullable
-      @Override
-      public String getApkFromBundleTaskOutputListingFile() {
-        return new File(myFileStructure.getRootFolderPath(),
-                        "build/intermediates/apk_from_bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
-      }
-    });
+    myVariantsBuiltInformation.add(new VariantBuildInformationStub(
+      variant.getName(),
+      "assemble" + capitalize(variant.getName()),
+      new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + variant.getName() + "/output.json").getAbsolutePath(),
+      null,
+      new File(myFileStructure.getRootFolderPath(),
+               "build/intermediates/bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath(),
+      null,
+      new File(myFileStructure.getRootFolderPath(),
+               "build/intermediates/apk_from_bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath()
+    ));
   }
 
   @Override
@@ -279,11 +223,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Nullable
   @Override
   public String getDefaultVariant() {
-    return myDefaultVariant;
-  }
-
-  public void setDefaultVariant(@Nullable String defaultVariant) {
-    myDefaultVariant = defaultVariant;
+    return null;
   }
 
   @Override
@@ -401,7 +341,7 @@ public class AndroidProjectStub implements AndroidProject {
 
   @Override
   public int getPluginGeneration() {
-    return myPluginGeneration;
+    return 0;
   }
 
   @Override
@@ -433,41 +373,20 @@ public class AndroidProjectStub implements AndroidProject {
     return null;
   }
 
-  public AndroidProjectStub setPluginGeneration(int pluginGeneration) {
-    myPluginGeneration = pluginGeneration;
-    return this;
-  }
-
-  /**
-   * Deletes this project's directory structure.
-   */
-  public void dispose() {
-    myFileStructure.dispose();
-  }
-
-  /**
-   * @return this project's root directory.
-   */
-  @NotNull
-  public File getRootDir() {
-    return myFileStructure.getRootFolderPath();
-  }
-
-  /**
-   * @return this project's build.gradle file.
-   */
-  @NotNull
-  public File getBuildFile() {
-    return myBuildFile;
-  }
-
   public void setVariantNames(@NotNull String... variantNames) {
     myVariantNames.clear();
     myVariantNames.addAll(Arrays.asList(variantNames));
   }
 
-  public void setSyncIssues(@NotNull SyncIssue... syncIssues) {
-    mySyncIssues.clear();
-    mySyncIssues.addAll(Arrays.asList(syncIssues));
+  @NotNull
+  public static IdeAndroidProject toIdeAndroidProject(AndroidProjectStub androidProject) {
+    return ModelCache.create().androidProjectFrom(androidProject);
+  }
+
+  @NotNull
+  public static List<IdeVariant> toIdeVariants(AndroidProjectStub androidProject) {
+    ModelCache modelCache = ModelCache.create();
+    GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
+    return map(androidProject.getVariants(), it -> modelCache.variantFrom(it, modelVersion));
   }
 }

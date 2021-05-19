@@ -20,10 +20,13 @@ import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstru
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.Revision
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.getMaterialComponentName
 import com.android.tools.idea.wizard.template.renderIf
 import java.io.File
@@ -93,14 +96,14 @@ fun androidConfig(
   minApi: String,
   targetApi: String,
   useAndroidX: Boolean,
-  cppFlags: String,
   isLibraryProject: Boolean,
-  includeCppSupport: Boolean = false,
   hasApplicationId: Boolean = false,
   applicationId: String = "",
   hasTests: Boolean = false,
   canUseProguard: Boolean = false,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val buildToolsVersionBlock = renderIf(explicitBuildToolsVersion) { "buildToolsVersion \"$buildToolsVersion\"" }
   val applicationIdBlock = renderIf(hasApplicationId) { "applicationId \"${applicationId}\"" }
@@ -117,24 +120,25 @@ fun androidConfig(
     """
   }
 
-  val cppBlock = renderIf(includeCppSupport) {
+  val cppConfigBlock = renderIf(enableCpp) {
     """
       externalNativeBuild {
         cmake {
-          cppFlags "${cppFlags}"
+          cppFlags "${cppStandard.compilerFlag}"
         }
       }
-  """
+    """
   }
-  val cppBlock2 = renderIf(includeCppSupport) {
+
+  val cppReferenceBlock = renderIf(enableCpp) {
     """
-      externalNativeBuild {
-        cmake {
-          path "src/main/cpp/CMakeLists.txt"
-          version "3.10.2"
-        }
+    externalNativeBuild {
+      cmake {
+        path "src/main/cpp/CMakeLists.txt"
+        version "$DEFAULT_CMAKE_VERSION"
       }
-      """
+    }
+    """
   }
 
   return """
@@ -151,12 +155,12 @@ fun androidConfig(
 
       $testsBlock
       $proguardConsumerBlock
-      $cppBlock
+      $cppConfigBlock
     }
 
     $proguardConfigBlock
     $lintOptionsBlock
-    $cppBlock2
+    $cppReferenceBlock
     }
     """
 }

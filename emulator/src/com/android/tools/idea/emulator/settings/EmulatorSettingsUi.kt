@@ -16,11 +16,17 @@
 package com.android.tools.idea.emulator.settings
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.emulator.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.emulator.EmulatorSettings
+import com.android.tools.idea.emulator.EmulatorSettings.SnapshotAutoDeletionPolicy
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.EnumComboBoxModel
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.layout.panel
+import com.intellij.ui.layout.selected
 import org.jetbrains.annotations.Nls
 import javax.swing.JCheckBox
 
@@ -30,6 +36,8 @@ import javax.swing.JCheckBox
 internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
 
   private lateinit var launchInToolWindowCheckBox: JCheckBox
+  private lateinit var snapshotAutoDeletionPolicyComboBox: ComboBox<SnapshotAutoDeletionPolicy>
+  private val snapshotAutoDeletionPolicyComboBoxModel = EnumComboBoxModel(SnapshotAutoDeletionPolicy::class.java)
 
   private val state = EmulatorSettings.getInstance()
 
@@ -37,25 +45,43 @@ internal class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScrol
 
   override fun createComponent() = panel {
     row {
-      launchInToolWindowCheckBox = checkBox("Launch in a tool window",
-                                            comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                                                      "Otherwise the Android Emulator will launch as a standalone application. Some AVDs " +
-                                                      "will launch as standalone applications regardless of this setting due to their " +
-                                                      "hardware profiles or system images. The Emulator's extended controls are not " +
-                                                      "available when launched in a tool window.").component
+      launchInToolWindowCheckBox =
+          checkBox("Launch in a tool window",
+                   comment = "Enabling this setting will cause Android Emulator to launch in a tool window. " +
+                             "Otherwise the Android Emulator will launch as a standalone application. Some AVDs " +
+                             "will launch as standalone applications regardless of this setting due to their " +
+                             "hardware profiles or system images. The Emulator's extended controls are not " +
+                             "available when launched in a tool window.").component
+    }
+    blockRow {} // Visual separator.
+    row {
+      cell(isVerticalFlow = true) {
+        label("When encountering snapshots incompatible with the current configuration:")
+        snapshotAutoDeletionPolicyComboBox =
+            comboBox(snapshotAutoDeletionPolicyComboBoxModel,
+                     { snapshotAutoDeletionPolicyComboBoxModel.selectedItem },
+                     { snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(it) },
+                     renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it?.displayName })
+              .enableIf(launchInToolWindowCheckBox.selected)
+              .component
+      }
     }
   }
 
-  override fun isModified() =
-    launchInToolWindowCheckBox.isSelected != state.launchInToolWindow
+  override fun isModified(): Boolean {
+    return launchInToolWindowCheckBox.isSelected != state.launchInToolWindow ||
+           snapshotAutoDeletionPolicyComboBoxModel.selectedItem != state.snapshotAutoDeletionPolicy
+  }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
     state.launchInToolWindow = launchInToolWindowCheckBox.isSelected
+    state.snapshotAutoDeletionPolicy = snapshotAutoDeletionPolicyComboBoxModel.selectedItem
   }
 
   override fun reset() {
     launchInToolWindowCheckBox.isSelected = state.launchInToolWindow
+    snapshotAutoDeletionPolicyComboBoxModel.setSelectedItem(state.snapshotAutoDeletionPolicy)
   }
 
   @Nls

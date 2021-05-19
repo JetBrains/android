@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import java.io.File
+import java.time.Duration
 
 /**
  * An interface to access to instrumentation test results of a single test case executed
@@ -48,9 +49,39 @@ interface AndroidTestResults {
   fun getTestResultSummary(): AndroidTestCaseResult
 
   /**
+   * Returns a one liner test result summary string.
+   */
+  fun getTestResultSummaryText(): String
+
+  /**
+   * Returns a test result stats.
+   */
+  fun getResultStats(): AndroidTestResultStats
+
+  /**
+   * Returns a test result stats of a given device.
+   */
+  fun getResultStats(device: AndroidDevice): AndroidTestResultStats
+
+  /**
    * Returns the logcat message emitted during the test on a given device.
    */
   fun getLogcat(device: AndroidDevice): String
+
+  /**
+   * Returns the start time of the test on a given device.
+   */
+  fun getStartTime(device: AndroidDevice): Long?
+
+  /**
+   * Returns an elapsed time of a test case execution of a given device.
+   */
+  fun getDuration(device: AndroidDevice): Duration?
+
+  /**
+   * A total elapsed time of a test case execution of all devices.
+   */
+  fun getTotalDuration(): Duration
 
   /**
    * Returns an error stack trace or empty if a test passes.
@@ -68,17 +99,84 @@ interface AndroidTestResults {
 }
 
 /**
- * Returns the name of the test case.
- */
-fun AndroidTestResults.getTestCaseName(): String = "$className.$methodName"
-
-/**
  * Returns the fully qualified name of the test case.
  */
 fun AndroidTestResults.getFullTestCaseName(): String {
+  return "${getFullTestClassName()}.$methodName"
+}
+
+/**
+ * Returns the fully qualified name of the test class.
+ */
+fun AndroidTestResults.getFullTestClassName(): String {
   return if (packageName.isBlank()) {
-    "$className.$methodName"
+    className
   } else {
-    "$packageName.$className.$methodName"
+    "$packageName.$className"
   }
 }
+
+/**
+ * Returns true if this result is a root aggregation result.
+ */
+fun AndroidTestResults.isRootAggregationResult(): Boolean {
+  return getFullTestCaseName() == "."
+}
+
+data class AndroidTestResultStats(
+  var passed: Int = 0,
+  var failed: Int = 0,
+  var skipped: Int = 0,
+  var running: Int = 0,
+  var cancelled: Int = 0) {
+  val total: Int
+    get() = passed + failed + skipped + running + cancelled
+}
+
+operator fun AndroidTestResultStats.plus(rhs: AndroidTestResultStats) = AndroidTestResultStats(
+  passed + rhs.passed,
+  failed + rhs.failed,
+  skipped + rhs.skipped,
+  running + rhs.running,
+  cancelled + rhs.cancelled
+)
+
+fun AndroidTestResultStats.getSummaryResult(): AndroidTestCaseResult {
+  return when {
+    failed > 0 -> AndroidTestCaseResult.FAILED
+    cancelled > 0 -> AndroidTestCaseResult.CANCELLED
+    running > 0 -> AndroidTestCaseResult.IN_PROGRESS
+    passed > 0 -> AndroidTestCaseResult.PASSED
+    skipped > 0 -> AndroidTestCaseResult.SKIPPED
+    else -> AndroidTestCaseResult.SCHEDULED
+  }
+}
+
+/**
+ * Returns a test execution duration rounded down by second if it is longer than a second.
+ */
+fun AndroidTestResults.getRoundedDuration(device: AndroidDevice): Duration? {
+  val duration = getDuration(device) ?: return null
+  return if (duration < Duration.ofSeconds(1)) {
+    duration
+  } else {
+    Duration.ofSeconds(duration.seconds)
+  }
+}
+
+/**
+ * Returns a total test execution duration rounded down by second if it is longer than a second.
+ */
+fun AndroidTestResults.getRoundedTotalDuration(): Duration {
+  val duration = getTotalDuration()
+  return if (duration < Duration.ofSeconds(1)) {
+    duration
+  } else {
+    Duration.ofSeconds(duration.seconds)
+  }
+}
+
+data class AndroidTestResultsTreeNode(
+  val results: AndroidTestResults,
+  val childResults: Sequence<AndroidTestResultsTreeNode>
+)

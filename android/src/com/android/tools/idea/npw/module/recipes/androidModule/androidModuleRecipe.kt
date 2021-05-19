@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.has
@@ -30,9 +31,9 @@ fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
   useKts: Boolean,
-  includeCppSupport: Boolean = false,
-  cppFlags: String,
-  bytecodeLevel: BytecodeLevel
+  bytecodeLevel: BytecodeLevel,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   generateCommonModule(
@@ -45,10 +46,10 @@ fun RecipeExecutor.generateAndroidModule(
       theme = "@style/${data.themesData.main.name}"
     ),
     generateTests= true,
-    includeCppSupport = includeCppSupport,
     themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
     themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
-    cppFlags = cppFlags
+    enableCpp = enableCpp,
+    cppStandard = cppStandard
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames

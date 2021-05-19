@@ -43,10 +43,8 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.FakeMemoryService;
-import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import java.util.Collection;
 import java.util.HashMap;
@@ -80,8 +78,7 @@ public class MemoryServiceProxyTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.BASE, "Version"));
     when(myDevice.isOnline()).thenReturn(true);
 
-    ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
-    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> myTracker,
+    myProxy = new MemoryServiceProxy(myDevice, myGrpcChannel.getChannel(), Runnable::run, (device, process) -> myTracker,
                                      myProxyBytesCache);
 
     // Monitoring two processes simultaneously

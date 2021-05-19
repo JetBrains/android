@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.AssetRepository;
+import com.android.projectmodel.ExternalLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -30,7 +34,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -65,7 +68,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
-    return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, Library::getAssetsFolder)
+    return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, IdeLibrary::getAssetsFolder)
       .map(assetDir -> assetDir.findFileByRelativePath(path))
       .map(assetDir -> {
         if (assetDir == null) {
@@ -133,7 +136,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       return null;
     }
 
-    return getDirectories(myFacet, IdeaSourceProvider::getResDirectories, Library::getResFolder)
+    return getDirectories(myFacet, IdeaSourceProvider::getResDirectories, IdeLibrary::getResFolder)
       .filter(resDir -> VfsUtilCore.isAncestor(resDir, file, true))
       .map(resDir -> {
         try {
@@ -172,20 +175,32 @@ public class AssetRepositoryImpl extends AssetRepository {
    */
   @NotNull
   private static Stream<VirtualFile> getDirectories(@NotNull AndroidFacet facet,
-                                                    @NotNull Function<IdeaSourceProvider, Collection<VirtualFile>> sourceMapper,
-                                                    @NotNull Function<Library, String> aarMapper) {
+                                                    @NotNull Function<IdeaSourceProvider, Iterable<VirtualFile>> sourceMapper,
+                                                    @NotNull Function<IdeLibrary, String> aarMapper) {
     Stream<VirtualFile> dirsFromSources =
       Stream.concat(Stream.of(facet), AndroidUtils.getAllAndroidDependencies(facet.getModule(), true).stream())
         .flatMap(f -> SourceProviderManager.getInstance(f).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders().stream())
         .distinct()
         .map(sourceMapper)
-        .flatMap(Collection::stream);
+        .flatMap(Streams::stream);
 
     VirtualFileManager manager = VirtualFileManager.getInstance();
+
+    // TODO(b/178424022) Library dependencies from project system should be sufficient for asset folder dependencies.
+    //  This should be removed once the bug is resolved.
     Stream<VirtualFile> dirsFromAars = ResourceRepositoryManager.findAarLibraries(facet).stream()
       .map(aarMapper)
       .map(path -> manager.findFileByUrl("file://" + path))
       .filter(Objects::nonNull);
+
+    Stream<VirtualFile> libraryDepAars = Stream.empty();
+    if (StudioFlags.NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM.get()) {
+      libraryDepAars = ProjectSystemUtil.getModuleSystem(facet.getModule()).getResolvedLibraryDependencies().stream()
+        .map(ExternalLibrary::getLocation)
+        .filter((location) -> location != null && location.getFileName().endsWith(".aar"))
+        .map(path -> manager.findFileByUrl("file://" + path.getPortablePath()))
+        .filter(Objects::nonNull);
+    }
 
     Stream<VirtualFile> frameworkDirs = Stream.of(getSdkResDirOrJar(facet))
       .filter(Objects::nonNull)
@@ -200,7 +215,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       .map(dir -> manager.findFileByUrl("file://" + dir.getAbsolutePath()))
       .filter(Objects::nonNull);
 
-    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs)
+    return Stream.of(dirsFromSources, dirsFromAars, frameworkDirs, sampleDataDirs, libraryDepAars)
       .flatMap(stream -> stream);
   }
 

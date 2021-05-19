@@ -44,7 +44,7 @@ interface CommonUsageTracker {
    *
    * @param trigger The event that triggered the render action or null if not known.
    */
-  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, totalRenderTimeMs: Long, wasInflated: Boolean)
+  fun logRenderResult(trigger: LayoutEditorRenderResult.Trigger?, result: RenderResult, wasInflated: Boolean)
 
   /**
    * Logs the given design tools event. This method will return immediately.
@@ -68,11 +68,22 @@ interface CommonUsageTracker {
   }
 }
 
+/**
+ * Adds the application id information to the event.
+ */
 fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStudioEvent.Builder {
   getApplicationId(facet)?.let {
     setRawProjectId(it).setProjectId(AnonymizerUtil.anonymizeUtf8(it))
   }
   return this
+}
+
+/**
+ * Adds the application id information to the event.
+ */
+fun AndroidStudioEvent.Builder.setApplicationId(surface: DesignSurface?): AndroidStudioEvent.Builder {
+  val facet = surface?.models?.map { it.facet }?.firstOrNull() ?: return this
+  return setApplicationId(facet)
 }
 
 internal fun getApplicationId(facet: AndroidFacet): String? {

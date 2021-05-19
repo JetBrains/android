@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule

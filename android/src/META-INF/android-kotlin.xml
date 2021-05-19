@@ -31,7 +31,12 @@
         </intentionAction>
 
         <intentionAction>
-            <className>org.jetbrains.kotlin.android.intention.ComposeSurroundWithWidget</className>
+            <className>org.jetbrains.android.compose.intentions.ComposeSurroundWithWidgetActionGroup</className>
+            <category>Compose Android</category>
+        </intentionAction>
+
+        <intentionAction>
+            <className>org.jetbrains.android.compose.intentions.ComposeCreatePreviewAction</className>
             <category>Compose Android</category>
         </intentionAction>
 
@@ -91,12 +96,16 @@
         <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>
         <gradleModelFacade implementation="org.jetbrains.kotlin.android.configure.AndroidGradleModelFacade"/>
 
+        <!-- FIXME-ank5: copy to android-kotlin-extensions-common.xml (?) -->
+        <quickFixContributor implementation="org.jetbrains.android.compose.intentions.ComposeDelegateStateImportFixContributor"/>
+
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
         <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
         <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+        <additionalExtractableAnalyser implementation="org.jetbrains.android.compose.ComposableFunctionExtractableAnalyser"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">

@@ -6,11 +6,12 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
@@ -19,5 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

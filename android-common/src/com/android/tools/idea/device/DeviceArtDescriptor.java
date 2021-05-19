@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device;
+package com.android.tools.adtui.device;
 
 import static com.android.utils.XmlUtils.getSubTags;
 
 import com.android.SdkConstants;
 import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -76,15 +77,18 @@ public class DeviceArtDescriptor {
 
     // In development environments, search a few other folders
     String basePath = PathManager.getHomePath();
-    String[] paths = new String[] {
-      FileUtil.join("plugins", "android"),
-      FileUtil.join("..", "adt", "idea", "artwork", "resources"),
-      FileUtil.join("android", "artwork", "resources"),
-      FileUtil.join("community", "android", "artwork", "resources"),
+    String[] paths = new String[]{
+      FileUtil.join(basePath, "plugins", "android"),
+      StudioPathManager.isRunningFromSources()
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools", "adt", "idea", "artwork", "resources")
+      : null,
+      FileUtil.join(basePath, "android", "artwork", "resources"),
+      FileUtil.join(basePath, "community", "android", "artwork", "resources"),
     };
 
     for (String p : paths) {
-      File base = new File(basePath, p);
+      if (p == null) continue;
+      File base = new File(p);
       if (base.isDirectory()) {
         File files = new File(base, FN_BASE);
         if (files.isDirectory()) {

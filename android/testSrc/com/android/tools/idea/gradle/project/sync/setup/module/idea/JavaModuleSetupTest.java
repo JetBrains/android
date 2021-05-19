@@ -15,29 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 /**
@@ -57,7 +42,6 @@ public class JavaModuleSetupTest extends PlatformTestCase {
     initMocks(this);
     myModuleSetup = new JavaModuleSetup(mySetupStep1, mySetupStep2);
     when(myContext.getModule()).thenReturn(myModule);
-    when(myJavaModel.getSyncIssues()).thenReturn(ImmutableList.of());
   }
 
   public void testSetUpModule() {

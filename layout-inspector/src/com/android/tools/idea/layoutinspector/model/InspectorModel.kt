@@ -16,26 +16,31 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.memory.InspectorMemoryProbe
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.transport.DisconnectedClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
-import java.awt.Color
-import java.awt.image.BufferedImage
 import kotlin.properties.Delegates
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY = "android.ddms.notification.layoutinspector.reboot.live.inspector"
-const val DIMMER_QNAME = "DIM_BEHIND"
 
-class InspectorModel(val project: Project) {
+class InspectorModel(val project: Project) : ViewNodeAndResourceLookup {
+  override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
-  val modificationListeners = mutableListOf<(ViewNode?, ViewNode?, Boolean) -> Unit>()
+  /** Callback taking (oldWindow, newWindow, isStructuralChange */
+  val modificationListeners = mutableListOf<(AndroidWindow?, AndroidWindow?, Boolean) -> Unit>()
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  val resourceLookup = ResourceLookup(project)
+  val stats = SessionStatistics()
+  var lastGeneration = 0
+  var updating = false
 
-  private fun findSubimages(root: ViewNode?) =
-    root?.flatten()?.minus(root)?.any { it.imageBottom != null || it.imageTop != null } == true
+  @Suppress("unused")
+  private val memoryProbe = InspectorMemoryProbe(this)
 
   var selection: ViewNode? by Delegates.observable(null as ViewNode?) { _, old, new ->
     if (new != old) {
@@ -50,21 +55,21 @@ class InspectorModel(val project: Project) {
     }
   }
 
-  private val roots = mutableMapOf<Any, ViewNode>()
-  // dummy node to hold the roots of the current windows.
-  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, "", 0)
+  val windows = mutableMapOf<Any, AndroidWindow>()
+  // synthetic node to hold the roots of the current windows.
+  val root = ViewNode(-1, "root - hide", null, 0, 0, 0, 0, null, null, "", 0)
 
-  var hasSubImages = false
-    private set
+  val hasSubImages
+    get() = windows.values.any { it.hasSubImages }
 
   /** Whether there are currently any views in this model */
   val isEmpty
-    get() = root.children.isEmpty()
+    get() = windows.isEmpty()
 
   /**
    * Get a ViewNode by drawId
    */
-  operator fun get(id: Long) = root.flatten().find { it.drawId == id }
+  override operator fun get(id: Long) = root.flatten().find { it.drawId == id }
 
   /**
    * Get a ViewNode by viewId name
@@ -72,83 +77,82 @@ class InspectorModel(val project: Project) {
   operator fun get(id: String) = root.flatten().find { it.viewId?.name == id }
 
   /**
-   * Update [root]'s bounds and children based on any updates to [roots]
+   * Update [root]'s bounds and children based on any updates to [windows]
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */
   private fun updateRoot(allIds: List<*>) {
     root.children.clear()
-    val maxWidth = roots.values.map { it.width }.max() ?: 0
-    val maxHeight = roots.values.map { it.height }.max() ?: 0
-    root.width = maxWidth
-    root.height = maxHeight
-    for (id in allIds) {
-      val viewNode = roots[id] ?: continue
-      if (viewNode.isDimBehind) {
-        val dimmer = ViewNode(-1, DIMMER_QNAME, null, 0, 0, maxWidth, maxHeight, null, "", 0)
-        if (maxWidth > 0 && maxHeight > 0) {
-          // TODO: subclass ViewNode so we don't have to create and hold on to this image
-          val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
-          dimmer.imageBottom = image
-          val graphics = image.graphics
-          graphics.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
-          graphics.fillRect(0, 0, maxWidth, maxHeight)
+    ViewNode.writeDrawChildren { drawChildren ->
+      root.drawChildren().clear()
+      val maxWidth = windows.values.map { it.width }.max() ?: 0
+      val maxHeight = windows.values.map { it.height }.max() ?: 0
+      root.width = maxWidth
+      root.height = maxHeight
+      for (id in allIds) {
+        val window = windows[id] ?: continue
+        if (window.isDimBehind) {
+          root.drawChildren().add(Dimmer(root))
         }
-        root.children.add(dimmer)
-        dimmer.parent = root
+        root.drawChildren().add(DrawViewChild(window.root))
+        root.children.add(window.root)
+        window.root.parent = root
       }
-      root.children.add(viewNode)
-      viewNode.parent = root
     }
   }
 
-  fun updateConnection(client: InspectorClient?) {
+  fun updateConnection(client: InspectorClient) {
     connectionListeners.forEach { it(client) }
     updateConnectionNotification(client)
+    updateStats(client)
   }
 
-  private fun updateConnectionNotification(client: InspectorClient?) {
+  private fun updateConnectionNotification(client: InspectorClient) {
     InspectorBannerService.getInstance(project).notification =
       if (client is LegacyClient && client.selectedStream.device.apiLevel >= 29)
         StatusNotificationImpl(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY), emptyList())
       else null
   }
 
+  private fun updateStats(client: InspectorClient) {
+    if (client != DisconnectedClient) {
+      stats.start(client.isCapturing)
+    }
+  }
+
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
+   * This removes drawChildren from all existing [ViewNode]s. [AndroidWindow.refreshImages] must be called on newWindow after to regenerate
+   * them.
    */
-  fun update(newRoot: ViewNode?, id: Any, allIds: List<*>) {
-    var structuralChange: Boolean = roots.keys.retainAll(allIds)
-    val oldRoot = roots[id]
-    // changes in DIM_BEHIND will cause a structural change
-    structuralChange = structuralChange || (newRoot?.isDimBehind != oldRoot?.isDimBehind)
-    if (newRoot == oldRoot && !structuralChange) {
-      return
-    }
-    if (newRoot?.drawId != oldRoot?.drawId || newRoot?.qualifiedName != oldRoot?.qualifiedName) {
-      if (newRoot != null) {
-        roots[id] = newRoot
+  fun update(newWindow: AndroidWindow?, allIds: List<*>, generation: Int) {
+    updating = true
+    var structuralChange: Boolean = windows.keys.retainAll(allIds)
+    val oldWindow = windows[newWindow?.id]
+    if (newWindow != null) {
+      // changes in DIM_BEHIND will cause a structural change
+      structuralChange = structuralChange || (newWindow.isDimBehind != oldWindow?.isDimBehind)
+      if (newWindow == oldWindow && !structuralChange) {
+        return
       }
-      else {
-        roots.remove(id)
-      }
-      structuralChange = true
-    }
-    else {
-      if (oldRoot == null || newRoot == null) {
+      if (newWindow.root.drawId != oldWindow?.root?.drawId || newWindow.root.qualifiedName != oldWindow.root.qualifiedName) {
+        windows[newWindow.id] = newWindow
         structuralChange = true
       }
       else {
-        val updater = Updater(oldRoot, newRoot)
+        oldWindow.imageType = newWindow.imageType
+        oldWindow.payloadId = newWindow.payloadId
+        val updater = Updater(oldWindow.root, newWindow.root)
         structuralChange = updater.update() || structuralChange
       }
     }
 
     updateRoot(allIds)
-    hasSubImages = root.children.any { findSubimages(it) }
-    modificationListeners.forEach { it(oldRoot, roots[id], structuralChange) }
+    lastGeneration = generation
+    updating = false
+    modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
   }
 
-  fun notifyModified() = modificationListeners.forEach { it(root, root, false) }
+  fun notifyModified() = modificationListeners.forEach { it(null, null, false) }
 
   private class Updater(private val oldRoot: ViewNode, private val newRoot: ViewNode) {
     private val oldNodes = oldRoot.flatten().asSequence().filter{ it.drawId != 0L }.associateBy { it.drawId }
@@ -161,24 +165,24 @@ class InspectorModel(val project: Project) {
       var modified = (parent != oldNode.parent) || !sameChildren(oldNode, newNode)
       // TODO: should changes below cause modified to be set to true?
       // Maybe each view should have its own modification listener that can listen for such changes?
-      oldNode.imageBottom = newNode.imageBottom
-      oldNode.imageTop = newNode.imageTop
       oldNode.width = newNode.width
       oldNode.height = newNode.height
       oldNode.qualifiedName = newNode.qualifiedName
       oldNode.layout = newNode.layout
       oldNode.x = newNode.x
       oldNode.y = newNode.y
+      oldNode.setTransformedBounds(newNode.transformedBounds)
       oldNode.layoutFlags = newNode.layoutFlags
-      oldNode.imageType = newNode.imageType
       oldNode.parent = parent
       if (oldNode is ComposeViewNode && newNode is ComposeViewNode) {
         oldNode.composeFilename = newNode.composeFilename
-        oldNode.composeMethod = newNode.composeMethod
+        oldNode.composePackageHash = newNode.composePackageHash
+        oldNode.composeOffset = newNode.composeOffset
         oldNode.composeLineNumber = newNode.composeLineNumber
       }
 
       oldNode.children.clear()
+      ViewNode.writeDrawChildren { drawChildren -> oldNode.drawChildren().clear() }
       for (newChild in newNode.children) {
         val oldChild = oldNodes[newChild.drawId]
         if (oldChild != null && oldChild.javaClass == newChild.javaClass) {

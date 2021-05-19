@@ -57,9 +57,9 @@ public class DebuggerTestUtil {
 
   private final static int GRADLE_SYNC_TIMEOUT = 60;
 
-  public static void setDebuggerType(@NotNull IdeFrameFixture ideFrameFixture,
-                       @NotNull String type) {
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+  static void setDebuggerType(@NotNull IdeFrameFixture ideFrameFixture, @NotNull String type) {
+    ideFrameFixture.waitAndInvokeMenuPath("Run", "Edit Configurations...");
+
     EditConfigurationsDialogFixture.find(ideFrameFixture.robot())
       .selectDebuggerType(type)
       .clickOk();
@@ -77,10 +77,7 @@ public class DebuggerTestUtil {
                                                                         @NotNull String configName,
                                                                         @NotNull String avdName,
                                                                         @NotNull Wait wait) {
-    ideFrameFixture.debugApp(configName, avdName);
-
-    // Wait for background tasks to finish before requesting Debug Tool Window. Otherwise Debug Tool Window won't activate.
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), wait);
+    ideFrameFixture.debugApp(configName, avdName, wait);
 
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
 

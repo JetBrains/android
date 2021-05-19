@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -42,7 +42,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
 public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
-  @Mock private SyncIssue mySyncIssue;
+  @Mock private IdeSyncIssue mySyncIssue;
   @Mock private GradleSettings myGradleSettings;
 
   private GradleSyncMessagesStub mySyncMessages;

@@ -14,7 +14,9 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -38,15 +40,21 @@ import java.util.Map;
  *   <li>{@link #toMap()}<li/>
  * <ul/>
  */
-public interface GradlePropertyModel {
+public interface GradlePropertyModel extends PsiElementHolder {
   @NotNull
   String DOUBLE_QUOTES = "\"";
+
+  /**
+   * @return the model property holder. For {@link ResolvedPropertyModel} this means the unresolved model property holder.
+   */
+  @NotNull
+  GradleDslElement getRawPropertyHolder();  // FIXME-ank5: real type is GradleDslElement
 
   /**
    * @return instance of GradleDslElement, which is not accessible from this module
    */
   @Nullable
-  Object getRawElement(); // FIXME-ank4: real type is GradleDslElement
+  GradleDslElement getRawElement(); // FIXME-ank4: real type is GradleDslElement
 
   /**
    * Converts a string to one that can be used to set interpolated strings using {@link #setValue(Object)}
@@ -248,12 +256,6 @@ public interface GradlePropertyModel {
    */
   @NotNull
   GradlePropertyModel getUnresolvedModel();
-
-  /**
-   * @return the {@link PsiElement} that this property originated from. E.g "propertyName = 'some value $here'"
-   */
-  @Nullable
-  PsiElement getPsiElement();
 
   /**
    * @return the {@link PsiElement} that contains the expression of this property, if applicable. E.g "'some value $here'".

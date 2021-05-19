@@ -16,12 +16,16 @@
 package com.android.tools.idea.lint.common
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
+import com.android.tools.lint.client.api.LintClient
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
+import com.intellij.analytics.AndroidStudioAnalytics
+import com.intellij.analytics.NullAndroidStudioAnalytics
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass.IntentionsInfo
 import com.intellij.codeInsight.intention.IntentionAction
@@ -30,7 +34,6 @@ import com.intellij.codeInspection.GlobalInspectionTool
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper
 import com.intellij.codeInspection.ex.InspectionToolWrapper
 import com.intellij.ide.highlighter.ModuleFileType
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.ex.PathManagerEx
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
@@ -53,12 +56,17 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
 import junit.framework.TestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 
 class LintIdeTest : UsefulTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
+
   private lateinit var myFixture: JavaCodeInsightTestFixture
   private lateinit var myModule: Module
   override fun setUp() {
@@ -85,6 +93,7 @@ class LintIdeTest : UsefulTestCase() {
     myModule = moduleFixtureBuilder.fixture!!.module
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     fixture.allowTreeAccessForAllFiles()
+    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics())
   }
 
   override fun tearDown() {
@@ -221,6 +230,44 @@ class LintIdeTest : UsefulTestCase() {
     assertEquals(support.getPlatforms(), issue.platforms)
   }
 
+  fun testLintJar() {
+    // This lint test checks two things:
+    // (1) loading custom lint jars from a lint.xml works in the IDE in a non-Android project 1
+    // (2) the specific lint check has a quickfix which tests some advanced scenarios of
+    //     the replace string quickfix. This is done via a custom loaded lint check because 1
+    //     it tests a scenario (quickfixes modifying different files than the one where the
+    //     issue is flagged) that none of the built-in checks uses, but is required by some
+    //     third party checks
+    // (See tools/base's LintFixVerifierTest for the implementation of this custom lint check
+    //  jar and a comment on the bottom of the file for how to update it)
+    try {
+      AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(true)
+      myFixture.copyFileToProject("$globalTestDir/build.gradle", "build.gradle")
+      myFixture.copyFileToProject("$globalTestDir/lint.xml", "lint.xml")
+      myFixture.copyFileToProject("$globalTestDir/lint-fix-verifier.jar", "lint-fix-verifier.jar")
+      myFixture.copyFileToProject("$globalTestDir/lint-strings.jar", "lint-strings.jar")
+      val file = myFixture.copyFileToProject("$globalTestDir/Test.java", "src/test/pkg/Test.java")
+      myFixture.configureFromExistingVirtualFile(file)
+      myFixture.doHighlighting()
+      myFixture.checkHighlighting(true, false, false)
+
+      val action = getIntentionAction("Update build.gradle")
+      assertNotNull(action)
+      action!!
+
+      TestCase.assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
+      WriteCommandAction.writeCommandAction(myFixture.project).run(
+        ThrowableRunnable<Throwable?> {
+          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+        })
+      myFixture.checkResultByFile("build.gradle",
+                                  "$globalTestDir/build.gradle_after", true)
+
+    } finally {
+      AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
+    }
+  }
+
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase) {
     myFixture.enableInspections(inspection)
     doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
@@ -353,6 +400,11 @@ class LintIdeTest : UsefulTestCase() {
 
   class LintModuleFixtureBuilderImpl(fixtureBuilder: TestFixtureBuilder<out IdeaProjectTestFixture>)
     : JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>(fixtureBuilder), LintModuleFixtureBuilder<ModuleFixtureImpl> {
+
+    init {
+      JavaCodeInsightFixtureAdtTestCase.addJdk(this)
+    }
+
     private var myModuleRoot: File? = null
     override fun setModuleRoot(moduleRoot: String) {
       val file = File(moduleRoot)
@@ -385,7 +437,7 @@ class LintIdeTest : UsefulTestCase() {
     // For now lint is co-located with the Android plugin
     private val androidPluginHome: String
       get() {
-        val adtPath = Paths.get(PathManager.getHomePath(), "../adt/idea", "android").normalize()
+        val adtPath = Paths.get(StudioPathManager.getSourcesRoot(), "tools/adt/idea", "android").normalize()
         return if (Files.exists(adtPath))
           adtPath.toString()
         else

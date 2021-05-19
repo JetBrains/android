@@ -46,6 +46,10 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
+    if (DesignerActionUtils.isActionEventFromJTextField(event)) {
+      event.getPresentation().setEnabled(false);
+      return;
+    }
     super.update(event);
     DesignSurface surface = event.getData(DesignerDataKeys.DESIGN_SURFACE);
     Presentation presentation = event.getPresentation();
@@ -74,7 +78,7 @@ public class IssueNotificationAction extends ToggleAction {
     DesignSurface surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
     if (surface != null) {
       surface.getAnalyticsManager().trackShowIssuePanel();
-      surface.setShowIssuePanel(state);
+      surface.setShowIssuePanel(state, true);
     }
   }
 

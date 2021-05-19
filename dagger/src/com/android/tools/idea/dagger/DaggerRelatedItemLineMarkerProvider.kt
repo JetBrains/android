@@ -82,6 +82,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
       parent.isDaggerModule -> getIconAndGoToItemsForModule(parent)
       parent.isDaggerComponent -> getIconAndGoToItemsForComponent(parent)
       parent.isDaggerSubcomponent -> getIconAndGoToItemsForSubcomponent(parent)
+      parent.isDaggerComponentInstantiationMethod || parent.isDaggerEntryPointInstantiationMethod -> getIconAndGoToItemsForComponentMethod(
+        parent)
       else -> return
     }
 
@@ -123,9 +125,15 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
           when (group) {
             message("modules.included") -> message("navigate.to.included.module", fromElementString, toElementString)
-            message("providers") -> message("navigate.to.provider", fromElementString, toElementString)
+            message("providers") -> if (targetElement.isDaggerConsumer) {
+              message("navigate.to.provider", fromElementString, toElementString)
+            }
+            else {
+              message("navigate.to.provider.from.component", fromElementString, toElementString)
+            }
             message("consumers") -> message("navigate.to.consumer", fromElementString, toElementString)
             message("exposed.by.components") -> message("navigate.to.component.exposes", fromElementString, toElementString)
+            message("exposed.by.entry.points") -> message("navigate.to.component.exposes", fromElementString, toElementString)
             message("parent.components") -> message("navigate.to.parent.component", fromElementString, toElementString)
             message("subcomponents") -> message("navigate.to.subcomponent", fromElementString, toElementString)
             message("included.in.components") -> message("navigate.to.component.that.include", fromElementString, toElementString)
@@ -204,16 +212,21 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     ProgressManager.checkCanceled()
+    val entryPoints = getDaggerEntryPointsMethodsForProvider(provider).map {
+      GotoItemWithAnalyticsTracking(provider, it, message("exposed.by.entry.points"), it.parentOfType<PsiClass>()?.name)
+    }
 
-    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components)
+    return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, consumers + components + entryPoints)
   }
-
-  private fun getIconAndGoToItemsForConsumer(consumer: PsiElement) = getProvidersFor(consumer)
 
   private fun getProvidersFor(consumer: PsiElement): Pair<Icon, List<GotoRelatedItem>> {
     val gotoTargets = getDaggerProvidersFor(consumer).map { GotoItemWithAnalyticsTracking(consumer, it, message("providers")) }
     return Pair(StudioIcons.Misc.DEPENDENCY_PROVIDER, gotoTargets)
   }
+
+  private fun getIconAndGoToItemsForConsumer(consumer: PsiElement) = getProvidersFor(consumer)
+
+  private fun getIconAndGoToItemsForComponentMethod(method: PsiElement) = getProvidersFor(method)
 }
 
 /**

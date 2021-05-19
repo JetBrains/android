@@ -18,7 +18,6 @@ package com.android.tools.idea.run;
 import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
-import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
@@ -27,11 +26,8 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DeploymentService {
-
-  private final Project project;
 
   private final ExecutorService service;
 
@@ -40,16 +36,12 @@ public class DeploymentService {
   private final NotNullLazyValue<SqlApkFileDatabase> dexDatabase;
   private final NotNullLazyValue<DeploymentCacheDatabase> deploymentCacheDatabase;
 
-  @Nullable
-  private DeployableProvider myDeployableProvider = null;
-
   @NotNull
   public static DeploymentService getInstance(@NotNull Project project) {
     return project.getService(DeploymentService.class);
   }
 
-  private DeploymentService(@NotNull Project project) {
-    this.project = project;
+  private DeploymentService() {
     service = Executors.newFixedThreadPool(5);
     runner = new TaskRunner(service);
 
@@ -70,14 +62,5 @@ public class DeploymentService {
 
   public DeploymentCacheDatabase getDeploymentCacheDatabase() {
     return deploymentCacheDatabase.getValue();
-  }
-
-  public void setDeployableProvider(@Nullable DeployableProvider provider) {
-    myDeployableProvider = provider;
-  }
-
-  @Nullable
-  public DeployableProvider getDeployableProvider() {
-    return myDeployableProvider;
   }
 }

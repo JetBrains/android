@@ -17,6 +17,7 @@ package com.android.tools.idea.sampledata.datasource;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.base.Charsets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,14 +34,7 @@ import java.util.function.Function;
 
 public class ResourceContent implements Function<OutputStream, Exception> {
   private static final Logger LOG = Logger.getInstance(ResourceContent.class);
-  private static final String[] LIB_CUSTOM_PATHS = {
-    // Bundled path
-    "/plugins/android/lib/sampleData",
-    // Development path
-    "/../adt/idea/android/lib/sampleData",
-    // IDEA plugin Development path
-    "/community/android/android/lib/sampleData"
-  };
+
 
   byte[] myContent;
 
@@ -54,10 +48,18 @@ public class ResourceContent implements Function<OutputStream, Exception> {
   @Nullable
   public static File getSampleDataBaseDir() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
+    final String[] paths = {
+      FileUtil.join(homePath, "plugins/android/lib/sampleData"), // Bundled path
+      StudioPathManager.isRunningFromSources()
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/lib/sampleData")
+      : null, // Development path
+      FileUtil.join(homePath, "/community/android/android/lib/sampleData") // IDEA plugin Development path
+    };
 
     StringBuilder notFoundPaths = new StringBuilder();
-    for (String path : LIB_CUSTOM_PATHS) {
-      String jarPath = homePath + path;
+    for (String jarPath : paths) {
+      if (jarPath == null) continue;
+
       File rootFile = new File(jarPath);
       if (rootFile.exists()) {
         LOG.debug("Sample data base dir found at " + jarPath);

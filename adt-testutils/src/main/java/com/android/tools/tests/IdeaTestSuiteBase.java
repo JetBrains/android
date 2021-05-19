@@ -20,7 +20,6 @@ import static com.android.testutils.TestUtils.getWorkspaceRoot;
 import com.android.repository.io.FileOpUtils;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
-import com.android.testutils.BazelRunfilesManifestProcessor;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
 import com.intellij.testFramework.TestApplicationManager;
@@ -29,6 +28,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -38,7 +39,6 @@ public class IdeaTestSuiteBase {
   static {
     try {
       System.setProperty("NO_FS_ROOTS_ACCESS_CHECK", "true"); // Bazel tests are sandboxed so we disable VfsRoot checks.
-      BazelRunfilesManifestProcessor.setUpRunfiles();
       setProperties();
       setupKotlinPlugin();
     } catch(Throwable e) {
@@ -49,11 +49,14 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setProperties() {
-    System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+    if (!isUnbundledBazelTestTarget()) {
+      System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+    }
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().getPath());
-    System.setProperty("gradle.user.home", createTmpDir("home").toString());
+    System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
+    System.setProperty("user.home", TMP_DIR);
 
     // Set roots for java.util.prefs API.
     System.setProperty("java.util.prefs.userRoot", createTmpDir("userRoot").toString());
@@ -61,7 +64,7 @@ public class IdeaTestSuiteBase {
 
     System.setProperty("local.gradle.distribution.path", new File(getWorkspaceRoot(), "tools/external/gradle/").getAbsolutePath());
     // See AndroidLocation.java for more information on this system property.
-    System.setProperty("ANDROID_SDK_HOME", createTmpDir(".android").toString());
+    System.setProperty("ANDROID_PREFS_ROOT", createTmpDir(".android").toString());
     System.setProperty("layoutlib.thread.timeout", "60000");
     // When running tests from the IDE, IntelliJ allows plugin descriptors to be anywhere if a plugin.xml is found in a directory.
     // On bazel we pack each directory in a jar, so we have to tell IJ explicitely that we are still "in directory mode"
@@ -185,5 +188,42 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /** @return true if the current Bazel test uses unbundled SDK. */
+  public static boolean isUnbundledBazelTestTarget() {
+    String classPath = System.getProperty("java.class.path", "");
+    if (!classPath.endsWith("classpath.jar")) {
+      return containsPrebuiltSdk(classPath);
+    }
+
+    // Looks like using JAR Manifest for classpath.
+    Path dir = Paths.get(classPath).getParent();
+    try(JarFile jarFile = new JarFile(classPath)) {
+      Manifest mf = jarFile.getManifest();
+      String classPathList = mf.getMainAttributes().getValue("Class-Path");
+      String[] paths = classPathList.split(" ");
+      for (String path : paths) {
+        // Paths are relative to the directory of the classpath.jar file, and
+        // may contain symlinks, so we must convert them to realpath.
+        try {
+          String realPath = dir.resolve(path).toRealPath().toString();
+          if (containsPrebuiltSdk(realPath)) {
+            return true;
+          }
+        } catch (IOException e) {
+          // Fall through. Try the next path.
+        }
+      }
+    } catch (IOException|IllegalArgumentException e) {
+      return false;
+    }
+
+    return false;
+  }
+
+  private static boolean containsPrebuiltSdk(@NotNull String path) {
+    return path.contains("prebuilts/studio/intellij-sdk/") ||
+           path.contains("prebuilts\\studio\\intellij-sdk\\");
   }
 }

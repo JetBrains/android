@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Tests actions with the same ID but are scoped to different parents, so there shouldn't be any conflict. -->
+
+<navigation
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:startDestination="@id/scoped_action_main_fragment">
+
+    <fragment
+            android:id="@+id/scoped_action_main_fragment"
+            android:name=".ScopedActionMainFragment">
+        <action
+                android:id="@+id/start_inner_nav"
+                app:destination="@id/scoped_action_inner_nav"/>
+    </fragment>
+    <navigation
+            android:id="@+id/scoped_action_inner_nav"
+            app:startDestination="@id/scoped_action_main_fragment">
+        <action
+                android:id="@+id/main"
+                app:destination="@id/scoped_action_main_fragment">
+            <argument android:name="enterReason" android:defaultValue="DEFAULT"/>
+        </action>
+        <action
+                android:id="@+id/exit"
+                app:destination="@id/scoped_action_main_fragment">
+            <argument android:name="exitReason" android:defaultValue="DEFAULT"/>
+        </action>
+        <fragment
+                android:id="@+id/scoped_actions_inner_fragment"
+                android:name=".ScopedActionsInnerFragment">
+        </fragment>
+        <navigation
+                android:id="@+id/scoped_action_inner_inner_nav"
+                app:startDestination="@id/scoped_actions_inner_inner_fragment">
+            <action
+                    android:id="@+id/exit"
+                    app:destination="@id/scoped_action_main_fragment">
+                <argument android:name="exitReason" app:argType="integer"/>
+            </action>
+            <fragment
+                    android:id="@+id/scoped_actions_inner_inner_fragment"
+                    android:name=".ScopedActionsInnerInnerFragment"/>
+        </navigation>
+    </navigation>
+</navigation>

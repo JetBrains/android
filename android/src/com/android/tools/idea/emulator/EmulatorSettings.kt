@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -31,7 +30,7 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
   private var initialized = false
 
   var launchInToolWindow = false
-    get() = field && StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()
+    get() = field
     set(value) {
       if (field != value) {
         field = value
@@ -41,6 +40,8 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
         }
       }
     }
+
+  var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 
   /**
    * Show the "AVD launched standalone" notification for a TV or automotive AVD.
@@ -70,4 +71,12 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
       return ApplicationManager.getApplication().getService(EmulatorSettings::class.java)
     }
   }
+
+  enum class SnapshotAutoDeletionPolicy(val displayName: String) {
+    DELETE_AUTOMATICALLY("Delete automatically"),
+    ASK_BEFORE_DELETING("Ask before deleting"),
+    DO_NOT_DELETE("Do not delete")
+  }
 }
+
+val DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY = EmulatorSettings.SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING

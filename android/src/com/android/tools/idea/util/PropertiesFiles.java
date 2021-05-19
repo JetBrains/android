@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.util;
 
-import com.google.common.base.Charsets;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.nio.charset.StandardCharsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.Properties;
-
-import static com.intellij.openapi.util.io.FileUtilRt.createParentDirs;
 
 public final class PropertiesFiles {
   private PropertiesFiles() {
@@ -30,29 +32,41 @@ public final class PropertiesFiles {
 
   @NotNull
   public static Properties getProperties(@NotNull File filePath) throws IOException {
-    if (filePath.isDirectory()) {
-      throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", filePath.getPath()));
-    }
-    if (!filePath.exists()) {
-      return new Properties();
-    }
-    Properties properties = new Properties();
-    try (Reader reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(filePath)), Charsets.UTF_8)) {
-      properties.load(reader);
-    }
-    return properties;
+    return ReadAction.compute(() -> {
+      VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, false);
+      if (virtualFile == null) {
+        return new Properties();
+      }
+      if (virtualFile.isDirectory()) {
+        throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", filePath.getPath()));
+      }
+      Properties properties = new Properties();
+      try (Reader reader = new InputStreamReader(virtualFile.getInputStream(), StandardCharsets.UTF_8)) {
+        properties.load(reader);
+      }
+      return properties;
+    });
   }
 
   public static void savePropertiesToFile(@NotNull Properties properties, @NotNull File filePath, @Nullable String comments)
     throws IOException {
-    createParentDirs(filePath);
-    try (FileOutputStream out = new FileOutputStream(filePath)) {
-      // Note that we don't write the properties files in UTF-8; this will *not* write the
-      // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
-      // \\u escaping syntax for other characters. This will work with older versions of the Gradle
-      // plugin which does not read the .properties file with UTF-8 encoding. In the future when
-      // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
-      properties.store(out, comments);
-    }
+    WriteAction.computeAndWait(
+      () -> {
+        VirtualFile directory = VfsUtil.createDirectoryIfMissing(filePath.getParent());
+        if (directory == null) {
+          throw new IllegalStateException("Cannot find or create a VFS file for directory: " + filePath.getParent());
+        }
+        VirtualFile virtualFile = directory.findOrCreateChildData(PropertiesFiles.class, filePath.getName());
+        try (OutputStream out = virtualFile.getOutputStream(PropertiesFiles.class)) {
+          // Note that we don't write the properties files in UTF-8; this will *not* write the
+          // files with the default platform encoding; instead, it will write it using ISO-8859-1 and
+          // \\u escaping syntax for other characters. This will work with older versions of the Gradle
+          // plugin which does not read the .properties file with UTF-8 encoding. In the future when
+          // nobody is using older (0.7.x) versions of the Gradle plugin anymore we can upgrade this
+          properties.store(out, comments);
+        }
+        return null;
+      }
+    );
   }
 }

@@ -192,7 +192,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   @NotNull
   public static Map<String, VirtualFile> getSubProjects(@NotNull final VirtualFile settingsGradle, Project destinationProject) {
     GradleSettingsModel gradleSettingsModel = GradleSettingsModel.get(settingsGradle, destinationProject);
-    List<String> paths = gradleSettingsModel.modulePaths();
+    Iterable<String> paths = gradleSettingsModel.modulePaths();
     Map<String, File> allProjects = new LinkedHashMap<>();
     for (String path : paths) {
       // Exclude the root path.

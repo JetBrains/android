@@ -35,7 +35,6 @@ import com.android.tools.idea.naveditor.model.effectiveDestination
 import com.android.tools.idea.naveditor.model.getActionType
 import com.android.tools.idea.naveditor.model.getEffectiveSource
 import kotlin.math.acos
-import kotlin.math.pow
 import kotlin.math.sin
 
 val SELF_ACTION_LENGTHS = arrayOf(28f, 26f, 60f, 8f).map { scaledAndroidLength(it) }
@@ -115,23 +114,6 @@ enum class ConnectionDirection(val deltaX: Int, val deltaY: Int) {
   LEFT(-1, 0), RIGHT(1, 0), TOP(0, -1), BOTTOM(0, 1);
 }
 
-data class CurvePoints(val p1: SwingPoint,
-                       val p2: SwingPoint,
-                       val p3: SwingPoint,
-                       val p4: SwingPoint,
-                       val dir: ConnectionDirection) {
-  fun curvePoint(t: Float) =
-    SwingPoint(curveX(t), curveY(t))
-
-  private fun curveX(t: Float) =
-    SwingX(curveValue(p1.x.value, p2.x.value, p3.x.value, p4.x.value, t))
-
-  private fun curveY(t: Float) =
-    SwingY(curveValue(p1.y.value, p2.y.value, p3.y.value, p4.y.value, t))
-
-  private fun curveValue(p1: Float, p2: Float, p3: Float, p4: Float, t: Float) =
-    (1 - t).pow(3f) * p1 + 3 * (1 - t).pow(2f) * t * p2 + 3 * (1 - t) * t.pow(2f) * p3 + t.pow(3f) * p4
-}
 
 private fun getConnectionPoint(rectangle: SwingRectangle,
                                direction: ConnectionDirection): SwingPoint {

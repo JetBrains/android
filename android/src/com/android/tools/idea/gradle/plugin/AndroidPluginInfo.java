@@ -42,6 +42,7 @@ public class AndroidPluginInfo {
   public static final String APPLICATION_PLUGIN_ID = "com.android.application";
   public static final String DESCRIPTION = "Android Gradle plugin";
   public static final String ARTIFACT_ID = "gradle";
+  public static final String API_ARTIFACT_ID = "gradle-api";
   public static final String GROUP_ID = "com.android.tools.build";
 
   @NotNull private final Module myModule;
@@ -201,6 +202,10 @@ public class AndroidPluginInfo {
 
   public static boolean isAndroidPlugin(@NotNull String artifactId, @com.android.annotations.Nullable String groupId) {
     return ARTIFACT_ID.equals(artifactId) && GROUP_ID.equals(groupId);
+  }
+
+  public static boolean isAndroidPluginOrApi(@NotNull String artifactId, @Nullable String groupId) {
+    return isAndroidPlugin(artifactId, groupId) || API_ARTIFACT_ID.equals(artifactId) && GROUP_ID.equals(groupId);
   }
 
   private static class BuildFileSearchResult {

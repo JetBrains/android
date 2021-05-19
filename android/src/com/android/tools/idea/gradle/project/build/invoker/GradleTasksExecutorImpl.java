@@ -36,9 +36,9 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
-import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.BuildSettings;
@@ -56,7 +56,6 @@ import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerManagerImpl;
 import com.intellij.openapi.application.Application;
@@ -70,6 +69,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -244,13 +244,13 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           commandLineArguments.add(PARALLEL_BUILD_OPTION);
         }
 
-        commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
 
         AndroidSupportVersionUtilKt.addAndroidSupportVersionArg(commandLineArguments);
 
         if (enableBuildAttribution) {
-          attributionFileDir = Files.createTempDir();
-          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
+          attributionFileDir = BuildAttributionUtil.getAgpAttributionFileDir(myRequest.getBuildFilePath());
+          commandLineArguments.add(createProjectProperty(IdeAndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
                                                          attributionFileDir.getAbsolutePath()));
         }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
@@ -285,7 +285,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           .withEnvironmentVariables(myRequest.getEnv())
           .passParentEnvs(myRequest.isPassParentEnvs());
         LongRunningOperation operation = isRunBuildAction ? connection.action(buildAction) : connection.newBuild();
-
+        operation.addProgressListener(new GradleToolingApiMemoryUsageFixingProgressListener(), OperationType.TASK);
         prepare(operation, id, executionSettings, new ExternalSystemTaskNotificationListenerAdapter() {
           @Override
           public void onStatusChange(@NotNull ExternalSystemTaskNotificationEvent event) {
@@ -340,9 +340,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         handleTaskExecutionError(e);
       }
       finally {
+        Application application = ApplicationManager.getApplication();
         if (buildError != null) {
           if (buildAttributionManager != null) {
-            buildAttributionManager.onBuildFailure();
+            final File finalAttributionFileDir = attributionFileDir;
+            final BuildAttributionManager finalBuildAttributionManager = buildAttributionManager;
+            application.invokeLater(() -> {
+              if (!project.isDisposed()) {
+                finalBuildAttributionManager.onBuildFailure(finalAttributionFileDir);
+              }
+            });
           }
 
           if (wasBuildCanceled(buildError)) {
@@ -362,8 +369,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         taskListener.onEnd(id);
         myBuildStopper.remove(id);
 
-        String gradleOutput = output.toString();
-        Application application = ApplicationManager.getApplication();
         if (GuiTestingService.getInstance().isGuiTestingMode()) {
           String testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY);
           if (isNotEmpty(testOutput)) {
@@ -381,8 +386,22 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
             buildMessages.add(msg);
           }
           GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError, model.get());
+          RuntimeException error = null;
           for (GradleBuildInvoker.AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
-            task.execute(result);
+            try {
+              task.execute(result);
+            } catch (ProcessCanceledException e) {
+              // Ignore process cancellation exceptions.
+              // We must run all post invocation tasks in order to ensure all relevant locks are released.
+            } catch (RuntimeException e) {
+              if (error == null) {
+                // Stash the first non-PCE exception to re-throw after all post invocation tasks had a chance to execute.
+                error = e;
+              }
+            }
+          }
+          if (error != null) {
+            throw error;
           }
         }
       }
@@ -421,7 +440,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   }
 
   private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
-    return hasCause(buildError, BuildCancelledException.class);
+    return hasCause(buildError, BuildCancelledException.class) || hasCause(buildError, ProcessCanceledException.class);
   }
 
   private void handleTaskExecutionError(@NotNull Throwable e) {
@@ -448,7 +467,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         selectSdkDialog.setModal(true);
         if (selectSdkDialog.showAndGet()) {
           String jdkHome = selectSdkDialog.getJdkHome();
-          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(Paths.get(jdkHome))));
+          invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {ideSdks.setJdkPath(Paths.get(jdkHome));}));
         }
       }
     };
@@ -490,8 +509,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     BuildSummary summary = state.getSummary();
     if (summary != null) {
       switch (summary.getStatus()) {
-        case SKIPPED:
-          return "skipped";
         case SUCCESS:
           return "finished";
         case FAILED:

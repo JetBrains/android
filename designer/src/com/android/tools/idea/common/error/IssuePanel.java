@@ -55,7 +55,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +98,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private final DesignSurface mySurface;
   private final ColumnHeaderPanel myColumnHeaderView;
   private final List<MinimizeListener> myMinimizeListener = new ArrayList();
+  private ExpandListener myExpandListener;
   @Nullable private IssueView mySelectedIssueView;
+  @Nullable private Issue mySelectedIssue;
 
   /**
    * Whether the user has seen the issues or not. We consider the issues "seen" if the panel is not minimized
@@ -107,6 +108,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private boolean hasUserSeenNewErrors;
   private boolean isMinimized;
   private boolean myInitialized;
+  /**
+   * If set to false, the panel will not minimize/maximaze without user interaction.
+   * The default behaviour is to have the panel automatically collapse if no errors are present.
+   */
+  private boolean myAutoSize = true;
 
   public IssuePanel(@NotNull DesignSurface designSurface, @NotNull IssueModel issueModel) {
     super(new BorderLayout());
@@ -252,6 +258,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     return titlePanel;
   }
 
+  /**
+   * Disables the auto-sizing of the panel. This will prevent the panel from automatically collapsing if there are no errors.
+   */
+  public void disableAutoSize() {
+    myAutoSize = false;
+  }
+
   @NotNull
   private static JBScrollPane createListScrollPane(@NotNull JPanel content) {
     JBScrollPane pane = new JBScrollPane(content);
@@ -281,7 +294,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
         myTitleLabel.setText(TITLE_NO_ISSUES);
         myDisplayedError.clear();
         myErrorListPanel.removeAll();
-        setMinimized(true);
+        if (myAutoSize) {
+          setMinimized(true);
+        }
         return;
       }
       updateTitlebarStyle();
@@ -428,12 +443,29 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     myMinimizeListener.add(listener);
   }
 
+  public void setExpandListener(ExpandListener listener) {
+    myExpandListener = listener;
+  }
+
+  @Nullable
+  public ExpandListener getExpandListener() {
+    return myExpandListener;
+  }
+
+  @Nullable
+  public Issue getSelectedIssue() {
+    return mySelectedIssue;
+  }
+
   /**
    * Listener to be notified when this panel is minimized
    */
   @Override
   public void dispose() {
     myMinimizeListener.clear();
+    myExpandListener = null;
+    mySelectedIssue = null;
+    mySelectedIssueView = null;
     myIssueModel.removeErrorModelListener(myIssueModelListener);
     UIManager.removePropertyChangeListener(this);
   }
@@ -452,13 +484,11 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       if (mySelectedIssueView != null) {
         mySelectedIssueView.setSelected(true);
         Issue issue = myDisplayedError.inverse().get(mySelectedIssueView);
+        mySelectedIssue = issue;
         if (issue == null) {
           return;
         }
-        NlComponent source = issue.getSource();
-        if (source != null) {
-          mySurface.getSelectionModel().setSelection(Collections.singletonList(source));
-        }
+        issue.getSource().getOnIssueSelected().invoke(mySurface);
       }
     }
   }
@@ -565,6 +595,10 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     void onMinimizeChanged(boolean isMinimized);
   }
 
+  public interface ExpandListener {
+    void onExpanded(Issue issue, boolean isExpanded);
+  }
+
   /**
    * Action invoked by the user to minimize or restore the errors panel
    */
@@ -625,7 +659,13 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     @Override
     public void doLayout() {
       super.doLayout();
-      if (myColumnsX != null && myColumnsX.length == COLUMN_COUNT) {
+      // Measurement from IssueView seems to be off sometimes. See b/168682770
+      // ColumnsX might be just 0,0 and make the labels on top of one another.
+      boolean isColumnsXValid =  myColumnsX != null
+           && myColumnsX.length == COLUMN_COUNT
+           && !(myColumnsX[0] == 0 && myColumnsX[1] == 0);
+
+      if (isColumnsXValid) {
         myMessageLabel.setLocation(myColumnsX[0], 0);
 
         // Ensure that the source column always occupied at least 10% of the width if

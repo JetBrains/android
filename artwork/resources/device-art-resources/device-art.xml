@@ -60,12 +60,12 @@
     <orientation name="land" size="3427,1620" screenPos="442,71" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
   </device>
 
-  <device id="wear_square" name="Android Wear Square">
+  <device id="wear_square" name="Wear OS Square">
     <orientation name="port" size="474,403" screenPos="100,38" screenSize="280,280" shadow="shadow.png" back="back.png" lights="fore.png" mask="mask.png"/>
     <orientation name="land" size="474,403" screenPos="100,38" screenSize="280,280" shadow="shadow.png" back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
 
-  <device id="wear_round" name="Android Wear Round">
+  <device id="wear_round" name="Wear OS Round">
     <orientation name="port" size="370,424" screenPos="25,26" screenSize="320,320" shadow="shadow.png" back="back.png" lights="fore.png" mask="mask.png"/>
     <orientation name="land" size="370,424" screenPos="25,26" screenSize="320,320" shadow="shadow.png" back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
@@ -145,10 +145,6 @@
 
   <device id="automotive_1024" name="Automotive">
     <orientation name="land" size="1461,1481" screenPos="218,124" screenSize="1024,768" back="back.png" lights="fore.png"/>
-  </device>
-
-  <device id="polestar_2" name="Automotive">
-    <orientation name="port" size="1698,2116" screenPos="267,194" screenSize="1152,1536" back="back.png" lights="fore.png"/>
   </device>
 
 </devices>

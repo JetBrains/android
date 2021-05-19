@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
@@ -45,7 +44,7 @@ import org.mockito.Mock;
  * Tests for {@link BuildToolsTooLowReporter}.
  */
 public class BuildToolsTooLowReporterTest extends PlatformTestCase {
-  @Mock private SyncIssue mySyncIssue;
+  @Mock private IdeSyncIssue mySyncIssue;
   private GradleSyncMessagesStub mySyncMessages;
   private BuildToolsTooLowReporter myIssueReporter;
   private TestSyncIssueUsageReporter myUsageReporter;
@@ -61,7 +60,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   }
 
   public void testGetSupportedIssueType() {
-    assertSame(SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW, myIssueReporter.getSupportedIssueType());
+    assertSame(IdeSyncIssue.TYPE_BUILD_TOOLS_TOO_LOW, myIssueReporter.getSupportedIssueType());
   }
 
   public void testReport() {
@@ -71,7 +70,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
     String minVersion = "25";
     when(mySyncIssue.getData()).thenReturn(minVersion);
     when(mySyncIssue.getSeverity()).thenReturn(SEVERITY_ERROR);
-    when(mySyncIssue.getType()).thenReturn(SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW);
+    when(mySyncIssue.getType()).thenReturn(IdeSyncIssue.TYPE_BUILD_TOOLS_TOO_LOW);
 
     Module module = getModule();
     List<NotificationHyperlink> quickFixes = new ArrayList<>();

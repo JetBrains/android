@@ -22,18 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.Futures;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
-import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacet;
 
 public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
 
@@ -66,11 +54,12 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
     assertNotNull(androidTestRunConfiguration);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, null);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider();
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
-    assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(19))).isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
+    assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(19)))
+      .isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
   }
 
   public void testApkProviderForPostLDevice() throws Exception {
@@ -80,7 +69,7 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), TEST_APP_CLASS_NAME);
     assertNotNull(androidTestRunConfiguration);
 
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(myAndroidFacet, null);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider();
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
@@ -94,12 +83,11 @@ public class AndroidTestRunConfigurationTest extends AndroidGradleTestCase {
       createAndroidTestConfigurationFromClass(getProject(), DYNAMIC_FEATURE_INSTRUMENTED_TEST_CLASS_NAME);
     assertNotNull(androidTestRunConfiguration);
 
-    AndroidFacet runConfigurationTargetAndroidFacet =
-      AndroidFacet.getInstance(androidTestRunConfiguration.getConfigurationModule().getModule());
-    ApkProvider provider = androidTestRunConfiguration.getApkProvider(runConfigurationTargetAndroidFacet, null);
+    ApkProvider provider = androidTestRunConfiguration.getApkProvider();
     assertThat(provider).isNotNull();
     assertThat(provider).isInstanceOf(GradleApkProvider.class);
     assertThat(((GradleApkProvider)provider).isTest()).isTrue();
-    assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(24))).isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
+    assertThat(((GradleApkProvider)provider).getOutputKind(new AndroidVersion(24)))
+      .isEqualTo(GradleApkProvider.OutputKind.AppBundleOutputModel);
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.ui.wizard
 
-import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.ui.wizard.ProposedFileTreeModel.Node
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,13 +61,12 @@ private annotation class NodeDSL
 @NodeDSL
 private class NodeBuilder {
   lateinit var file: File
-  lateinit var icon: Icon
-  var isDirectory: Boolean = true
-  var isConflicted = false
+  var icon: Icon = DEFAULT_ICON
+  var conflictedFiles = listOf<File>()
   var isConflictedTree = false
   private val children = mutableListOf<Node>()
 
-  fun build() = Node(file, isConflicted, icon, children, isConflictedTree)
+  fun build() = Node(file, conflictedFiles, icon, children, isConflictedTree)
 
   fun children(block: Children.() -> Unit) {
     children.addAll(Children().apply(block))
@@ -120,6 +119,69 @@ class ProposedFileTreeModelTest {
   }
 
   @Test
+  fun conflictWithMoreSpecificConfiguration() {
+    val filename = "file"
+    val resDir = rootDir.createChildDir("res")
+    val drawableDir = resDir.createChildDir("drawable")
+    val drawableV24Dir = resDir.createChildDir("drawable-v24")
+    val drawableV30Dir = resDir.createChildDir("drawable-v30")
+    val drawableV24ExistingFile = drawableV24Dir.createChildFile(filename)
+    val rootFile = rootDir.resolve(filename)
+    val drawableFile = drawableDir.resolve(filename)
+    val drawableV30File = drawableV30Dir.resolve(filename)
+
+    val treeModel = ProposedFileTreeModel(rootDir, setOf(
+      rootFile,
+      drawableFile,
+      drawableV30File
+    ))
+
+    val expectedTree = node {
+      file = rootDir
+      icon = DIR_ICON
+      isConflictedTree = true
+
+      children {
+        node {
+          file = rootFile
+        }
+        node {
+          file = resDir
+          icon = DIR_ICON
+          isConflictedTree = true
+
+          children {
+            node {
+              file = drawableDir
+              icon = DIR_ICON
+              isConflictedTree = true
+              children {
+                node {
+                  file = drawableFile
+                  conflictedFiles = listOf(drawableV24ExistingFile)
+                  isConflictedTree = true
+                }
+              }
+            }
+            node {
+              file = drawableV30Dir
+              icon = DIR_ICON
+              children {
+                node {
+                  file = drawableV30File
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).containsExactly(drawableV24ExistingFile)
+  }
+
+  @Test
   fun modelConstructedFromSetOfFiles_generatesCorrectTree() {
     val root_existingFile = rootDir.createChildFile("root_existingFile")
     val root_newFile = rootDir.resolve("root_newFile")
@@ -147,13 +209,11 @@ class ProposedFileTreeModelTest {
       children {
         node {
           file = root_existingFile
-          icon = DEFAULT_ICON
-          isConflicted = true
+          conflictedFiles = listOf(file)
           isConflictedTree = true
         }
         node {
           file = root_newFile
-          icon = DEFAULT_ICON
         }
         node {
           file = root_sub1
@@ -163,13 +223,11 @@ class ProposedFileTreeModelTest {
           children {
             node {
               file = root_sub1_existingFile
-              icon = DEFAULT_ICON
-              isConflicted = true
+              conflictedFiles = listOf(file)
               isConflictedTree = true
             }
             node {
               file = root_sub1_newFile
-              icon = DEFAULT_ICON
             }
           }
         }
@@ -180,7 +238,6 @@ class ProposedFileTreeModelTest {
           children {
             node {
               file = root_sub2_newFile
-              icon = DEFAULT_ICON
             }
           }
         }
@@ -188,6 +245,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test
@@ -208,7 +266,7 @@ class ProposedFileTreeModelTest {
       root_sub1_existingFile,
       root_sub1_newFile,
       root_sub2_newFile
-    ).associate { it to mock(Icon::class.java) }
+    ).associateWith { mock(Icon::class.java) }
 
     val treeModel = ProposedFileTreeModel(rootDir, proposedFileToIcon)
 
@@ -221,7 +279,7 @@ class ProposedFileTreeModelTest {
         node {
           file = root_existingFile
           icon = proposedFileToIcon[root_existingFile]!!
-          isConflicted = true
+          conflictedFiles = listOf(file)
           isConflictedTree = true
         }
         node {
@@ -237,7 +295,7 @@ class ProposedFileTreeModelTest {
             node {
               file = root_sub1_existingFile
               icon = proposedFileToIcon[root_sub1_existingFile]!!
-              isConflicted = true
+              conflictedFiles = listOf(file)
               isConflictedTree = true
             }
             node {
@@ -261,6 +319,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test
@@ -276,7 +335,7 @@ class ProposedFileTreeModelTest {
       root_sub1,
       root_sub2,
       root_sub2_newFile
-    ).associate { it to mock(Icon::class.java) }
+    ).associateWith { mock(Icon::class.java) }
 
     val treeModel = ProposedFileTreeModel(rootDir, proposedFileToIcon)
 
@@ -311,6 +370,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test
@@ -340,7 +400,6 @@ class ProposedFileTreeModelTest {
           children {
             node {
               file = root_sub1_newFile
-              icon = DEFAULT_ICON
             }
           }
         }
@@ -351,7 +410,6 @@ class ProposedFileTreeModelTest {
           children {
             node {
               file = root_sub2_newFile
-              icon = DEFAULT_ICON
             }
           }
         }
@@ -359,6 +417,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test
@@ -380,6 +439,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test
@@ -400,6 +460,7 @@ class ProposedFileTreeModelTest {
     }
 
     assertThat(treeModel.root).isEqualTo(expectedTree)
+    assertThat(treeModel.getShadowConflictedFiles()).isEmpty()
   }
 
   @Test(expected = IllegalArgumentException::class)
@@ -407,13 +468,13 @@ class ProposedFileTreeModelTest {
     val badRelativePath = listOf("sub", "..", "..", "bad_file").joinToString(File.separator)
     val badFile = rootDir.absoluteFile.resolve(badRelativePath)
 
-    Node.makeTree(rootDir, setOf(badFile)) { null }
+    ProposedFileTreeModel(rootDir, setOf(badFile))
   }
 
   @Test(expected = IllegalArgumentException::class)
   fun makeTree_rejectRelativePathOutsideRootDir() {
     val badRelativePath = listOf("sub", "..", "..", "bad_file").joinToString(File.separator)
 
-    Node.makeTree(rootDir, setOf(File(badRelativePath))) { null }
+    ProposedFileTreeModel(rootDir, setOf(File(badRelativePath)))
   }
 }

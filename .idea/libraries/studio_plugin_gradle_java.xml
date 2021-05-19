@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="studio-plugin-gradle-java">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/gradle-java/lib/gradle-java.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/gradle-java/lib/gradle-jps-plugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/gradle-java/lib/resources_en.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

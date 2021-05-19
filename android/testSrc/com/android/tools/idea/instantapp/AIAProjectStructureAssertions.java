@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.instantapp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.AndroidProjectTypes;
-import com.android.builder.model.level2.Library;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper methods for checking modules in an AIA-enabled project are created correctly by a project sync.
@@ -82,7 +81,7 @@ public class AIAProjectStructureAssertions {
 
     IdeDependencies dependencies = model.getSelectedMainCompileLevel2Dependencies();
     List<String> libraries =
-      dependencies.getModuleDependencies().stream().map(Library::getProjectPath).filter(Objects::nonNull).collect(Collectors.toList());
+      dependencies.getModuleDependencies().stream().map(IdeLibrary::getProjectPath).filter(Objects::nonNull).collect(Collectors.toList());
     assertThat(libraries).containsExactlyElementsIn(expectedDependencies);
   }
 }

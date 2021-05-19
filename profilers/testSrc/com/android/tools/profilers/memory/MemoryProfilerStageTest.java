@@ -71,13 +71,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   @NotNull private final ByteBuffer FAKE_ALLOC_BUFFER = AllocationsParserTest.putAllocationInfo(
     ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, new int[0][], new short[0][][]
   );
@@ -90,11 +84,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
                         new FakeCpuService(), new FakeEventService(), FakeNetworkService.newBuilder().build());
 
-  private final boolean myUnifiedPipeline;
-
-  public MemoryProfilerStageTest(boolean useNewEventPipeline) {
-    myUnifiedPipeline = useNewEventPipeline;
-  }
+  private final boolean myUnifiedPipeline = true;
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
@@ -173,7 +163,6 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testToggleNativeAllocationTracking() {
-    assumeTrue(myUnifiedPipeline);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Validate we enable tracking allocations
@@ -260,7 +249,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void defaultHeapSetTest() {
-    String fakeClassName1 = "DUMMY_CLASS1", fakeClassName2 = "DUMMY_CLASS2";
+    String fakeClassName1 = "SAMPLE_CLASS1", fakeClassName2 = "SAMPLE_CLASS2";
 
     myMockLoader.setReturnImmediateFuture(true);
 
@@ -315,10 +304,10 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testMemoryObjectSelection() {
-    final String dummyClassName = "DUMMY_CLASS1";
+    final String sampleClassName = "SAMPLE_CLASS1";
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().setStartTime(5).setEndTime(10).build();
     InstanceObject mockInstance =
-      new FakeInstanceObject.Builder(captureObject, 1, dummyClassName).setName("DUMMY_INSTANCE")
+      new FakeInstanceObject.Builder(captureObject, 1, sampleClassName).setName("SAMPLE_INSTANCE")
         .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
     captureObject.addInstanceObjects(Collections.singleton(mockInstance));
 
@@ -445,8 +434,8 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testSelectNewCaptureWhileLoading() {
-    CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(5).setEndTime(10).build();
-    CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setStartTime(10).setEndTime(15).build();
+    CaptureObject mockCapture1 = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setStartTime(5).setEndTime(10).build();
+    CaptureObject mockCapture2 = new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setStartTime(10).setEndTime(15).build();
 
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> mockCapture1)),
@@ -474,7 +463,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long startTimeUs = 5;
     long endTimeUs = 10;
     CaptureObject mockCapture1 = new FakeCaptureObject.Builder()
-      .setCaptureName("DUMMY_CAPTURE1")
+      .setCaptureName("SAMPLE_CAPTURE1")
       .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs))
       .setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs))
       .setError(true)
@@ -509,20 +498,10 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
       .setCodeMem(50)
       .setOthersMem(60)
       .build();
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(FAKE_DEVICE_ID, ProfilersTestData.generateMemoryUsageData(2, data)
-        .setPid(FAKE_PROCESS.getPid()).build());
-    }
-    else {
-      MemoryData memoryData = MemoryData.newBuilder()
-        .setEndTimestamp(time)
-        .addMemSamples(MemoryData.MemorySample.newBuilder()
-                         .setTimestamp(time)
-                         .setMemoryUsage(data))
-        .build();
-      myService.setMemoryData(memoryData);
-    }
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myTransportService.addEventToStream(FAKE_DEVICE_ID, ProfilersTestData.generateMemoryUsageData(2, data)
+      .setPid(FAKE_PROCESS.getPid()).build());
+    myStage.getDetailedMemoryUsage().getMemoryRange().set(0, 1024 /* 1 KB */); // Sets the scale B/KB/MB/GB.
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getJavaLegend().getName()).isEqualTo("Java");
     assertThat(legends.getJavaLegend().getValue()).isEqualTo("10 KB");
@@ -545,111 +524,49 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testAllocatedLegendChangesBasedOnSamplingMode() {
-    if (!myUnifiedPipeline) {
-      // Perfa needs to be running for "Allocated" series to show.
-      myTransportService.setAgentStatus(AgentData.newBuilder().setStatus(AgentData.Status.ATTACHED).build());
-      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    }
-
     long time = TimeUnit.MICROSECONDS.toNanos(2);
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
     MemoryData memoryData = MemoryData.getDefaultInstance();
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(0, FAKE_PROCESS.getPid(), liveAllocInfo).build());
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 0, 100).build());
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData
-          .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
-          .build());
-    }
-    else {
-      Memory.MemoryAllocStatsData allocStatsData =
-        Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(200).setJavaFreeCount(100).build();
-      MemoryAllocSamplingData samplingData =
-        MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue()).build();
-      MemoryData.AllocStatsSample allocStatsSample = MemoryData.AllocStatsSample.newBuilder().setAllocStats(allocStatsData).build();
-      AllocationSamplingRateEvent trackingMode = AllocationSamplingRateEvent.newBuilder().setSamplingRate(samplingData).build();
-      memoryData = MemoryData.newBuilder()
-        .setEndTimestamp(time)
-        .addAllocationsInfo(liveAllocInfo)
-        .addAllocSamplingRateEvents(trackingMode)
-        .addAllocStatsSamples(allocStatsSample)
-        .build();
-      myService.setMemoryData(memoryData);
-    }
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(0, FAKE_PROCESS.getPid(), liveAllocInfo).build());
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 0, 100).build());
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
+        .build());
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     myStage.getTimeline().getTooltipRange().set(time, time);
     assertThat(legends.getObjectsLegend().getName()).isEqualTo("Allocated");
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("100");
 
     // Now change sampling mode to sampled, the Allocated legend should show "N/A"
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 1, 200).build());
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData
-          .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
-          .build());
-    }
-    else {
-      memoryData = memoryData.toBuilder()
-        .clearAllocStatsSamples()
-        .clearAllocSamplingRateEvents()
-        .addAllocSamplingRateEvents(
-          AllocationSamplingRateEvent.newBuilder().setSamplingRate(
-            MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
-          ))
-        .addAllocStatsSamples(MemoryData.AllocStatsSample.newBuilder().setAllocStats(
-          Memory.MemoryAllocStatsData.newBuilder().setJavaAllocationCount(300).setJavaFreeCount(100)))
-        .build();
-      myService.setMemoryData(memoryData);
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocStatsData(FAKE_PROCESS.getPid(), 1, 200).build());
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED.getValue())
+        .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Now change sampling mode to none, the Allocated legend should still show "N/A"
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData
-          .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 2, MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())
-          .build());
-    }
-    else {
-      memoryData = memoryData.toBuilder()
-        .clearAllocSamplingRateEvents()
-        .addAllocSamplingRateEvents(
-          AllocationSamplingRateEvent.newBuilder().setSamplingRate(
-            MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())
-          ))
-        .build();
-      myService.setMemoryData(memoryData);
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 2, MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue())
+        .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("N/A");
 
     // Value should update once sampling mode is set back to full.
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData
-          .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 3, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
-          .build());
-    }
-    else {
-      memoryData = memoryData.toBuilder()
-        .clearAllocSamplingRateEvents()
-        .addAllocSamplingRateEvents(
-          AllocationSamplingRateEvent.newBuilder().setSamplingRate(
-            MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
-          ))
-        .build();
-      myService.setMemoryData(memoryData);
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData
+        .generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 3, MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue())
+        .build());
     assertThat(legends.getObjectsLegend().getValue()).isEqualTo("200");
   }
 
   @Test
   public void testLegendsOrder() {
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
+    MemoryStageLegends legends = myStage.getLegends();
     List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames).containsExactly("Total", "Java", "Native", "Graphics", "Stack", "Code", "Others", "Allocated")
       .inOrder();
@@ -657,7 +574,7 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testTooltipLegendsOrder() {
-    MemoryProfilerStage.MemoryStageLegends legends = myStage.getTooltipLegends();
+    MemoryStageLegends legends = myStage.getTooltipLegends();
     List<String> legendNames = ContainerUtil.map(legends.getLegends(), legend -> legend.getName());
     assertThat(legendNames)
       .containsExactly("Others", "Code", "Stack", "Graphics", "Native", "Java", "Allocated", "Tracking", "GC Duration", "Total")
@@ -738,14 +655,9 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
     long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     AllocationsInfo info = AllocationsInfo.newBuilder().setStartTime(infoStart).setEndTime(infoEnd).setLegacy(true).build();
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(infoStart, FAKE_PROCESS.getPid(), info).build());
-    }
-    else {
-      myService.setMemoryData(MemoryData.newBuilder().addAllocationsInfo(info).build());
-    }
 
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(infoStart, FAKE_PROCESS.getPid(), info).build());
     myStage.getRangeSelectionModel().set(5, 10);
     assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedMemoryCapture()).isTrue();
@@ -766,28 +678,14 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED);
     assertThat(samplingAspectChange[0]).isEqualTo(0);
 
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 1).build());
-    }
-    else {
-      AllocationSamplingRateEvent sampleMode = AllocationSamplingRateEvent.newBuilder()
-        .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1)).build();
-      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(sampleMode).build());
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 1).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
     assertThat(samplingAspectChange[0]).isEqualTo(1);
 
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 0).build());
-    }
-    else {
-      AllocationSamplingRateEvent noneMode = AllocationSamplingRateEvent.newBuilder()
-        .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(0)).build();
-      myService.setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(noneMode).build());
-    }
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 1, 0).build());
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myStage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.NONE);
     assertThat(samplingAspectChange[0]).isEqualTo(2);
@@ -796,18 +694,8 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testAllocationSamplingRateCorrectlyInitialized() {
     // If the sampling mode is already available from the memory service, make sure the memory stage is correctly initialized to that value.
-    if (myUnifiedPipeline) {
-      myTransportService.addEventToStream(
-        FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 1).build());
-    }
-    else {
-      AllocationSamplingRateEvent fullTrackingMode = AllocationSamplingRateEvent.newBuilder()
-        .setSamplingRate(MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(1))
-        .build();
-      myService
-        .setMemoryData(MemoryData.newBuilder().addAllocSamplingRateEvents(fullTrackingMode).build());
-    }
-
+    myTransportService.addEventToStream(
+      FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocSamplingData(FAKE_PROCESS.getPid(), 0, 1).build());
     MemoryProfilerStage stage = new MemoryProfilerStage(myProfilers, myMockLoader);
     assertThat(stage.getLiveAllocationSamplingMode()).isEqualTo(MemoryProfilerStage.LiveAllocationSamplingMode.FULL);
   }
@@ -848,7 +736,6 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testStateSetOnEnterWhenOngoingCapture() {
-    assumeTrue(myUnifiedPipeline);
     myTransportService.addEventToStream(FAKE_DEVICE_ID, Common.Event.newBuilder()
       .setPid(FAKE_PROCESS.getPid())
       .setCommandId(1)
@@ -868,7 +755,6 @@ public final class MemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void testNativeRecordingStopsWhenSessionDies() {
-    assumeTrue(myUnifiedPipeline);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Validate we enable tracking allocations

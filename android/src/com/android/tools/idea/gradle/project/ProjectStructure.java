@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder.EMPTY;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
@@ -42,7 +43,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 

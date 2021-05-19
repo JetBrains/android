@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testData" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -20,5 +21,14 @@
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
+    <orderEntry type="module-library" scope="PROVIDED">
+          <library>
+            <CLASSES>
+              <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+            </CLASSES>
+            <JAVADOC />
+            <SOURCES />
+          </library>
+        </orderEntry>
   </component>
 </module>

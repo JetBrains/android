@@ -70,27 +70,27 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
 
   public void testScreenMode() {
     // Just in case, cleanup current preference to make testing environment consistence.
-    PropertiesComponent.getInstance().unsetValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY());
+    PropertiesComponent.getInstance().unsetValue(NlScreenViewProvider.Companion.getSCREEN_MODE_PROPERTY());
 
     // Test the default behavior when there is no setting.
-    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
+    assertEquals(NlScreenViewProvider.Companion.loadPreferredMode(), NlScreenViewProvider.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test the save and load functions
-    SceneMode[] modes = SceneMode.values();
-    for (SceneMode mode : modes) {
-      SceneMode.Companion.savePreferredMode(mode);
+    NlScreenViewProvider[] modes = NlScreenViewProvider.values();
+    for (NlScreenViewProvider mode : modes) {
+      NlScreenViewProvider.Companion.savePreferredMode(mode);
       // The loaded mode should be same as the saved mode
-      assertEquals(SceneMode.Companion.loadPreferredMode(), mode);
+      assertEquals(NlScreenViewProvider.Companion.loadPreferredMode(), mode);
     }
 
     // Test when the illegal mode is setup. (This happens when removing old mode or renaming the exist mode)
-    PropertiesComponent.getInstance().setValue(SceneMode.Companion.getSCREEN_MODE_PROPERTY(), "_illegalMode");
-    assertEquals(SceneMode.Companion.loadPreferredMode(), SceneMode.Companion.getDEFAULT_SCREEN_MODE());
+    PropertiesComponent.getInstance().setValue(NlScreenViewProvider.Companion.getSCREEN_MODE_PROPERTY(), "_illegalMode");
+    assertEquals(NlScreenViewProvider.Companion.loadPreferredMode(), NlScreenViewProvider.Companion.getDEFAULT_SCREEN_MODE());
 
     // Test next() function
-    assertEquals(SceneMode.BLUEPRINT, SceneMode.RENDER.next());
-    assertEquals(SceneMode.RENDER_AND_BLUEPRINT, SceneMode.BLUEPRINT.next());
-    assertEquals(SceneMode.RENDER, SceneMode.RENDER_AND_BLUEPRINT.next());
+    assertEquals(NlScreenViewProvider.BLUEPRINT, NlScreenViewProvider.RENDER.next());
+    assertEquals(NlScreenViewProvider.RENDER_AND_BLUEPRINT, NlScreenViewProvider.BLUEPRINT.next());
+    assertEquals(NlScreenViewProvider.RENDER, NlScreenViewProvider.RENDER_AND_BLUEPRINT.next());
   }
 
   public void testEmptyRenderSuccess() {
@@ -170,13 +170,13 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     mySurface.setModel(model);
     assertNull(mySurface.getSceneManager().getRenderResult());
 
-    mySurface.setScreenMode(SceneMode.RENDER, false);
+    mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getFocusedSceneView());
     assertNull(mySurface.getSceneManager().getSecondarySceneView());
 
-    mySurface.setScreenMode(SceneMode.RENDER_AND_BLUEPRINT, false);
+    mySurface.setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false);
     mySurface.requestRender();
     assertTrue(mySurface.getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
@@ -616,10 +616,10 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
   /**
    * Regression test for b/144829328
    */
-  public void testComposeScreenModeBlacklist() {
-    mySurface.setScreenMode(SceneMode.COMPOSE, true);
+  public void testComposeScreenModeDenied() {
+    mySurface.setScreenViewProvider(NlScreenViewProvider.COMPOSE, true);
 
     NlDesignSurface otherSurface = NlDesignSurface.build(getProject(), getTestRootDisposable());
-    assertNotSame(SceneMode.COMPOSE, otherSurface.getSceneMode());
+    assertNotSame(NlScreenViewProvider.COMPOSE, otherSurface.getScreenViewProvider());
   }
 }

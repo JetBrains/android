@@ -17,7 +17,7 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.io.BufferingFileWrapper;
@@ -71,7 +71,7 @@ public class LayoutLibraryLoader {
     LayoutLibrary library;
     final ILogger logger = new LogWrapper(LOG);
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
-    final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
+    final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
     String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA));
 

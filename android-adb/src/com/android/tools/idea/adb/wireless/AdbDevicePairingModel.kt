@@ -15,8 +15,63 @@
  */
 package com.android.tools.idea.adb.wireless
 
+import com.android.annotations.concurrency.UiThread
+import java.util.ArrayList
+
 /**
  * Model used for pairing devices
  */
-class AdbDevicePairingModel {
+@UiThread
+open class AdbDevicePairingModel {
+  open var qrCodeServices: List<MdnsService> = emptyList()
+    set(value) {
+      field = value
+      listeners.forEach { it.qrCodeServicesDiscovered(value) }
+    }
+
+  open var pinCodeServices: List<MdnsService> = emptyList()
+    set(value) {
+      field = value
+      listeners.forEach { it.pinCodeServicesDiscovered(value) }
+    }
+
+  /** The list of listeners */
+  private val listeners: ArrayList<AdbDevicePairingModelListener> = ArrayList()
+
+  /**
+   * The last [QrCodeImage] generated. It may be `null` if no image has been generated yet.
+   */
+  open var qrCodeImage : QrCodeImage? = null
+    set(value) {
+      field = value
+      value?.let { newImage ->
+        listeners.forEach { it.qrCodeGenerated(newImage) }
+      }
+    }
+
+  open fun addListener(listener: AdbDevicePairingModelListener) {
+    listeners.add(listener)
+  }
+
+  open fun removeListener(listener: AdbDevicePairingModelListener) {
+    listeners.remove(listener)
+  }
+}
+
+@UiThread
+interface AdbDevicePairingModelListener {
+  /**
+   * Invoked when a new QrCode image has been generated
+   */
+  fun qrCodeGenerated(newImage: QrCodeImage)
+
+  /**
+   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
+   */
+  fun qrCodeServicesDiscovered(services: List<MdnsService>)
+
+  /**
+   * Invoked when a new list of [MdnsService] has been discovered from the underlying ADB server
+   */
+  fun pinCodeServicesDiscovered(services: List<MdnsService>)
 }

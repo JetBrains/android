@@ -33,14 +33,13 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
     groupName == null || groupName == it.displaySettings.group
   }
 
-  /**
-   * Returns a [Set] with all the available groups in the source [delegate]. Only groups returned can be set on [groupName].
-   */
-  val availableGroups: Set<String>
-    get() = delegate.previewElements.mapNotNull { it.displaySettings.group }.filter { it.isNotBlank() }.toSet()
-
   override val previewElements: Sequence<PreviewElement>
     get() = filteredPreviewElementProvider.previewElements.ifEmpty { delegate.previewElements }
+
+  /**
+   * Returns a [Set] with all the available groups in the source [delegate] before filtering. Only groups returned can be set on [groupName].
+   */
+  val allAvailableGroups: Set<String> get() = delegate.previewElements.groupNames
 }
 
 /**
@@ -51,13 +50,13 @@ class GroupNameFilteredPreviewProvider(private val delegate: PreviewElementProvi
 @VisibleForTesting
 class SinglePreviewElementInstanceFilteredPreviewProvider(private val delegate: PreviewElementProvider): PreviewElementProvider {
   /**
-   * The Composable instance ID to filter. If no [PreviewElement] is defined by that name, then this filter will return all the available
-   * previews.
+   * The Composable [PreviewElementInstance] to filter. If no [PreviewElementInstance] is defined by that intsance, then this filter will
+   * return all the available previews.
    */
-  var instanceId: String? = null
+  var instance: PreviewElementInstance? = null
 
   private val filteredPreviewElementProvider = FilteredPreviewElementProvider(delegate) {
-    (it as? PreviewElementInstance)?.instanceId == instanceId
+    (it as? PreviewElementInstance) == instance
   }
 
   override val previewElements: Sequence<PreviewElement>

@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Key
-import org.jetbrains.android.refactoring.MigrateToAndroidxProcessor
 import org.jetbrains.plugins.groovy.util.removeUserData
 
 /**
@@ -34,6 +32,7 @@ class AndroidNewProjectInitializationStartupActivity : StartupActivity.DumbAware
   override fun runActivity(project: Project) {
     val initializationRunnable = project.getUserData(INITIALIZER_KEY)
     if (initializationRunnable != null) {
+      log.info("Scheduling new project initialization.")
       initializationRunnable()
       project.removeUserData(INITIALIZER_KEY)
     }

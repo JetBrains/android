@@ -37,6 +37,7 @@ import com.intellij.util.Processor
 private val PROVIDERS_USAGE_TYPE = UsageType { message("providers") }
 private val CONSUMERS_USAGE_TYPE = UsageType { message("consumers") }
 private val EXPOSED_BY_COMPONENTS_USAGE_TYPE = UsageType { message("exposed.by.components") }
+private val EXPOSED_BY_ENTRY_POINT_USAGE_TYPE = UsageType { message("exposed.by.entry.points") }
 private val PARENT_COMPONENTS_USAGE_TYPE = UsageType { message("parent.components") }
 private val SUBCOMPONENTS_USAGE_TYPE = UsageType { message("subcomponents") }
 private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType { message("included.in.components") }
@@ -54,7 +55,8 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       element?.project?.service<DaggerDependencyChecker>()?.isDaggerPresent() != true -> null
       target.isDaggerConsumer && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
       target.isDaggerProvider && element.isDaggerConsumer -> CONSUMERS_USAGE_TYPE
-      target.isDaggerProvider && element.isDaggerComponentMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerComponentInstantiationMethod -> EXPOSED_BY_COMPONENTS_USAGE_TYPE
+      target.isDaggerProvider && element.isDaggerEntryPointInstantiationMethod -> EXPOSED_BY_ENTRY_POINT_USAGE_TYPE
       target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
       target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
@@ -65,6 +67,8 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
       target.isDaggerSubcomponent && element.isDaggerSubcomponent -> {
         if (target.toPsiClass()!!.isParentOf(element.toPsiClass()!!)) SUBCOMPONENTS_USAGE_TYPE else PARENT_COMPONENTS_USAGE_TYPE
       }
+      (target.isDaggerComponentInstantiationMethod ||
+       target.isDaggerEntryPointInstantiationMethod) && element.isDaggerProvider -> PROVIDERS_USAGE_TYPE
       else -> null
     }
   }
@@ -84,8 +88,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
     private val usageType = getTypeForMetrics(usageElement)
 
     override fun navigate(focus: Boolean) {
-      val project = element?.project ?: return
-      project.service<DaggerAnalyticsTracker>()
+      element!!.project.service<DaggerAnalyticsTracker>()
         .trackNavigation(
           DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
           fromElement = targetType,
@@ -106,6 +109,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
         element.isDaggerModule -> getCustomUsagesForModule(element)
         element.isDaggerComponent -> getCustomUsagesForComponent(element)
         element.isDaggerSubcomponent -> getCustomUsagesForSubcomponent(element)
+        element.isDaggerComponentInstantiationMethod ||
+        element.isDaggerEntryPointInstantiationMethod -> getCustomUsagesForComponentMethod(element)
         else -> return@runReadAction
       }
       if (usages.isNotEmpty()) {
@@ -139,6 +144,12 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   private fun getCustomUsagesForConsumers(consumer: PsiElement) = getDaggerProvidersFor(consumer)
 
   @WorkerThread
-  private fun getCustomUsagesForProvider(provider: PsiElement): Collection<PsiElement> = getDaggerConsumersFor(provider) +
-                                                                                         getDaggerComponentMethodsForProvider(provider)
+  private fun getCustomUsagesForComponentMethod(method: PsiElement) = getDaggerProvidersFor(method)
+
+  @WorkerThread
+  private fun getCustomUsagesForProvider(provider: PsiElement): Collection<PsiElement> {
+    return getDaggerConsumersFor(provider) as Collection<PsiElement> +
+           getDaggerComponentMethodsForProvider(provider) as Collection<PsiElement> +
+           getDaggerEntryPointsMethodsForProvider(provider) as Collection<PsiElement>
+  }
 }

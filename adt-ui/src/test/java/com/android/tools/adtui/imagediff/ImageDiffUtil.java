@@ -31,6 +31,7 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -166,12 +167,12 @@ public final class ImageDiffUtil {
    * Converts a BufferedImage type to {@link TYPE_INT_ARGB},
    * which is the only type accepted by {@link ImageDiffUtil#assertImageSimilar}.
    */
-  public static BufferedImage convertToARGB(@NotNull BufferedImage inputImg) {
-    if (inputImg.getType() == TYPE_INT_ARGB) {
-      return inputImg; // Early return in case the image has already the correct type
+  public static BufferedImage convertToARGB(@NotNull Image inputImg) {
+    if (inputImg instanceof BufferedImage && ((BufferedImage)inputImg).getType() == TYPE_INT_ARGB) {
+      return (BufferedImage)inputImg; // Early return in case the image has already the correct type
     }
     @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
-    BufferedImage outputImg = new BufferedImage(inputImg.getWidth(), inputImg.getHeight(), TYPE_INT_ARGB);
+    BufferedImage outputImg = new BufferedImage(inputImg.getWidth(null), inputImg.getHeight(null), TYPE_INT_ARGB);
     Graphics2D g2d = outputImg.createGraphics();
     g2d.drawImage(inputImg, 0, 0, null);
     g2d.dispose();
@@ -203,8 +204,12 @@ public final class ImageDiffUtil {
                                         double maxPercentDifferent) throws IOException {
     if (!goldenFile.exists()) {
       Files.createParentDirs(goldenFile);
+      File outFile = new File(TestUtils.getTestOutputDir(), goldenFile.getName());
+      // This will show up in undeclared outputs when running on a test server
+      ImageIO.write(actual, "PNG", outFile);
+      // This will copy the file to its designated location. Useful when running locally.
       ImageIO.write(actual, "PNG", goldenFile);
-      fail("File did not exist, created here:" + goldenFile);
+      fail("File did not exist, created here:" + goldenFile + " and in undeclared outputs");
     }
 
     BufferedImage goldenImage = ImageIO.read(goldenFile);
@@ -213,20 +218,25 @@ public final class ImageDiffUtil {
   }
 
   public static void assertImageSimilar(@NotNull String imageName,
-                                        @NotNull BufferedImage goldenImage,
-                                        @NotNull BufferedImage image,
+                                        @NotNull Image goldenImage,
+                                        @NotNull Image image,
                                         double maxPercentDifferent) throws IOException {
-    goldenImage = convertToARGB(goldenImage);
-    image = convertToARGB(image);
+    // If we get exactly the same object, no need to check--and they might be mocks anyway.
+    if (goldenImage == image) {
+      return;
+    }
 
-    int imageWidth = Math.min(goldenImage.getWidth(), image.getWidth());
-    int imageHeight = Math.min(goldenImage.getHeight(), image.getHeight());
+    BufferedImage bufferedGoldenImage = convertToARGB(goldenImage);
+    BufferedImage bufferedImage = convertToARGB(image);
+
+    int imageWidth = Math.min(bufferedGoldenImage.getWidth(), bufferedImage.getWidth());
+    int imageHeight = Math.min(bufferedGoldenImage.getHeight(), bufferedImage.getHeight());
 
     // Blur the images to account for the scenarios where there are pixel
     // differences
     // in where a sharp edge occurs
-    // goldenImage = blur(goldenImage, 6);
-    // image = blur(image, 6);
+    // bufferedGoldenImage = blur(bufferedGoldenImage, 6);
+    // bufferedimage = blur(image, 6);
 
     int width = 3 * imageWidth;
     @SuppressWarnings("UnnecessaryLocalVariable")
@@ -239,8 +249,8 @@ public final class ImageDiffUtil {
     double delta = 0;
     for (int y = 0; y < imageHeight; y++) {
       for (int x = 0; x < imageWidth; x++) {
-        int goldenRgb = goldenImage.getRGB(x, y);
-        int rgb = image.getRGB(x, y);
+        int goldenRgb = bufferedGoldenImage.getRGB(x, y);
+        int rgb = bufferedImage.getRGB(x, y);
         if (goldenRgb == rgb) {
           deltaImage.setRGB(imageWidth + x, y, 0x00808080);
           continue;
@@ -279,19 +289,19 @@ public final class ImageDiffUtil {
     String error = null;
     if (percentDifference > maxPercentDifferent) {
       error = String.format("Images differ (by %.2g%%)", percentDifference);
-    } else if (Math.abs(goldenImage.getWidth() - image.getWidth()) >= 2) {
-      error = "Widths differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
-              "vs" + image.getWidth() + "x" + image.getHeight();
-    } else if (Math.abs(goldenImage.getHeight() - image.getHeight()) >= 2) {
-      error = "Heights differ too much for " + imageName + ": " + goldenImage.getWidth() + "x" + goldenImage.getHeight() +
-              "vs" + image.getWidth() + "x" + image.getHeight();
+    } else if (Math.abs(bufferedGoldenImage.getWidth() - bufferedImage.getWidth()) >= 2) {
+      error = "Widths differ too much for " + imageName + ": " + bufferedGoldenImage.getWidth() + "x" + bufferedGoldenImage.getHeight() +
+              "vs" + bufferedImage.getWidth() + "x" + bufferedImage.getHeight();
+    } else if (Math.abs(bufferedGoldenImage.getHeight() - bufferedImage.getHeight()) >= 2) {
+      error = "Heights differ too much for " + imageName + ": " + bufferedGoldenImage.getWidth() + "x" + bufferedGoldenImage.getHeight() +
+              "vs" + bufferedImage.getWidth() + "x" + bufferedImage.getHeight();
     }
 
     if (error != null) {
       // Expected on the left
       // Golden on the right
-      g.drawImage(goldenImage, 0, 0, null);
-      g.drawImage(image, 2 * imageWidth, 0, null);
+      g.drawImage(bufferedGoldenImage, 0, 0, null);
+      g.drawImage(bufferedImage, 2 * imageWidth, 0, null);
 
       // Labels
       if (imageWidth > 80) {

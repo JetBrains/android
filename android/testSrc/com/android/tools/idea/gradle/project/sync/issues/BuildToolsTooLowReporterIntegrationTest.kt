@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
-import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findAppModule
@@ -39,7 +38,7 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
     val appModule = project.findAppModule()
     val appFile = getGradleBuildFile(appModule)!!
 
-    val issue = mock(SyncIssue::class.java)
+    val issue = mock(IdeSyncIssue::class.java)
 
     val syncIssues = ImmutableList.of(issue)
     val link = reporter!!.createModuleLink(project, appModule, syncIssues, appFile)

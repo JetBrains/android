@@ -329,12 +329,4 @@
             line="132"/>
     </issue>
 
-    <issue
-        id="WrongInvokeLater"
-        message="Do not use `SwingUtilities.invokeLater`; use `Application.invokeLater` instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/profilers/StudioProfilersView.java"
-            line="523"/>
-    </issue>
-
 </issues>

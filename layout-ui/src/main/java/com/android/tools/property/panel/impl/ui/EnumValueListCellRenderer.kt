@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.StandardDimensions.OUTER_BORDER_UNSCALED
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
@@ -64,7 +65,9 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
       }
     }
     panel.add(line, BorderLayout.CENTER)
+    panel.background = secondaryPanelBackground
     separator.add(panel, BorderLayout.CENTER)
+    separator.background = secondaryPanelBackground
     return separator
   }
 

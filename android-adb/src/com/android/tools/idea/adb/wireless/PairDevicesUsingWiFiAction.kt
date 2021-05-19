@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -23,26 +23,24 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * The action to show the [AdbDevicePairingDialog] window.
  */
 class PairDevicesUsingWiFiAction : AnAction() {
+  @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = isFeatureEnabled
+    e.presentation.isEnabledAndVisible = false
+    val project = e.project ?: return
+    e.presentation.isEnabledAndVisible = PairDevicesUsingWiFiService.getInstance(project).isFeatureEnabled
   }
 
+  @UiThread
   override fun actionPerformed(event: AnActionEvent) {
-    if (!isFeatureEnabled) {
-      return
-    }
     val project = event.project ?: return
+    if (!PairDevicesUsingWiFiService.getInstance(project).isFeatureEnabled) {
+      return;
+    }
 
-    val service = AdbDevicePairingServiceImpl()
-    val model = AdbDevicePairingModel()
-    val view = AdbDevicePairingViewImpl(project, model)
-    val controller = AdbDevicePairingControllerImpl(project, service, view, model)
-    controller.startPairingProcess()
+    val controller = PairDevicesUsingWiFiService.getInstance(project).createPairingDialogController()
+    controller.showDialog()
   }
-
-  private val isFeatureEnabled: Boolean
-    get() = StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()
 
   companion object {
     const val ID = "Android.AdbDevicePairing"

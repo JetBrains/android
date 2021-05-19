@@ -302,6 +302,7 @@ class ResourceExplorerViewModel private constructor(
                                  preferredResourceTab: ResourceType,
                                  supportedResourceTypes: Array<ResourceType>,
                                  showSampleData: Boolean,
+                                 showThemeAttributes: Boolean,
                                  selectAssetAction: ((asset: Asset) -> Unit)?,
                                  updateResourceCallback: ((resourceItem: ResourceItem) -> Unit)?
                                 ): ResourceExplorerViewModel =
@@ -315,7 +316,7 @@ class ResourceExplorerViewModel private constructor(
             librariesInitialValue = true,
             showSampleData = showSampleData,
             androidResourcesInitialValue = true,
-            themeAttributesInitialValue = true
+            themeAttributesInitialValue = showThemeAttributes
           ),
           preferredResourceTab
         ),

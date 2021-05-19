@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl.*
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN
@@ -24,13 +23,15 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import java.io.File
 
 class ConfigurationsTest : GradleFileModelTestCase() {
   @Test
   fun testParseConfigs() {
-    writeToBuildFile(CONFIGURATIONS_PARSE_CONFIGS)
+    writeToBuildFile(TestFile.PARSE_CONFIGS)
 
     val buildModel = gradleBuildModel
 
@@ -57,7 +58,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testParseQualifiedConfigs() {
-    writeToBuildFile(CONFIGURATIONS_PARSE_QUALIFIED_CONFIGS)
+    writeToBuildFile(TestFile.PARSE_QUALIFIED_CONFIGS)
 
     val buildModel = gradleBuildModel
 
@@ -88,7 +89,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddNewConfigFromEmpty() {
-    writeToBuildFile(CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY)
+    writeToBuildFile(TestFile.ADD_NEW_CONFIG_FROM_EMPTY)
 
     val buildModel = gradleBuildModel
 
@@ -97,7 +98,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     configsModel.addConfiguration("otherNewConfig").transitive().setValue(true)
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED)
 
     run {
       val configs = buildModel.configurations().all()
@@ -117,18 +118,18 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddNewConfig() {
-    writeToBuildFile(CONFIGURATIONS_ADD_NEW_CONFIG)
+    writeToBuildFile(TestFile.ADD_NEW_CONFIG)
 
     val buildModel = gradleBuildModel
 
     run {
       val configModel = buildModel.configurations()
       val newConfig = configModel.addConfiguration("otherNewConfig")
-      newConfig.visible().setValue(ReferenceTo("var1"))
+      ReferenceTo.createReferenceFromText("var1", newConfig.visible())?.let { newConfig.visible().setValue(it) }
     }
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, CONFIGURATIONS_ADD_NEW_CONFIG_EXPECTED)
+    verifyFileContents(myBuildFile, TestFile.ADD_NEW_CONFIG_EXPECTED)
 
     run {
       val configs = buildModel.configurations().all()
@@ -149,7 +150,7 @@ class ConfigurationsTest : GradleFileModelTestCase() {
 
   @Test
   fun testRemoveConfig() {
-    writeToBuildFile(CONFIGURATIONS_REMOVE_CONFIG)
+    writeToBuildFile(TestFile.REMOVE_CONFIG)
 
     val buildModel = gradleBuildModel
 
@@ -181,6 +182,19 @@ class ConfigurationsTest : GradleFileModelTestCase() {
     assertSize(0, buildModel.configurations().all())
   }
 
+  @Test
+  fun testRenameConfig() {
+    writeToBuildFile(TestFile.RENAME_CONFIG)
+
+    val buildModel = gradleBuildModel
+    val configs = buildModel.configurations().all()
+    configs.first { it.name() == "foo" }.rename("newFoo")
+    configs.first { it.name() == "bar" }.rename("newBar")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.RENAME_CONFIG_EXPECTED)
+    assertThat(buildModel.configurations().all().map { it.name() }.toSet(), equalTo(setOf("newFoo", "newBar")))
+  }
+
   private fun checkParseNonEmptyConfiguration(testFileName: TestFileName, vararg expectedConfigurations: String) {
     writeToBuildFile(testFileName)
     val buildModel = gradleBuildModel
@@ -199,47 +213,73 @@ class ConfigurationsTest : GradleFileModelTestCase() {
   @Test
   fun testParseGradleManualExample315() {
     assumeTrue("by configurations.creating not supported in KotlinScript parser", !isKotlinScript) // TODO(b/155075732)
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE315, "smokeTest")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE315, "smokeTest")
   }
 
   @Test
   fun testParseGradleManualExample319() {
     assumeTrue("implicit getByName on string configurations not supported in KotlinScript parser", !isKotlinScript) // TODO(b/143761795)
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE319, "implementation")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE319, "implementation")
   }
 
   @Test
   fun testParseGradleManualExample321() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE321, "compileClasspath")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE321, "compileClasspath")
   }
 
   @Test
   fun testParseGradleManualExample345() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE345, "compileClasspath")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE345, "compileClasspath")
   }
 
   @Test
   fun testParseGradleManualExample364() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE364, "rejectConfig")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE364, "rejectConfig")
   }
 
   @Test
   fun testParseGradleManualExample369() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE369, "pluginTool")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE369, "pluginTool")
   }
 
   @Test
   fun testParseGradleManualExample377() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE377, "compileClasspath", "runtimeClasspath")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE377, "compileClasspath", "runtimeClasspath")
   }
 
   @Test
   fun testParseGradleManualExample378() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_MANUAL_EXAMPLE378, "exposedApi", "exposedRuntime")
+    checkParseNonEmptyConfiguration(TestFile.MANUAL_EXAMPLE378, "exposedApi", "exposedRuntime")
   }
 
   @Test
   fun testParseGradleFailOnVersionConflict() {
-    checkParseNonEmptyConfiguration(CONFIGURATIONS_FAIL_ON_VERSION_CONFLICT, "implementation")
+    checkParseNonEmptyConfiguration(TestFile.FAIL_ON_VERSION_CONFLICT, "implementation")
+  }
+
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
+    PARSE_CONFIGS("parseConfigs"),
+    PARSE_QUALIFIED_CONFIGS("parseQualifiedConfigs"),
+    ADD_NEW_CONFIG_FROM_EMPTY("addNewConfigFromEmpty"),
+    ADD_NEW_CONFIG_FROM_EMPTY_EXPECTED("addNewConfigFromEmptyExpected"),
+    ADD_NEW_CONFIG("addNewConfig"),
+    ADD_NEW_CONFIG_EXPECTED("addNewConfigExpected"),
+    REMOVE_CONFIG("removeConfig"),
+    RENAME_CONFIG("renameConfig"),
+    RENAME_CONFIG_EXPECTED("renameConfigExpected"),
+    MANUAL_EXAMPLE315("gradleManual541-ex315"),
+    MANUAL_EXAMPLE319("gradleManual541-ex319"),
+    MANUAL_EXAMPLE321("gradleManual541-ex321"),
+    MANUAL_EXAMPLE345("gradleManual541-ex345"),
+    MANUAL_EXAMPLE364("gradleManual541-ex364"),
+    MANUAL_EXAMPLE369("gradleManual541-ex369"),
+    MANUAL_EXAMPLE377("gradleManual541-ex377"),
+    MANUAL_EXAMPLE378("gradleManual541-ex378"),
+    FAIL_ON_VERSION_CONFLICT("failOnVersionConflict"),
+    ;
+    override fun toFile(basePath: @SystemDependent String, extension: String): File {
+      return super.toFile("$basePath/configurations/$path", extension)
+    }
+
   }
 }

@@ -78,7 +78,7 @@ class ResourceImportDragTarget(
   /** Open the [ResourceImportDialog]. */
   private fun drop(files: Sequence<File>) {
     val assetSets = files.findAllDesignAssets(importersProvider)
-    ResourceManagerTracking.logAssetAddedViaDnd()
+    ResourceManagerTracking.logAssetAddedViaDnd(facet)
     ResourceImportDialog(facet, assetSets).show()
   }
 }

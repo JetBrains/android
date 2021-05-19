@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- A graph included within another graph (see: nested_include.xml) -->
+
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/to_nested_included_start"
+    app:startDestination="@id/to_nested_included_fragment">
+
+    <fragment
+        android:id="@+id/to_nested_included_fragment"
+        android:name="com.example.ToNestedIncludedFragment"
+        android:label="ToNestedIncludedFragment" />
+</navigation>

@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu.perfetto
 
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.atrace.PerfettoProducer
+import com.android.tools.profilers.cpu.systemtrace.PerfettoProducer
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

@@ -19,8 +19,8 @@ import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.fileTypes.PlainTextLanguage
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorComboBox
 import com.intellij.ui.LanguageTextField
@@ -41,7 +41,7 @@ fun createQuickSearchComboBox(
   val document = LanguageTextField.createDocument("", PlainTextLanguage.INSTANCE, ideProject,
                                                   documentCreator)
   val initialSelection = importantChoices.firstOrNull()
-  return object : EditorComboBox(document, ideProject, StdFileTypes.PLAIN_TEXT) {
+  return object : EditorComboBox(document, ideProject, PlainTextFileType.INSTANCE) {
     // we respond to documentChanged events to set the selected item immediately (see below), since we need the notion of selected item
     // and the text displayed in the combo box to stay in sync.  However, setting the selected item unconditionally sets the text to the
     // string representation of the selected item, which would (if uncaught) lead to infinite recursion.  Intercepting setText() to do

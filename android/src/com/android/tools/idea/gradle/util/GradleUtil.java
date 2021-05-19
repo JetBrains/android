@@ -62,14 +62,13 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidArtifactOutput;
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
@@ -174,11 +173,11 @@ public final class GradleUtil {
       return getOutputFileOrFolderFromListingFile(androidModel, androidModel.getSelectedVariant().getName(), OutputType.Apk, false);
     }
     else {
-      Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+      List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
       if (outputs.isEmpty()) return null;
-      AndroidArtifactOutput output = getFirstItem(outputs);
+      IdeAndroidArtifactOutput output = getFirstItem(outputs);
       assert output != null;
-      return output.getMainOutputFile().getOutputFile();
+      return output.getOutputFile();
     }
   }
 
@@ -667,7 +666,7 @@ public final class GradleUtil {
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
   private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
-    for (Library library : dependencies.getAndroidLibraries()) {
+    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
       if (dependsOn(library, artifact)) {
         return true;
       }
@@ -683,11 +682,11 @@ public final class GradleUtil {
    * @param artifact the artifact
    * @return {@code true} if the project depends on the given artifact
    */
-  public static boolean dependsOn(@NonNull Library library, @NonNull String artifact) {
+  public static boolean dependsOn(@NonNull IdeLibrary library, @NonNull String artifact) {
     return getDependencyVersion(library, artifact) != null;
   }
 
-  private static String getDependencyVersion(@NonNull Library library, @NonNull String artifact) {
+  private static String getDependencyVersion(@NonNull IdeLibrary library, @NonNull String artifact) {
     GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
     if (resolvedCoordinates != null) {
       if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
@@ -725,10 +724,10 @@ public final class GradleUtil {
    * @return the Library matches contains given bundleDir
    */
   @Nullable
-  public static Library findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
+  public static IdeLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (Library library : dependencies.getAndroidLibraries()) {
+    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
       if (filesEqual(bundleDir, library.getFolder())) {
         return library;
       }
@@ -890,7 +889,7 @@ public final class GradleUtil {
   }
 
   /**
-   * Wrapper around {@link BaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
+   * Wrapper around {@link IdeBaseArtifact#getGeneratedSourceFolders()} that skips the aapt sources folder when light classes are used by the
    * IDE.
    */
   public static Collection<File> getGeneratedSourceFoldersToUse(@NotNull IdeBaseArtifact artifact, @NotNull AndroidModuleModel model) {

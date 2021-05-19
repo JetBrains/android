@@ -34,6 +34,15 @@ object ViewMenuAction : DropDownAction(null, "View options", StudioIcons.Common.
         event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawBorders = state
       }
     })
+    add(object : ToggleAction("Show Layout Bounds") {
+      override fun isSelected(event: AnActionEvent): Boolean {
+        return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawUntransformedBounds == true
+      }
+
+      override fun setSelected(event: AnActionEvent, state: Boolean) {
+        event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawUntransformedBounds = state
+      }
+    })
     add(object : ToggleAction("Show View Label") {
       override fun isSelected(event: AnActionEvent): Boolean {
         return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawLabel == true

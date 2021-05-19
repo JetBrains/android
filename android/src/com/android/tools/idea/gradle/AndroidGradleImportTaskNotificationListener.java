@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.gradle;
 
-import static com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.LISTENER_KEY;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -34,18 +28,11 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
  */
 public class AndroidGradleImportTaskNotificationListener extends ExternalSystemTaskNotificationListenerAdapter {
 
-  @NotNull private static final Key<Boolean> STARTED_FROM_GRADLE_PLUGIN = new Key<>("gradle.sync.started.from.gradle.plugin");
-
   @Override
   public void onStart(@NotNull ExternalSystemTaskId id, String workingDir) {
     if (GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId())
         && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
-      Project project = id.findProject();
-      if (project == null) return;
-
-      setExternalSystemTaskId(project, id);
-      boolean movedToStartedState = promoteGradleSyncStateToStartedIfNeeded(project);
-      project.putUserData(STARTED_FROM_GRADLE_PLUGIN, Boolean.valueOf(movedToStartedState));
+      setExternalSystemTaskId(id);
     }
   }
 
@@ -61,31 +48,17 @@ public class AndroidGradleImportTaskNotificationListener extends ExternalSystemT
   public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
     if (GradleConstants.SYSTEM_ID.getId().equals(id.getProjectSystemId().getId())
         && id.getType() == ExternalSystemTaskType.RESOLVE_PROJECT) {
-      Project project = id.findProject();
-      if (project == null) return;
-
-      if (project.getUserData(STARTED_FROM_GRADLE_PLUGIN) == Boolean.TRUE) {
-        // Sync was started from IDEA, and we are responsible to deliver `syncFailed` event to the GradleSyncState.
-        // FIXME-ank4: in 4.2 gradle sync is reworked, and this hack should be removed
-        //noinspection ConstantConditions
-        assert LISTENER_KEY != null: "compiler will help us to not forget to revisit this piece of code: LISTENER_KEY is removed in 4.2";
-        String msg = e.getMessage();
-        GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName(), e, null);
-      } // else syncFailed will be invoked by ProjectSetUpTask#onFailure
+      // notify project sync failed  if needed
+      // e.g. Projects.notifyProjectSyncCompleted(project, false);
     }
   }
 
-  private static void setExternalSystemTaskId(@NotNull Project project, @NotNull ExternalSystemTaskId taskId) {
+  private static void setExternalSystemTaskId(@NotNull ExternalSystemTaskId taskId) {
     // set current ExternalTaskId to GradleSyncState
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
-    syncState.setExternalSystemTaskId(taskId);
-  }
-
-  private static boolean promoteGradleSyncStateToStartedIfNeeded(@NotNull Project project) {
-    GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (!syncState.isSyncInProgress()) {
-      return syncState.syncStarted(new GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_UNKNOWN));
+    Project project = taskId.findProject();
+    if (project != null) {
+      GradleSyncState syncState = GradleSyncState.getInstance(project);
+      syncState.setExternalSystemTaskId(taskId);
     }
-    return false;
   }
 }

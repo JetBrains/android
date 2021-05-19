@@ -27,7 +27,6 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.util.SwingUtil;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.StudioProfilersView;
@@ -169,8 +168,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     }
     HTreeChart<CaptureNode> chart = builder.build();
     // Add context menu for source navigation.
-    Cpu.CpuTraceType traceType = callChartModel.getCapture().getType();
-    if (traceType != Cpu.CpuTraceType.ATRACE && traceType != Cpu.CpuTraceType.PERFETTO) {
+    if (callChartModel.getCapture().getSystemTraceData() == null) {
       CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);

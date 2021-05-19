@@ -17,8 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.observable.core.BoolValueProperty
@@ -26,8 +25,10 @@ import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_PROJECT
 import org.jetbrains.android.util.AndroidBundle.message
 import java.util.Locale
 
@@ -35,13 +36,19 @@ import java.util.Locale
  * Orchestrates creation of the new project. Creates three steps (Project, Model, Activity) and renders them in a proper order.
  */
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
-  @JvmField
-  val formFactor = ObjectValueProperty(FormFactor.MOBILE)
+
   private val newModuleModel = NewAndroidModuleModel(
     projectModel,
-    createDummyTemplate(),
-    formFactor
-  )
+    createSampleTemplate(),
+    ":",
+    formFactor = ObjectValueProperty(FormFactor.Mobile),
+    wizardContext = NEW_PROJECT
+  ).apply {
+    multiTemplateRenderer.incrementRenders()
+  }
+
+  @JvmField
+  val formFactor = newModuleModel.formFactor
 
   /**
    * A model which is used at the optional step after usual activity configuring. Currently only used for Android Things.
@@ -101,7 +108,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   }
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
-    projectModel.enableCppSupport.get() || !extraRenderTemplateModel.hasActivity -> {
+    !extraRenderTemplateModel.hasActivity -> {
       RenderTemplateModel.fromModuleModel(newModuleModel).apply {
         if (newRenderTemplate.isPresent.get()) {
           newTemplate = newRenderTemplate.value
@@ -116,9 +123,16 @@ internal const val EMPTY_ACTIVITY = "Empty Activity"
 
 private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
-  val moduleName = getModuleName(FormFactor.MOBILE)
+  val moduleName = getModuleName(FormFactor.Mobile)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewAndroidModuleModel(projectModel, namedModuleTemplate)
+  val companionModuleModel = NewAndroidModuleModel(
+    projectModel,
+    namedModuleTemplate,
+    ":",
+    formFactor = ObjectValueProperty(FormFactor.Mobile),
+    wizardContext = NEW_PROJECT
+  )
+  companionModuleModel.multiTemplateRenderer.incrementRenders()
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
@@ -143,5 +157,5 @@ private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateMo
 
 private fun getModuleName(formFactor: FormFactor): String =
   // Form factors like Android Auto build upon another form factor
-  (formFactor.baseFormFactor ?: formFactor).id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
+  formFactor.name.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 

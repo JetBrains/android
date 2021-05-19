@@ -77,7 +77,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  29,
+                                                  30,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -112,7 +112,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  29,
+                                                  30,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.create("en").toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -139,7 +139,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  29,
+                                                  30,
                                                   ScreenOrientation.LANDSCAPE,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),

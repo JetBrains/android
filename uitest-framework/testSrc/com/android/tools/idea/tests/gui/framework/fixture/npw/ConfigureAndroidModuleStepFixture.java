@@ -17,9 +17,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.CppStandardType;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import javax.swing.JTextField;
 import org.fest.swing.fixture.JComboBoxFixture;
@@ -56,13 +56,22 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
 
   @NotNull
   public ConfigureAndroidModuleStepFixture<W> setSourceLanguage(@NotNull Language language) {
-    // TODO: Some Modules (ie New Benchmark Module) have a label ending with ":" - Unify UI
-    JLabel languageLabel = (JLabel)robot().finder().find(
-      target(), c -> c.isShowing() && c instanceof JLabel && String.valueOf(((JLabel)c).getText()).startsWith("Language")
-    );
-
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), languageLabel.getText(), JComboBox.class, true))
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language", JComboBox.class, true))
       .selectItem(language.toString());
+    return this;
+  }
+
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<W> setCppStandard(@NotNull CppStandardType cppStandard) {
+    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "C++ Standard", JComboBox.class, true))
+      .selectItem(cppStandard.name());
     return this;
   }
 }

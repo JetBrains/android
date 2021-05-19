@@ -16,7 +16,7 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.DeviceExplorerController;
-import com.android.tools.idea.explorer.FutureValuesTracker;
+import com.android.tools.idea.FutureValuesTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;

@@ -18,8 +18,13 @@ package com.android.tools.idea.uibuilder.property2.inspector
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ALPHA
 import com.android.SdkConstants.ATTR_GRAVITY
+import com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF
+import com.android.SdkConstants.ATTR_LAYOUT_CONSTRAINT_TAG
+import com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -28,6 +33,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NeleNewPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
+import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
@@ -39,15 +45,14 @@ import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 @RunsInEdt
 class FavoritesInspectorBuilderTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
-
-  @get:Rule
-  val edtRule = EdtRule()
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @Before
   fun setUp() {
@@ -71,13 +76,15 @@ class FavoritesInspectorBuilderTest {
 
   @Test
   fun testFavoritesParser() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;app:layout_constraintTag", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     assertThat(builder.loadFavoritePropertiesIfNeeded()).containsExactly(
       ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ALPHA),
       ResourceReference.attr(ResourceNamespace.TOOLS, ATTR_GRAVITY),
-      ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_VISIBILITY)).inOrder()
+      ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_VISIBILITY),
+      ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_CONSTRAINT_TAG),
+    ).inOrder()
   }
 
   @Test
@@ -130,6 +137,30 @@ class FavoritesInspectorBuilderTest {
     lineModel.checkItem(3, "", "")  // placeholder
     lineModel.checkItemCount(4)
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo(":alpha;tools:gravity;:visibility;:text;")
+  }
+
+  @Test
+  fun testAddFavoriteAndSelectApplicationProperty() {
+    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.newName())
+    val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
+    util.loadProperties()
+    util.addProperty(AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF, NelePropertyType.ID)
+    util.addProperty(AUTO_URI, ATTR_LAYOUT_TOP_TO_TOP_OF, NelePropertyType.ID)
+    builder.attachToInspector(util.inspector, util.properties)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
+    val newItem = util.checkTable(1).tableModel.items[2] as NeleNewPropertyItem
+
+    // Select a new favorite property:
+    newItem.name = "app:layout_constraintBottom_toTopOf"
+    val lineModel = util.checkTable(1)
+    lineModel.checkItem(0, AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
+    lineModel.checkItem(1, ANDROID_URI, ATTR_ALPHA)
+    lineModel.checkItem(2, ANDROID_URI, ATTR_VISIBILITY)
+    lineModel.checkItem(3, "", "")  // placeholder
+    lineModel.checkItemCount(4)
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
+      .isEqualTo(":alpha;tools:gravity;:visibility;app:layout_constraintBottom_toTopOf;")
   }
 
   @Test

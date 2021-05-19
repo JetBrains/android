@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.DragType;
@@ -39,13 +40,13 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   public void testUpdate() {
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
 
-    handler.update(180, 345, 0);
+    handler.update(180, 345, 0, SceneContext.get());
     assertEquals(PREFERENCE_CATEGORY, handler.myGroup.getNlComponent().getTagName());
 
-    handler.update(180, 356, 0);
+    handler.update(180, 356, 0, SceneContext.get());
     assertEquals(PREFERENCE_SCREEN, handler.myGroup.getNlComponent().getTagName());
 
-    handler.update(180, 370, 0);
+    handler.update(180, 370, 0, SceneContext.get());
     assertEquals(PREFERENCE_SCREEN, handler.myGroup.getNlComponent().getTagName());
   }
 
@@ -62,10 +63,10 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
 
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(model);
 
-    handler.update(180, 205, 0);
+    handler.update(180, 205, 0, SceneContext.get());
     assertEquals(model.find("category1"), handler.myGroup.getNlComponent());
 
-    handler.update(180, 230, 0);
+    handler.update(180, 230, 0, SceneContext.get());
     assertEquals(model.find("category2"), handler.myGroup.getNlComponent());
   }
 
@@ -73,10 +74,10 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 345, 0);
+    handler.update(180, 345, 0, SceneContext.get());
     handler.drawDropPreviewLine(graphics);
 
-    handler.update(180, 370, 0);
+    handler.update(180, 370, 0, SceneContext.get());
     handler.drawDropPreviewLine(graphics);
 
     Mockito.verify(graphics).drawBottomDp(new Rectangle(0, 304, 384, 52));
@@ -87,7 +88,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 251, 0);
+    handler.update(180, 251, 0, SceneContext.get());
     handler.drawDropRecipientLines(graphics);
 
     Rectangle bounds = new Rectangle(0, 166, 384, 190);
@@ -102,7 +103,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 251, 0);
+    handler.update(180, 251, 0, SceneContext.get());
     handler.drawDropZoneLines(graphics);
 
     List<SceneComponent> preferences = handler.myGroup.getChildren();
@@ -115,7 +116,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
     PreferenceGroupDragHandler handler = newPreferenceScreenDragHandler(newPreferenceScreen());
     NlGraphics graphics = Mockito.mock(NlGraphics.class);
 
-    handler.update(180, 303, 0);
+    handler.update(180, 303, 0, SceneContext.get());
     handler.drawDropZoneLines(graphics);
 
     List<SceneComponent> preferences = handler.myGroup.getChildren();

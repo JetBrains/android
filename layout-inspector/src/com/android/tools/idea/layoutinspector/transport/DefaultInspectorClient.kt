@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.transport
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
+import com.android.ddmlib.IDevice
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.flags.StudioFlags
@@ -26,8 +27,11 @@ import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
@@ -38,8 +42,10 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.html.HtmlEscapers
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -50,11 +56,13 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA
 import com.intellij.concurrency.JobScheduler
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
@@ -68,11 +76,10 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import org.jetbrains.android.dom.manifest.getPackageName
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.awt.Component
 import java.awt.event.ActionEvent
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -80,6 +87,12 @@ import javax.swing.AbstractAction
 import javax.swing.JLabel
 
 private const val MAX_RETRY_COUNT = 60
+private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
+private const val ADB_TIMEOUT_SECONDS = 2L
+
+var isCapturingModeOn: Boolean
+  get() = PropertiesComponent.getInstance().getBoolean(IS_CAPTURING_KEY, true)
+  set(value) = PropertiesComponent.getInstance().setValue(IS_CAPTURING_KEY, value, true)
 
 class DefaultInspectorClient(
   model: InspectorModel,
@@ -88,6 +101,7 @@ class DefaultInspectorClient(
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
 ) : InspectorClient, Disposable {
   private val project = model.project
+  private val stats = model.stats
   private val client = TransportClient(channelNameForTest)
   private val streamManager = TransportStreamManager.createManager(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 
@@ -112,14 +126,14 @@ class DefaultInspectorClient(
 
   private val listeners: MutableList<TransportEventListener> = mutableListOf()
 
-  override val provider = DefaultPropertiesProvider(this, model.resourceLookup)
+  override val provider = DefaultPropertiesProvider(this, model)
 
   private var loggedInitialRender = false
 
-  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
 
-  // Map of message group id to map of root view drawId to timestamp
-  private val lastResponseTimePerGroup = mutableMapOf<Long, MutableMap<Long?, Long>>()
+  // Map of message group id to map of root view drawId to timestamp. "null" window id corresponds to messages with an empty window list.
+  private val lastResponseTimePerWindow = mutableMapOf<Long, MutableMap<Long?, Long>>()
   private var adb: ListenableFuture<AndroidDebugBridge>? = null
   private var adbBridge: AndroidDebugBridge? = null
 
@@ -128,8 +142,20 @@ class DefaultInspectorClient(
   override var isConnected = false
     private set
 
-  override var isCapturing = false
-    private set
+  override var isCapturing: Boolean
+    get() = isCapturingModeOn
+    set(value) {
+      isCapturingModeOn = value
+      if (value) {
+        execute(LayoutInspectorCommand.Type.START)
+        stats.live.toggledToLive()
+      } else {
+        execute(LayoutInspectorCommand.Type.STOP)
+        stats.live.toggledToRefresh()
+      }
+    }
+
+  private var debugAttributesOverridden = false
 
   override val treeLoader = ComponentTreeLoader
 
@@ -139,6 +165,7 @@ class DefaultInspectorClient(
   private val lowMemoryWatcher = LowMemoryWatcher.register(
     {
       model.root.children.clear()
+      ViewNode.writeDrawChildren { drawChildren -> model.root.drawChildren().clear() }
       requestScreenshotMode()
       InspectorBannerService.getInstance(project).setNotification("Low Memory. Rotation disabled.")
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
@@ -164,37 +191,47 @@ class DefaultInspectorClient(
   // TODO: detect when a connection is dropped
   // TODO: move all communication with the agent off the UI thread
 
-  override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
+  override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {
     listeners.add(TransportEventListener(
       eventKind = Common.Event.Kind.LAYOUT_INSPECTOR,
       executor = MoreExecutors.directExecutor(),
       streamId = { selectedStream.streamId },
       groupId = { groupId.number.toLong() },
       processId = { selectedProcess.pid }) {
-      val groupLastResponseTimes = lastResponseTimePerGroup.getOrPut(it.groupId, ::mutableMapOf)
-      val rootId = it.layoutInspectorEvent?.tree?.root?.drawId
+
+      val groupLastResponseTimes = lastResponseTimePerWindow.getOrPut(it.groupId, ::mutableMapOf)
+      // Get the timestamp of the most recent message we've received in this group.
+      val latestMessageTimestamp = groupLastResponseTimes.values.max() ?: Long.MIN_VALUE
+
+      val layoutInspectorEvent = it.layoutInspectorEvent
+      // If this is the newest message in the group, update the map to contain only timestamps for current windows
+      // (or for "null" if there are none).
+      if (it.timestamp > latestMessageTimestamp) {
+        layoutInspectorEvent?.tree?.allWindowIdsList?.ifEmpty { listOf(null) }?.let { allWindows ->
+          allWindows.forEach { window -> groupLastResponseTimes.putIfAbsent(window, Long.MIN_VALUE) }
+          groupLastResponseTimes.keys.retainAll(allWindows)
+        }
+      }
+
+      val rootId = if (layoutInspectorEvent?.tree?.hasRoot() == true) layoutInspectorEvent.tree?.root?.drawId else null
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance() && isConnected &&
-          it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MIN_VALUE)) {
+          (it.groupId == EventGroupIds.PROPERTIES.number.toLong() ||
+           // only continue if the rootId is in the map, or this is an empty event.
+           it.timestamp > groupLastResponseTimes.getOrDefault(rootId, Long.MAX_VALUE))) {
         try {
-          callback(it.layoutInspectorEvent)
+          callback(layoutInspectorEvent)
         }
         catch (ex: Exception) {
           Logger.getInstance(DefaultInspectorClient::class.java.name).warn(ex)
         }
         groupLastResponseTimes[rootId] = it.timestamp
-        if (rootId != null) {
-          // Remove entries corresponding to windows we no longer know about (but keep any that we don't know about now but will in the
-          // future, if we happen to process messages out of order).
-          groupLastResponseTimes.entries.removeIf { (viewId, timestamp) ->
-            viewId !in it.layoutInspectorEvent.tree.allWindowIdsList && timestamp < it.timestamp }
-        }
       }
       false
     })
   }
 
-  override fun registerProcessChanged(callback: () -> Unit) {
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {
     processChangedListeners.add(callback)
   }
 
@@ -227,15 +264,13 @@ class DefaultInspectorClient(
   }
 
   override fun execute(commandType: LayoutInspectorCommand.Type) {
-    if (commandType == LayoutInspectorCommand.Type.START) {
-      execute(LayoutInspectorCommand.newBuilder().apply {
-        type = commandType
-        composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
-      }.build())
+    val command = LayoutInspectorCommand.newBuilder().setType(commandType)
+    when (commandType) {
+      LayoutInspectorCommand.Type.START,
+      LayoutInspectorCommand.Type.REFRESH -> command.composeMode = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_COMPOSE_SUPPORT.get()
+      else -> {}
     }
-    else {
-      super.execute(commandType)
-    }
+    execute(command.build())
   }
 
   @Slow
@@ -253,12 +288,6 @@ class DefaultInspectorClient(
       .build()
     // TODO(b/150503095)
     val response = client.transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(transportCommand).build())
-
-    when (command.type) {
-      LayoutInspectorCommand.Type.STOP -> isCapturing = false
-      LayoutInspectorCommand.Type.START -> isCapturing = true
-      else -> {}
-    }
   }
 
   @Slow
@@ -308,13 +337,7 @@ class DefaultInspectorClient(
     ) {
       synchronized(SELECTION_LOCK) {
         logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS, stream)
-        isConnected = true
-        selectedStream = stream
-        selectedProcess = process
-        processChangedListeners.forEach { it() }
-        setDebugViewAttributes(selectedStream, true)
-        listeners.forEach { transportPoller.registerListener(it) }
-        execute(LayoutInspectorCommand.Type.START)
+        start(stream, process)
       }
       // TODO: verify that capture started successfully
       attachListener = null
@@ -336,6 +359,12 @@ class DefaultInspectorClient(
       return null
     }
     return ApplicationManager.getApplication().executeOnPooledThread { attachWithRetry(preferredProcess, 0) }
+  }
+
+  override fun refresh() {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      execute(LayoutInspectorCommand.Type.REFRESH)
+    }
   }
 
   override fun logEvent(type: DynamicLayoutInspectorEventType) {
@@ -365,10 +394,14 @@ class DefaultInspectorClient(
         }
 
         override fun onSuccess(bridge: AndroidDebugBridge?) {
+          val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(eventType)
+          if (eventType == SESSION_DATA) {
+            stats.save(inspectorEvent.sessionBuilder)
+          }
           val builder = AndroidStudioEvent.newBuilder()
             .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-            .setDynamicLayoutInspectorEvent(
-              DynamicLayoutInspectorEvent.newBuilder().setType(eventType))
+            .setDynamicLayoutInspectorEvent(inspectorEvent)
+            .withProjectId(project)
           if (bridge != null) {
             findDevice(bridge, stream)?.let {
               builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it))
@@ -382,21 +415,22 @@ class DefaultInspectorClient(
 
   @Slow
   private fun attachWithRetry(preferredProcess: LayoutInspectorPreferredProcess, timesAttempted: Int) {
-    if (isConnected) {
-      return
-    }
-    for (stream in getStreams()) {
-      if (preferredProcess.isDeviceMatch(stream.device)) {
-        for (process in getProcesses(stream)) {
-          if (process.name == preferredProcess.packageName) {
-            try {
-              attach(stream, process)
-              return
-            }
-            catch (ex: StatusRuntimeException) {
-              // If the process is not found it may still be loading. Retry!
-              if (ex.status.code != Status.Code.NOT_FOUND) {
-                throw ex
+    // If the user is re-running the application, this attach attempt may arrive before the previous
+    // connection was closed. Try again later...
+    if (!isConnected) {
+      for (stream in getStreams()) {
+        if (preferredProcess.isDeviceMatch(stream.device)) {
+          for (process in getProcesses(stream)) {
+            if (process.name == preferredProcess.packageName) {
+              try {
+                attach(stream, process)
+                return
+              }
+              catch (ex: StatusRuntimeException) {
+                // If the process is not found it may still be loading. Retry!
+                if (ex.status.code != Status.Code.NOT_FOUND) {
+                  throw ex
+                }
               }
             }
           }
@@ -423,74 +457,18 @@ class DefaultInspectorClient(
 
   private fun disconnectNow() {
     var didDisconnect = false
+    val oldStream = selectedStream
     synchronized(SELECTION_LOCK) {
       if (selectedStream != Common.Stream.getDefaultInstance() &&
           selectedProcess != Common.Process.getDefaultInstance()) {
         didDisconnect = true
-        setDebugViewAttributes(selectedStream, false)
-        selectedStream = Common.Stream.getDefaultInstance()
-        selectedProcess = Common.Process.getDefaultInstance()
-        isConnected = false
-        isCapturing = false
-        listeners.forEach { transportPoller.unregisterListener(it) }
-        lastResponseTimePerGroup.clear()
+        stop(selectedStream)
       }
     }
     if (didDisconnect) {
-      processChangedListeners.forEach { it() }
+      logEvent(SESSION_DATA, oldStream)
+      processChangedListeners.forEach { it(this) }
       SkiaParser.shutdownAll()
-    }
-  }
-
-  private fun setDebugViewAttributes(stream: Common.Stream, enable: Boolean) {
-    val currentSelectedStream = selectedStream
-    adbBridge?.let {
-      if (!setDebugViewAttributes(it, stream, enable) && !enable) {
-        reportUnableToResetGlobalSettings()
-      }
-      return
-    }
-
-    adb?.let { future ->
-      Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
-        override fun onSuccess(bridge: AndroidDebugBridge?) {
-          adbBridge = bridge
-          if (stream != currentSelectedStream) {
-            return
-          }
-          val success = bridge?.let { setDebugViewAttributes(it, stream, enable) } ?: false
-          if (!success && !enable) {
-            reportUnableToResetGlobalSettings()
-          }
-        }
-
-        override fun onFailure(ex: Throwable) {
-          if (!enable) {
-            reportUnableToResetGlobalSettings()
-          }
-        }
-      }, MoreExecutors.directExecutor())
-    }
-  }
-
-  private fun reportUnableToResetGlobalSettings() {
-    ApplicationManager.getApplication().invokeLater {
-      val commands = createAdbDebugViewCommand(false)
-      var message = """Could not reset the state on your device.
-
-                       To fix this run the layout inspector again or manually run these commands:
-                       """.trimIndent()
-      commands.forEach { message += "\n $ adb shell $it" }
-
-      val dialog = dialog(
-        title = "Unable to connect to your device",
-        panel = panel {
-          row(JLabel(UIUtil.getErrorIcon())) {}
-          noteRow(message)
-        },
-        createActions = { listOf(OkButtonAction()) },
-        project = project)
-      dialog.show()
     }
   }
 
@@ -505,49 +483,146 @@ class DefaultInspectorClient(
     }
   }
 
-  @Slow
-  private fun setDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, enable: Boolean): Boolean {
-    try {
-      val device = findDevice(bridge, stream) ?: return false
-      val receiver = CollectingOutputReceiver()
-      val commands = createAdbDebugViewCommand(enable)
-      if (!enable || selectedStream == stream) {
-        commands.forEach { device.executeShellCommand(it, receiver) }
+  private fun start(stream: Common.Stream, process: Common.Process) {
+    adbExecute(whenSuccess = { enableDebugViewAttributes(it, stream, process); startImpl(stream, process) },
+               whenFailure = { startImpl(stream, process) })  // Attempt to start even if we could not set/verify debug attrs
+  }
+
+  private fun stop(stream: Common.Stream) {
+    selectedStream = Common.Stream.getDefaultInstance()
+    selectedProcess = Common.Process.getDefaultInstance()
+    isConnected = false
+    listeners.forEach { transportPoller.unregisterListener(it) }
+    lastResponseTimePerWindow.clear()
+    processChangedListeners.forEach { it(this) }
+    if (debugAttributesOverridden) {
+      if (!disableDebugViewAttributes(adbBridge, stream)) {
+        reportUnableToResetGlobalSettings()
       }
-      return true
+      debugAttributesOverridden = false
+    }
+  }
+
+  @Slow
+  private fun startImpl(stream: Common.Stream, process: Common.Process) {
+    isConnected = true
+    selectedStream = stream
+    selectedProcess = process
+    processChangedListeners.forEach { it(this) }
+    listeners.forEach { transportPoller.registerListener(it) }
+    if (isCapturing) {
+      execute(LayoutInspectorCommand.Type.START)
+    }
+    else {
+      execute(LayoutInspectorCommand.Type.REFRESH)
+    }
+  }
+
+  /**
+   * Enable debug view attributes for the current process.
+   *
+   * Ignore failures since we are able to inspect the process without debug view attributes.
+   */
+  @Slow
+  private fun enableDebugViewAttributes(bridge: AndroidDebugBridge, stream: Common.Stream, process: Common.Process) {
+    val device = findDevice(bridge, stream) ?: return
+    var errorMessage: String
+    try {
+      if (executeShellCommand(device, "settings get global debug_view_attributes") != "null") {
+        // A return value of "null" means: "debug_view_attributes" is not currently turned on for all processes on the device.
+        return
+      }
+      val app = executeShellCommand(device, "settings get global debug_view_attributes_application_package")
+      if (app == process.name) {
+        // A return value of process.name means: the debug_view_attributes are already turned on for this process.
+        return
+      }
+      errorMessage = executeShellCommand(device, "settings put global debug_view_attributes_application_package ${process.name}")
+      if (errorMessage.isEmpty()) {
+        // A return value of "" means: "debug_view_attributes_application_package" were successfully overridden.
+        debugAttributesOverridden = true
+      }
     }
     catch (ex: Exception) {
       Logger.getInstance(DefaultInspectorClient::class.java).warn(ex)
+      errorMessage = ex.message ?: ex.javaClass.simpleName
+    }
+    if (errorMessage.isNotEmpty()) {
+      val encoder = HtmlEscapers.htmlEscaper()
+      val text = encoder.escape("Unable to set the global setting:") + "<br/>" +
+                 encoder.escape("\"debug_view_attributes_application_package\"") + "<br/>" +
+                 encoder.escape("to: \"${process.name}\"") + "<br/><br/>" +
+                 encoder.escape("Error: ${errorMessage}")
+      AndroidNotification.getInstance(project).showBalloon("Could not enable resolution traces",
+                                                           text, NotificationType.WARNING)
+    }
+  }
+
+  /**
+   * Disable debug view attributes for the current process that were set when we connected.
+   *
+   * Return true if the debug view attributes were successfully disabled.
+   */
+  @Slow
+  private fun disableDebugViewAttributes(bridge: AndroidDebugBridge?, stream: Common.Stream): Boolean {
+    val device = bridge?.let { findDevice(it, stream) } ?: return false
+    try {
+      executeShellCommand(device, "settings delete global debug_view_attributes_application_package")
+      return true
+    }
+    catch (ex: Exception) {
+      Logger.getInstance(DefaultInspectorClient::class.java).error(ex)
       return false
+    }
+  }
+
+  @Slow
+  private fun adbExecute(whenSuccess: (AndroidDebugBridge) -> Unit, whenFailure: () -> Unit) {
+    adbBridge?.let { return whenSuccess(it) }
+    adb?.let { future ->
+      Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
+        override fun onSuccess(bridge: AndroidDebugBridge?) {
+          adbBridge = bridge
+          bridge?.let { whenSuccess(it) } ?: whenFailure()
+        }
+
+        override fun onFailure(ex: Throwable) {
+          Logger.getInstance(DefaultInspectorClient::class.java).error(ex)
+          whenFailure()
+        }
+      }, MoreExecutors.directExecutor())
+    }
+  }
+
+  @Slow
+  private fun executeShellCommand(device: IDevice, command: String): String {
+    val latch = CountDownLatch(1)
+    val receiver = CollectingOutputReceiver(latch)
+    device.executeShellCommand(command, receiver, ADB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    latch.await(ADB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    return receiver.output.trim()
+  }
+
+  private fun reportUnableToResetGlobalSettings() {
+    ApplicationManager.getApplication().invokeLater {
+      val message = """Could not reset the state on your device.
+
+                       To fix this run the layout inspector again or manually run this command:
+                       $ adb shell settings delete global debug_view_attributes_application_package
+                       """.trimIndent()
+
+      val dialog = dialog(
+        title = "Unable to connect to your device",
+        panel = panel {
+          row(JLabel(UIUtil.getErrorIcon())) {}
+          noteRow(message)
+        },
+        createActions = { listOf(OkButtonAction()) },
+        project = project)
+      dialog.show()
     }
   }
 
   private fun findDevice(bridge: AndroidDebugBridge,
                          stream: Common.Stream) = bridge.devices.find { isDeviceMatch(stream.device, it) }
-
-  private fun createAdbDebugViewCommand(enable: Boolean): List<String> {
-    if (!enable) {
-      return listOf("settings delete global debug_view_attributes",
-                    "settings delete global debug_view_attributes_application_package")
-    }
-    val packageName = findPackageName()
-    return if (packageName.isNotEmpty())
-      listOf("settings put global debug_view_attributes_application_package $packageName")
-    else
-      listOf("settings put global debug_view_attributes 1")
-  }
-
-  private fun findPackageName(): String {
-    var packageName = ""
-    for (module in ModuleManager.getInstance(project).modules) {
-      val modulePackageName = (AndroidFacet.getInstance(module) ?: continue).let(::getPackageName) ?: continue
-      if (packageName.isNotEmpty()) {
-        // Multiple Android package names:
-        return ""
-      }
-      packageName = modulePackageName
-    }
-    // Found a single Android package name:
-    return packageName
-  }
 }

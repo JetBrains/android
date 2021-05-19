@@ -24,12 +24,11 @@ import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Assert
-import java.util.concurrent.TimeUnit
 
 /**
  * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
  */
-private fun checkSimpleLayoutResult(result: RenderResult) {
+fun checkSimpleLayoutResult(result: RenderResult) {
   TestCase.assertEquals(Result.Status.SUCCESS,
                         result.renderResult.status)
   val views = result.rootViews[0].children
@@ -47,7 +46,7 @@ private fun checkSimpleLayoutResult(result: RenderResult) {
 }
 
 @Language("XML")
-private val SIMPLE_LAYOUT = """
+val SIMPLE_LAYOUT = """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_height="match_parent"
   android:layout_width="match_parent"
@@ -93,12 +92,13 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseInflate() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
-      val metric = getInflateMetric(task) { result: RenderResult ->
-        checkSimpleLayoutResult(result)
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+        metric = getInflateMetric(it) { result: RenderResult ->
+          checkSimpleLayoutResult(result)
+        }
       }
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      metric!!
     }
     computeAndRecordMetric("inflate_time_base", "inflate_memory_base", computable)
   }
@@ -106,10 +106,11 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseRender() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
-      val metric = getRenderMetric(task, ::checkSimpleLayoutResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration) {
+        metric = getRenderMetric(it, ::checkSimpleLayoutResult)
+      }
+      metric!!
     }
     computeAndRecordMetric("render_time_base", "render_memory_base", computable)
   }

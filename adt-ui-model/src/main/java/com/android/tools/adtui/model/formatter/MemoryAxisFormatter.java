@@ -22,14 +22,14 @@ import org.jetbrains.annotations.NotNull;
 public final class MemoryAxisFormatter extends BaseAxisFormatter {
   private static final int MULTIPLIER = 1024;
   private static final int BASE = 2;
-  private static final int[] MIN_INTERVALS = new int[]{4, 1, 1};    // 4KB, 1MB, 1GB
-  private static final String[] UNITS = new String[]{"KB", "MB", "GB"};
+  private static final int[] MIN_INTERVALS = new int[]{4, 1, 1, 1};    // 4B, 1KB, 1MB, 1GB
+  private static final String[] UNITS = new String[]{"B", "KB", "MB", "GB"};
   private static final IntList BASE_FACTORS = IntArrayList.wrap(new int[]{2, 1});
 
   public static final MemoryAxisFormatter DEFAULT = new MemoryAxisFormatter(4, 10, 5);
 
   public MemoryAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
-    super(maxMinorTicks, maxMajorTicks, switchThreshold, true);
+    super(maxMinorTicks, maxMajorTicks, switchThreshold, true, x -> x < 0.01 ? 3 : x < 0.1 ? 2 : 1);
   }
 
   @Override

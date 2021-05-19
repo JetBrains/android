@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
@@ -28,13 +28,23 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 
 class NewLibraryModuleModel(
-  project: Project, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel("lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
+  project: Project,
+  moduleParent: String,
+  projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(
+  name = "lib",
+  commandName = "New Library Module",
+  isLibrary = true,
+  projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
+  moduleParent = moduleParent,
+  wizardContext = NEW_MODULE
+) {
   @JvmField
   val className = StringValueProperty("MyClass")
 
@@ -45,10 +55,13 @@ class NewLibraryModuleModel(
       .first() // we don't care which one do we use, we just have to pass something, it is not going to be used
   )
 
+  override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+    get() = RenderLoggingEvent.JAVA_LIBRARY
+
   override val renderer = object : ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
-    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
-      get() = RenderLoggingEvent.JAVA_LIBRARY
+    override val recipe: Recipe get() = { td: TemplateData ->
+      generatePureLibrary(td as ModuleTemplateData, className.get(), useGradleKts.get())
+    }
 
     override fun init() {
       super.init()

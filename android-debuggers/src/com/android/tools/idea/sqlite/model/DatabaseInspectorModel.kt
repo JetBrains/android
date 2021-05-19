@@ -82,7 +82,10 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     openDatabases.remove(databaseId)
-    closeDatabases.add(databaseId)
+    // only add live databases to closed dbs
+    if (databaseId is SqliteDatabaseId.LiveSqliteDatabaseId) {
+      closeDatabases.add(databaseId)
+    }
 
     listeners.forEach { it.onDatabasesChanged(openDatabases.keys.toList(), closeDatabases.toList()) }
   }

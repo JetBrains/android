@@ -45,6 +45,13 @@ abstract class PositionableContent {
   @AndroidDpCoordinate
   abstract fun getContentSize(dimension: Dimension?): Dimension
 
+  /**
+   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+   * current zoom level
+   *
+   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+   *                  returned.
+   */
   @SwingCoordinate
   abstract fun getScaledContentSize(dimension: Dimension?): Dimension
   abstract fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)

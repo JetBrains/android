@@ -31,7 +31,7 @@ class FutureUtilsTest {
   @Test
   fun testTransform() {
     val future = SettableFuture.create<Int>()
-    val transformedFuture = future.transform { i -> "$i" }
+    val transformedFuture = future.transform(directExecutor()) { i -> "$i" }
 
     future.set(1337)
     Truth.assertThat(transformedFuture.get()).isEqualTo("1337")
@@ -41,7 +41,7 @@ class FutureUtilsTest {
   fun testTransformAsync() {
     val future1 = SettableFuture.create<String>()
     val future2 = SettableFuture.create<String>()
-    val transformedFuture = future1.transformAsync(directExecutor()) { i1 -> future2.transform { i2 -> "$i1 $i2" } }
+    val transformedFuture = future1.transformAsync(directExecutor()) { i1 -> future2.transform(directExecutor()) { i2 -> "$i1 $i2" } }
 
     future1.set("foo")
     future2.set("bar")

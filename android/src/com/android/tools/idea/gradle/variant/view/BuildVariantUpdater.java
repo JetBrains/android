@@ -15,38 +15,29 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.finishBatchUpdate;
-import static com.android.tools.idea.gradle.util.BatchUpdatesUtil.startBatchUpdate;
-import static com.android.tools.idea.gradle.util.GradleProjects.executeProjectChanges;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_FULL_SYNC;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 import static com.intellij.util.ThreeState.YES;
 
-import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -57,11 +48,9 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +63,6 @@ public final class BuildVariantUpdater {
     new Key<>("module.with.build.variant.switched.from.ui");
   @NotNull public static final Key<Boolean> USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS =
     new Key<>("use.variants.from.previous.gradle.syncs");
-  @NotNull private final IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @NotNull private final List<BuildVariantView.BuildVariantSelectionChangeListener> mySelectionChangeListeners =
     ContainerUtil.createLockFreeCopyOnWriteList();
 
@@ -85,46 +73,14 @@ public final class BuildVariantUpdater {
 
   // called by IDEA.
   @SuppressWarnings("unused")
-  BuildVariantUpdater() {
-    this(new IdeModifiableModelsProviderFactory());
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  BuildVariantUpdater(@NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory) {
-    myModifiableModelsProviderFactory = modifiableModelsProviderFactory;
-  }
+  BuildVariantUpdater() { }
 
   /**
    * Add an {@link BuildVariantView.BuildVariantSelectionChangeListener} to the updater. Listeners are
    * invoked when the project's selected build variant changes.
    */
-  public void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
+  void addSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
     mySelectionChangeListeners.add(listener);
-  }
-
-  /**
-   * Remove the {@link BuildVariantView.BuildVariantSelectionChangeListener} from the updater.
-   */
-  public void removeSelectionChangeListener(@NotNull BuildVariantView.BuildVariantSelectionChangeListener listener) {
-    mySelectionChangeListeners.remove(listener);
-  }
-
-  public boolean updateSelectedBuildVariant(@NotNull Project project,
-                                            @NotNull String moduleName,
-                                            @NotNull String selectedBuildVariant,
-                                            boolean forceCreateDirs) {
-    if (forceCreateDirs) {
-      project.putUserData(FORCE_CREATE_DIRS_KEY, true);
-    }
-    try {
-      return updateSelectedBuildVariant(project, moduleName, selectedBuildVariant);
-    }
-    finally {
-      if (forceCreateDirs) {
-        project.putUserData(FORCE_CREATE_DIRS_KEY, null);
-      }
-    }
   }
 
   /**
@@ -144,20 +100,21 @@ public final class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
-    if (ndkModuleModel == null) {
+    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
+    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
+    if (ndkModuleModel == null || ndkFacet == null) {
       // Non-native module. ABI is irrelevant. Proceed with the build variant without ABI.
       return updateSelectedVariant(project, moduleName, selectedBuildVariant);
     }
 
     // Native module: try to preserve the existing ABI for that module (if exists).
-    String newNdkBuildVariant = resolveNewNdkVariant(ndkModuleModel, selectedBuildVariant, null);
-    if (newNdkBuildVariant == null) {
+    VariantAbi newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, selectedBuildVariant, null);
+    if (newVariantAbi == null) {
       logAndShowBuildVariantFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
       return false;
     }
 
-    return updateSelectedVariant(project, moduleName, newNdkBuildVariant);
+    return updateSelectedVariant(project, moduleName, newVariantAbi.getDisplayName());
   }
 
   /**
@@ -177,23 +134,28 @@ public final class BuildVariantUpdater {
       return false;
     }
 
-    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
-    if (ndkModuleModel == null) {
+    NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(moduleToUpdate);
+    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
+    if (ndkModuleModel == null || ndkFacet == null) {
       // This is unexpected. If we presented ABI dropdown for this module, then it must have an NDK model.
       logAndShowAbiNameFailure(String.format("Cannot find native module model '%1$s'.", moduleName));
       return false;
     }
 
     // Keep using the same existing build variant.
-    String existingNdkBuildVariant = ndkModuleModel.getSelectedVariant().getName();
-    String existingBuildVariant = ndkModuleModel.getVariantName(existingNdkBuildVariant);
-    String newNdkBuildVariant = resolveNewNdkVariant(ndkModuleModel, existingBuildVariant, selectedAbiName);
-    if (newNdkBuildVariant == null) {
+    VariantAbi currentSelectedVariantAbi = ndkFacet.getSelectedVariantAbi();
+    VariantAbi newVariantAbi;
+    if (currentSelectedVariantAbi == null) {
+      newVariantAbi = null;
+    } else {
+      newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModuleModel, currentSelectedVariantAbi.getVariant(), selectedAbiName);
+    }
+    if (newVariantAbi == null) {
       logAndShowAbiNameFailure(String.format("Cannot find suitable ABI for native module '%1$s'.", moduleName));
       return false;
     }
 
-    return updateSelectedVariant(project, moduleName, newNdkBuildVariant);
+    return updateSelectedVariant(project, moduleName, newVariantAbi.getDisplayName());
   }
 
   /**
@@ -234,24 +196,19 @@ public final class BuildVariantUpdater {
       // Build file is not changed, the cached variants should be cached and reused.
       project.putUserData(USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS, true);
       setVariantSwitchedProperty(project, moduleName);
-      requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
+      requestVariantOnlyGradleSync(project, moduleName, invokeVariantSelectionChangeListeners);
     }
     else {
       // For now we need to update every facet to ensure content entries are accurate.
       // TODO: Remove this once content entries use DataNodes.
       List<AndroidFacet> allAndroidFacets = new ArrayList<>();
-      List<NdkFacet> allNdkFacets = new ArrayList<>();
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet androidFacet = AndroidFacet.getInstance(module);
         if (androidFacet != null) {
           allAndroidFacets.add(androidFacet);
         }
-        NdkFacet ndkFacet = NdkFacet.getInstance(module);
-        if (ndkFacet != null) {
-          allNdkFacets.add(ndkFacet);
-        }
       }
-      setupCachedVariant(project, allAndroidFacets, allNdkFacets, invokeVariantSelectionChangeListeners);
+      setupCachedVariant(project, allAndroidFacets, invokeVariantSelectionChangeListeners);
     }
     return true;
   }
@@ -311,14 +268,21 @@ public final class BuildVariantUpdater {
     String variantName = variantToSelect;
     String abiName = null;
     if (ndkFacet != null) {
-      NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(ndkFacet);
+      NdkModuleModel ndkModuleModel = getNdkModelIfItHasNativeVariantAbis(ndkFacet);
       if (ndkModuleModel != null) {
-        ndkVariantExists =
-          updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantToSelect, affectedNdkFacets);
+        VariantAbi variantAbiToSelect = VariantAbi.fromString(variantToSelect);
+        if (variantAbiToSelect == null) {
+          logAndShowBuildVariantFailure(String.format("Cannot parse variant and ABI '%s'.", variantToSelect));
+          return false;
+        }
+        if (ndkModuleModel.getAllVariantAbis().contains(variantAbiToSelect)) {
+          ndkVariantExists =
+            updateAffectedFacetsForNdkModule(ndkFacet, ndkModuleModel, variantAbiToSelect, affectedNdkFacets);
 
-        // The variant name (without ABI) and ABI name to use for dependent modules.
-        variantName = ndkModuleModel.getVariantName(variantToSelect);
-        abiName = ndkModuleModel.getAbiName(variantToSelect);
+          // The variant name (without ABI) and ABI name to use for dependent modules.
+          variantName = variantAbiToSelect.getVariant();
+          abiName = variantAbiToSelect.getAbi();
+        }
       }
     }
 
@@ -335,19 +299,14 @@ public final class BuildVariantUpdater {
 
   private static boolean updateAffectedFacetsForNdkModule(@NotNull NdkFacet ndkFacet,
                                                           @NotNull NdkModuleModel ndkModuleModel,
-                                                          @NotNull String variantToSelect,
+                                                          @NotNull VariantAbi variantAbiToSelect,
                                                           @NotNull List<NdkFacet> affectedNdkFacets) {
-    if (variantToSelect.equals(ndkModuleModel.getSelectedVariant().getName())) {
+    if (variantAbiToSelect.equals(ndkFacet.getSelectedVariantAbi()) && ndkModuleModel.getSyncedVariantAbis().contains(variantAbiToSelect)) {
       return true;
     }
-
     affectedNdkFacets.add(ndkFacet);
-    ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
-    if (!ndkModuleModel.variantExists(variantToSelect)) {
-      return false;
-    }
-    ndkModuleModel.setSelectedVariantName(variantToSelect);
-    return true;
+    ndkFacet.setSelectedVariantAbi(variantAbiToSelect);
+    return ndkModuleModel.getSyncedVariantAbis().contains(variantAbiToSelect);
   }
 
   private static boolean updateAffectedFacetsForAndroidModule(@NotNull Project project,
@@ -390,7 +349,7 @@ public final class BuildVariantUpdater {
                                                                  @Nullable String abiToSelect,
                                                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
                                                                  @NotNull List<NdkFacet> affectedNdkFacets) {
-    for (Library library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
+    for (IdeLibrary library : androidModel.getSelectedMainCompileLevel2Dependencies().getModuleDependencies()) {
       if (isNotEmpty(library.getVariant()) && isNotEmpty(library.getProjectPath())) {
         Module dependencyModule = ProjectStructure.getInstance(project).getModuleFinder().findModuleFromLibrary(library);
         updateDependencyModule(
@@ -439,9 +398,9 @@ public final class BuildVariantUpdater {
     if (dependencyModel != null) {
       // Update the affected NDK facets, if exists.
       NdkFacet dependencyNdkFacet = NdkFacet.getInstance(dependencyModule);
-      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNdkModelIfNotJustDummy(dependencyNdkFacet);
+      NdkModuleModel dependencyNdkModel = dependencyNdkFacet == null ? null : getNdkModelIfItHasNativeVariantAbis(dependencyNdkFacet);
       if (dependencyNdkModel != null) {
-        String projectVariantWithAbi = resolveNewNdkVariant(dependencyNdkModel, projectVariant, abiToSelect);
+        VariantAbi projectVariantWithAbi = resolveNewVariantAbi(dependencyNdkFacet, dependencyNdkModel, projectVariant, abiToSelect);
         if (projectVariantWithAbi != null) {
           updateAffectedFacetsForNdkModule(dependencyNdkFacet, dependencyNdkModel, projectVariantWithAbi, affectedNdkFacets);
         }
@@ -466,13 +425,15 @@ public final class BuildVariantUpdater {
    * @return The variant that to be used for the current module, including the ABI. E.g., "release-x86".
    */
   @Nullable
-  private static String resolveNewNdkVariant(@NotNull NdkModuleModel ndkModel,
-                                             @NotNull String newVariant,
-                                             @Nullable String userSelectedAbi) {
+  private static VariantAbi resolveNewVariantAbi(
+    @NotNull NdkFacet ndkFacet,
+    @NotNull NdkModuleModel ndkModel,
+    @NotNull String newVariant,
+    @Nullable String userSelectedAbi) {
     if (userSelectedAbi != null) {
-      String ndkVariant = getNdkBuildVariantName(newVariant, userSelectedAbi);  // e.g., debug-x86
-      if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
-        return ndkVariant;
+      VariantAbi newVariantAbi = new VariantAbi(newVariant, userSelectedAbi);
+      if (ndkModel.getAllVariantAbis().contains(newVariantAbi)) {
+        return newVariantAbi;
       }
 
       // Failed to find the user-provided ABI in this module for the new variant.
@@ -481,17 +442,17 @@ public final class BuildVariantUpdater {
 
     // If the user did not provide an ABI in their selection, or the variant+ABI combination they selected for some parent/ancestor module
     // does not exist in the current module, then we try to preserve the ABI for this module.
-    String existingAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
-    String ndkVariant = getNdkBuildVariantName(newVariant, existingAbi);  // e.g., debug-x86
+    VariantAbi selectedVariantAbi = ndkFacet.getSelectedVariantAbi();
+    if (selectedVariantAbi == null) return null;
+    String existingAbi = selectedVariantAbi.getAbi();
+    VariantAbi proposedVariantAbi = new VariantAbi(newVariant, existingAbi);  // e.g., debug-x86
 
-    if (ndkModel.getNdkVariantNames().contains(ndkVariant)) {
-      return ndkVariant;
+    if (ndkModel.getAllVariantAbis().contains(proposedVariantAbi)) {
+      return proposedVariantAbi;
     }
 
     // Cannot preserve ABI. It is probably filtered out by the user. Fall back to any other available ABI for that build variant.
-    String expectedPrefix = newVariant + "-";
-    Optional<String> variant = ndkModel.getNdkVariantNames().stream().filter(it -> it.startsWith(expectedPrefix)).findFirst();
-    return variant.orElse(null);
+    return ndkModel.getAllVariantAbis().stream().filter(variantAbi -> variantAbi.getVariant().equals(newVariant)).findFirst().orElse(null);
   }
 
   private static boolean hasBuildFilesChanged(@NotNull Project project) {
@@ -522,7 +483,6 @@ public final class BuildVariantUpdater {
 
   private static void requestVariantOnlyGradleSync(@NotNull Project project,
                                                    @NotNull String moduleName,
-                                                   @NotNull String buildVariantName,
                                                    @NotNull Runnable variantSelectionChangeListeners) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
@@ -534,36 +494,19 @@ public final class BuildVariantUpdater {
       return;
     }
     AndroidModuleModel androidModel = AndroidModuleModel.get(moduleToUpdate);
-    NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(moduleToUpdate);
     GradleModuleModel gradleModel = gradleFacet.getGradleModuleModel();
     if (androidModel != null && gradleModel != null) {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      String variantName = buildVariantName;
-      String abiName = null;
-      if (ndkModuleModel != null) {
-        variantName = ndkModuleModel.getVariantName(buildVariantName);
-        abiName = ndkModuleModel.getAbiName(buildVariantName);
-      }
-      request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantName, abiName);
       GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener(variantSelectionChangeListeners));
     }
   }
 
-  private void setupCachedVariant(@NotNull Project project,
-                                  @NotNull List<AndroidFacet> affectedAndroidFacets,
-                                  @NotNull List<NdkFacet> affectedNdkFacets,
-                                  @NotNull Runnable variantSelectionChangeListeners) {
+  private static void setupCachedVariant(@NotNull Project project,
+                                         @NotNull List<AndroidFacet> affectedAndroidFacets,
+                                         @NotNull Runnable variantSelectionChangeListeners) {
     Application application = ApplicationManager.getApplication();
 
     Task.Backgroundable task = new Task.Backgroundable(project, "Setting up Project", false/* cannot be canceled*/) {
-      // Values to use in indicator
-      private double PROGRESS_SETUP_MODULES_START = 0.0;
-      private double PROGRESS_SETUP_MODULES_SIZE = 0.2;
-      private double PROGRESS_SETUP_PROJECT_START = PROGRESS_SETUP_MODULES_START + PROGRESS_SETUP_MODULES_SIZE;
-      private double PROGRESS_SETUP_PROJECT_SIZE = 0.2;
-      private double PROGRESS_COMMIT_START = PROGRESS_SETUP_PROJECT_START + PROGRESS_SETUP_PROJECT_SIZE;
-      private double PROGRESS_COMMIT_SIZE = 0.4;
 
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
@@ -573,15 +516,9 @@ public final class BuildVariantUpdater {
         // using the remainder of out setup steps.
         VariantSwitcher.switchVariant(project, affectedAndroidFacets);
 
-        // Setup modules
-        List<IdeModifiableModelsProvider> modelsProviders = setUpModules(affectedAndroidFacets, affectedNdkFacets, indicator);
-
-        // Setup Project
-        setUpProject(project, indicator);
+        GradleSyncState.getInstance(project).syncSkipped(null);
 
         // Commit changes and dispose models providers
-        commitChanges(project, modelsProviders, indicator);
-
         if (application.isUnitTestMode()) {
           variantSelectionChangeListeners.run();
         }
@@ -590,71 +527,6 @@ public final class BuildVariantUpdater {
         }
 
         getLog().info("Finished setup of cached variant");
-      }
-
-      private List<IdeModifiableModelsProvider> setUpModules(@NotNull List<AndroidFacet> affectedAndroidFacets,
-                                                             @NotNull List<NdkFacet> affectedNdkFacets,
-                                                             @NotNull ProgressIndicator indicator) {
-        indicator.setIndeterminate(false);
-        indicator.setText("Setting up modules");
-        indicator.setFraction(PROGRESS_SETUP_MODULES_START);
-        List<IdeModifiableModelsProvider> modelsProviders = new ArrayList<>();
-        for (NdkFacet ndkFacet : affectedNdkFacets) {
-          NdkModuleModel ndkModuleModel = getNdkModelIfNotJustDummy(ndkFacet);
-          if (ndkModuleModel != null) {
-            modelsProviders.add(setUpModule(ndkFacet.getModule(), ndkModuleModel));
-          }
-        }
-
-        for (AndroidFacet androidFacet : affectedAndroidFacets) {
-          AndroidModuleModel androidModel = getAndroidModel(androidFacet);
-          if (androidModel != null) {
-            modelsProviders.add(setUpModule(androidFacet.getModule(), androidModel));
-          }
-        }
-        return modelsProviders;
-      }
-
-      private void setUpProject(@NotNull Project project, @NotNull ProgressIndicator indicator) {
-        indicator.setText("Setting up project");
-        indicator.setFraction(PROGRESS_SETUP_PROJECT_START);
-        PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-        PostSyncProjectSetup.getInstance(project).notifySyncFinished(setupRequest);
-      }
-
-      private void commitChanges(@NotNull Project project,
-                                 @NotNull List<IdeModifiableModelsProvider> providers,
-                                 @NotNull ProgressIndicator indicator) {
-        startBatchUpdate(project);
-        try {
-          doCommitChanges(project, providers, indicator);
-        }
-        finally {
-          finishBatchUpdate(project);
-        }
-      }
-
-      private void doCommitChanges(@NotNull Project project,
-                                   @NotNull List<IdeModifiableModelsProvider> providers,
-                                   @NotNull ProgressIndicator indicator) {
-        indicator.setText("Committing changes");
-        indicator.setFraction(PROGRESS_COMMIT_START);
-        double step = PROGRESS_COMMIT_SIZE / (providers.size() + 1);
-        double progress = PROGRESS_COMMIT_START;
-        for (IdeModifiableModelsProvider provider : providers) {
-          executeProjectChanges(project, () -> {
-            try {
-              provider.commit();
-            }
-            catch (Throwable t) {
-              provider.dispose();
-              //noinspection ConstantConditions
-              rethrowAllAsUnchecked(t);
-            }
-          });
-          progress += step;
-          indicator.setFraction(progress);
-        }
       }
     };
 
@@ -672,14 +544,6 @@ public final class BuildVariantUpdater {
     return moduleManager.findModuleByName(moduleName);
   }
 
-  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
-    return myModifiableModelsProviderFactory.create(module.getProject());
-  }
-
-  private IdeModifiableModelsProvider setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
-    return myModifiableModelsProviderFactory.create(module.getProject());
-  }
-
   @Nullable
   private static AndroidModuleModel getAndroidModel(@NotNull AndroidFacet facet) {
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
@@ -690,14 +554,14 @@ public final class BuildVariantUpdater {
   }
 
   @Nullable
-  private static NdkModuleModel getNdkModelIfNotJustDummy(@NotNull NdkFacet facet) {
+  private static NdkModuleModel getNdkModelIfItHasNativeVariantAbis(@NotNull NdkFacet facet) {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet);
     if (ndkModuleModel == null) {
       logAndShowBuildVariantFailure(
         String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
       return null;
     }
-    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+    if (ndkModuleModel.getAllVariantAbis().isEmpty()) {
       // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
       return null;
     }
@@ -705,12 +569,12 @@ public final class BuildVariantUpdater {
   }
 
   @Nullable
-  private static NdkModuleModel getNdkModelIfNotJustDummy(@NotNull Module module) {
+  private static NdkModuleModel getNdkModelIfItHasNativeVariantAbis(@NotNull Module module) {
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
     if (ndkModuleModel == null) {
       return null;
     }
-    if (ndkModuleModel.getSelectedVariant().getName().equals(NdkModuleModel.DummyNdkVariant.variantNameWithAbi)) {
+    if (ndkModuleModel.getAllVariantAbis().isEmpty()) {
       // Native module that does not have any real ABIs. Proceed with the build variant without ABI.
       return null;
     }
@@ -737,21 +601,5 @@ public final class BuildVariantUpdater {
   @NotNull
   private static Logger getLog() {
     return Logger.getInstance(BuildVariantUpdater.class);
-  }
-
-  @VisibleForTesting
-  static class IdeModifiableModelsProviderFactory {
-    @NotNull
-    IdeModifiableModelsProvider create(@NotNull Project project) {
-      return new IdeModifiableModelsProviderImpl(project);
-    }
-  }
-
-  /**
-   * @return An NDK build variant name from the provided build variant name and ABI.
-   */
-  @NotNull
-  private static String getNdkBuildVariantName(@NotNull String buildVariantNameWithoutAbi, @NotNull String abiName) {
-    return buildVariantNameWithoutAbi + "-" + abiName;
   }
 }

@@ -3,6 +3,7 @@ package com.android.tools.idea.gradle.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -36,7 +37,7 @@ public class EmbeddedDistributionPathsTest extends TestCase {
 
   @Test
   public void testFindAndroidStudioLocalMavenRepoPaths() {
-    File rootDir = new File(PathManager.getHomePath()).getParentFile().getParentFile();
+    File rootDir = new File(StudioPathManager.getSourcesRoot());
     List<File> expectedRepo = Arrays.asList(new File(rootDir, "out/repo"),
                                             new File(rootDir, "out/studio/repo"),
                                             new File(rootDir, "prebuilts/tools/common/m2/repository"));

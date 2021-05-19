@@ -146,6 +146,12 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     PsiFile file = startElement.getContainingFile();
+    if (myRange != null) {
+      file = myRange.getContainingFile();
+      if (file == null) {
+        return;
+      }
+    }
     Project project = startElement.getProject();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
     Document document = documentManager.getDocument(file);
@@ -262,14 +268,30 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
     if (!startElement.isValid() || !endElement.isValid()) {
       return null;
     }
-    int start = startElement.getTextOffset();
-    int end = endElement.getTextOffset() + endElement.getTextLength();
+    int start;
+    int end;
     if (myRange != null) {
+      PsiFile file = myRange.getContainingFile();
+      if (file == null) {
+        return null;
+      }
       Segment segment = myRange.getRange();
       if (segment != null) {
         start = segment.getStartOffset();
         end = segment.getEndOffset();
+        if (myRegexp != null && myRegexp != INSERT_BEGINNING && myRegexp != INSERT_END) {
+          startElement = file.findElementAt(start);
+          endElement = file.findElementAt(end);
+          if (startElement == null || endElement == null) {
+            return null;
+          }
+        }
+      } else {
+        return null;
       }
+    } else {
+      start = startElement.getTextOffset();
+      end = endElement.getTextOffset() + endElement.getTextLength();
     }
     if (myRegexp != null) {
       if (INSERT_BEGINNING.equals(myRegexp)) {

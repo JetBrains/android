@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.testStructure
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractPsNode
@@ -33,20 +32,11 @@ import java.util.function.Consumer
 class TargetModulesTreeStructureTest: DependencyTestCase() {
   private lateinit var resolvedProject: Project
   private lateinit var project: PsProject
-  private var savedSingleVariantSyncSetting = false
 
   override fun setUp() {
     super.setUp()
-    // This test requires Single Variant Sync to be turned off
-    savedSingleVariantSyncSetting = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false
     loadProject(TestProjectPaths.PSD_DEPENDENCY)
     reparse()
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = savedSingleVariantSyncSetting
   }
 
   private fun reparse() {

@@ -29,7 +29,7 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
@@ -183,9 +183,9 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
         }
       }
     val project = element.sourcePsi?.project ?: return
-    TransactionGuard.submitTransaction(project, Runnable {
+    ApplicationManager.getApplication().invokeLater(Runnable {
       WriteCommandAction.runWriteCommandAction(project, "Change Color", null, runnable)
-    })
+    }, project.disposed)
   }
 }
 

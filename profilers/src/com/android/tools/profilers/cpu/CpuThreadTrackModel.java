@@ -22,11 +22,12 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.trackgroup.SelectableTrackModel;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalysisEventsTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.analysis.CpuThreadAnalysisEventsTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuThreadAnalysisSummaryTabModel;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
@@ -63,8 +64,8 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myTimeline = timeline;
     myMultiSelectionModel = multiSelectionModel;
 
-    if (capture.getType() == Cpu.CpuTraceType.ATRACE || capture.getType() == Cpu.CpuTraceType.PERFETTO) {
-      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadInfo.getId()));
+    if (capture.getSystemTraceData() != null) {
+      myThreadStateSeries = new LazyDataSeries<>(() -> capture.getSystemTraceData().getThreadStatesForThread(threadInfo.getId()));
       myThreadStateChartModel.addSeries(new RangedSeries<>(timeline.getViewRange(), myThreadStateSeries));
       myThreadStateTooltip.setThread(threadInfo.getName(), myThreadStateSeries);
     }
@@ -117,6 +118,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, myCapture, CpuThreadTrackModel::getCaptureNode);
     bottomUp.getDataSeries().add(this);
     model.addTabModel(bottomUp);
+
+    // Events
+    CpuAnalysisEventsTabModel<CpuThreadTrackModel> events = new CpuThreadAnalysisEventsTabModel(myCapture.getRange());
+    events.getDataSeries().add(this);
+    model.addTabModel(events);
 
     return model;
   }

@@ -19,14 +19,14 @@
     resourceRoot="/"
     stepByStep="false"
     hideStepIndex="true"
-    version="4.1.18">
+    version="4.2.24">
   <feature
-      name="What's New in 4.1">
+      name="What's New in 4.2">
     <tutorial
         key="whats-new"
-        label=" What's New in 4.1"
+        label=" What's New in 4.2"
         icon="stable/whats_new_icon.png"
-        remoteLink="https://d.android.com/r/studio-ui/whats-new-assistant/stable-release-notes#4-1-0"
+        remoteLink="https://developer.android.com/studio/releases#4.2"
         remoteLinkLabel="Read in a browser">
       <description>
         <![CDATA[
@@ -37,178 +37,177 @@
           from the main menu.
           ]]>
       </description>
-      <step label="New Database Inspector">
+      <step label="Upgrade Assistant for AGP">
         <stepElement>
           <section>
             <![CDATA[
-            <img src="https://d.android.com/studio/releases/assistant/4.1.0/database-inspector-wna.gif" width="428">
-            <br><br>
-            Inspect, query, and modify your databases in your running app using the new <b>Database
-            Inspector</b>. To get started, deploy your app to a device running API level 26 or
-            higher, and select <b>View > Tool Windows > Database Inspector</b> from the menu bar.
-            <a href="https://d.android.com/r/studio-wna/4.1.0/database-inspector?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#database-inspector">Learn more</a>
-            ]]>
-          </section>
-        </stepElement>
-        <stepElement>
-          <action
-              key="app.inspection.show"
-              label="Open Database Inspector">
-          </action>
-        </stepElement>
-      </step>
-      <step label="Use TensorFlow Lite models">
-        <stepElement>
-          <section>
-            <![CDATA[
-             <p> ML Model Binding makes it easy for you to directly import <b>.tflite</b> model files
-              and use them in your projects. Android Studio generates easy-to-use classes so you can
-              run your model with less code and better type safety.
-             </p>
-             <br />
-             <p>
-             The current implementation of ML Model Binding supports image classification and style
-             transfer models, provided they are enhanced with metadata. Over time, support will be
-             expanded to other problem domains, like object detection, image segmentation, and text
-             classification.
-             </p>
-             <br />
-             <p>
-              A wide range of pre-trained models with metadata are provided on
-              <a href="https://tfhub.dev/android-studio/collections/ml-model-binding/1">TensorFlow Hub</a>.
-              You can also add metadata to a TensorFlow Lite model yourself, as is outlined in
-              <a href="https://www.tensorflow.org/lite/convert/metadata">Adding metadata to TensorFlow Lite model</a>.
-             </p>
-              <br>
-              <a href="https://developer.android.com/r/studio-ui/tensor-flow-lite-model-binding?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
-              <br><br>
-             ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Run the Android Emulator directly in Studio">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <img src="https://d.android.com/studio/releases/assistant/4.1.0/emulator-window-wna.gif"
-                   alt="The emulator launching in a tool window in Android Studio."/>
-              <br><br>
-              You can now run the Android Emulator directly in Android Studio. Use this feature
-              to conserve screen real estate, to navigate quickly between the emulator and the
-              editor window using hotkeys, and to organize your IDE and emulator workflow in a
-              single application window.
-              <br><br>
-              To run the emulator in Android Studio, make sure you're using Android Studio 4.1 with
-              version 30.0.10 or higher of the Android Emulator, then follow these steps:
-              <br><br>
-              <ol>
-                <li>Click <strong>File > Settings > Tools > Emulator</strong> (or <strong>Android
-                Studio > Preferences > Tools > Emulator</strong> on macOS), then select
-                <strong>Launch in a tool window</strong> and click <strong>OK</strong>.</li>
-                <li>If the Emulator window doesn't automatically appear, open it by clicking
-                <strong>View > Tool Windows > Emulator</strong>.</li>
-                <li>Start your virtual device using the <strong>AVD Manager</strong> or by targeting
-                it when running your app.</li>
-              </ol>
-              <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#run-emulator-studio">Learn more</a>
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Native Memory Profiler">
-        <stepElement>
-          <section>
-            <![CDATA[
-              <p>The Android Studio Memory Profiler now includes a Native Memory Profiler that tracks
-              allocations and deallocations of objects in native code for a specific time period,
-              providing information about the objects' size and number to help you debug issues
-              related to memory consumption.
+              <p>
+              A new Upgrade Assistant for Android Gradle plugin can help you update
+              the AGP version for your project.
               </p>
               <br />
-              <p>
-              The Native Memory Profiler has a default sample size of 32 bytes and is available for apps
-              deployed to physical devices running Android 10 or later.
-              </p><br>
-              <a href="https://developer.android.com/r/studio-ui/native-memory-profiler?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
-              <br><br>
+              <p>Built on top of the existing AGP upgrade functionality, this tool guides you
+              through project-wide updates/refactorings and includes a preview of the
+              updates to help prevent potential breaking changes before executing the AGP
+              upgrade.
+              </p>
+              <br />
+              <img src="https://d.android.com/studio/releases/assistant/4.2.0/agp-upgrade-assistant-wna.png"/>
+             <br /><br />
             ]]>
           </section>
         </stepElement>
       </step>
-      <step label="System Trace UI improvements">
+      <step label="Database Inspector Improvements">
         <stepElement>
           <section>
             <![CDATA[
-             <img src="https://d.android.com/studio/releases/assistant/4.1.0/system-trace-select-wna.png"
-             alt="Box selection of a thread in the System Trace tool." />
-             <br><br>
-            <p>The System Trace UI in the Android Studio profiler now includes:
-            </p>
-            <p>
-            <ul>
-              <li><b>Box selection:</b> In the Threads section, you can now drag your
-              mouse to perform a box selection of a rectangular area and select across
-              multiple threads to inspect all of them at once.
-              </li>
-              <li><b>Analysis Summary tab:</b> The new Summary tab in the Analysis panel
-              displays information about trace events and thread states.
-              </li>
-              <li><b>Display data:</b> In the Display section, new timelines for
-              SurfaceFlinger and VSYNC help you investigate rendering issues in your app's UI.
-              </li>
-            </ul>
-            </p>
-            <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#4.1-ui-upgrades">Learn more</a>
-            <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Updated themes and styles">
-        <stepElement>
-          <section>
-            <![CDATA[
+              <p><b>Query editor</b></p>
               <br>
-              Android Studio templates in the <b>Create New Project</b> dialog now use Material
-              Design Components and updated themes and styles guidance by default.
-
+              <p>The Database Inspector has been updated to help you
+              write and execute your custom SQL statements. When
+              you open the inspector and open a <b>New query</b> tab, you should notice a
+              larger, resizable editor surface to author and format your queries, as
+              shown below.
+              </p>
+              <br><img src="https://d.android.com/studio/releases/assistant/4.2.0/db-inspector-query-editor-wna.png"></p>
               <br><br>
-              <a href="https://d.android.com/r/studio-wna/4.1.0/material-design?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
+              <p>Additionally, we now provide history of your previous queries. When you click on the
+              <b>Show query history</b> <img src="https://d.android.com/studio/images/buttons/db-inspector-query-history.png">
+              button, you should see a list of queries you previously ran against the currently
+              selected database. Click a query in the list to see a preview of the full
+              query in the editor and press <b>Enter</b> to copy it to the editor. Then,
+              click <b>Run</b> to execute the statement.
+              </p>
               <br><br>
+              <p><b>Offline mode</b></p>
+              <br>
+              <p>We've added the ability to keep
+              inspecting your app's databases after a process disconnects, making it easier
+              to debug your app after a crash. While offline, you can open and query tables.
+              However, you cannot edit values or run modification statements until you reconnect
+              to an app process.
+              </p>
+              <br>
+              <a href="https://developer.android.com/studio/releases?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#4.2-db-inspector">Learn more</a>
+              <br>
+              <br>
             ]]>
           </section>
         </stepElement>
       </step>
-      <step label="Dagger navigation support">
+      <step label="System Trace: Improved metrics for memory and graphics">
         <stepElement>
           <section>
             <![CDATA[
-              <img src="https://d.android.com/studio/releases/assistant/4.1.0/dagger-navigation-support-wna.gif"
-                   alt="IDE gutter actions for navigating to Dagger consumers and providers" />
-              <br><br>
-              Android Studio makes it easier to navigate between your Dagger-related code
-              by providing new gutter actions and extending support in the <b>Find Usages</b>
-              window.
-              <br><br>
+            <p>In the CPU profiler, the System Trace feature now includes new metrics for analyzing app performance:
+            </p>
+            <br />
+            <ul>
+              <li><b>Events Table:</b> Displays all trace events in the currently selected thread.
+              </li>
+              <li>New tracks and track groups:
+              <br />
+              <br />
+                      <ul>
+                        <li><b>BufferQueue:</b> In the Display section, this new track shows the
+                          buffer count of the app's surface BufferQueue (0, 1 or 2).
+                          <br />
+                          <br />
+                        <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-buffer-queue-wna.png"/>
+                        </li>
+                        <li><b>CPU Frequency:</b> In the CPU cores section, this track
+                          shows how hard each core is working.
+                          <br />
+                          <br />
+                          <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-cpu-frequency-wna.png"/>
+                        </li>
+                        <li><b>Process Memory (RSS):</b> The new Process Memory (RSS) track group
+                          shows the amount of physical memory currently in use by the app.
+                          <br />
+                          <br />
+                           <img src="https://d.android.com/studio/releases/assistant/4.2.0/system-trace-process-memory-wna.png"/>
+                        </li>
+                      </ul>
+                  </li>
+                </ul>
+          <br />
+          <p><a href="https://d.android.com/r/studio-ui/profiler/rss-memory?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable">Learn more</a>
+          </p>
+             <br />
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="New Layout Inspector refresh action">
+        <stepElement>
+          <section>
+            <![CDATA[
+            <img src="https://d.android.com/studio/releases/assistant/4.2.0/layout-inspector-refresh-wna.png"/>
+             <br /><br />
+              <p>Introduced in Android Studio 4.0, the Layout Inspector was designed for
+                real-time inspection of your running app's UI stack.
+                However, you might not always want the Layout Inspector
+                to immediately reflect what's happening in your app, since you might want to
+                inspect a snapshot of your app's layout at a specific point in time or
+                minimize the performance impact of live updates on your app.
+                </p>
+                <br />
+                <p>To manually load a snapshot of UI data from your app, first disable the
+                <b>Live updates</b> option. You can then click the <b>Refresh</b> <img src="https://d.android.com/studio/images/buttons/live-layout-refresh-icon.png">
+                button to take a new snapshot of the UI stack for inspection. The Layout
+                Inspector now remembers your preference to keep <b>Live updates</b> enabled or
+                disabled between sessions.
+              </p>
+             <br />
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="Support for Safe Args">
+        <stepElement>
+          <section>
+            <![CDATA[
+              <p>Safe Args is a Gradle plugin that generates simple object and builder
+              classes for type-safe navigation and access to any associated arguments.
+              Android Studio now includes richer support when working
+              with Safe Args, as described below:
+              </p>
+              <br />
               <ul>
-                <li><b>New gutter actions:</b> For projects that use Dagger, the IDE provides gutter
-                actions that help you navigate between your Dagger-annotated code. For example,
-                clicking on the <img src="https://d.android.com/studio/images/buttons/navigate-to-dagger-provider.png"/>
-                gutter action next to a method that consumes a given type navigates you to
-                the provider of that type. Conversely, clicking on the <img src="https://d.android.com/studio/images/buttons/navigate-to-dagger-code.png"/>
-                gutter action navigates you to where a type is used as a dependency.
+                <li>Autocompletions for Directions, Args, and the various builder classes
                 </li>
-                <li><b>Find Usages node:</b> When you invoke <b>Find Usages</b> on a provider of a
-                given type, the <b>Find</b> window now includes a <b>Dependency consumer(s)</b> node
-                that lists consumers of that type. Conversely, invoking this action on a consumer of
-                a Dagger-injected dependency, the <b>Find</b> window shows you the provider of that
-                dependency.
+                <li>Support for both Java and Kotlin safe args plugins
                 </li>
-              </ul>
-              <a href="https://d.android.com/r/studio-wna/4.1.0/dagger-navigation?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
-              <br><br>
-             ]]>
+                <li>Navigation from source to XML
+                </li>
+               </ul>
+              <br>
+              <a href="https://d.android.com/guide/navigation/navigation-pass-data?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#Safe-args">Learn more</a>
+              <br>
+              <br>
+            ]]>
+          </section>
+        </stepElement>
+      </step>
+      <step label="v3 and v4 signing now supported">
+        <stepElement>
+          <section>
+            <![CDATA[
+              <p>
+              Android Gradle Plugin 4.2 now supports the v3 and v4 APK signing formats.
+               </p>
+               <br>
+               <p>APK v4 signing allows you to quickly deploy large APKs using the
+              <a href="https://developer.android.com/about/versions/11/features#incremental">ADB Incremental APK installation</a>
+              in Android 11. This new flag takes care of the APK signing step
+              in the deployment process.
+              </p>
+              <br>
+              <a href="https://developer.android.com/studio/releases/gradle-plugin?utm_source=android-studio-4-2&utm_medium=studio-assistant-stable#v3-v4-signing">Learn more</a>
+              <br>
+              <br>
+            ]]>
           </section>
         </stepElement>
       </step>
@@ -216,103 +215,16 @@
         <stepElement>
           <section>
             <![CDATA[
-              To help you be more productive as you iterate on your app, we’ve made the following
-              enhancements to Apply Changes for devices running Android 11 Developer Preview 3 or
-              higher:
+              To help you be more productive as you iterate on your app, we've made the following
+              enhancements to Apply Changes for devices running Android 11 or higher:
               <br><br>
               <ul>
-                <li>Faster deploy speeds.</li>
-                <li>Support for adding methods.</li>
+                <li>Support for adding static final primitive fields.</li>
+                <li>Support for adding resources.</li>
               </ul>
-              <a href="https://developer.android.com/r/studio-wna/4.1.0/apply-changes?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable">Learn more</a>
+              <a href="https://developer.android.com/r/studio-wna/4.2.0/apply-changes">Learn more</a>
               <br><br>
              ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Custom view preview">
-        <stepElement>
-          <section>
-            <![CDATA[
-            When you create a custom view (for example, by
-            extending the <code>View</code> or <code>Button</code> classes), Android Studio
-            now displays a preview of your custom view.
-            <br><br>
-            <img src="https://d.android.com/studio/releases/assistant/4.0.0/custom-view-wna.png" alt="Previewing a Custom View">
-           <br>
-            <p>Use the dropdown menu in the toolbar to switch between
-            multiple custom views, or click the buttons to wrap
-            vertically or horizontally to the content.
-            </p>
-            <br>
-            <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#4.1-custom-preview">Learn more</a>
-            <br><br>
-          ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Symbolication for native crash reports">
-        <stepElement>
-          <section>
-            <![CDATA[
-              If your app or game is developed using native code, like C++, you can now upload
-              a debug symbols file to the Play Console for each version of your app. The Play
-              Console uses this debug symbols file to symbolicate your app's stack traces,
-              making it easier to analyze crashes and ANRs.
-              <br><br>
-              <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#native-crash-symbolization">Learn more</a>
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Assertions in debug builds">
-        <stepElement>
-          <section>
-            <![CDATA[
-              When you build the deploy the debug version of your app using Android Gradle plugin
-              4.1.0 and higher, the built-in compiler (D8) rewrites your app's code to enable
-              assertions at compile time, so you always have assertion checks active.
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="Kotlin 1.3.72">
-        <stepElement>
-          <section>
-            <![CDATA[
-              Android Studio 4.1 bundles Kotlin 1.3.72, which includes a number of fixes
-              to improve Kotlin highlighting, inspections, and code completion. Check out
-              the <a href="https://github.com/JetBrains/kotlin/blob/1.3.70/ChangeLog.md#1372">1.3.72 Kotlin changelog</a> for details.
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="IntelliJ IDEA 2020.1">
-        <stepElement>
-          <section>
-            <![CDATA[
-              The core Android Studio IDE is based on IntelliJ IDEA and has been upgraded
-              to version 2020.1 for this release.
-              <br><br>
-              <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#4.1-intellij-idea">Learn more</a>
-              <br><br>
-            ]]>
-          </section>
-        </stepElement>
-      </step>
-      <step label="IDE configuration directory changes">
-        <stepElement>
-          <section>
-            <![CDATA[
-            The locations of user configuration directories have been changed for consistency
-            with recent updates to IntelliJ IDEA.
-            <br><br>
-            <a href="https://d.android.com/studio/releases?utm_source=android-studio-4-1&utm_medium=studio-assistant-stable#directory-configuration-changes">Learn more</a>
-            <br><br>
-            ]]>
           </section>
         </stepElement>
       </step>
@@ -320,7 +232,7 @@
         <stepElement>
           <section>
             <![CDATA[
-              <br><em>Last updated 8/17/2020</em><br><br>
+              <br><em>Last updated 3/31/2021</em><br><br>
             ]]>
           </section>
         </stepElement>

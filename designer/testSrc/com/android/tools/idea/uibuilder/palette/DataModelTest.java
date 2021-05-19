@@ -22,6 +22,7 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CHIP;
 import static com.android.SdkConstants.CHIP_GROUP;
 import static com.android.SdkConstants.FLOATING_ACTION_BUTTON;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.NAVIGATION_VIEW;
 import static com.android.SdkConstants.RECYCLER_VIEW;
@@ -31,7 +32,6 @@ import static com.android.SdkConstants.TAB_ITEM;
 import static com.android.SdkConstants.TAB_LAYOUT;
 import static com.android.SdkConstants.TEXT_INPUT_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.uibuilder.palette.DataModel.FAVORITE_ITEMS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -150,7 +150,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getElementsAsStrings(myItemListModel)).isEmpty();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
-      .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
+      .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "FragmentContainerView", "ScrollView", "Switch").inOrder();
   }
 
   public void testAddFavorite() {
@@ -158,12 +158,13 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
     myDataModel.addFavoriteItem(myDataModel.getPalette().getItemById(FLOATING_ACTION_BUTTON.newName()));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+      .containsExactly(TEXT_VIEW, BUTTON, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
                        SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
                        PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY, FLOATING_ACTION_BUTTON.newName()).inOrder();
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     assertThat(getElementsAsStrings(myItemListModel))
-      .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch", "FloatingActionButton")
+      .containsExactly("TextView", "Button", "ImageView", "RecyclerView", "FragmentContainerView", "ScrollView", "Switch",
+                       "FloatingActionButton")
       .inOrder();
   }
 
@@ -172,11 +173,11 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(DataModel.COMMON);
     myDataModel.removeFavoriteItem(myDataModel.getPalette().getItemById("Button"));
     assertThat(PropertiesComponent.getInstance().getValues(FAVORITE_ITEMS)).asList()
-      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), VIEW_FRAGMENT,
+      .containsExactly(TEXT_VIEW, IMAGE_VIEW, RECYCLER_VIEW.oldName(), RECYCLER_VIEW.newName(), FRAGMENT_CONTAINER_VIEW,
                        SCROLL_VIEW, SWITCH, PreferenceTags.CHECK_BOX_PREFERENCE, PreferenceTags.EDIT_TEXT_PREFERENCE,
                        PreferenceTags.SWITCH_PREFERENCE, PreferenceTags.PREFERENCE_CATEGORY).inOrder();
     assertThat(getElementsAsStrings(myItemListModel))
-      .containsExactly("TextView", "ImageView", "RecyclerView", "<fragment>", "ScrollView", "Switch").inOrder();
+      .containsExactly("TextView", "ImageView", "RecyclerView", "FragmentContainerView", "ScrollView", "Switch").inOrder();
   }
 
   public void testButtonsGroup() {
@@ -210,7 +211,7 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
       "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
       "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "TabLayout", "TabItem", "ViewStub",
-      "<include>", "<fragment>", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
+      "<include>", "FragmentContainerView", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
   }
 
   public void testSearch() {

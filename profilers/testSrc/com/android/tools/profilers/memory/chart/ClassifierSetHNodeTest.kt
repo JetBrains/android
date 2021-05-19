@@ -91,10 +91,10 @@ class ClassifierSetHNodeTest {
     val root = ClassifierSetHNode(model, heapSet, 0)
     assertThat(heapSet.totalObjectCount).isEqualTo(root.duration)
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_SIZE
-    assertThat(heapSet.totalShallowSize / 1024).isEqualTo(root.duration)
+    assertThat(heapSet.totalShallowSize).isEqualTo(root.duration)
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.ALLOC_COUNT
     assertThat(heapSet.deltaAllocationCount).isEqualTo(root.duration)
     model.axisFilter = MemoryVisualizationModel.XAxisFilter.ALLOC_SIZE
-    assertThat(heapSet.totalRemainingSize / 1024).isEqualTo(root.duration)
+    assertThat(heapSet.totalRemainingSize).isEqualTo(root.duration)
   }
 }

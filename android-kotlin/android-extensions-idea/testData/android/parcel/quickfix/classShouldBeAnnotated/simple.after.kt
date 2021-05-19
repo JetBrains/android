@@ -5,7 +5,7 @@
 package com.myapp.activity
 
 import android.os.*
-import kotlinx.android.parcel.*
+import kotlinx.parcelize.*
 
 object StringParceler : Parceler<String> {
     override fun create(parcel: Parcel) = TODO()

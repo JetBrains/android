@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.MouseButton
@@ -37,6 +38,7 @@ import org.fest.swing.driver.ComponentDriver
 import org.fest.swing.fixture.JMenuItemFixture
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
+import java.awt.Dimension
 import java.awt.Point
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -226,13 +228,15 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
   }
 
   fun clickButtonByIcon(icon: Icon): SceneViewTopPanelFixture = also {
-    val button = robot.finder().find(toolbar, object: GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
+    robot.click(findButtonByIcon(icon))
+  }
+
+  fun findButtonByIcon(icon: Icon) =
+    robot.finder().find(toolbar, object: GenericTypeMatcher<ActionButton>(ActionButton::class.java) {
       override fun isMatching(component: ActionButton): Boolean {
-        return component.icon == icon
+        return component.icon == icon || IconLoader.getDisabledIcon(icon) == component.icon
       }
     })
-    robot.click(button)
-  }
 }
 
 class SceneViewFixture(private val robot: Robot,
@@ -257,4 +261,6 @@ class SceneViewFixture(private val robot: Robot,
 
     return SceneViewTopPanelFixture(robot, sceneViewPeerPanel.sceneViewTopPanel)
   }
+
+  fun size(): Dimension = sceneView.scaledContentSize
 }

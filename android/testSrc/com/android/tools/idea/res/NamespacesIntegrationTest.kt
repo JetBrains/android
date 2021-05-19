@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions.Namespacing.DISABLED
-import com.android.builder.model.AaptOptions.Namespacing.REQUIRED
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -37,7 +36,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   fun testNamespaceChoosing() {
     loadProject(TestProjectPaths.NAMESPACES)
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(myAndroidFacet)
-    assertEquals(REQUIRED, resourceRepositoryManager.namespacing)
+    assertEquals(Namespacing.REQUIRED, resourceRepositoryManager.namespacing)
     assertEquals("com.example.app", resourceRepositoryManager.namespace.packageName)
     assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
 
@@ -54,7 +53,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
   fun testNonNamespaced() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val resourceRepositoryManager = ResourceRepositoryManager.getInstance(myAndroidFacet)
-    assertEquals(DISABLED, resourceRepositoryManager.namespacing)
+    assertEquals(Namespacing.DISABLED, resourceRepositoryManager.namespacing)
     assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
     assertFalse(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
   }

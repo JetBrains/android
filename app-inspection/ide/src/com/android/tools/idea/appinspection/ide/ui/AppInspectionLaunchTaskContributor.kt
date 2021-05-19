@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
-import com.android.tools.idea.run.util.LaunchStatus
-import com.intellij.execution.Executor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
@@ -38,10 +35,10 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
     override fun getId() = APP_INSPECTION_ID
     override fun getDescription() = AppInspectionBundle.message("launch.app.inspection.tool.window")
     override fun getDuration() = LaunchTaskDurations.LAUNCH_ACTIVITY
-    override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
+    override fun run(launchContext: LaunchContext): LaunchResult? {
       ApplicationManager.getApplication().invokeLater {
         val window = ToolWindowManagerEx.getInstanceEx(project).getToolWindow(id)
-        if (window != null && device.version.isGreaterOrEqualThan(26)) {
+        if (window != null && launchContext.device.version.isGreaterOrEqualThan(26)) {
           // For discoverability, we always show the "app inspection" tool window button to users
           // if they are targeting a device that supports JVMTI, since that means it can support
           // inspectors. We'll always at least have the database inspector available, and more and

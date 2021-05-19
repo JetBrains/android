@@ -335,6 +335,12 @@ public class NlComponent implements NlAttributesHolder {
     return id != null ? stripPrefixFromId(id) : null;
   }
 
+  /**
+   * Finish and close the current opened {@link AttributesTransaction} rollbacks all pending changes which are not applied yet.
+   * To be more specified, this function does NOT rollback the attributes before {@link AttributesTransaction#apply()} is called.
+   *
+   * @See {@link AttributesTransaction#apply().
+   */
   public void clearTransaction() {
     if (myCurrentTransaction != null) {
       myCurrentTransaction.finishTransaction();
@@ -397,6 +403,7 @@ public class NlComponent implements NlAttributesHolder {
 
   /**
    * Starts an {@link AttributesTransaction} or returns the current open one.
+   * @see #getAttributeTransaction()
    */
   @NotNull
   public AttributesTransaction startAttributeTransaction() {
@@ -404,6 +411,15 @@ public class NlComponent implements NlAttributesHolder {
       myCurrentTransaction = new AttributesTransaction(this);
     }
 
+    return myCurrentTransaction;
+  }
+
+  /**
+   * Get the current opened {@link AttributesTransaction} or null if there is no opened one.
+   * @see #startAttributeTransaction()
+   */
+  @Nullable
+  public AttributesTransaction getAttributeTransaction() {
     return myCurrentTransaction;
   }
 

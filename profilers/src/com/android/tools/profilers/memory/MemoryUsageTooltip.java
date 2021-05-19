@@ -25,7 +25,7 @@ public class MemoryUsageTooltip implements TooltipModel {
     myStage = stage;
   }
 
-  public MemoryProfilerStage.MemoryStageLegends getLegends() {
+  public MemoryStageLegends getLegends() {
     return myStage.getTooltipLegends();
   }
 

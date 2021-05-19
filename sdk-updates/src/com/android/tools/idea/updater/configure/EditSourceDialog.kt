@@ -24,7 +24,11 @@ import com.intellij.credentialStore.OneTimeString
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.layout.*
-import java.awt.event.*
+import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.net.MalformedURLException
 import java.net.URL
 import javax.swing.JComponent

@@ -22,26 +22,19 @@ import com.android.tools.adtui.model.stdui.PooledThreadExecution
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
-import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
-import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
-import com.android.tools.property.panel.impl.model.util.FakeLineType
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.PropertyAppRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.UIUtil
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyZeroInteractions
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -58,12 +51,12 @@ class ComboBoxPropertyEditorModelTest {
   private fun createEnumSupport(action: AnAction? = null, delayed: Boolean = false) =
     FakeEnumSupport("visible", "invisible", "gone", action = action, delayed = delayed)
 
-  private fun createModel(): ComboBoxPropertyEditorModel = createModel(createEnumSupport())
+  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel = createModel(createEnumSupport(), editable)
 
-  private fun createModel(enumSupport: EnumSupport): ComboBoxPropertyEditorModel {
+  private fun createModel(enumSupport: EnumSupport, editable: Boolean = true): ComboBoxPropertyEditorModel {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
     property.defaultValue = "defaultNone"
-    return ComboBoxPropertyEditorModel(property, enumSupport, true)
+    return ComboBoxPropertyEditorModel(property, enumSupport, editable)
   }
 
   private fun createModelWithListener(enumSupport: EnumSupport): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
@@ -81,159 +74,29 @@ class ComboBoxPropertyEditorModelTest {
   }
 
   @Test
+  fun testInitialDropDownValue() {
+    val model = createModel(editable = false)
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("visible"))
+    assertThat(model.size).isEqualTo(2)
+    assertThat(model.getElementAt(0)).isEqualTo(model.selectedItem)
+    assertThat(model.getElementAt(1)).isEqualTo(EnumValue.LOADING)
+  }
+
+  @Test
+  fun testInitialDropDownValueAfterPropertyUpdate() {
+    val model = createModel(editable = false)
+    model.property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "gone")
+    assertThat(model.selectedItem).isEqualTo(EnumValue.item("gone"))
+    assertThat(model.size).isEqualTo(2)
+    assertThat(model.getElementAt(0)).isEqualTo(model.selectedItem)
+    assertThat(model.getElementAt(1)).isEqualTo(EnumValue.LOADING)
+  }
+
+  @Test
   fun testSelectedItemFromInit() {
     val model = createModel()
     model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
     assertThat(model.selectedItem.toString()).isEqualTo("visible")
-  }
-
-  @Test
-  fun testSelectItemIsKeptAfterFocusLoss() {
-    val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-    model.selectedItem = "gone"
-
-    model.popupMenuWillBecomeInvisible(false)
-    model.focusLost()
-
-    assertThat(model.property.value).isEqualTo("gone")
-  }
-
-  @Test
-  fun testSelectActionItemShouldNotUpdateValueOnFocusLoss() {
-    val model = createModel()
-    var future: Future<*>? = null
-    val action = object : AnAction() {
-      override fun actionPerformed(event: AnActionEvent) {
-        model.focusLost()
-        future = ApplicationManager.getApplication().executeOnPooledThread { model.property.value = "gone" }
-      }
-    }
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-    model.selectedItem = EnumValue.action(action)
-    model.popupMenuWillBecomeInvisible(false)
-    assertThat(model.property.value).isEqualTo("visible")
-
-    // The action is executed delayed on the UI event queue:
-    while (future == null) {
-      UIUtil.dispatchAllInvocationEvents()
-    }
-
-    // Emulate a dialog is writing to the property long after the menu has been closed:
-    future!!.get(2, TimeUnit.SECONDS)
-
-    assertThat(model.property.value).isEqualTo("gone")
-  }
-
-  @Test
-  fun testSelectedItemSetOnlyOnce() {
-    val model = createModel()
-    val property = model.property as FakePropertyItem
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-    model.selectedItem = EnumValue.item("gone")
-    model.popupMenuWillBecomeInvisible(false)
-
-    // Emulate: propertiesGenerated event causing the current editor to refresh.
-    // The underlying xml may not have updated yet.
-    property.emulateLateValueUpdate("emulated")
-
-    // This focus loss should NOT update the value again.
-    model.focusLost()
-
-    // The property value will eventually update, however in this test it will remain the emulated value:
-    assertThat(model.property.value).isEqualTo("emulated")
-
-    // Test that the property value should be updated only once:
-    assertThat((model.property as FakePropertyItem).updateCount).isEqualTo(1)
-  }
-
-  @Test
-  fun testEnter() {
-    val (model, listener) = createModelWithListener(createEnumSupport())
-    val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
-    model.lineModel = line
-    model.text = "gone"
-    model.enterKeyPressed()
-    assertThat(model.property.value).isEqualTo("gone")
-    assertThat(model.isPopupVisible).isFalse()
-    verify(listener).valueChanged()
-  }
-
-  @Test
-  fun testEscape() {
-    // setup
-    val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-
-    model.selectedItem = "gone"
-    val listener = mock(ValueChangedListener::class.java)
-    model.addListener(listener)
-
-    // test
-    model.escapeKeyPressed()
-    assertThat(model.property.value).isEqualTo("visible")
-    assertThat(model.isPopupVisible).isFalse()
-    verify(listener).valueChanged()
-  }
-
-  @Test
-  fun testEnterInPopup() {
-    // setup
-    val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-
-    model.isPopupVisible = true
-    model.selectedItem = "gone"
-    val listener = mock(ValueChangedListener::class.java)
-    model.addListener(listener)
-
-    // test
-    model.popupMenuWillBecomeInvisible(false)
-    assertThat(model.property.value).isEqualTo("gone")
-    assertThat(model.isPopupVisible).isFalse()
-    verify(listener).valueChanged()
-  }
-
-  @RunsInEdt
-  @Test
-  fun testEnterInPopupOnAction() {
-    // setup
-    val action = FakeAction("testAction")
-    val enumSupport = FakeEnumSupport("visible", "invisible", action = action)
-    val model = createModel(enumSupport)
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-    model.selectedItem = enumSupport.values.last()
-    val listener = mock(ValueChangedListener::class.java)
-    model.addListener(listener)
-
-    // test
-    model.popupMenuWillBecomeInvisible(false)
-    assertThat(model.isPopupVisible).isFalse()
-    assertThat(action.actionPerformedCount).isEqualTo(0)
-    assertThat(model.property.value).isEqualTo("visible")
-    verify(listener).valueChanged()
-
-    // The action is executed delayed on the UI event queue:
-    UIUtil.dispatchAllInvocationEvents()
-    assertThat(action.actionPerformedCount).isEqualTo(1)
-    assertThat(model.property.value).isEqualTo("visible")
-    verify(listener).valueChanged()
-  }
-
-  @Test
-  fun testEscapeInPopup() {
-    // setup
-    val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
-    model.selectedItem = "gone"
-    val listener = mock(ValueChangedListener::class.java)
-    model.addListener(listener)
-
-    // test
-    model.popupMenuWillBecomeInvisible(true)
-    assertThat(model.property.value).isEqualTo("visible")
-    assertThat(model.isPopupVisible).isFalse()
-    verifyZeroInteractions(listener)
   }
 
   @Test

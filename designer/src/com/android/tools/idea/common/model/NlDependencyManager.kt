@@ -26,6 +26,7 @@ import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.progress.ProgressIndicator
@@ -78,7 +79,7 @@ class NlDependencyManager private constructor() {
       facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
 
     if (syncDoneCallback != null) {
-      syncResult.addCallback(success = { syncDoneCallback() }, failure = { syncDoneCallback() })
+      syncResult.addCallback(directExecutor(), success = { syncDoneCallback() }, failure = { syncDoneCallback() })
     }
 
     return AddDependenciesResult(hadMissingDependencies = true, dependenciesPresent = true)

@@ -39,7 +39,6 @@ fun RecipeExecutor.generateWearModule(
     themesXml = null, colorsXml = null
   )
 
-  addDependency("com.google.android.support:wearable:+")
   addDependency("com.google.android.gms:play-services-wearable:+")
   addDependency("com.android.support:percent:+")
   addDependency("com.android.support:support-v4:+")

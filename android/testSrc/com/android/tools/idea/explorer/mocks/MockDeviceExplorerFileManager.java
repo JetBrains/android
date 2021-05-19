@@ -17,10 +17,9 @@ package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.device.fs.DownloadProgress;
-import com.android.tools.idea.device.fs.DownloadedFileData;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.explorer.FutureValuesTracker;
+import com.android.tools.idea.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.FutureCallback;
@@ -30,6 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.io.PathKt;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final Set<DeviceFileSystem> myDevices = new HashSet<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntry> myDownloadFileEntryTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DownloadedFileData> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<VirtualFile> myDownloadFileEntryCompletionTracker = new FutureValuesTracker<>();
 
   public MockDeviceExplorerFileManager(
     @NotNull Project project,
@@ -62,15 +62,15 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
   @NotNull
   @Override
-  public ListenableFuture<DownloadedFileData> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull DownloadProgress progress) {
+  public ListenableFuture<VirtualFile> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull DownloadProgress progress) {
     myDownloadFileEntryTracker.produce(entry);
 
     myDevices.add(entry.getFileSystem());
 
-    ListenableFuture<DownloadedFileData> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<DownloadedFileData>() {
+    ListenableFuture<VirtualFile> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
+    myEdtExecutor.addCallback(futureResult, new FutureCallback<VirtualFile>() {
       @Override
-      public void onSuccess(@Nullable DownloadedFileData result) {
+      public void onSuccess(@Nullable VirtualFile result) {
         myDownloadFileEntryCompletionTracker.produce(result);
       }
 
@@ -81,6 +81,16 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     });
 
     return futureResult;
+  }
+
+  @Override
+  public ListenableFuture<Void> deleteFile(@NotNull VirtualFile virtualFile) {
+    return myFileManagerImpl.deleteFile(virtualFile);
+  }
+
+  @Override
+  public @NotNull Path getPathForEntry(@NotNull DeviceFileEntry entry, @NotNull Path destinationPath) {
+    return myFileManagerImpl.getPathForEntry(entry, destinationPath);
   }
 
   @NotNull
@@ -120,7 +130,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @NotNull
-  public FutureValuesTracker<DownloadedFileData> getDownloadFileEntryCompletionTracker() {
+  public FutureValuesTracker<VirtualFile> getDownloadFileEntryCompletionTracker() {
     return myDownloadFileEntryCompletionTracker;
   }
 }

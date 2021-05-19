@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="studio-plugin-svn4idea">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/svn4idea/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/svn4idea/lib/sqlite-jdbc-3.20.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/svn4idea/lib/svn4idea.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

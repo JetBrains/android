@@ -15,84 +15,38 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.AndroidProject
-import com.android.builder.model.BaseArtifact
-import com.android.builder.model.Library
-import com.android.builder.model.Variant
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
-import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
 fun getAdditionalClassifierArtifactsModel(
   controller: BuildController,
   inputModules: List<AndroidModule>,
   cachedLibraries: Collection<String>,
-  consumer: ProjectImportModelProvider.BuildModelConsumer,
   downloadAndroidxUISamplesSources: Boolean
 ) {
   inputModules.forEach { module ->
-    if (!is3Dot5OrNewer(module.androidProject)) return@forEach
+    if (module.modelVersion?.isAtLeast(3, 5, 0) != true) return@forEach
 
-    // Get variants from AndroidProject if it's not empty, otherwise get from VariantGroup.
-    // The first case indicates full-variants sync and the later single-variant sync.
-    val variants = if (module.androidProject.variants.isNotEmpty()) module.androidProject.variants else module.variantGroup.variants
     // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
-    val identifiers = collectIdentifiers(variants).filter { !cachedLibraries.contains(idToString(it)) && it.version != "unspecified" }
+    val identifiers = module.getLibraryDependencies().filter { !cachedLibraries.contains(idToString(it)) && it.version != "unspecified" }
 
     // Query for AdditionalClassifierArtifactsModel model.
     if (identifiers.isNotEmpty()) {
-      controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
-                           AdditionalClassifierArtifactsModelParameter::class.java) { parameter ->
-        parameter.artifactIdentifiers = identifiers
-        parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
-      }?.also {
-        consumer.consumeProjectModel(module.gradleProject, it, AdditionalClassifierArtifactsModel::class.java)
+      module.additionalClassifierArtifacts =
+        controller.findModel(
+          module.findModelRoot,
+          AdditionalClassifierArtifactsModel::class.java,
+          AdditionalClassifierArtifactsModelParameter::class.java
+        ) { parameter ->
+          parameter.artifactIdentifiers = identifiers
+          parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
       }
     }
   }
-}
-
-@UsedInBuildAction
-private fun collectIdentifiers(
-  variants: Collection<Variant>
-): List<ArtifactIdentifier> {
-  val libraries = mutableListOf<Library>()
-  // Collect libraries from all artifacts of all variants.
-  @Suppress("DEPRECATION")
-  variants.forEach { variant ->
-    val artifacts = mutableListOf<BaseArtifact>(variant.mainArtifact)
-    artifacts.addAll(variant.extraAndroidArtifacts)
-    artifacts.addAll(variant.extraJavaArtifacts)
-    artifacts.forEach {
-      libraries.addAll(it.compileDependencies.javaLibraries)
-      libraries.addAll(it.compileDependencies.libraries)
-    }
-  }
-
-  return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.map {
-    ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
-  }.distinct()
-}
-
-@VisibleForTesting
-@UsedInBuildAction
-fun is3Dot5OrNewer(project: AndroidProject): Boolean {
-  try {
-    GradleVersion.tryParse(project.modelVersion)?.let {
-      return it.isAtLeast(3, 5, 0)
-    }
-  }
-  catch (ignored: Throwable) {
-    // If model version doesn't exist or is mal-formatted, this is very likely an old AGP.
-  }
-  return false
 }
 
 @UsedInBuildAction

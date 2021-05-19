@@ -127,7 +127,7 @@ internal val extraRoots = mutableListOf<Any>()
 
 class HeapAssertionError(message: String) : AssertionError(message)
 
-// TODO: Need a way to whitelist known/existing issues
+// TODO: Need a way to ignore known/existing issues
 private class LeakCollector(val description: String, val enforce: Boolean = false) : Closeable {
 
   // We look for problems involving at least one class from the packages defined below, as a simple way to ignore platform oddities.

@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
+import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
+import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 
 fun RecipeExecutor.generateBenchmarkModule(
-  moduleData: ModuleTemplateData
+  moduleData: ModuleTemplateData,
+  useGradleKts: Boolean
 ) {
   val projectData = moduleData.projectTemplateData
   val testOut = moduleData.testDir
@@ -50,10 +53,12 @@ fun RecipeExecutor.generateBenchmarkModule(
     minApi.apiString,
     targetApi.apiString,
     language,
-    projectData.gradlePluginVersion
+    projectData.gradlePluginVersion,
+    useGradleKts
   )
+  val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
-  save(bg, moduleOut.resolve("build.gradle"))
+  save(bg, moduleOut.resolve(buildFile))
   applyPlugin("com.android.library")
   applyPlugin("androidx.benchmark")
   addDependency("androidx.test:runner:+", "androidTestImplementation")

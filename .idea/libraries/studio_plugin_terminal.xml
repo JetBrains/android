@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="studio-plugin-terminal">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/terminal/lib/resources_en.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/$SDK_PLATFORM$/plugins/terminal/lib/terminal.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-202/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

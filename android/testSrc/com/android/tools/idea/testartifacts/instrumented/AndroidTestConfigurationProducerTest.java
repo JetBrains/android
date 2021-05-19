@@ -25,11 +25,23 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.io.Files;
+import com.intellij.execution.Location;
+import com.intellij.execution.PsiLocation;
+import com.intellij.execution.actions.ConfigurationContext;
+import com.intellij.execution.actions.ConfigurationFromContext;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -146,6 +158,37 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+  }
+
+  public void testCanCreateAndroidTestConfigurationWhenOriginalConfigExists() throws Exception {
+    loadProject(TEST_ARTIFACTS_KOTLIN);
+
+    MapDataContext dataContext = new MapDataContext();
+    dataContext.put(CommonDataKeys.PROJECT, getProject());
+
+    PsiElement element = JavaPsiFacade.getInstance(getProject()).findClass(
+      "com.example.android.kotlin.ExampleInstrumentedTest",
+      GlobalSearchScope.projectScope(getProject()));
+    assertNotNull(element);
+    dataContext.put(Location.DATA_KEY, PsiLocation.fromPsiElement(element));
+
+    Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    dataContext.put(LangDataKeys.MODULE, module);
+
+    // This test really is concerned with the case where the context data has an original
+    // configuration with module information in it, to simulate the SMTRunnerConsole context
+    // when right-clicking on a test result.
+    AndroidTestRunConfiguration original =
+      new AndroidTestRunConfiguration(getProject(), AndroidTestRunConfigurationType.getInstance().getFactory());
+    original.setModule(module);
+    dataContext.put(RunConfiguration.DATA_KEY, original);
+
+    ConfigurationContext context = ConfigurationContext.getFromContext(dataContext);
+    assertNotNull(context.getOriginalConfiguration(AndroidTestRunConfigurationType.getInstance()));
+
+    AndroidTestConfigurationProducer producer = new AndroidTestConfigurationProducer();
+    ConfigurationFromContext runConfig = producer.createConfigurationFromContext(context);
+    assertNotNull(runConfig);
   }
 
   public void testRuntimeQualifiedNameIsUsed() throws Exception {

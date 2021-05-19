@@ -16,7 +16,8 @@
 package com.android.tools.profilers.cpu
 
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
@@ -88,5 +89,31 @@ class MainProcessSelectorTest {
   fun `empty list returns null`() {
     val selector = MainProcessSelector("dont_match", 0, null)
     assertThat(selector.apply(listOf())).isNull()
+  }
+
+  @Test
+  fun `use process safe name for name hint when empty name`() {
+    val selector = MainProcessSelector("process0", 0, null)
+    val newProcessList = listOf(
+      ProcessModel(100, "process1", emptyMap(), emptyMap()),
+      // Second process has a blank name, but its main thread has a name.
+      ProcessModel(10, "",
+                   mapOf( 10 to ThreadModel(10, 10, "process0", listOf(), listOf())),
+                   emptyMap()))
+
+    assertThat(selector.apply(newProcessList)).isEqualTo(10)
+  }
+
+  @Test
+  fun `use process safe name for name hint when PID name`() {
+    val selector = MainProcessSelector("process0", 0, null)
+    val newProcessList = listOf(
+      ProcessModel(100, "process1", emptyMap(), emptyMap()),
+      // Second process has a name in the format of <PID>, but its main thread has a name.
+      ProcessModel(10, "<10>",
+                   mapOf( 10 to ThreadModel(10, 10, "process0", listOf(), listOf())),
+                   emptyMap()))
+
+    assertThat(selector.apply(newProcessList)).isEqualTo(10)
   }
 }

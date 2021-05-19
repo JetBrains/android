@@ -144,7 +144,7 @@ class DataBindingOutputParserTest {
     }
 
     run {
-      val badLegacyLocation = "****/ data binding error ****msg:dummy file:/dummy loc:not-a-number ****\\ data binding error ****"
+      val badLegacyLocation = "****/ data binding error ****msg:sample file:/sample loc:not-a-number ****\\ data binding error ****"
       val reader = TestBuildOutputInstantReader(badLegacyLocation)
       val consumer = TestMessageEventConsumer()
 

@@ -7,6 +7,7 @@ import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttr
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
@@ -15,6 +16,8 @@ import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -29,8 +32,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Cursor;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,8 +50,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -117,17 +117,22 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
 
     if (settings.REMEMBER_PASSWORDS) {
-      final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
-      String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
-      if (password != null) {
-        myKeyStorePasswordField.setText(password);
-      }
+      Application application = ApplicationManager.getApplication();
+      application.executeOnPooledThread(() -> {
+        String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
+        String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyStorePasswordField.setText(password));
+        }
+      });
 
-      final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
-      password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
-      if (password != null) {
-        myKeyPasswordField.setText(password);
-      }
+      application.executeOnPooledThread(() -> {
+        String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
+        String password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyPasswordField.setText(password));
+        }
+      });
     }
 
     myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
@@ -138,23 +143,17 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }));
     myGradleWarning.setIcon(WARNING_INLINE);
     myCloseAndUpdateLink.setHyperlinkText(AndroidBundle.message("android.export.package.bundle.gradle.update"));
-    myCloseAndUpdateLink.addHyperlinkListener(new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (DynamicAppUtils.promptUserForGradleUpdate(project)) {
-          myWizard.close(CANCEL_EXIT_CODE);
-        }
+    myCloseAndUpdateLink.addHyperlinkListener(e -> {
+      if (DynamicAppUtils.promptUserForGradleUpdate(project)) {
+        myWizard.close(CANCEL_EXIT_CODE);
       }
     });
     myGradlePanel.setVisible(false);
     myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
 
-    myExportKeysCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        myExportKeyPathLabel.setVisible(myExportKeysCheckBox.isSelected());
-        myExportKeyPathField.setVisible(myExportKeysCheckBox.isSelected());
-      }
+    myExportKeysCheckBox.addActionListener(e -> {
+      myExportKeyPathLabel.setVisible(myExportKeysCheckBox.isSelected());
+      myExportKeyPathField.setVisible(myExportKeysCheckBox.isSelected());
     });
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
     myExportKeyPathField.addBrowseFolderListener("Select Encrypted Key Destination Folder", null, myWizard.getProject(), descriptor);
@@ -202,7 +201,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         .filter(facet -> facet.getModule().getName().equals(savedModuleName))
         .findFirst();
       mySelection = optionalFacet.orElse(facets.get(0));
-      myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
+      myModuleCombo.setModel(new CollectionComboBoxModel<>(facets, mySelection));
       updateSelection(mySelection);
     }
   }
@@ -224,7 +223,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     return isBundle ? "Bundle" + MODULE_PROPERTY : "Apk" + MODULE_PROPERTY;
   }
 
-  private boolean isGradleValid(@Nullable String targetType) {
+  private boolean isGradleValid(@NotNull String targetType) {
     // all gradle versions are valid unless targetType is bundle
     if (!targetType.equals(ExportSignedPackageWizard.BUNDLE)) {
       return true;
@@ -255,6 +254,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myGradlePanel.setVisible(showError);
   }
 
+  @Slow
   private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
     String password = null;
     PasswordSafe passwordSafe = null;

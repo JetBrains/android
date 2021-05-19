@@ -130,11 +130,15 @@ public interface Target {
 
   /**
    * Implement this method to react to mouse drag events
-   *  @param x              X coordinate of the mouse in DP
+   * @param x              X coordinate of the mouse in DP
    * @param y              Y coordinate of the mouse in DP
    * @param closestTargets Closest target from the mouse if there is one
+   * @param sceneContext   The current scene context
    */
-  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  default void mouseDrag(@AndroidDpCoordinate int x,
+                         @AndroidDpCoordinate int y,
+                         @NotNull List<Target> closestTargets,
+                         @NotNull SceneContext sceneContext) {
   }
 
   /**

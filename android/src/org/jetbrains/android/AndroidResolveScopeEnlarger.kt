@@ -15,17 +15,17 @@
  */
 package org.jetbrains.android
 
-import com.android.builder.model.AaptOptions
 import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ModuleRClass.Transitivity
-import com.android.tools.idea.res.ModuleRClass.Transitivity.NON_TRANSITIVE
-import com.android.tools.idea.res.ModuleRClass.Transitivity.TRANSITIVE
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
 import com.android.tools.idea.res.SmallAarRClass
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.util.androidFacet
@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModulePointer
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
@@ -46,7 +47,6 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.util.AndroidUtils
@@ -139,8 +139,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
         return when (file.getUserData(LIGHT_CLASS_KEY)) {
           ModuleRClass::class.java -> isModuleRVirtualFileAccessible(file)
           ManifestClass::class.java -> isLightVirtualFileFromAccessibleModule(file)
-          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == AaptOptions.Namespacing.REQUIRED
-          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == AaptOptions.Namespacing.DISABLED
+          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.REQUIRED
+          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.DISABLED
           ResourceRepositoryRClass::class.java -> {
             // For BlazeRClass which does not take into account test scope or transitivity
             isLightVirtualFileFromAccessibleModule(file)
@@ -155,12 +155,13 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
 
     /** Returns the (possibly cached) additional resolve scope for the given module. */
     fun getAdditionalResolveScopeForModule(module: Module, includeTests: Boolean): SearchScope? {
-      // Cache is invalidated on any PSI change.
+      // Cache is invalidated after a gradle sync.
       val cacheKey = if (includeTests) resolveScopeWithTestsKey else resolveScopeSansTestsKey
-      return CachedValuesManager.getManager(module.project).getCachedValue(module, cacheKey, {
+      val project = module.project
+      return CachedValuesManager.getManager(project).getCachedValue(module, cacheKey, {
         CachedValueProvider.Result(
           computeAdditionalResolveScopeForModule(module, includeTests),
-          PsiModificationTracker.MODIFICATION_COUNT
+          ProjectRootModificationTracker.getInstance(project)
         )
       }, false)
     }

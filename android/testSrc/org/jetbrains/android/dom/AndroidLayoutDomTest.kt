@@ -648,6 +648,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestHighlighting("missing_attrs.xml")
   }
 
+  fun testViewHighlighting() {
+    doTestHighlighting("view_highlighting.xml")
+  }
+
   fun testLayoutManagerAttributeForOldRecyclerView() {
     // RecyclerView has a "layoutManager" attribute that should give completions that extend
     // the RecyclerView.LayoutManager class.
@@ -783,7 +787,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testCustomTagCompletion8() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
     copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
-    doTestCompletionVariants("ctn8.xml", "LabelView")
+    toTestCompletion("ctn8.xml", "ctn8_after.xml")
   }
 
   fun testCustomTagCompletion9() {
@@ -794,7 +798,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testCustomTagCompletion10() {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
     copyFileToProject("LabelView1.java", "src/p1/p2/LabelView1.java")
-    doTestCompletionVariants("ctn10.xml", "LabelView")
+    toTestCompletion("ctn10.xml", "ctn10_after.xml")
   }
 
   fun testCustomAttributeNameCompletion() {
@@ -961,7 +965,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                              "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
                              "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
                              "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
-                             "android.opengl.GLSurfaceView")
+                             "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView")
   }
 
   /*public void testTagNameCompletion4() throws Throwable {

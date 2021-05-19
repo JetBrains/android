@@ -22,8 +22,8 @@ import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.testFramework.LightCodeInsightTestCase
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.idea.configuration.createConfigureKotlinNotificationCollector
-import org.jetbrains.kotlin.test.InTextDirectivesUtils.findStringWithPrefixes
-import org.jetbrains.kotlin.test.KotlinTestUtils.assertEqualsToFile
+import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
+import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import java.io.File
 
 abstract class ConfigureProjectTest : LightCodeInsightTestCase() {

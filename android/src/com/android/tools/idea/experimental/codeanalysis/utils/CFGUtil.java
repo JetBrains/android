@@ -29,7 +29,7 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.I
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.LoopBranchingNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ConditionFalseNode;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.ConditionTrueNode;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.DummyNodeImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.impl.PlaceholderNodeImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ParamImpl;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -237,7 +237,7 @@ public class CFGUtil {
     String path = PathManager.getLogPath();
     //PsiMethod psiMethod = (PsiMethod) graph.getPsiCFGMethod().getPsiRef();
     String methodName = graph.getPsiCFGMethod().getName();
-    String className = "dummyClass";
+    String className = "sampleClass";
     //PsiElement parentElement = psiMethod.getParent();
     PsiCFGClass cfgClass = graph.getPsiCFGMethod().getDeclaringClass();
     //if (parentElement instanceof PsiClass) {
@@ -352,7 +352,7 @@ public class CFGUtil {
     else if (node instanceof ConditionFalseNode) {
       nodeType = NODE_TYPE_CONDITION_FALSE_NODE;
     }
-    else if (node instanceof DummyNodeImpl) {
+    else if (node instanceof PlaceholderNodeImpl) {
       nodeType = NODE_TYPE_UNREACHABLE_ENTRY_NODE;
     }
     else if (node instanceof LoopBranchingNode) {

@@ -17,22 +17,17 @@ package com.android.tools.idea.navigator.nodes.ndk;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.NativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludeLayout;
 import com.android.tools.tests.LeakCheckerRule;
 import com.google.common.testing.EqualsTester;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.ClassRule;
 import org.mockito.Mockito;
 
@@ -42,31 +37,29 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
 
   public void testEquals() throws IOException {
-    List<NativeArtifact> nativeArtifacts = new ArrayList<>();
+    List<IdeNativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    VirtualFile buildFileFolder = Mockito.mock(VirtualFile.class);
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(buildFileFolder,
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           nativeArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
-    NdkLibraryEnhancedHeadersNode node2 = new NdkLibraryEnhancedHeadersNode(buildFileFolder,
-                                                                            getProject(),
-                                                                            "native-library-name",
-                                                                            "native-library-type",
-                                                                            nativeArtifacts,
-                                                                            layout.getNativeIncludes(),
-                                                                            settings,
-                                                                            sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      nativeArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
+    NdkLibraryEnhancedHeadersNode node2 = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      nativeArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     NdkLibraryEnhancedHeadersNode nodeAlias = node;
     assertThat(node != node2).isTrue(); // They're not reference-equals
     assertThat(node.equals(nodeAlias)).isTrue();
@@ -77,22 +70,21 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
   }
 
   public void testSimplest() throws IOException {
-    List<NativeArtifact> nativeArtifacts = new ArrayList<>();
+    List<IdeNativeArtifact> nativeArtifacts = new ArrayList<>();
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           nativeArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      nativeArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -103,20 +95,19 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithArtifacts() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           layout.getNativeIncludes().myArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      layout.getNativeIncludes().myArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -131,20 +122,19 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithArtifactsSubfolders() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "sub1/bar1.cpp", "sub1/bar2.cpp", "sub2/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           layout.getNativeIncludes().myArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      layout.getNativeIncludes().myArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -157,42 +147,21 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
     assertThat(child2child2.getVirtualFile().getName()).isEqualTo("foo.h");
   }
 
-  private static List<VirtualFile> getSourceFolders(@NotNull NativeArtifact artifact) {
-    List<File> sourceFolders = new ArrayList<>(artifact.getExportedHeaders());
-    return convertToVirtualFiles(sourceFolders);
-  }
-
-
-  @NotNull
-  private static List<VirtualFile> convertToVirtualFiles(@NotNull Collection<File> files) {
-    List<VirtualFile> result = new ArrayList<>(files.size());
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (File file : files) {
-      VirtualFile virtualFile = fileSystem.findFileByIoFile(file);
-      if (virtualFile != null) {
-        result.add(virtualFile);
-      }
-    }
-
-    return result;
-  }
-
   public void testSimplestWithMultipleArtifactIncludePaths() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk/foo.h")
       .addRemoteHeaders("my-sdk/bar.h")
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk", "my-other-thing")
       .addArtifact("my-artifact", "sub1/bar1.cpp", "sub1/bar2.cpp", "sub2/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           layout.getNativeIncludes().myArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      layout.getNativeIncludes().myArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -209,7 +178,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testSimplestWithMultipleArtifacts() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk1/foo1.h")
       .addRemoteHeaders("my-sdk1/bar1.h")
@@ -223,14 +191,14 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       .addRemoteArtifactIncludePaths("my-artifact2", "my-sdk2", "my-other-thing2")
       .addArtifact("my-artifact1", "sub1a/bar1.cpp", "sub1a/bar2.cpp", "sub1b/baz.cpp")
       .addArtifact("my-artifact2", "sub2a/bar1.cpp", "sub2a/bar2.cpp", "sub2b/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           layout.getNativeIncludes().myArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      layout.getNativeIncludes().myArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);
@@ -249,7 +217,6 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
 
   public void testMergeFolders() throws IOException {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    List<String> sourceFileExtensions = new ArrayList<>();
     IncludeLayout layout = new IncludeLayout()
       .addRemoteHeaders("my-sdk1/foo1.h")
       .addRemoteHeaders("my-sdk1/bar1.h")
@@ -263,14 +230,14 @@ public class TestNdkLibraryEnhancedHeadersNode extends PlatformTestCase {
       .addRemoteArtifactIncludePaths("my-artifact2", "my-sdk2", "my-other-thing2")
       .addArtifact("my-artifact1", "sub1a/bar1.cpp", "sub1a/bar2.cpp", "sub1b/baz.cpp")
       .addArtifact("my-artifact2", "sub2a/sub2x/bar1.cpp", "sub2a/sub2x/bar2.cpp", "sub2b/sub2x/baz.cpp");
-    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(Mockito.mock(VirtualFile.class),
-                                                                           getProject(),
-                                                                           "native-library-name",
-                                                                           "native-library-type",
-                                                                           layout.getNativeIncludes().myArtifacts,
-                                                                           layout.getNativeIncludes(),
-                                                                           settings,
-                                                                           sourceFileExtensions);
+    NdkLibraryEnhancedHeadersNode node = new NdkLibraryEnhancedHeadersNode(
+      getProject(),
+      "native-library-name",
+      "native-library-type",
+      layout.getNativeIncludes().myArtifacts,
+      layout.getNativeIncludes(),
+      settings
+    );
     List<? extends AbstractTreeNode<?>> children = new ArrayList<>(node.getChildren());
     assertThat(children).hasSize(1);
     AbstractTreeNode child = children.get(0);

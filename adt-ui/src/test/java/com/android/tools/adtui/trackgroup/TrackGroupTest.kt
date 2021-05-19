@@ -17,10 +17,11 @@ package com.android.tools.adtui.trackgroup
 
 import com.android.tools.adtui.BoxSelectionComponent
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.BoxSelectionModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.trackgroup.StringSelectable
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
+import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -33,6 +34,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
+import java.awt.event.ActionEvent
 
 @RunsInEdt
 class TrackGroupTest {
@@ -66,6 +68,21 @@ class TrackGroupTest {
   @Test
   fun collapseAndExpandTrackGroup() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setCollapsedInitially(true).build()
+    val actionListener = object : TrackGroupActionListener {
+      var collapsed = true
+      var titleVar = ""
+
+      override fun onGroupCollapsed(title: String) {
+        collapsed = true
+        titleVar = title
+      }
+
+      override fun onGroupExpanded(title: String) {
+        collapsed = false
+        titleVar = title
+      }
+    }
+    trackGroupModel.addActionListener(actionListener)
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
@@ -75,6 +92,7 @@ class TrackGroupTest {
     assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
+    assertThat(actionListener.collapsed).isTrue()
 
     trackGroup.setCollapsed(false)
     assertThat(trackGroup.trackList.isVisible).isTrue()
@@ -83,6 +101,8 @@ class TrackGroupTest {
     assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
     assertThat(trackGroup.separator.isVisible).isTrue()
     assertThat(trackGroup.collapseButton.text).isNull()
+    assertThat(actionListener.collapsed).isFalse()
+    assertThat(actionListener.titleVar).isEqualTo("Group")
 
     trackGroup.setCollapsed(true)
     assertThat(trackGroup.trackList.isVisible).isFalse()
@@ -91,6 +111,35 @@ class TrackGroupTest {
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
+    assertThat(actionListener.collapsed).isTrue()
+    assertThat(actionListener.titleVar).isEqualTo("Group")
+  }
+
+  @Test
+  fun moveTrackGroupUpDown() {
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
+    val actionListener = object : TrackGroupActionListener {
+      var movedUp = false
+      var movedDown = false
+
+      override fun onGroupMovedUp(title: String) {
+        movedUp = true
+      }
+
+      override fun onGroupMovedDown(title: String) {
+        movedDown = true
+      }
+    }
+    trackGroupModel.addActionListener(actionListener)
+    val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
+    trackGroup.setMover(object : TrackGroupMover {
+      override fun moveTrackGroupUp(trackGroup: TrackGroup) {}
+      override fun moveTrackGroupDown(trackGroup: TrackGroup) {}
+    })
+    trackGroup.actionsDropdown.action.childrenActions[0].actionPerformed(ActionEvent(trackGroup, 0, ""))
+    assertThat(actionListener.movedUp).isTrue()
+    trackGroup.actionsDropdown.action.childrenActions[1].actionPerformed(ActionEvent(trackGroup, 0, ""))
+    assertThat(actionListener.movedDown).isTrue()
   }
 
   @Test
@@ -190,8 +239,8 @@ class TrackGroupTest {
 
   @Test
   fun supportsBoxSelection() {
-    val rangeSelectionModel = RangeSelectionModel(Range(), Range(0.0, 10.0))
-    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setRangeSelectionModel(rangeSelectionModel).build()
+    val selectionModel = BoxSelectionModel(Range(), Range(0.0, 10.0))
+    val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setBoxSelectionModel(selectionModel).build()
     trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TRACK_RENDERER_FACTORY)
     trackGroup.component.setBounds(0, 0, 500, 100)
@@ -202,24 +251,24 @@ class TrackGroupTest {
     val boxComponent = treeWalker.descendants().filterIsInstance(BoxSelectionComponent::class.java).first()
     val boxUi = FakeUi(boxComponent)
 
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     boxUi.mouse.drag(0, 0, 100, 10)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isFalse()
+    assertThat(selectionModel.selectionRange.isEmpty).isFalse()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
 
     // Box selection is cleared when manually selecting a track.
     val trackTitleUi = FakeUi(trackGroup.trackTitleOverlay)
     trackTitleUi.mouse.click(0, 0)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).containsExactly(0)
 
     // Verify box selection can be disabled.
     boxUi.mouse.click(0, 0) // Clear selection
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
     trackGroup.setEventHandlersEnabled(false)
     boxUi.mouse.drag(0, 0, 100, 10)
-    assertThat(rangeSelectionModel.selectionRange.isEmpty).isTrue()
+    assertThat(selectionModel.selectionRange.isEmpty).isTrue()
     assertThat(trackGroup.trackList.selectedIndices.asList()).isEmpty()
   }
 }

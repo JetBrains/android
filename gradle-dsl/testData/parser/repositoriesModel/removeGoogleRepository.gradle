@@ -1,0 +1,4 @@
+repositories {
+  google()
+  maven { url "http://example.com/" }
+}

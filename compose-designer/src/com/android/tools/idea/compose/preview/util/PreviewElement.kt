@@ -19,26 +19,29 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.ATTR_MIN_HEIGHT
+import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
-import com.android.annotations.concurrency.Slow
+import com.android.sdklib.IAndroidTarget
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.compose.preview.PreviewElementProvider
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.android.compose.ComposeLibraryNamespace
+import org.jetbrains.android.compose.PREVIEW_ANNOTATION_FQNS
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.util.module
@@ -47,29 +50,11 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.allConstructors
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.uast.UFile
-import org.jetbrains.uast.toUElement
+import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.createInstance
-import kotlin.reflect.full.memberProperties
-
-/** Preview element name */
-internal const val PREVIEW_NAME = "Preview"
-
-/** Package containing the preview definitions */
-private const val PREVIEW_PACKAGE = "androidx.ui.tooling.preview"
-
-/** Only composables with this annotation will be rendered to the surface */
-internal const val PREVIEW_ANNOTATION_FQN = "$PREVIEW_PACKAGE.$PREVIEW_NAME"
-
-internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.Composable"
-
-/** View included in the runtime library that will wrap the @Composable element so it gets rendered by layoutlib */
-internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
-
-/** Annotation FQN for `Preview` annotated parameters */
-internal const val PREVIEW_PARAMETER_FQN = "$PREVIEW_PACKAGE.PreviewParameter"
+import kotlin.reflect.full.functions
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -96,8 +81,13 @@ internal val FAKE_LAYOUT_RES_DIR = LightVirtualFile("layout")
  * to be able to preview composable functions.
  * The contents of the file only reside in memory and contain some XML that will be passed to Layoutlib.
  */
-internal class ComposeAdapterLightVirtualFile(name: String, content: String) : LightVirtualFile(name, content) {
+internal class ComposeAdapterLightVirtualFile(name: String,
+                                              content: String,
+                                              private val originFileProvider: () -> VirtualFile?) : LightVirtualFile(name,
+                                                                                                                     content), BackedVirtualFile {
   override fun getParent() = FAKE_LAYOUT_RES_DIR
+
+  override fun getOriginFile(): VirtualFile = originFileProvider() ?: this
 }
 
 /**
@@ -116,7 +106,7 @@ else {
 private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
 
 /**
- * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQN] is defined in a valid location, which can be either:
+ * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQNS] is defined in a valid location, which can be either:
  * 1. Top-level functions
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
  *
@@ -140,12 +130,12 @@ internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
 }
 
 /**
- *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQN] and is defined in a valid location.
+ *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQNS] and is defined in a valid location.
  *
  *  @see [isValidPreviewLocation]
  */
 fun KtNamedFunction.isValidComposePreview() =
-  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQN) }
+  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.fqNameMatches(PREVIEW_ANNOTATION_FQNS) }
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
@@ -163,6 +153,68 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
   return minOf(maxOf(this, min), max)
 }
 
+private const val DEFAULT_DEVICE = ""
+private const val DEVICE_BY_ID_PREFIX = "id:"
+private const val DEVICE_BY_NAME_PREFIX = "name:"
+
+private fun PreviewConfiguration.applyTo(renderConfiguration: Configuration,
+                                         highestApiTarget: (Configuration) -> IAndroidTarget?,
+                                         devicesProvider: (Configuration) -> Collection<Device>,
+                                         defaultDeviceProvider: (Configuration) -> Device?) {
+  if (apiLevel != UNDEFINED_API_LEVEL) {
+    highestApiTarget(renderConfiguration)?.let {
+      renderConfiguration.target = CompatibilityRenderTarget(it, apiLevel, null)
+    }
+  }
+
+  if (theme != null) {
+    renderConfiguration.setTheme(theme)
+  }
+
+  renderConfiguration.uiModeFlagValue = uiMode
+  renderConfiguration.fontScale = max(0f, fontScale)
+
+  when {
+    deviceSpec.startsWith(DEVICE_BY_ID_PREFIX) -> {
+      val id = deviceSpec.removePrefix(DEVICE_BY_ID_PREFIX)
+      val device = devicesProvider(renderConfiguration).find { it.id == id } ?: defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+      else {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with id '$id'")
+      }
+    }
+    deviceSpec.startsWith(DEVICE_BY_NAME_PREFIX) -> {
+      val name = deviceSpec.removePrefix(DEVICE_BY_NAME_PREFIX)
+      val device = devicesProvider(renderConfiguration).find { it.displayName == name } ?: defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+      else {
+        Logger.getInstance(PreviewConfiguration::class.java).warn("Unable to find device with name '$name'")
+      }
+    }
+    else -> {
+      if (deviceSpec != DEFAULT_DEVICE) {
+        Logger.getInstance(PreviewElement::class.java).warn("Unknown device spec $deviceSpec")
+      }
+      val device = defaultDeviceProvider(renderConfiguration)
+      if (device != null) {
+        renderConfiguration.setDevice(device, false)
+      }
+    }
+  }
+}
+
+@TestOnly
+fun PreviewConfiguration.applyConfigurationForTest(renderConfiguration: Configuration,
+                                                   highestApiTarget: (Configuration) -> IAndroidTarget?,
+                                                   devicesProvider: (Configuration) -> Collection<Device>,
+                                                   defaultDeviceProvider: (Configuration) -> Device?) {
+  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
+}
+
 /**
  * Contain settings for rendering
  */
@@ -170,20 +222,14 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                                                      val theme: String?,
                                                      val width: Int,
                                                      val height: Int,
-                                                     val fontScale: Float) {
-  fun applyTo(renderConfiguration: Configuration) {
-    if (apiLevel != UNDEFINED_API_LEVEL) {
-      val highestTarget = renderConfiguration.configurationManager.highestApiTarget!!
-
-      renderConfiguration.target = CompatibilityRenderTarget(highestTarget, apiLevel, null)
-    }
-
-    if (theme != null) {
-      renderConfiguration.setTheme(theme)
-    }
-
-    renderConfiguration.fontScale = max(0f, fontScale)
-  }
+                                                     val fontScale: Float,
+                                                     val uiMode: Int,
+                                                     val deviceSpec: String) {
+  fun applyTo(renderConfiguration: Configuration) =
+    applyTo(renderConfiguration,
+            { it.configurationManager.highestApiTarget },
+            { it.configurationManager.devices },
+            { it.configurationManager.defaultDevice })
 
   companion object {
     /**
@@ -195,19 +241,23 @@ data class PreviewConfiguration internal constructor(val apiLevel: Int,
                     theme: String?,
                     width: Int?,
                     height: Int?,
-                    fontScale: Float?): PreviewConfiguration =
+                    fontScale: Float?,
+                    uiMode: Int?,
+                    device: String?): PreviewConfiguration =
     // We only limit the sizes. We do not limit the API because using an incorrect API level will throw an exception that
       // we will handle and any other error.
       PreviewConfiguration(apiLevel = apiLevel ?: UNDEFINED_API_LEVEL,
                            theme = theme,
                            width = width.truncate(1, MAX_WIDTH) ?: UNDEFINED_DIMENSION,
                            height = height.truncate(1, MAX_HEIGHT) ?: UNDEFINED_DIMENSION,
-                           fontScale = fontScale ?: 1f)
+                           fontScale = fontScale ?: 1f,
+                           uiMode = uiMode ?: 0,
+                           deviceSpec = device ?: DEFAULT_DEVICE)
   }
 }
 
 /** Configuration equivalent to defining a `@Preview` annotation with no parameters */
-private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null)
+private val nullConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null)
 
 /**
  * Settings that modify how a [PreviewElement] is rendered
@@ -242,6 +292,9 @@ data class PreviewParameter(val name: String,
  * Definition of a preview element
  */
 interface PreviewElement {
+  /** [ComposeLibraryNamespace] to identify the package name used for this [PreviewElement] annotations */
+  val composeLibraryNamespace: ComposeLibraryNamespace
+
   /** Fully Qualified Name of the composable method */
   val composableMethodFqn: String
 
@@ -268,19 +321,28 @@ interface PreviewElementTemplate : PreviewElement {
 /**
  * Definition of a preview element
  */
-interface PreviewElementInstance : PreviewElement, XmlSerializable {
+abstract class PreviewElementInstance : PreviewElement, XmlSerializable {
   /**
    * Unique identifier that can be used for filtering.
    */
-  val instanceId: String
+  abstract val instanceId: String
+
+  /**
+   * Whether the Composable being previewed contains animations. If true, the Preview should allow opening the animation inspector.
+   */
+  var hasAnimations = false
 
   override fun toPreviewXml(xmlBuilder: PreviewXmlBuilder): PreviewXmlBuilder {
     val matchParent = displaySettings.showDecoration
     val width = dimensionToString(configuration.width, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     val height = dimensionToString(configuration.height, if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)
     xmlBuilder
+      .setRootTagName(composeLibraryNamespace.composableAdapterName)
       .androidAttribute(ATTR_LAYOUT_WIDTH, width)
       .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
+      // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min 1x1 parent (b/169230467).
+      .androidAttribute(ATTR_MIN_WIDTH, "1px")
+      .androidAttribute(ATTR_MIN_HEIGHT, "1px")
       // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
       .toolsAttribute("composableName", composableMethodFqn)
 
@@ -290,16 +352,34 @@ interface PreviewElementInstance : PreviewElement, XmlSerializable {
 
     return xmlBuilder
   }
+
+  final override fun equals(other: Any?): Boolean {
+    // PreviewElement objects can be repeated in the same element. They are considered equals only if they annotate exactly the same
+    // element with the same configuration.
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as PreviewElementInstance
+
+    return composableMethodFqn == other.composableMethodFqn &&
+           instanceId == other.instanceId &&
+           displaySettings == other.displaySettings &&
+           configuration == other.configuration
+  }
+
+  override fun hashCode(): Int =
+    Objects.hash(composableMethodFqn, displaySettings, configuration, instanceId)
 }
 
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
-data class SinglePreviewElementInstance(override val composableMethodFqn: String,
-                                        override val displaySettings: PreviewDisplaySettings,
-                                        override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-                                        override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-                                        override val configuration: PreviewConfiguration) : PreviewElementInstance {
+class SinglePreviewElementInstance(override val composableMethodFqn: String,
+                                   override val displaySettings: PreviewDisplaySettings,
+                                   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
+                                   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
+                                   override val configuration: PreviewConfiguration,
+                                   override val composeLibraryNamespace: ComposeLibraryNamespace) : PreviewElementInstance() {
   override val instanceId: String = composableMethodFqn
 
   companion object {
@@ -310,7 +390,8 @@ data class SinglePreviewElementInstance(override val composableMethodFqn: String
                    showDecorations: Boolean = false,
                    showBackground: Boolean = false,
                    backgroundColor: String? = null,
-                   configuration: PreviewConfiguration = nullConfiguration) =
+                   configuration: PreviewConfiguration = nullConfiguration,
+                   uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_UI) =
       SinglePreviewElementInstance(composableMethodFqn,
                                    PreviewDisplaySettings(
                                      displayName,
@@ -319,14 +400,15 @@ data class SinglePreviewElementInstance(override val composableMethodFqn: String
                                      showBackground,
                                      backgroundColor),
                                    null, null,
-                                   configuration)
+                                   configuration,
+                                   uiToolingPackageName)
   }
 }
 
-private data class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
-                                                      private val parameterName: String,
-                                                      val providerClassFqn: String,
-                                                      val index: Int) : PreviewElementInstance, PreviewElement by basePreviewElement {
+private class ParametrizedPreviewElementInstance(private val basePreviewElement: PreviewElement,
+                                                 parameterName: String,
+                                                 val providerClassFqn: String,
+                                                 val index: Int) : PreviewElementInstance(), PreviewElement by basePreviewElement {
   override val instanceId: String = "$composableMethodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings = PreviewDisplaySettings(
@@ -357,8 +439,8 @@ internal fun PreviewElement.previewProviderClassAndIndex() =
 /**
  * Definition of a preview element that can spawn multiple [PreviewElement]s based on parameters.
  */
-data class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
-                                              val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
+class ParametrizedPreviewElementTemplate(private val basePreviewElement: PreviewElement,
+                                         val parameterProviders: Collection<PreviewParameter>) : PreviewElementTemplate, PreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [PreviewElement]s. The will be [PreviewElement] populated with data from the parameter
    * providers.
@@ -374,28 +456,47 @@ data class ParametrizedPreviewElementTemplate(private val basePreviewElement: Pr
         "Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    return parameterProviders.map {
-      try {
-        val parameterProviderClass = ModuleClassLoaderManager.get().getShared(null, module).loadClass(it.providerClassFqn).kotlin
-        val parameterProviderSizeMethod = parameterProviderClass.memberProperties.single { "count" == it.name }
-        val parameterProvider = parameterProviderClass.createInstance()
-        val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
+    val classLoader = ModuleClassLoaderManager.get().getPrivate(ParametrizedPreviewElementTemplate::class.java.classLoader, module, this)
+    try {
+      return parameterProviders.map {
+        try {
+          val parameterProviderClass = classLoader.loadClass(it.providerClassFqn).kotlin
+          val parameterProviderSizeMethod = parameterProviderClass.functions.single { "getCount" == it.name }
+          val parameterProvider = parameterProviderClass.createInstance()
+          val providerCount = min((parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0), it.limit)
 
-        return (0 until providerCount).map { index ->
-          ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
-                                             parameterName = it.name,
-                                             index = index,
-                                             providerClassFqn = it.providerClassFqn)
-        }.asSequence()
-      }
-      catch (e: Throwable) {
-        Logger.getInstance(
-          ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
-      }
+          return (0 until providerCount).map { index ->
+            ParametrizedPreviewElementInstance(basePreviewElement = basePreviewElement,
+                                               parameterName = it.name,
+                                               index = index,
+                                               providerClassFqn = it.providerClassFqn)
+          }.asSequence()
+        }
+        catch (e: Throwable) {
+          Logger.getInstance(
+            ParametrizedPreviewElementTemplate::class.java).debug { "Failed to instantiate ${it.providerClassFqn} parameter provider" }
+        }
 
-      return sequenceOf()
-    }.first()
+        return sequenceOf()
+      }.first()
+    }
+    finally {
+      ModuleClassLoaderManager.get().release(classLoader, this)
+    }
   }
+
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as ParametrizedPreviewElementTemplate
+
+    return basePreviewElement == other.basePreviewElement &&
+           parameterProviders == other.parameterProviders
+  }
+
+  override fun hashCode(): Int =
+    Objects.hash(basePreviewElement, parameterProviders)
 }
 
 /**
@@ -406,7 +507,7 @@ class PreviewElementTemplateInstanceProvider(private val delegate: PreviewElemen
   override val previewElements: Sequence<PreviewElementInstance>
     get() = delegate.previewElements.flatMap {
       when (it) {
-        is ParametrizedPreviewElementTemplate -> it.instances()
+        is PreviewElementTemplate -> it.instances()
         is PreviewElementInstance -> sequenceOf(it)
         else -> {
           Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java).warn(
@@ -432,23 +533,7 @@ interface FilePreviewElementFinder {
    *
    * This method always runs on smart mode.
    */
-  @Slow
-  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement> {
-    assert(!DumbService.getInstance(project).isDumb) { "findPreviewMethods can not be called on dumb mode" }
-
-    val psiFile = ReadAction.compute<PsiFile?, Throwable> { PsiManager.getInstance(project).findFile(vFile) } ?: return emptySequence()
-    val uFile: UFile = psiFile.toUElement() as? UFile ?: return emptySequence()
-
-    return findPreviewMethods(uFile)
-  }
-
-  /**
-   * Returns all the [PreviewElement]s present in the passed [UFile].
-   *
-   * This method always runs on smart mode.
-   */
-  @Slow
-  fun findPreviewMethods(uFile: UFile): Sequence<PreviewElement>
+  fun findPreviewMethods(project: Project, vFile: VirtualFile): Sequence<PreviewElement>
 }
 
 /**
@@ -462,16 +547,15 @@ private val PreviewElement?.sourceOffset: Int
   get() = this?.previewElementDefinitionPsi?.element?.startOffset ?: -1
 
 /**
- * Sorts the [PreviewElement]s by source code line number, smaller first. This comparator needs
- * to be used under a [ReadAction].
- */
-val previewElementComparatorBySourcePosition = Comparator<PreviewElement> { o1, o2 ->
-  o1.sourceOffset - o2.sourceOffset
-}
-
-/**
  * Sorts the [PreviewElement]s in alphabetical order of their display name.
  */
-val previewElementComparatorByDisplayName = Comparator<PreviewElement> { o1, o2 ->
+fun Collection<PreviewElement>.sortByDisplayName(): List<PreviewElement> = sortedWith(Comparator { o1, o2 ->
   o1.displaySettings.name.compareTo(o2.displaySettings.name)
+})
+
+/**
+ * Sorts the [PreviewElement]s by source code line number, smaller first.
+ */
+fun Collection<PreviewElement>.sortBySourcePosition(): List<PreviewElement> = ReadAction.compute<List<PreviewElement>, Throwable> {
+  sortedWith(Comparator { o1, o2 -> o1.sourceOffset - o2.sourceOffset })
 }

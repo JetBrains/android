@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.common.error;
 
+import static com.android.tools.idea.common.error.MockIssueFactoryKt.createIssue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
+import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
@@ -33,10 +37,15 @@ import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import icons.StudioIcons;
+import java.util.HashMap;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class IssueModelTest {
   private IssueModel myIssueModel;
@@ -57,11 +66,12 @@ public class IssueModelTest {
     assertFalse(myIssueModel.hasIssues());
     assertFalse(hasRenderError());
     assertEquals(0, myIssueModel.getIssueCount());
-    myIssueModel.addIssueProvider(new RenderIssueProvider(renderErrorModel));
+    NlModel sourceNlModel = Mockito.mock(NlModel.class);
+    myIssueModel.addIssueProvider(new RenderIssueProvider(sourceNlModel, renderErrorModel));
     assertTrue(myIssueModel.hasIssues());
     assertTrue(hasRenderError());
     assertEquals(1, myIssueModel.getIssueCount());
-    assertArrayEquals(new Issue[]{RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue)}, myIssueModel.getIssues().toArray());
+    assertArrayEquals(new Issue[]{RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue, sourceNlModel)}, myIssueModel.getIssues().toArray());
   }
 
   @NotNull
@@ -93,14 +103,14 @@ public class IssueModelTest {
     IssueModel.IssueModelListener listener2 = () -> listenerCalled[1] = true;
     myIssueModel.addErrorModelListener(listener1);
     myIssueModel.addErrorModelListener(listener2);
-    myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
+    myIssueModel.addIssueProvider(new RenderIssueProvider(null, createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertTrue(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
     listenerCalled[0] = false;
     listenerCalled[1] = false;
     myIssueModel.removeErrorModelListener(listener1);
-    myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
+    myIssueModel.addIssueProvider(new RenderIssueProvider(null, createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertFalse(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
@@ -110,6 +120,7 @@ public class IssueModelTest {
   public void warningErrorCount() {
     assertFalse(myIssueModel.hasIssues());
     myIssueModel.addIssueProvider(new RenderIssueProvider(
+      null,
       createRenderErrorModel(
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
@@ -128,10 +139,62 @@ public class IssueModelTest {
   }
 
   @Test
+  public void testHighestSeverityIssue() {
+    assertFalse(myIssueModel.hasIssues());
+    NlComponent mockComponent = Mockito.mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS);
+    Issue expectedHighest = createIssue(HighlightSeverity.WARNING, IssueSource.fromNlComponent(mockComponent));
+    myIssueModel.addIssueProvider(
+      new IssueProvider() {
+        @Override
+        public void collectIssues(@NotNull ImmutableCollection.Builder<Issue> issueListBuilder) {
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, IssueSource.fromNlComponent(mockComponent)));
+          issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, IssueSource.fromNlComponent(mockComponent)));
+          issueListBuilder.add(expectedHighest);
+        }
+    });
+    assertEquals(3, myIssueModel.getIssueCount());
+    Issue highest = myIssueModel.getHighestSeverityIssue(mockComponent);
+    assertEquals(expectedHighest, highest );
+  }
+
+  @Test
+  public void testIssueIconErrorInline() {
+    HighlightSeverity severity = HighlightSeverity.ERROR;
+    Icon icon = IssueModel.getIssueIcon(severity, false);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.ERROR_INLINE, icon);
+  }
+
+  @Test
+  public void testIssueIconErrorInlineSelected() {
+    HighlightSeverity severity = HighlightSeverity.ERROR;
+    Icon icon = IssueModel.getIssueIcon(severity, true);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.ERROR_INLINE_SELECTED, icon);
+  }
+
+  @Test
+  public void testIssueIconWarningInline() {
+    HighlightSeverity severity = HighlightSeverity.INFORMATION;
+    Icon icon = IssueModel.getIssueIcon(severity, false);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.WARNING_INLINE, icon);
+  }
+
+  @Test
+  public void testIssueIconWarningInlineSelected() {
+    HighlightSeverity severity = HighlightSeverity.INFORMATION;
+    Icon icon = IssueModel.getIssueIcon(severity, true);
+    assertNotNull(icon);
+    assertEquals(StudioIcons.Common.WARNING_INLINE_SELECTED, icon);
+  }
+
+  @Test
   public void limitMaxNumberOfIssues() {
     IssueModel limitedIssueModel = new IssueModel(MoreExecutors.directExecutor(), 5);
     assertFalse(limitedIssueModel.hasIssues());
     limitedIssueModel.addIssueProvider(new RenderIssueProvider(
+      null,
       createRenderErrorModel(
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
@@ -140,6 +203,7 @@ public class IssueModelTest {
     assertEquals(2, limitedIssueModel.getErrorCount());
     assertEquals(1, limitedIssueModel.getWarningCount());
     limitedIssueModel.addIssueProvider(new RenderIssueProvider(
+      null,
       createRenderErrorModel(
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),
         MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR),

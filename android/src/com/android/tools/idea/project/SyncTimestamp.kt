@@ -16,10 +16,8 @@
 @file:JvmName("SyncTimestampUtil")
 package com.android.tools.idea.project
 
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Clock
 import java.util.concurrent.atomic.AtomicLong
@@ -36,7 +34,7 @@ class SyncTimestampListener(private val project: Project): SyncResultListener {
   }
 }
 
-class SyncTimestamp {
+class SyncTimestamp() {
   private val lastSyncTimestamp = AtomicLong(-1L)
 
   /**

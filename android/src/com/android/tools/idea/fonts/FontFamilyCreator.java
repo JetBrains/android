@@ -35,7 +35,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.utils.XmlUtils;
 import com.intellij.core.CoreBundle;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -48,7 +48,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ExceptionUtil;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -91,19 +93,24 @@ public class FontFamilyCreator {
   @NotNull
   public String createFontFamily(@NotNull FontDetail font, @NotNull String fontName, boolean downloadable) {
     Project project = myFacet.getModule().getProject();
-    TransactionGuard.submitTransaction(project, () -> WriteCommandAction.writeCommandAction(project).withName("Create new font file").run(() -> {
-      try {
-        if (downloadable) {
-          createDownloadableFont(font, fontName);
-        }
-        else {
-          createEmbeddedFont(font, fontName);
-        }
+    final ThrowableRunnable<IOException> throwableRunnable = () -> {
+      if (downloadable) {
+        createDownloadableFont(font, fontName);
       }
-      catch (IOException e) {
-        throw new RuntimeException(e);
+      else {
+        createEmbeddedFont(font, fontName);
       }
-    }));
+    };
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
+        try {
+          WriteCommandAction.writeCommandAction(project).withName("Create new font file").run(throwableRunnable);
+        }
+        catch (IOException e) {
+          ExceptionUtil.rethrowAllAsUnchecked(e);
+        }
+      },
+      project.getDisposed());
     return "@font/" + fontName;
   }
 

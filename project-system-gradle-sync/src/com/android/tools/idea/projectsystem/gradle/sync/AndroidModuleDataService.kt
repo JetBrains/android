@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
@@ -31,9 +30,9 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.setup.post.setUpModules
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.recommendPluginUpgrade
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
+import com.android.tools.idea.gradle.project.upgrade.recommendPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts
 import com.android.tools.idea.model.AndroidModel
@@ -50,29 +49,31 @@ import com.intellij.execution.RunManagerEx
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task.Backgroundable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LanguageLevelModuleExtension
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.jps.model.serialization.PathMacroUtil
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
-import java.util.LinkedList
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -94,19 +95,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     for (module in modelsProvider.modules) {
       val androidModel = modelsByModuleName[module.name]
       if (androidModel != null) {
-        // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
-        // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
-        // Android model is null for the root project module.
-        val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
-          androidModel.androidProject.name,
-          androidModel.androidProject.compileTarget,
-          androidModel.androidProject.bootClasspath,
-          IdeSdks.getInstance()
-        )
-        if (sdkToUse != null) {
-          modelsProvider.getModifiableRootModel(module).sdk = sdkToUse
-        }
-
         // Create the Android facet and attache to the module.
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
                            ?: createAndroidFacet(module, modelsProvider)
@@ -137,6 +125,36 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     for (module in toRemoveComputable.get()) {
       val facetModel = modelsProvider.getModifiableFacetModel(module)
       removeAllFacets(facetModel, AndroidFacet.ID)
+    }
+  }
+
+  override fun postProcess(toImport: MutableCollection<DataNode<AndroidModuleModel>>,
+                           projectData: ProjectData?,
+                           project: Project,
+                           modelsProvider: IdeModifiableModelsProvider) {
+    super.postProcess(toImport, projectData, project, modelsProvider)
+    for (nodeToImport in toImport) {
+      val mainModuleDataNode = ExternalSystemApiUtil.findParent(
+        nodeToImport,
+        ProjectKeys.MODULE
+      ) ?: continue
+      val mainModuleData = mainModuleDataNode.data
+      val mainIdeModule = modelsProvider.findIdeModule(mainModuleData) ?: continue
+
+      val androidModel = nodeToImport.data
+      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
+      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
+      // Android model is null for the root project module.
+      val sdkToUse = AndroidSdks.getInstance().computeSdkReloadingAsNeeded(
+        project,
+        androidModel.androidProject.name,
+        androidModel.androidProject.compileTarget,
+        androidModel.androidProject.bootClasspath,
+        IdeSdks.getInstance()
+      )
+      if (sdkToUse != null) {
+        modelsProvider.getModifiableRootModel(mainIdeModule).sdk = sdkToUse
+      }
     }
   }
 
@@ -177,8 +195,11 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
 
     ProjectStructure.getInstance(project).analyzeProjectStructure()
-
-    setUpModules(project)
+    ProgressManager.getInstance().run(object : Backgroundable(project, "Setting up modules...") {
+      override fun run(indicator: ProgressIndicator) {
+        setUpModules(project)
+      }
+    })
   }
 }
 
@@ -222,15 +243,6 @@ private fun configureFacet(androidFacet: AndroidFacet, androidModuleModel: Andro
     provider.resDirectories
   } + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
     VfsUtilCore.pathToUrl(file.absolutePath)
-  }
-
-
-  if (androidFacet.module.project.getUserData(GradleSyncExecutor.SINGLE_VARIANT_KEY) != true) {
-    // Full variant-sync should not reset the current selection of build variants. Variant switching is handled by the BuildVariantUpdater.
-    val currentlySelectedVariant = androidFacet.properties.SELECTED_BUILD_VARIANT
-    if (currentlySelectedVariant.isNotEmpty() && androidModuleModel.variantExists(currentlySelectedVariant)) {
-      androidModuleModel.setSelectedVariantName(currentlySelectedVariant)
-    }
   }
 
   AndroidModel.set(androidFacet, androidModuleModel)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package kotlinx.android.parcel
+package kotlinx.parcelize
 
 /**
  * Instructs the Kotlin compiler to generate `writeToParcel()`, `describeContents()` [android.os.Parcelable] methods,

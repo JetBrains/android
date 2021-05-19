@@ -16,7 +16,7 @@
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
 /**
- * Dummy exit node for BlockGraph
+ * Placeholder exit node for BlockGraph
  */
 public interface BlockGraphExitNode extends ExitNode {
 }

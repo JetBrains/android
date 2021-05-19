@@ -34,7 +34,6 @@ import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.navigation.NavigationUtil;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -148,13 +147,12 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                         @NotNull PsiFile file,
                                         @Nullable PsiDirectory dir,
                                         boolean open) {
-    TransactionGuard.submitTransaction(project, () -> {
-      XmlTag tag = getValueTag(editor, file);
-      if (tag == null) {
-        return; // shouldn't happen; we checked in isAvailable
-      }
-      forkResourceValue(project, tag, file, dir, open);
-    });
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    XmlTag tag = getValueTag(editor, file);
+    if (tag == null) {
+      return; // shouldn't happen; we checked in isAvailable
+    }
+    forkResourceValue(project, tag, file, dir, open);
   }
 
   @Nullable

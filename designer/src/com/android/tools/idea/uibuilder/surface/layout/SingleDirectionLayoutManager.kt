@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.surface.SceneView
 import java.awt.Dimension
 import kotlin.math.max
 
@@ -26,12 +25,25 @@ import kotlin.math.max
  * The [horizontalPadding] and [verticalPadding] are the minimum gaps between [PositionableContent] and the edges of surface.
  * The [horizontalViewDelta] and [verticalViewDelta] are the fixed gap between different [PositionableContent]s.
  * Padding and view delta are always the same physical sizes on screen regardless the zoom level.
+ *
+ * [startBorderAlignment] allows to modify the start border aligment. See [Alignment].
  */
-class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
-                                   @SwingCoordinate private val verticalPadding: Int,
-                                   @SwingCoordinate private val horizontalViewDelta: Int,
-                                   @SwingCoordinate private val verticalViewDelta: Int)
+open class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
+                                        @SwingCoordinate private val verticalPadding: Int,
+                                        @SwingCoordinate private val horizontalViewDelta: Int,
+                                        @SwingCoordinate private val verticalViewDelta: Int,
+                                        private val startBorderAlignment: Alignment = Alignment.CENTER)
   : SurfaceLayoutManager {
+
+  /**
+   * Determines the alignment for the start border of the element.
+   * For a vertical alignment, [START] would mean left and [END] right. For horizontal, [START] means top and [END] means bottom.
+   */
+  enum class Alignment {
+    START,
+    CENTER,
+    END
+  }
 
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
@@ -82,7 +94,7 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
     return dim
   }
 
-  private fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
+  protected open fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean {
     if (content.isEmpty()) {
       return false
     }
@@ -117,18 +129,41 @@ class SingleDirectionLayoutManager(@SwingCoordinate private val horizontalPaddin
       var nextY = startY
       for (sceneView in content) {
         nextY += sceneView.margin.top
-        sceneView.setLocation(startX, nextY)
+        val xPosition = max(startX, when (startBorderAlignment) {
+          Alignment.START -> startX
+          Alignment.END -> availableWidth - sceneView.scaledContentSize.width
+          Alignment.CENTER -> (availableWidth - sceneView.scaledContentSize.width) / 2
+        })
+        sceneView.setLocation(xPosition, nextY)
         nextY += sceneView.scaledContentSize.height + sceneView.margin.bottom + verticalViewDelta
       }
     }
     else {
       var nextX = startX
       for (sceneView in content) {
-        sceneView.setLocation(nextX, startY)
+        // Centered in the horizontal centerline
+        val yPosition = max(startY, when (startBorderAlignment) {
+          Alignment.START -> startY
+          Alignment.END -> availableHeight - (sceneView.scaledContentSize.height + sceneView.margin.vertical)
+          Alignment.CENTER -> availableHeight / 2 - (sceneView.scaledContentSize.height + sceneView.margin.vertical) / 2
+        })
+        sceneView.setLocation(nextX, yPosition)
         nextX += sceneView.scaledContentSize.width + horizontalViewDelta
       }
     }
   }
+}
+
+/**
+ * [SingleDirectionLayoutManager] that forces the content to always be vertical.
+ */
+class VerticalOnlyLayoutManager(@SwingCoordinate horizontalPadding: Int,
+                                @SwingCoordinate verticalPadding: Int,
+                                @SwingCoordinate horizontalViewDelta: Int,
+                                @SwingCoordinate verticalViewDelta: Int,
+                                val startBorderAlignment: Alignment) : SingleDirectionLayoutManager(
+  horizontalPadding, verticalPadding, horizontalViewDelta, verticalViewDelta, startBorderAlignment) {
+  override fun isVertical(content: Collection<PositionableContent>, availableWidth: Int, availableHeight: Int): Boolean = true
 }
 
 // Helper functions to improve readability

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device;
+package com.android.tools.adtui.device;
 
-import static com.android.tools.idea.device.DeviceArtPainter.DeviceData;
-import static com.android.tools.idea.device.DeviceArtPainter.FrameData;
+import static com.android.tools.adtui.device.DeviceArtPainter.DeviceData;
+import static com.android.tools.adtui.device.DeviceArtPainter.FrameData;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -27,7 +27,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.webp.WebpMetadata;
 import com.google.common.io.Files;
 import com.intellij.openapi.util.SystemInfo;
 import java.awt.*;
@@ -42,7 +41,6 @@ import java.util.function.Function;
 import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,10 +53,6 @@ import org.junit.rules.TemporaryFolder;
  * and adjusted device-art descriptors.
  */
 public class DeviceArtPainterTest {
-  @BeforeClass
-  public static void setUp() {
-    WebpMetadata.ensureWebpRegistered();
-  }
 
   @Rule
   public TemporaryFolder myTemporaryFolder = new TemporaryFolder();

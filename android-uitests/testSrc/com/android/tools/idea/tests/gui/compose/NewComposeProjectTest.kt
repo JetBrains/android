@@ -47,7 +47,7 @@ class NewComposeProjectTest {
   /**
    * Verifies that user is able to create a new Compose Activity Project through the
    * new project wizard.
-   * <p>TODO: TT ID:
+   * <p>TT ID: f1c58981-0704-40be-9794-7f61e425a8d5
    * Test steps:
    * 1. Create new default "Empty Compose Activity" Project
    * Verify:
@@ -59,8 +59,8 @@ class NewComposeProjectTest {
     WizardUtils.createNewProject(guiTest, "Empty Compose Activity", Language.Kotlin)
 
     guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("implementation \"androidx.ui:ui-layout:")
-      assertThat(this).contains("implementation \"androidx.ui:ui-material:")
+      assertThat(this).contains("implementation \"androidx.compose.ui:ui:")
+      assertThat(this).contains("implementation \"androidx.compose.material:material:")
       assertThat(this).contains("implementation \"androidx.ui:ui-tooling:")
     }
     guiTest.getProjectFileText("app/src/main/java/com/google/myapplication/MainActivity.kt").run {

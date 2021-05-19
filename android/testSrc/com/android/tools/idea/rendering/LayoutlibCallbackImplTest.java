@@ -29,11 +29,11 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.psi.PsiFile;
-import java.io.IOException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.xmlpull.v1.XmlPullParserException;
+import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   /**
@@ -42,7 +42,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
    * After the fix, when asking for the <code>app:navGraph</code> attribute on the &lt;fragment&gt; entry, the parser will return the start
    * destination <code>@layout/frament_blank</code>
    */
-  public void testBug136632498() throws XmlPullParserException, IOException {
+  public void testBug136632498() {
     @Language("XML") final String navGraph = "<navigation xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                                              "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                                              "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
@@ -71,21 +71,28 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
     RenderLogger logger = mock(RenderLogger.class);
-    RenderTask task = RenderTestUtil.createRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger);
-    LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
-      ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
+    RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
+      LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+        ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
+      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
-    LayoutlibCallbackImpl layoutlibCallback =
-      new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, false);
-    ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
-      ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
-    ));
+      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), myModule, this);
+      LayoutlibCallbackImpl layoutlibCallback =
+        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+      ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
+        ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
+      ));
 
-    assertNotNull(parser);
-    parser.nextTag(); // Read top LinearLayout
-    parser.nextTag(); // Read <fragment>
-    String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
-    assertEquals("@layout/fragment_blank", startDestination);
+      assertNotNull(parser);
+      try {
+        parser.nextTag(); // Read top LinearLayout
+        parser.nextTag(); // Read <fragment>
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+      String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
+      assertEquals("@layout/fragment_blank", startDestination);
+      ModuleClassLoaderManager.get().release(classLoader, this);
+    });
   }
 }

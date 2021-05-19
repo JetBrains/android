@@ -15,19 +15,22 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.intellij.openapi.util.LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC;
+
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
-import com.intellij.notification.*;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.intellij.openapi.util.LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC;
+import org.jetbrains.annotations.NotNull;
 
 final class AndroidLowMemoryNotifier implements Disposable {
   private LowMemoryWatcher myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived, ONLY_AFTER_GC);

@@ -46,6 +46,7 @@ public class ResourceClassRegistryTest extends LightJavaCodeInsightFixtureTestCa
   public void tearDown() throws Exception {
     try {
       myIdManager.resetDynamicIds();
+      myRegistry.clearCache();
     }
     finally {
       super.tearDown();

@@ -18,12 +18,11 @@ package com.android.tools.idea.tests.gui.projectstructure;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static com.android.tools.idea.wizard.template.Language.Java;
-import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -79,7 +78,7 @@ public class JavaDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibrary()
+      .clickNextToPureLibrary()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
     EditorFixture editor = ideFrame.getEditor()
@@ -108,7 +107,7 @@ public class JavaDepTest {
       .select("()public class MainActivity")
       .enterText("import com.google.gson.Gson;\n\n");
 
-    GradleInvocationResult result = guiTest.ideFrame().invokeProjectMake();
+    BuildStatus result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
   }
 }

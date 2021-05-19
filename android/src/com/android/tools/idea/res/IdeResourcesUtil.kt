@@ -39,6 +39,7 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.CLASS_PREFERENCE
 import com.android.SdkConstants.CLASS_PREFERENCE_ANDROIDX
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FD_RES_LAYOUT
 import com.android.SdkConstants.FD_RES_VALUES
@@ -46,8 +47,6 @@ import com.android.SdkConstants.PREFIX_RESOURCE_REF
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
 import com.android.SdkConstants.TAG_ITEM
 import com.android.SdkConstants.TAG_SELECTOR
-import com.android.builder.model.AaptOptions
-import com.android.builder.model.AaptOptions.Namespacing
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -76,6 +75,7 @@ import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -346,7 +346,7 @@ fun ResourceItem.getSourceAsVirtualFile(): VirtualFile? = runReadAction {
 /**
  * Package prefixes used in [isViewPackageNeeded]
  */
-private val NO_PREFIX_PACKAGES = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG)
+val NO_PREFIX_PACKAGES_FOR_VIEW = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG, ANDROID_WEBKIT_PKG)
 
 /**
  * Returns true if views with the given fully qualified class name need to include
@@ -363,8 +363,8 @@ private val NO_PREFIX_PACKAGES = arrayOf(ANDROID_WIDGET_PREFIX, ANDROID_VIEW_PKG
  * tag
  */
 fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
-  for (noPrefixPackage in NO_PREFIX_PACKAGES) {
-    // We need to check not only if prefix is a "whitelisted" package, but if the class
+  for (noPrefixPackage in NO_PREFIX_PACKAGES_FOR_VIEW) {
+    // We need to check not only if prefix is in an allowed package, but if the class
     // is stored in that package directly, as opposed to be stored in a subpackage.
     // For example, view with FQCN android.view.MyView can be abbreviated to "MyView",
     // but android.view.custom.MyView can not.
@@ -382,7 +382,6 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
     true
   }
 }
-
 /**
  * XML tags associated with classes usually can come either with fully-qualified names, which can be shortened
  * in case of common packages, which is handled by various inflaters in Android framework. This method checks
@@ -391,10 +390,21 @@ fun isViewPackageNeeded(qualifiedName: String, apiLevel: Int): Boolean {
  *
  * Accesses JavaPsiFacade, and thus should be run inside read action.
  *
+ * @param parentClassQualifiedName Optional. Optimisation that can be used if you already know what the baseclass inherits from. If matching
+ *                                 qualified name is found, then inheritance check is avoided.
+ *
  * @see .isViewPackageNeeded
  */
-fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int): Boolean {
+fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: Int, parentClassQualifiedName: String?): Boolean {
   return when {
+    parentClassQualifiedName == CLASS_VIEW -> isViewPackageNeeded(qualifiedName, apiLevel)
+    parentClassQualifiedName == CLASS_VIEWGROUP -> isViewPackageNeeded(qualifiedName, apiLevel)
+    parentClassQualifiedName == CLASS_PREFERENCE -> !isDirectlyInPackage(qualifiedName, "android.preference")
+    parentClassQualifiedName == CLASS_PREFERENCE_ANDROIDX.newName() ->
+      !isDirectlyInPackage(qualifiedName, "androidx.preference")
+    parentClassQualifiedName == CLASS_PREFERENCE_ANDROIDX.oldName() ->
+      !isDirectlyInPackage(qualifiedName, "android.support.v7.preference") &&
+      !isDirectlyInPackage(qualifiedName, "android.support.v14.preference")
     InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.newName()) ->
@@ -1039,7 +1049,7 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
 
   val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
 
-  return if (repositoryManager.namespacing == AaptOptions.Namespacing.DISABLED) {
+  return if (repositoryManager.namespacing == Namespacing.DISABLED) {
     // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
     // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
     // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.
@@ -1725,7 +1735,7 @@ fun addValueResource(
 
 fun getResourceSubdirs(
   resourceType: ResourceFolderType,
-  resourceDirs: Collection<VirtualFile?>
+  resourceDirs: Iterable<VirtualFile?>
 ): List<VirtualFile> {
   val dirs: MutableList<VirtualFile> = ArrayList()
   for (resourcesDir in resourceDirs) {
@@ -2372,7 +2382,10 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
   val psiFile = getItemPsiFile(project, idResource) as? XmlFile ?: return null
   val resourceName = idResource.name
   // TODO(b/113646219): find the right one, if there are multiple, not the first one.
-  return SyntaxTraverser.psiTraverser(psiFile).filter(XmlAttribute::class.java).filter{ element ->
+  val predicate = { element: PsiElement ->
+    if (element !is XmlAttribute) {
+      false
+    } else {
       val attrValue = element.value
       if (isIdDeclaration(attrValue)) {
         val resourceUrl = ResourceUrl.parse(attrValue!!)
@@ -2381,7 +2394,9 @@ fun getIdDeclarationAttribute(project: Project, idResource: ResourceItem): XmlAt
       else {
         false
       }
-  }.first()
+    }
+  }
+  return SyntaxTraverser.psiTraverser(psiFile).traverse().filter(predicate).firstOrNull() as XmlAttribute?
 }
 
 /**

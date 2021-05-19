@@ -17,8 +17,8 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -32,11 +32,11 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
   public static class State extends LaunchOptionState {
     @Nullable
     @Override
-    public LaunchTask getLaunchTask(@NotNull String applicationId,
-                                    @NotNull AndroidFacet facet,
-                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                    @NotNull ProfilerState profilerState,
-                                    @NotNull ApkProvider apkProvider) {
+    public AppLaunchTask getLaunchTask(@NotNull String applicationId,
+                                       @NotNull AndroidFacet facet,
+                                       @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
+                                       @NotNull ProfilerState profilerState,
+                                       @NotNull ApkProvider apkProvider) {
       return null;
     }
   }

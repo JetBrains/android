@@ -46,6 +46,7 @@ class ResourcePickerDialog(
   supportedTypes: Set<ResourceType>,
   preferredType: ResourceType?,
   showSampleData: Boolean,
+  showThemeAttributes: Boolean,
   currentFile: VirtualFile?
 ): DialogWrapper(facet.module.project) {
 
@@ -63,6 +64,7 @@ class ResourcePickerDialog(
                                                      resourceValue?.resourceName,
                                                      resourceType,
                                                      showSampleData,
+                                                     showThemeAttributes,
                                                      currentFile,
                                                      this::updateSelectedResource,
                                                      this::doSelectResource)
@@ -71,7 +73,7 @@ class ResourcePickerDialog(
   private var pickedResourceName: String? = null
 
   init {
-    ResourceManagerTracking.logDialogOpens()
+    ResourceManagerTracking.logDialogOpens(facet)
     init()
     doValidate()
   }

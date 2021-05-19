@@ -17,8 +17,8 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.IntellijProjectSizeStats
 import com.intellij.ide.highlighter.JavaClassFileType
@@ -29,29 +29,21 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.util.Processor
 
-class ProjectSizeUsageTracker : StartupActivity.DumbAware {
-  override fun runActivity(project: Project) {
-    val connection = project.messageBus.connect()
-    connection.subscribe(
-      PROJECT_SYSTEM_SYNC_TOPIC,
-      object : ProjectSystemSyncManager.SyncResultListener {
-        override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-          if (!result.isSuccessful && result != ProjectSystemSyncManager.SyncResult.PARTIAL_SUCCESS) {
-            return
-          }
-          connection.disconnect()
-          if (AnalyticsSettings.optedIn) {
-            ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
-          }
-        }
-      })
+// FIXME-ank5: don't track in IDEA
+class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResultListener {
+  override fun syncEnded(result: SyncResult) {
+    if (!result.isSuccessful && result != SyncResult.PARTIAL_SUCCESS) {
+      return
+    }
+    if (AnalyticsSettings.optedIn) {
+      ApplicationManager.getApplication().executeOnPooledThread(ReportProjectSizeTask(project));
+    }
   }
 }
 

@@ -90,6 +90,21 @@ class AndroidProcessMonitorManager(
   }
 
   /**
+   * [close] a [device] synchronously and immediately create a new device to take its place, without notifying
+   * [AndroidProcessMonitorManagerListener.onAllTargetProcessesTerminated] if this is the only [device] being monitored.
+   */
+  @WorkerThread
+  fun closeAndReplace(device: IDevice): SingleDeviceAndroidProcessMonitor? {
+    return myMonitors.compute(device) {
+      _: IDevice, monitorValue: SingleDeviceAndroidProcessMonitor? ->
+      monitorValue?.replaceListenerAndClose(null)
+      singleDeviceAndroidProcessMonitorFactory(
+        targetApplicationId, device, myMonitorListener, deploymentApplicationService, logcatCaptor
+      )
+    }
+  }
+
+  /**
    * Returns a process monitor for a given [device] if it is managed by this class, otherwise null is returned.
    */
   @WorkerThread

@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
@@ -29,7 +31,6 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="layoutinspector-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
@@ -41,5 +42,7 @@
     <orderEntry type="module" module-name="intellij.platform.indexing.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>

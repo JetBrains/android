@@ -58,6 +58,7 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
           continue;
         }
         String artifactName = getNameWithoutExtension(artifact);
+
         String libraryName = module.getName() + "." + artifactName;
         myDependenciesSetup
           .setUpLibraryDependency(module, ideModelsProvider, libraryName, COMPILE, artifact, null, null, true/* exported */);

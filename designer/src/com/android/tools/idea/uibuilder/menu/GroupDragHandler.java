@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.menu;
 
+import com.android.tools.idea.common.scene.SceneContext;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -172,8 +173,8 @@ final class GroupDragHandler extends DragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-    String message = super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+    String message = super.update(x, y, modifiers, sceneContext);
 
     if (message != null) {
       myActiveItem = null;

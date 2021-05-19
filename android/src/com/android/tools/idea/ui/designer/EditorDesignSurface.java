@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.designer;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 import java.awt.LayoutManager;
@@ -28,6 +29,9 @@ import org.jetbrains.annotations.Nullable;
  * A layout editor design surface.
  */
 public abstract class EditorDesignSurface extends AdtPrimaryPanel {
+
+  private final OverlayConfiguration myOverlayConfiguration = new OverlayConfiguration();
+
   public EditorDesignSurface(LayoutManager layout) {
     super(layout);
   }
@@ -55,4 +59,12 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
    */
   @NotNull
   abstract public CompletableFuture<Void> forceUserRequestedRefresh();
+
+  /**
+   * Returns the {@link OverlayConfiguration} of the {@link EditorDesignSurface}
+   */
+  @NotNull
+  public OverlayConfiguration getOverlayConfiguration() {
+    return myOverlayConfiguration;
+  }
 }

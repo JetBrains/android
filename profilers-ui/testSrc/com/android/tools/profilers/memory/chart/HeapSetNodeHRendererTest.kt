@@ -78,7 +78,7 @@ class HeapSetNodeHRendererTest {
     val renderer = HeapSetNodeHRenderer()
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 1000.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, false)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = false)
 
     assertThat(fakeGraphics.fillShapes).hasSize(1)
     fakeGraphics.expectFillShapes(renderWindow)
@@ -104,7 +104,7 @@ class HeapSetNodeHRendererTest {
     val renderer = HeapSetNodeHRenderer()
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 1000.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, true)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = true)
     assertThat(fakeGraphics.colors).hasSize(2)
     assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.toGrayscale(DataVisualizationColors.getColor(name.hashCode())),
                                                     DataVisualizationColors.getFontColor(name.hashCode()))
@@ -121,7 +121,7 @@ class HeapSetNodeHRendererTest {
     val renderer = HeapSetNodeHRenderer()
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 1000.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, false)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = false)
     assertThat(fakeGraphics.colors).hasSize(3)
     assertThat(fakeGraphics.colors).containsExactly(DataVisualizationColors.getColor(name.hashCode()),
                                                     DataVisualizationColors.getFontColor(name.hashCode()),
@@ -139,9 +139,24 @@ class HeapSetNodeHRendererTest {
     val renderer = HeapSetNodeHRenderer()
     val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 1000.0f, 10.0f)
     val fakeGraphics = TestGraphics2D()
-    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, false, true)
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = true)
     assertThat(fakeGraphics.fonts).hasSize(2)
     assertThat(fakeGraphics.fonts).containsExactly(fakeGraphics.font, fakeGraphics.font.deriveFont(Font.BOLD))
+  }
+
+  @Test
+  fun drawingAreaTooSmallForText() {
+    val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)
+    val model = MemoryVisualizationModel()
+    model.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
+    val simpleNode = ClassifierSetHNode(model, heapSet, 0)
+    val renderer = HeapSetNodeHRenderer()
+    val renderWindow = Rectangle2D.Float(0.0f, 0.0f, 1.0f, 10.0f)
+    val fakeGraphics = TestGraphics2D()
+    renderer.render(fakeGraphics, simpleNode, renderWindow, renderWindow, isFocused = false, isDeselected = true)
+
+    // Expect no drawString call.
+    assertThat(fakeGraphics.strings).isEmpty()
   }
 
   private class TestGraphics2D : Graphics2DDelegate(ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB).createGraphics()) {

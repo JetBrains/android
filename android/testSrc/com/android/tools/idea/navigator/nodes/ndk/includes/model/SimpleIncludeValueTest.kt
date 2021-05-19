@@ -21,8 +21,6 @@ import org.junit.Test
 class SimpleIncludeValueTest {
   @Test
   fun testEqualsHash() {
-    val equalsVerifier = EqualsVerifier.forClass(SimpleIncludeValue::class.java)
-    equalsVerifier
-      .verify()
+    EqualsVerifier.forClass(SimpleIncludeValue::class.java).verify()
   }
 }

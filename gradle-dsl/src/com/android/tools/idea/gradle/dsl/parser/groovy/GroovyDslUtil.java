@@ -375,7 +375,14 @@ public final class GroovyDslUtil {
       unsavedValueText = unsavedValue.toString();
     }
     else if (unsavedValue instanceof ReferenceTo) {
-      unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
+      // TODO(b/161911921): we will want to only allow references to resolvable elements.
+      if (((ReferenceTo)unsavedValue).getReferredElement() != null) {
+        unsavedValueText = convertToExternalTextValue(((ReferenceTo)unsavedValue).getReferredElement(), context, applyContext, false);
+        if (unsavedValueText == null) unsavedValueText = ((ReferenceTo)unsavedValue).getReferredElement().getFullName();
+      }
+      else {
+        unsavedValueText = convertToExternalTextValue(context, applyContext, ((ReferenceTo)unsavedValue).getText(), false);
+      }
     }
     else if (unsavedValue instanceof RawText) {
       unsavedValueText = ((RawText)unsavedValue).getGroovyText();
@@ -397,13 +404,19 @@ public final class GroovyDslUtil {
                                                   GradleDslFile applyContext,
                                                   String referenceText,
                                                   boolean forInjection) {
-    GradleDslElement resolvedReference = context.resolveInternalSyntaxReference(referenceText, false);
-    if (resolvedReference == null) {
-      return referenceText;
-    }
+    GradleDslElement referenceElement = context.resolveInternalSyntaxReference(referenceText, false);
+    if (referenceElement == null) return referenceText;
 
+    String externalReference = convertToExternalTextValue(referenceElement, context, applyContext, forInjection);
+    return externalReference != null ? externalReference : referenceText;
+  }
+
+  public static String convertToExternalTextValue(GradleDslElement referenceElement,
+                                                  GradleDslSimpleExpression context,
+                                                  GradleDslFile applyContext,
+                                                  boolean forInjection) {
     StringBuilder externalName = new StringBuilder();
-    GradleDslElement currentParent = resolvedReference.getParent();
+    GradleDslElement currentParent = referenceElement.getParent();
 
     HashSet<GradleDslElement> contextParents = new HashSet<>(10);
     GradleDslElement contextParent = context.getParent();
@@ -413,7 +426,7 @@ public final class GroovyDslUtil {
     }
 
     ArrayList<GradleDslElement> resolutionElements = new ArrayList<>();
-    resolutionElements.add(resolvedReference);
+    resolutionElements.add(referenceElement);
     while (currentParent != null && currentParent.getParent() != null && !contextParents.contains(currentParent)) {
       resolutionElements.add(0, currentParent);
       currentParent = currentParent.getParent();
@@ -433,7 +446,7 @@ public final class GroovyDslUtil {
       else {
         externalName.append(quotePartIfNecessary(elementExternalNameParts.get(0)));
       }
-      if (currentElement != resolvedReference) {
+      if (currentElement != referenceElement) {
         if (currentElement instanceof GradleDslExpressionList) {
           externalName.append("[");
         }
@@ -447,7 +460,7 @@ public final class GroovyDslUtil {
     }
 
     if (externalName.length() == 0) {
-      return referenceText;
+      return null;
     }
     else {
       return externalName.toString();
@@ -745,7 +758,7 @@ public final class GroovyDslUtil {
     PsiElement added;
     if (parentPsiElement instanceof GrArgumentList) {
       GrArgumentList argList = (GrArgumentList)parentPsiElement;
-      // This call can return a dummy PsiElement. We can't use its return value.
+      // This call can return a placeholder PsiElement. We can't use its return value.
       argList.addNamedArgument(namedArgument);
 
       GrNamedArgument[] args = argList.getNamedArguments();

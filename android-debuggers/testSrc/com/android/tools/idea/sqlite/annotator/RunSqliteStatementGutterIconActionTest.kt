@@ -17,13 +17,14 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.SqliteParameter
 import com.android.tools.idea.sqlite.controllers.SqliteParameterValue
-import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
-import com.android.tools.idea.sqlite.mocks.MockPopupChooserBuilder
+import com.android.tools.idea.sqlite.mocks.FakeComponentPopupBuilder
+import com.android.tools.idea.sqlite.mocks.FakeDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.FakePopupChooserBuilder
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
@@ -43,6 +44,7 @@ import org.mockito.Mockito.*
 import java.awt.Component
 import java.awt.Point
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 
 class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var ideComponents: IdeComponents
@@ -52,7 +54,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
   private lateinit var anActionEvent: AnActionEvent
   private lateinit var mouseEvent: MouseEvent
   private lateinit var anAction: RunSqliteStatementGutterIconAction
-  private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
+  private lateinit var viewFactory: FakeDatabaseInspectorViewsFactory
   private lateinit var mockAppInspectionIdeServices: AppInspectionIdeServices
 
   override fun setUp() {
@@ -71,7 +73,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     `when`(mouseEvent.component).thenReturn(mock(Component::class.java))
     `when`(mouseEvent.point).thenReturn(Point(0, 0))
 
-    viewFactory = MockDatabaseInspectorViewsFactory()
+    viewFactory = FakeDatabaseInspectorViewsFactory()
   }
 
   fun testDoNothingWhenDatabaseIsNotOpen() {
@@ -123,8 +125,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     // Prepare
     val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
-    val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
+    val spyPopupChooserBuilder = spy(FakePopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
 
     `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
@@ -476,7 +479,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     // Assert
-    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+    verify(mockTrackerService).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
   }
 
   fun testRunSqliteStatementOnMultipleDBAnalytics() {
@@ -486,8 +492,9 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
     val databases = listOf(sqliteDatabaseId1, sqliteDatabaseId2).sortedBy { database -> database.name }
     val mockJBPopupFactory = ideComponents.mockApplicationService(JBPopupFactory::class.java)
-    val spyPopupChooserBuilder = spy(MockPopupChooserBuilder::class.java)
+    val spyPopupChooserBuilder = spy(FakePopupChooserBuilder::class.java)
     `when`(mockJBPopupFactory.createPopupChooserBuilder(databases.toList())).thenReturn(spyPopupChooserBuilder)
+    `when`(mockJBPopupFactory.createComponentPopupBuilder(any(JComponent::class.java), eq(null))).thenReturn(FakeComponentPopupBuilder())
 
     `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(databases)
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
@@ -499,7 +506,10 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     spyPopupChooserBuilder.callback?.consume(sqliteDatabaseId1)
 
     // Assert
-    verify(mockTrackerService).trackStatementExecuted(AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT)
+    verify(mockTrackerService).trackStatementExecuted(
+      AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE,
+      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+    )
   }
 
   fun testRunFromGutterIconOpensToolWindowDirectly() {

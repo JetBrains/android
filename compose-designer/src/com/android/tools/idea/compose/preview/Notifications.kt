@@ -62,7 +62,6 @@ private fun createBuildNotificationPanel(project: Project,
   }
 }
 
-
 /**
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
  * the current editor and open one with the preview.
@@ -188,7 +187,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
 
     val status = GradleBuildState.getInstance(project).summary?.status
     // If there was no build or the project is loading, we won't have a status. We do not consider that as a build failure yet.
-    val lastBuildSuccessful = status == null || status == BuildStatus.SKIPPED || status == BuildStatus.SUCCESS
+    val lastBuildSuccessful = status == null || status.isBuildSuccessful
 
     return when {
       // Check if the project has compiled correctly
@@ -199,7 +198,7 @@ class ComposePreviewNotificationProvider : EditorNotifications.Provider<EditorNo
         color = LightColors.RED)
 
       // If the preview is out of date and auto-build is not enabled, display the notification explaining the user they need to refresh.
-      previewStatus.isOutOfDate && !previewManager.isAutoBuildEnabled -> createBuildNotificationPanel(
+      previewStatus.isOutOfDate -> createBuildNotificationPanel(
         project,
         file,
         text = message("notification.preview.out.of.date"),

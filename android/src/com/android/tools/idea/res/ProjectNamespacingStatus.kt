@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -44,7 +44,7 @@ class ProjectNamespacingStatusService(private val project: Project) {
   }
 
   private fun checkNamespacesUsed(): Boolean {
-    return ModuleManager.getInstance(project).modules.any { it.androidFacet?.namespacing == AaptOptions.Namespacing.REQUIRED }
+    return ModuleManager.getInstance(project).modules.any { it.androidFacet?.namespacing == Namespacing.REQUIRED }
   }
 
   companion object {

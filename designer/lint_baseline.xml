@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.1.0-dev">
+<issues format="5" by="lint 4.2.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -267,14 +267,6 @@
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/sampledata/CsvEditorProvider.kt"
-            line="38"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/actions/GenerateLayoutTestSkeletonAction.java"
@@ -390,7 +382,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/scene/target/ResizeWithSnapBaseTarget.java"
-            line="175"/>
+            line="207"/>
     </issue>
 
     <issue
@@ -398,7 +390,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/scene/target/ResizeWithSnapBaseTarget.java"
-            line="188"/>
+            line="221"/>
     </issue>
 
     <issue
@@ -406,7 +398,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="655"/>
+            line="662"/>
     </issue>
 
     <issue
@@ -422,7 +414,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/ScreenViewLayer.java"
-            line="291"/>
+            line="293"/>
     </issue>
 
     <issue
@@ -430,7 +422,7 @@
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintModel.java"
-            line="630"/>
+            line="662"/>
     </issue>
 
     <issue
@@ -510,7 +502,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/CanvasResizeInteraction.java"
-            line="118"/>
+            line="119"/>
     </issue>
 
     <issue
@@ -598,7 +590,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="92"/>
+            line="97"/>
     </issue>
 
     <issue
@@ -606,7 +598,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/motion/editor/adapters/MEUI.java"
-            line="93"/>
+            line="98"/>
     </issue>
 
     <issue
@@ -742,15 +734,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/common/scene/Scene.java"
-            line="93"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="277"/>
+            line="100"/>
     </issue>
 
     <issue
@@ -770,6 +754,14 @@
     </issue>
 
     <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
+            line="280"/>
+    </issue>
+
+    <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
@@ -782,7 +774,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="481"/>
+            line="484"/>
     </issue>
 
     <issue
@@ -790,7 +782,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="481"/>
+            line="484"/>
     </issue>
 
     <issue
@@ -798,7 +790,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="488"/>
+            line="491"/>
     </issue>
 
     <issue
@@ -806,7 +798,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/common/error/IssuePanel.java"
-            line="488"/>
+            line="491"/>
     </issue>
 
     <issue

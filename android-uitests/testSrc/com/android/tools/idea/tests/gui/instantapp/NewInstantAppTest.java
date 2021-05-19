@@ -198,10 +198,10 @@ public class NewInstantAppTest {
 
   // b/68478730
   @Test
-  public void addMasterDetailActivityToExistingIappModule() {
+  public void addPrimaryDetailActivityToExistingIappModule() {
     createAndOpenDefaultAIAProject("BuildApp", null);
     guiTest.ideFrame()
-      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Master/Detail Flow")
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Primary/Detail Flow")
       .clickFinishAndWaitForSyncToFinish();
 
     String baseStrings = guiTest.getProjectFileText("app/src/main/res/values/strings.xml");

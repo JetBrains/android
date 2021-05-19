@@ -1,6 +1,6 @@
 PROJECT             : testImportNoSync
-    PROJECT_JDK         : corretto-11
-        Version             : Amazon Corretto version <JDK_VERSION>
+    PROJECT_JDK         : <JAVA_VERSION>
+        Version             : java version "<JDK_VERSION>"
     MODULE              : testImportNoSync
         LinkedProjectId     : :
         LinkedProjectPath   : <PROJECT>
@@ -16,4 +16,6 @@ PROJECT             : testImportNoSync
             TypeId              : android-gradle
             GradlePath          : :
         CONENT_ENTRY        : file://<PROJECT>
+        JDK                 : <NAME_CUT> JavaSDK
+        *isInherited        : true
         ORDER_ENTRY         : <Module source>

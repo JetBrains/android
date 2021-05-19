@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.npw.model.actuallyRender
 import com.android.tools.idea.npw.model.findReferences
 import com.android.tools.idea.templates.TemplateUtils.openEditors
-import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
+import com.android.tools.idea.templates.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
@@ -64,7 +64,7 @@ object RecipeUtils {
       project = module.project,
       module = module,
       commandName = "Unnamed",
-      templateData = getDummyModuleTemplateDataBuilder(module.project).build(),
+      templateData = getExistingModuleTemplateDataBuilder(module).build(),
       outputRoot = rootPath,
       moduleRoot = moduleRoot,
       dryRun = false,
@@ -111,7 +111,7 @@ object RecipeUtils {
       project = module.project,
       module = module,
       commandName = "Unnamed",
-      templateData = getDummyModuleTemplateDataBuilder(module.project).build(),
+      templateData = getExistingModuleTemplateDataBuilder(module).build(),
       outputRoot = rootPath,
       moduleRoot = moduleRoot,
       dryRun = false,

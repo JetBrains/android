@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RenameFileDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +30,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CMakeListsTest {
-  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public GuiTestRule guiTest = new GuiTestRule().withTimeout(6, TimeUnit.MINUTES);
 
   private static final String FILE_PATH = "app/src/main/cpp/";
   private static final String CMAKELISTS_FILE_NAME = "CMakeLists.txt";
@@ -75,10 +76,11 @@ public class CMakeListsTest {
     Wait.seconds(10).expecting(C_FILE_NAME + " file is opened.")
       .until(() -> C_FILE_NAME.equals(ideFrame.getEditor().getCurrentFileName()));
 
-    ideFrame.getProjectView()
+    ProjectViewFixture.PaneFixture paneFixture = ideFrame.getProjectView()
       .selectAndroidPane()
-      .expand(30)
-      .clickPath("app", "cpp", C_FILE_NAME)
+      .expand(45);
+    guiTest.waitForBackgroundTasks();
+    paneFixture.clickPath("app", "cpp", C_FILE_NAME)
       .invokeMenuPath("Refactor", "Rename...");
 
     RenameFileDialogFixture.find(ideFrame)

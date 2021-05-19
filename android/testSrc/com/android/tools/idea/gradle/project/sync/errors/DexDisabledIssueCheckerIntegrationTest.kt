@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager
+import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker.Companion.getKnownIssuesCheckList
 import org.junit.Test
 import org.mockito.ArgumentCaptor
@@ -47,9 +48,8 @@ class DexDisabledIssueCheckerIntegrationTest: AndroidGradleTestCase() {
     val appModule = project.findAppModule()
     val projectModel = ProjectBuildModel.get(project)
     val buildModel = projectModel.getModuleBuildModel(appModule)
-    // Remove language level
-    buildModel!!.android().compileOptions().sourceCompatibility().delete()
-    buildModel.android().compileOptions().targetCompatibility().delete()
+    buildModel!!.android().compileOptions().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
+    buildModel.android().compileOptions().targetCompatibility().setLanguageLevel(LanguageLevel.JDK_1_7)
     // Add a dependency that requires level 8
     buildModel.dependencies().addArtifact("implementation", "com.google.guava:guava:28.2-jre")
     ApplicationManager.getApplication().invokeAndWait {

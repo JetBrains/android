@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
 
@@ -30,11 +29,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES_K
  * tested in {@link UnusedResourcesTest}.
  */
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-  }
 
   public void testGroovy() throws Exception {
     loadProject(UNUSED_RESOURCES_GROOVY);

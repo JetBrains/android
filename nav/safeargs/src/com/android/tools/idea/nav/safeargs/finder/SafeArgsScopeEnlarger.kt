@@ -16,10 +16,9 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
-import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
+import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
@@ -50,35 +49,34 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
 
-    val module = facet.module
-    val project = module.project
-    return CachedValuesManager.getManager(project).getCachedValue(module) {
-      val localScope = facet.getLocalScope()
-      val scopeIncludingDeps = ModuleRootManager.getInstance(module)
+    return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
+      val allFacets = listOf(facet) + ModuleRootManager.getInstance(facet.module)
         .getDependencies(false)
         .mapNotNull { module -> module.androidFacet }
-        .map(AndroidFacet::getLocalScope)
-        .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+
+      val scopeIncludingDeps = allFacets
+        .filter { it.safeArgsMode == SafeArgsMode.JAVA }
+        .map { it.getLocalScope() }
+        .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
       CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
     }
   }
-}
 
-private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
-  if (!this.isSafeArgsEnabled()) return GlobalSearchScope.EMPTY_SCOPE
+  private fun AndroidFacet.getLocalScope(): GlobalSearchScope {
+    val lightClasses = mutableListOf<PsiClass>()
+    val moduleCache = SafeArgsCacheModuleService.getInstance(this)
+    lightClasses.addAll(moduleCache.directions)
+    lightClasses.addAll(moduleCache.directions.flatMap { it.innerClasses.toList() })
+    lightClasses.addAll(moduleCache.args)
+    lightClasses.addAll(moduleCache.args.flatMap { it.innerClasses.toList() })
 
-  val lightClasses = mutableListOf<PsiClass>()
-  val moduleCache = SafeArgsCacheModuleService.getInstance(this)
-  lightClasses.addAll(moduleCache.directions)
-  lightClasses.addAll(moduleCache.args)
-  lightClasses.addAll(moduleCache.args.map { it.builderClass })
-
-  // Light classes don't exist on disk, so you have to use their view provider to get a
-  // corresponding virtual file. This same virtual file should be used by finders to verify
-  // that classes they are returning belong to the current scope.
-  val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
-  return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
+    // Light classes don't exist on disk, so you have to use their view provider to get a
+    // corresponding virtual file. This same virtual file should be used by finders to verify
+    // that classes they are returning belong to the current scope.
+    val virtualFiles = lightClasses.map { it.containingFile!!.viewProvider.virtualFile }
+    return GlobalSearchScope.filesWithoutLibrariesScope(module.project, virtualFiles)
+  }
 }
 
 /**

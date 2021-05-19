@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject.ARTIFACT_MAIN
-import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_MAIN
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl

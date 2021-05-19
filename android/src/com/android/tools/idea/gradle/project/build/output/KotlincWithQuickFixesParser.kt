@@ -28,13 +28,14 @@ import java.util.function.Consumer
 
 const val JVM_TARGET_FIX_BYTECODE = "Cannot inline bytecode built with JVM target 1.8 into bytecode that is being built with JVM target"
 const val JVM_TARGET_FIX_SPECIFY_OPTION = "Please specify proper '-jvm-target' option"
+const val JVM_TARGET_FIX_STATIC = "Calls to static methods in Java interfaces are prohibited in JVM target 1.6. Recompile with '-jvm-target 1.8'"
 const val JAVA_8_SUPPORT_LINK = "https://developer.android.com/studio/write/java8-support"
 
 /**
  * Wrapper class for [KotlincOutputParser] that adds quickfixes based on the error messages.
  *
  * Current quick fixes:
- *   - Errors that contain JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION display a [SetLanguageLevel8AllQuickFix]
+ *   - Errors that contain (JVM_TARGET_FIX_BYTECODE and JVM_TARGET_JVM_TARGET_SPECIFY_OPTION) or JVM_TARGET_FIX_STATIC display a [SetLanguageLevel8AllQuickFix]
  */
 class KotlincWithQuickFixesParser: BuildOutputParser {
   private val myKotlinParser = KotlincOutputParser()
@@ -49,7 +50,8 @@ class KotlincWithQuickFixesParser: BuildOutputParser {
 
   private fun addQuickfixes(originalEvent: BuildEvent): BuildEvent {
     val originalMessage = originalEvent.message
-    if (originalMessage.contains(JVM_TARGET_FIX_BYTECODE) && originalMessage.contains(JVM_TARGET_FIX_SPECIFY_OPTION)) {
+    if ((originalMessage.contains(JVM_TARGET_FIX_BYTECODE) && originalMessage.contains(JVM_TARGET_FIX_SPECIFY_OPTION)) ||
+        (originalMessage.contains(JVM_TARGET_FIX_STATIC))) {
       if (originalEvent is MessageEvent) {
         val buildIssueComposer = BuildIssueComposer(originalEvent.description!!.trim(), originalMessage)
         buildIssueComposer.addDescription("Adding support for Java 8 language features could solve this issue.")

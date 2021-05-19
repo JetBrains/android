@@ -72,10 +72,10 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
@@ -237,6 +237,7 @@ class NelePropertyItemTest {
   fun testIsReference() {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
+
     assertThat(isReferenceValue(property, "hello")).isFalse()
     assertThat(isReferenceValue(property, "@string/hello")).isTrue()
     assertThat(isReferenceValue(property, "@android:string/hello")).isTrue()
@@ -252,6 +253,7 @@ class NelePropertyItemTest {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout/>")
     val util = SupportTestUtil(projectRule, createTextView())
+
     assertThat(resolvedValue(util, NelePropertyType.BOOLEAN, "@bool/useBorder")).isEqualTo("true")
     assertThat(resolvedValue(util, NelePropertyType.COLOR, "@color/opaqueRed")).isEqualTo("#f00")
     assertThat(resolvedValue(util, NelePropertyType.COLOR, "@color/opaqueRedIndirect")).isEqualTo("#f00")
@@ -310,8 +312,8 @@ class NelePropertyItemTest {
     @Suppress("DEPRECATION")
     assertThat(component.snapshot?.getAttribute(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
 
-    // However the XmlTag may not have this value before later:
-    UIUtil.dispatchAllInvocationEvents()
+    // However the XmlTag will not have this value before later:
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(component.tag?.getAttributeValue(ATTR_TEXT, ANDROID_URI)).isEqualTo(HELLO_WORLD)
   }
 
@@ -321,6 +323,7 @@ class NelePropertyItemTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val components = property.components
     property.value = HELLO_WORLD
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(property.value).isEqualTo(HELLO_WORLD)
     assertThat(property.isReference).isFalse()
@@ -335,6 +338,7 @@ class NelePropertyItemTest {
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NelePropertyType.STRING)
     val design = property.designProperty
     design.value = HELLO_WORLD
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(design.value).isEqualTo(HELLO_WORLD)
     assertThat(design.isReference).isFalse()
@@ -348,7 +352,7 @@ class NelePropertyItemTest {
     val textView = util.components.single()
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NelePropertyType.STRING)
     property.value = "16dp"
-    UIUtil.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(property.value).isEqualTo("16dp")
     assertThat(textView.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START)).isEqualTo("16dp")
@@ -360,7 +364,7 @@ class NelePropertyItemTest {
     val textView = util.components.single()
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NelePropertyType.STRING)
     property.value = "16dp"
-    UIUtil.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(property.value).isEqualTo("16dp")
     assertThat(textView.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END)).isEqualTo("16dp")
@@ -385,13 +389,14 @@ class NelePropertyItemTest {
     val property = util.makeProperty(TOOLS_URI, ATTR_PARENT_TAG, NelePropertyType.STRING)
 
     var propertiesGenerated = false
-    util.model.addListener(object: PropertiesModelListener<NelePropertyItem> {
+    util.model.addListener(object : PropertiesModelListener<NelePropertyItem> {
       override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
         propertiesGenerated = true
       }
     })
 
     property.value = LINEAR_LAYOUT
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(propertiesGenerated).isTrue()
   }
 
@@ -594,38 +599,51 @@ class NelePropertyItemTest {
     assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
-@Test
+  @Test
   fun testColorIconOfBackgroundAttribute() {
     val util = SupportTestUtil(projectRule, createImageView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NelePropertyType.DRAWABLE)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
 
     background.value = "@drawable/non-existent-drawable"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     background.value = "@color/non-existent-color"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(background.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
   }
 
-@Test
+  @Test
   fun testColorIconOfSrcAttribute() {
     val util = SupportTestUtil(projectRule, createImageView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
     src.value = null
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
 
     src.value = "@color/non-existent-color"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Extras.PIPETTE)
 
     src.value = "@drawable/non-existent-drawable"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(src.colorButton?.actionIcon).isEqualTo(StudioIcons.LayoutEditor.Properties.IMAGE_PICKER)
   }
 
-@Test
+  @Test
   fun testBrowse() {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE)
     property.value = "@android:style/TextAppearance.Material.Display2"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val fileManager = mock(FileEditorManager::class.java)
     `when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
@@ -635,13 +653,15 @@ class NelePropertyItemTest {
       .thenReturn(listOf(mock(FileEditor::class.java)))
 
     property.helpSupport.browse()
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
     assertThat(findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<style name=\"TextAppearance.Material.Display2\">")
   }
 
-@Test
+  @Test
   fun testSetValueIgnoredDuringUndo() {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
@@ -653,7 +673,7 @@ class NelePropertyItemTest {
     assertThat(property.value).isEqualTo("@string/demo")
   }
 
-@Test
+  @Test
   fun testSetValueIgnoredDuringRedo() {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerComponentInstance(UndoManager::class.java, undoManager)
@@ -667,10 +687,10 @@ class NelePropertyItemTest {
 
   private fun createTextView(): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
-          .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
-          .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
-          .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
-          .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
+      .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
 
   private fun createButton(): ComponentDescriptor =
     ComponentDescriptor(BUTTON)
@@ -680,20 +700,20 @@ class NelePropertyItemTest {
 
   private fun createImageView(): ComponentDescriptor =
     ComponentDescriptor(IMAGE_VIEW)
-        .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
-        .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
-        .withAttribute(ANDROID_URI, ATTR_SRC, "@tools:sample/avatars[1]")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_SRC, "@tools:sample/avatars[1]")
 
   private fun createTextViewWithHardcodedValue(): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
-        .withAttribute(ANDROID_URI, ATTR_TEXT, "Hardcoded string")
-        .withAttribute(TOOLS_URI, ATTR_TEXT, "Hardcoded design string")
+      .withAttribute(ANDROID_URI, ATTR_TEXT, "Hardcoded string")
+      .withAttribute(TOOLS_URI, ATTR_TEXT, "Hardcoded design string")
 
   private fun createTextViewWithTextColor(textColor: String): ComponentDescriptor =
     ComponentDescriptor(TEXT_VIEW)
-        .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
-        .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
-        .withAttribute(ANDROID_URI, ATTR_TEXT_COLOR, textColor)
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_TEXT_COLOR, textColor)
 
   private fun createTextViewAndButtonWithSameTextValue(): ComponentDescriptor =
     ComponentDescriptor(LINEAR_LAYOUT)
@@ -752,12 +772,14 @@ class NelePropertyItemTest {
 
   private fun isReferenceValue(property: NelePropertyItem, value: String): Boolean {
     property.value = value
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     return property.isReference
   }
 
   private fun resolvedValue(util: SupportTestUtil, type: NelePropertyType, value: String): String? {
     val property = util.makeProperty(ANDROID_URI, "name", type)
     property.value = value
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     return property.resolvedValue
   }
 

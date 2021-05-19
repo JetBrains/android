@@ -72,6 +72,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/color_test.xml", "res/layout/color_test.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors1.xml");
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors2.xml");
+    myFixture.copyFileToProject("annotator/colors-night.xml", "res/values-night/colors.xml");
     myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout1.xml");
     myFixture.copyFileToProject("annotator/layout.xml", "res/layout/layout2.xml");
     myFixture.copyFileToProject("annotator/ColorTest.java", "src/p1/p2/ColorTest.java");
@@ -83,6 +84,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     myFixture.copyFileToProject("annotator/animated_selector.xml", "res/drawable/animated_selector.xml");
     myFixture.copyFileToProject("annotator/values.xml", "res/values/values.xml");
     myFixture.copyFileToProject("render/imageutils/actual.png", "res/drawable-mdpi/drawable1.png");
+    myFixture.copyFileToProject("annotator/ic_launcher.png", "res/drawable/ic_launcher.png");
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
@@ -145,6 +147,15 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     checkHighlightInfoColor(highlightInfo, new Color(0x303F9F));
     // Inline color have a color picker click action
     assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
+  }
+
+  /**
+   * Regression test for https://issuetracker.google.com/151480852
+   */
+  public void testColorInValuesWithQualifiers() {
+    // Color definition in a non-default values.xml file, referencing a color which is overriden in the same file
+    HighlightInfo highlightInfo = findHighlightInfoWithGutterRenderer("res/values-night/colors.xml", "@color/color2", XmlTag.class);
+    checkHighlightInfoColors(highlightInfo, ImmutableList.of((new Color(0xffffff))));
   }
 
   public void testColorInLayout1() {
@@ -259,11 +270,39 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     assertThat(highlightInfo.getGutterIconRenderer()).isNull();
   }
 
+  public void testDrawableGutterActionInCode() throws IOException {
+    myFixture.addClass("package p1.p2;\n" +
+                       "\n" +
+                       "public class DrawableTest {\n" +
+                       "    public void test() {\n" +
+                       "        int drawable = R.drawable.ic_launcher;\n" +
+                       "    }\n" +
+                       "}\n");
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_launcher.png");
+    assertThat(((GutterIconRenderer)highlightInfo.getGutterIconRenderer()).getClickAction()).isNotNull();
+  }
+
   public void testDimenThemeAttributeNoGutterRenderer() {
     // Reference to a dimension theme attribute from a layout file.
     HighlightInfo highlightInfo =
       findHighlightInfo("res/layout/color_test.xml", "?android:attr/buttonCornerRadius", XmlAttributeValue.class);
     assertThat(highlightInfo.getGutterIconRenderer()).isNull();
+  }
+
+  public void testOnlyLargeDrawable() throws IOException {
+    // Reference to a large drawable where no smaller one exists.
+    myFixture.addClass("package p1.p2;\n" +
+                       "\n" +
+                       "public class DrawableTest {\n" +
+                       "    public void test() {\n" +
+                       "        int drawable = R.drawable.ic_launcher;\n" +
+                       "    }\n" +
+                       "}\n");
+    HighlightInfo highlightInfo =
+      findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+    checkHighlightInfoImage(highlightInfo, "annotator/ic_launcher.png");
   }
 
   @NotNull

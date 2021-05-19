@@ -40,8 +40,12 @@ import java.io.File
 class PsModuleCollectionTest : DependencyTestCase() {
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
-  override fun patchPreparedProject(projectRoot: File, gradleVersion: String?, graldePluginVersion: String?, vararg localRepos: File) {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, *localRepos)
+  override fun patchPreparedProject(projectRoot: File,
+                                    gradleVersion: String?,
+                                    graldePluginVersion: String?,
+                                    kotlinVersion: String?,
+                                    vararg localRepos: File) {
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, graldePluginVersion, kotlinVersion, *localRepos)
     synchronizeTempDirVfs(PlatformTestUtil.getOrCreateProjectBaseDir(project))
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {

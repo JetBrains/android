@@ -6,6 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
@@ -15,6 +18,7 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
@@ -43,12 +47,10 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
-    <orderEntry type="module-library">
-      <library name="layoutlib_native" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.1.1.0" />
+    <orderEntry type="module-library" scope="TEST">
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.1.1.0/jb-layoutlib-native-jdk11-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -56,6 +58,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="library" scope="TEST" name="Trove4j" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.tests" scope="TEST" />
   </component>
 </module>

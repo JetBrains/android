@@ -30,7 +30,7 @@ import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture;
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -249,8 +249,8 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
         // For imported traces, the main thread ID can be obtained from the capture
         assert capture != null;
         isMainThread = threadId == capture.getMainThreadId();
-        if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
-          mySeries = new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId));
+        if (capture.getSystemTraceData() != null) {
+          mySeries = new LazyDataSeries<>(() -> capture.getSystemTraceData().getThreadStatesForThread(threadId));
         }
         else {
           // If thread is created from an imported trace (excluding atrace), we should use an ImportedTraceThreadDataSeries
@@ -266,9 +266,9 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
                                                 capture) :
                    new LegacyCpuThreadStateDataSeries(myProfilers.getClient().getCpuClient(), mySession, threadId, capture);
         // If we have an Atrace capture selected then we need to create a MergeCaptureDataSeries
-        if (capture != null && capture.getType() == Cpu.CpuTraceType.ATRACE) {
+        if (capture != null && capture.getSystemTraceData() != null) {
           mySeries = new MergeCaptureDataSeries<>(
-            capture, mySeries, new LazyDataSeries<>(() -> capture.getThreadStatesForThread(threadId)));
+            capture, mySeries, new LazyDataSeries<>(() -> capture.getSystemTraceData().getThreadStatesForThread(threadId)));
         }
         // For non-imported traces, the main thread ID is equal to the process ID of the current session
         isMainThread = threadId == mySession.getPid();

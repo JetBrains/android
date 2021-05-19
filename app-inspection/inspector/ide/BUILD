@@ -5,32 +5,7 @@ iml_module(
     name = "intellij.android.app-inspection.inspector.ide",
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspector.ide.iml"],
-    # do not sort: must match IML order
-    test_runtime_deps = [
-        "//tools/idea/xml/dom-openapi:intellij.xml.dom",
-        "//tools/idea/platform/testRunner:intellij.platform.testRunner",
-        "//tools/idea/xml/xml-structure-view-impl:intellij.xml.structureView.impl",
-        "//tools/idea/xml/dom-impl:intellij.xml.dom.impl",
-        "//tools/idea/spellchecker:intellij.spellchecker",
-        "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/platform/testFramework/extensions:intellij.platform.testExtensions",
-        "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
-        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/images:intellij.platform.images",
-        "//tools/idea/platform/external-system-impl:intellij.platform.externalSystem.impl",
-        "//tools/idea/platform/built-in-server:intellij.platform.builtInServer.impl",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
-        "//tools/idea/.idea/libraries:delight-rhino-sandbox",
-        "//tools/idea/.idea/libraries:rhino",
-        "//tools/idea/.idea/libraries:netty-handler-proxy",
-        "//tools/idea/.idea/libraries:javassist",
-        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
-        "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/idea/.idea/libraries:javax.activation",
-        "//tools/idea/.idea/libraries:jaxb-api",
-        "//tools/idea/.idea/libraries:jaxb-runtime",
-    ],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -38,6 +13,23 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/idea/platform/extensions:intellij.platform.extensions[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.app-inspection.inspector.ide",
+    srcs = ["src"],
+    iml_files = ["intellij.android.app-inspection.inspector.ide.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    project = "unb",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )

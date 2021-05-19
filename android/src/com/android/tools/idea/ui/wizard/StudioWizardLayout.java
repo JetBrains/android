@@ -34,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class StudioWizardLayout implements ModelWizardDialog.CustomLayout {
   private static final JBColor STUDIO_LAYOUT_HEADER_COLOR = new JBColor(0x616161, 0x4B4B4B);
-  private static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
-  private static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
+  public static final Dimension DEFAULT_MIN_SIZE = JBUI.size(600, 350);
+  public static final Dimension DEFAULT_PREFERRED_SIZE = JBUI.size(900, 650);
 
   private final BindingsManager myBindings = new BindingsManager();
 

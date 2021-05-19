@@ -27,6 +27,7 @@ import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Agent;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Transport;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * An application-level service that manages application level configurations for the profilers. When constructed this class subscribes
- * itself to the application MessageBus and listens for {@link TransportDeviceManager.TOPIC} events.
+ * itself to the application MessageBus and listens for {@link TransportDeviceManager#TOPIC} events.
  */
 public class AndroidProfilerService implements TransportDeviceManager.TransportDeviceManagerListener {
   private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
@@ -70,7 +71,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
 
   @Override
   public void customizeProxyService(@NotNull TransportProxy proxy) {
-    ProfilerServiceProxyManager.registerProxies(proxy);
+    // Register profiler-specific command handlers (memory GC, pre-O CPU recording, etc.).
     ProfilerServiceProxyManager.registerCommandHandlers(proxy);
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
@@ -130,8 +131,20 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
           .setSamplingRate(
             Memory.MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
           .build())
-      .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
-      .setStartupProfilingEnabled(runConfig != null);
+      .setCpuApiTracingEnabled(true);
+    if (runConfig != null && runConfig.getProfilerState().isNativeMemoryStartupProfilingEnabled()) {
+      // Delay JVMTI instrumentation until the user stops the native heap sample recording.
+      // This prevents a bug in heapprofd from terminating early.
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+    } else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
+      // Delay JVMTI instrumentation when a user is doing a startup cpu capture.
+      // This is for consistency with native memory recording.
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    } else {
+      configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);
+    }
   }
 
   private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {

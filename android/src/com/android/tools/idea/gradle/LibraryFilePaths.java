@@ -41,17 +41,17 @@ public class LibraryFilePaths {
   // for 2019-05 gradle cache layout
   private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
 
-  private static class ArtifactPaths {
-    @Nullable final File myJavaDoc;
-    @Nullable final File mySources;
-    @Nullable final File myPom;
-    @Nullable final File mySampleSource;
+  public static class ArtifactPaths {
+    @Nullable public final File javaDoc;
+    @Nullable public final File sources;
+    @Nullable public final File pom;
+    @Nullable public final File sampleSource;
 
     private ArtifactPaths(AdditionalClassifierArtifacts artifact) {
-      myJavaDoc = artifact.getJavadoc();
-      mySources = artifact.getSources();
-      myPom = artifact.getMavenPom();
-      mySampleSource = artifact.getSampleSources();
+      javaDoc = artifact.getJavadoc();
+      sources = artifact.getSources();
+      pom = artifact.getMavenPom();
+      sampleSource = artifact.getSampleSources();
     }
   }
 
@@ -71,10 +71,16 @@ public class LibraryFilePaths {
   }
 
   @Nullable
+  public ArtifactPaths getCachedPathsForArtifact(@NotNull String libraryName) {
+    String libraryId = getLibraryId(libraryName);
+    return myPathsMap.getOrDefault(libraryId, null);
+  }
+
+  @Nullable
   public File findSourceJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
     String libraryId = getLibraryId(libraryName);
     if (myPathsMap.containsKey(libraryId)) {
-      return myPathsMap.get(libraryId).mySources;
+      return myPathsMap.get(libraryId).sources;
     }
     return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
   }
@@ -83,7 +89,7 @@ public class LibraryFilePaths {
   public File findSampleSourcesJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
     String libraryId = getLibraryId(libraryName);
     if (myPathsMap.containsKey(libraryId)) {
-      return myPathsMap.get(libraryId).mySampleSource;
+      return myPathsMap.get(libraryId).sampleSource;
     }
     return findArtifactFilePathInRepository(libraryPath, SAMPLE_SOURCE_CLASSIFIER, true);
   }
@@ -107,7 +113,7 @@ public class LibraryFilePaths {
   public File findJavadocJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
     String libraryId = getLibraryId(libraryName);
     if (myPathsMap.containsKey(libraryId)) {
-      return myPathsMap.get(libraryId).myJavaDoc;
+      return myPathsMap.get(libraryId).javaDoc;
     }
     return findArtifactFilePathInRepository(libraryPath, "-javadoc.jar", true);
   }
@@ -116,7 +122,7 @@ public class LibraryFilePaths {
   public File findPomPathForLibrary(@NotNull String libraryName, @NotNull File libraryPath) {
     String libraryId = getLibraryId(libraryName);
     if (myPathsMap.containsKey(libraryId)) {
-      return myPathsMap.get(libraryId).myPom;
+      return myPathsMap.get(libraryId).pom;
     }
     return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }

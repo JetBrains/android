@@ -41,24 +41,17 @@
     <welcomeScreen implementation="com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider"/>
     <iconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioIconProvider" id="androidStudioIcons" order="before javaDirectory"/>
     <fileIconProvider implementation="com.android.tools.idea.fileTypes.AndroidStudioFileIconProvider" id="androidFileIcons"/>
-    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
-    <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
-                        serviceImplementation="com.android.tools.idea.welcome.config.AndroidDefaultJdkConfiguratorImpl" overrides="true"/>
     <preloadingActivity implementation="com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor"/>
     <postStartupActivity implementation="com.android.tools.idea.stats.AndroidStudioUsageTracker$JetnewsUsageTracker" />
-  </extensions>
 
-  <project-components>
-    <component>
-      <implementation-class>com.android.tools.idea.stats.UserSentimentProjectComponent</implementation-class>
-    </component>
-  </project-components>
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+  </extensions>
 
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
 
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
-    <group id="AndroidToolsGroup" text="Android" popup="false" keep-content="true" overrides="true"/>
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" popup="false" keep-content="true" overrides="true"/>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -70,7 +63,7 @@
 
     <action class="com.android.tools.idea.diagnostics.hprof.action.UserInvokedHeapDumpSnapshotAction" id="UserInvokedHeapDumpSnapshot"
             text="Analyze Memory Usage">
-      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectTroubleshootingInformation" />
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="CollectZippedLogs" />
     </action>
 
     <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
@@ -130,9 +123,14 @@
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </group>
 
-    <action id="ImportUtpResultAction"
-            class="com.android.tools.idea.testartifacts.instrumented.ImportUtpResultAction" text="Import Android Test Results...">
-    </action>
+    <action id="ImportTests"
+            class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup"
+            icon="AllIcons.Vcs.History"
+            overrides="true"/>
+    <action id="ImportTestsFromFile"
+            class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
+            icon="AllIcons.ToolbarDecorator.Import"
+            overrides="true"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -142,9 +140,16 @@
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
                         overrides="true"/>
 
+    <!-- Unregister DefaultJdkConfigurator b/112481251 -->
+    <applicationService serviceInterface="com.intellij.openapi.projectRoots.DefaultJdkConfigurator"
+                        serviceImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
+                        overrides="true"
+                        headlessImplementation="com.android.tools.idea.sdk.StudioJdkConfigurator"
+    />
+
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
-                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
-                        overrides="true"/>
+                    serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
+                    overrides="true"/>
 
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.SampleResolutionService"
                     serviceImplementation="org.jetbrains.android.compose.ComposeSampleResolutionService"
@@ -164,7 +169,6 @@
                      enabledByDefault="true" level="WARNING"
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
 
-    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
     <applicationConfigurable parentId="preferences.general"
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"

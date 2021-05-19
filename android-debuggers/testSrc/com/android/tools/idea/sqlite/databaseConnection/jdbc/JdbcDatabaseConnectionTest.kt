@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
@@ -33,12 +34,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 
-class JdbcDatabaseConnectionTest : PlatformTestCase() {
+class JdbcDatabaseConnectionTest : LightPlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
   private lateinit var sqliteFile: VirtualFile
   private var customSqliteFile: VirtualFile? = null
@@ -180,20 +181,6 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Act/Assert
     pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "DROP TABLE Book")))
     pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book")))
-  }
-
-  fun testResultSetThrowsAfterDisposed() {
-    // Prepare
-
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      databaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM Book"))
-    )!!
-    Disposer.dispose(resultSet)
-    val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
-
-    // Assert
-    assertThat(error).isNotNull()
   }
 
   fun testExecuteQueryFailsWhenIncorrectTableName() {

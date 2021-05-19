@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw
 
-import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture
+import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.ui.ComboBox
 import org.fest.swing.fixture.JComboBoxFixture
-import org.fest.swing.fixture.JToggleButtonFixture
 import javax.swing.JRootPane
 import javax.swing.JTextField
-import javax.swing.JToggleButton
 
 class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
   wizard: W, target: JRootPane
@@ -35,11 +33,7 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
   }
 
   fun enterPackageName(name: String): ConfigureLibraryStepFixture<W> {
-    val editLabelContainer = robot().finder().findByType(target(), LabelWithEditButton::class.java)
-    val editButton = JToggleButtonFixture(robot(), robot().finder().findByType(editLabelContainer, JToggleButton::class.java))
-    editButton.click()
     replaceText(findTextFieldWithLabel("Package name:"), name)
-    editButton.click() // click "Done"
     return this
   }
 
@@ -49,9 +43,14 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
     return this
   }
 
-  fun setSourceLanguage(sourceLanguage: String): ConfigureLibraryStepFixture<W> {
+  fun setSourceLanguage(language: Language): ConfigureLibraryStepFixture<W> {
     val comboBox = robot().finder().findByType(target(), ComboBox::class.java)
-    JComboBoxFixture(robot(), comboBox).selectItem(sourceLanguage)
+    JComboBoxFixture(robot(), comboBox).selectItem(language.toString())
+    return this
+  }
+
+  fun setUseKtsBuildFiles(select: Boolean): ConfigureLibraryStepFixture<W> {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select)
     return this
   }
 }

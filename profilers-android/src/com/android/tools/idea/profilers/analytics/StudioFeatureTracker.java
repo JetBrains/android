@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.profilers.analytics;
 
+import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectTls;
+import static com.android.ide.common.util.DeviceUtils.isMdnsAutoConnectUnencrypted;
+
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
@@ -32,8 +35,10 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioMonitorStage;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
+import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
@@ -48,6 +53,8 @@ import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
+import com.google.wireless.android.sdk.stats.AdtUiBoxSelectionMetadata;
+import com.google.wireless.android.sdk.stats.AdtUiTrackGroupMetadata;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CpuApiTracingMetadata;
@@ -64,6 +71,8 @@ import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonManagerStats;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import com.google.wireless.android.sdk.stats.TransportFailureMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -81,7 +90,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
   private Common.Process myActiveProcess;
 
   @NotNull
-  private Project myTrackingProject;
+  private final Project myTrackingProject;
 
   public StudioFeatureTracker(@NotNull Project trackingProject) {
     myTrackingProject = trackingProject;
@@ -92,6 +101,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
       .put(NullMonitorStage.class, AndroidProfilerEvent.Stage.NULL_STAGE)
       .put(StudioMonitorStage.class, AndroidProfilerEvent.Stage.OVERVIEW_STAGE)
       .put(CpuProfilerStage.class, AndroidProfilerEvent.Stage.CPU_STAGE)
+      .put(CpuCaptureStage.class, AndroidProfilerEvent.Stage.CPU_CAPTURE_STAGE)
       .put(MemoryProfilerStage.class, AndroidProfilerEvent.Stage.MEMORY_STAGE)
       .put(NetworkProfilerStage.class, AndroidProfilerEvent.Stage.NETWORK_STAGE)
       .put(EnergyProfilerStage.class, AndroidProfilerEvent.Stage.ENERGY_STAGE)
@@ -313,6 +323,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   @Override
   public void trackResetZoom() {
     track(AndroidProfilerEvent.Type.ZOOM_RESET);
+  }
+
+  @Override
+  public void trackZoomToSelection() {
+    track(AndroidProfilerEvent.Type.ZOOM_TO_SELECTION);
   }
 
   @Override
@@ -561,6 +576,104 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.MEMORY_INSTANCE_FILTER).setMemoryInstanceFilterMetadata(builder.build()).track();
   }
 
+  @Override
+  public void trackTraceProcessorDaemonSpawnAttempt(boolean successful, long timeToSpawnMs) {
+    TraceProcessorDaemonManagerStats stats = TraceProcessorDaemonManagerStats.newBuilder()
+      .setTimeToSpawnMs(timeToSpawnMs)
+      .build();
+    AndroidProfilerEvent.Type type = successful ? AndroidProfilerEvent.Type.TPD_MANAGER_SPAWN_OK
+                                                : AndroidProfilerEvent.Type.TPD_MANAGER_SPAWN_FAILED;
+    newTracker(type).setTraceProcessorDaemonManagerStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorLoadTrace(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .setTraceSizeBytes(traceSizeBytes)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_TRACE).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorProcessMetadata(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_PROCESS_METADATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorCpuData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_CPU_DATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackTraceProcessorMemoryData(
+      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
+      .setQueryStatus(queryStatus)
+      .setMethodDurationMs(methodTimeMs)
+      .setGrpcQueryDurationMs(queryTimeMs)
+      .build();
+
+    newTracker(AndroidProfilerEvent.Type.TPD_QUERY_LOAD_MEMORY_DATA).setTraceProcessorDaemonQueryStats(stats).track();
+  }
+
+  @Override
+  public void trackMoveTrackGroupUp(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.MOVE_UP);
+  }
+
+  @Override
+  public void trackMoveTrackGroupDown(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.MOVE_DOWN);
+  }
+
+  @Override
+  public void trackExpandTrackGroup(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.EXPAND);
+  }
+
+  @Override
+  public void trackCollapseTrackGroup(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.COLLAPSE);
+  }
+
+  private void trackTrackGroupAction(@NotNull String title, @NotNull AdtUiTrackGroupMetadata.TrackGroupActionType actionType) {
+    newTracker(AndroidProfilerEvent.Type.TRACK_GROUP_ACTION).setTrackGroupMetadata(
+      AdtUiTrackGroupMetadata.newBuilder()
+        .setTitle(title)
+        .setActionType(actionType)
+        .build()
+    ).track();
+  }
+
+  @Override
+  public void trackSelectBox(long durationUs, int trackCount) {
+    newTracker(AndroidProfilerEvent.Type.SELECT_BOX).setBoxSelectionMetadata(
+      AdtUiBoxSelectionMetadata.newBuilder()
+        .setDurationUs(durationUs)
+        .setTrackCount(trackCount)
+        .build()
+    ).track();
+  }
+
   /**
    * Convenience method for creating a new tracker with all the minimum data supplied.
    */
@@ -594,6 +707,10 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private ProfilingConfiguration myCpuStartupProfilingConfiguration;
     @Nullable private TransportFailureMetadata myTransportFailureMetadata;
     @Nullable private MemoryInstanceFilterMetadata myMemoryInstanceFilterMetadata;
+    @Nullable private TraceProcessorDaemonManagerStats myTraceProcessorDaemonManagerStats;
+    @Nullable private TraceProcessorDaemonQueryStats myTraceProcessorDaemonQueryStats;
+    @Nullable private AdtUiTrackGroupMetadata myTrackGroupMetadata;
+    @Nullable private AdtUiBoxSelectionMetadata myBoxSelectionMetadata;
 
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
@@ -683,6 +800,30 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    public Tracker setTraceProcessorDaemonManagerStats(TraceProcessorDaemonManagerStats traceProcessorDaemonManagerStats) {
+      myTraceProcessorDaemonManagerStats = traceProcessorDaemonManagerStats;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setTraceProcessorDaemonQueryStats(TraceProcessorDaemonQueryStats traceProcessorDaemonQueryStats) {
+      myTraceProcessorDaemonQueryStats = traceProcessorDaemonQueryStats;
+      return this;
+    }
+
+    @NotNull
+    public Tracker setTrackGroupMetadata(AdtUiTrackGroupMetadata trackGroupMetadata) {
+      myTrackGroupMetadata = trackGroupMetadata;
+      return this;
+    }
+
+    @NotNull
+    private Tracker setBoxSelectionMetadata(AdtUiBoxSelectionMetadata boxSelectionMetadata) {
+      myBoxSelectionMetadata = boxSelectionMetadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -720,6 +861,22 @@ public final class StudioFeatureTracker implements FeatureTracker {
           assert myCpuImportTraceMetadata != null;
           profilerEvent.setCpuImportTraceMetadata(myCpuImportTraceMetadata);
           break;
+        case TPD_MANAGER_SPAWN_OK: // Fallthrough
+        case TPD_MANAGER_SPAWN_FAILED:
+          profilerEvent.setTpdManagerStats(myTraceProcessorDaemonManagerStats);
+          break;
+        case TPD_QUERY_LOAD_TRACE: // Fallthrough
+        case TPD_QUERY_PROCESS_METADATA: // Fallthrough
+        case TPD_QUERY_LOAD_CPU_DATA: // Fallthrough
+        case TPD_QUERY_LOAD_MEMORY_DATA:
+          profilerEvent.setTpdQueryStats(myTraceProcessorDaemonQueryStats);
+          break;
+        case TRACK_GROUP_ACTION:
+          profilerEvent.setTrackGroupMetadata(myTrackGroupMetadata);
+          break;
+        case SELECT_BOX:
+          profilerEvent.setBoxSelectionMetadata(myBoxSelectionMetadata);
+          break;
         default:
           break;
       }
@@ -740,6 +897,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
             .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(myDevice.getCpuAbi()))
             .setManufacturer(myDevice.getManufacturer())
             .setDeviceType(myDevice.getIsEmulator() ? DeviceInfo.DeviceType.LOCAL_EMULATOR : DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+            .setMdnsConnectionType(isMdnsAutoConnectUnencrypted(myDevice.getSerial()) ?
+                                   DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED :
+                                   isMdnsAutoConnectTls(myDevice.getSerial()) ?
+                                   DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS :
+                                   DeviceInfo.MdnsConnectionType.MDNS_NONE)
             .setModel(myDevice.getModel())
             .build());
       }
@@ -861,40 +1023,33 @@ public final class StudioFeatureTracker implements FeatureTracker {
      */
     @NotNull
     private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
-      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder()
-        .setSampleInterval(config.getProfilingSamplingIntervalUs())
-        .setSizeLimit(config.getProfilingBufferSizeInMb());
-
+      CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder();
+      Cpu.CpuTraceConfiguration.UserOptions options = config.toProto();
       switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
+          cpuConfigInfo.setMode(config instanceof ArtSampledConfiguration
+                                ? CpuProfilingConfig.Mode.SAMPLED
+                                : CpuProfilingConfig.Mode.INSTRUMENTED);
+          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
           break;
         case SIMPLEPERF:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
+          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
+          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
           break;
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
+          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
           break;
         case PERFETTO:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
+          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
           break;
         case UNSPECIFIED_TYPE:
         case UNRECOGNIZED:
           break;
       }
-
-      switch (config.getMode()) {
-        case SAMPLED:
-          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-          break;
-        case INSTRUMENTED:
-          cpuConfigInfo.setMode(CpuProfilingConfig.Mode.INSTRUMENTED);
-          break;
-        case UNSPECIFIED_MODE:
-        case UNRECOGNIZED:
-          break;
-      }
-
       return cpuConfigInfo.build();
     }
 

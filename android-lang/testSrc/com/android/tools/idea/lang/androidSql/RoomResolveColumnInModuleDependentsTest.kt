@@ -57,8 +57,13 @@ class RoomResolveColumnInModuleDependentsTest : UsefulTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
-    myFixture.tearDown()
+    try {
+      myFixture.tearDown()
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {

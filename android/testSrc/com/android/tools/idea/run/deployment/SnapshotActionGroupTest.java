@@ -46,13 +46,13 @@ public final class SnapshotActionGroupTest {
     // Arrange
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -71,14 +71,14 @@ public final class SnapshotActionGroupTest {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setValidityReason("Missing system image")
-      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-48-09"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setValidityReason("Missing system image")
-      .setKey(new Key("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2019-09-27_15-49-04"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

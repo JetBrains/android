@@ -27,11 +27,13 @@ import static com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeV
 
 /**
  * A folder that represents a particular packaging family like NDK or CDep.
- * Contains a collection of packages. So for example,
+ * Contains a collection of packages. Visually, for example, under the {@code includes} node, usually there are
  *
- * NDK <- this class
- * STL <- an NDK module
- * Native App Glue <- another module
+ * <pre>
+ * - NDK r20b <--- this class
+ * - STL
+ * - Native App Glue
+ * </pre>
  */
 public class PackageFamilyValue extends ClassifiedIncludeValue {
 

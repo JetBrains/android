@@ -49,6 +49,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   }
 
   LayoutLibrary myLayoutLib;
+  ModuleClassLoader myClassLoader;
 
   @Override
   protected void setUp() throws Exception {
@@ -61,6 +62,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ConfigurationManager manager = new ConfigurationManager(module);
     myLayoutLib = RenderService.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
+    myClassLoader = ModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), myModule, this);
   }
 
   @Override
@@ -68,21 +70,24 @@ public class ViewLoaderTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
+      // Copy the classloader field before super.tearDown() nulls it out via UsefulTestCase.clearDeclaredFields().
+      ModuleClassLoader classLoader = myClassLoader;
       super.tearDown();
+      ModuleClassLoaderManager.get().release(classLoader, this);
     }
   }
 
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
     RenderLogger logger = RenderService.getInstance(project).createLogger(myFacet);
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null, myClassLoader);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
     logger = RenderService.getInstance(project).createLogger(myFacet);
-    viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
+    viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null, myClassLoader);
 
     try {
       viewLoader.loadView("broken.brokenclass", null, null);
@@ -92,14 +97,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     }
 
     logger = RenderService.getInstance(project).createLogger(myFacet);
-    viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
+    viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null, myClassLoader);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = RenderService.getInstance(myModule.getProject()).createLogger(myFacet);
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myFacet, logger, null, myClassLoader);
 
     // No LocalResourceRepository exists prior to calling loadAndParseRClass. It will get created during the call.
     AndroidFacet facet = AndroidFacet.getInstance(myModule);

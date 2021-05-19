@@ -111,7 +111,7 @@ public class AspectsAgentLogTest {
     // Create a set with the stacktraces that were hit in the current run of UI tests.
     Set<String> generatedBaseline = new HashSet<>(Files.readAllLines(activeStackTraces.toPath()));
 
-    // Create a set with the stacktraces currently whitelisted in the baseline.
+    // Create a set with the stacktraces currently listed in the baseline.
     Set<String> currentBaseline = new HashSet<>(Files.readAllLines(Paths.get(GuiTestOptions.INSTANCE.getAspectsAgentBaseline())));
 
     // Check whether we can remove some of the stacktraces from the baseline.

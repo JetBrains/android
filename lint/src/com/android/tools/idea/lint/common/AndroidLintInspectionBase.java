@@ -1,6 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.lint.common;
 
+import static com.android.tools.lint.client.api.LintClient.CLIENT_STUDIO;
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
 import static com.android.tools.lint.detector.api.TextFormat.HTML_WITH_UNICODE;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
@@ -9,6 +10,7 @@ import static com.intellij.xml.CommonXmlStrings.HTML_END;
 import static com.intellij.xml.CommonXmlStrings.HTML_START;
 
 import com.android.tools.lint.checks.BuiltinIssueRegistry;
+import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
@@ -51,6 +53,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiBinaryFile;
@@ -82,6 +86,9 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.idea.KotlinFileType;
 
 public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
+  static {
+    LintClient.setClientName(CLIENT_STUDIO);
+  }
   /**
    * Prefix used by the comment suppress mechanism in Studio/IntelliJ
    */
@@ -364,8 +371,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
 
     if (issue == null && project != null) {
-      InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-      for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+      //noinspection rawtypes
+      for (InspectionToolWrapper e : getInspectionTools(project)) {
         if (inspectionName.equals(e.getShortName())) {
           InspectionProfileEntry entry = e.getTool();
           if (entry instanceof AndroidLintInspectionBase) {
@@ -378,6 +385,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     return issue;
   }
 
+  @SuppressWarnings("rawtypes")
+  private static @NotNull List<InspectionToolWrapper<?, ?>> getInspectionTools(@NotNull Project project) {
+    InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+    try {
+      return profile.getInspectionTools(null);
+    } catch (Throwable t) {
+      LOG.warn("Couldn't look up inspection tools", t);
+      return Collections.emptyList();
+    }
+  }
+
   public static String getInspectionShortNameByIssue(@NotNull Project project, @NotNull Issue issue) {
     synchronized (ISSUE_MAP_LOCK) {
       Map<Issue, String> issue2InspectionShortName = project.getUserData(ISSUE_MAP_KEY);
@@ -385,9 +403,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         issue2InspectionShortName = new HashMap<>();
         project.putUserData(ISSUE_MAP_KEY, issue2InspectionShortName);
 
-        final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-
-        for (InspectionToolWrapper e : profile.getInspectionTools(null)) {
+        //noinspection rawtypes
+        for (InspectionToolWrapper e : getInspectionTools(project)) {
           final String shortName = e.getShortName();
 
           if (shortName.startsWith(LINT_INSPECTION_PREFIX)) {
@@ -646,15 +663,23 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         fix.setSelectPattern(data.selectPattern);
       }
       if (data.range != null && file != null) {
+        PsiFile rangeFile = file;
+        VirtualFile virtualFile = VfsUtil.findFileByIoFile(data.range.getFile(), false);
+        if (virtualFile != null) {
+          PsiFile psiFile = file.getManager().findFile(virtualFile);
+          if (psiFile != null) {
+            rangeFile = psiFile;
+          }
+        }
         Position start = data.range.getStart();
         Position end = data.range.getEnd();
         if (start != null && end != null) {
-          SmartPointerManager manager = SmartPointerManager.getInstance(file.getProject());
+          SmartPointerManager manager = SmartPointerManager.getInstance(rangeFile.getProject());
           int startOffset = start.getOffset();
           int endOffset = end.getOffset();
           if (endOffset > startOffset) {
-            TextRange textRange = TextRange.create(startOffset, Math.max(startOffset, endOffset));
-            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(file, textRange);
+            TextRange textRange = TextRange.create(startOffset, endOffset);
+            SmartPsiFileRange smartRange = manager.createSmartPsiFileRangePointer(rangeFile, textRange);
             fix.setRange(smartRange);
           }
         }

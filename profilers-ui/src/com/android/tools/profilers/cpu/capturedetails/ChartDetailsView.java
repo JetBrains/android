@@ -31,7 +31,7 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
@@ -102,10 +102,10 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
     if (node != null) {
       // If our root node has an empty ID it is the visual node. As such we look at the type of the first child to determine which tooltip
       // we will display.
-      if (node.getData().getId().isEmpty()) {
+      if (node.getData().getId().isEmpty() && node.getChildCount() > 0) {
         node = node.getFirstChild();
       }
-      if (node.getData() instanceof AtraceNodeModel) {
+      if (node.getData() instanceof SystemTraceNodeModel) {
         if (type == CaptureDetails.Type.CALL_CHART) {
           chart.addMouseMotionListener(
             new CpuTraceEventTooltipView(chart, myProfilersView.getComponent(), ProfilerColors.CPU_USAGE_CAPTURED,
@@ -123,7 +123,7 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       }
     }
 
-    if (chartDetails.getCapture().getType() != Cpu.CpuTraceType.ATRACE) {
+    if (chartDetails.getCapture().getSystemTraceData() == null) {
       CodeNavigator navigator = myProfilersView.getStudioProfilers().getStage().getStudioProfilers().getIdeServices().getCodeNavigator();
       CodeNavigationHandler handler = new CodeNavigationHandler(chart, navigator);
       chart.addMouseListener(handler);

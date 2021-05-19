@@ -16,39 +16,29 @@
 package com.android.tools.idea.ui.resourcechooser.util
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcechooser.CompactResourcePicker
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
-import com.intellij.openapi.util.NlsContexts
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.ui.JBUI
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
 import java.awt.Component
-import java.awt.FlowLayout
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
-import javax.swing.BoxLayout
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JTable
-import javax.swing.SwingConstants
 
 /**
  * Returns a [ResourcePickerDialog], may list sample data, project, library, android and theme attributes resources for the given
@@ -74,10 +64,19 @@ fun createResourcePickerDialog(
   defaultResourceType: ResourceType?,
   showColorStateLists: Boolean,
   showSampleData: Boolean,
+  showThemeAttributes: Boolean,
   file: VirtualFile?
 ): ResourcePickerDialog {
   // TODO(139313381): Implement showColorStateLists
-  return ResourcePickerDialog(facet, currentValue, resourceTypes, defaultResourceType, showSampleData, file).apply { title = dialogTitle }
+  return ResourcePickerDialog(
+    facet = facet,
+    initialResourceUrl = currentValue,
+    supportedTypes = resourceTypes,
+    preferredType = defaultResourceType,
+    showSampleData = showSampleData,
+    showThemeAttributes = showThemeAttributes,
+    currentFile = file
+  ).apply { title = dialogTitle }
 }
 
 /**
@@ -98,10 +97,11 @@ fun createAndShowColorPickerPopup(
   initialColor: Color?,
   initialColorResource: ResourceReference?,
   configuration: Configuration?,
+  resourcePickerSources: List<ResourcePickerSources>,
   restoreFocusComponent: Component?,
   locationToShow: Point?,
-  colorPickedCallback: (Color) -> Unit,
-  colorResourcePickedCallback: (String) -> Unit
+  colorPickedCallback: ((Color) -> Unit)?,
+  colorResourcePickedCallback: ((String) -> Unit)?
 ) {
   val disposable = Disposer.newDisposable("ResourcePickerPopup")
   val onPopupClosed = {
@@ -109,7 +109,8 @@ fun createAndShowColorPickerPopup(
   }
   val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
 
-  val colorPicker = ColorPickerBuilder()
+  val colorPicker = if (colorPickedCallback == null) null else {
+    ColorPickerBuilder()
     .setOriginalColor(initialColor)
     .addSaturationBrightnessComponent()
     .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
@@ -126,17 +127,27 @@ fun createAndShowColorPickerPopup(
       }
     })
     .build()
+  }
+
   val facet = configuration?.let { AndroidFacet.getInstance(configuration.module) }
-  val popupContent = if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && facet != null) {
-    val resourcePicker = CompactResourcePicker(
+  val resourcePicker = if (colorResourcePickedCallback == null || facet == null) null else {
+    CompactResourcePicker(
       facet,
       configuration,
       configuration.resourceResolver,
       ResourceType.COLOR,
+      resourcePickerSources,
       colorResourcePickedCallback,
       popupDialog::close,
       disposable
     )
+  }
+
+  if (colorPicker == null && resourcePicker == null) {
+    return
+  }
+
+  val popupContent = if (colorPicker != null && resourcePicker != null) {
     // TODO: Use relative resource url instead.
     HorizontalTabbedPanelBuilder() // Use tabbed panel instead.
       .addTab("Resources", resourcePicker)
@@ -144,9 +155,8 @@ fun createAndShowColorPickerPopup(
       .setDefaultPage(if (initialColorResource != null) 0 else 1)
       .build()
   }
-  else {
-    colorPicker
-  }
+  else colorPicker ?: resourcePicker!!
+
   popupDialog.show(popupContent, null, locationToShow ?: MouseInfo.getPointerInfo().location)
 }
 
@@ -166,6 +176,7 @@ fun createAndShowResourcePickerPopup(
   resourceType: ResourceType,
   configuration: Configuration,
   facet: AndroidFacet,
+  resourcePickerSources: List<ResourcePickerSources>,
   locationToShow: Point?,
   resourcePickedCallback: (String) -> Unit
 ) {
@@ -179,6 +190,7 @@ fun createAndShowResourcePickerPopup(
     configuration,
     configuration.resourceResolver,
     resourceType,
+    resourcePickerSources,
     resourcePickedCallback,
     popupDialog::close,
     disposable

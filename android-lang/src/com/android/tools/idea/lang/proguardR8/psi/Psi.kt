@@ -33,6 +33,7 @@ class ProguardR8TokenType(debugName: String) : IElementType(debugName, ProguardR
     "'" -> "single quote"
     "\"" -> "double quote"
     "*" -> "asterisk"
+    "**" -> "double asterisk"
     "{" -> "opening brace"
     "}" -> "closing brace"
     "(" -> "left parenthesis"

@@ -40,7 +40,7 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
 
   // Store the default style values requested so far. Use this to detect default value changes.
   @GuardedBy("styleLookupPerformed")
-  private val styleLookupPerformed = mutableMapOf<NlComponent, String>()
+  private val styleLookupPerformed = mutableMapOf<NlComponent, ResourceReference>()
 
   override fun provideDefaultValue(property: NelePropertyItem): String? {
     val defValue = provideDefaultValueAsResourceValue(property) ?: return null
@@ -110,15 +110,12 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
   }
 
   private fun provideDefaultStyleValue(property: NelePropertyItem): ResourceValue? {
-    // TODO: Change the API of RenderResult.getDefaultStyles to return ResourceValues instead of Strings.
-    val qualifiedStyle = property.components
+    val style = property.components
                            .map { styleLookup(it) }
                            .distinct()
                            .singleOrNull() ?: return null
-    val namespace = if (qualifiedStyle.startsWith("android:")) ResourceNamespace.ANDROID else ResourceNamespace.TODO()
-    val style = "?" + qualifiedStyle.removePrefix("android:")
-    val reference = ResourceReference.attr(namespace, ATTR_STYLE)
-    return ResourceValueImpl(reference, style)
+    val reference = ResourceReference.attr(style.namespace, ATTR_STYLE)
+    return ResourceValueImpl(reference, "?" + style.name)
   }
 
   private fun hasDefaultStyleValuesChanged(): Boolean {
@@ -133,7 +130,7 @@ class NeleDefaultPropertyValueProvider(private val sceneManager: SceneManager): 
     }
   }
 
-  private fun styleLookup(component: NlComponent): String? {
+  private fun styleLookup(component: NlComponent): ResourceReference? {
     val value = sceneManager.defaultStyles[component.snapshot] ?: return null
     synchronized(styleLookupPerformed) {
       styleLookupPerformed[component] = value

@@ -15,30 +15,40 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.android.tools.idea.appinspection.ide.AppInspectionHostService
-import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.pom.Navigatable
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FilenameIndex
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.ClassUtil
+import kotlinx.coroutines.withContext
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
-class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {companion object {
-  fun show(project: Project, callback: Runnable? = null) =
-    ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
-}
+class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
+  companion object {
+    fun show(project: Project, callback: Runnable? = null) =
+      ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
+  }
+
   /**
    * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
    */
@@ -55,7 +65,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
                                   content: String,
                                   severity: AppInspectionIdeServices.Severity,
                                   hyperlinkClicked: () -> Unit) {
-      val type = when(severity) {
+      val type = when (severity) {
         AppInspectionIdeServices.Severity.INFORMATION -> NotificationType.INFORMATION
         AppInspectionIdeServices.Severity.ERROR -> NotificationType.ERROR
       }
@@ -69,33 +79,48 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
         })
         .notify(project)
     }
+
+    override suspend fun navigateTo(codeLocation: AppInspectionIdeServices.CodeLocation) {
+      val fqcn = codeLocation.fqcn
+      val navigatable: Navigatable? = if (fqcn != null) {
+        ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(project), fqcn)
+      }
+      else {
+        runReadAction {
+          val fileName = codeLocation.fileName!!
+          FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project), false)
+            .firstOrNull()?.virtualFile
+            ?.let { virtualFile ->
+              OpenFileDescriptor(project, virtualFile, codeLocation.lineNumber?.let { it - 1 } ?: -1, 0)
+            }
+        }
+      }
+
+      if (navigatable != null) {
+        withContext(AndroidDispatchers.uiThread) {
+          navigatable.navigate(true)
+        }
+      }
+    }
   }
+
+  // Coroutine scope tied to the lifecycle of this tool window. It will be cancelled when the tool window is disposed.
+  private val scope = AndroidCoroutineScope(this)
 
   private val appInspectionView = AppInspectionView(
     project,
-    AppInspectionHostService.instance.discoveryHost,
+    AppInspectionDiscoveryService.instance.apiServices,
     ideServices,
+    scope,
+    AndroidDispatchers.uiThread,
     ::getPreferredProcesses
   )
   val component: JComponent = appInspectionView.component
 
   init {
     Disposer.register(this, appInspectionView)
-    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-      private var wasVisible = false
-      override fun stateChanged() {
-        val inspectionToolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSPECTION_ID) ?: return
-        val visibilityChanged = inspectionToolWindow.isVisible != wasVisible
-        wasVisible = inspectionToolWindow.isVisible
-        if (visibilityChanged) {
-          if (inspectionToolWindow.isVisible) {
-            AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowOpened()
-          } else {
-            AppInspectionAnalyticsTrackerService.getInstance(project).trackToolWindowHidden()
-          }
-        }
-      }
-    })
+    project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
+                                               AppInspectionToolWindowManagerListener(project, appInspectionView))
   }
 
   override fun dispose() {

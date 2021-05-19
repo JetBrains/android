@@ -21,12 +21,11 @@ import com.android.tools.deployer.DeployerException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 
 public class ApplyChangesTask extends AbstractDeployTask {
 
@@ -35,8 +34,10 @@ public class ApplyChangesTask extends AbstractDeployTask {
 
   public ApplyChangesTask(@NotNull Project project,
                           @NotNull Map<String, List<File>> packages,
-                          boolean fallback, Computable<String> installPathProvider) {
-    super(project, packages, fallback, installPathProvider);
+                          boolean rerunOnSwapFailure,
+                          boolean alwaysInstallWithPm,
+                          Computable<String> installPathProvider) {
+    super(project, packages, rerunOnSwapFailure, alwaysInstallWithPm, installPathProvider);
   }
 
   @NotNull
@@ -55,9 +56,16 @@ public class ApplyChangesTask extends AbstractDeployTask {
   @Override
   public String getFailureTitle() { return "Changes were not applied."; }
 
+  @Override
+  protected boolean shouldTaskLaunchApp() {
+    return false;
+  }
 
   @Override
-  protected Deployer.Result perform(IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException {
+  protected Deployer.Result perform(IDevice device,
+                                    Deployer deployer,
+                                    String applicationId,
+                                    List<File> files) throws DeployerException {
     LOG.info("Applying changes to application: " + applicationId);
     return deployer.fullSwap(getPathsToInstall(files));
   }

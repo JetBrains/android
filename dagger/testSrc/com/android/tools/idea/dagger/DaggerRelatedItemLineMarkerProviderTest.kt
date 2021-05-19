@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 import java.awt.event.MouseEvent
 import javax.swing.JLabel
 
@@ -203,12 +204,14 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module
         class MyModule {
-          @Provides String provider() {}
+          @Provides String provider() {
+            return "fff";
+          }
         }
       """.trimIndent()
     ).virtualFile
 
-    myFixture.addClass(
+    val componentFile = myFixture.addClass(
       //language=JAVA
       """
       package test;
@@ -219,7 +222,17 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         String getString();
       }
     """.trimIndent()
-    )
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(componentFile)
+    myFixture.moveCaret("getStr|ing")
+
+    val iconForComponentMethod = myFixture.findGuttersAtCaret().find { it.tooltipText == "getString() exposes provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
+
+    assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
 
     myFixture.configureFromExistingVirtualFile(providerFile)
     myFixture.moveCaret("@Provides String pr|ovider")
@@ -239,9 +252,70 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)
     assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
   }
 
+  fun testComponentMethodsForProvider_kotlin() {
+    // Provider
+    val providerFile = myFixture.addFileToProject("src/test/MyModule.java",
+      //language=JAVA
+                                                  """
+        package test;
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        public class MyModule {
+          @Provides String provider() {
+            return "fff";
+          }
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+      import test.MyModule
+      import dagger.Component
+
+      @Component(modules = { MyModule::class })
+      interface MyComponent {
+        val str:String
+      }
+    """.trimIndent()
+    )
+
+    myFixture.moveCaret("st|r").parent as KtProperty
+
+    val iconForComponentMethod = myFixture.findGuttersAtCaret().find { it.tooltipText == "str exposes provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
+
+    assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
+
+    myFixture.configureFromExistingVirtualFile(providerFile)
+    myFixture.moveCaret("@Provides String pr|ovider")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val icon = icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItems = getGotoElements(icon)
+    assertThat(gotoRelatedItems).hasSize(1)
+    val method = gotoRelatedItems.first()
+    assertThat(method.group).isEqualTo("Exposed by components")
+    assertThat(method.element?.text).isEqualTo("val str:String")
+    assertThat(method.customName).isEqualTo("MyComponent")
+
+    clickOnIcon(icon)
+    assertThat(trackerService.calledMethods).hasSize(2)
+    assertThat(trackerService.calledMethods.first()).isEqualTo("trackClickOnGutter PROVIDER")
+    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER COMPONENT_METHOD")
+  }
 
   fun testComponentForModules() {
     val moduleFile = myFixture.configureByText(
@@ -673,5 +747,76 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackClickOnGutter SUBCOMPONENT")
     gotoRelatedItems.find { it.group == "Subcomponents" }!!.navigate()
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_GUTTER SUBCOMPONENT SUBCOMPONENT")
+  }
+
+  fun testEntryPointMethodsForProvider() {
+    // Provider
+    val providerFile = myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        package test;
+        import dagger.Provides;
+        import dagger.Module;
+
+        @Module
+        class MyModule {
+          @Provides String provider() {}
+        }
+      """.trimIndent()
+    ).virtualFile
+
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.Component;
+
+      @Component(modules = { MyModule.class })
+      public interface MyComponent {
+        String getString();
+      }
+    """.trimIndent()
+    )
+
+    val entryPointFile = myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+      import dagger.hilt.EntryPoint;
+
+      @EntryPoint
+      public interface MyEntryPoint {
+        String getStringInEntryPoint();
+      }
+    """.trimIndent()
+    ).containingFile.virtualFile
+
+    myFixture.configureFromExistingVirtualFile(entryPointFile)
+    myFixture.moveCaret("getStringInEntr|yPoint")
+
+    val iconForComponentMethod = myFixture.findGuttersAtCaret().find { it.tooltipText == "getStringInEntryPoint() exposes provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
+
+    assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
+    assertThat((gotoRelatedItemForComponentMethod.element as PsiNamedElement).name).isEqualTo("provider")
+
+    myFixture.configureFromExistingVirtualFile(providerFile)
+    myFixture.moveCaret("@Provides String pr|ovider")
+
+    val icons = myFixture.findGuttersAtCaret()
+    assertThat(icons).isNotEmpty()
+
+    val icon = icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
+      as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    val gotoRelatedItems = getGotoElements(icon)
+    assertThat(gotoRelatedItems).hasSize(2)
+    val method = gotoRelatedItems.find { it.group == "Exposed by entry points" }!!
+    assertThat(method.element?.text).isEqualTo("String getStringInEntryPoint();")
+    assertThat(method.customName).isEqualTo("MyEntryPoint")
+
+    method.navigate()
+    assertThat(trackerService.calledMethods.single()).isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 }

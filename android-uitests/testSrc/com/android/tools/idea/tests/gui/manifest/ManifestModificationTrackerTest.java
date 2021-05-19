@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.model.MergedManifestModificationTracker;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,9 +36,9 @@ public class ManifestModificationTrackerTest {
     Module module = guiTest.ideFrame().getModule("simple");
     MergedManifestModificationTracker tracker = MergedManifestModificationTracker.getInstance(module);
 
-    if (tracker.getManifestChangedActivityRegistered()) {
-      assertThat(tracker.getModificationCount()).isEqualTo(1);
-    }
+    DumbService.getInstance(guiTest.ideFrame().getProject()).waitForSmartMode();
+
+    assertThat(tracker.getModificationCount()).isEqualTo(1);
     guiTest.ideFrame().closeProject();
   }
 }

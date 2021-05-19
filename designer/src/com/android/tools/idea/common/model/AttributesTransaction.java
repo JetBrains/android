@@ -110,7 +110,7 @@ public class AttributesTransaction implements NlAttributesHolder {
       // We run the re-layout as a render action to avoid a render happening at the same time as the re-layout since that
       // might cause problems.
       // TODO: Investigate a more lightweight solution for this.
-      RenderService.runAsyncRenderAction(() -> {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
         view.setLayoutParams(view.getLayoutParams());
         view.forceLayout();
       });
@@ -184,6 +184,11 @@ public class AttributesTransaction implements NlAttributesHolder {
     return myComponent;
   }
 
+  /**
+   * Close this transaction and rollback all pending attributes which are not applied yet.
+   *
+   * @see #apply()
+   */
   boolean finishTransaction() {
     assert isValid;
     isValid = false;

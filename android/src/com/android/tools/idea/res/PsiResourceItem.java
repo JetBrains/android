@@ -56,6 +56,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -292,7 +293,7 @@ public final class PsiResourceItem implements ResourceItem {
           myResourceValue = new ResourceValueImpl(getNamespace(), myType, myName, path, null);
         }
       } else {
-        myResourceValue = parseXmlToResourceValue(tag);
+        myResourceValue = parseXmlToResourceValueSafe(tag);
       }
     }
 
@@ -324,6 +325,15 @@ public final class PsiResourceItem implements ResourceItem {
       return densityQualifier.getValue();
     }
     return null;
+  }
+
+  @Nullable
+  private ResourceValue parseXmlToResourceValueSafe(@Nullable XmlTag tag) {
+    Application application = ApplicationManager.getApplication();
+    if (application.isReadAccessAllowed()) {
+      return parseXmlToResourceValue(tag);
+    }
+    return application.runReadAction((Computable<ResourceValue>)() -> parseXmlToResourceValue(tag));
   }
 
   @Nullable
@@ -593,7 +603,12 @@ public final class PsiResourceItem implements ResourceItem {
         .add("type", myType);
     XmlTag tag = getTag();
     if (tag != null) {
-      helper.add("tag", IdeResourcesUtil.getTextContent(tag));
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        helper.add("tag", IdeResourcesUtil.getTextContent(tag));
+      }
+      else {
+        helper.add("tag", ReadAction.compute(() -> IdeResourcesUtil.getTextContent(tag)));
+      }
     }
     PsiFile file = getPsiFile();
     if (file != null) {

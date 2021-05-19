@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package kotlinx.android.parcel
+package kotlinx.parcelize
 
 /**
  * Write the corresponding property value with [android.os.Parcel.writeValue].

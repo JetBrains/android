@@ -30,7 +30,7 @@ fun Project.getViewBindingClassName() : String {
 }
 
 fun AndroidFacet.isViewBindingEnabled() =
-  AndroidModuleModel.get(this)?.androidProject?.viewBindingOptions?.isEnabled ?: false
+  AndroidModuleModel.get(this)?.androidProject?.viewBindingOptions?.enabled ?: false
 
 // Note: We don't really need the "Project" here but it keeps the function from being globally
 // scoped and also indicates that the tracker is associated with a project and not a module.

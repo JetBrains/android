@@ -1,5 +1,8 @@
 package org.jetbrains.android.inspections;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.utils.SdkUtils;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -39,7 +42,6 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider;
 import org.jetbrains.android.dom.converters.OnClickConverter;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
@@ -56,7 +58,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   private static Collection<PsiClass> findRelatedActivities(@NotNull XmlFile file,
                                                             @NotNull AndroidFacet facet,
                                                             @NotNull DomFileDescription<?> description) {
-    if (description instanceof LayoutDomFileDescription) {
+    if (isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
       final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.getItemsForXmlFile(file, facet);
       if (items == null || items.isEmpty()) {
         return Collections.emptyList();
@@ -146,7 +148,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     }
     final DomFileDescription<?> description = DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file);
 
-    if (!(description instanceof LayoutDomFileDescription) &&
+    if (!isFileInResourceFolderType((XmlFile)file, ResourceFolderType.LAYOUT) &&
         !(description instanceof MenuDomFileDescription)) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }

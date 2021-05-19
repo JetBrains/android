@@ -7,7 +7,7 @@ android {
       keyAlias = "myReleaseKey"
       keyPassword = "releaseKeyPassword"
     }
-    create("debug") {
+    getByName("debug") {
       storeFile = file("debug.keystore")
       storePassword = "debug_password"
       storeType = "type2"

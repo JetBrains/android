@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.ui;
 
+import static icons.StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP;
+
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -24,8 +26,7 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
-import icons.StudioIcons;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,10 @@ public class CodeSwapAction extends BaseAction {
 
   public static final String ID = "android.deploy.CodeSwap";
 
-  public static final String NAME = "Apply Cod&e Changes";
+  public static final String DISPLAY_NAME = "Apply Code Changes";
+
+  // The '&' is IJ markup to indicate the subsequent letter is the accelerator key.
+  public static final String ACCELERATOR_NAME = "Apply Cod&e Changes";
 
   // TODO: Control Alt F10 is almost always going to get your xserver to send you to
   //       your 10th virtual console.....
@@ -43,7 +47,7 @@ public class CodeSwapAction extends BaseAction {
   private static final String DESC = "Attempt to apply only code changes without restarting anything.";
 
   public CodeSwapAction() {
-    super(NAME, SwapInfo.SwapType.APPLY_CODE_CHANGES, StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP, DESC);
+    super(DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CODE_CHANGES, APPLY_CODE_SWAP, DESC);
   }
 
   @Override

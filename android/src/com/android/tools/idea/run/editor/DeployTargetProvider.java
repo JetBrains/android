@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.run.editor;
 
-import com.android.tools.idea.run.DeviceCount;
-import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.Executor;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.ColoredListCellRenderer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import javax.swing.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class DeployTargetProvider<S extends DeployTargetState> {
+public abstract class DeployTargetProvider {
   @VisibleForTesting
-  static final ExtensionPointName<DeployTargetProvider> EP_NAME = ExtensionPointName.create("com.android.run.deployTargetProvider");
+  public static final ExtensionPointName<DeployTargetProvider> EP_NAME = ExtensionPointName.create("com.android.run.deployTargetProvider");
 
   private static List<DeployTargetProvider> ourTargets;
 
@@ -52,19 +49,15 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
   public abstract String getDisplayName();
 
   @NotNull
-  public abstract S createState();
-
-  public boolean showInDevicePicker(@NotNull Executor executor) {
-    return false;
-  }
+  public abstract DeployTargetState createState();
 
   protected boolean isApplicable(boolean testConfiguration) {
     return true;
   }
 
-  public abstract DeployTargetConfigurable<S> createConfigurable(@NotNull Project project,
-                                                                 @NotNull Disposable parentDisposable,
-                                                                 @NotNull DeployTargetConfigurableContext ctx);
+  public abstract DeployTargetConfigurable createConfigurable(@NotNull Project project,
+                                                              @NotNull Disposable parentDisposable,
+                                                              @NotNull DeployTargetConfigurableContext ctx);
 
   /**
    * Returns whether the current deploy target needs to ask for user input on every launch.
@@ -81,21 +74,17 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
    * @param runConfigId a unique ID identifying the run configuration context from which this is being invoked
    */
   @Nullable
-  public DeployTarget<S> showPrompt(@NotNull Executor executor,
-                                    @NotNull ExecutionEnvironment env,
-                                    @NotNull AndroidFacet facet,
-                                    @NotNull DeviceCount deviceCount,
-                                    boolean androidTests,
-                                    @NotNull Map<String, DeployTargetState> deployTargetStates,
-                                    int runConfigId,
-                                    @NotNull LaunchCompatibilityChecker compatibilityChecker) {
+  public DeployTarget showPrompt(@NotNull AndroidFacet facet) {
     throw new IllegalStateException();
   }
 
-  public abstract DeployTarget<S> getDeployTarget();
-
   @NotNull
-  public DeployTarget<S> getDeployTarget(@NotNull Project project) {
-    return getDeployTarget();
+  public abstract DeployTarget getDeployTarget(@NotNull Project project);
+
+  public static class Renderer extends ColoredListCellRenderer<DeployTargetProvider> {
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {
+      append(value.getDisplayName());
+    }
   }
 }

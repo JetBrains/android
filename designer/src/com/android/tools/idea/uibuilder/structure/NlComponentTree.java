@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure;
 
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.common.editor.ActionUtils;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -83,7 +82,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.ToolTipManager;
 import org.jetbrains.annotations.NonNls;
@@ -182,6 +180,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       overrideCtrlClick();
     }
     setModel(designSurface != null ? designSurface.getModel() : null);
+    myBadgeHandler.setIssueModel(designSurface != null ? designSurface.getIssueModel() : null);
     myBadgeHandler.setIssuePanel(designSurface != null ? designSurface.getIssuePanel() : null);
   }
 
@@ -589,7 +588,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       Object component = path.getLastPathComponent();
 
       if (component instanceof String) {
-        NlComponent clicked = findComponent((String) component);
+        NlComponent clicked = NlTreeReferencedItemHelperKt.findComponent((String) component, myModel);
         mySurface.getSelectionModel().setSelection(Arrays.asList(clicked));
         return;
       }
@@ -605,15 +604,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  @Nullable
-  private NlComponent findComponent(String id) {
-    Optional<NlComponent> optional = myModel.flattenComponents().filter(it -> id.equals(it.getId())).findFirst();
-    if (optional.isPresent()) {
-      return optional.get();
-    }
-    return null;
-  }
-
   private class StructurePaneSelectionListener implements TreeSelectionListener {
     @Override
     public void valueChanged(TreeSelectionEvent treeSelectionEvent) {
@@ -622,7 +612,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
       try {
         if (mySurface != null) {
-          mySurface.getSelectionModel().setSelection(getSelectedComponents());
+          SelectedComponent selected = NlTreeReferencedItemHelperKt.getSelectedComponents(
+            NlComponentTree.this, myModel);
+          mySurface.getSelectionModel().setHighlightSelection(
+            selected.getReferenced(), selected.getComponents());
         }
       }
       finally {

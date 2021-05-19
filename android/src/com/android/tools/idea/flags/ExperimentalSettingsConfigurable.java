@@ -25,6 +25,7 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
+import com.android.tools.idea.ui.LayoutEditorSettingsKt;
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -58,9 +59,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
-  private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myLayoutInspectorCheckbox;
+  private JCheckBox myAtfCheckBox;
   private TitledSeparator myLayoutInspectorSeparator;
   private JCheckBox mySkipGradleTasksList;
   private JCheckBox myUseLayoutlibNative;
@@ -94,6 +95,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
+    myAtfCheckBox.setVisible(StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR.get());
     initTraceComponents();
     reset();
   }
@@ -125,14 +127,14 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   public boolean isModified() {
     return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-           mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
            mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
            mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
-           (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
+           (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
+           myAtfCheckBox.isSelected() != LayoutEditorSettingsKt.getAlwaysEnableLayoutScanner();
   }
 
   private int getQualitySetting() {
@@ -142,12 +144,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
-    mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
+    LayoutEditorSettingsKt.setAlwaysEnableLayoutScanner(myAtfCheckBox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
       myRestartCallback = () -> ApplicationManager.getApplication().invokeLater(() -> PluginManagerConfigurable.shutdownOrRestartApp());
       LayoutEditorEvent.Builder eventBuilder = LayoutEditorEvent.newBuilder();
@@ -185,15 +187,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @TestOnly
   void setUseL2DependenciesInSync(boolean value) {
     myUseL2DependenciesCheckBox.setSelected(value);
-  }
-
-  boolean isUseSingleVariantSync() {
-    return myUseSingleVariantSyncCheckbox.isSelected();
-  }
-
-  @TestOnly
-  void setUseSingleVariantSync(boolean value) {
-    myUseSingleVariantSyncCheckbox.setSelected(value);
   }
 
   boolean skipGradleTasksList() {
@@ -322,7 +315,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
-    myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
@@ -330,6 +322,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
+    myAtfCheckBox.setSelected(LayoutEditorSettingsKt.getAlwaysEnableLayoutScanner());
     updateTraceComponents();
   }
 

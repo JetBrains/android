@@ -5,7 +5,7 @@ android {
     buildToolsVersion "19.0.0"
 
     defaultConfig {
-        minSdkVersion <error descr="Use an integer rather than a string here (replace '7' with just 7)">'7<caret>'</error>
-        targetSdkVersion <error descr="Use an integer rather than a string here (replace '17' with just 17)">'17'</error>
+        <error descr="Use an integer rather than a string here (replace '7' with just 7)">minSdkVersion '7<caret>'</error>
+        <error descr="Use an integer rather than a string here (replace '17' with just 17)">targetSdkVersion '17'</error>
     }
 }

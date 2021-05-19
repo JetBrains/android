@@ -16,8 +16,10 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
@@ -54,7 +56,7 @@ class PsAndroidModuleAnalyzer(
     analyzeProductFlavors(model, pathRenderer)
 
   private fun analyzeDeclaredDependencies(model: PsAndroidModule): Sequence<PsIssue> {
-    val issuesByData = transferSyncIssues(model.resolvedModel)
+    val issuesByData = transferSyncIssues(model.resolvedSyncIssues)
     return model.dependencies.libraries.asSequence().flatMap { dependency ->
       val issueKey = dependency.spec.group + GRADLE_PATH_SEPARATOR + dependency.spec.name
       analyzeDeclaredDependency(dependency) +
@@ -123,7 +125,7 @@ class PsAndroidModuleAnalyzer(
 private val URL_PATTERN = Pattern.compile("\\(?http://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|]")
 
 @VisibleForTesting
-fun createIssueFrom(syncIssue: SyncIssue, path: PsPath): PsIssue {
+fun createIssueFrom(syncIssue: SyncIssueData, path: PsPath): PsIssue {
   var message = escapeString(syncIssue.message)
   val matcher = URL_PATTERN.matcher(message)
   var result = matcher.find()
@@ -136,14 +138,14 @@ fun createIssueFrom(syncIssue: SyncIssue, path: PsPath): PsIssue {
   return PsGeneralIssue(message, path, PROJECT_ANALYSIS, getSeverity(syncIssue))
 }
 
-private fun getSeverity(issue: SyncIssue): PsIssue.Severity {
+private fun getSeverity(issue: SyncIssueData): PsIssue.Severity {
   val severity = issue.severity
   when (severity) {
-    SyncIssue.SEVERITY_ERROR -> return ERROR
-    SyncIssue.SEVERITY_WARNING -> return WARNING
+    IdeSyncIssue.SEVERITY_ERROR -> return ERROR
+    IdeSyncIssue.SEVERITY_WARNING -> return WARNING
   }
   return INFO
 }
 
-private fun transferSyncIssues(gradleModel: AndroidModuleModel?) =
-  gradleModel?.androidProject?.syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()
+private fun transferSyncIssues(syncIssues: SyncIssues?) =
+  syncIssues?.filter { !it.data.isNullOrEmpty() }?.groupBy { it.data!! }.orEmpty()

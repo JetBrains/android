@@ -17,6 +17,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
     <projectService serviceImplementation="com.android.tools.adtui.workbench.DetachedToolWindowManager" />
+    <applicationService serviceInterface="com.android.tools.adtui.common.AdtUiCursorsProvider"
+                        serviceImplementation="com.android.tools.adtui.common.AdtUiCursorProviderImpl"/>
   </extensions>
 
   <actions>

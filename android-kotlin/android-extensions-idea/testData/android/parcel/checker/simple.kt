@@ -1,6 +1,6 @@
 package test
 
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import android.os.Parcelable
 
 @Parcelize

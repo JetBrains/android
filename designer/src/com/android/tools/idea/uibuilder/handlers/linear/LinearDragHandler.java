@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -98,11 +99,11 @@ class LinearDragHandler extends DragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-    String result = super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+    String result = super.update(x, y, modifiers, sceneContext);
     @AndroidDpCoordinate int dx = x + startX - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y + startY - myComponent.getDrawHeight() / 2;
-    myDragTarget.mouseDrag(dx, dy, ourEmptyTargetList);
+    myDragTarget.mouseDrag(dx, dy, ourEmptyTargetList, sceneContext);
     return result;
   }
 

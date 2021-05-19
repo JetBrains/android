@@ -18,9 +18,12 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.trackgroup.DefaultTrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
 import com.android.tools.adtui.trackgroup.TrackRendererFactory;
+import com.android.tools.profilers.cpu.BufferQueueTrackRenderer;
 import com.android.tools.profilers.cpu.CpuCoreTrackRenderer;
+import com.android.tools.profilers.cpu.CpuFrequencyTrackRenderer;
 import com.android.tools.profilers.cpu.CpuThreadTrackRenderer;
 import com.android.tools.profilers.cpu.FramesTrackRenderer;
+import com.android.tools.profilers.cpu.RssMemoryTrackRenderer;
 import com.android.tools.profilers.cpu.SurfaceflingerTrackRenderer;
 import com.android.tools.profilers.cpu.VsyncTrackRenderer;
 import com.android.tools.profilers.customevent.CustomEventTrackRenderer;
@@ -52,10 +55,16 @@ public class ProfilerTrackRendererFactory implements TrackRendererFactory<Profil
         return new SurfaceflingerTrackRenderer();
       case VSYNC:
         return new VsyncTrackRenderer();
+      case BUFFER_QUEUE:
+        return new BufferQueueTrackRenderer();
       case CPU_THREAD:
         return new CpuThreadTrackRenderer(myProfilersView);
       case CPU_CORE:
         return new CpuCoreTrackRenderer();
+      case CPU_FREQUENCY:
+        return new CpuFrequencyTrackRenderer();
+      case RSS_MEMORY:
+        return new RssMemoryTrackRenderer();
       case CUSTOM_EVENTS:
         return new CustomEventTrackRenderer();
       default:

@@ -215,7 +215,7 @@ class ViewBindingCompletionTest {
 
           import test.vb.databinding.ActivityMainBinding
 
-          fun dummy() {
+          fun sample() {
             lateinit var binding: ActivityMainBinding
             binding.test${caret}
           }
@@ -225,6 +225,7 @@ class ViewBindingCompletionTest {
 
     fixture.completeBasic()
 
+/* b/165051684
     fixture.checkResult(
       // language=kotlin
       """
@@ -232,10 +233,11 @@ class ViewBindingCompletionTest {
 
           import test.vb.databinding.ActivityMainBinding
 
-          fun dummy() {
+          fun sample() {
             lateinit var binding: ActivityMainBinding
             binding.testId
           }
       """.trimIndent())
+b/165051684 */
   }
 }

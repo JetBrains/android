@@ -24,8 +24,6 @@ import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.adtui.validation.validators.FalseValidator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.ProportionalImageScaler;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
-import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -33,6 +31,8 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeCellRenderer;
+import com.android.tools.idea.ui.wizard.ProposedFileTreeModel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -78,7 +78,8 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   private Tree myOutputPreviewTree;
 
   private ObjectProperty<NamedModuleTemplate> mySelectedTemplate;
-  private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
+  private final BoolProperty myFilesAlreadyExist = new BoolValueProperty();
+  private ProposedFileTreeModel myProposedFileTreeModel;
 
   public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<NamedModuleTemplate> templates) {
     super(model, "Confirm Icon Path");
@@ -101,8 +102,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     myOutputPreviewTree.setRowHeight(-1);
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");
 
-    String alreadyExistsError = WizardUtils.toHtmlString(
-        "Some existing files (shown in red) will be overwritten by this operation.");
+    String alreadyExistsError = WizardUtils.toHtmlString("Some files (shown in red) will overwrite existing files.");
     myValidatorPanel.registerValidator(myFilesAlreadyExist, new FalseValidator(Validator.Severity.WARNING, alreadyExistsError));
   }
 
@@ -155,6 +155,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   @Override
   protected void onProceeding() {
     getModel().setPaths(mySelectedTemplate.get().getPaths());
+    getModel().setFilesToDelete(myProposedFileTreeModel.getShadowConflictedFiles());
   }
 
   @Override
@@ -180,7 +181,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
           return cmp;
         }
 
-        if (density1 != null && density2 != null && density1 != density2) {
+        if (density1 != null && density1 != density2) {
           return Integer.compare(density2.getDpiValue(), density1.getDpiValue()); // Sort least dense to most dense.
         }
 
@@ -201,10 +202,10 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
-      ProposedFileTreeModel treeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), pathToIcon);
+      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), pathToIcon);
 
-      myFilesAlreadyExist.set(treeModel.hasConflicts());
-      myOutputPreviewTree.setModel(treeModel);
+      myFilesAlreadyExist.set(myProposedFileTreeModel.hasConflicts());
+      myOutputPreviewTree.setModel(myProposedFileTreeModel);
 
       // The tree should be totally expanded by default.
       for (int i = 0; i < myOutputPreviewTree.getRowCount(); ++i) {

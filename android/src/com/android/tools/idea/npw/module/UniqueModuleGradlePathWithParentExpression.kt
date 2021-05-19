@@ -35,20 +35,20 @@ import java.util.Locale
 data class UniqueModuleGradlePathWithParentExpression(
   private val project: Project,
   private val applicationName: StringProperty,
-  private val moduleParent: String?
+  private val moduleParent: String
 ) : Expression<String>(applicationName) {
   override fun get(): String {
     val moduleValidator = ModuleValidator(project)
 
-    fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity in setOf(Validator.Severity.OK, Validator.Severity.INFO)
+    fun isUnique(name: String): Boolean = moduleValidator.validate(name).severity != Validator.Severity.ERROR
     fun String.toGradleProjectName() = toLowerCase(Locale.US).replace("\\s".toRegex(), "")
 
-    val parentModulePrefix = moduleParent.orEmpty() + ":"
+    val parentModulePrefix = if (moduleParent.endsWith(":")) moduleParent else "$moduleParent:"
     val convertedName = applicationName.get().toGradleProjectName()
     val moduleGradlePath = if (convertedName.startsWith(":")) convertedName else parentModulePrefix + convertedName
     val uniqueModuleGradlePath =
       if (isUnique(moduleGradlePath)) moduleGradlePath
-      else (2..1000).asSequence().map { "$moduleGradlePath$it" }.first { isUnique(it) }
+      else (2..1000).asSequence().map { "$moduleGradlePath$it" }.firstOrNull { isUnique(it) } ?: moduleGradlePath
     return if (parentModulePrefix == ":") uniqueModuleGradlePath.removePrefix(":") else uniqueModuleGradlePath
   }
 }

@@ -48,7 +48,7 @@ class TasksConfigurationIssuesAnalyzerTest {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
 
     FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", SdkConstants.FN_BUILD_GRADLE), """
-      abstract class DummyTask extends DefaultTask {
+      abstract class SampleTask extends DefaultTask {
           @OutputDirectory
           abstract DirectoryProperty getOutputDir()
 
@@ -58,21 +58,21 @@ class TasksConfigurationIssuesAnalyzerTest {
           }
       }
 
-      task dummy1(type: DummyTask) {
+      task sample1(type: SampleTask) {
           outputDir = file("${"$"}buildDir/outputs/shared_output")
       }
 
-      task dummy2(type: DummyTask) {
+      task sample2(type: SampleTask) {
           outputDir = file("${"$"}buildDir/outputs/shared_output")
       }
 
       afterEvaluate { project ->
           android.applicationVariants.all { variant ->
               def mergeResourcesTask = tasks.getByPath("merge${"$"}{variant.name.capitalize()}Resources")
-              mergeResourcesTask.dependsOn dummy1
-              mergeResourcesTask.dependsOn dummy2
+              mergeResourcesTask.dependsOn sample1
+              mergeResourcesTask.dependsOn sample2
           }
-          dummy2.dependsOn dummy1
+          sample2.dependsOn sample1
       }
     """.trimIndent())
   }
@@ -92,12 +92,12 @@ class TasksConfigurationIssuesAnalyzerTest {
     assertThat(tasksSharingOutput.outputFilePath).endsWith("app/build/outputs/shared_output")
     assertThat(tasksSharingOutput.taskList).hasSize(2)
 
-    assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:dummy1")
-    assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("DummyTask")
+    assertThat(tasksSharingOutput.taskList[0].getTaskPath()).isEqualTo(":app:sample1")
+    assertThat(tasksSharingOutput.taskList[0].taskType).isEqualTo("SampleTask")
     assertThat(tasksSharingOutput.taskList[0].originPlugin.toString()).isEqualTo("script :app:build.gradle")
 
-    assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:dummy2")
-    assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("DummyTask")
+    assertThat(tasksSharingOutput.taskList[1].getTaskPath()).isEqualTo(":app:sample2")
+    assertThat(tasksSharingOutput.taskList[1].taskType).isEqualTo("SampleTask")
     assertThat(tasksSharingOutput.taskList[1].originPlugin.toString()).isEqualTo("script :app:build.gradle")
   }
 }

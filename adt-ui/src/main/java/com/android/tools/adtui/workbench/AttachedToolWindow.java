@@ -735,6 +735,20 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       });
     }
 
+    /**
+     * Workaround for bug: IDEA-242498
+     *
+     * SearchTextField.addNotify() will register an action to clear the text on ESC. The action is wrapped (copied into a new instance)
+     * before being added to the list stored as the client property AnAction.ACTION_KEYS. That means that our memory leak checks will
+     * detect a leak when addNotify is called multiple times. Since no other actions are added this way, it is safe to just remove all
+     * the registered actions on removeNotify(). See b/156924012.
+     */
+    @Override
+    public void removeNotify() {
+      super.removeNotify();
+      putClientProperty(AnAction.ACTIONS_KEY, null);
+    }
+
     @Override
     protected void onFocusLost() {
       Component focusedDescendant = IdeFocusManager.getGlobalInstance().getFocusedDescendantFor(this);

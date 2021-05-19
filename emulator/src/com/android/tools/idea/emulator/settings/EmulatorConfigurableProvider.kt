@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.emulator.settings
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 
 /**
  * Provider of Emulator-related Settings pages.
  */
-internal class EmulatorConfigurableProvider : ConfigurableProvider() {
+class EmulatorConfigurableProvider : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable {
     return EmulatorSettingsUi()
   }
 
   override fun canCreateConfigurable(): Boolean {
-    return StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()
+    return true
   }
 }

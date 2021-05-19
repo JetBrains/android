@@ -38,7 +38,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -202,7 +204,7 @@ public class StudioReportDatabaseTest {
   public void testDiagnosticProperties() throws Exception {
     Path t1 = createTempFileWithThreadDump("T1");
     Path t2 = createTempFileWithThreadDump("T2");
-    long time = DateFormat.getInstance().parse("07/10/2018 4:05 PM, PDT").getTime();
+    long time = new SimpleDateFormat("MM/dd/yyyy h:mm a, z", Locale.US).parse("07/10/2018 4:05 PM, PDT").getTime();
     DiagnosticReportProperties properties = new DiagnosticReportProperties(
       1000, // uptime
       time, // report time

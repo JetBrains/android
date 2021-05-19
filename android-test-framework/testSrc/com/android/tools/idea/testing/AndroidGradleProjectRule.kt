@@ -84,18 +84,21 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   @JvmOverloads
   fun load(
     projectPath: String,
+    kotlinVersion: String? = null,
+    gradleVersion: String? = null,
     issueFilter: AndroidGradleTests.SyncIssueFilter? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
   ) {
     if (preLoad != null) {
-      val rootFile = delegateTestCase.prepareProjectForImport(projectPath)
+      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, null, kotlinVersion)
 
       preLoad(rootFile)
       delegateTestCase.importProject(issueFilter)
       delegateTestCase.prepareProjectForTest(project, null)
     }
     else {
-      delegateTestCase.loadProject(projectPath, issueFilter)
+      delegateTestCase.loadProject(
+        projectPath, null, gradleVersion, null, kotlinVersion, issueFilter)
     }
   }
 

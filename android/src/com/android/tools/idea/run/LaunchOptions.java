@@ -45,6 +45,7 @@ public final class LaunchOptions {
     private boolean myForceStopRunningApp = true;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
+    private boolean myAlwaysInstallWithPm = false;
 
     private Builder() {
     }
@@ -61,7 +62,8 @@ public final class LaunchOptions {
                                mySkipNoopApkInstallations,
                                myForceStopRunningApp,
                                myExtraOptions,
-                               myDeployAsInstant);
+                               myDeployAsInstant,
+                               myAlwaysInstallWithPm);
     }
 
     @NotNull
@@ -128,6 +130,12 @@ public final class LaunchOptions {
       myDeployAsInstant = deployAsInstant;
       return this;
     }
+
+    @NotNull
+    public Builder setAlwaysInstallWithPm(boolean alwaysInstallWithPm) {
+      myAlwaysInstallWithPm = alwaysInstallWithPm;
+      return this;
+    }
   }
 
   @NotNull
@@ -146,6 +154,7 @@ public final class LaunchOptions {
   private final boolean myForceStopRunningApp;
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
+  private final boolean myAlwaysInstallWithPm;
 
   private LaunchOptions(boolean deploy,
                         @Nullable Function<Optional<IDevice>, String> pmInstallOptions,
@@ -157,7 +166,8 @@ public final class LaunchOptions {
                         boolean skipNoopApkInstallations,
                         boolean forceStopRunningApp,
                         @NotNull Map<String, Object> extraOptions,
-                        boolean deployAsInstant) {
+                        boolean deployAsInstant,
+                        boolean alwaysInstallWithPm) {
     myDeploy = deploy;
     myPmInstallOptions = pmInstallOptions;
     myAllUsers = allUsers;
@@ -169,6 +179,7 @@ public final class LaunchOptions {
     myForceStopRunningApp = forceStopRunningApp;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
+    myAlwaysInstallWithPm = alwaysInstallWithPm;
   }
 
   public boolean isDeploy() {
@@ -186,6 +197,8 @@ public final class LaunchOptions {
   public boolean getInstallOnAllUsers() {
     return myAllUsers;
   }
+
+  public boolean getAlwaysInstallWithPm() { return myAlwaysInstallWithPm; }
 
   @NotNull
   public List<String> getDisabledDynamicFeatures() {

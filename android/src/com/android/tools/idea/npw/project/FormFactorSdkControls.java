@@ -21,7 +21,7 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.sdk.LoadStatus;
 import com.android.repository.api.UpdatablePackage;
-import com.android.tools.idea.device.FormFactor;
+import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.observable.BindingsManager;
@@ -66,7 +66,7 @@ public class FormFactorSdkControls implements Disposable {
   private JPanel myLoadingDataPanel;
   private AsyncProcessIcon myLoadingDataIcon;
   private JLabel myLoadingDataLabel;
-  private AndroidApiLevelComboBox myMinSdkCombobox;
+  private final AndroidApiLevelComboBox myMinSdkCombobox = new AndroidApiLevelComboBox();
   private JPanel myRoot;
 
   public void init(OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo, Disposable parentDisposable) {
@@ -101,6 +101,11 @@ public class FormFactorSdkControls implements Disposable {
         }
       }
     });
+  }
+
+  @NotNull
+  public AndroidApiLevelComboBox getMinSdkComboBox() {
+    return myMinSdkCombobox;
   }
 
   @NotNull

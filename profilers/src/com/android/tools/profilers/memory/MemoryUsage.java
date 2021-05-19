@@ -33,19 +33,14 @@ public class MemoryUsage extends LineChartModel {
 
   @NotNull private final Range myMemoryRange;
   @NotNull private final RangedContinuousSeries myTotalMemorySeries;
+  static final int KB_TO_B = 1024;
 
   public MemoryUsage(@NotNull StudioProfilers profilers) {
     myMemoryRange = new Range(0, 0);
-    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange,
-                                               UnifiedEventDataSeries.DEFAULT_GROUP_ID,
-                                               UnifiedEventDataSeries
-                                                 .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getTotalMem()));
-    }
-    else {
-      myTotalMemorySeries =
-        createLegacyRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, sample -> (long)sample.getMemoryUsage().getTotalMem());
-    }
+    myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange,
+                                             UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+                                             UnifiedEventDataSeries
+                                               .fromFieldToDataExtractor(e -> (long)e.getMemoryUsage().getTotalMem()*KB_TO_B));
     add(myTotalMemorySeries);
   }
 

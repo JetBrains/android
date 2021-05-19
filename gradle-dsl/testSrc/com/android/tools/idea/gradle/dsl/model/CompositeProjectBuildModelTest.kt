@@ -92,10 +92,10 @@ class CompositeProjectBuildModelTest : GradleFileModelTestCase() {
     val compositeModel = getIncludedProjectBuildModel(compositeRoot.path)
 
     val mainBuildModels = mainModel.allIncludedBuildModels
-    assertSize(2, mainBuildModels)
+    assertSize(3, mainBuildModels)
 
     val compositeBuildModels = compositeModel!!.allIncludedBuildModels
-    assertSize(2, compositeBuildModels)
+    assertSize(3, compositeBuildModels)
   }
 
   private fun createFileAndWriteContent(file: VirtualFile, content: TestFileName) {

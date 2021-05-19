@@ -24,6 +24,7 @@ import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidGradleTests.shouldUseRemoteRepositories;
+import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertAbout;
@@ -33,7 +34,6 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -59,7 +59,9 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.TestApplicationManager;
+import com.intellij.testFramework.TestApplicationManagerKt;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -137,7 +139,6 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   public void setUp() throws Exception {
     super.setUp();
 
-    StudioFlags.KOTLIN_DSL_PARSING.override(true);
     TestApplicationManager.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
@@ -151,6 +152,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       // TODO(b/159600848)
       GradleBuildOutputUtil.emulateStartupActivityForTest(getProject());
     }
+
+    // Use per-project code style settings so we never modify the IDE defaults.
+    CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
   }
 
   public void setUpFixture() throws Exception {
@@ -191,14 +195,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   @Override
   protected void tearDown() throws Exception {
     ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
-    StudioFlags.KOTLIN_DSL_PARSING.clearOverride();
     try {
       TestDialogManager.setTestDialog(TestDialog.DEFAULT);
       tearDownFixture();
 
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        ProjectManagerEx.getInstanceEx().forceCloseProject(openProjects[0]);
+        TestApplicationManagerKt.tearDownProjectAndApp(openProjects[0]);
       }
       myAndroidFacet = null;
     }
@@ -252,12 +255,22 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
                                    ) throws Exception {
     loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null);
   }
+
   protected final void loadProject(@NotNull String relativePath,
                                    @Nullable String chosenModuleName,
                                    @Nullable String gradleVersion,
                                    @Nullable String gradlePluginVersion,
                                    @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion);
+    loadProject(relativePath, chosenModuleName, gradleVersion, gradlePluginVersion, null, issueFilter);
+  }
+
+  protected final void loadProject(@NotNull String relativePath,
+                                   @Nullable String chosenModuleName,
+                                   @Nullable String gradleVersion,
+                                   @Nullable String gradlePluginVersion,
+                                   @Nullable String kotlinVersion,
+                                   @Nullable AndroidGradleTests.SyncIssueFilter issueFilter) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, kotlinVersion);
     importProject(issueFilter);
 
     prepareProjectForTest(getProject(), chosenModuleName);
@@ -273,7 +286,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   protected void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
     AndroidProjectInfo androidProjectInfo = AndroidProjectInfo.getInstance(project);
-    assertTrue(androidProjectInfo.requiresAndroidModel());
+    //assertTrue(androidProjectInfo.requiresAndroidModel());
     assertFalse(androidProjectInfo.isLegacyIdeaAndroidProject());
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
@@ -284,13 +297,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
   protected void patchPreparedProject(@NotNull File projectRoot,
                                       @Nullable String gradleVersion,
                                       @Nullable String gradlePluginVersion,
+                                      @Nullable String kotlinVersion,
                                       File... localRepos) throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null);
+    return prepareProjectForImport(relativePath, null, null, null);
   }
 
   @NotNull
@@ -300,13 +314,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath,
-                                         @Nullable String gradleVersion, @Nullable String gradlePluginVersion) throws IOException {
+                                         @Nullable String gradleVersion, @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
 
     prepareGradleProject(
       projectSourceRoot,
       targetPath,
-      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, getAdditionalRepos().toArray(new File[0])));
+      file -> patchPreparedProject(file, gradleVersion, gradlePluginVersion, kotlinVersion, getAdditionalRepos().toArray(new File[0])));
     return targetPath;
   }
 
@@ -377,6 +391,15 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     latch.await(5, MINUTES);
     GradleInvocationResult result = resultRef.get();
+    refreshProjectFiles();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        waitForSourceFolderManagerToProcessUpdates(project);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
     assert result != null;
     return result;
   }

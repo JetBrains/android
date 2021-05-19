@@ -23,11 +23,12 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.InspectorModelDescriptor
+import com.android.tools.idea.layoutinspector.InspectorViewDescriptor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 object DemoExample {
 
-  fun setUpDemo(fixture: CodeInsightTestFixture): InspectorModelDescriptor.() -> Unit {
+  fun setUpDemo(fixture: CodeInsightTestFixture, body: InspectorViewDescriptor.() -> Unit = {}): InspectorModelDescriptor.() -> Unit {
     fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/layout-inspector/testData/resource").path
     fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
     fixture.copyFileToProject("res/color/app_text_color.xml")
@@ -47,17 +48,18 @@ object DemoExample {
     fixture.copyFileToProject("res/values/styles.xml")
     fixture.copyFileToProject("res/values-land/styles.xml")
 
-    return createDemoViewNodes()
+    return createDemoViewNodes(body)
   }
 
-  private fun createDemoViewNodes(): InspectorModelDescriptor.() -> Unit = {
+  private fun createDemoViewNodes(body: InspectorViewDescriptor.() -> Unit): InspectorModelDescriptor.() -> Unit = {
     val namespace = ResourceNamespace.fromPackageName("com.example")
     val layout = ResourceReference(namespace, ResourceType.LAYOUT, "demo")
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(namespace, ResourceType.ID, "title")
     this.also {
-      view(0, 0, 0, 1200, 1600, FQCN_RELATIVE_LAYOUT, relativeLayoutId, layout = layout) {
-        view(1, 200, 400, 400, 100, FQCN_TEXT_VIEW, textViewId, "@drawable/battery", layout = layout)
+      view(1, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
+        view(2, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
+             body = body)
       }
     }
   }

@@ -15,7 +15,7 @@
   -->
 <layout>
     <data>
-        <variable name="vo" type="com.android.example.appwithdatabinding.DummyVo"/>
+        <variable name="vo" type="com.android.example.appwithdatabinding.SampleVo"/>
     </data>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"

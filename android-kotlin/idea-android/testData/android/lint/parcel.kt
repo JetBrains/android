@@ -3,7 +3,7 @@
 @file:Suppress("UsePropertyAccessSyntax", "UNUSED_VARIABLE", "unused", "UNUSED_PARAMETER", "DEPRECATION")
 import android.os.Parcel
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 class <error descr="This class implements `Parcelable` but does not provide a `CREATOR` field">MyParcelable1</error> : Parcelable {
     override fun describeContents() = 0

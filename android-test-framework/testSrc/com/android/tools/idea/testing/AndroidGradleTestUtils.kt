@@ -18,6 +18,8 @@ package com.android.tools.idea.testing
 import com.android.AndroidProjectTypes
 import com.android.builder.model.AndroidArtifact
 import com.android.builder.model.AndroidArtifactOutput
+import com.android.builder.model.AndroidGradlePluginProjectFlags
+import com.android.builder.model.AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
 import com.android.builder.model.AndroidLibrary
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.BuildTypeContainer
@@ -28,9 +30,9 @@ import com.android.builder.model.JavaLibrary
 import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
+import com.android.builder.model.SyncIssue
 import com.android.builder.model.ViewBindingOptions
-import com.android.ide.common.gradle.model.IdeAndroidProjectImpl
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.ide.common.gradle.model.stubs.AaptOptionsStub
 import com.android.ide.common.gradle.model.stubs.AndroidArtifactStub
 import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub
@@ -55,6 +57,7 @@ import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
+import com.android.ide.common.repository.GradleVersion
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
@@ -69,19 +72,19 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.setupDataNodesForSelectedVariant
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.AndroidTestPaths
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
-import com.google.common.collect.ImmutableList
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -97,13 +100,17 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.io.systemIndependentPath
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
@@ -176,6 +183,8 @@ interface AndroidProjectStubBuilder {
   val projectType: Int
   val minSdk: Int
   val targetSdk: Int
+  val mlModelBindingEnabled: Boolean
+  val agpProjectFlags: AndroidGradlePluginProjectFlags
   val mainSourceProvider: SourceProvider
   val androidTestSourceProviderContainer: SourceProviderContainer?
   val unitTestSourceProviderContainer: SourceProviderContainer?
@@ -208,6 +217,8 @@ data class AndroidProjectBuilder(
   val projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
   val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
   val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
+  val mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean = { false },
+  val agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags = { buildAgpProjectFlagsStub() },
   val defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
   val mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
   val androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
@@ -240,6 +251,12 @@ data class AndroidProjectBuilder(
 
   fun withTargetSdk(targetSdk: AndroidProjectStubBuilder.() -> Int) =
     copy(targetSdk = targetSdk)
+
+  fun withMlModelBindingEnabled(mlModelBindingEnabled: AndroidProjectStubBuilder.() -> Boolean) =
+    copy(mlModelBindingEnabled = mlModelBindingEnabled)
+
+  fun withAgpProjectFlags(agpProjectFlags: AndroidProjectStubBuilder.() -> AndroidGradlePluginProjectFlags) =
+    copy(agpProjectFlags = agpProjectFlags)
 
   fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
     copy(defaultConfig = defaultConfig)
@@ -300,6 +317,8 @@ data class AndroidProjectBuilder(
       override val projectType: Int get() = projectType()
       override val minSdk: Int get() = minSdk()
       override val targetSdk: Int get() = targetSdk()
+      override val mlModelBindingEnabled: Boolean get() = mlModelBindingEnabled()
+      override val agpProjectFlags: AndroidGradlePluginProjectFlags get() = agpProjectFlags()
       override val mainSourceProvider: SourceProvider get() = mainSourceProvider()
       override val androidTestSourceProviderContainer: SourceProviderContainer? get() = androidTestSourceProvider()
       override val unitTestSourceProviderContainer: SourceProviderContainer? get() = unitTestSourceProvider()
@@ -330,26 +349,27 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     projectType = { projectType },
     minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
     targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
-    mainSourceProvider = {
-      SourceProviderStub(
-        ARTIFACT_NAME_MAIN,
-        File(basePath, "AndroidManifest.xml"),
-        listOf(File(basePath, "src")),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        listOf(File(basePath, "res")),
-        emptyList(),
-        emptyList(),
-        emptyList(),
-        emptyList())
-    },
+    mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
     androidTestSourceProvider = { null },
     unitTestSourceProvider = { null },
     releaseSourceProvider = { null }
   )
+fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStructure(): SourceProviderStub {
+  return SourceProviderStub(
+    ARTIFACT_NAME_MAIN,
+    File(basePath, "AndroidManifest.xml"),
+    listOf(File(basePath, "src")),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    listOf(File(basePath, "res")),
+    emptyList(),
+    emptyList(),
+    emptyList(),
+    emptyList())
+}
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
   SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
@@ -369,6 +389,9 @@ fun AndroidProjectStubBuilder.buildDebugSourceProviderStub() =
 
 fun AndroidProjectStubBuilder.buildReleaseSourceProviderStub() =
   SourceProviderStub("release", basePath.resolve("src/release"), "AndroidManifest.xml")
+
+fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub() =
+  AndroidGradlePluginProjectFlagsStub(mapOf(ML_MODEL_BINDING to mlModelBindingEnabled))
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = ProductFlavorContainerStub(
   ProductFlavorStub(
@@ -475,7 +498,6 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     InstantRunStub(),
     "defaultConfig",
     null,
-    null,
     listOf(),
     null,
     null,
@@ -515,7 +537,6 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     mapOf(),
     InstantRunStub(),
     "defaultConfig",
-    null,
     null,
     listOf(),
     null,
@@ -607,7 +628,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     true,
     projectType,
     true,
-    AndroidGradlePluginProjectFlagsStub(),
+    agpProjectFlags,
     listOf("debug", "release")
       .map { variantName ->
         VariantBuildInformationStub(
@@ -639,8 +660,10 @@ fun setupTestProjectFromAndroidModel(
   basePath: File,
   vararg moduleBuilders: ModuleModelBuilder
 ) {
+  val modelCache = ModelCache.create()
   if (IdeSdks.getInstance().androidSdkPath === null) {
     AndroidGradleTests.setUpSdks(project, project, TestUtils.getSdk())
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -664,11 +687,15 @@ fun setupTestProjectFromAndroidModel(
           ModuleData(":", GRADLE_SYSTEM_ID, JAVA.id, project.name, basePath.systemIndependentPath, basePath.systemIndependentPath),
           ProjectData(GRADLE_SYSTEM_ID, project.name, project.basePath!!, basePath.systemIndependentPath))
     }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
   else {
     error("There is already more than one module in the test project.")
   }
+
   ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
@@ -696,6 +723,7 @@ fun setupTestProjectFromAndroidModel(
       null
     )
   )
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   projectDataNode.addChild(
     DataNode<ExternalProject>(
@@ -722,6 +750,7 @@ fun setupTestProjectFromAndroidModel(
       null
     )
   )
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
@@ -732,6 +761,7 @@ fun setupTestProjectFromAndroidModel(
     val moduleDataNode = when (moduleBuilder) {
       is AndroidModuleModelBuilder -> {
         createAndroidModuleDataNode(
+          modelCache,
           moduleName,
           gradlePath,
           moduleBasePath,
@@ -753,6 +783,7 @@ fun setupTestProjectFromAndroidModel(
       }
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
+          modelCache,
           moduleName,
           gradlePath,
           moduleBasePath,
@@ -760,24 +791,31 @@ fun setupTestProjectFromAndroidModel(
         )
     }
     projectDataNode.addChild(moduleDataNode)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 
   setupDataNodesForSelectedVariant(project, androidModels, projectDataNode)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
   ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
   IdeSdks.removeJdksOn((project as? ProjectEx)?.earlyDisposable ?: project)
   runWriteAction {
     task.populateProject(
       projectDataNode,
-      PostSyncProjectSetup.Request(),
       null
     )
     if (GradleSyncState.getInstance(project).lastSyncFailed()) error("Test project setup failed.")
   }
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  ensureIndexesUpToDate(project)
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
 private fun createAndroidModuleDataNode(
+  modelCache: ModelCache,
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,
@@ -808,17 +846,15 @@ private fun createAndroidModuleDataNode(
     )
   )
 
+  val modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProjectStub.modelVersion)
   moduleDataNode.addChild(
     DataNode<AndroidModuleModel>(
       AndroidProjectKeys.ANDROID_MODEL,
       AndroidModuleModel.create(
         moduleName,
         moduleBasePath,
-        IdeAndroidProjectImpl.create(
-          androidProjectStub,
-          IdeDependenciesFactory(),
-          null,
-          ImmutableList.of()),
+        modelCache.androidProjectFrom(androidProjectStub),
+        androidProjectStub.variants.map { modelCache.variantFrom(it, modelVersion) },
         selectedVariantName
       ),
       null
@@ -829,6 +865,7 @@ private fun createAndroidModuleDataNode(
 }
 
 private fun createJavaModuleDataNode(
+  modelCache: ModelCache,
   moduleName: String,
   gradlePath: String,
   moduleBasePath: File,
@@ -866,7 +903,6 @@ private fun createJavaModuleDataNode(
         emptyList(),
         emptyList(),
         emptyMap(),
-        emptyList(),
         null,
         null,
         null,
@@ -955,7 +991,8 @@ fun GradleIntegrationTest.prepareGradleProject(
   testProjectPath: String,
   name: String,
   gradleVersion: String? = null,
-  gradlePluginVersion: String? = null
+  gradlePluginVersion: String? = null,
+  kotlinVersion: String? = null
 ): File {
   if (name == this.getName()) throw IllegalArgumentException("Additional projects cannot be opened under the test name: $name")
   val srcPath = resolveTestDataPath(testProjectPath)
@@ -965,6 +1002,7 @@ fun GradleIntegrationTest.prepareGradleProject(
     srcPath, projectPath,
     ThrowableConsumer<File, IOException> { projectRoot ->
       AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion,
+                                                     kotlinVersion,
                                                      *getAdditionalRepos().toTypedArray())
     })
   return projectPath
@@ -980,9 +1018,32 @@ fun prepareGradleProject(projectSourceRoot: File, projectPath: File, projectPatc
  *
  * The project's `.idea` directory is not required to exist, however.
  */
-fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T = openPreparedProject(nameToPath(name), action)
+fun <T> GradleIntegrationTest.openPreparedProject(name: String, action: (Project) -> T): T {
+  return openPreparedProject(
+    nameToPath(name),
+    verifyOpened = ::verifySyncedSuccessfully,
+    action = action
+  )
+}
 
-private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): T {
+/**
+ * Opens a test project previously prepared under the given [name], verifies the state of the project with [verifyOpened] and runs
+ * a test [action] and then closes and disposes the project.
+ *
+ * The project's `.idea` directory is not required to exist, however.
+ */
+fun <T> GradleIntegrationTest.openPreparedProject(
+  name: String,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T
+): T {
+  return openPreparedProject(nameToPath(name), verifyOpened, action)
+}
+
+private fun <T> openPreparedProject(
+  projectPath: File,
+  verifyOpened: (Project) -> Unit,
+  action: (Project) -> T): T {
   val project = runInEdtAndGet {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     val project = ProjectUtil.openOrImport(projectPath.absolutePath, null, true)!!
@@ -992,10 +1053,12 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
     project
   }
   try {
+    verifyOpened(project)
     return action(project)
   }
   finally {
     runInEdtAndWait {
+      PlatformTestUtil.saveProject(project, true)
       ProjectUtil.closeAndDispose(project)
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     }
@@ -1004,3 +1067,43 @@ private fun <T> openPreparedProject(projectPath: File, action: (Project) -> T): 
 
 private fun GradleIntegrationTest.nameToPath(name: String) =
   File(toSystemDependentName(getBaseTestPath() + "/" + name))
+
+private fun verifySyncedSuccessfully(project: Project) {
+  val lastSyncResult = project.getProjectSystem().getSyncManager().getLastSyncResult()
+  if (!lastSyncResult.isSuccessful) {
+    throw IllegalStateException(lastSyncResult.name)
+  }
+
+  // Also fail the test if SyncIssues with type errors are present.
+  val errors = ModuleManager.getInstance(project)
+    .modules
+    .flatMap { it.syncIssues() }
+    .filter { it.severity == SyncIssue.SEVERITY_ERROR }
+  if (errors.isNotEmpty()) {
+    throw IllegalStateException(errors.joinToString(separator = "\n") { it.message })
+  }
+}
+
+fun JavaCodeInsightTestFixture.makeAutoIndexingOnCopy(): JavaCodeInsightTestFixture {
+  return object : JavaCodeInsightTestFixture by this@makeAutoIndexingOnCopy {
+    override fun copyFileToProject(sourceFilePath: String): VirtualFile {
+      return copyFileToProject(sourceFilePath, sourceFilePath)
+    }
+
+    override fun copyFileToProject(sourceFilePath: String, targetPath: String): VirtualFile {
+      val testDataPath = testDataPath
+      val sourceFile = File(testDataPath, toSystemDependentName(sourceFilePath))
+      val targetFile: File = File(tempDirPath).resolve(toSystemDependentName(targetPath))
+      assert(sourceFile.exists())
+      FileUtil.createParentDirs(targetFile)
+      FileUtil.copy(sourceFile, targetFile)
+      VfsUtil.markDirtyAndRefresh(false, false, false, targetFile)
+      ensureIndexesUpToDate(project)
+      return VfsUtil.findFileByIoFile(targetFile, true) ?: error("Failed to copy $sourceFile to $targetFile")
+    }
+
+    override fun copyDirectoryToProject(sourceFilePath: String, targetPath: String): VirtualFile {
+      error("Not implemented")
+    }
+  }
+}

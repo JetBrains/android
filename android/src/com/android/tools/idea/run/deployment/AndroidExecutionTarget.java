@@ -24,9 +24,14 @@ public abstract class AndroidExecutionTarget extends ExecutionTarget {
   public abstract boolean isApplicationRunning(@NotNull String packageName);
 
   /**
-   * @return the collection of connected devices to run a configuration on, apply changes to, etc
+   * @return the number of (potentially) launch-able devices in this execution target
+   */
+  public abstract int getAvailableDeviceCount();
+
+  /**
+   * @return the collection of live running devices to run a configuration on, apply changes to, etc
    */
   @NotNull
-  public abstract Collection<IDevice> getDevices();
+  public abstract Collection<IDevice> getRunningDevices();
 
 }

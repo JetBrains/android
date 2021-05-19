@@ -10,6 +10,6 @@ public class TestActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     PackageManager pm = getPackageManager();
-    <error descr="You should look for any camera available on the device, not just the rear"><caret>pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)</error>;
+    <warning descr="You should look for any camera available on the device, not just the rear"><caret>pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)</warning>;
   }
 }

@@ -263,18 +263,20 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
   //       This is because they may be re-used between main and tests scopes.
   return IdeaSourceProviderImpl(
     scopeType,
-    manifestFileUrls = providers.flatMap { it.manifestFileUrls },
-    manifestDirectoryUrls = providers.flatMap { it.manifestDirectoryUrls },
-    javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
-    resourcesDirectoryUrls = providers.flatMap { it.resourcesDirectoryUrls },
-    aidlDirectoryUrls = providers.flatMap { it.aidlDirectoryUrls },
-    renderscriptDirectoryUrls = providers.flatMap { it.renderscriptDirectoryUrls },
-    jniDirectoryUrls = providers.flatMap { it.jniDirectoryUrls },
-    jniLibsDirectoryUrls = providers.flatMap { it.jniLibsDirectoryUrls },
-    resDirectoryUrls = providers.flatMap { it.resDirectoryUrls },
-    assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
-    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls },
-    mlModelsDirectoryUrls = providers.flatMap { it.mlModelsDirectoryUrls }
+    core = object : IdeaSourceProviderImpl.Core {
+      override val manifestFileUrls get() = providers.asSequence().map { it.manifestFileUrls.asSequence() }.flatten()
+      override val manifestDirectoryUrls get() = providers.asSequence().map { it.manifestDirectoryUrls.asSequence() }.flatten()
+      override val javaDirectoryUrls get() = providers.asSequence().map { it.javaDirectoryUrls.asSequence() }.flatten()
+      override val resourcesDirectoryUrls get() = providers.asSequence().map { it.resourcesDirectoryUrls.asSequence() }.flatten()
+      override val aidlDirectoryUrls get() = providers.asSequence().map { it.aidlDirectoryUrls.asSequence() }.flatten()
+      override val renderscriptDirectoryUrls get() = providers.asSequence().map { it.renderscriptDirectoryUrls.asSequence() }.flatten()
+      override val jniDirectoryUrls get() = providers.asSequence().map { it.jniDirectoryUrls.asSequence() }.flatten()
+      override val jniLibsDirectoryUrls get() = providers.asSequence().map { it.jniLibsDirectoryUrls.asSequence() }.flatten()
+      override val resDirectoryUrls get() = providers.asSequence().map { it.resDirectoryUrls.asSequence() }.flatten()
+      override val assetsDirectoryUrls get() = providers.asSequence().map { it.assetsDirectoryUrls.asSequence() }.flatten()
+      override val shadersDirectoryUrls get() = providers.asSequence().map { it.shadersDirectoryUrls.asSequence() }.flatten()
+      override val mlModelsDirectoryUrls get() = providers.asSequence().map { it.mlModelsDirectoryUrls.asSequence() }.flatten()
+    }
   )
 }
 

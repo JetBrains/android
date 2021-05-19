@@ -18,6 +18,7 @@ public final class TestProjectPaths {
   public static final String DEPENDENT_MODULES = "projects/dependentModules";
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
   public static final String DYNAMIC_APP = "projects/dynamicApp";
+  public static final String DYNAMIC_APP_WITH_VARIANTS = "projects/dynamicAppWithVariants";
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String IMPORTING = "projects/importing";
   public static final String INSTANT_APP = "projects/instantApp";

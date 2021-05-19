@@ -176,8 +176,8 @@ public class TrackGroup extends AspectObserver {
     myTrackTitleOverlay.addMouseMotionListener(trackTitleMouseEventHandler);
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES));
-    if (groupModel.getRangeSelectionModel() != null) {
-      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getRangeSelectionModel(), myTrackList);
+    if (groupModel.getBoxSelectionModel() != null) {
+      myBoxSelectionComponent = new BoxSelectionComponent(groupModel.getBoxSelectionModel(), myTrackList);
       DelegateMouseEventHandler.delegateTo(myOverlay)
         .installListenerOn(myBoxSelectionComponent)
         .installMotionListenerOn(myBoxSelectionComponent);
@@ -218,6 +218,7 @@ public class TrackGroup extends AspectObserver {
       myActionsDropdown.setVisible(false);
       myCollapseButton.setText("Expand Section");
       myCollapseButton.setIcon(EXPAND_ICON);
+      getModel().getActionListeners().forEach(listener -> listener.onGroupCollapsed(getModel().getTitle()));
     }
     else {
       myTrackList.setVisible(true);
@@ -227,6 +228,7 @@ public class TrackGroup extends AspectObserver {
       myActionsDropdown.setVisible(true);
       myCollapseButton.setText(null);
       myCollapseButton.setIcon(COLLAPSE_ICON);
+      getModel().getActionListeners().forEach(listener -> listener.onGroupExpanded(getModel().getTitle()));
     }
   }
 
@@ -237,8 +239,14 @@ public class TrackGroup extends AspectObserver {
   public TrackGroup setMover(@Nullable TrackGroupMover mover) {
     initShowMoreDropdown();
     if (mover != null) {
-      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Up", null, () -> mover.moveTrackGroupUp(this)));
-      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Down", null, () -> mover.moveTrackGroupDown(this)));
+      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Up", null, () -> {
+        mover.moveTrackGroupUp(this);
+        getModel().getActionListeners().forEach(listener -> listener.onGroupMovedUp(getModel().getTitle()));
+      }));
+      myActionsDropdown.getAction().addChildrenActions(new CommonAction("Move Down", null, () -> {
+        mover.moveTrackGroupDown(this);
+        getModel().getActionListeners().forEach(listener -> listener.onGroupMovedDown(getModel().getTitle()));
+      }));
     }
     return this;
   }

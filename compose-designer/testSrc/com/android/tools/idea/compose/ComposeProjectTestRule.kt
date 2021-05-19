@@ -34,7 +34,9 @@ import org.junit.runners.model.Statement
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose unit tests.
  */
-private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) : NamedExternalResource() {
+private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule,
+                                     private val previewAnnotationPackage: String,
+                                     private val composableAnnotationPackage: String) : NamedExternalResource() {
   override fun before(description: Description) {
     // Kotlin UnusedSymbolInspection caches the extensions during the initialization so, unfortunately we have to do this to ensure
     // our entry point detector is registered early enough
@@ -44,8 +46,8 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
       projectRule.fixture.testRootDisposable)
 
     StudioFlags.COMPOSE_PREVIEW.override(true)
-    projectRule.fixture.stubComposableAnnotation()
-    projectRule.fixture.stubPreviewAnnotation()
+    projectRule.fixture.stubComposableAnnotation(composableAnnotationPackage)
+    projectRule.fixture.stubPreviewAnnotation(previewAnnotationPackage)
   }
 
   override fun after(description: Description) {
@@ -57,14 +59,17 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
  * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for testing
  * Compose preview elements.
  */
-class ComposeProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()) : TestRule {
+class ComposeProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory(),
+                         previewAnnotationPackage: String,
+                         composableAnnotationPackage: String) : TestRule {
   val project: Project
     get() = projectRule.project
 
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate = RuleChain.outerRule(projectRule).around(ComposeProjectRuleImpl(projectRule))
+  private val delegate = RuleChain.outerRule(projectRule).around(
+    ComposeProjectRuleImpl(projectRule, previewAnnotationPackage, composableAnnotationPackage))
 
   override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
 }

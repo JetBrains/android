@@ -170,7 +170,7 @@ class TransportStreamManagerTest {
     stream!!.registerStreamEventListener(
       TransportStreamEventListener(
         Common.Event.Kind.PROCESS,
-        MoreExecutors.directExecutor()
+        executor = MoreExecutors.directExecutor()
       ) {
         eventHeardLatch.countDown()
       }
@@ -198,7 +198,7 @@ class TransportStreamManagerTest {
     manager.addStreamListener(object : TransportStreamListener {
       override fun onStreamConnected(streamChannel: TransportStreamChannel) {
         streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(Common.Event.Kind.PROCESS, MoreExecutors.directExecutor()) {
+          TransportStreamEventListener(Common.Event.Kind.PROCESS, executor =  MoreExecutors.directExecutor()) {
             processLatch.countDown()
           }
         )

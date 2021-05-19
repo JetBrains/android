@@ -50,7 +50,7 @@ public class ClassConverter {
    */
   @NotNull
   static byte[] rewriteClass(@NotNull byte[] classData, @NotNull Function<ClassVisitor, ClassVisitor> getTransformations) {
-    final ClassWriter classWriter = new ClassWriter(0);
+    final ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
     ClassVisitor classVisitor = getTransformations.apply(classWriter);
     ClassReader reader = new ClassReader(classData);
 

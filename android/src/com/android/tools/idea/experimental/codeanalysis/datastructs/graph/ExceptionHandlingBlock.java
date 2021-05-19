@@ -17,8 +17,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph;
 
 import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ExceptionHandlingBlock {
 

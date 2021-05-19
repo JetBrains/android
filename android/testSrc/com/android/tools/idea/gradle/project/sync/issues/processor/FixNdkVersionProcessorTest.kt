@@ -56,7 +56,7 @@ class FixNdkVersionProcessorTest : AndroidGradleTestCase() {
     val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
     val usages = processor.findUsages()
     assertSize(1, usages)
-    assertEquals("\"21.1.6352462\"", usages[0].element!!.text)
+    assertEquals("\"21.4.7075529\"", usages[0].element!!.text)
   }
 
   @Test

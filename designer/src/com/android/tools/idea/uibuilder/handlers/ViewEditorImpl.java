@@ -34,6 +34,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -215,7 +216,7 @@ public class ViewEditorImpl extends ViewEditor {
       null,
       false,
       includeSampleData,
-      model.getVirtualFile()
+      true, model.getVirtualFile()
     );
 
     dialog.show();

@@ -16,6 +16,7 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
+import com.android.tools.adtui.model.stdui.EditingSupport
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
@@ -67,6 +68,16 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   private var lookupCancelled = false
   private var lastCompletionText = AtomicReference<String>("")
 
+  /**
+   * Is the current value included in the top of the completion popup.
+   *
+   * Some fields allows custom values in addition to the supplied values from completions given by [EditingSupport].
+   * An example is the user is typing "ma" and the completions include "match_parent". If the user types <enter>
+   * should we commit "ma" or "match_parent" ?  The solution chosen is to include "ma" as the top choice in the
+   * completions. Reference: b/148628592.
+   */
+  private var currentValueIncluded = false
+
   init {
     @Suppress("UNCHECKED_CAST")
     ui.createList(filteredModel as ListModel<String>, matcher, editor)
@@ -113,10 +124,12 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
         dataLoaded = true
         support.uiExecution(Runnable {
           listModel.clear()
+          currentValueIncluded = false
           if (values.isNotEmpty()) {
             val currentValue = editor.text
             if (support.allowCustomValues && currentValue.isNotEmpty()) {
               listModel.addElement(currentValue)
+              currentValueIncluded = true
             }
             values.forEach { if (it != currentValue) listModel.addElement(it) }
           }
@@ -127,16 +140,16 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   }
 
   private fun updateFilter() {
-    val support = editor.editorModel.editingSupport
     val text = editor.text
     val oldSelectedValue = ui.selectedValue
-    val isCurrentValueSelected = ui.selectedIndex == 0
-    if (support.allowCustomValues && listModel.size() > 0) {
+    val isCurrentValueSelected = currentValueIncluded && ui.selectedIndex == 0
+    if (currentValueIncluded && listModel.size() > 0) {
       listModel.set(0, text)
     }
     matcher.pattern = text
     filteredModel.refilter()
-    val hasMatchesToShow = filteredModel.size > 1
+    val emptyListSize = if (currentValueIncluded) 1 else 0
+    val hasMatchesToShow = filteredModel.size > emptyListSize
     when {
       hasMatchesToShow && !ui.visible -> display()
       !hasMatchesToShow && ui.visible -> hideLookup()

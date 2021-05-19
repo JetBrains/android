@@ -3,7 +3,6 @@ com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.getResourceResolver
 com.android.tools.idea.configurations.Configuration.getDevice|com.android.tools.idea.configurations.Configuration.syncFolderConfig
 com.android.tools.idea.configurations.ConfigurationManager.create|com.android.tools.idea.configurations.ConfigurationManager.getConfiguration
-com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.configurations.ConfigurationAction.tryUpdateConfiguration
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.editors.theme.ThemeEditorUtils.getConfigurationForModule
 com.android.tools.idea.configurations.ConfigurationManager.getConfiguration|com.android.tools.idea.rendering.GutterIconFactory.createXmlIcon
 com.android.tools.idea.configurations.ConfigurationManager.getDevices|com.android.tools.idea.configurations.ConfigurationManager.getDefaultDevice
@@ -29,7 +28,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant.<init>
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.actions.CreateXmlResourceDialog.lambda$new$0
 com.android.tools.idea.res.ResourceRepositoryManager.getAppResources|org.jetbrains.android.resourceManagers.LocalResourceManager.getResourceRepository
-com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.IdeResourcesUtil.isAccessible
 com.android.tools.idea.res.ResourceRepositoryManager.getFrameworkResources|com.android.tools.idea.res.ResourceRepositoryManager.getAllResources
 com.android.tools.idea.res.ResourceRepositoryManager.getLibraryResources|com.android.tools.idea.res.ResourceRepositoryManager.getAppResources
 com.android.tools.idea.res.ResourceRepositoryManager.getLibraryResources|com.android.tools.idea.res.ResourceRepositoryManager.lambda$getAppResources$0
@@ -37,7 +35,6 @@ com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.andr
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.editors.theme.ThemeResolver.resolveLocallyDefinedModuleThemes
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ProjectResourceRepository.computeRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources|com.android.tools.idea.res.ResourceRepositoryManager.getModuleResources
-com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.fonts.ProjectFonts.getFonts
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.AppResourceRepository.computeLocalRepositories
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources

@@ -19,7 +19,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker
 import com.android.tools.idea.common.editor.DesignerEditorPanel
 import com.android.tools.idea.common.type.DefaultDesignerFileType
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
@@ -39,7 +39,7 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   override fun setUp() {
     super.setUp()
     surface = mock(NlDesignSurface::class.java)
-    `when`(surface.sceneMode).thenReturn(SceneMode.RENDER_AND_BLUEPRINT)
+    `when`(surface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
     analyticsManager = NlAnalyticsManager(surface)
   }
 
@@ -68,7 +68,7 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   fun testSurfaceType() {
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
 
-    `when`(surface.sceneMode).thenReturn(SceneMode.BLUEPRINT)
+    `when`(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE)
   }
 

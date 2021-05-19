@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -44,9 +44,10 @@ private object PreviewNavigation {
  * Converts a [SourceLocation] into a [Navigatable]. If the [SourceLocation] does not point to a file within the project, it is not
  * possible to create a [Navigatable] and the method will return null.
  */
-private fun SourceLocation.toNavigatable(project: Project): Navigatable? {
+private fun SourceLocation.toNavigatable(module: Module): Navigatable? {
+  val project = module.project
   val sourceLocationWithVirtualFile =
-    if (this is SourceLocationWithVirtualFile) this else this.asSourceLocationWithVirtualFile(project) ?: return null
+    if (this is SourceLocationWithVirtualFile) this else this.asSourceLocationWithVirtualFile(module) ?: return null
   val psiFile = PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile) ?: return null
   return PsiNavigationSupport.getInstance().createNavigatable(
     project,
@@ -58,11 +59,11 @@ private fun SourceLocation.toNavigatable(project: Project): Navigatable? {
 /**
  * Utility method that dumps the given [ComposeViewInfo] list to the log.
  */
-private fun dumpViewInfosToLog(project: Project, viewInfos: List<ComposeViewInfo>, indent: Int = 0) {
+private fun dumpViewInfosToLog(module: Module, viewInfos: List<ComposeViewInfo>, indent: Int = 0) {
   val margin = "-".repeat(indent)
   viewInfos.forEach {
-    LOG.debug("$margin $it navigatable=${it.sourceLocation.toNavigatable(project)}")
-    dumpViewInfosToLog(project, it.children, indent + 1)
+    LOG.debug("$margin $it navigatable=${it.sourceLocation.toNavigatable(module)}")
+    dumpViewInfosToLog(module, it.children, indent + 1)
   }
 }
 
@@ -71,11 +72,11 @@ private fun dumpViewInfosToLog(project: Project, viewInfos: List<ComposeViewInfo
  * The list is sorted with the elements deeper in the hierarchy at the top.
  */
 @VisibleForTesting
-fun findComponentHits(project: Project, rootViewInfo: ViewInfo, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int): List<SourceLocation> {
-  val allViewInfos = parseViewInfo(rootViewInfo, lineNumberMapper = remapInline(project))
+fun findComponentHits(module: Module, rootViewInfo: ViewInfo, @AndroidCoordinate x: Int, @AndroidCoordinate y: Int): List<SourceLocation> {
+  val allViewInfos = parseViewInfo(rootViewInfo = rootViewInfo, lineNumberMapper = remapInline(module), logger = LOG)
 
   if (LOG.isDebugEnabled) {
-    dumpViewInfosToLog(project, allViewInfos)
+    dumpViewInfosToLog(module, allViewInfos)
   }
 
   return allViewInfos
@@ -91,22 +92,22 @@ fun findComponentHits(project: Project, rootViewInfo: ViewInfo, @AndroidCoordina
  * Returns a [Navigatable] that references to the source code position of the Composable at the given x, y pixel coordinates.
  * An optional [locationFilter] can be passed to select a certain type of hit, for example, filtering by filename.
  */
-fun findNavigatableComponentHit(project: Project,
+fun findNavigatableComponentHit(module: Module,
                                 rootViewInfo: ViewInfo,
                                 @AndroidCoordinate x: Int, @AndroidCoordinate y: Int,
                                 locationFilter: (SourceLocation) -> Boolean = { true }): Navigatable? {
-  val hits = findComponentHits(project, rootViewInfo, x, y)
+  val hits = findComponentHits(module, rootViewInfo, x, y)
     .filter(locationFilter)
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
     hits
-      .filter { it.toNavigatable(project) != null }
+      .filter { it.toNavigatable(module) != null }
       .forEach { LOG.debug("  Navigatable hit: ${it}") }
   }
 
   return hits
-    .mapNotNull { it.toNavigatable(project) }
+    .mapNotNull { it.toNavigatable(module) }
     .firstOrNull()
 }
 
@@ -141,7 +142,7 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
     val root = model.components[0]
     val viewInfo = root.viewInfo ?: return false
     val fileName = defaultNavigationMap[model]?.first ?: ""
-    findNavigatableComponentHit(model.project, viewInfo, x, y) {
+    findNavigatableComponentHit(model.module, viewInfo, x, y) {
       // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow any hit even if it's not in the current
       // file. If requestFocus is false, we only allow single clicks
       requestFocus || it.fileName == fileName

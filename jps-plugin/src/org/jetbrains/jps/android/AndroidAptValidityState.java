@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import org.jetbrains.android.util.ResourceEntry;
 import org.jetbrains.android.util.ResourceFileData;
 import org.jetbrains.annotations.NotNull;

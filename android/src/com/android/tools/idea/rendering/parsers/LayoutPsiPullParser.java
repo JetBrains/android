@@ -36,6 +36,7 @@ import static com.android.SdkConstants.ATTR_USE_HANDLER;
 import static com.android.SdkConstants.ATTR_VISIBILITY;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.IMAGE_BUTTON;
@@ -55,6 +56,7 @@ import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
+import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
 
 import com.android.SdkConstants;
@@ -661,7 +663,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       return null;
     }
 
-    if (ATTR_LAYOUT.equals(localName) && VIEW_FRAGMENT.equals(tag.tagName)) {
+    if (ATTR_LAYOUT.equals(localName) && isFragmentTag(tag.tagName)) {
       String layout = tag.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
       if (layout != null) {
         return layout;
@@ -779,8 +781,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
         name = viewHandlerTag;
       }
 
-      if (name.equals(VIEW_FRAGMENT)) {
-        // Temporarily translate <fragment> to <include> (and in getAttribute
+      if (isFragmentTag(name)) {
+        // Temporarily translate <fragment>/FragmentContainerView to <include> (and in getAttribute
         // we will also provide a layout-attribute for the corresponding
         // fragment name attribute)
         String layout = currentNode.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
@@ -989,8 +991,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
     String rootTag = tag.getName();
     switch (rootTag) {
+      case FRAGMENT_CONTAINER_VIEW:
       case VIEW_FRAGMENT:
-        return createSnapshotForViewFragment(tag, tagPostProcessor);
+        return createSnapshotForViewFragment(rootTag, tag, tagPostProcessor);
 
       case FRAME_LAYOUT:
         return createSnapshotForFrameLayout(tag, tagDecorator);
@@ -1004,7 +1007,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForViewFragment(@NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
+  private static TagSnapshot createSnapshotForViewFragment(@NotNull String rootTagName, @NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
     XmlAttribute[] psiAttributes = rootTag.getAttributes();
     List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
     for (XmlAttribute psiAttribute : psiAttributes) {
@@ -1031,7 +1034,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       }
     }
 
-    TagSnapshot include = TagSnapshot.createSyntheticTag(null, VIEW_FRAGMENT, "", "", includeAttributes,
+    TagSnapshot include = TagSnapshot.createSyntheticTag(null, rootTagName, "", "", includeAttributes,
                                                          Collections.emptyList(), null);
     return TagSnapshot.createSyntheticTag(rootTag, FRAME_LAYOUT, "", "", attributes, Collections.singletonList(include), tagPostProcessor);
   }

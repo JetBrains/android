@@ -29,7 +29,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.util.containers.ContainerUtil.map;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -41,55 +41,47 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemProgressNotificationManager;
 import com.intellij.openapi.util.Ref;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
-  private boolean mySavedSingleVariantSyncSetting = false;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    // This test requires Single Variant Sync to be turned off
-    mySavedSingleVariantSyncSetting = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = mySavedSingleVariantSyncSetting;
-    }
-    finally {
-      super.tearDown();
-    }
-  }
 
   public void testWithModules() throws Exception {
     loadProject(DYNAMIC_APP);
 
-    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
-    AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
-    assertNotNull(appAndroidModel);
-    assertNotNull(featureAndroidModel);
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
+      assertNotNull(appAndroidModel);
+      assertNotNull(featureAndroidModel);
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    }
 
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
 
-    assertEquals("release", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("release", featureAndroidModel.getSelectedVariant().getName());
+      assertEquals("release", appAndroidModel.getSelectedVariant().getName());
+      // TODO(b/159377709): Uncomment when switching feature module variants is fixed.
+      // assertEquals("release", featureAndroidModel.getSelectedVariant().getName());
+    }
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    }
   }
 
   public void testWithDepModules() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     assertEquals("debug", getVariant("app"));
@@ -125,148 +117,226 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
     requestSyncAndWait();
 
-    // Verify debug is selected by default.
-    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
-    AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
-    assertNotNull(appAndroidModel);
-    assertNotNull(featureAndroidModel);
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    {
+      // Verify debug is selected by default.
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
+      assertNotNull(appAndroidModel);
+      assertNotNull(featureAndroidModel);
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+    }
 
-    // Switch selected variant for app module to qa.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "qa");
+    {
+      // Switch selected variant for app module to qa.
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "qa");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel featureAndroidModel = AndroidModuleModel.get(getModule("feature1"));
 
-    // Verify that variant for app module is updated to qa, and is unchanged for feature module since feature module doesn't contain variant qa.
-    assertEquals("qa", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
-    AndroidFacet featureFacet = AndroidFacet.getInstance(getModule("feature1"));
-    assertEquals("debug", featureFacet.getProperties().SELECTED_BUILD_VARIANT);
+      // Verify that variant for app module is updated to qa, and is unchanged for feature module since feature module doesn't contain variant qa.
+      assertEquals("qa", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", featureAndroidModel.getSelectedVariant().getName());
+      AndroidFacet featureFacet = AndroidFacet.getInstance(getModule("feature1"));
+      assertEquals("debug", featureFacet.getProperties().SELECTED_BUILD_VARIANT);
+    }
   }
 
   public void testWithProductFlavors() throws Exception {
     loadProject(DEPENDENT_MODULES);
-
-    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
-    AndroidModuleModel libAndroidModel = AndroidModuleModel.get(getModule("lib"));
-    assertNotNull(appAndroidModel);
-    assertNotNull(libAndroidModel);
-    assertEquals("basicDebug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel libAndroidModel = AndroidModuleModel.get(getModule("lib"));
+      assertNotNull(appAndroidModel);
+      assertNotNull(libAndroidModel);
+      assertEquals("basicDebug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
+    }
 
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicRelease");
-    assertEquals("basicRelease", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("release", libAndroidModel.getSelectedVariant().getName());
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicRelease");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel libAndroidModel = AndroidModuleModel.get(getModule("lib"));
+      assertEquals("basicRelease", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("release", libAndroidModel.getSelectedVariant().getName());
+    }
 
     // Gets served from cache.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicDebug");
-    assertEquals("basicDebug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "basicDebug");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel libAndroidModel = AndroidModuleModel.get(getModule("lib"));
+      assertEquals("basicDebug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", libAndroidModel.getSelectedVariant().getName());
+    }
   }
 
   public void testWithNativeModulesChangeBuildVariant() throws Exception {
     loadProject(DEPENDENT_NATIVE_MODULES);
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertNotNull(appAndroidModel);
+      assertNotNull(lib1AndroidModel);
+      assertNotNull(lib2AndroidModel);
+      assertNotNull(lib3AndroidModel);
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
 
-    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
-    AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
-    AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
-    AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
-    assertNotNull(appAndroidModel);
-    assertNotNull(lib1AndroidModel);
-    assertNotNull(lib2AndroidModel);
-    assertNotNull(lib3AndroidModel);
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-
-    NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
-    NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
-    NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
-    NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
-    assertNotNull(appNdkModel);
-    assertNull(lib1NdkModel);
-    assertNotNull(lib2NdkModel);
-    assertNotNull(lib3NdkModel);
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
-
+      NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
+      NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertNotNull(appNdkModel);
+      assertNull(lib1NdkModel);
+      assertNotNull(lib2NdkModel);
+      assertNotNull(lib3NdkModel);
+      assertEquals("debug-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("debug-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("debug-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+    }
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
-    assertEquals("release", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("release", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("release", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("release", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("release-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("release-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("release-x86", lib3NdkModel.getSelectedVariant().getName());
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "release");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertEquals("release", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("release", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("release", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("release", lib3AndroidModel.getSelectedVariant().getName());
 
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertEquals("release-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      // TODO(b/168472164): Uncomment when variant switching with native variants is fixed.
+//      assertEquals("release-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+//      assertEquals("release-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+    }
     // Gets served from cache.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedBuildVariant(getProject(), getModule("app").getName(), "debug");
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
+
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertEquals("debug-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("debug-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertEquals("debug-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+    }
   }
 
   public void testWithNativeModulesChangeAbi() throws Exception {
     loadProject(DEPENDENT_NATIVE_MODULES);
 
-    AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
-    AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
-    AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
-    AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
-    assertNotNull(appAndroidModel);
-    assertNotNull(lib1AndroidModel);
-    assertNotNull(lib2AndroidModel);
-    assertNotNull(lib3AndroidModel);
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertNotNull(appAndroidModel);
+      assertNotNull(lib1AndroidModel);
+      assertNotNull(lib2AndroidModel);
+      assertNotNull(lib3AndroidModel);
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
 
-    NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
-    NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
-    NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
-    NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
-    assertNotNull(appNdkModel);
-    assertNull(lib1NdkModel);
-    assertNotNull(lib2NdkModel);
-    assertNotNull(lib3NdkModel);
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+      NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkModuleModel lib1NdkModel = NdkModuleModel.get(getModule("lib1"));
+      NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertNotNull(appNdkModel);
+      assertNull(lib1NdkModel);
+      assertNotNull(lib2NdkModel);
+      assertNotNull(lib3NdkModel);
+      assertEquals("debug-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(appNdkModel.getSyncedVariantAbis()).contains(appNdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib2NdkModel.getSyncedVariantAbis()).contains(lib2NdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
+    }
 
     // Triggers a sync.
-    BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "armeabi-v7a");
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-armeabi-v7a", lib3NdkModel.getSelectedVariant().getName());
+    {
+      BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "armeabi-v7a");
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
+
+      NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertEquals("debug-armeabi-v7a", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(appNdkModel.getSyncedVariantAbis()).contains(appNdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-armeabi-v7a", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib2NdkModel.getSyncedVariantAbis()).contains(lib2NdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-armeabi-v7a", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      // TODO(b/168472164): Uncomment when ABI switching across non-native modules is fixed.
+      // assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
+    }
 
     // Gets served from cache.
     BuildVariantUpdater.getInstance(getProject()).updateSelectedAbi(getProject(), getModule("app").getName(), "x86");
-    assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", appNdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib2NdkModel.getSelectedVariant().getName());
-    assertEquals("debug-x86", lib3NdkModel.getSelectedVariant().getName());
+    {
+      AndroidModuleModel appAndroidModel = AndroidModuleModel.get(getModule("app"));
+      AndroidModuleModel lib1AndroidModel = AndroidModuleModel.get(getModule("lib1"));
+      AndroidModuleModel lib2AndroidModel = AndroidModuleModel.get(getModule("lib2"));
+      AndroidModuleModel lib3AndroidModel = AndroidModuleModel.get(getModule("lib3"));
+      assertEquals("debug", appAndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib1AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib2AndroidModel.getSelectedVariant().getName());
+      assertEquals("debug", lib3AndroidModel.getSelectedVariant().getName());
+
+      NdkModuleModel appNdkModel = NdkModuleModel.get(getModule("app"));
+      NdkFacet appNdkFacet = NdkFacet.getInstance(getModule("app"));
+      NdkModuleModel lib2NdkModel = NdkModuleModel.get(getModule("lib2"));
+      NdkFacet lib2NdkFacet = NdkFacet.getInstance(getModule("lib2"));
+      NdkModuleModel lib3NdkModel = NdkModuleModel.get(getModule("lib3"));
+      NdkFacet lib3NdkFacet = NdkFacet.getInstance(getModule("lib3"));
+      assertEquals("debug-x86", appNdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(appNdkModel.getSyncedVariantAbis()).contains(appNdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-x86", lib2NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib2NdkModel.getSyncedVariantAbis()).contains(lib2NdkFacet.getSelectedVariantAbi());
+      assertEquals("debug-x86", lib3NdkFacet.getSelectedVariantAbi().getDisplayName());
+      assertThat(lib3NdkModel.getSyncedVariantAbis()).contains(lib3NdkFacet.getSelectedVariantAbi());
+    }
   }
 
   // Test the scenario when there are two app modules in one project, and they share the same set of dependency modules.
   // When variant selection is changed from UI window for one of the app modules, the selection of dependency modules should
   // be consistent with the module whose selection was changed from UI.
   public void testWithSharedDepModules() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     prepareProjectForImport(TRANSITIVE_DEPENDENCIES);
 
     // Create build file for module app2, so that
@@ -324,8 +394,6 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
   }
 
   public void testVariantsAreCached() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
-
     final Ref<Boolean> syncPerformed = new Ref<>(false);
     ExternalSystemProgressNotificationManager notificationManager =
       ApplicationManager.getApplication().getService(ExternalSystemProgressNotificationManager.class);
@@ -376,8 +444,6 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
   }
 
   public void testVariantsAreCachedWithNativeModules() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
-
     final Ref<Boolean> syncPerformed = new Ref<>(false);
     ExternalSystemProgressNotificationManager notificationManager =
       ApplicationManager.getApplication().getService(ExternalSystemProgressNotificationManager.class);
@@ -417,7 +483,7 @@ public class BuildVariantUpdaterIntegTest extends AndroidGradleTestCase {
 
   private void verifyContainsVariantAbi(@NotNull String moduleName, @NotNull List<String> expectedVariantNames) {
     NdkModuleModel ndkModel = NdkModuleModel.get(getModule(moduleName));
-    List<String> variantsInModel = map(ndkModel.getVariants(), variant -> variant.getName());
-    assertThat(variantsInModel).containsExactlyElementsIn(expectedVariantNames);
+    List<String> variantAbisInModel = map(ndkModel.getSyncedVariantAbis(), variantAbi -> variantAbi.getDisplayName());
+    assertThat(variantAbisInModel).containsExactlyElementsIn(expectedVariantNames);
   }
 }

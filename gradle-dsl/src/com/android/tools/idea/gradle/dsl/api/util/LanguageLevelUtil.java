@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.intellij.pom.java.LanguageLevel;
@@ -50,10 +51,10 @@ public final class LanguageLevelUtil {
     String dotVersion = underscoreVersion.replace('_', '.');
     if (sampleGradleString != null) {
       if (sampleGradleString.startsWith("JavaVersion.VERSION_")) {
-        return new ReferenceTo("JavaVersion.VERSION_" + underscoreVersion);
+        return new RawText("JavaVersion.VERSION_" + underscoreVersion, "JavaVersion.VERSION_" + underscoreVersion);
       }
       else if (sampleGradleString.startsWith("VERSION_")) {
-        return new ReferenceTo("VERSION_" + underscoreVersion);
+        return new RawText("VERSION_" + underscoreVersion, "VERSION_" + underscoreVersion);
       }
       else if (sampleGradleString.startsWith("'")) {
         return "'" + dotVersion + "'";
@@ -73,7 +74,7 @@ public final class LanguageLevelUtil {
 
     // absent any clues, default to the full JavaVersion.VERSION_ format as that is the safest to insert: in assignment and
     // application statements.
-    return new ReferenceTo("JavaVersion.VERSION_" + underscoreVersion);
+    return new RawText("JavaVersion.VERSION_" + underscoreVersion, "JavaVersion.VERSION_" + underscoreVersion);
   }
 
   @Nullable

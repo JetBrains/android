@@ -86,10 +86,13 @@ class NeleEnumSupportProvider(model: NelePropertiesModel) : EnumSupportProvider<
       "10sp",
       "12sp",
       "14sp",
-      "18sp",
+      "16sp",
+      "20sp",
       "24sp",
-      "30sp",
-      "36sp"
+      "34sp",
+      "48sp",
+      "60sp",
+      "96sp"
     )
   }
 

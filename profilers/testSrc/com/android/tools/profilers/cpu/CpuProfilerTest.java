@@ -96,26 +96,6 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void startProfilingCallStartMonitoringAppId() {
-    Assume.assumeFalse("Unified pipeline does not go through StartMonitoringApp", myUnifiedPipeline);
-
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    myCpuProfiler.startProfiling(FAKE_SESSION);
-    // Make sure the session of the service was set to FAKE_SESSION by the start monitoring request
-    assertThat(myCpuService.getSession()).isEqualTo(FAKE_SESSION);
-  }
-
-  @Test
-  public void stopProfilingCallStopMonitoringAppId() {
-    Assume.assumeFalse("Unified pipeline does not go through StopMonitoringApp", myUnifiedPipeline);
-
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    myCpuProfiler.stopProfiling(FAKE_SESSION);
-    // Make sure the session of the service was set to FAKE_SESSION by the stop monitoring request
-    assertThat(myCpuService.getSession()).isEqualTo(FAKE_SESSION);
-  }
-
-  @Test
   public void stopMonitoringStopsOngoingTraces() {
     myCpuProfiler = new CpuProfiler(myProfilers);
 

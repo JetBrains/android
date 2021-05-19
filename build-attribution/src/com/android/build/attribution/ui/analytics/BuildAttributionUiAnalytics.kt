@@ -16,7 +16,12 @@
 package com.android.build.attribution.ui.analytics
 
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.data.PluginSourceType
+import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.TasksFilter
+import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -24,8 +29,13 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.awt.Dimension
+import java.time.Duration
 
-class BuildAttributionUiAnalytics(private val project: Project) {
+class BuildAttributionUiAnalytics(
+  private val project: Project,
+  private val uiSizeProvider: () -> Dimension?
+) {
 
   enum class TabOpenEventSource {
     WNA_BUTTON,
@@ -38,8 +48,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     .build()
   private var currentPage: BuildAttributionUiEvent.Page = unknownPage
 
-  @Deprecated("Left to support older version, should not be used anymore.")
-  private var nodeLinkClickRegistered = false
   private var tabOpenEventSource: TabOpenEventSource = TabOpenEventSource.TAB_HEADER
 
   private var buildAttributionReportSessionId: String? = null
@@ -97,37 +105,11 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   /**
-   * Registers that page is going to be changed as the result of link click so next [pageChange] call should report it properly.
-   * This state will be cleared with any next event sent.
-   */
-  @Deprecated("Left to support older version, should not be used anymore.")
-  fun registerNodeLinkClick() {
-    nodeLinkClickRegistered = true
-  }
-
-  /**
    * Registers what action was clicked to open Build Analyzer tab so next [tabOpened] call should report it's event as opened using that action.
    * This state will be cleared with any next event sent.
    */
   fun registerOpenEventSource(eventSource: TabOpenEventSource) {
     tabOpenEventSource = eventSource
-  }
-
-  /**
-   * Called when tree selection changes and new page is shown to the user.
-   * If [registerNodeLinkClick] was called just before this call then this event will be reported as PAGE_CHANGE_LINK_CLICK.
-   */
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("pageChange(pageId, eventType)"))
-  fun pageChange(selectedNodeId: String, pageType: BuildAttributionUiEvent.Page.PageType) {
-    val eventType = if (nodeLinkClickRegistered) {
-      BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK
-    }
-    else {
-      // TODO mlazeba Find how to easily track what was used to update tree selection: mouse or keystrokes.
-      // Report both cases as TREE_CLICK for now.
-      BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK
-    }
-    pageChange(currentPage, toPage(AnalyticsPageId(pageType, selectedNodeId)), eventType)
   }
 
   /**
@@ -138,18 +120,18 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   fun pageChange(
     currentPage: BuildAttributionUiEvent.Page,
     targetPage: BuildAttributionUiEvent.Page,
-    eventType: BuildAttributionUiEvent.EventType
+    eventType: BuildAttributionUiEvent.EventType,
+    duration: Duration
   ) {
-    doLog(newUiEventBuilder()
-            .setEventType(eventType)
-            .setCurrentPage(currentPage)
-            .setTargetPage(targetPage))
+    doLog(
+      newUiEventBuilder()
+        .setEventType(eventType)
+        .setCurrentPage(currentPage)
+        .setTargetPage(targetPage)
+        .setEventProcessingTimeMs(duration.toMillis())
+    )
     this.currentPage = targetPage
   }
-
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("bugReportLinkClicked(currentPageId)"))
-  fun bugReportLinkClicked() =
-    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
 
   fun bugReportLinkClicked(currentPage: BuildAttributionUiEvent.Page) {
     doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.GENERATE_REPORT_LINK_CLICKED))
@@ -161,22 +143,42 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   fun reportingWindowClosed() =
     doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.REPORT_DIALOG_CLOSED))
 
-
-  @Deprecated("Left to support older version", replaceWith = ReplaceWith("helpLinkClicked(currentPageId, target)"))
-  fun helpLinkClicked(target: BuildAnalyzerBrowserLinks) = helpLinkClicked(currentPage, target)
-
   fun helpLinkClicked(
     currentPageId: BuildAttributionUiEvent.Page,
     target: BuildAnalyzerBrowserLinks
-  ) = doLog(newUiEventBuilder()
-              .setCurrentPage(currentPageId)
-              .setLinkTarget(target.analyticsValue)
-              .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
+  ) = doLog(
+    newUiEventBuilder()
+      .setCurrentPage(currentPageId)
+      .setLinkTarget(target.analyticsValue)
+      .setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
+  fun memorySettingsOpened() = doLog(
+    newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+  )
+
+  fun warningsFilterApplied(filter: WarningsFilter, duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
+      .addAllAppliedFilters(warningsFilterState(filter))
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
+
+  fun tasksFilterApplied(filter: TasksFilter, duration: Duration) = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.FILTER_APPLIED)
+      .addAllAppliedFilters(tasksFilterState(filter))
+      .setEventProcessingTimeMs(duration.toMillis())
+  )
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
     requireNotNull(buildAttributionReportSessionId)
-    return BuildAttributionUiEvent.newBuilder().setBuildAttributionReportSessionId(buildAttributionReportSessionId)
+    return BuildAttributionUiEvent.newBuilder().also { builder ->
+      builder.buildAttributionReportSessionId = buildAttributionReportSessionId
+      uiSizeProvider()?.let {
+        builder.width = it.width.toLong()
+        builder.height = it.height.toLong()
+      }
+    }
   }
 
   private fun registerPage(pageId: AnalyticsPageId): BuildAttributionUiEvent.Page {
@@ -196,14 +198,6 @@ class BuildAttributionUiAnalytics(private val project: Project) {
     )
     //Clear up state variables
     tabOpenEventSource = TabOpenEventSource.TAB_HEADER
-    nodeLinkClickRegistered = false
-  }
-
-  /**
-   * Called instead of [pageChange] when it is a first page opened by default.
-   */
-  fun initFirstPage(pageId: AnalyticsPageId) {
-    currentPage = toPage(pageId)
   }
 
   fun initFirstPage(model: BuildAnalyzerViewModel) {
@@ -223,24 +217,68 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   fun getStateFromModel(model: BuildAnalyzerViewModel): BuildAttributionUiEvent.Page {
-    if (model.selectedData == BuildAnalyzerViewModel.DataSet.OVERVIEW) {
-      return toPage(AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY, BuildAnalyzerViewModel.DataSet.OVERVIEW.uiName))
-    }
-    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.TASKS) {
-      model.tasksPageModel.selectedNode?.let {
-        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
+    return toPage(
+      when (model.selectedData) {
+        BuildAnalyzerViewModel.DataSet.OVERVIEW ->
+          AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY, BuildAnalyzerViewModel.DataSet.OVERVIEW.uiName)
+        BuildAnalyzerViewModel.DataSet.TASKS ->
+          model.tasksPageModel.selectedNode.let {
+            if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
+            else AnalyticsPageId(
+              pageType = when (model.tasksPageModel.selectedGrouping) {
+                TasksDataPageModel.Grouping.UNGROUPED -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
+                TasksDataPageModel.Grouping.BY_PLUGIN -> BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
+              },
+              pageId = ""
+            )
+          }
+        BuildAnalyzerViewModel.DataSet.WARNINGS -> model.warningsPageModel.selectedNode.let {
+          if (it != null) AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id)
+          else AnalyticsPageId(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT, pageId = "")
+        }
       }
-    }
-    else if (model.selectedData == BuildAnalyzerViewModel.DataSet.WARNINGS) {
-      model.warningsPageModel.selectedNode?.let {
-        return toPage(AnalyticsPageId(it.descriptor.analyticsPageType, it.descriptor.pageId.id))
-      }
-    }
-    return unknownPage
+    )
+  }
+
+  fun reportUnregisteredEvent() {
+    doLog(newUiEventBuilder().setCurrentPage(currentPage).setEventType(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE))
   }
 
   data class AnalyticsPageId(
     val pageType: BuildAttributionUiEvent.Page.PageType,
     val pageId: String
   )
+
+  private fun warningsFilterState(filter: WarningsFilter): List<BuildAttributionUiEvent.FilterItem> {
+    return mutableListOf<BuildAttributionUiEvent.FilterItem>().apply {
+      filter.showTaskSourceTypes.forEach {
+        add(when (it) {
+              PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
+              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
+            })
+      }
+      filter.showTaskWarningTypes.forEach {
+        add(when (it) {
+              TaskIssueType.ALWAYS_RUN_TASKS -> BuildAttributionUiEvent.FilterItem.SHOW_ALWAYS_RUN_TASK_WARNINGS
+              TaskIssueType.TASK_SETUP_ISSUE -> BuildAttributionUiEvent.FilterItem.SHOW_TASK_SETUP_ISSUE_WARNINGS
+            })
+      }
+      if (filter.showAnnotationProcessorWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_ANNOTATION_PROCESSOR_WARNINGS)
+      if (filter.showNonCriticalPathTasks) add(BuildAttributionUiEvent.FilterItem.SHOW_WARNINGS_FOR_TASK_NOT_FROM_CRITICAL_PATH)
+    }.sorted()
+  }
+
+  private fun tasksFilterState(filter: TasksFilter): List<BuildAttributionUiEvent.FilterItem> {
+    return mutableListOf<BuildAttributionUiEvent.FilterItem>().apply {
+      filter.showTaskSourceTypes.forEach {
+        add(when (it) {
+              PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
+              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
+            })
+      }
+      if (filter.showTasksWithoutWarnings) add(BuildAttributionUiEvent.FilterItem.SHOW_TASKS_WITHOUT_WARNINGS)
+    }.sorted()
+  }
 }

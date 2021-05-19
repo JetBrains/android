@@ -6,12 +6,15 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -20,5 +23,10 @@
     <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
   </component>
 </module>

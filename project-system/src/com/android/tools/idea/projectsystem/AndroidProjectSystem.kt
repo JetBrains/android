@@ -17,6 +17,11 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -61,6 +66,24 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * Returns an interface for interacting with the given module.
    */
   fun getModuleSystem(module: Module): AndroidModuleSystem
+
+  /**
+   * Returns the best effort [ApplicationIdProvider] for the given project and [runConfiguration].
+   *
+   * Some project systems may be unable to retrieve the package name if no [runConfiguration] is provided or before
+   * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
+   * or return a name derived from incomplete configuration in this case.
+   */
+  @JvmDefault
+  fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? = null
+
+  /**
+   * Returns the [ApkProvider] for the given [runConfiguration].
+   *
+   * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
+   */
+  @JvmDefault
+  fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
 
   /**
    * Returns an instance of [ProjectSystemSyncManager] that applies to the project.

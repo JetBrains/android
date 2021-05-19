@@ -17,11 +17,11 @@
 
 package com.android.tools.idea.gradle.util
 
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeVariantBuildInformation
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
@@ -95,8 +95,7 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
     else {
       androidModel.selectedVariant.mainArtifact
     }
-    @Suppress("DEPRECATION")
-    return artifact?.outputs?.firstOrNull()?.mainOutputFile?.outputFile
+    return artifact?.outputs?.firstOrNull()?.outputFile
   }
 }
 
@@ -136,7 +135,7 @@ fun getOutputFileOrFolderFromListingFile(listingFile: String): File? {
 }
 
 private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
-  return if (useSelectApksFromBundleBuilder(module, configuration, null as AndroidVersion?)) {
+  return if (useSelectApksFromBundleBuilder(module, configuration, null)) {
     OutputType.ApkFromBundle
   }
   else {
@@ -180,15 +179,11 @@ private fun getOutputListingFileFromAndroidArtifact(testArtifact: IdeAndroidArti
 
 fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String) : GenericBuiltArtifacts? {
   val listingFile = getOutputListingFileFromVariantBuildInformation(androidModel, variantName, OutputType.Apk) ?: return null
-  return loadFromFile(File(listingFile), LogWrapper(LOG))
-}
-
-@VisibleForTesting
-fun getApplicationIdFromListingFile(listingFile: String): String? {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
-    return builtArtifacts.applicationId
+    return builtArtifacts
   }
+
   LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
   return null
 }
@@ -213,6 +208,7 @@ internal class LastBuildOrSyncListener: ExternalSystemTaskNotificationListenerAd
  * this should be removed.
  */
 internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
+  @UiThread
   override fun runActivity(project: Project, disposable: Disposable) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
       override fun buildFinished(status: BuildStatus, context: BuildContext?) {

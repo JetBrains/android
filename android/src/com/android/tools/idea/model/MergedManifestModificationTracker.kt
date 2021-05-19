@@ -22,7 +22,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
-import org.jetbrains.annotations.TestOnly
 
 /**
  * A module-wide modification tracker whose modification count is a value
@@ -32,26 +31,18 @@ import org.jetbrains.annotations.TestOnly
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
   private val LOG: Logger get() = Logger.getInstance(MergedManifestModificationTracker::class.java)
-  var manifestChangedActivityRegistered = false
-    private set
-    @TestOnly get
 
   init {
-    val project = module.project
-    if (!project.isDefault) {
-      val startupManager = StartupManager.getInstance(project)
-      if (!startupManager.postStartupActivityPassed()) {
-        // If query happens before indexing when project just starts up, invalid queried results are cached.
-        // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
-        startupManager.registerPostStartupActivity { manifestChanged() }
-        manifestChangedActivityRegistered = true
-      }
+    // If query happens before indexing when project just starts up, invalid queried results are cached.
+    // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
+    StartupManager.getInstance(module.project).runAfterOpened {
+      manifestChanged()
     }
   }
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = module.getService(MergedManifestModificationTracker::class.java)!!
+    fun getInstance(module: Module): MergedManifestModificationTracker = module.getService(MergedManifestModificationTracker::class.java)
   }
 
   /**
@@ -68,6 +59,6 @@ class MergedManifestModificationTracker(val module: Module) : ModificationTracke
    */
   fun manifestChanged() {
     manifestContributorTracker.incModificationCount()
-    LOG.debug { "MergedManifest Modification Tracker of ${module} is updated to ${modificationCount}" }
+    LOG.debug { "MergedManifest Modification Tracker of $module is updated to $modificationCount" }
   }
 }

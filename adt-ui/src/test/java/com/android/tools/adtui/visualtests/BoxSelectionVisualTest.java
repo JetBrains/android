@@ -18,8 +18,8 @@ package com.android.tools.adtui.visualtests;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.BoxSelectionComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.components.JBList;
 import java.awt.BorderLayout;
@@ -52,7 +52,7 @@ public class BoxSelectionVisualTest extends VisualTest {
   protected List<Updatable> createModelList() {
     myViewRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
-    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(mySelectionRange, myViewRange);
+    BoxSelectionModel rangeSelectionModel = new BoxSelectionModel(mySelectionRange, myViewRange);
     JList<String> JList = new JBList<>(generateJListData(10));
     JList.setSelectionForeground(Color.BLACK);
     JList.setSelectionBackground(Color.WHITE);

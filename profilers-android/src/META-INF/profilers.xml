@@ -35,10 +35,12 @@
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor" />
-    <programRunner implementation="com.android.tools.idea.profilers.AndroidProfilerProgramRunner" />
+    <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
     <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType"
               extensions="trace"/>
+    <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType"
+              extensions="alloc"/>
     <fileType name="AndroidProfilerMemoryCapture" implementationClass="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType"/>
     <fileTypeDetector implementation="com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType$Detector"/>
     <fileType name="HeapProfd" implementationClass="com.android.tools.idea.profilers.capture.HeapProfdMemoryCaptureFileType"

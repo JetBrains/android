@@ -33,15 +33,15 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.concurrency.BoundedTaskExecutor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -157,47 +157,102 @@ public class RenderTestUtil {
   }
 
   @NotNull
-  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet,
-                                               @NotNull VirtualFile file,
-                                               @NotNull Configuration configuration,
-                                               @NotNull RenderLogger logger) {
+  private static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                       @NotNull VirtualFile file,
+                                       @NotNull Configuration configuration,
+                                       @NotNull RenderLogger logger) {
     Module module = facet.getModule();
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
     RenderService renderService = RenderService.getInstance(module.getProject());
     final RenderTask task = renderService.taskBuilder(facet, configuration)
-                                         .withLogger(logger)
-                                         .withPsiFile(psiFile)
-                                         .disableSecurityManager()
-                                         .buildSynchronously();
+      .withLogger(logger)
+      .withPsiFile(psiFile)
+      .disableSecurityManager()
+      .buildSynchronously();
     assertNotNull(task);
     return task;
   }
 
+  protected static void withRenderTask(@NotNull AndroidFacet facet,
+                                       @NotNull VirtualFile file,
+                                       @NotNull Configuration configuration,
+                                       @NotNull RenderLogger logger,
+                                       @NotNull Consumer<RenderTask> f,
+                                       boolean layoutScannerEnabled) {
+    final RenderTask task = createRenderTask(facet, file, configuration, logger);
+    task.setEnableLayoutScanner(layoutScannerEnabled);
+    try {
+      f.accept(task);
+    } finally {
+      try {
+        if (!task.isDisposed()) {
+          task.dispose().get(5, TimeUnit.SECONDS);
+        }
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+  }
+
+  protected static void withRenderTask(@NotNull AndroidFacet facet,
+                                        @NotNull VirtualFile file,
+                                        @NotNull Configuration configuration,
+                                        @NotNull RenderLogger logger,
+                                        @NotNull Consumer<RenderTask> f) {
+    withRenderTask(facet, file, configuration, logger, f, false);
+  }
+
+  /**
+   * @deprecated use {@link withRenderTask} instead
+   */
+  @Deprecated
   @NotNull
-  public static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+  public static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                    @NotNull VirtualFile file,
+                                    @NotNull Configuration configuration) {
     RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
     return createRenderTask(facet, file, configuration, renderService.createLogger(facet));
   }
 
-  @NotNull
-  public static RenderTask createRenderTask(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull String theme) {
+  public static void withRenderTask(@NotNull AndroidFacet facet,
+                                     @NotNull VirtualFile file,
+                                     @NotNull Configuration configuration,
+                                     @NotNull Consumer<RenderTask> f) {
+    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f);
+  }
+
+  public static void withRenderTask(@NotNull AndroidFacet facet,
+                                    @NotNull VirtualFile file,
+                                    @NotNull Configuration configuration,
+                                    boolean enableLayoutScanner,
+                                    @NotNull Consumer<RenderTask> f) {
+    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutScanner);
+  }
+
+  public static void withRenderTask(@NotNull AndroidFacet facet,
+                                     @NotNull VirtualFile file,
+                                     @NotNull String theme,
+                                     @NotNull Consumer<RenderTask> f) {
     Configuration configuration = getConfiguration(facet.getModule(), file, DEFAULT_DEVICE_ID, theme);
-    return createRenderTask(facet, file, configuration);
+    withRenderTask(facet, file, configuration, f);
   }
 
   public static void checkRendering(@NotNull AndroidFacet androidFacet,
                                     @NotNull VirtualFile layout,
-                                    @NotNull String goldenImagePath) throws IOException {
-    checkRendering(createRenderTask(androidFacet, layout, getConfiguration(androidFacet.getModule(), layout)), goldenImagePath);
+                                    @NotNull String goldenImagePath) {
+    withRenderTask(androidFacet, layout, getConfiguration(androidFacet.getModule(), layout),
+                   task -> checkRendering(task, goldenImagePath));
   }
 
-  public static void checkRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {
+  public static void checkRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) {
     BufferedImage image = getImage(task);
     checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
   }
 
-  public static void scaleAndCheckRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) throws IOException {
+  public static void scaleAndCheckRendering(@NotNull RenderTask task, @NotNull String thumbnailPath) {
     BufferedImage image = getImage(task);
     double scale = Math.min(1, Math.min(200 / ((double)image.getWidth()), 200 / ((double)image.getHeight())));
     image = ImageUtils.scale(image, scale, scale);
@@ -221,25 +276,29 @@ public class RenderTestUtil {
     return image;
   }
 
-  private static void checkRenderedImage(@NotNull BufferedImage image, @NotNull String fullPath) throws IOException {
+  private static void checkRenderedImage(@NotNull BufferedImage image, @NotNull String fullPath) {
     fullPath = fullPath.replace('/', separatorChar);
 
     File fromFile = new File(fullPath);
     System.out.println("fromFile=" + fromFile);
 
-    if (fromFile.exists()) {
-      BufferedImage goldenImage = ImageIO.read(fromFile);
-      ImageDiffUtil.assertImageSimilar(fullPath, goldenImage, image, MAX_PERCENT_DIFFERENT);
-    }
-    else {
-      File dir = fromFile.getParentFile();
-      assertNotNull(dir);
-      if (!dir.exists()) {
-        boolean ok = dir.mkdirs();
-        assertTrue(dir.getPath(), ok);
+    try {
+      if (fromFile.exists()) {
+        BufferedImage goldenImage = ImageIO.read(fromFile);
+        ImageDiffUtil.assertImageSimilar(fullPath, goldenImage, image, MAX_PERCENT_DIFFERENT);
       }
-      ImageIO.write(image, "PNG", fromFile);
-      fail("File did not exist, created " + fromFile);
+      else {
+        File dir = fromFile.getParentFile();
+        assertNotNull(dir);
+        if (!dir.exists()) {
+          boolean ok = dir.mkdirs();
+          assertTrue(dir.getPath(), ok);
+        }
+        ImageIO.write(image, "PNG", fromFile);
+        fail("File did not exist, created " + fromFile);
+      }
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }
 }

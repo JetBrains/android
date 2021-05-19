@@ -15,7 +15,7 @@
  */
 
 @file:Suppress("unused")
-package kotlinx.android.parcel
+package kotlinx.parcelize
 
 import android.os.Parcel
 import android.os.Parcelable

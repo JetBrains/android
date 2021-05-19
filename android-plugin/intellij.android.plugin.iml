@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
@@ -41,6 +42,6 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.testRetention" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.ide" />
   </component>
 </module>

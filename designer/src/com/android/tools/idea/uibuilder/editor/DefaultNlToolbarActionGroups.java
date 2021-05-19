@@ -16,29 +16,33 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
-import com.android.tools.idea.actions.BlueprintModeAction;
-import com.android.tools.idea.actions.DesignModeAction;
+import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
+import com.android.tools.idea.common.actions.NextDeviceAction;
+import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.configurations.NightModeMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.common.actions.RefreshRenderAction;
+import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
+import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
-import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
-import com.android.tools.idea.uibuilder.surface.LayoutValidatorAction;
+import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.keymap.KeymapUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +81,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     DropDownAction designModeAction = createDesignModeAction();
-    appendShortcutText(designModeAction, SwitchDesignModeAction.getInstance());
+    appendShortcutText(designModeAction, SwitchToNextScreenViewProviderAction.getInstance());
     group.add(designModeAction);
     group.addSeparator();
 
@@ -85,8 +89,21 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
+    if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
+        && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
+      group.addSeparator();
+      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
+      group.add(overlayAction);
+    }
+
+    group.addSeparator();
+    NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
+    appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
+    group.add(nightModeAction);
+
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration);
+    appendShortcutText(menuAction, NextDeviceAction.getInstance());
     group.add(menuAction);
 
     group.add(new TargetMenuAction(mySurface::getConfiguration));
@@ -109,10 +126,11 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    DropDownAction designSurfaceMenu = new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
-    designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
-    designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
+    DropDownAction designSurfaceMenu =
+      new DropDownAction("Select Design Surface", "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, (NlDesignSurface)mySurface));
+    designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, (NlDesignSurface)mySurface));
     designSurfaceMenu.addSeparator();
     // Get the action instead of creating a new one, to make the popup menu display the shortcut.
     designSurfaceMenu.addAction(RefreshRenderAction.getInstance());
@@ -125,16 +143,15 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     DefaultActionGroup group = new DefaultActionGroup();
     if (isInVisualizationTool()) {
       // Ignore Issue panel in visualisation.
-      group.addAll(getZoomActionsWithShortcuts(mySurface, this));
       return group;
     }
-    addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
-    group.add(LayoutValidatorAction.getInstance());
+    group.add(LayoutScannerAction.getInstance());
     group.add(IssueNotificationAction.getInstance());
     return group;
   }
 
   private boolean isInVisualizationTool() {
-    return StudioFlags.NELE_VISUALIZATION.get() && ((NlDesignSurface) mySurface).getSceneMode() == SceneMode.VISUALIZATION;
+    return StudioFlags.NELE_VISUALIZATION.get() &&
+           ((NlDesignSurface)mySurface).getScreenViewProvider() == NlScreenViewProvider.VISUALIZATION;
   }
 }

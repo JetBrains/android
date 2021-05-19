@@ -18,7 +18,6 @@ package com.android.tools.idea.welcome.install
 import com.android.sdklib.devices.Storage
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep
 import com.android.tools.idea.observable.core.IntProperty
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.welcome.wizard.deprecated.HaxmInstallSettingsStep
@@ -60,8 +59,8 @@ class Haxm(
           else HaxmInstallSettingsStep(isCustomInstall, willBeInstalled, emulatorMemoryMb))
 
   override val steps: Collection<ModelWizardStep<*>>
-    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) HaxmUninstallInfoStep(VmType.HAXM)
-            else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
+    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(VmType.HAXM)
+                  else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
 
   /**
    * Create a platform-dependant command line for running the silent HAXM installer.

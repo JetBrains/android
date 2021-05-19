@@ -23,7 +23,6 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -76,7 +75,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   }
 
   private AndroidPropertyFilesUpdater(Project project) {
-    myAlarm = new SingleAlarm(() -> ApplicationManager.getApplication().invokeLater(this::updatePropertyFilesIfNecessary), 50, this);
+    myAlarm = new SingleAlarm(this::updatePropertyFilesIfNecessary, 50, this);
     myProject = project;
   }
 
@@ -89,7 +88,10 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
   }
 
   private void onRootsChanged() {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
+    if (!ApplicationManager.getApplication().isUnitTestMode() &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      StartupManager.getInstance(myProject).runWhenProjectIsInitialized(myAlarm::cancelAndRequest);
+    }
   }
 
   private void updatePropertyFilesIfNecessary() {
@@ -225,7 +227,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
       facet.getProperties().ENABLE_PRE_DEXING);
     final List<Object> state = facet.getUserData(ANDROID_PROPERTIES_STATE_KEY);
 
-    if (state == null || !Comparing.equal(state, newState)) {
+    if (state == null || !Objects.equals(state, newState)) {
       updateTargetProperty(facet, projectProperties, changes);
       updateProjectTypeProperty(facet, projectProperties, changes);
       updateManifestMergerProperty(facet, projectProperties, changes);

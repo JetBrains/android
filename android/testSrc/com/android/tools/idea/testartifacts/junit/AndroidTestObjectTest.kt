@@ -21,6 +21,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 
+// TODO (karimai) : delete this when test Runner is only through Gradle.
 class AndroidTestObjectTest : AndroidGradleTestCase() {
   fun testGetListener() {
     loadSimpleApplication()

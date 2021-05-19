@@ -48,6 +48,9 @@ public interface AndroidModel extends GradleDslModel {
   ResolvedPropertyModel compileSdkVersion();
 
   @NotNull
+  ComposeOptionsModel composeOptions();
+
+  @NotNull
   DataBindingModel dataBinding();
 
   @NotNull

@@ -55,6 +55,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"buildFeatures", BuildFeaturesDslElement.BUILD_FEATURES},
     {"buildTypes", BuildTypesDslElement.BUILD_TYPES},
     {"compileOptions", CompileOptionsDslElement.COMPILE_OPTIONS},
+    {"composeOptions", ComposeOptionsDslElement.COMPOSE_OPTIONS},
     {"dataBinding", DataBindingDslElement.DATA_BINDING},
     {"defaultConfig", DefaultConfigDslElement.DEFAULT_CONFIG},
     {"dependenciesInfo", DependenciesInfoDslElement.DEPENDENCIES_INFO},

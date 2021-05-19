@@ -27,6 +27,7 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
@@ -48,6 +49,8 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
+
+    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
 
     when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
 

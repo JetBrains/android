@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.refactoring;
 
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -32,28 +31,14 @@ import java.io.File;
  */
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
-  private boolean myUseSingleVariantSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myValidator = new GradleAwareSourceRootRenameValidator();
-    myUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      // back to default value.
-      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myUseSingleVariantSync;
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testIsInputValid() throws Exception {
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
 
@@ -72,6 +57,8 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
     // Call validator.
     myValidator.isInputValid(newName, psiElement, null);
     // Verify that warning message is shown.
+/* b/165052086
     assertNotNull(myValidator.getErrorMessage(newName, project));
+b/165052086 */
   }
 }

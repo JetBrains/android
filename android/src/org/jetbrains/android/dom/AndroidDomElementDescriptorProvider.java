@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.jetbrains.android.dom;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.DefinesXml;
@@ -39,12 +34,16 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import org.jetbrains.android.dom.layout.DataBindingElement;
+import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.layout.LayoutElementDescriptor;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
+import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
-import org.jetbrains.android.dom.xml.XmlResourceElement;
+import org.jetbrains.android.dom.xml.PreferenceElement;
+import org.jetbrains.android.dom.xml.PreferenceElementDescriptor;
+import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,27 +51,22 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
 
   @Nullable
-  private static XmlElementDescriptor getDescriptor(DomElement domElement, XmlTag tag, @Nullable String baseClassName) {
+  private static XmlElementDescriptor getDescriptor(@NotNull DomElement domElement, @NotNull XmlTag tag) {
     AndroidFacet facet = AndroidFacet.getInstance(domElement);
     if (facet == null) return null;
-    final String name = domElement.getXmlTag().getName();
-    final PsiClass aClass = baseClassName != null
-                            ? LayoutViewClassUtils.findClassByTagName(facet, name, baseClassName)
-                            : null;
-    final Icon icon = getIconForTag(name, domElement);
 
     final DefinesXml definesXml = domElement.getAnnotation(DefinesXml.class);
     if (definesXml != null) {
-      return new AndroidXmlTagDescriptor(aClass, new DomElementXmlDescriptor(domElement), baseClassName, icon);
+      return new AndroidXmlTagDescriptor(new DomElementXmlDescriptor(domElement));
     }
     final PsiElement parent = tag.getParent();
     if (parent instanceof XmlTag) {
       final XmlElementDescriptor parentDescriptor = ((XmlTag)parent).getDescriptor();
 
-      if (parentDescriptor != null && parentDescriptor instanceof AndroidXmlTagDescriptor) {
+      if (parentDescriptor instanceof AndroidXmlTagDescriptor) {
         XmlElementDescriptor domDescriptor = parentDescriptor.getElementDescriptor(tag, (XmlTag)parent);
         if (domDescriptor != null) {
-          return new AndroidXmlTagDescriptor(aClass, domDescriptor, baseClassName, icon);
+          return new AndroidXmlTagDescriptor(domDescriptor);
         }
       }
     }
@@ -81,48 +75,45 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
 
   @Override
   public XmlElementDescriptor getDescriptor(XmlTag tag) {
-    final Pair<AndroidDomElement, String> pair = getDomElementAndBaseClassQName(tag);
-    if (pair == null) {
+    DomElement element = DomManager.getDomManager(tag.getProject()).getDomElement(tag);
+    if (element instanceof LayoutElement) {
+      return createLayoutElementDescriptor((LayoutElement)element, tag);
+    }
+    if (element instanceof PreferenceElement) {
+      return createPreferenceElementDescriptor((PreferenceElement)element, tag);
+    }
+    if (element instanceof DataBindingElement) {
       return null;
     }
-    return getDescriptor(pair.getFirst(), tag, pair.getSecond());
+    if (element instanceof AndroidDomElement) {
+      return getDescriptor(element, tag);
+    }
+    return null;
   }
 
   @Nullable
-  public static Pair<AndroidDomElement, String> getDomElementAndBaseClassQName(@NotNull XmlTag tag) {
-    final PsiFile file = tag.getContainingFile();
-    if (!(file instanceof XmlFile)) return null;
-    Project project = file.getProject();
-    if (project.isDefault()) return null;
+  public static PreferenceElementDescriptor createPreferenceElementDescriptor(@NotNull PreferenceElement element, @NotNull XmlTag tag) {
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    if (facet == null) return null;
+    String baseClass = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet).getQualifiedBaseClass();
+    String baseGroupClass = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet).getQualifiedGroupClass();
+    final PsiClass preferenceClass = AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, tag.getName(), baseClass);
+    return new PreferenceElementDescriptor(preferenceClass, new DomElementXmlDescriptor(element), baseGroupClass);
+  }
 
-    final DomManager domManager = DomManager.getDomManager(project);
-    if (domManager.getFileElement((XmlFile)file, AndroidDomElement.class) == null) return null;
-    
-    final DomElement domElement = domManager.getDomElement(tag);
-    // DataBindingElements are handled by a different provider.
-    if (!(domElement instanceof AndroidDomElement) || domElement instanceof DataBindingElement) {
-      return null;
+  @Nullable
+  public static LayoutElementDescriptor createLayoutElementDescriptor(@NotNull LayoutElement element, @NotNull XmlTag tag) {
+    if (element instanceof View) {
+      PsiClass viewClass = ((View)element).getViewClass().getValue();
+      return new LayoutViewElementDescriptor(viewClass, (View)element);
     }
-
-    String className = null;
-    if (domElement instanceof LayoutViewElement) {
-      className = AndroidUtils.VIEW_CLASS_NAME;
-    }
-    else if (domElement instanceof XmlResourceElement) {
-      AndroidFacet facet = AndroidFacet.getInstance(domElement);
+    if (element instanceof LayoutViewElement) {
+      AndroidFacet facet = AndroidFacet.getInstance(element);
       if (facet == null) return null;
-      AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-      className = preferenceSource.getQualifiedBaseClass();
+      final PsiClass viewClass = AndroidClassesForXmlUtilKt.findViewValidInXMLByName(facet, tag.getName());
+      return new LayoutViewElementDescriptor(viewClass, (LayoutViewElement)element);
     }
-    return Pair.create((AndroidDomElement)domElement, className);
-  }
-
-  @Nullable
-  public static Icon getIconForTag(@Nullable String tagName, @Nullable DomElement context) {
-    if (tagName == null || !(context instanceof LayoutViewElement)) {
-      return null;
-    }
-    return getIconForViewTag(tagName);
+    return new LayoutElementDescriptor(new DomElementXmlDescriptor(element));
   }
 
   @Nullable
@@ -159,6 +150,7 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
   /**
    * Utility function to convert tagName (e.g. TextView, CheckBox, etc.) to the icon name of {@link StudioIcons.LayoutEditor.Palette}.
    * The keys in {@link StudioIcons} are always upper case with underline.
+   *
    * @param tagName the name of the widget tag.
    * @return the icon name matches the format of {@link StudioIcons}.
    */

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_GENERATE_SOURCES_ONLY;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
@@ -104,6 +104,7 @@ import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 
 /**
@@ -172,10 +173,7 @@ public class GradleBuildInvoker {
     }
   }
 
-  public void cleanAndGenerateSources() {
-    generateSources(true /* clean project */, ModuleManager.getInstance(myProject).getModules());
-  }
-
+  @TestOnly
   public void generateSources() {
     generateSources(false /* do not clean project */, ModuleManager.getInstance(myProject).getModules());
   }
@@ -384,7 +382,7 @@ public class GradleBuildInvoker {
     List<String> jvmArguments = new ArrayList<>();
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // Projects in tests may not have a local.properties, set ANDROID_HOME JVM argument if that's the case.
+      // Projects in tests may not have a local.properties, set ANDROID_SDK_ROOT JVM argument if that's the case.
       LocalProperties localProperties;
       try {
         localProperties = new LocalProperties(myProject);

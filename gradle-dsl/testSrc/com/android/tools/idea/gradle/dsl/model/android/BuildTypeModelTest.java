@@ -15,55 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_RESET_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_ALL_BUILD_TYPES;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_BUILD_TYPE_MAP_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_READ_SIGNING_CONFIG;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE;
@@ -79,6 +30,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
@@ -89,8 +41,12 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.truth.Truth;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -99,7 +55,7 @@ import org.junit.Test;
 public class BuildTypeModelTest extends GradleFileModelTestCase {
   @Test
   public void testBuildTypeBlockWithApplicationStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -127,7 +83,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithAssignmentStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -153,7 +109,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeApplicationStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -181,7 +137,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeAssignmentStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_ASSIGNMENT_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_ASSIGNMENT_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix", buildType.applicationIdSuffix());
@@ -211,7 +167,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithOverrideStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("applicationIdSuffix", "mySuffix-3", buildType.applicationIdSuffix());
@@ -239,7 +195,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeBlockWithAppendStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     verifyFlavorType("buildConfigFields",
@@ -259,7 +215,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeMapStatements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_MAP_STATEMENTS);
+    writeToBuildFile(TestFile.BUILD_TYPE_MAP_STATEMENTS);
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "defaultName1", "activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
@@ -267,7 +223,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_RESET_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -358,7 +314,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditAndResetLiteralElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS);
+    writeToBuildFile(TestFile.EDIT_AND_RESET_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -426,7 +382,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetLiteralElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_LITERAL_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_RESET_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -504,7 +460,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndResetListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REPLACE_AND_RESET_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.REPLACE_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -534,7 +490,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -561,7 +517,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToAndResetListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_TO_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -595,7 +551,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndResetListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_FROM_AND_RESET_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -630,7 +586,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetAndResetMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_SET_AND_RESET_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.SET_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -647,7 +603,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_RESET_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -664,7 +620,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_RESET_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -682,7 +638,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -759,7 +715,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertMissingProperty("zipAlignEnabled", buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_ELEMENTS_EXPECTED);
 
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertTrue(((AndroidModelImpl)android).hasValidPsiElement());
@@ -836,12 +792,12 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertNotNull(android);
     assertThat(android, instanceOf(AndroidModelImpl.class));
     assertFalse(((AndroidModelImpl)android).hasValidPsiElement());
-    assertTrue(android.buildTypes().isEmpty());
+    assertSize(2, android.buildTypes());
   }
 
   @Test
   public void testEditAndApplyLiteralElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS);
+    writeToBuildFile(TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -891,7 +847,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
@@ -928,7 +884,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyLiteralElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -983,7 +939,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertEquals("zipAlignEnabled", Boolean.FALSE, buildType.zipAlignEnabled());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED);
 
     assertEquals("applicationIdSuffix", "mySuffix-1", buildType.applicationIdSuffix());
     assertEquals("debuggable", Boolean.FALSE, buildType.debuggable());
@@ -1020,7 +976,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceAndApplyListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.REPLACE_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1041,7 +997,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "efgh", "ijkl")), buildType.resValues());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "mnop", "qrst")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules.pro"),
@@ -1060,7 +1016,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1079,7 +1035,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
@@ -1096,7 +1052,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddToAndApplyListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_TO_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1122,7 +1078,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                      buildType.resValues());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields",
                      ImmutableList.of(Lists.newArrayList("abcd", "efgh", "ijkl"), Lists.newArrayList("cdef", "ghij", "klmn")),
@@ -1149,7 +1105,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveFromAndApplyListElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_FROM_AND_APPLY_LIST_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1172,7 +1128,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyFlavorType("resValues", ImmutableList.of(Lists.newArrayList("mnop", "qrst", "uvwx")), buildType.resValues());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED);
 
     verifyFlavorType("buildConfigFields", ImmutableList.of(Lists.newArrayList("cdef", "ghij", "klmn")), buildType.buildConfigFields());
     assertEquals("consumerProguardFiles", ImmutableList.of("proguard-android.txt"), buildType.consumerProguardFiles());
@@ -1195,7 +1151,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     //  values stored there.  However, the model does not "know" that an empty setProguardFiles call has a side-effect; instead, we treat
     //  it as a statement with no effect, and remove it.
     assumeTrue("setProguardFiles parsing/model implementation insufficient in KotlinScript", !isKotlinScript());
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
+    writeToBuildFile(TestFile.REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1208,7 +1164,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED);
 
     assertTrue(buildType.consumerProguardFiles().getValue(LIST_TYPE).isEmpty());
     assertTrue(buildType.proguardFiles().getValue(LIST_TYPE).isEmpty());
@@ -1221,7 +1177,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetAndApplyMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.SET_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1233,7 +1189,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_AND_APPLY_MAP_ELEMENTS_EXPECTED);
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("key1", 12345, "key2", "value2", "key3", true),
                  buildType.manifestPlaceholders());
@@ -1246,7 +1202,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1258,7 +1214,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED);
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel1", "newName1", "activityLabel2", "newName2"),
                  buildType.manifestPlaceholders());
@@ -1271,7 +1227,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyMapElements() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1283,7 +1239,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
                  buildType.manifestPlaceholders());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED);
 
     assertEquals("manifestPlaceholders", ImmutableMap.of("activityLabel2", "defaultName2"),
                  buildType.manifestPlaceholders());
@@ -1296,7 +1252,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testReadSigningConfig() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_READ_SIGNING_CONFIG);
+    writeToBuildFile(TestFile.READ_SIGNING_CONFIG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1309,7 +1265,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSigningConfig() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_SET_SIGNING_CONFIG);
+    writeToBuildFile(TestFile.SET_SIGNING_CONFIG);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1320,10 +1276,14 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
     // Set the value to be equal to a different config.
     List<SigningConfigModel> signingConfigs = buildModel.android().signingConfigs();
-    assertThat(signingConfigs.size(), equalTo(2));
-    assertThat(signingConfigs.get(0).name(), equalTo("myConfig"));
-    assertThat(signingConfigs.get(1).name(), equalTo("myBetterConfig"));
+    assertThat(signingConfigs.size(), equalTo(3));
+    assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
+    assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
     signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
+    assertThat(signingConfigs.size(), equalTo(3));
+    assertThat(signingConfigs.get(1).name(), equalTo("myConfig"));
+    assertThat(signingConfigs.get(2).name(), equalTo("myBetterConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(2)));
 
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
@@ -1332,8 +1292,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG_EXPECTED);
 
+    signingConfigs = buildModel.android().signingConfigs();
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
@@ -1341,7 +1302,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
                isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
@@ -1349,9 +1310,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG);
+    verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG);
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
@@ -1363,13 +1324,13 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetSigningConfigFromEmpty() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY);
+    writeToBuildFile(TestFile.SET_SIGNING_CONFIG_FROM_EMPTY);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
     BuildTypeModel buildTypeModel = android.addBuildType("xyz");
 
-    SigningConfigModel signingConfig = android.signingConfigs().get(0);
+    SigningConfigModel signingConfig = android.signingConfigs().get(1);
     assertMissingProperty(buildTypeModel.signingConfig());
     buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig));
 
@@ -1380,7 +1341,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigPropertyModel.toSigningConfig().name(), equalTo("myConfig"));
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED);
 
     android = buildModel.android();
     buildTypeModel = android.addBuildType("xyz");
@@ -1394,28 +1355,28 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyCreateBuildType() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_CREATE_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    assertSize(2, android.buildTypes());
+    assertSize(3, android.buildTypes());
 
     BuildTypeModel xyzModel = android.buildTypes().stream().filter(type -> type.name().equals("xyz")).findFirst().orElse(null);
     assertThat(xyzModel, is(notNullValue()));
     verifyPropertyModel(xyzModel.debuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
     BuildTypeModel releaseModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
     assertThat(releaseModel, is(notNullValue()));
-    verifyPropertyModel(releaseModel.jniDebuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
+    // TODO(b/158066552): verifyPropertyModel(releaseModel.jniDebuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
 
     xyzModel.debuggable().delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED);
   }
 
   @Test
   public void testRemoveAndApplyGetByNameBuildType() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -1429,14 +1390,14 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     debugModel.debuggable().delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED);
   }
 
   // This test just makes sure its parsed correctly, if we decide to support these this test should be changed to
   // verify the correct behaviour.
   @Test
   public void testAllBuildTypes() throws Exception {
-    writeToBuildFile(BUILD_TYPE_MODEL_ALL_BUILD_TYPES);
+    writeToBuildFile(TestFile.ALL_BUILD_TYPES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -1451,15 +1412,155 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(debugBuildTypeModel.applicationIdSuffix(), STRING_TYPE, "debugSuffix", STRING, REGULAR, 0);
   }
 
+  @Test
+  public void renameImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("newRelease");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_IMPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameExplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_EXPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("newRelease");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("newDebug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameToImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_TO_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(4);
+    assertEquals("notRelease", buildTypes.get(2).name());
+    buildTypes.get(2).rename("release");
+    assertEquals("notDebug", buildTypes.get(3).name());
+    buildTypes.get(3).rename("debug");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_TO_IMPLICIT_EXPECTED);
+  }
+
+  @Test
+  public void renameExplicitToImplicit() throws IOException {
+    writeToBuildFile(TestFile.RENAME_EXPLICIT_TO_IMPLICIT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel androidModel = buildModel.android();
+    List<BuildTypeModel> buildTypes = androidModel.buildTypes();
+    Truth.assertThat(buildTypes).hasSize(2);
+    assertEquals("release", buildTypes.get(0).name());
+    buildTypes.get(0).rename("debug");
+    assertEquals("debug", buildTypes.get(1).name());
+    buildTypes.get(1).rename("release");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED);
+  }
+
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
     AndroidModel android = buildModel.android();
     assertNotNull(android);
     List<BuildTypeModel> buildTypeModels = android.buildTypes();
-    assertThat(buildTypeModels.size(), equalTo(1));
+    assertThat(buildTypeModels.size(), equalTo(3));
 
-    BuildTypeModel buildType = buildTypeModels.get(0);
+    BuildTypeModel buildType = buildTypeModels.get(2);
     assertEquals("name", "xyz", buildType.name());
     return buildType;
+  }
+
+  enum TestFile implements TestFileName {
+    BUILD_TYPE_BLOCK_WITH_APPLICATION_STATEMENTS("buildTypeBlockWithApplicationStatements"),
+    BUILD_TYPE_BLOCK_WITH_ASSIGNMENT_STATEMENTS("buildTypeBlockWithAssignmentStatements"),
+    BUILD_TYPE_APPLICATION_STATEMENTS("buildTypeApplicationStatements"),
+    BUILD_TYPE_ASSIGNMENT_STATEMENTS("buildTypeAssignmentStatements"),
+    BUILD_TYPE_BLOCK_WITH_OVERRIDE_STATEMENTS("buildTypeBlockWithOverrideStatements"),
+    BUILD_TYPE_BLOCK_WITH_APPEND_STATEMENTS("buildTypeBlockWithAppendStatements"),
+    BUILD_TYPE_MAP_STATEMENTS("buildTypeMapStatements"),
+    REMOVE_AND_RESET_ELEMENTS("removeAndResetElements"),
+    EDIT_AND_RESET_LITERAL_ELEMENTS("editAndResetLiteralElements"),
+    ADD_AND_RESET_LITERAL_ELEMENTS("addAndResetLiteralElements"),
+    REPLACE_AND_RESET_LIST_ELEMENTS("replaceAndResetListElements"),
+    ADD_AND_RESET_LIST_ELEMENTS("addAndResetListElements"),
+    ADD_TO_AND_RESET_LIST_ELEMENTS("addToAndResetListElements"),
+    REMOVE_FROM_AND_RESET_LIST_ELEMENTS("removeFromAndResetListElements"),
+    SET_AND_RESET_MAP_ELEMENTS("setAndResetMapElements"),
+    ADD_AND_RESET_MAP_ELEMENTS("addAndResetMapElements"),
+    REMOVE_AND_RESET_MAP_ELEMENTS("removeAndResetMapElements"),
+    REMOVE_AND_APPLY_ELEMENTS("removeAndApplyElements"),
+    REMOVE_AND_APPLY_ELEMENTS_EXPECTED("removeAndApplyElementsExpected"),
+    EDIT_AND_APPLY_LITERAL_ELEMENTS("editAndApplyLiteralElements"),
+    EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED("editAndApplyLiteralElementsExpected"),
+    ADD_AND_APPLY_LITERAL_ELEMENTS("addAndApplyLiteralElements"),
+    ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED("addAndApplyLiteralElementsExpected"),
+    REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
+    REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
+    ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),
+    ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED("addAndApplyListElementsExpected"),
+    ADD_TO_AND_APPLY_LIST_ELEMENTS("addToAndApplyListElements"),
+    ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED("addToAndApplyListElementsExpected"),
+    REMOVE_FROM_AND_APPLY_LIST_ELEMENTS("removeFromAndApplyListElements"),
+    REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_EXPECTED("removeFromAndApplyListElementsExpected"),
+    REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT("removeFromAndApplyListElementsWithSingleElement"),
+    REMOVE_FROM_AND_APPLY_LIST_ELEMENTS_WITH_SINGLE_ELEMENT_EXPECTED("removeFromAndApplyListElementsWithSingleElementExpected"),
+    SET_AND_APPLY_MAP_ELEMENTS("setAndApplyMapElements"),
+    SET_AND_APPLY_MAP_ELEMENTS_EXPECTED("setAndApplyMapElementsExpected"),
+    ADD_AND_APPLY_MAP_ELEMENTS("addAndApplyMapElements"),
+    ADD_AND_APPLY_MAP_ELEMENTS_EXPECTED("addAndApplyMapElementsExpected"),
+    REMOVE_AND_APPLY_CREATE_BUILD_TYPE("removeAndApplyCreateBuildType"),
+    REMOVE_AND_APPLY_CREATE_BUILD_TYPE_EXPECTED("removeAndApplyCreateBuildTypeExpected"),
+    REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE("removeAndApplyGetByNameBuildType"),
+    REMOVE_AND_APPLY_GET_BY_NAME_BUILD_TYPE_EXPECTED("removeAndApplyGetByNameBuildTypeExpected"),
+    REMOVE_AND_APPLY_MAP_ELEMENTS("removeAndApplyMapElements"),
+    REMOVE_AND_APPLY_MAP_ELEMENTS_EXPECTED("removeAndApplyMapElementsExpected"),
+    READ_SIGNING_CONFIG("readSigningConfig"),
+    SET_SIGNING_CONFIG("setSigningConfig"),
+    SET_SIGNING_CONFIG_EXPECTED("setSigningConfigExpected"),
+    SET_SIGNING_CONFIG_FROM_EMPTY("setSigningConfigFromEmpty"),
+    SET_SIGNING_CONFIG_FROM_EMPTY_EXPECTED("setSigningConfigFromEmptyExpected"),
+    ALL_BUILD_TYPES("allBuildTypes"),
+    RENAME_IMPLICIT("renameImplicit"),
+    RENAME_IMPLICIT_EXPECTED("renameImplicitExpected"),
+    RENAME_EXPLICIT("renameExplicit"),
+    RENAME_EXPLICIT_EXPECTED("renameExplicitExpected"),
+    RENAME_TO_IMPLICIT("renameToImplicit"),
+    RENAME_TO_IMPLICIT_EXPECTED("renameToImplicitExpected"),
+    RENAME_EXPLICIT_TO_IMPLICIT("renameExplicitToImplicit"),
+    RENAME_EXPLICIT_TO_IMPLICIT_EXPECTED("renameExplicitToImplicitExpected"),
+    ;
+
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/buildTypeModel/" + path, extension);
+    }
   }
 }

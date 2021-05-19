@@ -16,10 +16,13 @@
 
 package com.android.tools.idea.actions
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.wizard.model.ModelWizard.Builder
 import com.intellij.idea.ActionsBundle.actionText
 import com.intellij.openapi.actionSystem.AnAction
@@ -39,6 +42,7 @@ class AndroidNewProjectAction @JvmOverloads constructor(text: String = actionTex
       return
     }
     val wizard = Builder().addStep(ChooseAndroidProjectStep(NewProjectModel())).build()!!
-    StudioWizardDialogBuilder(wizard, actionText("WelcomeScreen.CreateNewProject")).build().show()
+    val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+    StudioWizardDialogBuilder(wizard, actionText("WelcomeScreen.CreateNewProject")).build(wizardLayout).show()
   }
 }

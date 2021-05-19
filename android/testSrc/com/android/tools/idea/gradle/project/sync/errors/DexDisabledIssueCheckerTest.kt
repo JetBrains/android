@@ -84,16 +84,8 @@ class DexDisabledIssueCheckerTest {
     assertThat(quickFixes[0]).isInstanceOf(SetLanguageLevel8AllQuickFix::class.java)
   }
 
-  private fun verifyWithModule(pattern: String) {
-    val quickFixes = verifyBuildIssueAndGetQuickfixes(pattern, FAILED_TASK_MESSAGE)
-    assertThat(quickFixes).hasSize(2)
-    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8AllQuickFix>()).hasSize(1)
-    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8ModuleQuickFix>()).hasSize(1)
-    assertThat(quickFixes.map{it.id}).containsNoDuplicates()
-  }
-
   @Test
-  fun `testCheckIssueHandled`() {
+  fun testCheckIssueHandled() {
     assertThat(
       issueChecker.consumeBuildOutputFailureMessage(
         "Build failed with Exception",
@@ -135,6 +127,14 @@ class DexDisabledIssueCheckerTest {
         "",
         TestMessageEventConsumer()
       )).isEqualTo(false)
+  }
+
+  private fun verifyWithModule(pattern: String) {
+    val quickFixes = verifyBuildIssueAndGetQuickfixes(pattern, FAILED_TASK_MESSAGE)
+    assertThat(quickFixes).hasSize(2)
+    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8AllQuickFix>()).hasSize(1)
+    assertThat(quickFixes.filterIsInstance<SetLanguageLevel8ModuleQuickFix>()).hasSize(1)
+    assertThat(quickFixes.map{it.id}).containsNoDuplicates()
   }
 
   private fun verifyBuildIssueAndGetQuickfixes(rootPattern: String, taskPattern: String): List<BuildIssueQuickFix> {

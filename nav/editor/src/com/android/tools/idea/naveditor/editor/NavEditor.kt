@@ -18,15 +18,11 @@ package com.android.tools.idea.naveditor.editor
 import com.android.tools.adtui.workbench.AutoHide
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.Split
-import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.property2.NavPropertiesPanelDefinition
 import com.android.tools.idea.naveditor.structure.HostPanelDefinition
-import com.android.tools.idea.naveditor.structure.StructurePanel
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.tree.TreePanelDefinition
 import com.intellij.openapi.project.Project
@@ -52,16 +48,11 @@ open class NavEditor(file: VirtualFile, project: Project) : DesignerEditor(file,
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
                         { NavDesignSurface(myProject, it, this) },
                         {
-                          val list = mutableListOf<ToolWindowDefinition<DesignSurface>>()
-                          list.add(NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
-                          if (StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
-                            list.add(TreePanelDefinition())
-                            list.add(HostPanelDefinition())
-                          }
-                          else {
-                            list.add(StructurePanel.StructurePanelDefinition())
-                          }
-                          list
+                          listOf(
+                            NavPropertiesPanelDefinition(it, Side.RIGHT, Split.TOP, AutoHide.DOCKED),
+                            TreePanelDefinition(),
+                            HostPanelDefinition()
+                          )
                         }, getDefaultSurfaceState())
 
   override fun getName() = "Design"

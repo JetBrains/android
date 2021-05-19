@@ -85,7 +85,10 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
     return !myComponent.isSelected && !myComponent.isDragging;
   }
 
-  fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) = (x.toFloat() in myLeft..myRight) && (y.toFloat() in myTop..myBottom)
+  fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) =
+    coordinateInRange(x, myLeft, myRight) && coordinateInRange(y, myTop, myBottom)
+
+  private fun coordinateInRange(x: Int, left: Float, right: Float): Boolean = x >= left && x <= right
 
   fun snap(attributes: NlAttributesHolder) {
     val value = when (myType) {

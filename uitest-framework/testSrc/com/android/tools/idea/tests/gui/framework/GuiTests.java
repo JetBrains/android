@@ -30,6 +30,7 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
@@ -62,6 +63,7 @@ import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
+import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.containers.ConcurrentLongObjectMap;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.Component;
@@ -78,7 +80,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -168,11 +169,15 @@ public final class GuiTests {
   }
 
   private static File getAndroidSdk() {
-    String androidHome = System.getenv("ANDROID_HOME");
-    if (androidHome == null) {
-      throw new RuntimeException("Must set ANDROID_HOME environment variable when running in standalone mode");
+    String androidSdkRoot = System.getenv(SdkConstants.ANDROID_HOME_ENV);
+    if (androidSdkRoot == null) {
+      androidSdkRoot = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
     }
-    return new File(androidHome);
+
+    if (androidSdkRoot == null) {
+      throw new RuntimeException("Must set " + SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable when running in standalone mode");
+    }
+    return new File(androidSdkRoot);
   }
 
   public static void setUpSdks() {
@@ -188,7 +193,9 @@ public final class GuiTests {
               System.out.println(String.format("Setting Android SDK: '%1$s'", androidSdkPath.getPath()));
               ideSdks.setAndroidSdkPath(androidSdkPath, null);
 
-              ideSdks.setUseEmbeddedJdk();
+              if (!ideSdks.isUsingEnvVariableJdk()) {
+                ideSdks.setUseEmbeddedJdk();
+              }
               System.out.println(String.format("Setting JDK: '%1$s'", ideSdks.getJdkPath()));
 
               System.out.println();
@@ -318,9 +325,12 @@ public final class GuiTests {
         return rootDirPath;
       }
     }
-    String homeDirPath = toSystemDependentName(PathManager.getHomePath());
-    assertThat(homeDirPath).isNotEmpty();
-    File rootDirPath = new File(homeDirPath, join("androidStudio", "gui-tests"));
+    String testDir = System.getenv("TEST_TMPDIR");
+    if (testDir == null) {
+      testDir = toSystemDependentName(PathManager.getHomePath());
+    }
+    assertThat(testDir).isNotEmpty();
+    File rootDirPath = new File(testDir, join("androidStudio", "gui-tests"));
     ensureExists(rootDirPath);
     return rootDirPath;
   }
@@ -350,7 +360,7 @@ public final class GuiTests {
     if (GuiTestOptions.INSTANCE.isRunningOnRelease()) {
       testDataPath = PathManagerEx.findFileUnderCommunityHome("plugins/uitest-framework").getPath();
     } else {
-      testDataPath = PathManager.getHomePath() + "/../adt/idea/android-uitests";
+      testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/android-uitests").getAbsolutePath();
     }
     testDataPath = toCanonicalPath(toSystemDependentName(testDataPath));
     return new File(testDataPath, "testData");
@@ -372,6 +382,21 @@ public final class GuiTests {
     });
   }
 
+  public static SimpleTree waitTreeForPopup(@NotNull Robot robot) {
+    return waitUntilFound(robot, null, new GenericTypeMatcher<SimpleTree>(SimpleTree.class) {
+      @Override
+      protected boolean isMatching(@NotNull SimpleTree tree) {
+        Container container = tree.getParent();
+        while (container != null){
+          if (container.getClass().getName().contains("WizardPopup")) return true;
+          container = container.getParent();
+        }
+        return false;
+      }
+    });
+  }
+
+
   /**
    * Clicks an IntelliJ/Studio popup menu item with the given label prefix
    *
@@ -388,7 +413,7 @@ public final class GuiTests {
     if (menu != null) {
       new JPopupMenuFixture(robot, menu).menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
         @Override
-        protected boolean isMatching(@Nonnull JMenuItem component) {
+        protected boolean isMatching(@NotNull JMenuItem component) {
           return predicate.test(component.getText());
         }
       }).click();

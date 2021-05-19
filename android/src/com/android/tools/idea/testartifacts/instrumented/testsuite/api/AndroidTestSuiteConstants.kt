@@ -23,3 +23,10 @@ import com.intellij.openapi.util.Key
 @JvmField
 val ANDROID_TEST_RESULT_LISTENER_KEY = Key<AndroidTestResultListener>(
   "android.testartifacts.instrumented.testsuite.ANDROID_TEST_RESULT_LISTENER_KEY")
+
+object ActionPlaces {
+  const val ANDROID_TEST_SUITE_TABLE = "AndroidTestSuiteTable"
+  const val ANDROID_TEST_SUITE_RAW_LOG = "AndroidTestSuiteRawLog"
+  const val ANDROID_TEST_SUITE_DETAILS_VIEW_LOG = "AndroidTestSuiteDetailsViewLog"
+  const val ANDROID_TEST_SUITE_DETAILS_VIEW_BENCHMARK = "AndroidTestSuiteDetailsViewBenchmark"
+}

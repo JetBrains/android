@@ -18,15 +18,22 @@ package com.android.tools.idea.lint
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.DOT_GRADLE
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.upgrade.performDeprecatedConfigurationsUpgrade
+import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
+import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
+import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.res.AndroidFileChangeListener
 import com.android.tools.idea.sdk.AndroidSdks
@@ -44,6 +51,7 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.properties.PropertiesFileType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -55,6 +63,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
@@ -65,7 +74,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     return AndroidLintIdeIssueRegistry()
   }
 
-  override fun getBaselineFile(module: Module): File? {
+  override fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val model = AndroidModuleModel.get(module) ?: return null
     val version = model.modelVersion ?: return null
     if (version.isAtLeast(2, 3, 1)) {
@@ -79,6 +88,12 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       catch (unsupported: Throwable) {
       }
     }
+
+    // Baselines can also be configured via lint.xml
+    module.getModuleDir()?.let { dir ->
+      client.getConfiguration(dir)?.baselineFile?.let { baseline -> return baseline }
+    }
+
     return null
   }
 
@@ -204,6 +219,24 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
+  override fun recommendedAgpVersion(project: Project): GradleVersion? {
+    return GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  }
+  override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
+    return shouldRecommendPluginUpgrade(project)
+  }
+  override fun updateAgpToLatest(project: Project) {
+    ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+  }
+
+  override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = StudioFlags.AGP_UPGRADE_ASSISTANT.get()
+
+  override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      performDeprecatedConfigurationsUpgrade(project, element)
+    }
+  }
+
   override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gc, project, sdkHandler)
@@ -216,9 +249,23 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
   override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = ProvideLintFeedbackIntentionAction(issue.id)
+
+  // Random number generator used by logSession below. We're using a seed of 0 because
+  // we don't need true randomness, just an even distribution. This generator is
+  // visible such that tests can reset the seed each time such that the test order
+  // does not matter (and therefore we're using java.util.Random instead of kotlin.Random
+  // to get access to setSeed()
+  @VisibleForTesting
+  val random: java.util.Random = java.util.Random(0)
+
   override fun logSession(lint: LintDriver, lintResult: LintEditorResult) {
-    val analytics = LintIdeAnalytics(lintResult.getModule().project)
-    analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
+    // Lint creates a LOT of session data (since it runs after every edit pause in the editor.
+    // Let's only submit 1 out of every 100 reports; the results will still express trends and
+    // relative importance of lint checks.
+    if (random.nextDouble() < 0.01) { // nextDouble() ~20% faster than nextInt()
+      val analytics = LintIdeAnalytics(lintResult.getModule().project)
+      analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
+    }
   }
 
   override fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {

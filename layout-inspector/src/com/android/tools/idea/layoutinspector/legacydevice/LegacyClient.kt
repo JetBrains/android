@@ -19,9 +19,11 @@ import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
@@ -42,9 +44,10 @@ private const val MAX_RETRY_COUNT = 60
  * [InspectorClient] that supports pre-api 29 devices.
  * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
-class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable: Disposable) : InspectorClient {
-
+class LegacyClient(model: InspectorModel, parentDisposable: Disposable) : InspectorClient {
   var selectedClient: Client? = null
+  private val lookup: ViewNodeAndResourceLookup = model
+  private val stats = model.stats
 
   override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
     private set(value) {
@@ -67,9 +70,11 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val processChangedListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
+  private val processChangedListeners: MutableList<(InspectorClient) -> Unit> = ContainerUtil.createConcurrentList()
 
   private val processManager = LegacyProcessManager(parentDisposable)
+
+  private val project = model.project
 
   override fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
@@ -82,9 +87,14 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
   }
 
   private fun logEvent(type: DynamicLayoutInspectorEventType, stream: Common.Stream) {
+    val inspectorEvent = DynamicLayoutInspectorEvent.newBuilder().setType(type)
+    if (type == DynamicLayoutInspectorEventType.SESSION_DATA) {
+      stats.save(inspectorEvent.sessionBuilder)
+    }
     val builder = AndroidStudioEvent.newBuilder()
       .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
-      .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder().setType(type))
+      .setDynamicLayoutInspectorEvent(inspectorEvent)
+      .withProjectId(project)
     processManager.findIDeviceFor(stream)?.let { builder.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(it)) }
     UsageTracker.log(builder)
   }
@@ -109,7 +119,7 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
     }
   }
 
-  override fun registerProcessChanged(callback: () -> Unit) {
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {
     processChangedListeners.add(callback)
   }
 
@@ -165,12 +175,17 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
     selectedClient = processManager.findClientFor(stream, process) ?: return false
     selectedProcess = process
     selectedStream = stream
+    processChangedListeners.forEach { it(this) }
 
     if (!reloadAllWindows()) {
       return false
     }
     logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
     return true
+  }
+
+  override fun refresh() {
+    reloadAllWindows()
   }
 
   /**
@@ -184,7 +199,7 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
     if (windowIds.isEmpty()) {
       return false
     }
-    val propertiesUpdater = LegacyPropertiesProvider.Updater(resourceLookup)
+    val propertiesUpdater = LegacyPropertiesProvider.Updater(lookup)
     for (windowId in windowIds) {
       eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(LegacyEvent(windowId, propertiesUpdater, windowIds)) }
     }
@@ -194,10 +209,11 @@ class LegacyClient(private val resourceLookup: ResourceLookup, parentDisposable:
 
   override fun disconnect(): Future<Nothing> {
     if (selectedClient != null) {
+      logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
       selectedClient = null
       selectedProcess = Common.Process.getDefaultInstance()
       selectedStream = Common.Stream.getDefaultInstance()
-      processChangedListeners.forEach { it() }
+      processChangedListeners.forEach { it(this) }
     }
     return CompletableFuture.completedFuture(null)
   }

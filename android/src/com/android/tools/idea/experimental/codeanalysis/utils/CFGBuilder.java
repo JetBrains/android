@@ -60,7 +60,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.A
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.BinopExprImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.CastExprImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ConstantImpl;
-import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.DummyRef;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceFieldRefImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceInvokeExprImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.InstanceOfExprImpl;
@@ -73,6 +72,7 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.P
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.StaticFieldRefImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.StaticInvokeExprImpl;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.SynthesizedLocalImpl;
+import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.TemporaryRef;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.ThisRefImpl;
 import com.google.common.collect.Maps;
 import com.intellij.psi.JavaPsiFacade;
@@ -674,7 +674,7 @@ public class CFGBuilder {
       else {
         PsiCFGDebugUtil.LOG.warning("Case is not using a constant or reference");
         PsiCFGDebugUtil.debugOutputPsiElement(caseValueExpr);
-        caseValue = new DummyRef(caseValueExpr.getType(), caseValueExpr);
+        caseValue = new TemporaryRef(caseValueExpr.getType(), caseValueExpr);
       }
       curCaseNode.setLabelValue(caseValue);
       switchNode.setTargetViaKey(caseValue, curCaseNode);
@@ -827,13 +827,13 @@ public class CFGBuilder {
     conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
 
     if (loopNode.getOut().length == 0) {
-      //The dummy loop node does not have any out edges
+      //The placeholder loop node does not have any out edges
       //In this case the conditionCheckEntry is the same
       //as the conditionCheckExit
       conditionCheckEntry = conditionCheckExit;
     }
     else {
-      //At this point the dummy LoopNode is connected to the entry
+      //At this point the placeholder LoopNode is connected to the entry
       //of the condition check code.
       conditionCheckEntry = loopNode.getOut()[0];
     }
@@ -902,13 +902,13 @@ public class CFGBuilder {
     conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
 
     if (loopNode.getOut().length == 0) {
-      //The dummy loop node does not have any out edges
+      //The placeholder loop node does not have any out edges
       //In this case the conditionCheckEntry is the same
       //as the conditionCheckExit
       conditionCheckEntry = conditionCheckExit;
     }
     else {
-      //At this point the dummy LoopNode is connected to the entry
+      //At this point the placeholder LoopNode is connected to the entry
       //of the condition check code.
       conditionCheckEntry = loopNode.getOut()[0];
     }
@@ -973,13 +973,13 @@ public class CFGBuilder {
     conditionCheckExit = new ConditionCheckNodeImpl(this.mGraph, finalCheckVal);
 
     if (loopBodyGraph.getExitNode().getOut().length == 0) {
-      //The dummy loop node does not have any out edges
+      //The placeholder loop node does not have any out edges
       //In this case the conditionCheckEntry is the same
       //as the conditionCheckExit
       conditionCheckEntry = conditionCheckExit;
     }
     else {
-      //At this point the dummy LoopNode is connected to the entry
+      //At this point the placeholder LoopNode is connected to the entry
       //of the condition check code.
       conditionCheckEntry = loopBodyGraph.getExitNode().getOut()[0];
     }
@@ -1669,7 +1669,7 @@ public class CFGBuilder {
       Local l = resolveLocal((PsiLocalVariable) target);
       //return this.mGraph.getLocalFromPsiLocal((PsiLocalVariable)target);
       if (l == null) {
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       } else {
         return l;
       }
@@ -1686,11 +1686,11 @@ public class CFGBuilder {
       //  //TODO: Make necessary changes to support try catch block
       //  PsiCFGDebugUtil.LOG.warning("Refering a param that is not available in this context\n "
       //                           + expression.getText() + "\n");
-      //  return new DummyRef(expression.getType(), expression);
+      //  return new TemporaryRef(expression.getType(), expression);
       //}
       Param p = resolveParam((PsiParameter)target);
       if (p == null) {
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       } else {
         return p;
       }
@@ -1731,7 +1731,7 @@ public class CFGBuilder {
         //Should not happen here
         PsiCFGDebugUtil.LOG.warning("Super.field happened at expression: "
                                     + expression.getText());
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       }
       else if (qualifier instanceof PsiReferenceExpression) {
 
@@ -1814,7 +1814,7 @@ public class CFGBuilder {
                                + target.getClass().getSimpleName());
     }
 
-    DummyRef ref = new DummyRef(expression.getType(), expression);
+    TemporaryRef ref = new TemporaryRef(expression.getType(), expression);
     return ref;
   }
 
@@ -1833,7 +1833,7 @@ public class CFGBuilder {
       Local l = resolveLocal((PsiLocalVariable) target);
       //return this.mGraph.getLocalFromPsiLocal((PsiLocalVariable)target);
       if (l == null) {
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       } else {
         return l;
       }
@@ -1844,7 +1844,7 @@ public class CFGBuilder {
 
       Param p = resolveParam((PsiParameter)target);
       if (p == null) {
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       } else {
         return p;
       }
@@ -1890,7 +1890,7 @@ public class CFGBuilder {
         //Should not happen here
         PsiCFGDebugUtil.LOG.warning("Super.field happened at expression: "
                                     + expression.getText());
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       }
       else if (qualifier instanceof PsiReferenceExpression) {
 
@@ -1970,7 +1970,7 @@ public class CFGBuilder {
                                target.getClass().getSimpleName());
     }
 
-    DummyRef ref = new DummyRef(expression.getType(), expression);
+    TemporaryRef ref = new TemporaryRef(expression.getType(), expression);
     return ref;
   }
 
@@ -2250,11 +2250,11 @@ public class CFGBuilder {
     }
     else if (expression instanceof PsiSuperExpression) {
       //TODO: SuperExpression
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
     else if (expression instanceof PsiArrayInitializerExpression) {
       //TODO: ArrayInitExpr
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
     else if (expression instanceof PsiTypeCastExpression) {
       return dfsPsiTypeCastExpressionBuilder((PsiTypeCastExpression)expression);
@@ -2271,7 +2271,7 @@ public class CFGBuilder {
     }
     else if (expression instanceof PsiClassObjectAccessExpression) {
       //TODO: String.class etc
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
     else if (expression instanceof PsiLambdaExpression) {
 
@@ -2282,7 +2282,7 @@ public class CFGBuilder {
                                   expression.getClass().getSimpleName() +
                                   " not Implemented");
 
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
   }
 
@@ -2340,10 +2340,10 @@ public class CFGBuilder {
     if (interfaceType == null) {
       //The SAM type interface cannot be found by intelliJ
       //There is no way to resolve the SAM type by ourselves.
-      //Just return a dummy here.
+      //Just return a temporary reference here.
       PsiCFGDebugUtil.LOG.warning("Lambda Expression: "
                                   + expression.getText() + " cannot be resolved");
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
 
     if (interfaceType instanceof PsiClassType) {
@@ -2353,7 +2353,7 @@ public class CFGBuilder {
       PsiCFGDebugUtil.LOG.warning("Lambda Expression: "
                                   + expression.getText() + " type is not interface");
       PsiCFGDebugUtil.LOG.warning("Type: " + interfaceType.getClass().getSimpleName());
-      return new DummyRef(expression.getType(), expression);
+      return new TemporaryRef(expression.getType(), expression);
     }
 
     //Create the wrapper class for the lambda expression
@@ -2424,7 +2424,7 @@ public class CFGBuilder {
         PsiCFGDebugUtil.LOG.warning("Cannot resolve the class in the new expression in "
                                     + expression.getText());
 
-        return new DummyRef(expression.getType(), expression);
+        return new TemporaryRef(expression.getType(), expression);
       }
 
       classOfNewInstance = (PsiClass)resolvedExpression;
@@ -2595,7 +2595,7 @@ public class CFGBuilder {
                                   + (resolvedElement == null ? "null" : resolvedElement.getClass().getName()));
 
     }
-    return new DummyRef(expression.getType(), resolvedElement);
+    return new TemporaryRef(expression.getType(), resolvedElement);
   }
 
   public Value dfsPsiConditionalExpressionBuilder(PsiConditionalExpression expression) {

@@ -17,14 +17,22 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
 
-private const val EP_NAME = "com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
 /**
  * A [MultiRepresentationPreview] tailored to the source code files.
+ *
+ * @param psiFile the file being edited by this editor.
+ * @param editor the [Editor] for the file.
+ * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
-internal class SourceCodePreview(psiFile: PsiFile) : MultiRepresentationPreview(psiFile, EP_NAME) {
+internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
+  MultiRepresentationPreview(psiFile, textEditor, providers) {
+
   val project = psiFile.project
 
   init {
@@ -36,7 +44,13 @@ internal class SourceCodePreview(psiFile: PsiFile) : MultiRepresentationPreview(
      *
      * Thus, we update representations list either when we are enter the Smart mode or when we have a file change and we are in Smart mode.
      */
-    DumbService.getInstance(project).smartInvokeLater { updateRepresentations() }
+    val dumbService = DumbService.getInstance(project)
+    if (ApplicationManager.getApplication().isDispatchThread && !dumbService.isDumb) {
+      updateRepresentations()
+    }
+    else {
+      dumbService.smartInvokeLater { updateRepresentations() }
+    }
 
     setupChangeListener(project, psiFile, {
       if (!DumbService.isDumb(project)) {

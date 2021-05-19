@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -97,16 +98,15 @@ class ImportedTraceThreadDataSeriesTest {
     val rangeAfterStates = Range((lastChild.end + 1).toDouble(), java.lang.Double.MAX_VALUE)
     val dataSeries = mySeries!!.getDataForRange(rangeAfterStates)
     // Assert that we return only the last NO_ACTIVITY state
-    assertThat(dataSeries).hasSize(1)
-    assertThat(dataSeries[0].value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(dataSeries).containsExactly(SeriesData(lastChild.end, ThreadState.NO_ACTIVITY))
   }
 
   @Test
-  fun rangeBeforeStatesReturnsEmptySeries() {
+  fun rangeBeforeStatesReturnsOnlyFirstState() {
     val firstChild = myCapture.getCaptureNode(myCapture.mainThreadId)!!.children[0]
-    val rangeAfterStates = Range(-java.lang.Double.MAX_VALUE, (firstChild.start - 1).toDouble())
-    val dataSeries = mySeries!!.getDataForRange(rangeAfterStates)
-    // No state should be returned
-    assertThat(dataSeries).isEmpty()
+    val rangeBeforeStates = Range(-java.lang.Double.MAX_VALUE, (firstChild.start - 1).toDouble())
+    val dataSeries = mySeries!!.getDataForRange(rangeBeforeStates)
+    // Assert that we return only the first HAS_ACTIVITY state
+    assertThat(dataSeries).containsExactly(SeriesData(firstChild.start, ThreadState.HAS_ACTIVITY))
   }
 }

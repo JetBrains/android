@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
@@ -67,15 +67,15 @@ public final class SyncIssuesReporter {
   /**
    * Reports all sync errors for the provided collection of modules.
    */
-  public void report(@NotNull Map<Module, List<SyncIssue>> issuesByModules) {
+  public void report(@NotNull Map<Module, List<IdeSyncIssue>> issuesByModules) {
     if (issuesByModules.isEmpty()) {
       return;
     }
 
-    Map<Integer, List<SyncIssue>> syncIssues = new LinkedHashMap<>();
+    Map<Integer, List<IdeSyncIssue>> syncIssues = new LinkedHashMap<>();
     // Note: Since the SyncIssues don't store the module they come from their hashes will be the same.
     // As such we use an IdentityHashMap to ensure different issues get hashed to different values.
-    Map<SyncIssue, Module> moduleMap = new IdentityHashMap<>();
+    Map<IdeSyncIssue, Module> moduleMap = new IdentityHashMap<>();
     Map<Module, VirtualFile> buildFileMap = new LinkedHashMap<>();
 
     Project project = null;
@@ -95,16 +95,25 @@ public final class SyncIssuesReporter {
 
     // Make sure errors are reported before warnings, note this assumes that each type of issue will be the same type.
     // Otherwise errors and warnings may be interleaved.
-    Map<Integer, List<SyncIssue>> sortedSyncIssues = syncIssues.entrySet().stream().sorted(
+    Map<Integer, List<IdeSyncIssue>> sortedSyncIssues = syncIssues.entrySet().stream().sorted(
       Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparing(issues -> issues.get(0).getSeverity())))).collect(
       Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldVal, newVal) -> oldVal, LinkedHashMap::new));
     SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(project);
-    for (Map.Entry<Integer, List<SyncIssue>> entry : sortedSyncIssues.entrySet()) {
+    for (Map.Entry<Integer, List<IdeSyncIssue>> entry : sortedSyncIssues.entrySet()) {
       BaseSyncIssuesReporter strategy = myStrategies.get(entry.getKey());
       if (strategy == null) {
         strategy = myDefaultMessageFactory;
       }
       strategy.reportAll(entry.getValue(), moduleMap, buildFileMap, syncIssueUsageReporter);
+    }
+    Project finalProject = project;
+    Runnable reportTask = () -> {
+      SyncIssueUsageReporter.Companion.getInstance(finalProject).reportToUsageTracker();
+    };
+    if (ApplicationManager.getApplication().isUnitTestMode())
+      reportTask.run();
+    else {
+      ApplicationManager.getApplication().invokeLater(reportTask);
     }
   }
 

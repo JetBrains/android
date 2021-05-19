@@ -20,6 +20,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeTraceProcessorService
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail
@@ -27,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
+import java.lang.RuntimeException
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -303,7 +305,7 @@ class CpuCaptureParserTest {
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
-    assertThat(capture.threads).hasSize(17)
+    assertThat(capture.threads).hasSize(41)
   }
 
   @Test
@@ -313,8 +315,8 @@ class CpuCaptureParserTest {
 
     val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     // Try to parse the file, assume the user canceled the dialog. If the dialog is shown.
-    services.setListBoxOptionsIndex(-1)
-    val futureCapture = parser.parseForTest(traceFile, nameHint = "surfaceflinger")
+    services.setListBoxOptionsIndex(-1) // This makes process selector throws if we didn't selected based on name hint first.
+    val futureCapture = parser.parseForTest(traceFile, nameHint = "/system/bin/surfaceflinger")
     assertThat(futureCapture.isCompletedExceptionally).isFalse()
     val capture = futureCapture.get()
     assertThat(capture).isNotNull()
@@ -429,6 +431,84 @@ class CpuCaptureParserTest {
     parser.parseForTest(
       CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), traceId = 100, idHint = 33).get()
     assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+  }
+
+  @Test
+  fun inputValidationExceptionIsPropagatedForExpectedTraceType() {
+    val services = FakeIdeProfilerServices()
+    services.enableUseTraceProcessor(true)
+
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("atrace.ctrace")
+    val futureCapture = parser.parseForTest(traceFile, type = Cpu.CpuTraceType.PERFETTO)
+    assertThat(futureCapture.isCompletedExceptionally).isTrue()
+    try {
+      futureCapture.get()
+      fail()
+    }
+    catch (e: ExecutionException) {
+      assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
+      assertThat(e).hasCauseThat().hasMessageThat().contains(
+        "Trace ${traceFile.absolutePath} expected to be of type PERFETTO but failed input verification.")
+
+      assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(Throwable::class.java)
+      assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains(
+        "Encountered unknown tag (84) when attempting to parse perfetto capture.")
+    }
+  }
+
+  @Test
+  fun internalExceptionOnTraceProcessorIsPropagated_forExpectedTraceType() {
+    val services = FakeIdeProfilerServices()
+    services.enableUseTraceProcessor(true)
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.forceFailLoadTrace = true
+
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    val futureCapture = parser.parseForTest(traceFile, type = Cpu.CpuTraceType.PERFETTO)
+    assertThat(futureCapture.isCompletedExceptionally).isTrue()
+    try {
+      futureCapture.get()
+      fail()
+    }
+    catch (e: ExecutionException) {
+      assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
+      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace ${traceFile.absolutePath} failed to be parsed as PERFETTO")
+
+      assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(RuntimeException::class.java)
+      assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains("Unable to load trace with TPD.")
+    }
+  }
+
+  @Test
+  fun internalExceptionOnTraceProcessorIsPropagated_forUnknownTraceType() {
+    val services = FakeIdeProfilerServices()
+    services.enableUseTraceProcessor(true)
+    val fakeTraceProcessorService = services.traceProcessorService as FakeTraceProcessorService
+    fakeTraceProcessorService.forceFailLoadTrace = true
+
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+
+    val traceFile = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
+    val futureCapture = parser.parseForTest(traceFile)
+    assertThat(futureCapture.isCompletedExceptionally).isTrue()
+    try {
+      futureCapture.get()
+      fail()
+    }
+    catch (e: ExecutionException) {
+      assertThat(e).hasCauseThat().isInstanceOf(CpuCaptureParser.ParsingFailureException::class.java)
+      assertThat(e).hasCauseThat().hasMessageThat().contains("Trace ${traceFile.absolutePath} failed to be parsed as PERFETTO")
+
+      assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(RuntimeException::class.java)
+      assertThat(e).hasCauseThat().hasCauseThat().hasMessageThat().contains("Unable to load trace with TPD.")
+    }
   }
 
   /**

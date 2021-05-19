@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath <error>'com.android.tools.build:gradle:0.1.0'</error>
+    <error>classpath 'com.android.tools.build:gradle:0.1.0'</error>
   }
 }
 

@@ -18,17 +18,22 @@ package com.android.build.attribution.ui.view.details
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
+import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
-import com.android.build.attribution.ui.data.TaskIssuesGroup
+import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.durationString
+import com.android.build.attribution.ui.durationStringHtml
+import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
+import com.android.build.attribution.ui.model.PluginGroupingWarningNodeDescriptor
+import com.android.build.attribution.ui.model.TaskUnderPluginDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
+import com.android.build.attribution.ui.model.WarningsDataPageModel
+import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
-import com.android.build.attribution.ui.panels.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.panels.taskDetailsPanel
-import com.android.build.attribution.ui.percentageString
+import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
 import com.android.build.attribution.ui.warningsCountString
@@ -36,55 +41,97 @@ import com.android.tools.adtui.TabularLayout
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 /**
  * This class creates task detail pages from the node provided.
  */
 class WarningsViewDetailPagesFactory(
+  val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) {
 
+  fun createDetailsPage(pageId: WarningsPageId): JComponent = if (pageId == WarningsPageId.emptySelection) {
+    JPanel().apply {
+      layout = BorderLayout()
+      name = "empty-details"
+      val messageLabel = JLabel("Select page for details").apply {
+        verticalAlignment = SwingConstants.CENTER
+        horizontalAlignment = SwingConstants.CENTER
+      }
+      add(messageLabel, BorderLayout.CENTER)
+    }
+  }
+  else {
+    //TODO (mlazeba): this kinda breaks the nice safety provided by sealed classes before... what can I do about it?
+    //  The solution might be actually to get rid of PageId. What do I need it for? It is actually mimic the TreePath in some way.
+    //  Otherwise pageId will not be unique in a tree. I think initially it was not meant to be unique in the tree.
+    //  It defines the page, not the tree node. (There can be several nodes for the same page, e.g. task has 2 warnings and shown under both types)
+    //  Ha, that basically means that I need page descriptor, not Node descriptor here!
+    //  However that might be wrong pattern, might be better and easier to keep 1-1 relation here.
+    model.getNodeDescriptorById(pageId)?.let { nodeDescriptor ->
+      createDetailsPage(nodeDescriptor)
+    } ?: JPanel()
+  }
+
   fun createDetailsPage(nodeDescriptor: WarningsTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
-    is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningTypeData)
-    is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData)
+    is TaskWarningTypeNodeDescriptor -> createTaskWarningTypeDetailsPage(nodeDescriptor.warningType, nodeDescriptor.presentedWarnings)
+    is TaskWarningDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.issueData.task)
+    is PluginGroupingWarningNodeDescriptor -> createPluginDetailsPage(nodeDescriptor.pluginName, nodeDescriptor.presentedTasksWithWarnings)
+    is TaskUnderPluginDetailsNodeDescriptor -> createWarningDetailsPage(nodeDescriptor.taskData)
     is AnnotationProcessorsRootNodeDescriptor -> createAnnotationProcessorsRootDetailsPage(nodeDescriptor.annotationProcessorsReport)
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
+  }.apply {
+    name = nodeDescriptor.pageId.id
   }
 
-
-  private fun createTaskWarningTypeDetailsPage(warningTypeData: TaskIssuesGroup) = JPanel().apply {
+  private fun createPluginDetailsPage(pluginName: String, tasksWithWarnings: Map<TaskUiData, List<TaskIssueUiData>>) = JPanel().apply {
     layout = BorderLayout()
-
-    val timeContribution = warningTypeData.timeContribution
-    val text = """
-      <b>${warningTypeData.type.uiName}</b><br/>
-      Duration: ${timeContribution.durationString()} / ${timeContribution.percentageString()}<br/>
+    val timeContribution = tasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
+    val tableRows = tasksWithWarnings.map { (task, _) ->
+      // TODO add warning count for the task to the table
+      "<td>${task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${task.executionTime.durationStringHtml()}</td>"
+    }
+    val content = """
+      <b>${pluginName}</b><br/>
+      Duration: ${durationStringHtml(timeContribution)} <br/>
       <br/>
-      <b>${warningsCountString(warningTypeData.warningCount)}</b>
+      <b>${warningsCountString(tasksWithWarnings.size)}</b>
+      <table>
+      ${tableRows.joinToString(separator = "\n") { "<tr>$it</tr>" }}
+      </table>
     """.trimIndent()
-    add(htmlTextLabelWithFixedLines(text), BorderLayout.NORTH)
-    add(JPanel().apply {
-      layout = TabularLayout("Fit,30px,Fit")
-      warningTypeData.issues.forEachIndexed { index, issue ->
-        add(JBLabel(issue.task.taskPath), TabularLayout.Constraint(index, 0))
-        add(JBLabel(issue.task.executionTime.durationString()), TabularLayout.Constraint(index, 2))
-      }
-    }, BorderLayout.CENTER)
+    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
   }
 
-  private fun createWarningDetailsPage(issueData: TaskIssueUiData) = JPanel().apply {
+  private fun createTaskWarningTypeDetailsPage(warningType: TaskIssueType, warnings: List<TaskIssueUiData>) = JPanel().apply {
     layout = BorderLayout()
-    add(htmlTextLabelWithFixedLines("<b>${issueData.task.taskPath}</b>"), BorderLayout.NORTH)
-    add(taskDetailsPanel(
-      issueData.task,
-      helpLinkListener = actionHandlers::helpLinkClicked,
-      generateReportClickedListener = actionHandlers::generateReportClicked
-    ), BorderLayout.CENTER)
+    val timeContribution = warnings.sumByLong { it.task.executionTime.timeMs }
+    val tableRows = warnings.map { "<td>${it.task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${it.task.executionTime.durationStringHtml()}</td>" }
+    val content = """
+      <b>${warningType.uiName}</b><br/>
+      Duration: ${durationStringHtml(timeContribution)} <br/>
+      <br/>
+      <b>${warningsCountString(warnings.size)}</b>
+      <table>
+      ${tableRows.joinToString(separator = "\n") { "<tr>$it</tr>" }}
+      </table>
+    """.trimIndent()
+    add(htmlTextLabelWithFixedLines(content), BorderLayout.NORTH)
   }
+
+
+  private fun createWarningDetailsPage(taskData: TaskUiData) = taskDetailsPage(
+    taskData,
+    helpLinkListener = actionHandlers::helpLinkClicked,
+    generateReportClickedListener = actionHandlers::generateReportClicked
+  )
 
   private fun createAnnotationProcessorsRootDetailsPage(annotationProcessorsReport: AnnotationProcessorsReport) = JPanel().apply {
     layout = BorderLayout()

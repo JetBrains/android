@@ -57,6 +57,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
@@ -510,7 +511,8 @@ public class FileTreeDependencyTest extends GradleFileModelTestCase {
     assertEquals("lib", fileTree.dir().toString());
 
     // Set the value to a new one
-    fileTree.dir().setValue(new ReferenceTo("libName"));
+    ResolvedPropertyModel dirModel = fileTree.dir();
+    dirModel.setValue(ReferenceTo.createReferenceFromText("libName", dirModel));
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, FILE_TREE_DEPENDENCY_SET_REFERENCE_DIR_IN_METHOD_CALL_NOTATION_EXPECTED);
 

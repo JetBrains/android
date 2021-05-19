@@ -46,6 +46,7 @@ import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons
 import org.junit.Rule
@@ -71,6 +72,7 @@ class DeclaredAttributesInspectorBuilderTest {
     util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
     util.checkEmptyTableIndicator(2)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(util.inspector.lines).hasSize(3)
 
     // Check that there are 3 attributes
@@ -91,10 +93,13 @@ class DeclaredAttributesInspectorBuilderTest {
     val titleModel = util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
     util.checkEmptyTableIndicator(2)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(util.inspector.lines).hasSize(3)
 
     titleModel.expanded = false
     util.performAction(0, 0, StudioIcons.Common.ADD)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     // Check that the "Declared Attributes" title is now expanded
     assertThat(titleModel.expanded).isTrue()
@@ -115,8 +120,11 @@ class DeclaredAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     util.performAction(0, 0, StudioIcons.Common.ADD)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val declared = util.checkTable(1).tableModel
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.VALUE)).isTrue()
     assertThat(declared.acceptMoveToNextEditor(declared.items[1], PTableColumn.NAME)).isTrue()
@@ -138,7 +146,9 @@ class DeclaredAttributesInspectorBuilderTest {
     val declared = util.checkTable(1).tableModel
     val newProperty = declared.items.last() as NeleNewPropertyItem
     newProperty.name = PREFIX_ANDROID + ATTR_TEXT_SIZE
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     newProperty.delegate?.value = "10sp"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.VALUE)).isTrue()
@@ -173,13 +183,16 @@ class DeclaredAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     util.performAction(0, 0, StudioIcons.Common.ADD)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val declared = util.checkTable(1).tableModel
     val listener = mock(PTableModelUpdateListener::class.java)
     declared.addListener(listener)
 
     util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.inspector.refresh()
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     verify(listener).itemsUpdated(ArgumentMatchers.eq(true), ArgumentMatchers.any())
   }
 
@@ -193,6 +206,7 @@ class DeclaredAttributesInspectorBuilderTest {
     val model = tableLine.tableModel
     tableLine.selectedItem = model.items[2] // select ATTR_TEXT
     util.performAction(0, 1, StudioIcons.Common.REMOVE)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     // Check that there are only 2 declared attributes left
     assertThat(model.items.map { it.name })
@@ -208,10 +222,13 @@ class DeclaredAttributesInspectorBuilderTest {
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
     util.performAction(0, 0, StudioIcons.Common.ADD)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.performAction(0, 1, StudioIcons.Common.REMOVE)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     // Check that there are only the 3 declared attributes left (the place holder is gone)
     val declared = util.checkTable(1).tableModel
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(declared.items.map { it.name })
       .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_TEXT).inOrder()
   }
@@ -262,7 +279,10 @@ class DeclaredAttributesInspectorBuilderTest {
     util.addProperty(ANDROID_URI, ATTR_VISIBILITY, NelePropertyType.ENUM)
 
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.properties[ANDROID_URI, ATTR_LAYOUT_HEIGHT].value = VALUE_WRAP_CONTENT
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
 }

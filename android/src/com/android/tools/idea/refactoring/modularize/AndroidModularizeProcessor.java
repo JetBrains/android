@@ -238,7 +238,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
     AndroidFacet facet = AndroidFacet.getInstance(myTargetModule);
     assert facet != null; // We know this has to be an Android module
 
-    Collection<VirtualFile> javaSourceFolders = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
+    Iterable<VirtualFile> javaSourceFolders = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
     VirtualFile javaTargetDir = Iterables.getFirst(javaSourceFolders, null);
 
     VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);

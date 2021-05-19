@@ -9,6 +9,9 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-plugin-webp" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -29,8 +32,12 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="gson" level="project" />
-    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.ninepatch" />
+    <orderEntry type="module" module-name="intellij.webp" />
+    <orderEntry type="module" module-name="intellij.android.common" />
   </component>
 </module>

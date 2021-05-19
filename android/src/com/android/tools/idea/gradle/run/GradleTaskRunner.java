@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.IncorrectOperationException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.List;
@@ -57,7 +54,9 @@ public interface GradleTaskRunner {
       myBuildAction = buildAction;
     }
 
+    /** This method will deadlock if invoked on the UI thread. */
     @Override
+    @WorkerThread
     public boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode,
                        @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
@@ -65,7 +64,6 @@ public interface GradleTaskRunner {
 
       AtomicBoolean success = new AtomicBoolean();
       CountDownLatch done = new CountDownLatch(1);
-      Disposable signaller = () -> done.countDown();
 
       GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
         @Override
@@ -73,21 +71,18 @@ public interface GradleTaskRunner {
           success.set(result.isBuildSuccessful());
           model.set(result.getModel());
           gradleBuildInvoker.remove(this);
-          Disposer.dispose(signaller); // Signal completion.
+          done.countDown(); // Signal completion.
         }
       };
 
-      try {
-        // Signal the semaphore if the project is disposed before the transaction has chance to run.
-        Disposer.register(myProject, signaller);
-      }
-      catch (IncorrectOperationException e) {
-        return false; // The project is already disposed - bail out.
-      }
-
-      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use TransactionGuard.submitTransaction.
-      // IDEA also uses TransactionGuard.submitTransaction in this scenario (see CompileStepBeforeRun.)
-      TransactionGuard.submitTransaction(myProject, () -> {
+      // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use
+      // ApplicationManager.getApplication().invokeLater. IDEA also uses invokeLater in this scenario (see CompileStepBeforeRun.)
+      ApplicationManager.getApplication().invokeLater(() -> {
+        // If the project is disposed before this lambda executes, the following ensures that deadlock does not occur.
+        if (myProject.isDisposed()) {
+          done.countDown(); // Signal completion.
+          return;
+        }
         gradleBuildInvoker.add(afterTask);
         gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments, myBuildAction);
       });

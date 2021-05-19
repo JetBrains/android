@@ -15,6 +15,7 @@
  */
 package com.intellij.testGuiFramework.launcher
 
+import com.android.prefs.AndroidLocation
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.tests.gui.framework.GuiTests
@@ -139,6 +140,7 @@ object GuiTestLauncher {
       "-Xms256m",
       "-Xmx4096m",
       "-XX:ReservedCodeCacheSize=240m",
+      "-XX:+UseG1GC",
       "-XX:SoftRefLRUPolicyMSPerMB=50",
       "-Dsun.io.useCanonCaches=false",
       "-Djava.net.preferIPv4Stack=true",
@@ -155,6 +157,7 @@ object GuiTestLauncher {
       "-Didea.jre.check=true",
       /* testing-specific options */
       "-Djava.io.tmpdir=${System.getProperty("java.io.tmpdir")}",
+      "-Duser.home=${System.getProperty("java.io.tmpdir")}",
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
@@ -174,7 +177,6 @@ object GuiTestLauncher {
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
-      options += "-XX:+UseG1GC"
       val jvmtiAgent = File(TestUtils.getWorkspaceRoot(),
                             "bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
       if (jvmtiAgent.exists()) {
@@ -184,8 +186,6 @@ object GuiTestLauncher {
       } else {
         println("BLeak JVMTI agent not found. Falling back to Java implementation: application threads will not be paused, and traversal roots will be different")
       }
-    } else {
-      options += "-XX:+UseG1GC"
     }
     /* debugging options */
     if (GuiTestOptions.isDebug()) {
@@ -194,11 +194,13 @@ object GuiTestLauncher {
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
     if (TestUtils.runningFromBazel()) {
-      options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+      if (!IdeaTestSuiteBase.isUnbundledBazelTestTarget()) {
+        options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+      }
       options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
       options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
-      options += "-DANDROID_SDK_HOME=${IdeaTestSuiteBase.createTmpDir(".android")}"
+      options += "-D${AndroidLocation.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
       options += "-Dresolve.descriptors.in.resources=true"
       options += "-Dstudio.dev.jdk=${getJdkPathForGradle()}"
@@ -232,8 +234,7 @@ object GuiTestLauncher {
       return urls.filter { !it.toString().contains("android.core.tests") }.map { Paths.get(it.toURI()).toFile() }
     } else {
       // under JDK 11, when run from the IDE, the ClassLoader in question here will be ClassLoaders$AppClassLoader.
-      // Fortunately, under these circumstances, java.class.path has everything we need. ἑλληνικός ἀλφάβητος hellēnikós
-
+      // Fortunately, under these circumstances, java.class.path has everything we need.
       return System.getProperty("java.class.path").split(File.pathSeparator).map(::File)
     }
   }

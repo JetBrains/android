@@ -22,7 +22,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
@@ -30,6 +29,7 @@ import gnu.trove.TObjectIntHashMap;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +97,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   public int compare(@NotNull VirtualFile file1, @NotNull VirtualFile file2) {
     VirtualFile r1 = getFileRoot(file1);
     VirtualFile r2 = getFileRoot(file2);
-    if (Comparing.equal(r1, r2)) {
+    if (Objects.equals(r1, r2)) {
       return 0;
     }
     if (r1 == null) {

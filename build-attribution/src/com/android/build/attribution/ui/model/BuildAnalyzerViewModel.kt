@@ -15,10 +15,12 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 
 class BuildAnalyzerViewModel(
-  val reportUiData: BuildAttributionReportUiData
+  val reportUiData: BuildAttributionReportUiData,
+  val warningSuppressions: BuildAttributionWarningsFilter
 ) {
   enum class DataSet(val uiName: String) {
     OVERVIEW("Overview"), TASKS("Tasks"), WARNINGS("Warnings")
@@ -41,6 +43,14 @@ class BuildAnalyzerViewModel(
         dataSetSelectionListener?.invoke()
       }
     }
+
+  val shouldWarnAboutGC: Boolean
+    get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0
+
+  val shouldWarnAboutNoGCSetting: Boolean
+    get() = !warningSuppressions.suppressNoGCSettingWarning
+            && reportUiData.buildSummary.isGarbageCollectorSettingSet == false
+            && reportUiData.buildSummary.javaVersionUsed?.let { it >= 9 } ?: false
 
   val tasksPageModel: TasksDataPageModel = TasksDataPageModelImpl(reportUiData)
   val warningsPageModel: WarningsDataPageModel = WarningsDataPageModelImpl(reportUiData)

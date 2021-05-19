@@ -35,7 +35,7 @@ public abstract class Classifier {
     @NotNull
     @Override
     public ClassifierSet getClassifierSet(@NotNull InstanceObject instance, boolean createIfAbsent) {
-      throw new IllegalStateException("Not implemented"); // not used
+      throw new UnsupportedOperationException(); // not used
     }
 
     // Return child classifier sets which is non-empty and not filtered out

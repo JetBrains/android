@@ -17,12 +17,15 @@ package com.android.tools.idea.tests.gui.npw;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.flags.junit.RestoreFlagRule;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.device.FormFactor;
+import com.android.tools.adtui.device.FormFactor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,10 +36,16 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NewAutomotiveProjectTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final RestoreFlagRule<Boolean> restoreNpwFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR);
+
+  @Before
+  public void setup() {
+    StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.override(true);
+  }
 
   @Test
   public void testBuildMediaService() {
-    createAutomotiveProject("Media service", Language.Java);
+    createAutomotiveProject("Media Service", Language.Java);
 
     guiTest.ideFrame().getEditor()
       .open("mobile/build.gradle") // Did we create a mobile "companion" module?

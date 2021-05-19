@@ -31,20 +31,15 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.EventQueue
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
 import javax.swing.JComponent
-import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.ListCellRenderer
-import javax.swing.SwingUtilities
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
-import javax.swing.plaf.basic.ComboPopup
 
 /**
  * A standard control for editing property values with a popup list.
@@ -56,6 +51,7 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
 
   init {
     background = secondaryPanelBackground
+    comboBox.actionOnKeyNavigation = false
     add(comboBox, BorderLayout.CENTER)
   }
 
@@ -70,21 +66,30 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
   : CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model), DataProvider {
   private val textField = editor.editorComponent as CommonTextField<*>
+  private var inSetup = false
 
   init {
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    registerActionKey({ model.enterKeyPressed() }, KeyStrokes.ENTER, "enter")
+
+    // Register key stroke navigation for dropdowns (textField is not editable)
+    registerActionKey({ enterInPopup() }, KeyStrokes.ENTER, "enter")
+    registerActionKey({ enterInPopup() }, KeyStrokes.SPACE, "enter")
     registerActionKey({ model.escapeKeyPressed() }, KeyStrokes.ESCAPE, "escape")
+    registerActionKey({ tab { enterInPopup() } }, KeyStrokes.TAB, "tab", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    registerActionKey({ backtab { enterInPopup() } }, KeyStrokes.BACKTAB, "backtab")
+    focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
     background = secondaryPanelBackground
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (asTableCellEditor) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 
+    // Register key stroke navigation for dropdowns (textField is editable)
     textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
+    textField.registerActionKey({ space() }, KeyStrokes.TYPED_SPACE, "space")
     textField.registerActionKey({ escape() }, KeyStrokes.ESCAPE, "escape")
-    textField.registerActionKey({ tab() }, KeyStrokes.TAB, "tab")
-    textField.registerActionKey({ backtab() }, KeyStrokes.BACKTAB, "backtab")
+    textField.registerActionKey({ tab { enter() } }, KeyStrokes.TAB, "tab")
+    textField.registerActionKey({ backtab { enter() } }, KeyStrokes.BACKTAB, "backtab")
     textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
     textField.background = secondaryPanelBackground
     textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
@@ -94,18 +99,17 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     textField.addFocusListener(focusListener)
     setFromModel()
 
+    // This action is fired when changes to the selectedIndex is made, which includes mouse clicks and certain keystrokes
+    addActionListener {
+      if (!inSetup) {
+        model.selectEnumValue()
+      }
+    }
+
     addPopupMenuListener(
       object : PopupMenuListener {
-        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) {
-          // Hack: We would like to determine WHY the popup is being closed.
-          // If it happened because of either:
-          //  (1) The user pressed the escape key to close the popup
-          //  (2) The user clicked somewhere other than the JList inside the popup
-          val currentEvent = EventQueue.getCurrentEvent()
-          val fromEscapeKey = (currentEvent as? KeyEvent)?.keyCode == KeyEvent.VK_ESCAPE
-          val clickOutsideList = currentEvent is MouseEvent && !isClickOnItemInPopup(currentEvent)
-          model.popupMenuWillBecomeInvisible(fromEscapeKey || clickOutsideList)
-        }
+        override fun popupMenuWillBecomeInvisible(event: PopupMenuEvent) =
+          model.popupMenuWillBecomeInvisible()
 
         override fun popupMenuCanceled(event: PopupMenuEvent) {
         }
@@ -126,16 +130,21 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
             popupMenu.pack()
           }
         }
-
-        private fun isClickOnItemInPopup(event: MouseEvent): Boolean {
-          val source = event.source as? JList<*> ?: return false
-          val popup = SwingUtilities.getAncestorOfClass(ComboPopup::class.java, source)
-          return popup != null && !model.readOnly
-        }
       })
   }
 
+  private fun enterInPopup() {
+    // This will cause the firing of an action event:
+    popup?.list?.selectedIndex?.let { selectedIndex = it }
+    hidePopup()
+    textField.selectAll()
+  }
+
   private fun enter() {
+    if (isPopupVisible) {
+      enterInPopup()
+      return
+    }
     textField.enterInLookup()
     model.enterKeyPressed()
     textField.selectAll()
@@ -147,13 +156,24 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     }
   }
 
-  private fun tab() {
-    enter()
+  // Override the handling of the space key for the text editor.
+  // If the popup is visible we want to commit the selected value in the popup list,
+  // if the popup is not visible emulate normal typing in the text editor.
+  private fun space() {
+    if (isPopupVisible) {
+      enterInPopup()
+      return
+    }
+    textField.replaceSelection(" ")
+  }
+
+  private fun tab(action: () -> Unit) {
+    action()
     textField.transferFocus()
   }
 
-  private fun backtab() {
-    enter()
+  private fun backtab(action: () -> Unit) {
+    action()
     transferFocusBackward()
   }
 
@@ -173,7 +193,13 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
       isPopupVisible = model.isPopupVisible
     }
     if (!model.editable) {
-      selectedIndex = findIndexWithValue(model.value)
+      inSetup = true
+      try {
+        selectedIndex = findIndexWithValue(model.value)
+      }
+      finally {
+        inSetup = false
+      }
     }
   }
 

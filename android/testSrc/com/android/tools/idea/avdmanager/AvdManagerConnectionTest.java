@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 
 public class AvdManagerConnectionTest extends AndroidTestCase {
-  private static final File ANDROID_HOME = new File("/android-home");
+  private static final File ANDROID_PREFS_ROOT = new File("/android-home");
 
   private AvdManager mAvdManager;
   private AvdManagerConnection mAvdManagerConnection;
@@ -67,9 +67,9 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     recordGoogleApisSysImg23(mFileOp);
     recordEmulatorVersion_23_4_5(mFileOp);
 
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_HOME, AndroidLocation.FOLDER_AVD), new NullLogger());
+    mAvdManager = AvdManager.getInstance(androidSdkHandler, new File(ANDROID_PREFS_ROOT, AndroidLocation.FOLDER_AVD), new NullLogger());
 
     mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), mFileOp, false);
 
@@ -287,7 +287,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // Create an AVD with a skin
     String skinnyAvdName = "skinnyAvd";
     File skinnyAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, skinnyAvdName, mFileOp, false);
-    File skinFolder = new File(ANDROID_HOME, "skinFolder");
+    File skinFolder = new File(ANDROID_PREFS_ROOT, "skinFolder");
     mFileOp.mkdirs(skinFolder);
 
     AvdInfo skinnyAvd = mAvdManager.createAvd(
@@ -332,7 +332,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     // Create a new AvdManagerConnection that doesn't remember the
     // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_HOME, mFileOp);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(new File("/sdk"), ANDROID_PREFS_ROOT, mFileOp);
     AvdManagerConnection managerConnection = new AvdManagerConnection(androidSdkHandler, MoreExecutors.newDirectExecutorService());
 
     File bogusEmulatorFile = managerConnection.getEmulatorBinary();

@@ -67,5 +67,8 @@ public interface Resources extends AndroidDomElement {
   List<Item> getItems();
   Item addItem();
 
+  List<Overlayable> getOverlayables();
+  Overlayable addOverlayable();
+
   List<AndroidDomElement> getEatComments();
 }

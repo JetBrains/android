@@ -1,0 +1,3 @@
+repositories {
+  maven { url "http://example.com/" }
+}

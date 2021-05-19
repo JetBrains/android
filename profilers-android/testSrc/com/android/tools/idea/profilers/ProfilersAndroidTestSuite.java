@@ -16,10 +16,26 @@
 package com.android.tools.idea.profilers;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.idea.profilers.performance.CpuProfilerAtraceCaptureTest;
+import com.android.tools.idea.profilers.performance.CpuProfilerEmptyCaptureTest;
+import com.android.tools.idea.profilers.performance.CpuProfilerPerfettoCaptureTest;
+import com.android.tools.idea.profilers.performance.CpuProfilerPerfettoWithTrebuchetCaptureTest;
+import com.android.tools.idea.profilers.performance.MemoryClassifierViewFindSuperSetNodeTest;
+import com.android.tools.idea.profilers.performance.MemoryProfilerHeapDumpTest;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(ProfilersAndroidTestSuite.class)  // a suite mustn't contain itself
+@JarTestSuiteRunner.ExcludeClasses({
+  ProfilersAndroidTestSuite.class, // a suite mustn't contain itself
+  // Benchmark performance tests should not be part of this suite, because they will be run on their own test rule
+  // See intellij.android.profilersAndroid.performance in profilers-android/BUILD
+  CpuProfilerAtraceCaptureTest.class,
+  CpuProfilerEmptyCaptureTest.class,
+  CpuProfilerPerfettoCaptureTest.class,
+  CpuProfilerPerfettoWithTrebuchetCaptureTest.class,
+  MemoryProfilerHeapDumpTest.class, // b/152344964
+  MemoryClassifierViewFindSuperSetNodeTest.class,
+})
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
 }

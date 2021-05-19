@@ -19,7 +19,8 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
+import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
@@ -31,8 +32,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.rules.TempDirectory
-import com.intellij.ui.UiTestRule
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -54,15 +53,14 @@ class EmulatorToolWindowPanelTest {
   companion object {
     @JvmField
     @ClassRule
-    val uiRule = UiTestRule.uiRule
+    val iconRule = IconLoaderRule()
   }
 
   private val projectRule = AndroidProjectRule.inMemory()
-  private val tempDirectory = TempDirectory()
-  private val emulatorRule = FakeEmulatorRule(tempDirectory)
+  private val emulatorRule = FakeEmulatorRule()
   private var nullableEmulator: FakeEmulator? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
@@ -82,22 +80,22 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(panel.emulatorView).isNull()
 
-    panel.createContent(false)
+    panel.createContent(true)
     val emulatorView = panel.emulatorView ?: throw AssertionError()
 
     // Check appearance.
-    panel.zoomToolbarIsVisible = true
+    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     ui.updateToolbars()
     assertAppearance(ui, "image1")
 
     // Check EmulatorPowerButtonAction.
-    var button = ui.findComponent { it is ActionButton && it.action.templateText == "Power" } ?: throw AssertionError()
+    var button = ui.getComponent<ActionButton> { it.action.templateText == "Power" }
     ui.mousePressOn(button)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -108,7 +106,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "Power"""")
 
     // Check EmulatorVolumeUpButtonAction.
-    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Up" } ?: throw AssertionError()
+    button = ui.getComponent<ActionButton> { it.action.templateText == "Volume Up" }
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -119,7 +117,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeUp"""")
 
     // Check EmulatorVolumeDownButtonAction.
-    button = ui.findComponent { it is ActionButton && it.action.templateText == "Volume Down" } ?: throw AssertionError()
+    button = ui.getComponent<ActionButton> { it.action.templateText == "Volume Down" }
     ui.mousePressOn(button)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
@@ -143,16 +141,16 @@ class EmulatorToolWindowPanelTest {
 
     assertThat(panel.emulatorView).isNull()
 
-    panel.createContent(false)
+    panel.createContent(true)
     var emulatorView = panel.emulatorView ?: throw AssertionError()
 
-    panel.zoomToolbarIsVisible = true
+    panel.zoomToolbarVisible = true
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0)
     panel.size = Dimension(400, 600)
     ui.layoutAndDispatchEvents()
     val streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(panel, ++frameNumber)
-    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGBA8888 width: 363 height: 520")
+    assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 363 height: 520")
     ui.updateToolbars()
 
     // Zoom in.
@@ -168,7 +166,7 @@ class EmulatorToolWindowPanelTest {
 
     // Recreate panel content.
     panel.destroyContent()
-    panel.createContent(false)
+    panel.createContent(true)
     emulatorView = panel.emulatorView ?: throw AssertionError()
     ui.layoutAndDispatchEvents()
 
@@ -176,6 +174,8 @@ class EmulatorToolWindowPanelTest {
     assertThat(emulatorView.scale).isWithin(0.0001).of(0.25)
     assertThat(viewport.viewSize).isEqualTo(Dimension(400, 811))
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
+
+    panel.destroyContent()
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -200,7 +200,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun createWindowPanel(): EmulatorToolWindowPanel {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = tempDirectory.root.toPath()
+    val tempFolder = emulatorRule.root.toPath()
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()
@@ -223,7 +223,7 @@ class EmulatorToolWindowPanelTest {
 
   private fun assertAppearance(ui: FakeUi, goldenImageName: String) {
     val image = ui.render()
-    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.03)
+    ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, 0.04)
   }
 
   private fun getGoldenFile(name: String): File {

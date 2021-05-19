@@ -144,7 +144,7 @@ public final class AvdOptionsModel extends WizardModel {
     String originalName = myAvdDisplayName.get();
     String newName = "Copy_of_" + originalName;
     for (int copyNum = 2;
-         AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithName(newName);
+         AvdManagerConnection.getDefaultAvdManagerConnection().findAvdWithDisplayName(newName);
          copyNum++) {
       // Dang, that name's already in use. Try again.
       newName = "Copy_" + copyNum + "_of_" + originalName;
@@ -555,7 +555,7 @@ public final class AvdOptionsModel extends WizardModel {
     mySelectedNetworkLatency.set(AvdNetworkLatency.fromName(properties.get(AvdWizardUtils.NETWORK_LATENCY_KEY)));
     mySelectedNetworkSpeed.set(AvdNetworkSpeed.fromName(properties.get(AvdWizardUtils.NETWORK_SPEED_KEY)));
     myEnableHardwareKeyboard.set(fromIniString(properties.get(AvdWizardUtils.HAS_HARDWARE_KEYBOARD_KEY)));
-    myAvdDisplayName.set(AvdManagerConnection.getAvdDisplayName(avdInfo));
+    myAvdDisplayName.set(avdInfo.getDisplayName());
     myHasDeviceFrame.set(fromIniString(properties.get(AvdWizardUtils.DEVICE_FRAME_KEY)));
     myColdBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_COLD_BOOT)));
     myFastBoot.set(fromIniString(properties.get(AvdWizardUtils.USE_FAST_BOOT)));

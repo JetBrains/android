@@ -64,7 +64,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
-    // 2. Create a dummy element that we can move the element to.
+    // 2. Create a placeholder element that we can move the element to.
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     PsiElement lineTerminator = factory.createLineTerminator(1);
     PsiElement toReplace = parentPsiElement.addAfter(lineTerminator, anchor);
@@ -104,6 +104,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     }
 
     GradleDslElement anchorAfter = element.getAnchor();
+    boolean addBefore = false;
     if (element.isNewEmptyBlockElement()) {
       return null; // Avoid creation of an empty block statement.
     }
@@ -111,6 +112,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     // If the parent doesn't have a psi element, the anchor will be used to create the parent in getParentPsi.
     // In this case we want to be placed in the newly made parent so we ignore our anchor.
     if (needToCreateParent(element)) {
+      addBefore = true;
       anchorAfter = null;
     }
     PsiElement parentPsiElement = getParentPsi(element);
@@ -179,7 +181,11 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (parentPsiElement instanceof GroovyFile) {
       // Check if the file has a Block Comment and add the psi element after it if true.
       PsiElement firstFileChild = parentPsiElement.getFirstChild();
-      if (firstFileChild != null && firstFileChild.getNode().getElementType() == ML_COMMENT && anchor == null) {
+      if (addBefore) {
+        // should really do this for all kinds of parentPsiElement, not just GroovyFile
+        addedElement = parentPsiElement.addBefore(statement, anchor);
+      }
+      else if (firstFileChild != null && firstFileChild.getNode().getElementType() == ML_COMMENT && anchor == null) {
         addedElement = parentPsiElement.addAfter(statement, firstFileChild);
       }
       else {
@@ -189,7 +195,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       if (element.isBlockElement() && !isWhiteSpaceOrNls(addedElement.getPrevSibling())) {
         parentPsiElement.addBefore(lineTerminator, addedElement);
       }
-      parentPsiElement.addBefore(lineTerminator, addedElement);
+      if (addBefore) {
+        parentPsiElement.addAfter(lineTerminator, addedElement);
+      }
+      else {
+        parentPsiElement.addBefore(lineTerminator, addedElement);
+      }
     }
     else if (parentPsiElement instanceof GrClosableBlock) {
       addedElement = parentPsiElement.addAfter(statement, anchor);

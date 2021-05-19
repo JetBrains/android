@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serialization.ClassUtil;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,9 @@ public class NativeLibrary {
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
   // Paths of .so files inside APK.
-  @NotNull private List<String> mySharedObjectFilePaths = new ArrayList<>();
+  // b/169230027: This MUST be initialized to an immutable list. Otherwise, deserializer does NOT call
+  // the setSharedObjectFilePaths() method.
+  @NotNull private List<String> mySharedObjectFilePaths = Collections.emptyList();
 
   // .so files inside the APK. (LinkedHashMap to preserve insertion order in values, important for tests)
   @Transient @NotNull public final Map<Abi, VirtualFile> sharedObjectFilesByAbi = new LinkedHashMap<>();
@@ -147,6 +150,10 @@ public class NativeLibrary {
     Abi abi = extractAbiFrom(file);
     sharedObjectFilesByAbi.put(abi, file);
     abis.add(abi);
+    if (!ClassUtil.isMutableCollection(mySharedObjectFilePaths)) {
+      // EMPTY_LIST is immutable. We must reinitialize to a mutable list.
+      mySharedObjectFilePaths = new ArrayList<>();
+    }
     mySharedObjectFilePaths.add(file.getPath());
   }
 

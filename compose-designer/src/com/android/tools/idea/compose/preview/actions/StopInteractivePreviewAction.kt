@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -33,12 +34,11 @@ class StopInteractivePreviewAction: AnActionButton(message("action.stop.interact
   override fun updateButton(e: AnActionEvent) {
     e.presentation.isEnabled = true
     e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      // We wait until refresh is completed to show the button
-      it.interactivePreviewElementInstanceId != null && !it.status().isRefreshing
+      it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY
     }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.interactivePreviewElementInstanceId = null }
+    findComposePreviewManagersForContext(e.dataContext).forEach { it.setInteractivePreviewElementInstance(null) }
   }
 }

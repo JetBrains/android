@@ -51,6 +51,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -436,6 +437,11 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     GrReferenceExpression referenceExpression = getChildOfType(statement, GrReferenceExpression.class);
     if (referenceExpression == null) {
       return false;
+    }
+    // TODO(b/165576187): This allows us to parse plugins with versions, but (as with the Kotlin equivalent) we lose the association of
+    //  Dsl and Psi.  We also are more permissive, parsing any kind of infix-like operator rather than just `version`
+    if (referenceExpression.getFirstChild() instanceof GrApplicationStatement && blockElement instanceof PluginsDslElement) {
+      return parseGrApplication((GrApplicationStatement) referenceExpression.getFirstChild(), blockElement);
     }
 
     GrCommandArgumentList argumentList = getNextSiblingOfType(referenceExpression, GrCommandArgumentList.class);

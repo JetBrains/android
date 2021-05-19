@@ -1,2 +1,2 @@
-include(":lib")
 include(":gradleModelTest")
+include(":lib")

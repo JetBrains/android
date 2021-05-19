@@ -172,6 +172,7 @@ class ResourceExplorerViewTest {
       ResourceType.DRAWABLE,
       arrayOf(ResourceType.DRAWABLE, ResourceType.COLOR),
       false,
+      true,
       { asset ->
         assertThat(asset).isInstanceOf(DesignAsset::class.java)
         openedFile = FileUtil.getRelativePath(

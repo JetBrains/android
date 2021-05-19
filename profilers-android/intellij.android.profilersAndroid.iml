@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" />
@@ -16,6 +17,7 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.ui" />
     <orderEntry type="module" module-name="intellij.android.profilers" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -45,11 +47,12 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.json" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perflib" scope="TEST" />
+    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
     <orderEntry type="module-library">
-      <library name="traceprocessor-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:27.1.1.0" />
+      <library name="traceprocessor-proto">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/27.1.1.0/traceprocessor_protos-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -58,7 +61,6 @@
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
   </component>
 </module>

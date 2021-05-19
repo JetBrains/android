@@ -15,16 +15,30 @@
  */
 package google.simpleapplication
 
-import androidx.compose.Composable
+import androidx.compose.runtime.Composable
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.tooling.preview.PreviewParameter
 import androidx.ui.tooling.preview.PreviewParameterProvider
+import androidx.ui.tooling.preview.datasource.LoremIpsum
 
-class TestProvider: PreviewParameterProvider<String> {
-  override val values: Sequence<String> = sequenceOf("A", "B", "C")
+/**
+ * Simple provider to test instantiation and default parameters.
+ */
+class TestProvider(defaultPrefix: String): PreviewParameterProvider<String> {
+  constructor(): this("prefix")
+
+  override val values: Sequence<String> = sequenceOf(
+    "${defaultPrefix}A",
+    "${defaultPrefix}B",
+    "${defaultPrefix}C")
 }
 
 @Preview
 @Composable
 fun TestWithProvider(@PreviewParameter(provider = TestProvider::class) name: String) {
+}
+
+@Preview
+@Composable
+fun TestLorem(@PreviewParameter(provider = LoremIpsum::class) lorem: String) {
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea.emulator
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.rules.TempDirectory
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -29,16 +28,16 @@ import java.util.concurrent.TimeUnit
  */
 class RunningEmulatorCatalogTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val tempDirectory = TempDirectory()
-  private val emulatorRule = FakeEmulatorRule(tempDirectory)
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule)
+  private val emulatorRule = FakeEmulatorRule()
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule)
 
   @Test
   fun testCatalogUpdates() {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = tempDirectory.root.toPath()
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555)
+    val tempFolder = emulatorRule.root.toPath()
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8555, standalone = false)
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8556, standalone = true)
 
     val eventQueue = LinkedBlockingDeque<CatalogEvent>()
     catalog.addListener(object : RunningEmulatorCatalog.Listener {
@@ -85,6 +84,19 @@ class RunningEmulatorCatalogTest {
     assertThat(event4.type).isEqualTo(EventType.REMOVED)
     assertThat(event4.emulator).isEqualTo(event2.emulator)
     assertThat(catalog.emulators).isEmpty()
+
+    // Start a standalone emulator and check that it is reflected in the catalog after an explicit update.
+    emulator3.start()
+    val event5: CatalogEvent = eventQueue.poll(1500, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event5.type).isEqualTo(EventType.ADDED)
+    assertThat(catalog.emulators).containsExactly(event5.emulator)
+    assertThat(event5.emulator.emulatorId.isEmbedded).isFalse()
+
+    emulator3.stop()
+    val event6 = eventQueue.poll(1500, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
+    assertThat(event6.type).isEqualTo(EventType.REMOVED)
+    assertThat(event6.emulator).isEqualTo(event5.emulator)
+    assertThat(catalog.updateNow().get()).isEmpty()
   }
 
   private enum class EventType { ADDED, REMOVED }

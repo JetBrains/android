@@ -54,6 +54,8 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
     override fun getTotalGarbageCollectionTimeMs(): Long = 0
+    override fun getJavaVersion(): Int? = null
+    override fun isGCSettingSet(): Boolean? = null
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

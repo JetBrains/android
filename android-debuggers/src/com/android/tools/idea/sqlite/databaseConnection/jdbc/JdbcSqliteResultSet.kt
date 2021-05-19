@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.executeAsync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
@@ -56,7 +57,7 @@ abstract class JdbcSqliteResultSet(
         }
       }
     }
-  }
+  }.cancelOnDispose(this)
 
   abstract override val totalRowCount: ListenableFuture<Int>
   abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
@@ -69,7 +70,7 @@ abstract class JdbcSqliteResultSet(
       connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
         preparedStatement.executeQuery().use { handleResponse(it) }
       }
-    }
+    }.cancelOnDispose(this)
   }
 
   protected fun getRowBatch(
@@ -83,7 +84,7 @@ abstract class JdbcSqliteResultSet(
       connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
         preparedStatement.executeQuery().use { handleResponse(it, columns) }
       }
-    }
+    }.cancelOnDispose(this)
   }
 
   @WorkerThread

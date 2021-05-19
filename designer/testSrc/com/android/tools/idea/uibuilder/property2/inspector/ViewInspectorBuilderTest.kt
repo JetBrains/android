@@ -142,6 +142,7 @@ import com.android.SdkConstants.MATERIAL_BUTTON
 import com.android.SdkConstants.TAB_LAYOUT
 import com.android.SdkConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
@@ -320,6 +321,7 @@ class ViewInspectorBuilderTest {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
     projectRule.fixture.copyFileToProject("AppCompatCheckBox.java", "src/java/android/support/v7/widget/AppCompatCheckBox.java")
     projectRule.fixture.copyFileToProject("Chip.java", "src/java/com/google/android/material/chip/Chip.java")
+    projectRule.fixture.copyFileToProject("ChipGroup.java", "src/java/com/google/android/material/chip/ChipGroup.java")
     val util = InspectorTestUtil(projectRule, CHIP, parentTag = CHIP_GROUP)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)

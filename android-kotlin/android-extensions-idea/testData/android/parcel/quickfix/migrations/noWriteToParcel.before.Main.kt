@@ -5,7 +5,7 @@
 package com.myapp.activity
 
 import android.os.*
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class Foo(val firstName: String?, val age: Int) : Parcelable {

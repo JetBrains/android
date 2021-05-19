@@ -20,7 +20,6 @@ import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
@@ -74,10 +73,11 @@ public abstract class BaseAction extends AnAction {
   private final String myDescription;
 
   public BaseAction(@NotNull String name,
+                    @NotNull String acceleratorName,
                     @NotNull SwapType swapType,
                     @NotNull Icon icon,
                     @NotNull String description) {
-    super(name, description, icon);
+    super(acceleratorName, description, icon);
     myName = name;
     mySwapType = swapType;
     myIcon = icon;
@@ -129,60 +129,58 @@ public abstract class BaseAction extends AnAction {
                                 "the selected configuration is currently building and/or launching");
     }
 
-    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
+    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
     if (deployableProvider == null) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no deployment provider",
                                 "there is no deployment provider specified");
     }
 
-    if (!deployableProvider.isDependentOnUserInput()) {
-      Deployable deployable;
-      try {
-        deployable = deployableProvider.getDeployable();
-        if (deployable == null) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
-        }
+    Deployable deployable;
+    try {
+      deployable = deployableProvider.getDeployable(selectedRunConfig);
+      if (deployable == null) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
+      }
 
-        if (!deployable.isOnline()) {
-          if (deployable.isUnauthorized()) {
-            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
-                                      "the selected device is not authorized");
-          }
-          else {
-            return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
-          }
+      if (!deployable.isOnline()) {
+        if (deployable.isUnauthorized()) {
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
+                                    "the selected device is not authorized");
         }
-
-        Future<AndroidVersion> versionFuture = deployable.getVersion();
-        if (!versionFuture.isDone()) {
-          // Don't stall the EDT - if the Future isn't ready, just return false.
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
-        }
-
-        if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
-                                    "its API level is lower than 26");
-        }
-
-        if (deployable.searchClientsForPackage().isEmpty()) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
-                                    "the app is not yet running or not debuggable");
+        else {
+          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
         }
       }
-      catch (InterruptedException ex) {
-        LOG.warn(ex);
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
+
+      Future<AndroidVersion> versionFuture = deployable.getVersion();
+      if (!versionFuture.isDone()) {
+        // Don't stall the EDT - if the Future isn't ready, just return false.
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
       }
-      catch (ExecutionException ex) {
-        LOG.warn(ex);
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
-                                  "its API level could not be determined");
+
+      if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
+                                  "its API level is lower than 26");
       }
-      catch (Exception ex) {
-        LOG.warn(ex);
-        return new DisableMessage(
-          DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
+
+      if (deployable.searchClientsForPackage().isEmpty()) {
+        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
+                                  "the app is not yet running or not debuggable");
       }
+    }
+    catch (InterruptedException ex) {
+      LOG.warn(ex);
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
+    }
+    catch (ExecutionException ex) {
+      LOG.warn(ex);
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
+                                "its API level could not be determined");
+    }
+    catch (Exception ex) {
+      LOG.warn(ex);
+      return new DisableMessage(
+        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex.toString());
     }
 
     return null;
@@ -262,14 +260,14 @@ public abstract class BaseAction extends AnAction {
     }
 
     // We may have a remote debugging session, check those as well.
-    DeployableProvider deployableProvider = DeploymentService.getInstance(project).getDeployableProvider();
-    if (deployableProvider == null || deployableProvider.isDependentOnUserInput()) {
+    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
+    if (deployableProvider == null) {
       return null;
     }
 
     Deployable deployable;
     try {
-      deployable = deployableProvider.getDeployable();
+      deployable = deployableProvider.getDeployable(runConfiguration);
       if (deployable == null) {
         return null;
       }

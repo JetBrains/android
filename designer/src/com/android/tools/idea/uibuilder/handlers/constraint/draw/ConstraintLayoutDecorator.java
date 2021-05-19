@@ -201,8 +201,14 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
-        if (sceneContext.showOnlySelection() && !child.isSelected()) {
-          continue;
+        if (!child.isSelected()) {
+          if (child.isHighlighted()) {
+            buildListHighlighted(list, time, sceneContext, child); // draw child connections
+            continue;
+          }
+          else if (sceneContext.showOnlySelection()) {
+            continue;
+          }
         }
         if ((showAllConstraints && scene.getRoot() == component) || selection.contains(child.getNlComponent())) {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
@@ -328,6 +334,20 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       }
       return mStartTime[direction];
     }
+  }
+
+  private static void buildListHighlighted(@NotNull DisplayList list,
+                                           long time,
+                                           @NotNull SceneContext sceneContext,
+                                           @NotNull SceneComponent child) {
+    if (!child.isHighlighted()) {
+      return;
+    }
+    Rectangle source_rect = new Rectangle();
+    child.fillDrawRect(time, source_rect);
+    convert(sceneContext, source_rect);
+
+    DrawAnimatedFrameNoDirection.add(list, source_rect);
   }
 
   /**

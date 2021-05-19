@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
@@ -40,7 +41,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;

@@ -34,7 +34,7 @@ class ChooseFragmentTypeStepTest {
   fun testNoTemplateForExistingModule() {
     assertThat(Template.NoActivity.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = Java,
+      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
       messageKeys = messageKeys)).isEqualTo("No fragment template was selected")
   }
 
@@ -43,7 +43,7 @@ class ChooseFragmentTypeStepTest {
     val template = mock(Template::class.java)
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = false, language = Java,
+      isNewModule = true, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
       messageKeys = messageKeys)).isEqualTo("")
   }
 
@@ -54,7 +54,7 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = Java,
+      isNewModule = true, isAndroidxProject = true, isJetifierEnabled = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.sdk", 9))
   }
@@ -66,7 +66,7 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = true, isAndroidxProject = true, language = Java,
+      isNewModule = true, isAndroidxProject = true, isJetifierEnabled = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.min.build", 9))
   }
@@ -78,8 +78,20 @@ class ChooseFragmentTypeStepTest {
 
     assertThat(template.validate(
       moduleApiLevel = 5, moduleBuildApiLevel = 5,
-      isNewModule = false, isAndroidxProject = false, language = Java,
+      isNewModule = false, isAndroidxProject = false, isJetifierEnabled = false, language = Java,
       messageKeys = messageKeys))
       .isEqualTo(message("android.wizard.fragment.invalid.androidx"))
+  }
+
+  @Test
+  fun testTemplateRequiringJetifier() {
+    val template = mock(Template::class.java)
+    `when`(template.constraints).thenReturn(listOf(TemplateConstraint.Jetifier))
+
+    assertThat(template.validate(
+      moduleApiLevel = 5, moduleBuildApiLevel = 5,
+      isNewModule = false, isAndroidxProject = true, isJetifierEnabled = false, language = Java,
+      messageKeys = messageKeys))
+      .isEqualTo(message("android.wizard.fragment.invalid.jetifier"))
   }
 }

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.transport
 
+import com.android.testutils.TestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.io.File
 
 class DeployableFileTest {
   @Rule
@@ -57,29 +59,58 @@ class DeployableFileTest {
   }
 
   @Test
-  fun getDirPrefersReleaseDirOverDevDir() {
+  fun getDirIsReleaseDir() {
     val releaseDir = temporaryFolder.newFolder("release")
     temporaryFolder.newFolder("dev")
 
     val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(false)
+      .setHomePath(temporaryFolder.root.absolutePath)
       .build()
 
     assertThat(hostFile.dir).isEqualTo(releaseDir)
   }
 
   @Test
-  fun getDirIsDevDirIfNoReleaseDir() {
+  fun getDirIsDevDir() {
     val devDir = temporaryFolder.newFolder("dev")
 
     val hostFile = DeployableFile.Builder("myfile")
       .setReleaseDir("release")
       .setDevDir("dev")
-      .setHomePathSupplier(temporaryFolder.root::getAbsolutePath)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
       .build()
 
     assertThat(hostFile.dir).isEqualTo(devDir)
+  }
+
+  @Test
+  fun getDirAbsolutePath() {
+    // To make this test work on both windows and linux machines, the path can't be hardcoded to one format. Therefore, we use workspace
+    // root's path because it is formatted correctly.
+    val targetDir = TestUtils.getWorkspaceRoot().absolutePath
+
+    // Test running from sources (dev mode) - calling getDir() on the deployable file should return the dev directory.
+    val hostFile1 = DeployableFile.Builder("myfile")
+      .setReleaseDir(targetDir)
+      .setDevDir(targetDir)
+      .setIsRunningFromSources(true)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
+      .build()
+
+    assertThat(hostFile1.dir).isEqualTo(File(targetDir))
+
+    // Test release mode - calling getDir() on the deployable file should return the release directory.
+    val hostFile2 = DeployableFile.Builder("myfile")
+      .setReleaseDir(targetDir)
+      .setDevDir(targetDir)
+      .setIsRunningFromSources(false)
+      .setSourcesRoot(temporaryFolder.root.absolutePath)
+      .build()
+
+    assertThat(hostFile2.dir).isEqualTo(File(targetDir))
   }
 }

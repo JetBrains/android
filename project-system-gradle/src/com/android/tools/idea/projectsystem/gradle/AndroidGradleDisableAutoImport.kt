@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectId
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 
 class AndroidGradleDisableAutoImportInitializer : Runnable {
@@ -30,6 +33,7 @@ class RefreshOnlyAutoImportProjectTracker(): ExternalSystemProjectTracker {
   override fun activate(id: ExternalSystemProjectId) = Unit
   override fun markDirty(id: ExternalSystemProjectId) = Unit
   override fun register(projectAware: ExternalSystemProjectAware) = Unit
+  override fun register(projectAware: ExternalSystemProjectAware, parentDisposable: Disposable) = Unit
   override fun remove(id: ExternalSystemProjectId) = Unit
   override fun scheduleProjectNotificationUpdate() = Unit
   override fun scheduleProjectRefresh() = Unit

@@ -25,7 +25,7 @@ public interface TagToClassMapper {
 
   /**
    * Returns a map from tag names to {@link PsiClass} instances for all subclasses of {@code className} that can be accessed from the
-   * current module.
+   * current module and can be used as tags in XML files.
    *
    * @param className fully qualified name of the superclass
    */

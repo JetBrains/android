@@ -21,11 +21,12 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
@@ -34,23 +35,23 @@ import static org.mockito.Mockito.mock;
 
 public class IssueTest {
 
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private NlComponent component1;
 
-  @Mock
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private NlComponent component2;
 
   private static class TestIssue extends Issue {
 
     private final String summary;
     private final String description;
-    private final NlComponent source;
+    private final IssueSource source;
     private final String category;
     private final HighlightSeverity mySeverity;
 
     public TestIssue(@NotNull String summary,
                      @NotNull String description,
-                     @Nullable NlComponent source,
+                     @NotNull IssueSource source,
                      @NotNull String category,
                      @NotNull HighlightSeverity severity) {
       this.summary = summary;
@@ -78,9 +79,9 @@ public class IssueTest {
       return mySeverity;
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public NlComponent getSource() {
+    public IssueSource getSource() {
       return source;
     }
 
@@ -98,11 +99,11 @@ public class IssueTest {
 
   @Test
   public void testHashCode() {
-    int hash1 = new TestIssue("a", "b", component1, "d", HighlightSeverity.ERROR).hashCode();
-    int hash2 = new TestIssue("a", "b", component1, "d", HighlightSeverity.ERROR).hashCode();
-    int hash3 = new TestIssue("a", "e", component2, "d", HighlightSeverity.ERROR).hashCode();
-    int hash4 = new TestIssue("a", "e", null, "d", HighlightSeverity.ERROR).hashCode();
-    int hash5 = new TestIssue("a", "e", null, "d", HighlightSeverity.ERROR).hashCode();
+    int hash1 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR).hashCode();
+    int hash2 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR).hashCode();
+    int hash3 = new TestIssue("a", "e", IssueSource.fromNlComponent(component2), "d", HighlightSeverity.ERROR).hashCode();
+    int hash4 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR).hashCode();
+    int hash5 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR).hashCode();
     Assert.assertEquals(hash1, hash2);
     Assert.assertEquals(hash4, hash5);
     Assert.assertNotEquals(hash1, hash3);
@@ -112,15 +113,15 @@ public class IssueTest {
 
   @Test
   public void testEqual() {
-    TestIssue er1 = new TestIssue("a", "b", component1, "d", HighlightSeverity.ERROR);
-    TestIssue er2 = new TestIssue("a", "b", component1, "d", HighlightSeverity.ERROR);
+    TestIssue er1 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
+    TestIssue er2 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
     Assert.assertEquals(er1, er2);
     Assert.assertEquals(er1.hashCode(), er2.hashCode());
 
-    TestIssue er3 = new TestIssue("a", "b", component1, "d", HighlightSeverity.ERROR);
-    TestIssue er4 = new TestIssue("a", "e", component2, "d", HighlightSeverity.ERROR);
-    TestIssue er5 = new TestIssue("a", "e", null, "d", HighlightSeverity.ERROR);
-    TestIssue er6 = new TestIssue("a", "e", null, "d", HighlightSeverity.ERROR);
+    TestIssue er3 = new TestIssue("a", "b", IssueSource.fromNlComponent(component1), "d", HighlightSeverity.ERROR);
+    TestIssue er4 = new TestIssue("a", "e", IssueSource.fromNlComponent(component2), "d", HighlightSeverity.ERROR);
+    TestIssue er5 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR);
+    TestIssue er6 = new TestIssue("a", "e", IssueSource.NONE, "d", HighlightSeverity.ERROR);
     Assert.assertNotEquals(er3, er4);
     Assert.assertNotEquals(er4, er5);
     Assert.assertEquals(er5, er6);
@@ -130,7 +131,7 @@ public class IssueTest {
   @Test
   public void testNlLintIssueEqual() {
     LintAnnotationsModel model = new LintAnnotationsModel();
-    NlComponent sameComponent = mock(NlComponent.class);
+    NlComponent sameComponent = mock(NlComponent.class, Mockito.RETURNS_DEEP_STUBS);
     PsiElement startElement = mock(PsiElement.class);
     PsiElement endElement = mock(PsiElement.class);
     MockIssueFactory.addLintIssue(model, HighlightDisplayLevel.ERROR, sameComponent, startElement, endElement);

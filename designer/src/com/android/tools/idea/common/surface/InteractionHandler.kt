@@ -42,6 +42,9 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 /**
  * Handles the interaction events of [DesignSurface]. The events are dispatched from [InteractionManager].
@@ -301,4 +304,70 @@ internal fun navigateToComponent(component: NlComponent, needsFocusEditor: Boole
   if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
     (element as Navigatable).navigate(needsFocusEditor)
   }
+}
+
+/**
+ * [InteractionManager] that ignores all interactions.
+ */
+object NopInteractionHandler: InteractionHandler {
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+
+  override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction?  = null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction?  = null
+  override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
+  override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
+  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
+  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
+  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
+}
+
+/**
+ * An [InteractionHandler] that allows delegating the operations to another [InteractionHandler]. The [delegate] can be switched at runtime
+ * and the switch is thread-safe.
+ */
+class DelegateInteractionHandler(initialDelegate: InteractionHandler = NopInteractionHandler): InteractionHandler {
+  private val delegateLock = ReentrantReadWriteLock()
+  var delegate: InteractionHandler = initialDelegate
+    get() = delegateLock.read { field }
+    set(value) = delegateLock.write { field = value}
+
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
+    delegate.createInteractionOnPressed(mouseX, mouseY, modifiersEx)
+
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
+    delegate.createInteractionOnDrag(mouseX, mouseY, modifiersEx)
+
+  override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? =
+    delegate.createInteractionOnDragEnter(dragEvent)
+
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
+    delegate.createInteractionOnMouseWheelMoved(mouseWheelEvent)
+
+  override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) =
+    delegate.mouseReleaseWhenNoInteraction(x, y, modifiersEx)
+
+  override fun singleClick(x: Int, y: Int, modifiersEx: Int) =
+    delegate.singleClick(x, y, modifiersEx)
+
+  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) =
+    delegate.doubleClick(x, y, modifiersEx)
+
+  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) =
+    delegate.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx)
+
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) =
+    delegate.popupMenuTrigger(mouseEvent)
+
+  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
+    delegate.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
+
+  override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? =
+    delegate.keyPressedWithoutInteraction(keyEvent)
+
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) =
+    delegate.keyReleasedWithoutInteraction(keyEvent)
 }

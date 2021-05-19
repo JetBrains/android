@@ -15,51 +15,54 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFile;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
 import com.google.common.collect.ImmutableList;
-import java.io.Serializable;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.util.*;
-
-public class NdkVariant implements Serializable {
-  @NotNull private final String myVariantName;
-  @NotNull private final Map<String, NativeArtifact> myArtifactsByName;
+public class NdkVariant {
+  @NotNull private final String myVariantAbi;
+  @NotNull private final Map<String, IdeNativeArtifact> myArtifactsByName;
   private final boolean myExportedHeadersSupported;
 
   // Used for serialization by the IDE.
   @SuppressWarnings("unused")
   public NdkVariant() {
-    myVariantName = "";
+    myVariantAbi = "";
     myArtifactsByName = Collections.emptyMap();
     myExportedHeadersSupported = false;
   }
 
-  NdkVariant(@NotNull String variantName, boolean exportedHeadersSupported) {
-    myVariantName = variantName;
+  NdkVariant(@NotNull String variantAbi, boolean exportedHeadersSupported) {
+    myVariantAbi = variantAbi;
     myArtifactsByName = new HashMap<>();
     myExportedHeadersSupported = exportedHeadersSupported;
   }
 
-  void addArtifact(@NotNull NativeArtifact artifact) {
+  void addArtifact(@NotNull IdeNativeArtifact artifact) {
     myArtifactsByName.put(artifact.getName(), artifact);
   }
 
   @NotNull
   public String getName() {
-    return myVariantName;
+    return myVariantAbi;
   }
 
   @NotNull
   public Collection<File> getSourceFolders() {
     Set<File> sourceFolders = new LinkedHashSet<>();
-    for (NativeArtifact artifact : getArtifacts()) {
+    for (IdeNativeArtifact artifact : getArtifacts()) {
       if (myExportedHeadersSupported) {
         sourceFolders.addAll(artifact.getExportedHeaders());
       }
-      for (NativeFile sourceFile : artifact.getSourceFiles()) {
+      for (IdeNativeFile sourceFile : artifact.getSourceFiles()) {
         File parentFile = sourceFile.getFilePath().getParentFile();
         if (parentFile != null) {
           sourceFolders.add(parentFile);
@@ -70,7 +73,7 @@ public class NdkVariant implements Serializable {
   }
 
   @NotNull
-  public Collection<NativeArtifact> getArtifacts() {
+  public Collection<IdeNativeArtifact> getArtifacts() {
     return myArtifactsByName.values();
   }
 }

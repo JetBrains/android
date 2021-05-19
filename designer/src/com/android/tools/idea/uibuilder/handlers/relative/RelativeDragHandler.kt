@@ -24,6 +24,7 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.handlers.relative.targets.RelativeDragTarget
 import com.android.tools.idea.uibuilder.model.h
@@ -72,14 +73,14 @@ internal class RelativeDragHandler(editor: ViewEditor,
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int): String? {
+  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
     if (component == null) {
       return ERROR_UNDEFINED
     }
-    val result = super.update(x, y, modifiers)
+    val result = super.update(x, y, modifiers, sceneContext)
     @AndroidDpCoordinate val dx = x + startX - component.drawWidth / 2
     @AndroidDpCoordinate val dy = y + startY - component.drawHeight / 2
-    dragTarget.mouseDrag(dx, dy, emptyList())
+    dragTarget.mouseDrag(dx, dy, emptyList(), sceneContext)
     return result
   }
 

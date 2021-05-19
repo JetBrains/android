@@ -35,7 +35,7 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
-class AndroidSqlParserDefinition : ParserDefinition {
+open class AndroidSqlParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = AndroidSqlLexer()
   override fun createParser(project: Project?): PsiParser = AndroidSqlParser()
   override fun createElement(node: ASTNode?): PsiElement = AndroidSqlPsiTypes.Factory.createElement(node)

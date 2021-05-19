@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.capture;
 
 import com.android.tools.idea.fileTypes.profiler.CpuCaptureFileType;
+import com.android.tools.idea.fileTypes.profiler.MemoryAllocationFileType;
 import com.android.tools.idea.fileTypes.profiler.MemoryCaptureFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -38,6 +39,7 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);
     return fileType instanceof CpuCaptureFileType || fileType instanceof MemoryCaptureFileType
+      || fileType instanceof MemoryAllocationFileType
       || (StudioFlags.PROFILER_ENABLE_NATIVE_SAMPLE.get() && fileType instanceof HeapProfdMemoryCaptureFileType);
   }
 

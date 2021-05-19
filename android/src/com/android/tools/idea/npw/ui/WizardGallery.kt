@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.ui
 
 import com.android.tools.adtui.ASGallery
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE
 import com.google.common.base.Function
 import com.intellij.ui.JBColor
@@ -34,7 +35,7 @@ class WizardGallery<E>(
 ) : ASGallery<E>(JBList.createDefaultListModel<Any?>(), Function<E, Icon?> { iconProvider(it) }, Function<E, String?> { labelProvider(it) },
                  DEFAULT_GALLERY_THUMBNAIL_SIZE, null, false) {
   init {
-    border = BorderFactory.createLineBorder(JBColor.border())
+    border = BorderFactory.createLineBorder(JBColor.border()).takeUnless { StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() }
     getAccessibleContext().accessibleDescription = title
   }
 

@@ -44,7 +44,6 @@ import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.ui.UIUtil
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -64,7 +63,7 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
-private const val DIFF_THRESHOLD = 0.5
+private const val DIFF_THRESHOLD = 0.2
 
 @RunsInEdt
 class ResolutionElementEditorTest {
@@ -90,7 +89,7 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaint() {
-    setLookAndFeel(IntelliJLaf(), UIUtil.getFontWithFallback("Ariel", 0, 13))
+    setLookAndFeel(IntelliJLaf(), ImageDiffUtil.getDefaultFont())
     val editors = createEditors()
     checkImage(editors, "Closed")
 
@@ -139,9 +138,9 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val item2 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node, model.resourceLookup)
+      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
 
     // The "textColor" attribute is defined in the layout file and we should have a link to the layout definition
     assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
@@ -177,19 +176,22 @@ class ResolutionElementEditorTest {
     val generatedImage = BufferedImage(200, 300, BufferedImage.TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
     graphics.fillRect(0, 0, 200, 300)
+    editors[0].setSize(200, editors[0].height)
+    editors[0].doLayout()
     editors[0].paint(graphics)
     var y = editors[0].height
     if (editors[0].editorModel.isExpandedTableItem) {
       for (index in 1 until editors.size) {
         graphics.transform = AffineTransform.getTranslateInstance(0.0, y.toDouble())
+        editors[index].setSize(200, editors[index].height)
+        editors[index].doLayout()
         editors[index].paint(graphics)
         y += editors[index].height
       }
     }
     val platform = SystemInfo.OS_NAME.replace(' ', '_')
     val filename = "$TEST_DATA_PATH/testResolutionEditorPaint$expected$platform.png"
-    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename),
-                                     generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilar(File(TestUtils.getWorkspaceRoot(), filename), generatedImage, DIFF_THRESHOLD)
   }
 
   private fun updateSize(component: Component) {
@@ -216,12 +218,12 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
-    val map = listOf(textStyleMaterial).associateWith { item.resourceLookup!!.findAttributeValue(item, it) }
-    val value = item.resourceLookup!!.findAttributeValue(item, item.source!!)
+    val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
+    val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
     val property = InspectorGroupPropertyItem(
-      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, item.view, item.resourceLookup, map)
+      ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, node.drawId, model, map)
     val editors = mutableListOf<ResolutionElementEditor>()
     val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))

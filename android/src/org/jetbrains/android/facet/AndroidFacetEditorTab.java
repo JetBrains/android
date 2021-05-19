@@ -41,14 +41,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import javax.swing.*;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.compiler.artifact.ProGuardConfigFilesPanel;
-import org.jetbrains.android.maven.AndroidMavenProvider;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nls;
@@ -173,12 +169,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
         if (contentRoots.length == 1) {
           AndroidUtils.setUpAndroidFacetConfiguration(module, configuration, contentRoots[0].getPath());
-        }
-        if (AndroidMavenUtil.isMavenizedModule(module)) {
-          AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();
-          if (mavenProvider != null) {
-            mavenProvider.setPathsToDefault(module, configuration);
-          }
         }
         resetOptions(configuration);
       }
@@ -308,13 +298,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (path != null) {
       result.add(path);
     }
-    AndroidMavenProvider mavenProvider = AndroidMavenUtil.getMavenProvider();
-    if (mavenProvider != null && mavenProvider.isMavenizedModule(module)) {
-      String buildDirectory = mavenProvider.getBuildDirectory(module);
-      if (buildDirectory != null) {
-        result.add(FileUtil.toSystemDependentName(buildDirectory + '/' + AndroidCompileUtil.getApkName(module)));
-      }
-    }
     return ArrayUtilRt.toStringArray(result);
   }
 
@@ -422,21 +405,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     if (checkRelativePath(myConfiguration.getState().PROGUARD_LOGS_FOLDER_RELATIVE_PATH, myProguardLogsDirectoryField.getText())) {
       return true;
     }
-    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
-      final Set<AndroidImportableProperty> newNotImportedProperties = EnumSet.noneOf(AndroidImportableProperty.class);
-
-      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
-
-        if (!myImportedOptionsList.isItemSelected(i)) {
-          newNotImportedProperties.add(property);
-        }
-      }
-
-      if (!myConfiguration.getState().myNotImportedProperties.equals(newNotImportedProperties)) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -540,18 +508,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
 
     myConfiguration.setIncludeAssetsFromLibraries(myIncludeAssetsFromLibraries.isSelected());
 
-    if (AndroidMavenUtil.isMavenizedModule(myContext.getModule())) {
-      final Set<AndroidImportableProperty> notImportedProperties = myConfiguration.getState().myNotImportedProperties;
-      notImportedProperties.clear();
-
-      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
-
-        if (!myImportedOptionsList.isItemSelected(i)) {
-          notImportedProperties.add(property);
-        }
-      }
-    }
     myConfiguration.getState().RUN_PROGUARD = myRunProguardCheckBox.isSelected();
     myConfiguration.getState().myProGuardCfgFiles = myProGuardConfigFilesPanel.getUrls();
 
@@ -650,10 +606,9 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     String apkAbsPath = !apkPath.isEmpty() ? toAbsolutePath(apkPath) : "";
     myApkPathCombo.getComboBox().getEditor().setItem(apkAbsPath != null ? apkAbsPath : "");
 
-    boolean mavenizedModule = AndroidMavenUtil.isMavenizedModule(myContext.getModule());
-    myRunProcessResourcesRadio.setVisible(mavenizedModule);
+    myRunProcessResourcesRadio.setVisible(false);
     myRunProcessResourcesRadio.setSelected(myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
-    myCompileResourcesByIdeRadio.setVisible(mavenizedModule);
+    myCompileResourcesByIdeRadio.setVisible(false);
     myCompileResourcesByIdeRadio.setSelected(!myConfiguration.getState().RUN_PROCESS_RESOURCES_MAVEN_TASK);
 
     myEnableManifestMerging.setSelected(myConfiguration.getState().ENABLE_MANIFEST_MERGING);
@@ -680,14 +635,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       myTabbedPane.removeTabAt(mavenTabIndex);
     }
 
-    if (mavenizedModule) {
-      myTabbedPane.insertTab(MAVEN_TAB_TITLE, null, myMavenTabComponent, null, 2);
-
-      for (int i = 0; i < myImportedOptionsList.getItemsCount(); i++) {
-        final AndroidImportableProperty property = (AndroidImportableProperty)myImportedOptionsList.getItemAt(i);
-        myImportedOptionsList.setItemSelected(property, configuration.isImportedProperty(property));
-      }
-    }
     updateLibAndAppSpecificFields();
   }
 

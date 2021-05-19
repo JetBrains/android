@@ -29,7 +29,8 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.atrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelModel
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService

@@ -15,11 +15,14 @@
  */
 package com.android.tools.adtui.stdui
 
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.awt.event.KeyEvent
+import javax.swing.JComboBox
 import javax.swing.JList
 import javax.swing.plaf.basic.BasicComboBoxUI
 
@@ -44,7 +47,7 @@ class CommonComboBoxTest {
   private fun getList(): JList<*> {
     val field = BasicComboBoxUI::class.java.getDeclaredField("listBox")
     field.isAccessible = true
-    return field!!.get(comboBox.ui) as JList<*>
+    return field.get(comboBox.ui) as JList<*>
   }
 
   @Test
@@ -71,5 +74,56 @@ class CommonComboBoxTest {
 
     // Verify that the model value has not changed:
     assertThat(model.value).isEqualTo("FixedValue")
+  }
+
+  @Test
+  fun testKeyboardNavigationWithAction() {
+    var actionCount = 0
+    comboBox.addActionListener { actionCount++ }
+    comboBox.setUI(FakeComboBoxUI())
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(comboBox.selectedIndex).isEqualTo(1)
+    assertThat(actionCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testKeyboardNavigationWithoutAction() {
+    var actionCount = 0
+    comboBox.actionOnKeyNavigation = false
+    comboBox.addActionListener { actionCount++ }
+    comboBox.setUI(FakeComboBoxUI())
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertThat(comboBox.selectedIndex).isEqualTo(0)
+    assertThat(comboBox.popup!!.list.selectedIndex).isEqualTo(1)
+    assertThat(actionCount).isEqualTo(0)
+  }
+
+  @Test
+  fun testTypingWillClosePopup() {
+    comboBox.setUI(FakeComboBoxUI())
+    comboBox.showPopup()
+    val editor = comboBox.editor.editorComponent
+    val ui = FakeUi(editor)
+    ui.keyboard.setFocus(editor)
+    ui.keyboard.type(KeyEvent.VK_A)
+    assertThat(comboBox.isPopupVisible).isFalse()
+  }
+
+  private class FakeComboBoxUI : BasicComboBoxUI() {
+    private var popupVisible = false
+
+    override fun setPopupVisible(comboBox: JComboBox<*>?, visible: Boolean) {
+      popupVisible = visible
+    }
+
+    override fun isPopupVisible(comboBox: JComboBox<*>?): Boolean = popupVisible
   }
 }

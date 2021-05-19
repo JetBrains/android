@@ -7,6 +7,9 @@
       <excludeFolder url="file://$MODULE_DIR$/tests" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
@@ -33,7 +36,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />

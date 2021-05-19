@@ -18,7 +18,7 @@
 
 package com.android.tools.idea.util
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon

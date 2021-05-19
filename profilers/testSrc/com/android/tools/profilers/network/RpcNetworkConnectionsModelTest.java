@@ -140,8 +140,8 @@ public class RpcNetworkConnectionsModelTest {
 
   @Test
   public void nonEmptyBytes() {
-    myTransportService.addFile("dummyid", ByteString.copyFromUtf8("Dummy Contents"));
-    assertThat(myModel.requestBytes("dummyid").toStringUtf8()).isEqualTo("Dummy Contents");
+    myTransportService.addFile("sampleid", ByteString.copyFromUtf8("Sample Contents"));
+    assertThat(myModel.requestBytes("sampleid").toStringUtf8()).isEqualTo("Sample Contents");
   }
 
   @Test

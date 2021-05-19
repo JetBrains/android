@@ -1,11 +1,13 @@
 package org.jetbrains.android.refactoring;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
+import com.android.resources.ResourceFolderType;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,8 +26,7 @@ public abstract class AndroidBaseLayoutRefactoringAction extends AndroidBaseXmlR
 
   @Override
   protected boolean isMyFile(PsiFile file) {
-    return DomManager.getDomManager(file.getProject()).getDomFileDescription((XmlFile)file)
-      instanceof LayoutDomFileDescription;
+    return file instanceof XmlFile && isFileInResourceFolderType((XmlFile)file, ResourceFolderType.LAYOUT);
   }
 
   @Nullable

@@ -43,7 +43,7 @@
         </constraints>
         <properties>
           <editable value="false"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <text value="Allows the profilers to track data such as network payloads, application events and object counts for devices running API level &lt; 26, but it might have a minor performance impact on your build speeds. "/>
         </properties>
       </component>
@@ -65,8 +65,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="9"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="Native memory sampling rate. This value when set will remain for both startup and non-startup recordings." noi18n="true"/>
         </properties>
@@ -94,7 +93,7 @@
           <text value="Enable advanced profiling for older devices"/>
         </properties>
       </component>
-      <grid id="cbd78" binding="myStartupInnerPanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="cbd78" binding="myStartupInnerPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -109,6 +108,16 @@
             <properties>
               <enabled value="false"/>
               <text value="CPU activity (Requires API level &gt;= 26)"/>
+            </properties>
+          </component>
+          <component id="43dac" class="com.intellij.ui.components.JBRadioButton" binding="myMemoryRecordingRadio">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <margin top="0" left="0" bottom="0" right="0"/>
+              <text value="Native memory activity (Requires API level &gt;= 29)"/>
             </properties>
           </component>
           <component id="94478" class="com.intellij.openapi.ui.ComboBox" binding="myStartupCpuConfigsComboBox">
@@ -143,8 +152,7 @@
           <doubleBuffered value="false"/>
           <editable value="false"/>
           <enabled value="true"/>
-          <font size="9"/>
-          <foreground color="-11645362"/>
+          <font size="11"/>
           <margin top="0" left="3" bottom="0" right="3"/>
           <text value="You must select Run &gt; Profile from the main menu and deploy your app to a device" noi18n="true"/>
         </properties>

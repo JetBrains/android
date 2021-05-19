@@ -31,9 +31,20 @@ interface DatabaseInspectorAnalyticsTracker {
   fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind)
   fun trackTableCellEdited()
   fun trackTargetRefreshed(targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType)
-  fun trackStatementExecuted(statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext)
-  fun trackStatementExecutionCanceled(statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext)
+
+  fun trackStatementExecuted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                             statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext)
+
+  fun trackStatementExecutionCanceled(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                                      statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext)
+
   fun trackLiveUpdatedToggled(enabled: Boolean)
+  fun trackEnterOfflineModeUserCanceled()
+  fun trackOfflineDatabaseDownloadFailed()
+  fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata)
+  fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent)
+  fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                           event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent)
 }
 
 class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInspectorAnalyticsTracker {
@@ -54,15 +65,19 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
             .setTargetType(targetType))
   }
 
-  override fun trackStatementExecuted(statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
+  override fun trackStatementExecuted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                                      statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.STATEMENT_EXECUTED)
+            .setConnectivityState(connectivityState)
             .setStatementContext(statementContext))
   }
 
-  override fun trackStatementExecutionCanceled(statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
+  override fun trackStatementExecutionCanceled(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                                               statementContext: AppInspectionEvent.DatabaseInspectorEvent.StatementContext) {
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.STATEMENT_EXECUTION_CANCELED)
+            .setConnectivityState(connectivityState)
             .setStatementContext(statementContext))
   }
 
@@ -70,6 +85,36 @@ class DatabaseInspectorAnalyticsTrackerImpl(val project: Project) : DatabaseInsp
     track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
             .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.LIVE_UPDATES_TOGGLED)
             .setLiveUpdatingEnabled(enabled))
+  }
+
+  override fun trackEnterOfflineModeUserCanceled() {
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
+            .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.ENTER_OFFLINE_MODE_USER_CANCELED))
+  }
+
+  override fun trackOfflineDatabaseDownloadFailed() {
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
+            .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.OFFLINE_DATABASE_DOWNLOAD_FAILED))
+  }
+
+  override fun trackOfflineModeEntered(metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata) {
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
+            .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.OFFLINE_MODE_ENTERED)
+            .setOfflineModeMetadata(metadata))
+  }
+
+  override fun trackExportDialogOpened(event: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent) {
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
+            .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_DIALOG_OPENED)
+            .setExportDialogOpenedEvent(event))
+  }
+
+  override fun trackExportCompleted(connectivityState: AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState,
+                                    event: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent) {
+    track(AppInspectionEvent.DatabaseInspectorEvent.newBuilder()
+            .setType(AppInspectionEvent.DatabaseInspectorEvent.Type.EXPORT_OPERATION_COMPLETED)
+            .setConnectivityState(connectivityState)
+            .setExportCompletedEvent(event))
   }
 
   private fun track(inspectorEvent: AppInspectionEvent.DatabaseInspectorEvent.Builder) {

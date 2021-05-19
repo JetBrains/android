@@ -53,7 +53,8 @@ public interface GradleDslNameConverter {
   /**
    * Convert a reference text expressed in a dsl-compatible syntax to a text compatible with the corresponding build script language.
    * @param context the dsl context within which we are applying the conversion
-   * @param referenceText the reference text.
+   * @param referenceText the reference text. This parameter is used to look for the dslElement with such a name in case {@param dslElement}
+   *                      is null.
    * @param forInjection indicates whether the reference text should be converted to be used for a variable injection or not.
    * @return reference text converted to the external language syntax.
    */
@@ -61,6 +62,20 @@ public interface GradleDslNameConverter {
   default String convertReferenceToExternalText(
     @NotNull GradleDslElement context,
     @NotNull String referenceText,
+    boolean forInjection
+  ) { return "";}
+
+  /**
+   * Convert a reference text expressed in a dsl-compatible syntax to a text compatible with the corresponding build script language.
+   * @param context the dsl context within which we are applying the conversion
+   * @param dslElement the element we would like to convert it's name to external syntax.
+   * @param forInjection indicates whether the reference text should be converted to be used for a variable injection or not.
+   * @return reference text converted to the external language syntax.
+   */
+  @NotNull
+  default String convertReferenceToExternalText(
+    @NotNull GradleDslElement context,
+    @NotNull GradleDslElement dslElement,
     boolean forInjection
   ) { return "";}
 

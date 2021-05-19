@@ -18,23 +18,12 @@ package com.android.tools.idea.tests.gui.npw;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -52,45 +41,15 @@ public class NewCppProjectTestUtil {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
-    // TODO remove the following hack: b/110174414
-    File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();
-    File ninja = new File(androidSdk, "cmake/3.10.4819442/bin/ninja");
-
-    AtomicReference<IOException> buildGradleFailure = new AtomicReference<>();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      WriteCommandAction.runWriteCommandAction(ideFrame.getProject(), () -> {
-        ProjectBuildModel pbm = ProjectBuildModel.get(ideFrame.getProject());
-        GradleBuildModel buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"));
-        CMakeOptionsModel cmakeModel = buildModel
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake();
-
-        ResolvedPropertyModel cmakeArgsModel = cmakeModel.arguments();
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.getCanonicalPath());
-          buildModel.applyChanges();
-        }
-        catch (IOException failureToWrite) {
-          buildGradleFailure.set(failureToWrite);
-        }
-      });
-    });
-    IOException errorsWhileModifyingBuild = buildGradleFailure.get();
-    if(errorsWhileModifyingBuild != null) {
-      throw errorsWhileModifyingBuild;
-    }
-    // TODO end hack for b/110174414
-
     String gradleCppFlags = ideFrame.getEditor()
                                     .open("app/build.gradle")
-                                    .moveBetween("cppFlags \"", "")
+                                    .moveBetween("cppFlags '", "")
                                     .getCurrentLine();
 
     String cppFlags = toolChain == CppStandardType.DEFAULT ? "" : toolChain.getCompilerFlag();
-    Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
+    Assert.assertEquals(String.format("cppFlags '%s'", cppFlags), gradleCppFlags.trim());
 
+    guiTest.waitForBackgroundTasks();
     runAppOnEmulator(ideFrame);
   }
 
@@ -127,8 +86,7 @@ public class NewCppProjectTestUtil {
     ideFrame.runApp(APP_NAME, "Google Nexus 5X");
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    String appModuleName = TestModuleUtil.findModule(ideFrame.getProject(), APP_NAME).getName();
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(appModuleName);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrame.getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS);
   }

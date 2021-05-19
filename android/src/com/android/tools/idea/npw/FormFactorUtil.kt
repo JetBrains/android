@@ -15,23 +15,23 @@
  */
 package com.android.tools.idea.npw
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 
 // TODO(qumeric): Probably two classes should be merged
-  fun FormFactor.toTemplateFormFactor(): com.android.tools.idea.wizard.template.FormFactor = when(this) {
-    FormFactor.MOBILE -> com.android.tools.idea.wizard.template.FormFactor.Mobile
-    FormFactor.WEAR -> com.android.tools.idea.wizard.template.FormFactor.Wear
-    FormFactor.TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
-    FormFactor.AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Automotive
-    FormFactor.THINGS -> com.android.tools.idea.wizard.template.FormFactor.Things
-  }
+fun FormFactor.toTemplateFormFactor(): com.android.tools.idea.wizard.template.FormFactor = when(this) {
+  FormFactor.MOBILE -> com.android.tools.idea.wizard.template.FormFactor.Mobile
+  FormFactor.WEAR -> com.android.tools.idea.wizard.template.FormFactor.Wear
+  FormFactor.TV -> com.android.tools.idea.wizard.template.FormFactor.Tv
+  FormFactor.AUTOMOTIVE -> com.android.tools.idea.wizard.template.FormFactor.Automotive
+  FormFactor.THINGS -> com.android.tools.idea.wizard.template.FormFactor.Things
+}
 
-  fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() = when(this) {
-    com.android.tools.idea.wizard.template.FormFactor.Mobile -> FormFactor.MOBILE
-    com.android.tools.idea.wizard.template.FormFactor.Wear -> FormFactor.WEAR
-    com.android.tools.idea.wizard.template.FormFactor.Tv -> FormFactor.TV
-    com.android.tools.idea.wizard.template.FormFactor.Automotive -> FormFactor.AUTOMOTIVE
-    com.android.tools.idea.wizard.template.FormFactor.Things -> FormFactor.THINGS
-    com.android.tools.idea.wizard.template.FormFactor.Generic -> FormFactor.MOBILE
-  }
+fun com.android.tools.idea.wizard.template.FormFactor.toWizardFormFactor() = when(this) {
+  com.android.tools.idea.wizard.template.FormFactor.Mobile -> FormFactor.MOBILE
+  com.android.tools.idea.wizard.template.FormFactor.Wear -> FormFactor.WEAR
+  com.android.tools.idea.wizard.template.FormFactor.Tv -> FormFactor.TV
+  com.android.tools.idea.wizard.template.FormFactor.Automotive -> FormFactor.AUTOMOTIVE
+  com.android.tools.idea.wizard.template.FormFactor.Things -> FormFactor.THINGS
+  com.android.tools.idea.wizard.template.FormFactor.Generic -> FormFactor.MOBILE
+}
 

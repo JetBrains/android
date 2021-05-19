@@ -16,7 +16,10 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.emulator.actions.dialogs.BootMode
 import com.android.tools.idea.emulator.actions.dialogs.BootOptionsDialog
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotInfo
+import com.android.tools.idea.emulator.actions.dialogs.SnapshotManager
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -32,15 +35,14 @@ class EmulatorBootOptionsAction : AbstractEmulatorAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
     val emulatorController = getEmulatorController(event) ?: return
-    val emulatorId = emulatorController.emulatorId
-    val snapshotManager = SnapshotManager(emulatorId.avdFolder, emulatorId.avdId)
+    val snapshotManager = SnapshotManager(emulatorController)
     executeOnPooledThread {
       val bootMode = snapshotManager.readBootMode() ?: return@executeOnPooledThread
       val snapshotsFuture: SettableFuture<List<SnapshotInfo>> = SettableFuture.create()
       invokeLater {
         showDialogAndSave(project, bootMode, snapshotsFuture, snapshotManager)
       }
-      snapshotsFuture.set(snapshotManager.fetchSnapshotList())
+      snapshotsFuture.set(snapshotManager.fetchSnapshotList(excludeQuickBoot = true))
     }
   }
 

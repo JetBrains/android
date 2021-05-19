@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
-import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CALENDAR_VIEW;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
@@ -29,11 +28,11 @@ import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.FD_RES_MENU;
 import static com.android.SdkConstants.FQCN_GRID_VIEW;
 import static com.android.SdkConstants.FQCN_SPINNER;
+import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.URI_PREFIX;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.tools.idea.layoutlib.RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH;
@@ -46,14 +45,12 @@ import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.ide.common.rendering.api.AdapterBinding;
 import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.rendering.api.LayoutlibCallback;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -73,6 +70,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -121,14 +119,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.tooling.util.BiFunction;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -165,13 +160,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
-  private final AaptOptions.Namespacing myNamespacing;
+  private final Namespacing myNamespacing;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private final ActionBarHandler myActionBarHandler;
-  @Nullable private final RenderTask myRenderTask;
+  @NotNull private final RenderTask myRenderTask;
   @NotNull private final DownloadableFontCacheService myFontCacheService;
   private boolean myUsed;
   private Set<PathString> myParserFiles;
@@ -207,7 +202,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * @param privateClassLoader if true ViewLoader should create a new privately owned ModuleClassLoader and should not share it, if false
    *                           use a shared one from the ModuleClassLoaderManager
    */
-  public LayoutlibCallbackImpl(@Nullable RenderTask renderTask,
+  public LayoutlibCallbackImpl(@NotNull RenderTask renderTask,
                                @NotNull LayoutLibrary layoutLib,
                                @NotNull LocalResourceRepository projectRes,
                                @NotNull Module module,
@@ -216,7 +211,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               boolean privateClassLoader) {
+                               @NotNull ModuleClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myIdManager = ResourceIdManager.get(module);
@@ -224,15 +219,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myModule = module;
     myLogger = logger;
     myCredential = credential;
-    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
-    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, privateClassLoader ? manager::getPrivate : manager::getShared);
+    myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
     myNamespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
@@ -273,7 +267,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * Sets the {@link LayoutLog} logger to use for error messages during problems.
+   * Sets the {@link ILayoutLog} logger to use for error messages during problems.
    *
    * @param logger the new logger to use
    */
@@ -534,8 +528,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         if (file != null) {
           PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
           if (psiFile instanceof XmlFile) {
-            ResourceResolver resourceResolver = myRenderTask != null ? myRenderTask.getContext().getConfiguration().getResourceResolver()
-                                                                     : null;
+            ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
             LayoutPsiPullParser parser =
@@ -543,7 +536,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
-              parser.setProvideViewCookies(myRenderTask != null && myRenderTask.getProvideCookiesForIncludedViews());
+              parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
             }
             return parser;
           }
@@ -592,7 +585,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           }
 
           // Deals with tools:layout attribute from fragments.
-          NodeList fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          NodeList fragmentNodeList = document.getElementsByTagName(FRAGMENT_CONTAINER_VIEW);
+          if (fragmentNodeList.getLength() == 0) {
+            // There was no FragmentContainerView, try with the old <fragment> tag.
+            fragmentNodeList = document.getElementsByTagName(VIEW_FRAGMENT);
+          }
           for (int i = 0, n = fragmentNodeList.getLength(); i < n; i++) {
             Element fragment = (Element)fragmentNodeList.item(i);
             String included = fragment.getAttributeNS(TOOLS_URI, ATTR_LAYOUT);
@@ -877,10 +874,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       return (T)myAdaptiveIconMaskPath;
     }
     if (key.equals(FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW)) {
-      return (T)StudioFlags.NELE_RENDER_HIGH_QUALITY_SHADOW.get();
+      return (T)Boolean.TRUE;
     }
     if (key.equals(FLAG_KEY_ENABLE_SHADOW)) {
-      return (T)StudioFlags.NELE_ENABLE_SHADOW.get();
+      return (T)Boolean.TRUE;
     }
     return null;
   }
@@ -933,7 +930,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Override
   public boolean isResourceNamespacingRequired() {
-    return myNamespacing == AaptOptions.Namespacing.REQUIRED;
+    return myNamespacing == Namespacing.REQUIRED;
   }
 
   @Override

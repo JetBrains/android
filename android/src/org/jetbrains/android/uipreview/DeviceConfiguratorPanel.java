@@ -60,32 +60,15 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.AbstractListModel;
-import javax.swing.ComboBoxModel;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.ListModel;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -97,14 +80,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class DeviceConfiguratorPanel extends JPanel {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.uipreview.DeviceConfiguratorPanel");
+  private static final Logger LOG = Logger.getInstance(DeviceConfiguratorPanel.class);
 
   private JBList<ResourceQualifier> myAvailableQualifiersList;
   private JButton myAddQualifierButton;
   private JButton myRemoveQualifierButton;
   private JPanel myQualifierOptionsPanel;
 
-  private final Map<String, MyQualifierEditor> myEditors = new HashMap<>();
+  private final Map<String, MyQualifierEditor<? extends ResourceQualifier>> myEditors = new HashMap<>();
 
   private final FolderConfiguration myAvailableQualifiersConfig = FolderConfiguration.createDefault();
   private final FolderConfiguration myChosenQualifiersConfig = new FolderConfiguration();
@@ -199,7 +182,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
 
     for (String name : myEditors.keySet()) {
-      final MyQualifierEditor editor = myEditors.get(name);
+      final MyQualifierEditor<? extends ResourceQualifier> editor = myEditors.get(name);
       myQualifierOptionsPanel.add(editor.getComponent(), name);
     }
 
@@ -301,7 +284,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   @Nullable
-  public static Icon getResourceIcon(ResourceQualifier qualifier) {
+  private static Icon getResourceIcon(ResourceQualifier qualifier) {
     return ourIcons.get(qualifier.getName());
   }
 
@@ -310,7 +293,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     myAvailableQualifiersConfig.substract(config);
 
     for (ResourceQualifier qualifier : config.getQualifiers()) {
-      final MyQualifierEditor editor = myEditors.get(qualifier.getShortName());
+      final MyQualifierEditor<ResourceQualifier> editor = (MyQualifierEditor<ResourceQualifier>)myEditors.get(qualifier.getShortName());
       if (editor != null) {
         editor.reset(qualifier);
       }
@@ -331,7 +314,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       final FolderConfiguration newConfig = new FolderConfiguration();
 
       for (ResourceQualifier qualifier : myChosenQualifiersConfig.getQualifiers()) {
-        final MyQualifierEditor editor = myEditors.get(qualifier.getShortName());
+        final MyQualifierEditor<? extends ResourceQualifier> editor = myEditors.get(qualifier.getShortName());
         if (editor != null) {
           newConfig.addQualifier(editor.apply());
         }
@@ -342,10 +325,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       myAvailableQualifiersList.repaint();
       myChosenQualifiersList.repaint();
     }
-  }
-
-  public DocumentListener getUpdatingDocumentListener() {
-    return myUpdatingDocumentListener;
   }
 
   private ResourceQualifier getActualQualifier(ResourceQualifier qualifier) {
@@ -409,7 +388,13 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private void createUIComponents() {
-    myQualifierOptionsPanel = new JPanel(new CardLayout());
+    myQualifierOptionsPanel = new JPanel(new CardLayout()) {
+      @Override
+      public Dimension getPreferredSize() {
+        // Simulate a width weight of 50%
+        return new Dimension(getParent().getWidth() / 2, -1);
+      }
+    };
 
     final JPanel leftPanel = new JPanel(new BorderLayout(JBUIScale.scale(5), JBUIScale.scale(5)));
     myAvailableQualifiersList = new JBList<>();
@@ -441,17 +426,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
       @Override
       public Dimension preferredLayoutSize(Container target) {
-        synchronized (target.getTreeLock()) {
-          final Dimension leftPref = leftPanel.getPreferredSize();
-          final Dimension rightPref = rightPanel.getPreferredSize();
-          final Dimension middlePref = buttonsPanel.getPreferredSize();
-          final Insets insets = target.getInsets();
-
-          final int width = leftPref.width + middlePref.width + rightPref.width + insets.left + insets.right + gap * 2;
-          final int height = Math
-                               .max(leftPref.height, Math.max(rightPref.height, middlePref.height)) + insets.top + insets.bottom;
-          return new Dimension(width, height);
-        }
+        return new Dimension(-1, -1);
       }
 
       @SuppressWarnings("NonPrivateFieldAccessedInSynchronizedContext")
@@ -484,10 +459,6 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     listsPanel.add(rightPanel);
     add(listsPanel, BorderLayout.CENTER);
     add(myQualifierOptionsPanel, BorderLayout.EAST);
-  }
-
-  public JBList getAvailableQualifiersList() {
-    return myAvailableQualifiersList;
   }
 
   private abstract static class MyQualifierEditor<T extends ResourceQualifier> {
@@ -574,7 +545,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
   }
 
   private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U>> extends MyQualifierEditor<T> {
-    private final JComboBox<U> myComboBox = new ComboBox<>();
+    private final ComboBox<U> myComboBox = new ComboBox<>();
     private final Class<U> myEnumClass;
 
     protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
@@ -738,9 +709,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
    */
   private static class DensityComboBoxModel extends AbstractListModel<Density> implements ComboBoxModel<Density> {
     private final List<Density> myList;
-    private Density mySelected = null;
+    private Density mySelected;
 
-    public DensityComboBoxModel() {
+    private DensityComboBoxModel() {
       myList = new ArrayList<>();
       for (Density density : Density.values()) {
         if (density.isRecommended()) {
@@ -1146,7 +1117,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     JComponent getComponent() {
       GridBagConstraints gridBagConstraints;
       JPanel pane = new JPanel(new GridBagLayout());
-      pane.setBorder(JBUI.Borders.empty(0, 20, 0, 0)); // pad 20 pixels on the left hand side to space out the two views
+      pane.setBorder(JBUI.Borders.emptyLeft(20)); // pad 20 pixels on the left hand side to space out the two views
 
       myShowAllRegions = new JBCheckBox("Show All Regions", false);
       myWarningsLabel = new JBLabel("BCP 47 tags (3-letter languages or regions) will only match on API 21");
@@ -1156,16 +1127,10 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       JBLabel languageTip = new JBLabel("Tip: Type in list to filter");
       JBLabel regionLabel = new JBLabel("Specific Region Only:");
 
-      SortedListModel<String> languageModel = new SortedListModel<>(new Comparator<String>() {
-        @Override
-        public int compare(String s1, String s2) {
-          // Special language comparator: We want to prefer 2-letter language codes.
-          int delta = s1.length() - s2.length();
-          if (delta != 0) {
-            return delta;
-          }
-          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-        }
+      SortedListModel<String> languageModel = new SortedListModel<>((s1, s2) -> {
+        // Special language comparator: We want to prefer 2-letter language codes.
+        int delta = s1.length() - s2.length();
+        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
       });
       languageModel.addAll(LocaleManager.getLanguageCodes(true));
       myLanguageList.setModel(languageModel);
@@ -1183,7 +1148,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       // work on models that can change after creation.
       JComponent regionPane = new JBScrollPane(myRegionList);
 
-      Insets insets = new Insets(0, 20, 0, 0);
+      Insets insets = JBUI.insetsLeft(20);
       gridBagConstraints = new GridBagConstraints();
       gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
       pane.add(languageLabel, gridBagConstraints);
@@ -1239,27 +1204,23 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     /** Populate the region list based on an optional language selection */
     private void updateRegionList(@Nullable String languageCode) {
       final Ref<String> preferred = new Ref<>(null);
-      SortedListModel<String> regionModel = new SortedListModel<>(new Comparator<String>() {
-        @Override
-        public int compare(String s1, String s2) {
-          // Sort "Any Region" to the top
-          if (s1.equals(FAKE_VALUE)) {
-            return -1;
-          } else if (s2.equals(FAKE_VALUE)) {
-            return 1;
-          }
-          if (s1.equals(preferred.get())) {
-            return -1;
-          } else if (s2.equals(preferred.get())) {
-            return 1;
-          }
-          // Special language comparator: We want to prefer 2-letter language codes.
-          int delta = s1.length() - s2.length();
-          if (delta != 0) {
-            return delta;
-          }
-          return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+      SortedListModel<String> regionModel = new SortedListModel<>((s1, s2) -> {
+        // Sort "Any Region" to the top
+        if (s1.equals(FAKE_VALUE)) {
+          return -1;
         }
+        if (s2.equals(FAKE_VALUE)) {
+          return 1;
+        }
+        if (s1.equals(preferred.get())) {
+          return -1;
+        }
+        if (s2.equals(preferred.get())) {
+          return 1;
+        }
+        // Special language comparator: We want to prefer 2-letter language codes.
+        int delta = s1.length() - s2.length();
+        return delta == 0 ? String.CASE_INSENSITIVE_ORDER.compare(s1, s2) : delta;
       });
       regionModel.add(FAKE_VALUE);
       if (!myShowAllRegions.isSelected() && languageCode != null) {
@@ -1284,8 +1245,8 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       if (qualifier.isValid() && !qualifier.hasFakeValue()) {
         String language = qualifier.getLanguage();
         String region = qualifier.getRegion();
-        ListModel languageModel = myLanguageList.getModel();
-        ListModel regionModel = myRegionList.getModel();
+        ListModel<String> languageModel = myLanguageList.getModel();
+        ListModel<String> regionModel = myRegionList.getModel();
 
         if (language != null) {
           for (int i = 0, n = languageModel.getSize(); i < n; i++) {
@@ -1340,7 +1301,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
 
   private abstract class MySizeEditorBase<T extends ResourceQualifier> extends MyQualifierEditor<T> {
     private final JTextField myTextField = new JTextField(3);
-    private String myLabelText;
+    private final String myLabelText;
 
     protected MySizeEditorBase(String labelText) {
       myLabelText = labelText;

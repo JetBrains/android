@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.npw.benchmark
 
-import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor.MOBILE
+import com.android.tools.adtui.device.FormFactor.MOBILE
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.android.tools.idea.npw.verticalGap
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 
 class ConfigureBenchmarkModuleStep(
@@ -30,31 +31,35 @@ class ConfigureBenchmarkModuleStep(
 ) : ConfigureModuleStep<NewBenchmarkModuleModel>(
   model, MOBILE, minSdkLevel, getSuggestedProjectPackage(), title
 ) {
-  private val panel: DialogPanel = panel {
+  override fun createMainPanel(): DialogPanel = panel {
     row {
-      cell {
-        labelFor("Module name:", moduleName, message("android.wizard.module.help.name"))
+      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
+      moduleName(pushX)
+    }
+
+    row {
+      labelFor("Package name", packageName)
+      packageName(pushX)
+    }
+
+    row {
+      labelFor("Language", languageCombo)
+      languageCombo(growX)
+    }
+
+    row {
+      labelFor("Minimum SDK", apiLevelCombo)
+      apiLevelCombo(growX)
+    }
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      verticalGap()
+
+      row {
+        gradleKtsCheck()
       }
-      moduleName()
     }
-
-    row {
-      labelFor("Package name:", packageName)
-      packageName()
-    }
-
-    row {
-      labelFor("Language:", languageCombo)
-      languageCombo()
-    }
-
-    row {
-      labelFor("Minimum SDK:", apiLevelCombo)
-      apiLevelCombo()
-    }
-  }
-
-  override val validatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
+  }.withBorder(empty(6))
 
   override fun getPreferredFocusComponent() = moduleName
 }

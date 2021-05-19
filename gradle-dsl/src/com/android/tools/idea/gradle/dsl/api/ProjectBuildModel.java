@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
+import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -132,14 +133,25 @@ public interface ProjectBuildModel {
   void reparse();
 
   /**
-   * This method may miss files that should be included in the build if we can't correctly parse the Gradle settings file,
-   * this method will parse any files that have not yet been parsed.
-   * <p>
-   * This method does NOT include files from composite builds, for those another {@link ProjectBuildModel} should be obtained
+   * Parses (if necessary) or re-uses existing models for all the modules in the build that can be parsed from the Gradle settings file.
+   * Includes a model for buildSrc, but does not include files from composite builds: for those the user should obtain a distinct
+   * {@link ProjectBuildModel}.
    *
    * @return a list of all build models that can be created from Gradle build files, this does not include Gradle settings or
    * properties files.
    */
   @NotNull
   List<GradleBuildModel> getAllIncludedBuildModels();
+
+  /**
+   * Parses (if necessary) or re-uses existing models for all the modules in the build that can be parsed from the Gradle settings file.
+   * Includes a model for buildSrc, but does not include files from composite builds: for those the user should obtain a distinct
+   * {@link ProjectBuildModel}.
+   *
+   * @param func A callback function of two Integer arguments: the approximate number of files processed so far, and the approximate total
+   *            to process (or null if not known).
+   * @return a list of all build models that can be created from Gradle build files.
+   */
+  @NotNull
+  List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func);
 }

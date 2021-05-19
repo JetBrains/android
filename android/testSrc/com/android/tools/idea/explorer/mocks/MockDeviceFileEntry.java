@@ -67,6 +67,15 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   }
 
   @NotNull
+  public MockDeviceFileEntry addDirLink(@NotNull String name, @NotNull String linkTarget) throws AdbShellCommandException {
+    assert myIsDirectory;
+    throwIfEntryExists(name);
+    MockDeviceFileEntry entry = new MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget);
+    entry.setSymbolicLinkToDirectory(true);
+    return entry;
+  }
+
+  @NotNull
   public MockDeviceFileEntry addFileLink(@NotNull String name, @NotNull String linkTarget) throws AdbShellCommandException {
     assert myIsDirectory;
     throwIfEntryExists(name);

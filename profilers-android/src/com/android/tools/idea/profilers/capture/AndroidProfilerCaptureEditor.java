@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidProfilerCaptureEditor implements FileEditor {
 
   /**
-   * Dummy empty panel as a not-null component is required by the editor. Shouldn't be visible, as the editor gets closed as we open
+   * Sample empty panel as a not-null component is required by the editor. Shouldn't be visible, as the editor gets closed as we open
    * the file as a capture in Android Profiler.
    */
   private final JPanel myPanel;
@@ -111,7 +111,7 @@ public class AndroidProfilerCaptureEditor implements FileEditor {
   public void selectNotify() {
     if (FileEditorManager.getInstance(myProject).isFileOpen(myFile)) {
       ApplicationManager.getApplication().invokeLater(() -> {
-        // Captures should be open in the Android Profiler window, so make sure to close the dummy panel when selecting this editor.
+        // Captures should be open in the Android Profiler window, so make sure to close the panel when selecting this editor.
         FileEditorManager.getInstance(myProject).closeFile(myFile);
       });
     }

@@ -87,6 +87,12 @@ interface TableView {
    */
   fun setColumnSortIndicator(orderBy: OrderBy)
 
+  /** If [state] is false, it prevents the live updates button from ever becoming enabled **/
+  fun setLiveUpdatesButtonState(state: Boolean)
+
+  /** If [state] is false, it prevents the refresh button from ever becoming enabled **/
+  fun setRefreshButtonState(state: Boolean)
+
   interface Listener {
     fun loadPreviousRowsInvoked()
     fun loadNextRowsInvoked()
@@ -99,7 +105,7 @@ interface TableView {
     /**
      * Invoked when the user changes the number of rows to display per page.
      */
-    fun rowCountChanged(rowCount: Int)
+    fun rowCountChanged(rowCount: String)
 
     /**
      * Invoked when the user wants to order the data by a specific column
@@ -117,29 +123,29 @@ interface TableView {
  * Class used to indicate how the table is sorted
  */
 sealed class OrderBy {
-  data class Asc(val column: ViewColumn) : OrderBy()
-  data class Desc(val column: ViewColumn) : OrderBy()
+  data class Asc(val columnName: String) : OrderBy()
+  data class Desc(val columnName: String) : OrderBy()
   object NotOrdered : OrderBy()
 
   /**
    * Returns the next state cycling between not sorted, desc and asc.
    * If the column changes the sorting starts from desc on the new column.
    */
-  fun nextState(newColumn: ViewColumn): OrderBy {
+  fun nextState(newColumnName: String): OrderBy {
     val column = when (this) {
-      is Asc -> column
-      is Desc -> column
+      is Asc -> columnName
+      is Desc -> columnName
       NotOrdered -> null
     }
 
     // start from desc if sorting on new column
-    if (column != newColumn) {
-      return Desc(newColumn)
+    if (column != newColumnName) {
+      return Desc(newColumnName)
     }
 
     return when(this) {
-      is NotOrdered -> Desc(newColumn)
-      is Desc -> Asc(newColumn)
+      is NotOrdered -> Desc(newColumnName)
+      is Desc -> Asc(newColumnName)
       is Asc -> NotOrdered
     }
   }

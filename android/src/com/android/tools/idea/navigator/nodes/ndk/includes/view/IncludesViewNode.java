@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeFile;
-import com.android.builder.model.NativeSettings;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static java.util.Collections.emptyList;
+
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeFile;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.navigator.nodes.ndk.includes.model.*;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.ShadowingIncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResolver;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
@@ -40,14 +47,14 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static java.util.Collections.emptyList;
 
 /**
  * <pre>
@@ -65,40 +72,35 @@ import static java.util.Collections.emptyList;
 public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements FolderGroupNode {
 
   @NotNull
-  final private VirtualFile myBuildFileFolder;
-
-  @NotNull
   private final NativeIncludes myDependencyInfo;
 
   public IncludesViewNode(
-    @NotNull VirtualFile buildFileFolder,
     @Nullable Project project,
     @NotNull NativeIncludes dependencyInfo,
     @NotNull ViewSettings settings) {
     super(project, dependencyInfo, settings);
     myDependencyInfo = dependencyInfo;
-    myBuildFileFolder = buildFileFolder;
   }
 
   @NotNull
-  private static IncludeSet distinctIncludes(@NotNull NativeIncludes nativeIncludes) {
+  private static List<File> distinctIncludes(@NotNull NativeIncludes nativeIncludes) {
     IncludeSet set = new IncludeSet();
 
     // Then include folders from the settings
     Set<String> settingsSeen = new HashSet<>();
-    for (NativeArtifact artifact : nativeIncludes.myArtifacts) {
-      for (NativeFile sourceFile : artifact.getSourceFiles()) {
+    for (IdeNativeArtifact artifact : nativeIncludes.myArtifacts) {
+      for (IdeNativeFile sourceFile : artifact.getSourceFiles()) {
         File workingDirectory = sourceFile.getWorkingDirectory();
         String settingsName = sourceFile.getSettingsName();
         if (settingsSeen.contains(settingsName)) {
           continue;
         }
         settingsSeen.add(settingsName);
-        NativeSettings settings = nativeIncludes.findExpectedSettings(settingsName);
+        IdeNativeSettings settings = nativeIncludes.findExpectedSettings(settingsName);
         set.addIncludesFromCompilerFlags(settings.getCompilerFlags(), workingDirectory);
       }
     }
-    return set;
+    return set.getIncludesInOrder();
   }
 
   /**
@@ -108,9 +110,9 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
     if (!LexicalIncludePaths.hasHeaderExtension(file.getName())) {
       return false;
     }
-    IncludeSet includeSet = distinctIncludes(includes);
+    Collection<File> includeSet = distinctIncludes(includes);
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (File include : includeSet.getIncludesInOrder()) {
+    for (File include : includeSet) {
       VirtualFile ancestor = fileSystem.findFileByIoFile(include);
       if (ancestor != null && VfsUtilCore.isAncestor(ancestor, file, false)) {
         return true;
@@ -128,18 +130,18 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @NotNull
   @Override
   public Collection<? extends AbstractTreeNode<?>> getChildren() {
-    Long startTime = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();
     try {
       return getChildrenImpl();
     }
     finally {
       UsageTracker.log(UsageTrackerUtils.withProjectId(
-                         AndroidStudioEvent.newBuilder()
-                          .setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
-                          .setCppHeadersViewEvent(CppHeadersViewEvent.newBuilder()
-                            .setEventDurationMs(System.currentTimeMillis() - startTime)
-                            .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)),
-                         myProject));
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.CPP_HEADERS_VIEW_EVENT)
+          .setCppHeadersViewEvent(CppHeadersViewEvent.newBuilder()
+                                    .setEventDurationMs(System.currentTimeMillis() - startTime)
+                                    .setType(CppHeadersViewEvent.CppHeadersViewEventType.OPEN_TOP_INCLUDES_NODE)),
+        myProject));
     }
   }
 
@@ -150,9 +152,9 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
     if (project == null || GradleSyncState.getInstance(project).isSyncInProgress()) {
       return result;
     }
-    IncludeSet includeSet = distinctIncludes(myDependencyInfo);
+    Collection<File> includeSet = distinctIncludes(myDependencyInfo);
     List<SimpleIncludeValue> simpleIncludes = new ArrayList<>();
-    for (File includeFolder : includeSet.getIncludesInOrder()) {
+    for (File includeFolder : includeSet) {
       simpleIncludes.add(IncludeResolver
                            .getGlobalResolver(IdeSdks.getInstance().getAndroidNdkPath())
                            .resolve(includeFolder));
@@ -168,13 +170,12 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
                                                                           project, getSettings()));
       }
       else if (include instanceof SimpleIncludeValue) {
-        result.add(new SimpleIncludeViewNode(myBuildFileFolder, (SimpleIncludeValue)include, includeSet, true, getProject(), getSettings()));
+        result.add(new SimpleIncludeViewNode((SimpleIncludeValue)include, includeSet, true, getProject(), getSettings()));
       }
       else if (include instanceof ClassifiedIncludeValue) {
         // Add folders to the list of folders to exclude from the simple path group
         ClassifiedIncludeValue classifiedIncludeValue = (ClassifiedIncludeValue)include;
-        result.add(IncludeViewNode.createIncludeView(
-          myBuildFileFolder, classifiedIncludeValue, includeSet, true, getProject(), getSettings()));
+        result.add(IncludeViewNode.createIncludeView(classifiedIncludeValue, includeSet, true, getProject(), getSettings()));
       }
     }
     return result;
@@ -200,22 +201,5 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   @Override
   public String toString() {
     return "includes";
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (object == null) {
-      return false;
-    }
-    if (!(object instanceof IncludesViewNode)) {
-      return false;
-    }
-    IncludesViewNode that = (IncludesViewNode) object;
-    return Objects.equals(myBuildFileFolder, that.myBuildFileFolder);
-  }
-
-  @Override
-  public int hashCode() {
-    return myBuildFileFolder.hashCode();
   }
 }

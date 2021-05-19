@@ -15,8 +15,9 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
+
 import com.android.SdkConstants;
-import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.google.common.base.CaseFormat;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -164,6 +165,7 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   private List<String> getCompletionElements(String fileName) throws IOException {
     VirtualFile file = copyFileToProject(fileName);
+    dispatchAllInvocationEvents();
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     return myFixture.getLookupElementStrings();
@@ -334,9 +336,9 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     List<IntentionAction> actions = highlightAndFindQuickFixes(klass);
     assertEquals(1, actions.size());
     IntentionAction action = actions.get(0);
-    assertInstanceOf(action, AndroidMissingOnClickHandlerInspection.MyQuickFix.class);
+    assertInstanceOf(action, klass);
     myFixture.launchAction(action);
-    myFixture.checkResultByFile(myTestFolder + "/onClickIntention.xml");
+    myFixture.checkResultByFile(myTestFolder + "/" + expectedFile);
   }
 }
 

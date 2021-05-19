@@ -44,7 +44,7 @@ class ComboBoxPropertyEditorModel(
 ) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   /** Object for synchronizing access to [newValues] */
   private val syncNewValues = Object()
-  private val loading = listOf(EnumValue.LOADING)
+  private val loading = mutableListOf(EnumValue.LOADING)
   private var values: List<EnumValue> = loading
   @GuardedBy("syncNewValues")
   private var newValues: List<EnumValue> = loading
@@ -73,11 +73,17 @@ class ComboBoxPropertyEditorModel(
     get() = super.property
     set(value) {
       super.property = value
-      // Without this the outline validations are wrong in the EditorBaseedTableCellRenderer
+      // Without this the outline validations are wrong in the EditorBasedTableCellRenderer
       updateValueFromProperty()
     }
 
   override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
+
+  init {
+    if (!editable) {
+      setInitialDropDownValue(value)
+    }
+  }
 
   private fun setPendingValue(newValue: String?) {
     pendingValueChange = true
@@ -91,7 +97,20 @@ class ComboBoxPropertyEditorModel(
 
   override fun updateValueFromProperty() {
     text = value
+    if (!editable) {
+      setInitialDropDownValue(value)
+    }
     resetPendingValue()
+  }
+
+  private fun setInitialDropDownValue(stringValue: String) {
+    loading.clear()
+    if (stringValue.isNotEmpty()) {
+      val newValue = enumSupport.createValue(stringValue)
+      selectedValue = newValue
+      loading.add(newValue)
+    }
+    loading.add(EnumValue.LOADING)
   }
 
   override fun focusLost() {
@@ -197,9 +216,13 @@ class ComboBoxPropertyEditorModel(
     return result
   }
 
-  fun popupMenuWillBecomeInvisible(ignoreChanges: Boolean) {
+  fun popupMenuWillBecomeInvisible() {
+    _popupVisible = false
+  }
+
+  fun selectEnumValue() {
     val newValue = selectedValue
-    if (!ignoreChanges && newValue != null) {
+    if (newValue != null) {
 
       // Be aware that we may loose focus on the next line,
       // if the EnumValue is an action that displays a dialog.
@@ -210,7 +233,6 @@ class ComboBoxPropertyEditorModel(
       }
       fireValueChanged()
     }
-    _popupVisible = false
   }
 
   override fun getSize(): Int {

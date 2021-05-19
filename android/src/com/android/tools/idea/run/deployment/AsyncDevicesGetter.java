@@ -15,37 +15,39 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
+import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
-import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class AsyncDevicesGetter {
+final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
 
@@ -69,10 +71,14 @@ final class AsyncDevicesGetter {
 
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
-    this(project,
-         () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(),
-         new KeyToConnectionTimeMap(),
-         new NameGetter(project));
+    myProject = project;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get;
+
+    myVirtualDevicesWorker = new Worker<>();
+    myConnectedDevicesWorker = new Worker<>();
+
+    myMap = new KeyToConnectionTimeMap();
+    myGetName = new NameGetter(this);
   }
 
   @NonInjectable
@@ -89,6 +95,10 @@ final class AsyncDevicesGetter {
 
     myMap = map;
     myGetName = getName;
+  }
+
+  @Override
+  public void dispose() {
   }
 
   @NotNull
@@ -117,14 +127,17 @@ final class AsyncDevicesGetter {
       return Optional.empty();
     }
 
-    boolean snapshotsEnabled = mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean();
-    FileSystem fileSystem = FileSystems.getDefault();
-    AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(snapshotsEnabled, fileSystem, myChecker);
-
-    AsyncSupplier<List<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(bridge, snapshotsEnabled, myChecker);
+    AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
+      .setExecutorService(AppExecutorUtil.getAppExecutorService())
+      .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
+      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled)
+      .setFileSystem(FileSystems.getDefault())
+      .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
+      .setChecker(myChecker)
+      .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(connectedDevicesTask);
+    Optional<List<ConnectedDevice>> connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(bridge, myChecker));
 
     if (!virtualDevices.isPresent() || !connectedDevices.isPresent()) {
       return Optional.empty();
@@ -165,11 +178,16 @@ final class AsyncDevicesGetter {
   @NotNull
   private Stream<VirtualDevice> connectedVirtualDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices,
                                                              @NotNull Collection<VirtualDevice> virtualDevices) {
-    Map<Key, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
-
     return connectedDevices.stream()
       .filter(ConnectedDevice::isVirtualDevice)
-      .map(device -> VirtualDevice.newConnectedDevice(device, myMap, keyToVirtualDeviceMap.get(device.getKey())));
+      .map(device -> VirtualDevice.newConnectedDevice(device, myMap, findFirst(virtualDevices, device.getKey()).orElse(null)));
+  }
+
+  private static @NotNull Optional<@NotNull VirtualDevice> findFirst(@NotNull Collection<@NotNull VirtualDevice> devices,
+                                                                     @NotNull Key key) {
+    return devices.stream()
+      .filter(device -> device.matches(key))
+      .findFirst();
   }
 
   @NotNull
@@ -187,7 +205,7 @@ final class AsyncDevicesGetter {
       .map(ConnectedDevice::getKey)
       .collect(Collectors.toSet());
 
-    return virtualDevices.stream().filter(device -> !connectedVirtualDeviceKeys.contains(device.getKey()));
+    return virtualDevices.stream().filter(device -> !device.hasKeyContainedBy(connectedVirtualDeviceKeys));
   }
 
   @VisibleForTesting
@@ -218,9 +236,7 @@ final class AsyncDevicesGetter {
       return;
     }
 
-    Object platform = AndroidPlatform.getInstance(facet.getModule());
-
-    if (platform == null) {
+    if (DumbService.isDumb(myProject)) {
       myChecker = null;
       return;
     }

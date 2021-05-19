@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.BuildType
+import com.android.ide.common.gradle.model.IdeBaseConfig
+import com.android.ide.common.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.booleanValues
 import com.android.tools.idea.gradle.structure.model.helpers.buildTypeMatchingFallbackValues
@@ -53,28 +55,27 @@ import java.io.File
 import javax.swing.Icon
 
 private const val DEBUG_BUILD_TYPE_NAME = "debug"
+fun IdeBaseConfig.kotlinUnitWorkAround() : Unit? = null
 
 open class PsBuildType(
   final override val parent: PsAndroidModule,
   private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by BuildTypeDescriptors
-  var resolvedModel: BuildType? = null
+  var resolvedModel: IdeBuildType? = null
   private var parsedModel: BuildTypeModel? = null
 
-  fun init(resolvedModel: BuildType?, parsedModel: BuildTypeModel?) {
+  fun init(resolvedModel: IdeBuildType?, parsedModel: BuildTypeModel?) {
     this.resolvedModel = resolvedModel
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
   override val path: PsBuildTypeNavigationPath get() = PsBuildTypeNavigationPath(parent.path.buildTypesPath, name)
 
   var applicationIdSuffix by BuildTypeDescriptors.applicationIdSuffix
-  var embedMicroApp by BuildTypeDescriptors.embedMicroApp
   var jniDebuggable by BuildTypeDescriptors.jniDebuggable
   var minifyEnabled by BuildTypeDescriptors.minifyEnabled
-  var pseudoLocalesEnabled by BuildTypeDescriptors.pseudoLocalesEnabled
   var renderscriptDebuggable by BuildTypeDescriptors.renderscriptDebuggable
   var renderscriptOptimLevel by BuildTypeDescriptors.renderscriptOptimLevel
   var testCoverageEnabled by BuildTypeDescriptors.testCoverageEnabled
@@ -104,8 +105,8 @@ open class PsBuildType(
     renamed(oldName, newName)
   }
 
-  object BuildTypeDescriptors : ModelDescriptor<PsBuildType, BuildType, BuildTypeModel> {
-    override fun getResolved(model: PsBuildType): BuildType? = model.resolvedModel
+  object BuildTypeDescriptors : ModelDescriptor<PsBuildType, IdeBuildType, BuildTypeModel> {
+    override fun getResolved(model: PsBuildType): IdeBuildType? = model.resolvedModel
 
     override fun getParsed(model: PsBuildType): BuildTypeModel? = model.parsedModel
 
@@ -136,19 +137,6 @@ open class PsBuildType(
       defaultValueGetter = { it.name == DEBUG_BUILD_TYPE_NAME },
       resolvedValueGetter = { isDebuggable },
       parsedPropertyGetter = { debuggable() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
-
-    val embedMicroApp: SimpleProperty<PsBuildType, Boolean> = property(
-      "Embed Micro App",
-      preferredVariableName = { variableName("$name-embed-micro-app") },
-      // See: com.android.build.gradle.internal.dsl.BuildType#init
-      defaultValueGetter = { it.name != DEBUG_BUILD_TYPE_NAME },
-      resolvedValueGetter = { isEmbedMicroApp },
-      parsedPropertyGetter = { embedMicroApp() },
       getter = { asBoolean() },
       setter = { setValue(it) },
       parser = ::parseBoolean,
@@ -190,18 +178,6 @@ open class PsBuildType(
       knownValuesGetter = ::booleanValues
     )
 
-    val pseudoLocalesEnabled: SimpleProperty<PsBuildType, Boolean> = property(
-      "Pseudo Locales Enabled",
-      preferredVariableName = { variableName("$name-pseudo-locales-enabled") },
-      defaultValueGetter = { false },
-      resolvedValueGetter = { isPseudoLocalesEnabled },
-      parsedPropertyGetter = { pseudoLocalesEnabled() },
-      getter = { asBoolean() },
-      setter = { setValue(it) },
-      parser = ::parseBoolean,
-      knownValuesGetter = ::booleanValues
-    )
-
     val renderscriptDebuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Renderscript Debuggable",
       preferredVariableName = { variableName("$name-renderscript-debuggable") },
@@ -227,9 +203,9 @@ open class PsBuildType(
 
     val signingConfig: SimpleProperty<PsBuildType, Unit> = property(
       "Signing Config",
-      resolvedValueGetter = { null },
+      resolvedValueGetter = IdeBaseConfig::kotlinUnitWorkAround,
       parsedPropertyGetter = { signingConfig() },
-      getter = { asUnit() },
+      getter = ResolvedPropertyModel::asUnit,
       setter = {},
       parser = ::parseReferenceOnly,
       formatter = ::formatUnit,
@@ -240,7 +216,7 @@ open class PsBuildType(
       "Test Coverage Enabled",
       preferredVariableName = { variableName("$name-test-coverage-enabled") },
       defaultValueGetter = { false },
-      resolvedValueGetter = { isTestCoverageEnabled },
+      resolvedValueGetter = { null },
       parsedPropertyGetter = { testCoverageEnabled() },
       getter = { asBoolean() },
       setter = { setValue(it) },
@@ -312,7 +288,7 @@ open class PsBuildType(
     )
 
     override val properties: Collection<ModelProperty<PsBuildType, *, *, *>> =
-      listOf(applicationIdSuffix, debuggable, embedMicroApp, jniDebuggable, minifyEnabled, multiDexEnabled, pseudoLocalesEnabled,
+      listOf(applicationIdSuffix, debuggable, jniDebuggable, minifyEnabled, multiDexEnabled,
              renderscriptDebuggable, renderscriptOptimLevel, signingConfig, testCoverageEnabled, versionNameSuffix, zipAlignEnabled,
              matchingFallbacks, consumerProGuardFiles, proGuardFiles, manifestPlaceholders)
   }

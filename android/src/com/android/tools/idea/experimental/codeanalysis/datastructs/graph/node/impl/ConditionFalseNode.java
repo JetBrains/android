@@ -17,7 +17,7 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.
 
 import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.BlockGraph;
 
-public class ConditionFalseNode extends DummyNodeImpl {
+public class ConditionFalseNode extends PlaceholderNodeImpl {
   public ConditionFalseNode(BlockGraph parentGraph) {
     super(parentGraph);
   }

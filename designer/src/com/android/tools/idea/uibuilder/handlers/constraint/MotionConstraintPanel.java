@@ -19,7 +19,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import java.util.HashMap;
 import java.util.List;
 import javax.swing.Timer;
@@ -58,7 +59,7 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
     private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
       if (myComponent != null) {
-        TransactionGuard.submitTransaction(myComponent.getModel(), () -> commit());
+        ApplicationManager.getApplication().invokeLater(() -> commit(), ignore -> Disposer.isDisposed(myComponent.getModel()));
       }
     });
 

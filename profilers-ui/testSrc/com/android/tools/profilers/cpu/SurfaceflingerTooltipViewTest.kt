@@ -17,7 +17,8 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerEvent
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.util.concurrent.TimeUnit

@@ -18,6 +18,7 @@ import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.ID_PREFIX
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.destinationType
 import com.android.tools.idea.naveditor.model.parentSequence
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
-import com.intellij.psi.PsiClass
 import com.intellij.psi.util.ClassUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_POP_UP_TO
@@ -57,14 +57,14 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
       }
       ANDROID_URI -> {
         when (property.name) {
-          ATTR_NAME -> getClasses(component)
+          ATTR_NAME -> return ClassEnumSupport(emptyList.plus(getClasses(component)))
           else -> return null
         }
       }
       else -> return null
     }
 
-    return EnumSupport.simple(emptyList.plus(values))
+    return DestinationEnumSupport(emptyList.plus(values))
   }
 
   companion object {
@@ -90,13 +90,13 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     private fun getClasses(component: NlComponent): List<EnumValue> {
       return getClassesForTag(component.model.module, component.tagName)
         .filterKeys { it.qualifiedName != null }
-        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key), it.value, it.key.isInProject()) }
+        .map { ClassEnumValue(it.key.qualifiedName!!, displayString(it.key.qualifiedName!!), it.value, it.key.isInProject()) }
         .sortedWith(compareBy({ !it.isInProject }, { it.display }))
         .toList()
     }
 
-    private fun displayString(psiClass: PsiClass): String {
-      return "${ClassUtil.extractClassName(psiClass.qualifiedName!!)} (${ClassUtil.extractPackageName(psiClass.qualifiedName)})"
+    private fun displayString(qualifiedName: String): String {
+      return "${ClassUtil.extractClassName(qualifiedName)} (${ClassUtil.extractPackageName(qualifiedName)})"
     }
 
     private fun getDestinationEnumValues(components: List<NlComponent>): List<EnumValue> {
@@ -106,6 +106,18 @@ class NavEnumSupportProvider : EnumSupportProvider<NelePropertyItem> {
     private fun getDestinationEnumValue(component: NlComponent): EnumValue? {
       val id = component.id ?: return null
       return EnumValue.item(ID_PREFIX + id, id)
+    }
+  }
+
+  private class DestinationEnumSupport(override val values: List<EnumValue>) : EnumSupport {
+    override fun createValue(stringValue: String): EnumValue {
+      return EnumValue.item(stringValue, stripPrefixFromId(stringValue))
+    }
+  }
+
+  private class ClassEnumSupport(override val values: List<EnumValue>) : EnumSupport {
+    override fun createValue(stringValue: String): EnumValue {
+      return EnumValue.item(stringValue, displayString(stringValue))
     }
   }
 }

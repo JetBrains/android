@@ -45,7 +45,7 @@ public class InstrumentationTest {
     .outerRule(avdRule)
     .around(guiTest);
 
-  private static final String APP_NAME = "app";
+  private static final String APP_NAME = "KotlinInstrumentation.app";
   private static final String INSTRUMENTED_TEST_CONF_NAME = "kotlin_instrumented_test";
   private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(

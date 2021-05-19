@@ -16,10 +16,11 @@
 package com.android.tools.idea.adb.wireless
 
 import com.android.flags.junit.RestoreFlagRule
+import com.android.tools.adtui.swing.createDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.ui.DialogWrapperFactory
-import com.android.tools.idea.ui.FakeDialogWrapper
-import com.android.tools.idea.ui.FakeDialogWrapperRule
+import com.android.tools.idea.ui.SimpleDialog
 import com.google.common.truth.Truth
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.testFramework.TestActionEvent
@@ -31,9 +32,11 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
   @get:Rule
   val restoreFlagRule = RestoreFlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
 
-  /** Use [DialogWrapperFactory] that is compatible with unit tests */
-  @get:Rule
-  val testingDialogWrapperRule = FakeDialogWrapperRule()
+  override fun setUp() {
+    super.setUp()
+    setPortableUiFont()
+    enableHeadlessDialogs(testRootDisposable)
+  }
 
   @Test
   fun actionShouldBeEnabledIfFlagIsSet() {
@@ -73,15 +76,15 @@ class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
     val event = TestActionEvent(action)
 
     // Act
-    action.update(event)
-    action.actionPerformed(event)
-
-    // Assert
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance).isNotNull()
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.title).isEqualTo("Pair devices for wireless debugging")
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.okButtonText).isEqualTo("Close")
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.initCalled).isTrue()
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.showCalled).isTrue()
-    Truth.assertThat(FakeDialogWrapper.ourLastInstance!!.panel).isNotNull()
+    createDialogAndInteractWithIt({
+                                    action.update(event)
+                                    action.actionPerformed(event)
+                                  }) {
+      // Assert
+      val dialog = SimpleDialog.fromDialogWrapper(it) ?: throw AssertionError("Dialog Wrapper is not set")
+      Truth.assertThat(dialog.title).isEqualTo("Pair devices over Wi-Fi")
+      Truth.assertThat(dialog.cancelButtonText).isEqualTo("Close")
+      Truth.assertThat(dialog.rootPane).isNotNull()
+    }
   }
 }

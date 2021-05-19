@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.finder
 
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
-import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectComponent
+import com.android.tools.idea.nav.safeargs.project.SafeArgsEnabledFacetsProjectService
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -37,7 +37,7 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   private fun findAll(project: Project): List<AndroidLightClassBase> {
     val provider = {
-      val result = project.getComponent(SafeArgsEnabledFacetsProjectComponent::class.java)
+      val result = SafeArgsEnabledFacetsProjectService.getInstance(project)
         .modulesUsingSafeArgs
         .asSequence()
         .flatMap { facet -> findAll(facet).asSequence() }
@@ -56,15 +56,19 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
     return findAll(project)
-      .firstOrNull { argsClass ->
-        argsClass.qualifiedName == qualifiedName
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
+      .firstOrNull { lightClass ->
+        lightClass.qualifiedName == qualifiedName
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val psiClass = findClass(qualifiedName, scope) ?: return PsiClass.EMPTY_ARRAY
-    return arrayOf(psiClass)
+    return findAll(project)
+      .filter { lightClass ->
+        lightClass.qualifiedName == qualifiedName
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
+      }
+      .toTypedArray()
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
@@ -73,9 +77,9 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
     }
 
     return findAll(psiPackage.project)
-      .filter { argsClass ->
-        psiPackage.qualifiedName == argsClass.qualifiedName?.substringBeforeLast('.')
-        && PsiSearchScopeUtil.isInScope(scope, argsClass)
+      .filter { lightClass ->
+        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.')
+        && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
       .toTypedArray()
   }

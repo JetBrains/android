@@ -31,7 +31,7 @@ import java.util.List;
  * This class optimizes tree nodes building/expansion to prevent running out of memory on tree construction when there are many many nodes:
  *
  * 1. A node's children are not constructed until {@link #expandNode()} is called.
- * 2. A node's children are paged in on demand once the count surpasses {@link #NUM_CHILDREN_PER_PAGE}, a dummy paging node is added
+ * 2. A node's children are paged in on demand once the count surpasses {@link #NUM_CHILDREN_PER_PAGE}, a placeholder paging node is added
  * to the end which, when selected, would dynamically page in more sibling nodes.
  */
 public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends MemoryObjectTreeNode<T> {

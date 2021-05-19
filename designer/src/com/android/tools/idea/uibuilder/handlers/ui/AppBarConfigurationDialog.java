@@ -91,8 +91,8 @@ public final class AppBarConfigurationDialog extends JDialog {
   private static final String DEFAULT_BACKGROUND_IMAGE = "@android:drawable/sym_def_app_icon";
   private static final String DEFAULT_FAB_IMAGE = "@android:drawable/ic_input_add";
   private static final String PREVIEW_PLACEHOLDER_FILE = "preview.xml";
-  private static final String DUMMY_TEXT = "This text is present to test the Application Bar. ";
-  private static final int DUMMY_REPETITION = 200;
+  private static final String SAMPLE_TEXT = "This text is present to test the Application Bar. ";
+  private static final int SAMPLE_REPETITION = 200;
   private static final String PREVIEW_HEADER = "Preview:";
   private static final String RENDER_ERROR = "An error happened during rendering...";
   private static final String OVERLAP_TOP_FORMAT = "%1$s:behavior_overlapTop=\"%2$s\"";
@@ -354,8 +354,8 @@ public final class AppBarConfigurationDialog extends JDialog {
   }
 
   private PsiFile generateXml(boolean collapsed) {
-    StringBuilder text = new StringBuilder(DUMMY_REPETITION * DUMMY_TEXT.length());
-    text.append(DUMMY_TEXT.repeat(DUMMY_REPETITION));
+    StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
+    text.append(SAMPLE_TEXT.repeat(SAMPLE_REPETITION));
     Map<String, String> namespaces = getNameSpaces(null, collapsed);
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);

@@ -16,13 +16,14 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.testartifacts.instrumented.testsuite.view.OptInBannerViewKt.createConsoleViewWithOptInBanner;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
-import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.TestOptions;
+import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
+import com.android.ide.common.gradle.model.IdeTestOptions;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -31,6 +32,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
+import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
@@ -38,9 +40,10 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
 import com.android.tools.idea.run.editor.TestRunParameters;
-import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -55,6 +58,7 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.testframework.TestRunnerBundle;
@@ -153,7 +157,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     // Gradle only supports testing against a single build type (which could be anything, but is "debug" build type by default)
     // Currently, the only information the model exports that we can use to detect whether the current build type
     // is testable is by looking at the test task name and checking whether it is null.
-    AndroidArtifact testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
+    IdeAndroidArtifact testArtifact = androidModel.getSelectedVariant().getAndroidTestArtifact();
     String testTask = testArtifact != null ? testArtifact.getAssembleTaskName() : null;
     return new Pair<>(testTask != null, AndroidBundle.message("android.cannot.run.library.project.in.this.buildtype"));
   }
@@ -313,14 +317,17 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return (parent, handler, executor) -> {
       final ConsoleView consoleView;
-      if (runOnMultipleDevices
+      if ((runOnMultipleDevices || AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX())
           && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()
-          && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
-        consoleView = new AndroidTestSuiteView(parent, getProject());
+          && (executor.getId().equals(DefaultRunExecutor.EXECUTOR_ID)
+              || executor.getId().equals(DefaultDebugExecutor.EXECUTOR_ID))) {
+        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(),
+                                               executor.getToolWindowId(), this);
         consoleView.attachToProcess(handler);
       } else {
         AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-        consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+        consoleView = createConsoleViewWithOptInBanner(
+          SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties));
         Disposer.register(parent, consoleView);
       }
       return consoleView;
@@ -334,12 +341,14 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull String contributorsAmStartOptions,
-                                                boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider) {
+  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull String contributorsAmStartOptions,
+                                                   boolean waitForDebugger,
+                                                   @NotNull LaunchStatus launchStatus,
+                                                   @NotNull ApkProvider apkProvider,
+                                                   @NotNull ConsolePrinter consolePrinter,
+                                                   @NotNull IDevice device) {
     String runner = INSTRUMENTATION_RUNNER_CLASS;
     if (isEmptyOrSpaces(runner)) {
       runner = getDefaultInstrumentationRunner(facet);
@@ -376,13 +385,19 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                                 testAppId,
                                                                 waitForDebugger,
                                                                 instrumentationOptions,
-                                                                testArtifact);
+                                                                testArtifact,
+                                                                launchStatus.getProcessHandler(),
+                                                                consolePrinter,
+                                                                device);
       case TEST_ALL_IN_PACKAGE:
         return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
                                                                  testAppId,
                                                                  waitForDebugger,
                                                                  instrumentationOptions,
                                                                  testArtifact,
+                                                                 launchStatus.getProcessHandler(),
+                                                                 consolePrinter,
+                                                                 device,
                                                                  PACKAGE_NAME);
 
       case TEST_CLASS:
@@ -391,6 +406,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           waitForDebugger,
                                                           instrumentationOptions,
                                                           testArtifact,
+                                                          launchStatus.getProcessHandler(),
+                                                          consolePrinter,
+                                                          device,
                                                           CLASS_NAME);
 
       case TEST_METHOD:
@@ -399,6 +417,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                            waitForDebugger,
                                                            instrumentationOptions,
                                                            testArtifact,
+                                                           launchStatus.getProcessHandler(),
+                                                           consolePrinter,
+                                                           device,
                                                            CLASS_NAME,
                                                            METHOD_NAME);
 
@@ -484,7 +505,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       .map(AndroidModuleModel::get)
       .map(AndroidModuleModel::getArtifactForAndroidTest)
       .map(IdeAndroidArtifact::getTestOptions)
-      .map(TestOptions::getAnimationsDisabled)
+      .map(IdeTestOptions::getAnimationsDisabled)
       .orElse(false);
     if (isAnimationDisabled) {
       builder.add("--no-window-animation");
@@ -616,12 +637,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
    *
    * @param facet Android facet to retrieve test execution option
    */
-  public TestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
+  public IdeTestOptions.Execution getTestExecution(@Nullable AndroidFacet facet) {
     return Optional.ofNullable(facet)
       .map(f -> AndroidModuleModel.get(f))
       .map(model -> model.getArtifactForAndroidTest())
       .map(testArtifact -> testArtifact.getTestOptions())
       .map(testOptions -> testOptions.getExecution())
-      .orElse(TestOptions.Execution.HOST);
+      .orElse(IdeTestOptions.Execution.HOST);
   }
 }

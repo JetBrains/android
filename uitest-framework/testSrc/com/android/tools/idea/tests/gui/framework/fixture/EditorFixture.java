@@ -629,25 +629,6 @@ public class EditorFixture {
     return open(relativePath).replaceText(text);
   }
 
-  @Nullable
-  public TextEditorFixture getVisibleTextEditor(@NotNull String relativePath) {
-    return GuiQuery.get(
-      () -> {
-        FileEditor[] editors = FileEditorManager.getInstance(myFrame.getProject()).getAllEditors();
-        for (FileEditor editor : editors) {
-          if (editor instanceof TextEditor && editor.getComponent().isVisible()) {
-            TextEditor textEditor = (TextEditor)editor;
-            Document document = textEditor.getEditor().getDocument();
-            PsiFile psiFile = PsiDocumentManager.getInstance(myFrame.getProject()).getPsiFile(document);
-            if (psiFile != null && psiFile.getName().endsWith(relativePath)) {
-              return new TextEditorFixture(robot, textEditor);
-            }
-          }
-        }
-        return null;
-      });
-  }
-
   @NotNull
   public EditorNotificationPanelFixture awaitNotification(@NotNull String text) {
     // Notification panels can be updated/re-added on Dumb to Smart mode transitions (See EditorNotificationsImpl)

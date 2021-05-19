@@ -23,7 +23,6 @@ import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -129,14 +128,13 @@ public class FlavorsExecutionTest {
   public void runBuildFlavors() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleFlavoredApplication");
 
-    String appModuleName = TestModuleUtil.findAppModule(ideFrameFixture.getProject()).getName();
     ideFrameFixture
       .getBuildVariantsWindow()
-      .selectVariantForModule(appModuleName, "flavor1Debug");
+      .selectVariantForModule("SimpleFlavoredApplication.app", "flavor1Debug");
 
     ideFrameFixture.runApp("app", "Google Nexus 5X");
 
-    ExecutionToolWindowFixture.ContentFixture flavor1WindowContent = ideFrameFixture.getRunToolWindow().findContent(appModuleName);
+    ExecutionToolWindowFixture.ContentFixture flavor1WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor1LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", FIRST_ACTIVITY_NAME);
     flavor1WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor1LaunchPattern, Pattern.DOTALL)), 120);
 
@@ -146,21 +144,12 @@ public class FlavorsExecutionTest {
       .selectProcess(PROCESS_NAME);
 
     BuildVariantsToolWindowFixture buildVariantsWindow = ideFrameFixture.getBuildVariantsWindow();
-    try {
-      buildVariantsWindow.selectVariantForModule(appModuleName, "flavor2Debug");
-    } catch (NullPointerException ignore) {
-      // TODO: http://b/130568400
-      // When the build variant is changed, the table is immediately emptied and rebuilt. This causes
-      // the BuildVariantsToolWindowFixture to fail during cell editing by throwing an NPE.
-      // This is not a critical error in a critical user journey test, so we ignore this error.
-      // Fixing this issue by rewriting BuildVariantsToolWindowFixture is a larger task that
-      // requires more free time than currently available.
-    }
+    buildVariantsWindow.selectVariantForModule("SimpleFlavoredApplication.app", "flavor2Debug");
     guiTest.waitForBackgroundTasks();
 
-    ideFrameFixture.runApp(appModuleName, "Google Nexus 5X");
+    ideFrameFixture.runApp("app", "Google Nexus 5X");
 
-    ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent(appModuleName);
+    ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
     ProcessRunningDialogFixture.find(ideFrameFixture).clickTerminate();
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);

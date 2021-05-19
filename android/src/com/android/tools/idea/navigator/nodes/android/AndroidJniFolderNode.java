@@ -15,41 +15,42 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.navigator.nodes.GroupNodes;
-import com.android.tools.idea.navigator.nodes.ndk.NdkSourceFolderNode;
-import com.google.common.collect.Iterables;
-import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectViewNode;
-import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.containedInIncludeFolders;
 import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNodeKt.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
+import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.GroupNodes;
+import com.google.common.collect.Iterables;
+import com.intellij.ide.projectView.PresentationData;
+import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiManager;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implements FolderGroupNode {
 
-  @NotNull
-  final private VirtualFile myBuildFileFolder;
+  @NotNull final private VirtualFile myBuildFileFolder;
 
   final private int myCachedHashCode;
 
@@ -66,9 +67,9 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     assert myProject != null;
     Collection<AbstractTreeNode<?>> nativeSourceNodes = getNativeSourceNodes(myProject, getNdkModel(), getSettings());
     if (nativeSourceNodes.size() == 1) {
-      AbstractTreeNode sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
-      if (sourceNode instanceof NdkSourceFolderNode) {
-        return ((NdkSourceFolderNode)sourceNode).getChildren();
+      AbstractTreeNode<?> sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
+      if (sourceNode instanceof PsiDirectoryNode) {
+        return sourceNode.getChildren();
       }
     }
     return nativeSourceNodes;
@@ -77,15 +78,13 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
   @Override
   @NotNull
   public List<PsiDirectory> getFolders() {
-    Collection<File> sourceFolderPaths = getNdkModel().getSelectedVariant().getSourceFolders();
-    List<PsiDirectory> folders = new ArrayList<>(sourceFolderPaths.size());
+    Collection<VirtualFile> sourceFolders = getNativeSourceFolders();
+    List<PsiDirectory> folders = new ArrayList<>(sourceFolders.size());
 
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
-    for (File sourceFolderPath : sourceFolderPaths) {
-      VirtualFile sourceFolder = fileSystem.findFileByIoFile(sourceFolderPath);
+    for (VirtualFile sourceFolder : sourceFolders) {
       if (sourceFolder != null) {
         PsiDirectory psiSourceFolder = psiManager.findDirectory(sourceFolder);
         if (psiSourceFolder != null) {
@@ -99,11 +98,9 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    Collection<File> sourceFolders = getNdkModel().getSelectedVariant().getSourceFolders();
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    Collection<VirtualFile> sourceFolders = getNativeSourceFolders();
 
-    for (File folder : sourceFolders) {
-      VirtualFile virtualFile = fileSystem.findFileByIoFile(folder);
+    for (VirtualFile virtualFile : sourceFolders) {
       if (virtualFile != null && isAncestor(virtualFile, file, false)) {
         return true;
       }
@@ -114,7 +111,14 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
       return false;
     }
 
-    return containedInIncludeFolders(moduleModel, file);
+    return containedInIncludeFolders(getProject(), moduleModel, file);
+  }
+
+  private List<VirtualFile> getNativeSourceFolders() {
+    assert myProject != null;
+    Module module = ModuleManager.getInstance(myProject).findModuleByName(getNdkModel().getModuleName());
+    assert module != null;
+    return ModuleRootManager.getInstance(module).getSourceRoots(NativeSourceRootType.INSTANCE);
   }
 
   @Override

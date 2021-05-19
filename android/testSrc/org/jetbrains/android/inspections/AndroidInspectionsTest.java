@@ -6,6 +6,7 @@ import com.intellij.codeInspection.InspectionEP;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationPresentation;
+import com.intellij.codeInspection.ex.EntryPointsManagerBase;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.reference.EntryPoint;
 import com.intellij.openapi.extensions.DefaultPluginDescriptor;
@@ -19,12 +20,9 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/inspections/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
 
-  private GlobalInspectionToolWrapper myUnusedDeclarationToolWrapper;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myUnusedDeclarationToolWrapper = getUnusedDeclarationWrapper();
   }
 
   private static GlobalInspectionToolWrapper getUnusedDeclarationWrapper() {
@@ -80,24 +78,11 @@ public class AndroidInspectionsTest extends AndroidTestCase {
 
   private void doClassInstantiatedTest(String d) throws IOException {
     createManifest();
-    doGlobalInspectionTest(myUnusedDeclarationToolWrapper, d, new AnalysisScope(myModule));
+    doGlobalInspectionTest(getUnusedDeclarationWrapper(), d, new AnalysisScope(myModule));
   }
 
   @NotNull
-  private AndroidComponentEntryPoint getAndroidEntryPoint() {
-    AndroidComponentEntryPoint result = null;
-
-    for (EntryPoint entryPoint : ((UnusedDeclarationInspection)myUnusedDeclarationToolWrapper.getTool()).getExtensions()) {
-      if (entryPoint instanceof AndroidComponentEntryPoint) {
-        try {
-          result = (AndroidComponentEntryPoint)entryPoint;
-        }
-        catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
-    assertNotNull(result);
-    return result;
+  private static AndroidComponentEntryPoint getAndroidEntryPoint() {
+    return EntryPointsManagerBase.DEAD_CODE_EP_NAME.findExtension(AndroidComponentEntryPoint.class);
   }
 }

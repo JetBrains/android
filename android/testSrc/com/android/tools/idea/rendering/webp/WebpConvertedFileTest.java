@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -24,11 +23,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class WebpConvertedFileTest extends AndroidTestCase {
   public void testLossless() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = false;
     settings.lossless = true;
@@ -50,11 +44,6 @@ public class WebpConvertedFileTest extends AndroidTestCase {
   }
 
   public void testSkipTransparent() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = true;
     settings.lossless = true;
@@ -65,11 +54,6 @@ public class WebpConvertedFileTest extends AndroidTestCase {
   }
 
   public void testSkipLauncherIcons() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = true;
     settings.lossless = true;
@@ -80,11 +64,6 @@ public class WebpConvertedFileTest extends AndroidTestCase {
   }
 
   public void testSkipNinePatches() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipNinePatches = true;
     settings.lossless = true;
@@ -95,11 +74,6 @@ public class WebpConvertedFileTest extends AndroidTestCase {
   }
 
   public void testLossy() throws Exception {
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("WebP not available: skipping test");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = false;
     settings.lossless = false;

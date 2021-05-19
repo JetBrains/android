@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.util
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -23,17 +24,19 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.AppTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
-import com.intellij.openapi.module.Module
+import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
@@ -41,7 +44,6 @@ import java.util.WeakHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
-import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
 /**
@@ -102,14 +104,11 @@ fun setupChangeListener(
           })
         }
       })
-
-
     }
   }, parentDisposable)
 }
 
-private fun BuildStatus?.isSuccess(): Boolean =
-  this == BuildStatus.SKIPPED || this == BuildStatus.SUCCESS
+fun BuildStatus?.isSuccess(): Boolean = this?.isBuildSuccessful ?: false
 
 interface BuildListener {
   fun buildSucceeded()
@@ -151,7 +150,8 @@ fun setupBuildListener(
   buildable: BuildListener,
   parentDisposable: Disposable) {
   if (Disposer.isDisposed(parentDisposable)) {
-    Logger.getInstance("ChangeManager").warn("calling setupBuildListener for a disposed component $parentDisposable")
+    Logger.getInstance("com.android.tools.idea.common.util.ChangeManager")
+      .warn("calling setupBuildListener for a disposed component $parentDisposable")
     return
   }
   // If we are not yet subscribed to this project, we should subscribe
@@ -237,4 +237,45 @@ fun setupBuildListener(
   }
 
   initPreview()
+}
+
+/**
+ * Sets up a save listener for the given [psiFile]. When the file is saved, [onSave] will be called. The listener might be
+ * called in any thread.
+ *
+ * The given [parentDisposable] will be used to set the life cycle of the listener. When disposed, the listener will be disposed too.
+ */
+fun setupOnSaveListener(
+  project: Project,
+  psiFile: PsiFile,
+  onSave: () -> Unit,
+  parentDisposable: Disposable,
+  mergeQueue: MergingUpdateQueue = MergingUpdateQueue("Document save queue",
+                                                      TimeUnit.SECONDS.toMillis(1).toInt(),
+                                                      true,
+                                                      null,
+                                                      parentDisposable,
+                                                      null,
+                                                      false).setRestartTimerOnAdd(true)) {
+  val psiFilePointer = SmartPointerManager.createPointer(psiFile)
+  project.messageBus.connect(parentDisposable).subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
+    override fun beforeDocumentSaving(document: Document) {
+      val psiFile = psiFilePointer.element ?: return
+      val fileDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile)
+      if (fileDocument == document) {
+        mergeQueue.queue(object : Update("document saved") {
+          override fun run() {
+            val logger = Logger.getInstance("com.android.tools.idea.common.util.ChangeManager")
+            if (psiFile.project.isDisposed) {
+              logger.debug("project already disposed")
+              return
+            }
+
+            logger.debug("onSave")
+            onSave()
+          }
+        })
+      }
+    }
+  })
 }

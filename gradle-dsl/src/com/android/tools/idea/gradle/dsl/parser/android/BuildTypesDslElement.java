@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +35,8 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     return BuildTypeDslElement.BUILD_TYPE;
   }
 
-  @NotNull private static final List<String> implicitBuildTypes = Arrays.asList("debug", "release");
+  // the order is significant to the extent that it matches the order these build types are added by the Android Gradle Plugin
+  @NotNull private static final List<String> implicitBuildTypes = ContainerUtil.immutableList("release", "debug");
 
   @Override
   public boolean implicitlyExists(@NotNull String name) {
@@ -44,6 +45,7 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
 
   public BuildTypesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+    implicitBuildTypes.stream().forEach((bt) -> addDefaultProperty(new BuildTypeDslElement(this, GradleNameElement.fake(bt))));
   }
 
   @NotNull

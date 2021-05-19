@@ -16,21 +16,25 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
+import com.android.tools.idea.npw.model.NewAndroidNativeModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
+import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOfNotNull(
     MobileModuleTemplateGalleryEntry(),
     AndroidLibraryModuleTemplateGalleryEntry(),
+    if (StudioFlags.NPW_NEW_NATIVE_MODULE.get()) AndroidNativeLibraryModuleTemplateGalleryEntry() else null,
     WearModuleTemplateGalleryEntry(),
     TvModuleTemplateGalleryEntry(),
     ThingsModuleTemplateGalleryEntry(),
@@ -42,62 +46,75 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override val description: String,
     override val icon: Icon,
     val formFactor: FormFactor
-  ): ModuleGalleryEntry {
+  ) : ModuleGalleryEntry {
     val isLibrary = false
 
     override fun toString(): String = name
-    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary)
-      return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, isLibrary)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 
   private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
-    AndroidIcons.Wizards.MobileModule,
-    FormFactor.MOBILE
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.PHONE_TABLET else AndroidIcons.Wizards.MobileModule,
+    FormFactor.Mobile
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
-    AndroidIcons.Wizards.AutomotiveModule,
-    FormFactor.AUTOMOTIVE
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.AUTOMOTIVE else AndroidIcons.Wizards.AutomotiveModule,
+    FormFactor.Automotive
   )
 
   private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.things"),
     message("android.wizard.module.new.things.description"),
-    AndroidIcons.Wizards.ThingsModule,
-    FormFactor.THINGS
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_THINGS else AndroidIcons.Wizards.ThingsModule,
+    FormFactor.Things
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
-    AndroidIcons.Wizards.TvModule,
-    FormFactor.TV
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_TV else AndroidIcons.Wizards.TvModule,
+    FormFactor.Tv
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
-    AndroidIcons.Wizards.WearModule,
-    FormFactor.WEAR
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.WEAR_OS else AndroidIcons.Wizards.WearModule,
+    FormFactor.Wear
   )
 
-  private class AndroidLibraryModuleTemplateGalleryEntry: ModuleGalleryEntry {
+  private class AndroidLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.library")
     override val description: String = message("android.wizard.module.new.library.description")
-    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.ANDROID_LIBRARY else AndroidIcons.Wizards.AndroidModule
 
-    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true)
-      return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, FormFactor.Mobile, true)
+      return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
+    }
+  }
+
+  private class AndroidNativeLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
+    override val name: String = message("android.wizard.module.new.native.library")
+    override val description: String = message("android.wizard.module.new.native.library.description")
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.NATIVE else AndroidIcons.Wizards.AndroidNativeModule
+
+    override fun createStep(project: Project,
+                            moduleParent: String,
+                            projectSyncInvoker: ProjectSyncInvoker): ConfigureAndroidNativeModuleStep {
+      val basePackage = getSuggestedProjectPackage()
+      val model = NewAndroidNativeModuleModel(ExistingProjectModelData(project, projectSyncInvoker), moduleParent)
+      return ConfigureAndroidNativeModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 }
-

@@ -1,26 +1,37 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
+# Export testData traces
+filegroup(
+    name = "test_data",
+    srcs = glob(["testData/**"]),
+    visibility = ["//visibility:public"],
+)
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.profilers",
     srcs = ["src"],
-    exclude = ["testSrc/com/android/tools/profilers/performance/DataSeriesPerformanceTest.kt"],
     iml_files = ["intellij.android.profilers.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = [
         "no_test_windows",
     ],
-    test_data = glob(["testData/**"]) + ["//prebuilts/tools:simpleperf"],
+    test_class = "com.android.tools.profilers.ProfilersTestSuite",
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
-        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
-        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/java/manifest:intellij.java.manifest",
         "//tools/idea/plugins/java-i18n:intellij.java.i18n",
-        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/plugins/eclipse:intellij.eclipse",
         "//tools/idea/java/plugin:intellij.java.plugin",
     ],
     test_srcs = ["testSrc"],
@@ -33,17 +44,20 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [
@@ -51,9 +65,11 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/idea/.idea/libraries:Trove4j",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/common:studio.android.sdktools.common[module]",
@@ -63,10 +79,14 @@ iml_module(
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
+        "//tools/idea/.idea/libraries:protobuf",
+        "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
         "//tools/idea/.idea/libraries:perfetto-proto",
+        "//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos",
         "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
 
@@ -92,5 +112,62 @@ kotlin_test(
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/idea/.idea/libraries:studio-grpc",
         "//tools/idea/.idea/libraries:studio-proto",
+    ],
+)
+
+# managed by go/iml_to_build [unb]
+java_import(
+    name = "unb.traceprocessor-proto",
+    jars = ["//tools/base/profiler/native/trace_processor_daemon:traceprocessor_protos.jar"],
+    tags = [
+        "manual",
+        "unb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.profilers",
+    srcs = ["src"],
+    bundled_deps = ["//tools/adt/idea/profilers:unb.traceprocessor-proto"],
+    iml_files = ["intellij.android.profilers.iml"],
+    lint_baseline = "lint_baseline.xml",
+    project = "unb",
+    tags = [
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.profilers.ProfilersTestSuite",
+    test_data = [
+        ":test_data",
+        "//prebuilts/tools:simpleperf",
+    ],
+    test_srcs = ["testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:unb.Guava",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/base/perflib:studio.android.sdktools.perflib[module]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.mockito[test]",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/adt/idea/.idea/libraries:unb.kotlin-stdlib-jdk8",
+        "//tools/adt/idea/profilers-atrace:intellij.android.profilers.atrace[module]",
+        "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf",
+        "//tools/adt/idea/.idea/libraries:unb.studio-analytics-proto",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto",
+        "//tools/adt/idea/.idea/libraries:unb.perfetto-proto",
+        "//tools/adt/idea/profilers:unb.traceprocessor-proto",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )

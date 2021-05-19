@@ -100,12 +100,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
       assertThat(renderscriptOptimLevel.parsedValue.asTestValue(), equalTo(2))
 
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
-      // TODO(b/142454204): DslText is not language-agnostic
-      val mySigningConfigDslText = when (appModule.parsedModel?.psiFile?.language) {
-        is GroovyLanguage -> "signingConfigs.myConfig"
-        is KotlinLanguage -> "signingConfigs.getByName(\"myConfig\")"
-        else -> "***unknown language for signingConfig Dsl text***"
-      }
+      val mySigningConfigDslText =  "signingConfigs.myConfig"
       assertThat(
         signingConfig.parsedValue,
         equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
@@ -188,7 +183,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     val buildType = appModule.findBuildType("debug")
     assertThat(buildType, notNullValue()); buildType!!
-    assertFalse(buildType.isDeclared)
+    assertTrue(buildType.isDeclared)
 
     val applicationIdSuffix = PsBuildType.BuildTypeDescriptors.applicationIdSuffix.bind(buildType).getValue()
     val debuggable = PsBuildType.BuildTypeDescriptors.debuggable.bind(buildType).getValue()
@@ -234,7 +229,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     assertThat(zipAlignEnabled.parsedValue.asTestValue(), nullValue())
 
     assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-    assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+    assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
   }
 
   fun testDefaultResolvedPropertiesGroovy() {
@@ -386,7 +381,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
 
     val buildType = appModule.findBuildType("debug")
     assertThat(buildType, notNullValue()); buildType!!
-    assertThat(buildType.isDeclared, equalTo(false))
+    assertThat(buildType.isDeclared, equalTo(true))
 
 
     buildType.jniDebuggable = true.asParsed()

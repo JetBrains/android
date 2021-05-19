@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
+import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.LARGE;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -29,7 +31,6 @@ import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.mlkit.MlConstants;
 import com.android.tools.mlkit.ModelInfo;
@@ -69,7 +70,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
 
   private final BindingsManager myBindings = new BindingsManager();
 
-  @NotNull private final StudioWizardStepPanel myRootPanel;
   @NotNull private final ValidatorPanel myValidatorPanel;
 
   private JPanel myPanel;
@@ -125,14 +125,15 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
-    Expression<File> locationFile = model.sourceLocation.transform(File::new);
-    myValidatorPanel.registerValidator(locationFile, value -> checkPath(value));
 
     SelectedItemProperty<NamedModuleTemplate> selectedFavor = new SelectedItemProperty<>(myFlavorBox);
     myValidatorPanel.registerValidator(ObjectProperty.wrap(selectedFavor), value -> checkFlavor(value));
 
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
-    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
+    Expression<File> locationFile = model.sourceLocation.transform(File::new);
+    myValidatorPanel.registerValidator(locationFile, value -> checkPath(value), selectedFavor);
+
+    myValidatorPanel.setBorder(LARGE.border);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
   @Override
@@ -141,7 +142,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  public String getBasicInformationText() {
+  private String getBasicInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
     Module module = getModel().getModule();
 
@@ -159,7 +160,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   }
 
   @NotNull
-  public String getGpuInformationText() {
+  private String getGpuInformationText() {
     StringBuilder stringBuilder = new StringBuilder();
     for (GradleCoordinate dep : MlUtils.getMissingTfliteGpuDependencies(getModel().getModule())) {
       stringBuilder.append(dep).append("\n");
@@ -264,7 +265,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myRootPanel;
+    return myValidatorPanel;
   }
 
   @Nullable

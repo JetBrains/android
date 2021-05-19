@@ -16,8 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -164,6 +163,11 @@ public interface IdeProfilerServices {
    * Native configurations can be preferred for native projects, for instance.
    */
   boolean isNativeProfilingConfigurationPreferred();
+
+  /**
+   * Get the native memory sampling rate based on the current configuration.
+   */
+  int getNativeMemorySamplingRateForCurrentConfig();
 
   /**
    * Pops up a toast that contains information contained in the notification,

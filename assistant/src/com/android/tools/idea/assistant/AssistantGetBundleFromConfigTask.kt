@@ -16,15 +16,11 @@
 package com.android.tools.idea.assistant
 
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.apache.http.concurrent.FutureCallback
-import java.io.IOException
-import java.io.InputStream
 import java.net.URL
-import javax.xml.bind.JAXBException
 
 class AssistantGetBundleFromConfigTask(
   project: Project,

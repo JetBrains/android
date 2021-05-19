@@ -161,6 +161,7 @@ class ColorResourcePicker(configuration: Configuration, initialResourceReference
               ResourceType.COLOR,
               showColorStateLists = false,
               showSampleData = false,
+              showThemeAttributes = true,
               file = configuration.file
             )
             // TODO: Use resource reference instead of resource string when using resource management to pickup resource.

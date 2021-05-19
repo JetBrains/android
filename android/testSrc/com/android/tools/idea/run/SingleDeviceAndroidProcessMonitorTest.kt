@@ -29,6 +29,7 @@ import org.junit.Test
 import org.mockito.ArgumentMatchers.same
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.atLeastOnce
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
@@ -229,6 +230,47 @@ class SingleDeviceAndroidProcessMonitorTest {
     monitor.close()
 
     verify(mockListener, timeout(TEST_TIMEOUT_MILLIS)).onStateChanged(eq(monitor), eq(PROCESS_FINISHED))
+  }
+
+  @Test
+  fun processFoundThenStopListeningAndClose() {
+    val latchForStart = CountDownLatch(1)
+    val latchForEnd = CountDownLatch(1)
+
+    val monitor = SingleDeviceAndroidProcessMonitor(
+      TARGET_APP_NAME,
+      mockDevice,
+      object : SingleDeviceAndroidProcessMonitorStateListener {
+        override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
+          if (newState == PROCESS_IS_RUNNING) {
+            latchForStart.countDown()
+          }
+        }
+      },
+      mockDeploymentAppService,
+      mockLogcatCaptor,
+      mockTextEmitter,
+      TEST_POLLING_INTERVAL_MILLIS,
+      TEST_TIMEOUT_MILLIS
+    )
+
+    val mockClient = createMockClient(123)
+    `when`(mockDeploymentAppService.findClient(same(mockDevice), eq(TARGET_APP_NAME))).thenReturn(listOf(mockClient))
+    assertThat(latchForStart.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+
+    assertThat(latchForEnd.count).isEqualTo(1)
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).startCapture(same(mockDevice), eq(123), eq(TARGET_APP_NAME))
+
+    // Now detach the target process by close.
+    monitor.replaceListenerAndClose(object : SingleDeviceAndroidProcessMonitorStateListener {
+      override fun onStateChanged(monitor: SingleDeviceAndroidProcessMonitor, newState: SingleDeviceAndroidProcessMonitorState) {
+        latchForEnd.countDown()
+      }
+    })
+
+    assertThat(latchForEnd.await(TEST_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)).isTrue()
+    verify(mockLogcatCaptor, timeout(TEST_TIMEOUT_MILLIS)).stopCapture(same(mockDevice))
+    verify(mockClient, atLeastOnce()).kill()
   }
 
   private fun createMockClient(pid: Int): Client {

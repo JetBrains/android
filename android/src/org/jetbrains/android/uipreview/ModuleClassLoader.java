@@ -8,19 +8,22 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.UtilKt.multiTransformOf;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalLibrary;
-import com.android.projectmodel.Library;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.rendering.classloading.ConstantRemapperManager;
+import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform;
 import com.android.tools.idea.rendering.classloading.RenderClassLoader;
+import com.android.tools.idea.rendering.classloading.RepackageTransform;
+import com.android.tools.idea.rendering.classloading.ThreadLocalRenameTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -30,18 +33,21 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
+import com.android.utils.SdkUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.MalformedURLException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +71,29 @@ public final class ModuleClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
 
   /**
+   * Package name used to "re-package" certain classes that would conflict with the ones in the Studio class loader.
+   * This applies to all packages defined in {@link ModuleClassLoader#PACKAGES_TO_RENAME}.
+   */
+  private static final String INTERNAL_PACKAGE = "_layoutlib_._internal_.";
+
+  /**
+   * If the project uses any of these libraries, we re-package them with a different name (prefixing them with
+   * {@link ModuleClassLoader#INTERNAL_PACKAGE} so they do not conflict with the versions loaded in Studio.
+   */
+  private static final ImmutableList<String> PACKAGES_TO_RENAME = ImmutableList.of(
+    "kotlin.",
+    "kotlinx.",
+    "android.support.constraint.solver."
+  );
+
+  /**
    * Classes are rewritten by applying the following transformations:
    * <ul>
    *   <li>Updates the class file version with a version runnable in the current JDK
    *   <li>Replaces onDraw, onMeasure and onLayout for custom views
+   *   <li>Replaces ThreadLocal class with TrackingThreadLocal
+   *   <li>Redirects calls to PreviewAnimationClock's notifySubscribe and notifyUnsubscribe to ComposePreviewAnimationManager
+   *   <li>Repackages certain classes to avoid loading the Studio versions from the Studio class loader
    * </ul>
    * Note that it does not attempt to handle cases where class file constructs cannot
    * be represented in the target version. This is intended for uses such as for example
@@ -80,29 +105,41 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  private static final Function<ClassVisitor, ClassVisitor> DEFAULT_TRANSFORMS = multiTransformOf(
+  static final Function<ClassVisitor, ClassVisitor> PROJECT_DEFAULT_TRANSFORMS = multiTransformOf(
     visitor -> new ViewMethodWrapperTransform(visitor),
-    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0)
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
+    visitor -> new ThreadLocalRenameTransform(visitor),
+    // Leave this transformation as last so the rest of the transformations operate on the regular names.
+    visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
+  );
+
+  static final Function<ClassVisitor, ClassVisitor> NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = multiTransformOf(
+    visitor -> new ViewMethodWrapperTransform(visitor),
+    visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
+    visitor -> new ThreadLocalRenameTransform(visitor),
+    visitor -> new PreviewAnimationClockMethodTransform(visitor),
+    // Leave this transformation as last so the rest of the transformations operate on the regular names.
+    visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
 
   /**
-   * A list of packages. Classes from these packages should be reloaded by this ClassLoader from the external jars
-   * in oppose to reusing those from the parent (studio) ClassLoader. This is done in order to prevent loading
-   * from a library with undesired version (which studio might depend on) or to make sure the defining ClassLoader
-   * of a Class is ModuleClassLoader (needed for e.g. coroutines in MainDispatcherLoader#loadMainDispatcher).
+   * The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
+   * of this class as well to find classes
    */
-  private static final String DEFAULT_OVERRIDE_MODULE_PACKAGES = "android.support.constraint.solver,kotlinx.coroutines,kotlin.coroutines";
-  private static final String[] OVERRIDE_MODULE_PACKAGES =
-    Arrays.stream(System.getProperty("android.module.override.packages", DEFAULT_OVERRIDE_MODULE_PACKAGES).split(","))
-      .map(String::trim).toArray(String[]::new);
-
-  /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
-   * of this class as well to find classes */
   private final WeakReference<Module> myModuleReference;
+  /**
+   * Modification count used to track the [ConstantRemapper] modifications. If this does not match the current count, the class loader is
+   * out of date since new transformations might be needed.
+   */
+  private final long myConstantRemapperModificationCount;
 
-  /** Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader */
+  /**
+   * Map from fully qualified class name to the corresponding .class file for each class loaded by this class loader
+   */
   private Map<String, VirtualFile> myClassFiles;
-  /** Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader */
+  /**
+   * Map from fully qualified class name to the corresponding last modified info for each class loaded by this class loader
+   */
   private Map<String, ClassModificationTimestamp> myClassFilesLastModified;
 
   private final List<Path> mAdditionalLibraries;
@@ -117,21 +154,29 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
   }
 
-  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
-    super(parent, DEFAULT_TRANSFORMS);
+
+  /**
+   * Method uses to remap type names using {@link ModuleClassLoader#INTERNAL_PACKAGE} as prefix to its original name so they original
+   * class can be loaded from the file system correctly.
+   */
+  @NotNull
+  private static String nonProjectClassNameLookup(@NotNull String name) {
+    return StringUtil.trimStart(name, INTERNAL_PACKAGE);
+  }
+
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module,
+                    @NotNull Function<ClassVisitor, ClassVisitor> projectTransformations,
+                    @NotNull Function<ClassVisitor, ClassVisitor> nonProjectTransformations) {
+    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::nonProjectClassNameLookup);
     myModuleReference = new WeakReference<>(module);
     mAdditionalLibraries = getAdditionalLibraries();
+    myConstantRemapperModificationCount = ConstantRemapperManager.INSTANCE.getConstantRemapper().getModificationCount();
 
     registerResources(module);
   }
 
-  private static boolean isFromOverriddenPackage(@NotNull String fqcn) {
-    for (int i = 0; i < OVERRIDE_MODULE_PACKAGES.length; ++i) {
-      if (fqcn.startsWith(OVERRIDE_MODULE_PACKAGES[i])) {
-        return true;
-      }
-    }
-    return false;
+  ModuleClassLoader(@Nullable ClassLoader parent, @NotNull Module module) {
+    this(parent, module, PROJECT_DEFAULT_TRANSFORMS, NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS);
   }
 
   @NotNull
@@ -141,8 +186,47 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return Collections.emptyList(); // Error is already logged by getEmbeddedLayoutLibPath
     }
 
-    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-coroutines.jar");
-    return List.of(new File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath());
+    String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar");
+    try {
+      return List.of(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
+    }
+    catch (MalformedURLException e) {
+      LOG.error("Failed to find layoutlib-extensions library", e);
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Returns true for any classFqn that is supposed to be repackaged.
+   */
+  private static boolean isRepackagedClass(@NotNull String classFqn) {
+    for (String pkgName : PACKAGES_TO_RENAME) {
+      if (classFqn.startsWith(pkgName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public Class<?> loadClass(String name) throws ClassNotFoundException {
+    if ("kotlinx.coroutines.android.AndroidDispatcherFactory".equals(name)) {
+      // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
+      // b/162056408
+      //
+      // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
+      // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
+      throw new IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
+    }
+
+    if (isRepackagedClass(name)) {
+      // This should not happen for "regularly" loaded classes. It will happen for classes loaded using
+      // reflection like Class.forName("kotlin.a.b.c"). In this case, we need to redirect the loading to the right
+      // class by injecting the correct name.
+      name = INTERNAL_PACKAGE + name;
+    }
+
+    return super.loadClass(name);
   }
 
   @Override
@@ -166,7 +250,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
                 return loadClass(name, data);
               }
             }
-            else  {
+            else {
               LOG.debug("  LocalResourceRepositoryInstance not found");
             }
           }
@@ -177,7 +261,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
         LOG.debug(String.format("  super.findClass(%s)", anonymizeClassName(name)));
       }
       return super.findClass(name);
-    } catch (ClassNotFoundException e) {
+    }
+    catch (ClassNotFoundException e) {
       byte[] clazz = null;
       if (RecyclerViewHelper.CN_CUSTOM_ADAPTER.equals(name)) {
         clazz = RecyclerViewHelper.getAdapterClass(DependencyManagementUtil.mapAndroidxName(module, CLASS_RECYCLER_VIEW_V7),
@@ -222,40 +307,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return loadClassFromNonProjectDependency(name);
   }
 
-  @Override
-  @NotNull
-  public Class<?> loadClass(@NotNull String name) throws ClassNotFoundException {
-    // We overload loadClass() to load a class defined in a project
-    // rather than a version of it that may already be present in Studio.
-    // This is an issue if Studio shares a library or classes with some android code
-    // we are trying to preview; the class loaded would be the one already used by
-    // Studio rather than the one packaged with the library.
-    // If they end up being different (say the lib is more recent than the Studio version),
-    // it will likely result in broken preview as functions would be different / not present.
-    // The only known case of this at this point is ConstraintLayout (a solver library
-    // is used both by the android implementation and by Android Studio).
-
-    // FIXME: While testing this approach, we found an issue on some Windows machine where
-    // class loading would be broken. Thus, we limit the fix to the impacted solver classes
-    // for now, until we can investigate the problem more in depth on Windows.
-    boolean loadFromProject = isFromOverriddenPackage(name);
-    if (loadFromProject) {
-      try {
-        // Give priority to loading class from this Class Loader.
-        // This avoids leaking classes from the plugin into the project.
-        Class<?> loadedClass = findLoadedClass(name);
-        if (loadedClass != null) {
-          return loadedClass;
-        }
-        return load(name);
-      }
-      catch (Exception ignore) {
-        // Catch-all, defer to the parent implementation
-      }
-    }
-    return super.loadClass(name);
-  }
-
   /**
    * Loads a class from the project, either from the given module or one of the source code dependencies. If the class
    * is in a library dependency, like a jar file, this method will not find the class.
@@ -284,7 +335,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
    * <p><b>Note that this method can only answer queries for classes that this class loader has previously
    * loaded!</b>
    *
-   * @param name the fully qualified class name
+   * @param name         the fully qualified class name
    * @param myCredential a render sandbox credential
    * @return true if the source file has been modified, or false if not (or if the source file cannot be found)
    */
@@ -312,7 +363,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       return AndroidModel.get(facet).isClassFileOutOfDate(module, name, classFile);
-    } finally {
+    }
+    finally {
       RenderSecurityManager.exitSafeRegion(token);
     }
   }
@@ -363,9 +415,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (Library library : moduleSystem.getResolvedLibraryDependencies()) {
-      if (library instanceof ExternalLibrary && ((ExternalLibrary)library).hasResources()) {
-        registerLibraryResources((ExternalLibrary)library, repositoryManager, classRegistry, idManager);
+    for (ExternalLibrary library : moduleSystem.getResolvedLibraryDependencies()) {
+      if (library.getHasResources()) {
+        registerLibraryResources(library, repositoryManager, classRegistry, idManager);
       }
     }
   }
@@ -380,7 +432,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     ResourceRepository rClassContents;
     ResourceNamespace resourcesNamespace;
     String packageName;
-    if (repositoryManager.getNamespacing() == AaptOptions.Namespacing.DISABLED) {
+    if (repositoryManager.getNamespacing() == Namespacing.DISABLED) {
       packageName = getPackageName(library);
       if (packageName == null) {
         return;
@@ -421,7 +473,8 @@ public final class ModuleClassLoader extends RenderClassLoader {
 
           try {
             return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
-          } catch (IOException ignore2) {
+          }
+          catch (IOException ignore2) {
             return null;
           }
         }
@@ -440,7 +493,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       Iterables.concat(mAdditionalLibraries, ClassLoadingUtilsKt.getLibraryDependenciesJars(myModuleReference.get())));
   }
 
-  /** Returns the path to a class file loaded for the given class, if any */
+  /**
+   * Returns the path to a class file loaded for the given class, if any
+   */
   @Nullable
   private VirtualFile getClassFile(@NotNull String className) {
     if (myClassFiles == null) {
@@ -453,7 +508,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return file.isValid() ? file : null;
   }
 
-  /** Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader */
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
+   */
   boolean isUpToDate() {
     if (myClassFiles != null) {
       for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
@@ -469,7 +526,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
           long classFileModifiedTime = classFile.getTimeStamp();
           long classFileModifiedLength = classFile.getLength();
           if ((classFileModifiedTime > 0L && loadedModifiedTime > 0L && loadedModifiedTime < classFileModifiedTime)
-             || loadedModifiedLength != classFileModifiedLength) {
+              || loadedModifiedLength != classFileModifiedLength) {
             return false;
           }
         }

@@ -15,53 +15,19 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_AND_RESET_ALREADY_EXISTING_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_AND_RESET_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_ADD_PLUGIN_TO_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_PLUGIN_AT_START;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_DELETE_PLUGIN_NAME;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_INSERT_PLUGIN_ORDER;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_SET_PLUGIN_NAME;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.APPLY_PLUGIN_SET_PLUGIN_NAME_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -70,35 +36,35 @@ import org.junit.Test;
 public class ApplyPluginTest extends GradleFileModelTestCase {
   @Test
   public void testAppliedPluginsBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK);
+    writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
   public void testAppliedPluginsBlockWithRepeatedPlugins() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS);
+    writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
   public void testApplyPluginStatements() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS);
+    writeToBuildFile(TestFile.APPLY_PLUGIN_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
   public void testApplyPluginStatementsWithRepeatedPlugins() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS);
+    writeToBuildFile(TestFile.APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
   public void testRemoveAndResetPluginFromApplyBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -111,7 +77,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetPluginFromApplyBlockWithDuplicatedPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -124,7 +90,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetPluginFromApplyStatements() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -137,7 +103,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndResetPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS);
+    writeToBuildFile(TestFile.REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -150,7 +116,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyPluginFromApplyBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -158,7 +124,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED);
 
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
@@ -168,7 +134,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyPluginFromApplyBlockWithDuplicatedPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -176,7 +142,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED);
 
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
@@ -186,7 +152,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyPluginFromApplyStatements() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -194,7 +160,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED);
 
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
@@ -204,7 +170,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveAndApplyPluginFromApplyStatementsWithRepeatedPlugins() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS);
+    writeToBuildFile(TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
 
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
@@ -213,7 +179,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED);
 
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
 
@@ -223,7 +189,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_AND_RESET_PLUGIN);
+    writeToBuildFile(TestFile.ADD_AND_RESET_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
 
@@ -236,7 +202,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndResetAlreadyExistingPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_AND_RESET_ALREADY_EXISTING_PLUGIN);
+    writeToBuildFile(TestFile.ADD_AND_RESET_ALREADY_EXISTING_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -249,7 +215,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN);
+    writeToBuildFile(TestFile.ADD_AND_APPLY_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
 
@@ -258,7 +224,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_PLUGIN_EXPECTED);
 
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -268,7 +234,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyAlreadyExistingPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
+    writeToBuildFile(TestFile.ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
@@ -277,7 +243,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
     applyChanges(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN);
 
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
 
@@ -287,7 +253,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetPluginName() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_SET_PLUGIN_NAME);
+    writeToBuildFile(TestFile.SET_PLUGIN_NAME);
     GradleBuildModel buildModel = getGradleBuildModel();
 
     assertSize(2, buildModel.plugins());
@@ -300,7 +266,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     otherPlugin.name().setValue("bar.com.foo");
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_SET_PLUGIN_NAME_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.SET_PLUGIN_NAME_EXPECTED);
 
     assertSize(2, buildModel.plugins());
     pluginModel = buildModel.plugins().get(0);
@@ -311,7 +277,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeletePluginName() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_DELETE_PLUGIN_NAME);
+    writeToBuildFile(TestFile.DELETE_PLUGIN_NAME);
     GradleBuildModel buildModel = getGradleBuildModel();
 
     assertSize(2, buildModel.plugins());
@@ -329,7 +295,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testInsertPluginOrder() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_INSERT_PLUGIN_ORDER);
+    writeToBuildFile(TestFile.INSERT_PLUGIN_ORDER);
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.applyPlugin("kotlin-android");
     buildModel.applyPlugin("kotlin-plugin-extensions");
@@ -340,7 +306,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_INSERT_PLUGIN_ORDER_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.INSERT_PLUGIN_ORDER_EXPECTED);
 
     verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
@@ -349,7 +315,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testApplyPluginAtStart() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLY_PLUGIN_AT_START);
+    writeToBuildFile(TestFile.APPLY_PLUGIN_AT_START);
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.applyPlugin("kotlin-android");
     buildModel.applyPlugin("kotlin-plugin-extensions");
@@ -360,7 +326,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     verifyPropertyModel(buildModel.plugins().get(2).name(), STRING_TYPE, "some-other-plugin", STRING, REGULAR, 0);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, APPLY_PLUGIN_APPLY_PLUGIN_AT_START_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.APPLY_PLUGIN_AT_START_EXPECTED);
 
     verifyPropertyModel(buildModel.plugins().get(0).name(), STRING_TYPE, "kotlin-android", STRING, REGULAR, 0);
     verifyPropertyModel(buildModel.plugins().get(1).name(), STRING_TYPE, "kotlin-plugin-extensions", STRING, REGULAR, 0);
@@ -369,35 +335,42 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAppliedKotlinPlugin() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLIED_KOTLIN_PLUGIN);
+    writeToBuildFile(TestFile.APPLIED_KOTLIN_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin-extensions"), buildModel.plugins());
   }
 
   @Test
   public void testApplyPluginsFromPluginsBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLY_PLUGINS_FROM_PLUGINS_BLOCK);
+    writeToBuildFile(TestFile.APPLY_PLUGINS_FROM_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("maven-publish", "jacoco"), buildModel.plugins());
   }
 
   @Test
   public void testPluginsBlockWithRepeatedPlugins() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS);
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_REPEATED_PLUGINS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
+  public void testPluginsBlockWithVersion() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_VERSION);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+  }
+
+  @Test
   public void testPluginsFromApplyAndPluginsBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
+    writeToBuildFile(TestFile.PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
   }
 
   @Test
   public void testApplyRepeatedPluginsFromApplyAndPluginsBlocks() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
+    writeToBuildFile(TestFile.APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<PluginModel> plugins = buildModel.plugins();
     assertSize(3, plugins);
@@ -406,7 +379,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPluginToPluginsBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_PLUGIN_TO_PLUGINS_BLOCK);
+    writeToBuildFile(TestFile.ADD_PLUGIN_TO_PLUGINS_BLOCK);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
 
@@ -417,7 +390,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddExistingPluginToPluginsAndApplyBlock() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS);
+    writeToBuildFile(TestFile.ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("kotlin-android", "com.android.application"), buildModel.plugins());
 
@@ -429,8 +402,91 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testOnlyParsePluginsWithCorrectSyntax() throws Exception {
-    writeToBuildFile(APPLY_PLUGIN_PLUGINS_UNSUPPORTED_SYNTAX);
+    writeToBuildFile(TestFile.PLUGINS_UNSUPPORTED_SYNTAX);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.library"), buildModel.plugins());
+  }
+
+  @Test
+  public void testPluginRemove() throws Exception {
+    writeToBuildFile(TestFile.PLUGIN_REMOVE);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application", "io.fabric"), buildModel.plugins());
+
+    for (PluginModel plugin : buildModel.plugins()) {
+      if (plugin.name().toString().equals("io.fabric")) {
+        plugin.remove();
+      }
+    }
+
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.PLUGIN_REMOVE_EXPECTED);
+  }
+
+  @Test
+  public void testGetPsiElement() throws Exception {
+    writeToBuildFile(TestFile.APPLIED_PLUGINS_BLOCK);
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
+
+    assertNotNull(buildModel.plugins().get(0).getPsiElement());
+    assertEquals("com.android.application", buildModel.plugins().get(0).getPsiElement().getText().replaceAll("['\"]", ""));
+    assertNotNull(buildModel.plugins().get(1).getPsiElement());
+    assertEquals("com.android.library", buildModel.plugins().get(1).getPsiElement().getText().replaceAll("['\"]", ""));
+  }
+
+  enum TestFile implements TestFileName {
+    ADD_PLUGIN_TO_PLUGINS_BLOCK("addPluginToPluginsBlock"),
+    APPLIED_KOTLIN_PLUGIN("appliedKotlinPlugin"),
+    APPLIED_PLUGINS_BLOCK("appliedPluginsBlock"),
+    APPLIED_PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("appliedPluginsBlockWithRepeatedPlugins"),
+    APPLY_PLUGIN_STATEMENTS("applyPluginStatements"),
+    APPLY_PLUGIN_STATEMENTS_WITH_REPEATED_PLUGINS("applyPluginStatementsWithRepeatedPlugins"),
+    REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK("removeAndResetPluginFromApplyBlock"),
+    REMOVE_AND_RESET_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN("removeAndResetPluginFromApplyBlockWithDuplicatedPlugin"),
+    REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS("removeAndResetPluginFromApplyStatements"),
+    REMOVE_AND_RESET_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS("removeAndResetPluginFromApplyStatementsWithRepeatedPlugins"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK("removeAndApplyPluginFromApplyBlock"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_EXPECTED("removeAndApplyPluginFromApplyBlockExpected"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN("removeAndApplyPluginFromApplyBlockWithDuplicatedPlugin"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_BLOCK_WITH_DUPLICATED_PLUGIN_EXPECTED("removeAndApplyPluginFromApplyBlockWithDuplicatedPluginExpected"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS("removeAndApplyPluginFromApplyStatements"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_EXPECTED("removeAndApplyPluginFromApplyStatementsExpected"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS("removeAndApplyPluginFromApplyStatementsWithRepeatedPlugins"),
+    REMOVE_AND_APPLY_PLUGIN_FROM_APPLY_STATEMENTS_WITH_REPEATED_PLUGINS_EXPECTED("removeAndApplyPluginFromApplyStatementsWithRepeatedPluginsExpected"),
+    ADD_AND_RESET_PLUGIN("addAndResetPlugin"),
+    ADD_AND_RESET_ALREADY_EXISTING_PLUGIN("addAndResetAlreadyExistingPlugin"),
+    ADD_AND_APPLY_PLUGIN("addAndApplyPlugin"),
+    ADD_AND_APPLY_PLUGIN_EXPECTED("addAndApplyPluginExpected"),
+    ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN("addAndApplyAlreadyExistingPlugin"),
+    ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS("addExistingPluginToPluginsAndApplyBlocks"),
+    SET_PLUGIN_NAME("setPluginName"),
+    SET_PLUGIN_NAME_EXPECTED("setPluginNameExpected"),
+    DELETE_PLUGIN_NAME("deletePluginName"),
+    INSERT_PLUGIN_ORDER("insertPluginOrder"),
+    INSERT_PLUGIN_ORDER_EXPECTED("insertPluginOrderExpected"),
+    APPLY_PLUGIN_AT_START("applyPluginAtStart"),
+    APPLY_PLUGIN_AT_START_EXPECTED("applyPluginAtStartExpected"),
+    APPLY_REPEATED_PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("applyRepeatedPluginsFromApplyAndPluginsBlocks"),
+    APPLY_PLUGINS_FROM_PLUGINS_BLOCK("applyPluginsFromPluginsBlock"),
+    PLUGINS_BLOCK_WITH_REPEATED_PLUGINS("pluginsBlockWithRepeatedPlugins"),
+    PLUGINS_BLOCK_WITH_VERSION("pluginsBlockWithVersion"),
+    PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
+    PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
+    PLUGIN_REMOVE("pluginRemove"),
+    PLUGIN_REMOVE_EXPECTED("pluginRemoveExpected")
+    ;
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/applyPlugin/" + path, extension);
+    }
   }
 }

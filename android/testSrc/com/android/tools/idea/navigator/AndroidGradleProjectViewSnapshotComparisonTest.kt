@@ -14,54 +14,58 @@
  * limitations under the License.
  */
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
-
 package com.android.tools.idea.navigator
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.navigator.nodes.ndk.includes.view.IncludesViewNode
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.GradleIntegrationTest
+import com.android.tools.idea.testing.ProjectViewSettings
 import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
+import com.android.tools.idea.testing.dumpAndroidProjectView
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
-import com.intellij.ide.projectView.PresentationData
-import com.intellij.ide.projectView.ProjectView
-import com.intellij.ide.projectView.impl.GroupByTypeComparator
-import com.intellij.ide.projectView.impl.ProjectViewImpl
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
-import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
-import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.idea.Bombed
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.ui.DeferredIcon
-import com.intellij.ui.LayeredIcon
-import com.intellij.ui.RetrievableIcon
-import com.intellij.ui.RowIcon
+import com.intellij.util.PathUtil
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.annotations.SystemIndependent
-import org.jetbrains.kotlin.util.prefixIfNot
-import sun.swing.ImageIconUIResource
 import java.io.File
-import javax.swing.Icon
 
+/**
+ * Snapshot tests for 'Android Project View'.
+ *
+ * These tests convert the Android project view to a stable text format which does not depend on local
+ * environment (and ideally should not depend on the versions of irrelevant libraries) and compare them to pre-recorded golden
+ * results.
+ *
+ * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
+ *
+ * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
+ *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
+ *
+ *       Or with bazel:
+bazel test \
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+--test_output=streamed \
+--nocache_test_results \
+--strategy=TestRunner=standalone \
+//tools/adt/idea/android:intellij.android.core.tests_tests__navigator.AndroidGradleProjectViewSnapshotComparisonTest
+ */
 class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
   override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/projectViews"
   override fun getTestDataDirectoryAdtIdeaRelativePath(): @SystemIndependent String = "android/testData/snapshots"
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 
   override fun isIconRequired() = true
-
-  data class ProjectViewSettings(
-    val hideEmptyPackages: Boolean = true,
-    val flattenPackages: Boolean = false
-  )
 
   fun testSimpleApplication() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION)
@@ -117,25 +121,18 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
+  fun testKotlinKapt() {
+    prepareProjectForImport(TestProjectToSnapshotPaths.KOTLIN_KAPT)
+    importProject()
+    invokeGradle(project, GradleBuildInvoker::rebuild)
+    AndroidTestBase.refreshProjectFiles()
+    val text = project.dumpAndroidProjectView(ProjectViewSettings(), Unit, { _, _ -> Unit })
+    assertIsEqualToSnapshot(text)
+  }
+
   @Bombed(year = 2021, month = 4, day = 6, user = "andrei.kuznetsov", description = "Bomb slow muted tests in IDEA to speed up")
   fun testWithBuildSrc() {
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testNdkProject() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.HELLO_JNI, initialState = false, filter = this::filterOutMostIncludeFiles)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testBasicCmakeApp() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.BASIC_CMAKE_APP, initialState = false, filter = this::filterOutMostIncludeFiles)
-    assertIsEqualToSnapshot(text)
-  }
-
-  fun testDependentNativeModules() {
-    val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.DEPENDENT_NATIVE_MODULES, initialState = false,
-                                        filter = this::filterOutMostIncludeFiles)
     assertIsEqualToSnapshot(text)
   }
 
@@ -150,7 +147,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     }
 
     val project = PlatformTestUtil.loadAndOpenProject(projectPath.toPath(), testRootDisposable)
-    val text = dumpAndroidProjectView(project)
+    val text = project.dumpAndroidProjectView()
     PlatformTestUtil.forceCloseProjectWithoutSaving(project)
 
     assertIsEqualToSnapshot(text)
@@ -172,9 +169,9 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
       return
     }
     prepareGradleProject(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40, "testMissingImlIsIgnored_Test")
-    val text = openPreparedProject("testMissingImlIsIgnored_Test" ) { project: Project ->
-    dumpAndroidProjectView(project)
-  }
+    val text = openPreparedProject("testMissingImlIsIgnored_Test") { project: Project ->
+      project.dumpAndroidProjectView()
+    }
 
     assertIsEqualToSnapshot(text)
   }
@@ -198,124 +195,6 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     patch?.invoke(projectRootPath)
     importProject()
 
-    return dumpAndroidProjectView(project, projectViewSettings, initialState, filter)
-  }
-
-  private fun dumpAndroidProjectView(project: Project): String {
-    return dumpAndroidProjectView<Unit>(project, initialState = Unit) { _, _ -> Unit }
-  }
-
-  private fun <T : Any> dumpAndroidProjectView(
-    project: Project,
-    projectViewSettings: ProjectViewSettings = ProjectViewSettings(),
-    initialState: T,
-    filter: (element: AbstractTreeNode<*>, state: T) -> T?
-  ): String {
-    val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
-
-    fun String.replaceVariableParts(): String {
-      val userHomePath = System.getProperty("user.home")
-      val androidSdkAbsolutePath = androidSdk.absolutePath
-      val androidSdkUserRootedPath = androidSdk.absolutePath.replace(userHomePath, "~")
-      return replace(androidSdkAbsolutePath, "<ANDROID_SDK>", ignoreCase = false)
-        .replace(androidSdkUserRootedPath, "<ANDROID_SDK>", ignoreCase = false)
-        .replace(userHomePath, "<HOME>", ignoreCase = false)
-    }
-
-    fun Icon.getIconText(): Icon? {
-      var icon: Icon? = this
-      do {
-        val previous = icon
-        icon = if (icon is RetrievableIcon) icon.retrieveIcon() else icon
-        icon = if (icon is DeferredIcon) icon.evaluate() else icon
-        icon = if (icon is RowIcon && icon.allIcons.size == 1) icon.getIcon(0) else icon
-        icon = if (icon is LayeredIcon && icon.allLayers.size == 1) icon.getIcon(0) else icon
-      }
-      while (previous != icon)
-      return icon
-    }
-
-    fun PresentationData.toTestText(): String {
-      val icon = getIcon(false)?.getIconText()
-      val iconText =
-        (icon as? IconLoader.CachedImageIcon)?.originalPath?.let { if (it.startsWith("/")) it else "/${it}" }
-        ?: (icon as? ImageIconUIResource)?.let { it.description ?: "ImageIconUIResource(?)" }
-        ?: icon?.let { if (it.javaClass.simpleName == "DummyIcon") it.toString().prefixIfNot("/") else "$it (${it.javaClass.simpleName})" }
-      val nodeText =
-        if (coloredText.isEmpty()) presentableText
-        else coloredText.joinToString(separator = "") { it.text }
-
-      return buildString {
-        append(nodeText)
-        if (iconText != null) {
-          append(" (icon: $iconText)")
-        }
-      }
-        .replaceVariableParts()
-    }
-
-    fun createAndDumpProjectView(): String {
-      val viewPane = AndroidProjectViewPane(project)
-      // We need to create a component to initialize the view pane.
-      viewPane.createComponent()
-      val treeStructure: AbstractTreeStructure? = viewPane.treeStructure
-      val rootElement = treeStructure?.rootElement ?: return ""
-      // In production sorting happens when the tree builder asynchronously populates the UI. It uses the following comparator, by default,
-      // which, unfortunately, is not accessible via a public API.
-      val comparator = GroupByTypeComparator(null, AndroidProjectViewPane.ID)
-
-      return buildString {
-
-        fun dump(element: AbstractTreeNode<*>, prefix: String = "", state: T) {
-          val newState = filter(element, state) ?: return
-
-          appendLine("$prefix${element.presentation.toTestText()}")
-          treeStructure
-            .getChildElements(element)
-            .map { it as AbstractTreeNode<*> }
-            .apply { forEach { it.update() } }
-            .sortedWith(comparator)
-            .forEach { dump(it, "    $prefix", newState) }
-        }
-
-        dump(rootElement as AbstractTreeNode<*>, state = initialState)
-      }
-        // Trim the trailing line end since snapshots are loaded without it.
-        .trimEnd()
-    }
-
-    fun applySettings(settings: ProjectViewSettings) {
-      ProjectView.getInstance(this.project).apply {
-        setHideEmptyPackages(AndroidProjectViewPane.ID, settings.hideEmptyPackages)
-        (this as ProjectViewImpl).setFlattenPackages(AndroidProjectViewPane.ID, settings.flattenPackages)
-      }
-    }
-
-    fun getCurrentSettings(): ProjectViewSettings = ProjectView.getInstance(this.project).let { view ->
-      ProjectViewSettings(
-        hideEmptyPackages = view.isHideEmptyMiddlePackages(AndroidProjectViewPane.ID),
-        flattenPackages = view.isFlattenPackages(AndroidProjectViewPane.ID)
-      )
-    }
-
-    val oldSettings = getCurrentSettings()
-    applySettings(projectViewSettings)
-    return try {
-      createAndDumpProjectView()
-    }
-    finally {
-      applySettings(oldSettings)
-    }
-  }
-
-  private fun filterOutMostIncludeFiles(element: AbstractTreeNode<*>, state: Boolean): Boolean? {
-    return when {
-      element is IncludesViewNode -> true
-      state && element is PsiDirectoryNode && element.name == "android" -> state
-      state && element is PsiDirectoryNode -> null
-      state && element is PsiFileNode && element.name?.endsWith("native_activity.h") == true -> state
-      state && element is PsiFileNode -> null
-      else -> state
-    }
+    return project.dumpAndroidProjectView(projectViewSettings, initialState, filter)
   }
 }

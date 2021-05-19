@@ -26,15 +26,20 @@ import junit.framework.TestCase
  */
 class AndroidStudioSystemHealthMonitorKtTest : LightPlatformTestCase() {
   fun testGetActionName() {
+    val isJava8 = System.getProperty("java.specification.version") == "1.8"
+    val expected1 = if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$1" else
+      "AnAction@AndroidStudioSystemHealthMonitorKtTest"
+    val expected2 = if (isJava8) "AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$2\$1" else
+      "AnAction@AndroidStudioSystemHealthMonitorKtTest"
     // Anonymous class - in Java8, Kotlin classes are not recognized as anonymous classes by the JVM.
     //   Action is formatted as an inner class
-    TestCase.assertEquals("AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$1",
+    TestCase.assertEquals(expected1,
                           AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
                             override fun actionPerformed(e: AnActionEvent) {}
                           }.javaClass, Presentation("foo")))
     // Double-nested anonymous class - same as above - not seen as an anonymous class.
     Any().apply {
-      TestCase.assertEquals("AndroidStudioSystemHealthMonitorKtTest.testGetActionName\$2\$1",
+      TestCase.assertEquals(expected2,
                             AndroidStudioSystemHealthMonitor.getActionName(object : AnAction() {
                               override fun actionPerformed(e: AnActionEvent) {}
                             }.javaClass, Presentation("foo")))

@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom;
 
-import static com.android.SdkConstants.ADAPTER_VIEW;
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_ARCH_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG;
@@ -50,8 +49,8 @@ import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
 import static com.android.SdkConstants.CLASS_NESTED_SCROLL_VIEW;
 import static com.android.SdkConstants.CLASS_PERCENT_FRAME_LAYOUT;
 import static com.android.SdkConstants.CLASS_PERCENT_RELATIVE_LAYOUT;
-import static com.android.SdkConstants.CLASS_PREFERENCE;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
+import static com.android.SdkConstants.FQCN_ADAPTER_VIEW;
 import static com.android.SdkConstants.FQCN_GRID_LAYOUT_V7;
 import static com.android.SdkConstants.GRID_LAYOUT;
 import static com.android.SdkConstants.RECYCLER_VIEW;
@@ -71,8 +70,9 @@ import static com.android.SdkConstants.VIEW_GROUP;
 import static com.android.SdkConstants.VIEW_INCLUDE;
 import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.VIEW_TAG;
+import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewClassByName;
+import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.findViewValidInXMLByName;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
-import static org.jetbrains.android.util.AndroidUtils.VIEW_CLASS_NAME;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -95,6 +95,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
@@ -102,6 +103,7 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
+import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -122,6 +124,7 @@ import org.jetbrains.android.dom.layout.DataBindingElement;
 import org.jetbrains.android.dom.layout.Fragment;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
 import org.jetbrains.android.dom.layout.Tag;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -135,7 +138,7 @@ import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
+import org.jetbrains.android.facet.TagFromClassDescriptor;
 import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
@@ -323,7 +326,7 @@ public class AttributeProcessingUtil {
    */
   private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
     if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
-      return Collections.singleton(getViewClassByTagName(facet, SCROLL_VIEW));
+      return Collections.singleton(findViewValidInXMLByName(facet, SCROLL_VIEW));
     }
 
     return Collections.emptySet();
@@ -367,7 +370,7 @@ public class AttributeProcessingUtil {
     // Handle preferences:
     Map<String, PsiClass> prefClassMap;
     AndroidXmlResourcesUtil.PreferenceSource preferenceSource = AndroidXmlResourcesUtil.PreferenceSource.getPreferencesSource(tag, facet);
-    prefClassMap = getClassMap(facet, preferenceSource.getQualifiedBaseClass());
+    prefClassMap = TagToClassMapper.getInstance(facet.getModule()).getClassMap(preferenceSource.getQualifiedBaseClass());
     PsiClass psiClass = prefClassMap.get(tagName);
     if (psiClass == null) {
       return;
@@ -381,31 +384,12 @@ public class AttributeProcessingUtil {
       // AndroidX.
       String widgetClassName = AndroidTextUtils.trimEndOrNullize(tagName, PREFERENCE_TAG_NAME);
       if (widgetClassName != null) {
-        PsiClass widgetClass = LayoutViewClassUtils.findClassByTagName(facet, widgetClassName, VIEW_CLASS_NAME);
+        PsiClass widgetClass = findViewValidInXMLByName(facet, widgetClassName);
         if (widgetClass != null) {
           registerAttributesForClassAndSuperclasses(facet, element, widgetClass, callback, skipAttrNames);
         }
       }
     }
-  }
-
-  public static Map<String, PsiClass> getClassMap(AndroidFacet facet, String qualifiedClassName) {
-    if (DumbService.isDumb(facet.getModule().getProject())) {
-      return Collections.emptyMap();
-    }
-    return TagToClassMapper.getInstance(facet.getModule()).getClassMap(qualifiedClassName);
-  }
-
-  public static Map<String, PsiClass> getFrameworkPreferencesClassMap(AndroidFacet facet) {
-    return getClassMap(facet, CLASS_PREFERENCE);
-  }
-
-  public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, VIEW_CLASS_NAME);
-  }
-
-  public static Map<String, PsiClass> getViewGroupClassMap(@NotNull AndroidFacet facet) {
-    return getClassMap(facet, CLASS_VIEWGROUP);
   }
 
   /**
@@ -503,7 +487,7 @@ public class AttributeProcessingUtil {
       String name = item.getName();
       int indexOfLastUnderscore = name.lastIndexOf('_');
       String viewName = name.substring(0, indexOfLastUnderscore);
-      PsiClass psiClass = getViewClassByTagName(facet, viewName);
+      PsiClass psiClass = findViewClassByName(facet, viewName);
       if (psiClass != null) {
         registerAttributes(facet, element, name, getResourcePackage(psiClass), callback, skipAttrNames);
       }
@@ -531,17 +515,6 @@ public class AttributeProcessingUtil {
     }
   }
 
-  @Nullable
-  private static PsiClass getViewClassByTagName(@NotNull AndroidFacet facet, String tag) {
-    switch (StudioFlags.LAYOUT_XML_MODE.get()) {
-      case ATTRIBUTES_FROM_STYLEABLES:
-      case CUSTOM_CHILDREN:
-        return LayoutViewClassUtils.findVisibleClassByTagName(facet, tag, VIEW_CLASS_NAME);
-      default:
-        return getViewClassMap(facet).get(tag);
-    }
-  }
-
   /**
    * Entry point for XML elements in layout XMLs
    */
@@ -562,39 +535,27 @@ public class AttributeProcessingUtil {
         registerToolsAttribute(ATTR_VIEW_BINDING_IGNORE, callback);
       }
 
-      // AdapterView resides in android.widget package and thus is acquired from class map by short name.
-      PsiClass adapterView = getViewClassByTagName(facet, ADAPTER_VIEW);
-      PsiClass psiClass = getViewClassByTagName(facet, tag.getName());
-      if (adapterView != null && psiClass != null && psiClass.isInheritor(adapterView, true)) {
-        registerToolsAttribute(ATTR_LISTITEM, callback);
-        registerToolsAttribute(ATTR_LISTHEADER, callback);
-        registerToolsAttribute(ATTR_LISTFOOTER, callback);
-      }
+      XmlElementDescriptor descriptor = tag.getDescriptor();
+      if (descriptor instanceof LayoutViewElementDescriptor &&
+          ((LayoutViewElementDescriptor)descriptor).getClazz() != null) {
+        PsiClass viewClass = ((LayoutViewElementDescriptor)descriptor).getClazz();
 
-      PsiClass oldDrawerLayout = getViewClassByTagName(facet, CLASS_DRAWER_LAYOUT.oldName());
-      if (oldDrawerLayout != null && psiClass != null &&
-          (psiClass.isEquivalentTo(oldDrawerLayout) || psiClass.isInheritor(oldDrawerLayout, true))) {
-        registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
-      }
+        if (InheritanceUtil.isInheritor(viewClass, FQCN_ADAPTER_VIEW)) {
+          registerToolsAttribute(ATTR_LISTITEM, callback);
+          registerToolsAttribute(ATTR_LISTHEADER, callback);
+          registerToolsAttribute(ATTR_LISTFOOTER, callback);
+        }
 
-      PsiClass newDrawerLayout = getViewClassByTagName(facet, CLASS_DRAWER_LAYOUT.newName());
-      if (newDrawerLayout != null && psiClass != null &&
-          (psiClass.isEquivalentTo(newDrawerLayout) || psiClass.isInheritor(newDrawerLayout, true))) {
-        registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
-      }
+        if (InheritanceUtil.isInheritor(viewClass, CLASS_DRAWER_LAYOUT.newName()) ||
+            InheritanceUtil.isInheritor(viewClass, CLASS_DRAWER_LAYOUT.oldName())) {
+          registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
+        }
 
-      PsiClass oldRecyclerView = getViewClassByTagName(facet, RECYCLER_VIEW.oldName());
-      if (oldRecyclerView != null && psiClass != null &&
-          (psiClass.isEquivalentTo(oldRecyclerView) || psiClass.isInheritor(oldRecyclerView, true))) {
-        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
-        registerToolsAttribute(ATTR_LISTITEM, callback);
-      }
-
-      PsiClass newRecyclerView = getViewClassByTagName(facet, RECYCLER_VIEW.newName());
-      if (newRecyclerView != null && psiClass != null &&
-          (psiClass.isEquivalentTo(newRecyclerView) || psiClass.isInheritor(newRecyclerView, true))) {
-        registerToolsAttribute(ATTR_ITEM_COUNT, callback);
-        registerToolsAttribute(ATTR_LISTITEM, callback);
+        if (InheritanceUtil.isInheritor(viewClass, RECYCLER_VIEW.newName()) ||
+            InheritanceUtil.isInheritor(viewClass, RECYCLER_VIEW.oldName())) {
+          registerToolsAttribute(ATTR_ITEM_COUNT, callback);
+          registerToolsAttribute(ATTR_LISTITEM, callback);
+        }
       }
 
       // Mockup attributes can be associated with any View, even include tag
@@ -629,7 +590,7 @@ public class AttributeProcessingUtil {
 
         String name = tag.getAttributeValue("class");
         if (name != null) {
-          PsiClass aClass = getViewClassByTagName(facet, name);
+          PsiClass aClass = findViewValidInXMLByName(facet, name);
           if (aClass != null) {
             registerAttributesForClassAndSuperclasses(facet, element, aClass, callback, skipAttrNames);
           }
@@ -640,16 +601,17 @@ public class AttributeProcessingUtil {
         if (tag.getParentTag() == null) {
           registerToolsAttribute(ATTR_PARENT_TAG, callback);
         }
-        registerAttributesForClassAndSuperclasses(facet, element, getViewClassByTagName(facet, VIEW_MERGE), callback, skipAttrNames);
+        registerAttributesForClassAndSuperclasses(facet, element, findViewValidInXMLByName(facet, VIEW_MERGE), callback, skipAttrNames);
 
         String parentTagName = tag.getAttributeValue(ATTR_PARENT_TAG, TOOLS_URI);
         if (parentTagName != null) {
-          registerAttributesForClassAndSuperclasses(facet, element, getViewClassByTagName(facet, parentTagName), callback, skipAttrNames);
+          registerAttributesForClassAndSuperclasses(facet, element, findViewValidInXMLByName(facet, parentTagName), callback,
+                                                    skipAttrNames);
         }
         break;
 
       default:
-        PsiClass c = getViewClassByTagName(facet, tagName);
+        PsiClass c = findViewValidInXMLByName(facet, tagName);
         registerAttributesForClassAndSuperclasses(facet, element, c, callback, skipAttrNames);
         break;
     }
@@ -661,6 +623,7 @@ public class AttributeProcessingUtil {
     }
 
     XmlTag parentTag = tag.getParentTag();
+    PsiClass parentViewClass = null;
     if (parentTag != null) {
       String parentTagName = parentTag.getName();
 
@@ -671,32 +634,23 @@ public class AttributeProcessingUtil {
       if (TAG_LAYOUT.equals(parentTagName)) {
         // Data binding: ensure that the children of the <layout> tag
         // pick up layout params from ViewGroup (layout_width and layout_height)
-        parentTagName = VIEW_GROUP;
+        parentViewClass = findViewClassByName(facet, CLASS_VIEWGROUP);
       }
+      else if (parentTagName != null) {
+        parentViewClass = findViewValidInXMLByName(facet, parentTagName);
+      }
+
       if (parentTagName != null) {
-        PsiClass c = getViewClassByTagName(facet, parentTagName);
-        while (c != null) {
-          registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
-          c = getSuperclass(c);
+        while (parentViewClass != null) {
+          registerAttributesFromSuffixedStyleables(facet, element, parentViewClass, callback, skipAttrNames);
+          parentViewClass = getSuperclass(parentViewClass);
         }
         return;
       }
     }
 
-    switch (StudioFlags.LAYOUT_XML_MODE.get()) {
-      case ATTRIBUTES_FROM_STYLEABLES:
-      case CUSTOM_CHILDREN:
-        registerAttributesFromSuffixedStyleables(facet, element, callback, skipAttrNames);
-        break;
-      default:
-        Map<String, PsiClass> map = getViewClassMap(facet);
-
-        // We don't know what the parent is: include all layout attributes from all layout classes.
-        for (PsiClass c : map.values()) {
-          registerAttributesFromSuffixedStyleables(facet, element, c, callback, skipAttrNames);
-        }
-        break;
-    }
+    // We don't know what the parent is: include all layout attributes from all layout classes.
+    registerAttributesFromSuffixedStyleables(facet, element, callback, skipAttrNames);
   }
 
   /**
@@ -724,6 +678,12 @@ public class AttributeProcessingUtil {
 
     Set<XmlName> skippedAttributes =
       processAllExistingAttrsFirst ? registerExistingAttributes(facet, tag, element, callback) : new HashSet<>();
+
+    XmlElementDescriptor descriptor = tag.getDescriptor();
+    if (descriptor instanceof TagFromClassDescriptor && ((TagFromClassDescriptor)descriptor).getClazz() == null) {
+      // Don't register attributes for unresolved classes.
+      return;
+    }
 
     if (element instanceof ManifestElement) {
       processManifestAttributes(tag, element, callback);

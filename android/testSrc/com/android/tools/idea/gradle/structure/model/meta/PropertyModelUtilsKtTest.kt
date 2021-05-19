@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
-import com.android.tools.idea.gradle.structure.GradleFileModelTestCase
+import com.android.tools.idea.gradle.structure.PsdGradleFileModelTestCase
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_AS_FILE
 import com.android.tools.idea.gradle.structure.PROPERTY_MODEL_UTILS_TEST_DSL_TEXT
 import com.intellij.testFramework.RunsInEdt
@@ -28,7 +28,7 @@ import org.junit.Test
 import java.io.File
 
 @RunsInEdt
-class PropertyModelUtilsKtTest : GradleFileModelTestCase() {
+class PropertyModelUtilsKtTest : PsdGradleFileModelTestCase() {
 
   private fun GradlePropertyModel.wrap(): ResolvedPropertyModel = resolve()
 

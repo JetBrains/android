@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static com.android.builder.model.AndroidProject.PROPERTY_APK_SELECT_CONFIG;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_ABI;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_API_CODENAME;
-import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_DENSITY;
-import static com.android.builder.model.AndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
-import static com.android.builder.model.AndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
-import static com.android.builder.model.AndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_APK_SELECT_CONFIG;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_ABI;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_API_CODENAME;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_DENSITY;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_BUILD_WITH_STABLE_IDS;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_DEPLOY_AS_INSTANT_APP;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_EXTRACT_INSTANT_APK;
+import static com.android.ide.common.gradle.model.IdeAndroidProject.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.run.GradleApkProvider.POST_BUILD_MODEL;
 import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
@@ -35,7 +36,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -92,6 +93,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -258,6 +260,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
                              @NotNull RunConfiguration configuration,
                              @NotNull ExecutionEnvironment env,
                              @NotNull MakeBeforeRunTask task) {
+    if (Boolean.FALSE.equals(env.getUserData(GradleBuilds.BUILD_SHOULD_EXECUTE))) {
+      return true;
+    }
+
     RunStats stats = RunStats.from(env);
     try {
       stats.beginBeforeRunTasks();
@@ -272,7 +278,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   enum SyncNeeded {
     NOT_NEEDED(false),
     SINGLE_VARIANT_SYNC_NEEDED(false),
-    FULL_SYNC_NEEDED(true);
+    FULL_SYNC_NEEDED(true),
+    NATIVE_VARIANTS_SYNC_NEEDED(false);
 
     public final boolean isFullSync;
 
@@ -283,42 +290,55 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @VisibleForTesting
   @NotNull
-  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration) {
+  SyncNeeded isSyncNeeded(@NotNull DataContext context, @NotNull RunConfiguration configuration, Collection<String> abis) {
 
     // Invoke Gradle Sync if build files have been changed since last sync, and Sync-before-build option is enabled OR post build sync
     // if not supported. The later case requires Gradle Sync, because deploy relies on the models from Gradle Sync to get Apk locations.
-    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO &&
-        (AndroidGradleBuildConfiguration.getInstance(myProject).SYNC_PROJECT_BEFORE_BUILD ||
-         !isPostBuildModelsSupported(context, configuration))) {
+    if (GradleSyncState.getInstance(myProject).isSyncNeeded() != ThreeState.NO && !isPostBuildModelsSupported(context, configuration)) {
       return SyncNeeded.SINGLE_VARIANT_SYNC_NEEDED;
     }
 
     // If the project has native modules, and there're any un-synced variants.
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModel = NdkModuleModel.get(module);
-      if (ndkModel != null && ndkModel.getVariants().size() < ndkModel.getNdkVariantNames().size()) {
-        return SyncNeeded.FULL_SYNC_NEEDED;
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+      if (ndkModel != null && androidModel != null) {
+        String selectedVariantName = androidModel.getSelectedVariant().getName();
+        Set<String> availableAbis = ndkModel.getSyncedVariantAbis().stream()
+          .filter(it -> it.getVariant().equals(selectedVariantName))
+          .map(it -> it.getAbi())
+          .collect(Collectors.toSet());
+        if (!availableAbis.containsAll(abis)) {
+          return SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED;
+        }
       }
     }
     return SyncNeeded.NOT_NEEDED;
   }
 
   @Nullable
-  private String runSync(@NotNull SyncNeeded syncNeeded) {
-    String result;
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
-    request.runInBackground = false;
-    request.forceFullVariantsSync = syncNeeded.isFullSync;
+  private String runSync(@NotNull SyncNeeded syncNeeded,
+                         @NotNull Set<@NotNull String> requestedAbis) {
+    if (syncNeeded == SyncNeeded.NATIVE_VARIANTS_SYNC_NEEDED) {
+      GradleSyncInvoker.getInstance().fetchAndMergeNativeVariants(myProject, requestedAbis);
+      return null;
+    }
+    else {
+      String result;
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_RUN_SYNC_NEEDED_BEFORE_RUNNING);
+      request.runInBackground = false;
+      request.forceFullVariantsSync = syncNeeded.isFullSync;
 
-    AtomicReference<String> errorMsgRef = new AtomicReference<>();
-    GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
-      @Override
-      public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-        errorMsgRef.set(errorMessage);
-      }
-    });
-    result = errorMsgRef.get();
-    return result;
+      AtomicReference<String> errorMsgRef = new AtomicReference<>();
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener() {
+        @Override
+        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+          errorMsgRef.set(errorMessage);
+        }
+      });
+      result = errorMsgRef.get();
+      return result;
+    }
   }
 
   /**
@@ -339,27 +359,19 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   private boolean doExecuteTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
+    AndroidRunConfigurationBase androidRunConfiguration =
+      configuration instanceof AndroidRunConfigurationBase ? (AndroidRunConfigurationBase)configuration : null;
     if (!myAndroidProjectInfo.requiresAndroidModel()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
 
-    // If the model needs a sync, we need to sync "synchronously" before running.
-    SyncNeeded syncNeeded = isSyncNeeded(context, configuration);
+    // Note: this run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
+    // the android run config context
+    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
+    List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
+    @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
 
-    if (syncNeeded != SyncNeeded.NOT_NEEDED) {
-      String errorMsg = runSync(syncNeeded);
-      if (errorMsg != null) {
-        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
-        // including the path of the APK.
-        getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
-        return false;
-      }
-    }
-
-    if (myProject.isDisposed()) {
-      return false;
-    }
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration instanceof RunProfileWithCompileBeforeLaunchOption &&
@@ -370,37 +382,26 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // Compute modules to build
     Module[] modules = getModules(context, configuration);
 
-    // Note: this before run task provider may be invoked from a context such as Java unit tests, in which case it doesn't have
-    // the android run config context
-    DeviceFutures deviceFutures = env.getCopyableUserData(DeviceFutures.KEY);
-    List<AndroidDevice> targetDevices = deviceFutures == null ? emptyList() : deviceFutures.getDevices();
-    @Nullable AndroidDeviceSpec targetDeviceSpec = AndroidDeviceSpecUtil.createSpec(targetDevices);
-
-    // NOTE: DeviceFutures.KEY is configured by AndroidRunConfigurationBase and its descendants only and therefore
-    //       when it is not null it is safe to assume that configuration is an instance of AndroidRunConfigurationBase.
     List<String> cmdLineArgs;
     try {
-      cmdLineArgs = deviceFutures != null
-                    ? getCommonArguments(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)
-                    : emptyList();
+      cmdLineArgs = getCommonArguments(modules, androidRunConfiguration, targetDeviceSpec);
     }
     catch (Exception e) {
       getLog().warn("Error generating command line arguments for Gradle task", e);
       return false;
     }
-
-    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceSpec, task.getGoal());
+    AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getCommonVersion() : null;
+    BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
     try {
       boolean success = builder.build(runner, cmdLineArgs);
 
-      if (configuration instanceof AndroidRunConfigurationBase) {
+      if (androidRunConfiguration != null) {
         Object model = runner.getModel();
         if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-          ((AndroidRunConfigurationBase)configuration)
-            .putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
+          androidRunConfiguration.putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
         }
         else {
           getLog().info("Couldn't get post build models.");
@@ -408,6 +409,25 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
 
       getLog().info("Gradle invocation complete, success = " + success);
+
+      // If the model needs a sync, we need to sync "synchronously" before running.
+      Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
+      SyncNeeded syncNeeded = isSyncNeeded(context, configuration, targetAbis);
+
+      if (syncNeeded != SyncNeeded.NOT_NEEDED) {
+        String errorMsg = runSync(syncNeeded, targetAbis);
+        if (errorMsg != null) {
+          // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+          // including the path of the APK.
+          getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
+          return false;
+        }
+      }
+
+      if (myProject.isDisposed()) {
+        return false;
+      }
+
       return success;
     }
     catch (InvocationTargetException e) {
@@ -429,29 +449,35 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   /**
    * Returns the list of arguments to Gradle that are common to both instant and non-instant builds.
    */
+  @VisibleForTesting
   @NotNull
-  private static List<String> getCommonArguments(@NotNull Module[] modules,
-                                                 @NotNull AndroidRunConfigurationBase configuration,
-                                                 @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
+  static List<String> getCommonArguments(@NotNull Module[] modules,
+                                         @Nullable AndroidRunConfigurationBase configuration,
+                                         @Nullable AndroidDeviceSpec targetDeviceSpec) throws IOException {
     List<String> cmdLineArgs = new ArrayList<>();
-    cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
-    cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
+    // Always build with stable IDs to avoid push-to-device overhead.
+    cmdLineArgs.add(createProjectProperty(PROPERTY_BUILD_WITH_STABLE_IDS, true));
+    if (configuration != null) {
+      cmdLineArgs.addAll(getDeviceSpecificArguments(modules, configuration, targetDeviceSpec));
+      cmdLineArgs.addAll(getProfilingOptions(configuration, targetDeviceSpec));
+    }
     return cmdLineArgs;
   }
 
+  @VisibleForTesting
   @NotNull
-  public static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
-                                                        @NotNull AndroidRunConfigurationBase configuration,
-                                                        @Nullable AndroidDeviceSpec deviceSpec) {
+  static List<String> getDeviceSpecificArguments(@NotNull Module[] modules,
+                                                 @NotNull AndroidRunConfigurationBase configuration,
+                                                 @Nullable AndroidDeviceSpec deviceSpec) {
     if (deviceSpec == null) {
       return emptyList();
     }
 
     List<String> properties = new ArrayList<>(3);
-    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec)) {
+    if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.getMinVersion())) {
       // For the bundle tool, we create a temporary json file with the device spec and
       // pass the file path to the gradle task.
-      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec);
+      boolean collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.getMinVersion());
       File deviceSpecFile = AndroidDeviceSpecUtil.writeToJsonTempFile(deviceSpec, collectListOfLanguages);
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
       if (configuration instanceof AndroidRunConfiguration) {
@@ -471,10 +497,12 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     else {
       // For non bundle tool deploy tasks, we have one argument per device spec property
-      AndroidVersion version = deviceSpec.getVersion();
-      properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
-      if (version.getCodename() != null) {
-        properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.getCodename()));
+      AndroidVersion version = deviceSpec.getCommonVersion();
+      if (version != null) {
+        properties.add(createProjectProperty(PROPERTY_BUILD_API, Integer.toString(version.getApiLevel())));
+        if (version.getCodename() != null) {
+          properties.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.getCodename()));
+        }
       }
 
       if (deviceSpec.getDensity() != null) {
@@ -518,7 +546,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    int minFeatureLevel = targetDeviceSpec.getVersion().getFeatureLevel();
+    int minFeatureLevel = targetDeviceSpec.getMinVersion().getFeatureLevel();
     List<String> arguments = new LinkedList<>();
     ProfilerState state = configuration.getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED && minFeatureLevel >= AndroidVersion.VersionCodes.LOLLIPOP &&
@@ -542,7 +570,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   @NotNull
   private static BeforeRunBuilder createBuilder(@NotNull Module[] modules,
                                                 @NotNull RunConfiguration configuration,
-                                                @Nullable AndroidDeviceSpec targetDeviceSpec,
+                                                @Nullable AndroidVersion targetDeviceVersion,
                                                 @Nullable String userGoal) {
     if (modules.length == 0) {
       throw new IllegalStateException("Unable to determine list of modules to build");
@@ -574,7 +602,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       since testCompileType != TestCompileType.UNIT_TESTS it is safe to assume that configuration is
     //       AndroidRunConfigurationBase.
     if (configuration instanceof AndroidRunConfigurationBase
-        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceSpec)) {
+        && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceVersion)) {
       return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
@@ -583,17 +611,18 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
                                                         @NotNull AndroidRunConfigurationBase configuration,
-                                                        @Nullable AndroidDeviceSpec targetDeviceSpec) {
+                                                        @Nullable AndroidVersion minTargetDeviceVersion) {
     return Arrays.stream(modules)
-      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec));
+      .anyMatch(module -> DynamicAppUtils.useSelectApksFromBundleBuilder(module, configuration, minTargetDeviceVersion));
   }
 
   private static boolean shouldCollectListOfLanguages(@NotNull Module[] modules,
                                                       @NotNull AndroidRunConfigurationBase configuration,
-                                                      @Nullable AndroidDeviceSpec targetDeviceSpec) {
+                                                      @Nullable AndroidVersion targetDeviceVersion) {
     // We should collect the list of languages only if *all* devices are verify the condition, otherwise we would
     // end up deploying language split APKs to devices that don't support them.
-    return Arrays.stream(modules).allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDeviceSpec));
+    return Arrays.stream(modules)
+      .allMatch(module -> DynamicAppUtils.shouldCollectListOfLanguages(module, configuration, targetDeviceVersion));
   }
 
   @NotNull

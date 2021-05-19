@@ -16,18 +16,18 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
+import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
+import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData
 import com.android.tools.idea.welcome.config.FirstRunWizardMode
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo.isLinux
@@ -48,10 +48,10 @@ import javax.swing.JPanel
  * initial "Welcome Screen" UI (with a list of projects and options to start a new project, etc.)
  */
 class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : WelcomeScreen {
-  private val modelWizard: ModelWizard
-  private val mainPanel: JComponent
+  private lateinit var modelWizard: ModelWizard
+  private var mainPanel: JComponent? = null
 
-  init {
+  private fun setupWizard() {
     val model = FirstRunModel(mode)
 
     // TODO(qumeric): Add more steps and check witch steps to add for each different FirstRunWizardMode
@@ -59,16 +59,13 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       addStep(FirstRunWelcomeStep(model))
       if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
         addStep(InstallationTypeWizardStep(model))
+        addStep(JdkSetupStep(model))
       }
-      addStep(JdkSetupStep(model))
       addStep(SelectThemeStep())
       if (mode == FirstRunWizardMode.MISSING_SDK) {
         addStep(MissingSdkAlertStep())
       }
       addStep(SdkComponentsStep(model))
-      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(LinuxHaxmInfoStep())
-      }
       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
         val supplier = Supplier<Collection<RemotePackage>?> {
           val components: Iterable<InstallableComponent> = model.componentTree.childrenToInstall
@@ -80,15 +77,19 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
             null
           }
         }
+        model.componentTree.steps.forEach { addStep(it) }
         addStep(InstallSummaryStep(model, supplier))
       }
-      // TODO(qumeric): add support for MISSING_SDK case and for INSTALL_HANDOFF
-      //addStep(LicenseAgreementStep())
-      //if(SystemInfo.isMac || SystemInfo.isWindows) {
-      addStep(HaxmUninstallInfoStep())
-      //}
-      // if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
-      //addStep(LicenseAgreementStep(LicenseAgreementModel(sdkManagerLocalPath), listOf()))
+
+      if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
+        addStep(LinuxHaxmInfoStep())
+      }
+
+       if (mode != FirstRunWizardMode.INSTALL_HANDOFF) {
+         addStep(LicenseAgreementStep(LicenseAgreementModel(model.sdkLocation), listOf()))
+       }
+
+      // TODO: addStep(ProgressStep(model))
     }.build()
 
 
@@ -105,7 +106,16 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     Disposer.register(this, modelWizard)
   }
 
-  override fun getWelcomePanel(): JComponent = mainPanel
+  override fun getWelcomePanel(): JComponent {
+    // TODO(qumeric): I am not sure at which point getWelcomePanel runs.
+    //  Maybe it is worth to run setupWizard earlier and wait here for finish.
+    if (mainPanel == null) {
+      ApplicationManager.getApplication().invokeAndWait {
+        setupWizard();
+      }
+    }
+    return mainPanel!!
+  }
 
   override fun setupFrame(frame: JFrame) {
     // Intercept windowClosing event, to show the closing confirmation dialog

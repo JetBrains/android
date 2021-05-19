@@ -108,11 +108,7 @@ public class MemoryProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
-    // TODO(b/150503095)
-    MemoryStartResponse response =
-        myProfilers.getClient().getMemoryClient().startMonitoringApp(MemoryStartRequest.newBuilder().setSession(session).build());
-  }
+  public void startProfiling(Common.Session session) { }
 
   @Override
   public void stopProfiling(Common.Session session) {
@@ -123,10 +119,6 @@ public class MemoryProfiler extends StudioProfiler {
     catch (StatusRuntimeException e) {
       getLogger().info(e);
     }
-
-    // TODO(b/150503095)
-    MemoryStopResponse response =
-        myProfilers.getClient().getMemoryClient().stopMonitoringApp(MemoryStopRequest.newBuilder().setSession(session).build());
   }
 
   /**

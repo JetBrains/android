@@ -17,15 +17,20 @@ package com.android.tools.idea.gradle.dsl.parser.java;
 
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.SOURCE_COMPATIBILITY;
 import static com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModelImpl.TARGET_COMPATIBILITY;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
@@ -43,7 +48,7 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
 
   // The Java Dsl element has a different mapping of external names to functionality than the BaseCompileOptionsDslElement, even though
   // the corresponding models are identical.  This suggests that JavaDslElement should probably not in fact be a
-  // BaseCompileOptionsDslElement.
+  // BaseCompileOptionsDslElement, or else that our modelling is wrong.
   //
   // It is also a bit odd in that in Groovy the java block need not be explicitly present -- sourceCompatibility and targetCompatibility
   // properties set at top-level are treated as altering the java block properties.  (I think).
@@ -55,6 +60,11 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
+    // some versions of Gradle support setting these properties in Groovy through the standard setter method at top level.  We handle
+    // that manually in addParsedElement/setParsedElement in order not to write out syntax that the project does not
+    // understand.
+    //
+    // TODO(xof): a version-sensitive mechanism would improve this considerably.
     {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
     {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR}
   }).collect(toModelMap());
@@ -95,6 +105,27 @@ public class JavaDslElement extends BaseCompileOptionsDslElement {
     else {
       return super.create();
     }
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    // The java { ... } block, though not the top-level where this is reused, supports the normal setter methods in Groovy.  We
+    // can't add those to the model description, as otherwise when writing we will write out invalid top-level configuration;
+    // we therefore handle parsing of non-toplevel application statements by hand, here.
+    if (element instanceof GradleDslLiteral && element.getDslFile().getParser() instanceof GroovyDslNameConverter) {
+      String name = element.getName();
+      if (name.equals("sourceCompatibility") || name.equals("targetCompatibility")) {
+        ModelEffectDescription effect = null;
+        if (name.equals("sourceCompatibility")) {
+          effect = new ModelEffectDescription(new ModelPropertyDescription(SOURCE_COMPATIBILITY), SET);
+        }
+        else {
+          effect = new ModelEffectDescription(new ModelPropertyDescription(TARGET_COMPATIBILITY), SET);
+        }
+        element.setModelEffect(effect);
+      }
+    }
+    super.addParsedElement(element);
   }
 
   @Override

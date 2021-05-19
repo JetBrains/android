@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Test with nested actions that share the same ID. These should override actions that would otherwise have been inherited from their
+parents.
+-->
+
+<navigation
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:startDestination="@id/overridden_action_main_fragment">
+
+    <fragment
+            android:id="@+id/overridden_action_main_fragment"
+            android:name=".OveriddenActionMainFragment">
+        <action
+                android:id="@+id/navigate"
+                app:destination="@id/overidden_action_inner_navigation"/>
+    </fragment>
+    <navigation
+            android:id="@+id/overidden_action_inner_navigation"
+            app:startDestination="@id/overridden_action_inner_fragment">
+        <action
+                android:id="@+id/exit"
+                app:destination="@id/overridden_action_main_fragment">
+            <argument android:name="exitReason" android:defaultValue="DEFAULT"/>
+        </action>
+        <fragment
+                android:id="@+id/overridden_action_inner_fragment"
+                android:name=".OveriddenActionInnerFragment">
+            <action
+                    android:id="@+id/exit"
+                    app:destination="@id/overridden_action_main_fragment">
+                <argument android:name="exitReason" android:defaultValue="DIFFERENT"/>
+            </action>
+        </fragment>
+    </navigation>
+</navigation>

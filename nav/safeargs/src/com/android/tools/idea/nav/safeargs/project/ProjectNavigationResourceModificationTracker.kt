@@ -16,6 +16,7 @@
 package com.android.tools.idea.nav.safeargs.project
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
@@ -25,6 +26,17 @@ import com.intellij.openapi.util.SimpleModificationTracker
  */
 class ProjectNavigationResourceModificationTracker(val project: Project) : ModificationTracker {
   private val navigationModificationTracker = SimpleModificationTracker()
+
+  init {
+    if (!project.isDefault) {
+      val startupManager = StartupManager.getInstance(project)
+      if (!startupManager.postStartupActivityPassed()) {
+        // If query happens before indexing when project just starts up, invalid queried results are cached.
+        // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
+        startupManager.registerPostStartupActivity { navigationChanged() }
+      }
+    }
+  }
 
   companion object {
     @JvmStatic

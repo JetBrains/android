@@ -34,8 +34,7 @@ abstract class AbstractAndroidUsageHighlightingTest : KotlinAndroidTestCase() {
                 false,
                 false,
                 true,
-                false,
-                myFixture.file)
+                false)
 
         data.init()
 
@@ -45,6 +44,6 @@ abstract class AbstractAndroidUsageHighlightingTest : KotlinAndroidTestCase() {
             HighlightInfo.newHighlightInfo(HighlightInfoType.INFORMATION).range(it.startOffset, it.endOffset).create()
         }
 
-        data.checkResult(infos, document.text)
+        data.checkResult(myFixture.file, infos, document.text)
     }
 }

@@ -35,21 +35,15 @@ import com.android.tools.idea.testing.assertIsEqualToSnapshot
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
-bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests  --test_sharding_strategy=disabled  \
---test_filter="GradleSyncProjectComparisonOldAgpTestCase" --nocache_test_results --strategy=TestRunner=standalone \
---jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
+bazel test //tools/adt/idea/old-agp-tests:intellij.android.old-agp-tests_tests \
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" --test_output=streamed
  */
-abstract class GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync: Boolean = false
-) : GradleSyncProjectComparisonTest(singleVariantSync) {
-  class FullVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase()
-
-  class SingleVariantGradleSyncProjectComparisonOldAgpTest : GradleSyncProjectComparisonOldAgpTestCase(singleVariantSync = true)
-
+class GradleSyncProjectComparisonOldAgpTest: GradleSyncProjectComparisonTest() {
   fun testSimpleApplicationWithAgp3_3_2() {
     val text = importSyncAndDumpProject(
       projectDir = TestProjectPaths.SIMPLE_APPLICATION,
       patch = {
-        AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2")
+        AndroidGradleTests.defaultPatchPreparedProject(it, "5.5", "3.3.2", null)
       }
     )
     assertIsEqualToSnapshot(text)

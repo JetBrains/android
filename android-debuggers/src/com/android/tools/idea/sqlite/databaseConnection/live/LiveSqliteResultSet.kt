@@ -39,7 +39,7 @@ abstract class LiveSqliteResultSet(
 
   protected fun sendQueryCommand(sqliteStatement: SqliteStatement): ListenableFuture<SqliteInspectorProtocol.Response> {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId)
-    return messenger.sendCommand(queryCommand).cancelOnDispose(this)
+    return messenger.sendCommandAsync(queryCommand).cancelOnDispose(this)
   }
 
   override fun dispose() { }

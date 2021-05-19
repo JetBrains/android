@@ -538,6 +538,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.setVisible(true);
   }
 
+  @TestOnly
+  public boolean isShowingContent() {
+    return myMainPanel.isShowing();
+  }
+
   public List<AttachedToolWindow<T>> getDetachedToolWindows() {
     return myModel.getDetachedTools();
   }

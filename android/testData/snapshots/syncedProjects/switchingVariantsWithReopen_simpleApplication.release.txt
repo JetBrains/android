@@ -1,5 +1,5 @@
 PROJECT             : project
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : project
         ExternalModuleGroup :
@@ -82,6 +82,70 @@ PROJECT             : project
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/release [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/release [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/release [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
@@ -393,7 +457,7 @@ PROJECT             : project
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: org.apache.http.legacy [=]
-            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
+            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-30/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
             LibraryLevel        : project
             IsModuleLevel       : false

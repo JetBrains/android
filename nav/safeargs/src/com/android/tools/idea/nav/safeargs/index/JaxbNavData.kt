@@ -20,19 +20,63 @@ package com.android.tools.idea.nav.safeargs.index
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.AUTO_URI
 import com.android.resources.ResourceUrl
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import javax.xml.bind.JAXBContext
 import javax.xml.bind.annotation.XmlAccessType
 import javax.xml.bind.annotation.XmlAccessorType
+import javax.xml.bind.annotation.XmlAnyElement
 import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.bind.annotation.XmlElement
 import javax.xml.bind.annotation.XmlRootElement
 import javax.xml.bind.annotation.adapters.XmlAdapter
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter
+import javax.xml.transform.dom.DOMResult
 
 // NOTE: If you change any class in this file, you should also increment NavXmlIndex#getVersion()
 
+/**
+ * Adapter to handle serializing attributes that represent android IDs (e.g. "@id/asdf")
+ */
 private class AndroidIdAdapter : XmlAdapter<String, String>() {
-  override fun marshal(s: String): String = "@id/$s"
+  override fun marshal(s: String) = "@id/$s"
   override fun unmarshal(s: String) = ResourceUrl.parse(s)?.name ?: ""
+}
+
+/**
+ * Adapter to handle serializing attributes that represent android IDs that might not be
+ * present. See also: [AndroidIdAdapter]
+ */
+private class OptionalAndroidIdAdapter : XmlAdapter<String?, String?>() {
+  private val delegateAdapter = AndroidIdAdapter()
+
+  override fun marshal(s: String?) = s?.let { delegateAdapter.marshal(it) }
+  override fun unmarshal(s: String?) = s?.let { delegateAdapter.unmarshal(it) }
+}
+
+/**
+ * An adapter which allows us to catch any unspecified tag and try to fit it into a
+ * [MaybeNavDestinationData].
+ *
+ * This adapter will always succeed at creating a "maybe" destination, but only if
+ * expected attributes are found on the custom tag will it return a non-null
+ * destination if [MaybeNavDestinationData.toDestination] is called.
+ */
+private class MaybeDestinationAdapter : XmlAdapter<Element, MaybeNavDestinationData>() {
+  private val jaxbContext = JAXBContext.newInstance(MutableMaybeNavDestinationData::class.java)
+
+  override fun marshal(value: MaybeNavDestinationData): Element {
+    val marshaller = jaxbContext.createMarshaller()
+    val result = DOMResult()
+    marshaller.marshal(value, result)
+    return ((result.node) as Document).documentElement
+  }
+
+  override fun unmarshal(value: Element): MaybeNavDestinationData {
+    val unmarshaller = jaxbContext.createUnmarshaller()
+    val result = unmarshaller.unmarshal(value, MutableMaybeNavDestinationData::class.java)
+    return result.value
+  }
 }
 
 @XmlRootElement(name = "argument")
@@ -60,40 +104,55 @@ data class MutableNavActionData(
   @field:XmlAttribute(namespace = ANDROID_URI)
   override var id: String,
 
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = AUTO_URI)
-  override var destination: String,
+  override var destination: String?,
+
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
+  @field:XmlAttribute(namespace = AUTO_URI)
+  override var popUpTo: String?,
 
   @field:XmlElement(name = "argument")
   override var arguments: List<MutableNavArgumentData>
 ) : NavActionData {
-  constructor() : this("", "", mutableListOf())
+  constructor() : this("", null, null, mutableListOf())
 }
 
-
-@XmlRootElement(name = "fragment")
+@XmlRootElement(name = "maybeDestination") // Fake root element name only used for indexing, required by JAXB marshalling
 @XmlAccessorType(XmlAccessType.FIELD)
-data class MutableNavFragmentData(
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+data class MutableMaybeNavDestinationData(
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = ANDROID_URI)
-  override var id: String,
+  var id: String?,
 
   @field:XmlAttribute(namespace = ANDROID_URI)
-  override var name: String,
+  var name: String?,
 
   @field:XmlElement(name = "argument")
-  override var arguments: List<MutableNavArgumentData>,
+  var arguments: List<MutableNavArgumentData>,
 
   @field:XmlElement(name = "action")
-  override var actions: List<MutableNavActionData>
-) : NavFragmentData {
-  constructor() : this("", "", mutableListOf(), mutableListOf())
+  var actions: List<MutableNavActionData>)
+  : MaybeNavDestinationData {
+  constructor() : this(null, null, mutableListOf(), mutableListOf())
+
+  override fun toDestination(): NavDestinationData? {
+    val id = id ?: return null
+    val name = name ?: return null
+
+    return object : NavDestinationData {
+      override val id = id
+      override val name = name
+      override val arguments = this@MutableMaybeNavDestinationData.arguments
+      override val actions = this@MutableMaybeNavDestinationData.actions
+    }
+  }
 }
 
 @XmlRootElement(name = "navigation")
 @XmlAccessorType(XmlAccessType.FIELD)
 data class MutableNavNavigationData(
-  @field:XmlJavaTypeAdapter(AndroidIdAdapter::class)
+  @field:XmlJavaTypeAdapter(OptionalAndroidIdAdapter::class)
   @field:XmlAttribute(namespace = ANDROID_URI)
   override var id: String?,
 
@@ -104,11 +163,15 @@ data class MutableNavNavigationData(
   @field:XmlElement(name = "action")
   override var actions: List<MutableNavActionData>,
 
-  @field:XmlElement(name = "fragment")
-  override var fragments: List<MutableNavFragmentData>,
+  @field:XmlElement(name = "argument")
+  override var arguments: List<MutableNavArgumentData>,
 
   @field:XmlElement(name = "navigation")
-  override var navigations: List<MutableNavNavigationData>
+  override var navigations: List<MutableNavNavigationData>,
+
+  @field:XmlAnyElement()
+  @field:XmlJavaTypeAdapter(MaybeDestinationAdapter::class)
+  override var potentialDestinations: List<MaybeNavDestinationData>
 ) : NavNavigationData {
-  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf())
+  constructor() : this(null, "", mutableListOf(), mutableListOf(), mutableListOf(), mutableListOf())
 }

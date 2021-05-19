@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
-import com.android.builder.model.AndroidProject.FD_GENERATED
-import com.android.builder.model.AndroidProject.FD_INTERMEDIATES
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.FD_GENERATED
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.FD_INTERMEDIATES
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE

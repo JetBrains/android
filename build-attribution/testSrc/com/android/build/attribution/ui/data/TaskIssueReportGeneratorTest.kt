@@ -121,7 +121,7 @@ Always-Run Tasks
 This task might be setting its up-to-date check to always return false.
 
 Task Setup Issues
-Task declares the same output directory as task taskB from pluginB.
+Task declares the same output directory as task taskB from pluginB: '/tmp/tasks_sharing_output/test/path'.
 
 Plugin: pluginA
 Task: taskA

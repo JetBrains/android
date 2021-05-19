@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS;
+import static com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement.CRASHLYTICS;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
@@ -32,6 +33,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
+import com.android.tools.idea.gradle.dsl.api.crashlytics.CrashlyticsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
@@ -40,6 +42,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl;
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl;
+import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl;
@@ -48,6 +51,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -62,6 +66,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +75,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
@@ -160,6 +166,16 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
   }
 
+  @Nullable
+  @Override
+  public PsiElement getPluginsPsiElement() {
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS);
+    if (pluginsDslElement != null) {
+      return pluginsDslElement.getPsiElement();
+    }
+    return null;
+  }
+
   /**
    * Returns {@link AndroidModelImpl} to read and update android block contents in the build.gradle file.
    *
@@ -186,6 +202,13 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     ConfigurationsDslElement configurationsDslElement =
       myGradleDslFile.ensurePropertyElementBefore(CONFIGURATIONS, DependenciesDslElement.class);
     return new ConfigurationsModelImpl(configurationsDslElement);
+  }
+
+  @NotNull
+  @Override
+  public CrashlyticsModel crashlytics() {
+    CrashlyticsDslElement crashlyticsDslElement = myGradleDslFile.ensurePropertyElement(CRASHLYTICS);
+    return new CrashlyticsModelImpl(crashlyticsDslElement);
   }
 
   @NotNull

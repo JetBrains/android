@@ -436,7 +436,6 @@ public class PalettePanelTest extends LayoutTestCase {
     ItemList itemList = myPanel.getItemList();
     itemList.dispatchEvent(new MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true));
 
-
     // Popup shown for first item in the item list:
     verify(myPopupMenuComponent).show(eq(itemList), eq(10), eq(10));
     assertThat(itemList.getSelectedIndex()).isEqualTo(0);

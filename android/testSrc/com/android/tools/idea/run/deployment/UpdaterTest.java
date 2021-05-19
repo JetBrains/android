@@ -150,7 +150,7 @@ public final class UpdaterTest {
     // Arrange
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new Key("Pixel_2_API_29")));
+    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new VirtualDeviceName("Pixel_2_API_29")));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -176,7 +176,7 @@ public final class UpdaterTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -184,7 +184,7 @@ public final class UpdaterTest {
 
     DevicesSelectedService devicesSelectedService = buildDevicesSelectedService();
     devicesSelectedService.setMultipleDevicesSelectedInComboBox(true);
-    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new Key("Pixel_2_API_29")));
+    devicesSelectedService.setDeviceKeysSelectedWithDialog(Collections.singleton(new VirtualDeviceName("Pixel_2_API_29")));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -199,7 +199,7 @@ public final class UpdaterTest {
     // Assert
     assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
     assertFalse(myProperties.isValueSet(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
-    assertEquals("Pixel_3_API_29", myProperties.getValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
+    assertEquals("VirtualDeviceName@Pixel_3_API_29", myProperties.getValue(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
     assertEquals("2018-11-28T01:15:27Z", myProperties.getValue(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
 
     assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, myPresentation.getIcon());
@@ -209,7 +209,7 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevices() {
     // Arrange
-    Key key = new Key("Pixel_2_API_29");
+    Key key = new VirtualDeviceName("Pixel_2_API_29");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 2 API 29")
@@ -234,13 +234,15 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    assertArrayEquals(new String[]{"Pixel_2_API_29"}, myProperties.getValues(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
+    assertArrayEquals(new String[]{"VirtualDeviceName@Pixel_2_API_29"},
+                      myProperties.getValues(DevicesSelectedService.DEVICE_KEYS_SELECTED_WITH_DIALOG));
+
     assertFalse(myProperties.isValueSet(DevicesSelectedService.TIME_DEVICE_KEY_WAS_SELECTED_WITH_COMBO_BOX));
     assertFalse(myProperties.isValueSet(DevicesSelectedService.DEVICE_KEY_SELECTED_WITH_COMBO_BOX));
     assertTrue(myProperties.getBoolean(DevicesSelectedService.MULTIPLE_DEVICES_SELECTED_IN_COMBO_BOX));
 
     assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, myPresentation.getIcon());
-    assertEquals("Multiple Devices", myPresentation.getText());
+    assertEquals("Multiple Devices (1)", myPresentation.getText());
   }
 
   @NotNull
@@ -273,7 +275,7 @@ public final class UpdaterTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -299,7 +301,7 @@ public final class UpdaterTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("apiQ_64_Google")
-      .setKey(new Key("apiQ_64_Google"))
+      .setKey(new VirtualDeviceName("apiQ_64_Google"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -326,7 +328,7 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();
@@ -355,7 +357,7 @@ public final class UpdaterTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
+      .setKey(new NonprefixedKey("Pixel_3_API_29/snap_2018-08-07_16-27-58"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setSnapshot(new Snapshot(fileSystem.getPath("snap_2018-08-07_16-27-58"), fileSystem))
       .build();
@@ -381,13 +383,13 @@ public final class UpdaterTest {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
+      .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa602"))
+      .setKey(new SerialNumber("00fff9d2279fa602"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

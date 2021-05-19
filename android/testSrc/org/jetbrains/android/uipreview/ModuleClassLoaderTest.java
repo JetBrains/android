@@ -91,7 +91,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     generateRClass("test", new File(outputDir, "R.class"));
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, module);
+      ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, module, this);
       try {
         Class<?> rClass = loader.loadClass("test.R");
         String value = (String)rClass.getDeclaredField("ID").get(null);
@@ -99,6 +99,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
       }
       catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
         fail("Unexpected exception " + e.getLocalizedMessage());
+      }
+      finally {
+        ModuleClassLoaderManager.get().release(loader, this);
       }
     });
   }
@@ -140,7 +143,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     rClassRegistry.addLibrary(repositories.get(0), ResourceIdManager.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, module);
+      ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, module, this);
       try {
         Class<?> rClass = loader.loadClass("test.R");
         rClass.getDeclaredField("ID");
@@ -150,6 +153,9 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
       }
       catch (ClassNotFoundException e) {
         fail("Unexpected exception " + e.getLocalizedMessage());
+      }
+      finally {
+        ModuleClassLoaderManager.get().release(loader, this);
       }
     });
   }
@@ -185,7 +191,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     VirtualFile notModifiedClass = VfsUtil.findFileByIoFile(new File(notModifiedSrc.getParent(), "NotModified.class"), true);
     assertThat(notModifiedClass).isNotNull();
 
-    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, myModule);
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, myModule, this);
     loader.loadClassFile("com.google.example.R", rClass);
     loader.loadClassFile("com.google.example.R$string", rStringClass);
     loader.loadClassFile("com.google.example.Modified", modifiedClass);
@@ -215,6 +221,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     PostProjectBuildTasksExecutor.getInstance(getProject()).onBuildCompletion(DummyCompileContext.create(getProject()));
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
+
+    ModuleClassLoaderManager.get().release(loader, this);
   }
 
   public void testLibRClass() throws Exception {
@@ -244,7 +252,8 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     });
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
-    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, myModule);
+    ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, myModule, this);
     loader.loadClass("p1.p2.R");
+    ModuleClassLoaderManager.get().release(loader, this);
   }
 }

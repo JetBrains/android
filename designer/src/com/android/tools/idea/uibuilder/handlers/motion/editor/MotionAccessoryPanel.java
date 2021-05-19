@@ -128,7 +128,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
     mMotionEditor.myTrack.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
-    ImmutableList<NlComponent> dsSelection = designSurfaceSelection.getSelection();
+    List<NlComponent> dsSelection = designSurfaceSelection.getSelection();
     designSurfaceSelection.addListener((model, selection) -> handleSelectionChanged(model, selection));
     mMotionEditor.addCommandListener(new MotionEditor.Command() {
 

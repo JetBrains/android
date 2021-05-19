@@ -25,6 +25,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
@@ -147,7 +148,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
-      ResourceRepositoryManager.getInstance(myModule).getNamespacing() == AaptOptions.Namespacing.DISABLED
+      ResourceRepositoryManager.getInstance(myModule).getNamespacing() == Namespacing.DISABLED
         ? ResourceNamespace.RES_AUTO
         : ResourceNamespace.APPCOMPAT;
     VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");

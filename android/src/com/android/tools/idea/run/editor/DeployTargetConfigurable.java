@@ -15,14 +15,26 @@
  */
 package com.android.tools.idea.run.editor;
 
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+public interface DeployTargetConfigurable {
+  DeployTargetConfigurable DEFAULT_CONFIGURABLE = new DeployTargetConfigurable() {
+    @Override
+    public @Nullable JComponent createComponent() { return null; }
 
-public interface DeployTargetConfigurable<S> {
+    @Override
+    public void resetFrom(@NotNull DeployTargetState state, int uniqueID) { }
+
+    @Override
+    public void applyTo(@NotNull DeployTargetState state, int uniqueID) { }
+  };
+
   @Nullable
   JComponent createComponent();
-  void resetFrom(@NotNull S state, int uniqueID);
-  void applyTo(@NotNull S state, int uniqueID);
+
+  void resetFrom(@NotNull DeployTargetState state, int uniqueID);
+
+  void applyTo(@NotNull DeployTargetState state, int uniqueID);
 }

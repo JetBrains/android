@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.SdkConstants.PreferenceTags;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -57,7 +58,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
       new PreferenceScreenDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent(screen),
                                       Collections.singletonList(preference), DragType.MOVE);
 
-    handler.update(180, 251, 0);
+    handler.update(180, 251, 0, SceneContext.get());
     handler.commit(360, 502, 0, InsertType.CREATE);
 
     assertContainsElements(expectedCategoryChildren, actualCategoryChildren);

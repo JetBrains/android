@@ -17,28 +17,33 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
+import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.transport.*
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
-import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 
 /**
- * This service holds a reference to [AppInspectionDiscoveryHost]. It will establish new connections when they are discovered.
+ * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to [ProcessNotifier] and [InspectorLauncher].
+ * The first is used to discover and track processes as they come online. The latter is used to launch inspectors on discovered processes.
  */
-internal class AppInspectionHostService : Disposable {
+@Service
+class AppInspectionDiscoveryService : Disposable {
   init {
     // The following line has the side effect of starting the transport service if it has not been already.
     // The consequence of not doing this is gRPC calls are never responded to.
@@ -50,11 +55,12 @@ internal class AppInspectionHostService : Disposable {
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
-  val discoveryHost = AppInspectionDiscoveryHost(
-    AppExecutorUtil.getAppScheduledExecutorService(),
-    client,
-    streamManager
-  ) { device ->
+  private val scope = AndroidCoroutineScope(this)
+
+  val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
+    client, streamManager,
+    scope,
+    AndroidDispatchers.workerThread) { device ->
     val jarCopier = findDevice(device)?.createJarCopier()
     if (jarCopier == null) {
       logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
@@ -65,7 +71,9 @@ internal class AppInspectionHostService : Disposable {
   init {
     applicationMessageBus.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
       override fun projectClosing(project: Project) {
-        discoveryHost.disposeClients(project.name)
+        scope.launch {
+          apiServices.disposeClients(project.name)
+        }
       }
     })
   }
@@ -78,8 +86,8 @@ internal class AppInspectionHostService : Disposable {
   }
 
   companion object {
-    private val logger = Logger.getInstance(AppInspectionHostService::class.java)
-    val instance: AppInspectionHostService
+    private val logger = Logger.getInstance(AppInspectionDiscoveryService::class.java)
+    val instance: AppInspectionDiscoveryService
       get() = service()
   }
 
@@ -94,8 +102,8 @@ internal class AppInspectionHostService : Disposable {
   private fun findDevice(device: Common.Device): IDevice? {
     return AndroidDebugBridge.getBridge()?.devices?.find {
       device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it)
-        && device.model == TransportServiceProxy.getDeviceModel(it)
-        && device.serial == it.serialNumber
+      && device.model == TransportServiceProxy.getDeviceModel(it)
+      && device.serial == it.serialNumber
     }
   }
 

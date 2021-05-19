@@ -1,5 +1,4 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -8,10 +7,10 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.run.AndroidDeviceSpecUtil;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -23,11 +22,13 @@ import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
@@ -36,33 +37,51 @@ import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
+import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RuntimeConfigurationError;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.configurations.RuntimeConfigurationWarning;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.vfs.VirtualFile;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jdom.Element;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kxml2.io.KXmlParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+/**
+ * Base {@link com.intellij.execution.configurations.RunConfiguration} for all Android run configs.
+ * <p>
+ * This class serves as the base model of Android build + run execution data.
+ * <p>
+ * Note this class inherits from {@link RunConfigurationWithSuppressedDefaultDebugAction} so as to
+ * prevent the {@link com.intellij.debugger.impl.GenericDebuggerRunner} from recognizing this run
+ * config as runnable. This allows Studio to disable the debug button when this type of run config
+ * is selected, but the Debug action doesn't support running on multiple devices.
+ */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule, Element>
-  implements PreferGradleMake {
+  implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction {
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
 
@@ -91,7 +110,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
       getOptions().setAllowRunningInParallel(true);
-    } else {
+    }
+    else {
       getOptions().setAllowRunningInParallel(!androidTests);
     }
   }
@@ -171,12 +191,16 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (AndroidPlatform.getInstance(facet.getModule()) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (Manifest.getMainManifest(facet) == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
+    if (facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP && !isManifestValid(facet)) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
 
-    ApkProvider apkProvider = getApkProvider(facet, null);
+    if (getApplicationIdProvider() == null) {
+      errors.add(ValidationError.fatal(AndroidBundle.message("android.run.configuration.not.supported.applicationid", getId())));
+    }
+
+    ApkProvider apkProvider = getApkProvider();
     if (apkProvider != null) {
       errors.addAll(apkProvider.validate());
     }
@@ -193,6 +217,23 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     errors.addAll(myProfilerState.validate());
 
     return errors;
+  }
+
+  private boolean isManifestValid(@NotNull AndroidFacet facet) {
+    VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();
+    if (manifestFile == null) {
+      return false;
+    }
+    ProgressManager.checkCanceled();
+    try (InputStream stream = manifestFile.getInputStream()) {
+      KXmlParser parser = new KXmlParser();
+      parser.setInput(stream, UTF_8.name());
+      parser.nextTag();
+      return "manifest".equals(parser.getName());
+    }
+    catch (IOException | XmlPullParserException e) {
+      return false;
+    }
   }
 
   /**
@@ -272,7 +313,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     stats.setUserSelectedTarget(context.getCurrentDeployTargetProvider().requiresRuntimePrompt(facet.getModule().getProject()));
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
-    DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
+    DeployTarget deployTarget = getDeployTarget(facet);
     if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
       return null;
     }
@@ -282,10 +323,29 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
 
-    DeviceFutures deviceFutures = deployTarget.getDevices(deployTargetState, facet, getDeviceCount(isDebugging), isDebugging, hashCode());
+    DeviceFutures deviceFutures = deployTarget.getDevices(facet);
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
+    }
+
+    // Show a confirmation dialog before running Android instrumentation tests on multiple devices.
+    // This opt-in flow is requested for the Android Studio version 4.2 and can be removed in
+    // the future release.
+    if (deviceFutures.getDevices().size() > 1 && this instanceof AndroidTestRunConfiguration
+        && !AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX()) {
+      boolean accepted = Messages.showOkCancelDialog(
+        getProject(),
+        "Running tests across multiple devices in parallel requires that you enable an experimental UI to display the results." +
+        " This UI is also optimized and used for single-device test results. You can revert to the older UI at any time in Settings.",
+        "Running tests across multiple devices in parallel",
+        "Enable and run",
+        "Not now",
+        null) == Messages.OK;
+      if (!accepted) {
+        return null;
+      }
+      AndroidTestConfiguration.getInstance().setALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX(true);
     }
 
     // Record stat if we launched a device.
@@ -308,7 +368,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
 
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider(facet);
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    if (applicationIdProvider == null) {
+      throw new RuntimeException("Cannot get ApplicationIdProvider");
+    }
 
     LaunchOptions.Builder launchOptions = getLaunchOptions()
       .setDebug(isDebugging);
@@ -317,8 +380,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       launchOptions.addExtraOptions(((LaunchOptionsProvider)executor).getLaunchOptions());
     }
 
-    // NOTE: getApkProvider() ignores the second argument and operates on the device specification passes to getApks() method later.
-    ApkProvider apkProvider = getApkProvider(facet, null);
+    ApkProvider apkProvider = getApkProvider();
     if (apkProvider == null) return null;
     AndroidLaunchTasksProvider launchTasksProvider =
       new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
@@ -348,27 +410,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   }
 
   @Nullable
-  private DeployTarget getDeployTarget(@NotNull Executor executor,
-                                       @NotNull ExecutionEnvironment env,
-                                       boolean debug,
-                                       @NotNull AndroidFacet facet) {
+  private DeployTarget getDeployTarget(@NotNull AndroidFacet facet) {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
     Project project = getProject();
 
     DeployTarget deployTarget;
 
     if (currentTargetProvider.requiresRuntimePrompt(project)) {
-      deployTarget =
-        currentTargetProvider.showPrompt(
-          executor,
-          env,
-          facet,
-          getDeviceCount(debug),
-          myAndroidTests,
-          getDeployTargetContext().getDeployTargetStates(),
-          hashCode(),
-          LaunchCompatibilityCheckerImpl.create(facet, env, this)
-        );
+      deployTarget = currentTargetProvider.showPrompt(facet);
       if (deployTarget == null) {
         return null;
       }
@@ -382,32 +431,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @Nullable
   public ApplicationIdProvider getApplicationIdProvider() {
-    final Module module = getConfigurationModule().getModule();
-    if (module == null) {
-      return null;
-    }
-
-    final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null) {
-      return null;
-    }
-
-    if (facet.isDisposed()) {
-      Logger.getInstance(AndroidRunConfigurationBase.class).warn("Can't get application ID: Facet already disposed");
-      return null;
-    }
-
-    return getApplicationIdProvider(facet);
-  }
-
-  @NotNull
-  public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    return ProjectSystemUtil.getModuleSystem(facet).getApplicationIdProvider(this);
+    return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
   }
 
   @Nullable
-  protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    return ProjectSystemUtil.getModuleSystem(facet).getApkProvider(this, targetDeviceSpec);
+  protected ApkProvider getApkProvider() {
+    return ProjectSystemUtil.getProjectSystem(getProject()).getApkProvider(this);
   }
 
   public abstract boolean isTestConfiguration();
@@ -416,12 +445,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
 
   @Nullable
-  protected abstract LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                         @NotNull AndroidFacet facet,
-                                                         @NotNull String contributorsAmStartOptions,
-                                                         boolean waitForDebugger,
-                                                         @NotNull LaunchStatus launchStatus,
-                                                         @NotNull ApkProvider apkProvider);
+  protected abstract AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                            @NotNull AndroidFacet facet,
+                                                            @NotNull String contributorsAmStartOptions,
+                                                            boolean waitForDebugger,
+                                                            @NotNull LaunchStatus launchStatus,
+                                                            @NotNull ApkProvider apkProvider,
+                                                            @NotNull ConsolePrinter consolePrinter,
+                                                            @NotNull IDevice device);
 
   public final DeviceCount getDeviceCount(boolean debug) {
     return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
@@ -431,6 +462,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * @return true iff this run configuration supports deploying to multiple devices.
    */
   protected abstract boolean supportMultipleDevices();
+
+  /**
+   * @return true iff this configuration can run while out of sync with the build system.
+   */
+  public boolean canRunWithoutSync() {
+    return false;
+  }
 
   public void updateExtraRunStats(RunStats runStats) {
 

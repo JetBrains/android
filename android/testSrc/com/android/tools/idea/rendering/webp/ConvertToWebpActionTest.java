@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -27,12 +26,6 @@ public class ConvertToWebpActionTest extends AndroidTestCase {
   public void testConvert() throws Exception {
     // Regression test for issue 226893
     // Ensure that images that are too large to encode are encoded anyway if the user asked for it
-
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Skipping " + getClass().getSimpleName() + " because the webp decoder is not available");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = false;
     settings.skipLargerImages = true;
@@ -56,12 +49,6 @@ public class ConvertToWebpActionTest extends AndroidTestCase {
   public void testIncludeLargerImages() throws Exception {
     // Regression test for issue 226893
     // Ensure that images that are too large to encode are encoded anyway if the user asked for it
-
-    if (!WebpNativeLibHelper.loadNativeLibraryIfNeeded()) {
-      System.out.println("Skipping " + getClass().getSimpleName() + " because the webp decoder is not available");
-      return;
-    }
-
     WebpConversionSettings settings = new WebpConversionSettings();
     settings.skipTransparentImages = false;
     settings.skipLargerImages = false;

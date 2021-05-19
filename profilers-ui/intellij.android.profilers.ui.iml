@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.profilers" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
@@ -19,6 +20,8 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -33,6 +36,6 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
   </component>
 </module>

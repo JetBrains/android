@@ -17,15 +17,16 @@ package com.android.tools.idea.common.surface;
 
 import static java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL;
 
-import com.android.tools.adtui.actions.ZoomType;
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.adtui.ui.AdtUiCursors;
+import com.android.tools.idea.uibuilder.surface.PanInteraction;
+import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
-import com.android.tools.idea.uibuilder.surface.PanInteraction;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -176,7 +177,11 @@ public class InteractionManager implements Disposable {
       @Override
       public void actionPerformed(ActionEvent e) {
         myScrollEndTimer.removeActionListener(this);
-        finishInteraction(new MouseWheelStopEvent(e, getInteractionInformation()), false);
+        if (myCurrentInteraction instanceof ScrollInteraction) {
+          // Because we use Timer, this event may happen when current interaction is not ScrollInteraction.
+          // And they should not finish the interaction
+          finishInteraction(new MouseWheelStopEvent(e, getInteractionInformation()), false);
+        }
       }
     };
   }
@@ -771,7 +776,8 @@ public class InteractionManager implements Disposable {
     boolean wheelClickDown = SwingUtilities.isMiddleMouseButton(event);
     if (isPanning() || wheelClickDown) {
       boolean leftClickDown = SwingUtilities.isLeftMouseButton(event);
-      mySurface.setCursor((leftClickDown || wheelClickDown) ? AdtUiCursors.GRABBING : AdtUiCursors.GRAB);
+      mySurface.setCursor(AdtUiCursorsProvider.getInstance().getCursor(leftClickDown || wheelClickDown ? AdtUiCursorType.GRABBING
+                                                                                                       : AdtUiCursorType.GRAB));
       return true;
     }
     return false;

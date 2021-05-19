@@ -99,10 +99,10 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     Mockito.`when`(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
   }
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {
@@ -136,6 +136,7 @@ class MotionAttributeRule(
     projectRule.fixture.testDataPath = getDesignerPluginHome() + "/testData/motion"
     val facet = projectRule.module.androidFacet!!
     projectRule.fixture.copyFileToProject("attrs.xml", "res/values/attrs.xml")
+    projectRule.fixture.copyFileToProject("MotionLayout.kt", "src/MotionLayout.kt")
     val layout = projectRule.fixture.copyFileToProject(motionLayoutFilename, "res/layout/$motionLayoutFilename")
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
     val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.fixture.projectDisposable)

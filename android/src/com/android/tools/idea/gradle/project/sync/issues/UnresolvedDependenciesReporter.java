@@ -15,17 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 
-import com.android.annotations.NonNull;
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.repository.api.ProgressIndicator;
-import com.android.repository.api.RemotePackage;
-import com.android.repository.impl.meta.RepositoryPackages;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -35,7 +28,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProj
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowSyncIssuesDetailsHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.MessageType;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.components.Service;
@@ -45,31 +38,28 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 @Service
 public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
+  private boolean myAssumeProjectNotInitialized = false;
 
   @Override
   int getSupportedIssueType() {
-    return TYPE_UNRESOLVED_DEPENDENCY;
+    return IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
   }
 
   @NotNull
   @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty() && !affectedModules.isEmpty();
-    SyncIssue issue = syncIssues.get(0);
+    IdeSyncIssue issue = syncIssues.get(0);
     String dependency = issue.getData();
 
     List<NotificationHyperlink> quickFixes = new ArrayList<>();
@@ -82,7 +72,7 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
         }
       }
       catch (UnsupportedOperationException ex) {
-        // SyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
+        // IdeSyncIssue.getMultiLineMessage() is not available for pre 3.0 plugins.
       }
 
       if (!extraInfo.isEmpty()) {
@@ -92,8 +82,6 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
       if (isOfflineBuildModeEnabled(project)) {
         quickFixes.add(0, new DisableOfflineModeHyperlink());
       }
-
-      return quickFixes;
     }
     else {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
@@ -115,15 +103,14 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
           quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
         }
       }
-
-      return quickFixes;
     }
+    return quickFixes;
   }
 
   @NotNull
   @Override
   protected NotificationData setupNotificationData(@NotNull Project project,
-                                                   @NotNull List<SyncIssue> syncIssues,
+                                                   @NotNull List<IdeSyncIssue> syncIssues,
                                                    @NotNull List<Module> affectedModules,
                                                    @NotNull Map<Module, VirtualFile> buildFileMap,
                                                    @NotNull MessageType type) {
@@ -142,54 +129,6 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
   }
 
 
-  public void report(@NotNull Collection<String> unresolvedDependencies, @NotNull Module module) {
-    // TODO: Allow java modules to have sync issues.
-    if (unresolvedDependencies.isEmpty()) {
-      return;
-    }
-    VirtualFile buildFile = getGradleBuildFile(module);
-    List<SyncIssue> syncIssues = ContainerUtil.map(unresolvedDependencies, s -> new SyncIssue() {
-      @Override
-      public int getSeverity() {
-        return SEVERITY_ERROR;
-      }
-
-      @Override
-      public int getType() {
-        return TYPE_UNRESOLVED_DEPENDENCY;
-      }
-
-      @Nullable
-      @Override
-      public String getData() {
-        return s;
-      }
-
-      @NonNull
-      @Override
-      public String getMessage() {
-        return s;
-      }
-
-      @Nullable
-      @Override
-      public List<String> getMultiLineMessage() {
-        return null;
-      }
-    });
-
-    SyncIssueUsageReporter syncIssueUsageReporter = SyncIssueUsageReporter.Companion.getInstance(module.getProject());
-    reportAll(syncIssues, syncIssues.stream().collect(Collectors.toMap(Function.identity(), k -> module)),
-              buildFile == null ? ImmutableMap.of() : ImmutableMap.of(module, buildFile), syncIssueUsageReporter);
-  }
-
-  @NotNull
-  private static Collection<RemotePackage> getRemotePackages(@NotNull ProgressIndicator indicator) {
-    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    RepositoryPackages packages = sdkHandler.getSdkManager(indicator).getPackages();
-    return packages.getRemotePackages().values();
-  }
-
   /**
    * Append a quick fix to add Google Maven repository to solve dependencies in a module in a list of fixes if needed.
    *
@@ -197,10 +136,10 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
    * @param buildFiles Build files where the dependencies are.
    * @param fixes      List of hyperlinks in which the quickfix will be added if the repository is not already used.
    */
-  private static void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
+  private void addGoogleMavenRepositoryHyperlink(@NotNull Project project,
                                                         @NotNull List<VirtualFile> buildFiles,
                                                         @NotNull List<NotificationHyperlink> fixes) {
-    if (!project.isInitialized()) {
+    if ((!project.isInitialized()) || myAssumeProjectNotInitialized) {
       // No way to tell if the project contains the Google repository, add quick fix anyway (it will do nothing if it already has it)
       fixes.add(new AddGoogleMavenRepositoryHyperlink(project));
       return;
@@ -239,5 +178,10 @@ public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyn
 
     // Add to all modules
     fixes.add(new AddGoogleMavenRepositoryHyperlink(filesToFix));
+  }
+
+  @VisibleForTesting
+  void assumeProjectNotInitialized(boolean assumeNotInitialized) {
+    myAssumeProjectNotInitialized = assumeNotInitialized;
   }
 }

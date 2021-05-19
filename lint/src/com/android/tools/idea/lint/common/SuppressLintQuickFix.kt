@@ -92,10 +92,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       KotlinLanguage.INSTANCE -> handleKotlin(element)
       else -> {
         // Suppressing lint checks tagged on things like icons
-        val file = element.containingFile ?: return
-        if (file is PsiBinaryFile) {
-          handleBinary(element)
-        }
+        val file = if (element is PsiFile) element else element.containingFile ?: return
+        handleFile(file)
       }
     }
   }
@@ -167,8 +165,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   }
 
   @Throws(IncorrectOperationException::class)
-  private fun handleBinary(element: PsiElement) {
-    val file = if (element is PsiFile) element else element.containingFile
+  private fun handleFile(file: PsiFile) {
     val virtualFile = file.virtualFile
     if (virtualFile != null) {
       val binaryFile = VfsUtilCore.virtualToIoFile(virtualFile)
@@ -178,7 +175,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       if (module != null) {
         val dir = LintIdeProject.getLintProjectDirectory(module)
         if (dir != null) {
-          val project = element.project
+          val project = file.project
           val client = LintIdeSupport.get().createClient(project)
           val lintProject = client.getProject(dir, dir)
           val configuration = client.getConfiguration(lintProject, null)

@@ -125,6 +125,7 @@ public final class ClassDb {
     @NotNull private final long myClassId;
     @NotNull private final long mySuperClassId;
     @NotNull private final String myClassName;
+    @NotNull private final String[] mySplitPackageName;
 
     /**=
      * @param classId       unique identifier for the class.
@@ -135,6 +136,8 @@ public final class ClassDb {
       myClassId = classId;
       mySuperClassId = superClassId;
       myClassName = className;
+      String packageName = getPackageName();
+      mySplitPackageName = packageName.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : packageName.split("\\.");
     }
 
     public long getClassId() {
@@ -168,8 +171,7 @@ public final class ClassDb {
 
     @NotNull
     public String[] getSplitPackageName() {
-      String packageName = getPackageName();
-      return packageName.isEmpty() ? ArrayUtil.EMPTY_STRING_ARRAY : packageName.split("\\.");
+      return mySplitPackageName;
     }
 
     @NotNull

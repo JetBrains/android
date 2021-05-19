@@ -40,6 +40,7 @@
     COMMA=','
     DOT='.'
     ASTERISK='*'
+    DOUBLE_ASTERISK='**'
     AT='@'
     ANY_TYPE_='***'
     ANY_TYPE_AND_NUM_OF_ARGS='...'
@@ -131,7 +132,7 @@ class_specification_header ::= annotation_name? class_modifier* class_type class
 private access_modifier ::= public|private|protected
 
 // Let fields_modifier and method_modifier have its elementType.
-fake modifier ::= ("!"?(static|volatile|transient|synchronized|native|abstract|strictfp|final))|access_modifier {
+fake modifier ::= ("!"?(static|volatile|transient|synchronized|native|abstract|strictfp|final|synthetic))|access_modifier {
     methods=[isNegated toPsiModifier isAccessModifier]
 }
 fields_modifier ::= "!"?(static|volatile|transient|final|access_modifier) !'.' {
@@ -139,7 +140,7 @@ fields_modifier ::= "!"?(static|volatile|transient|final|access_modifier) !'.' {
   extends=modifier
 }
 private method_only_modifiers ::= "!"?(synchronized|native|abstract|strictfp)
-method_modifier ::= ("!"?(static|final|access_modifier)|method_only_modifiers) !'.' {
+method_modifier ::= ("!"?(static|final|synthetic|access_modifier)|method_only_modifiers) !'.' {
    elementType=modifier
    extends=modifier
 }

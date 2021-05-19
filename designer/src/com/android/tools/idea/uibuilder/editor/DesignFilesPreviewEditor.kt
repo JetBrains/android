@@ -25,7 +25,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -49,7 +49,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       NlDesignSurface.builder(myProject, this)
         .build()
         .apply {
-          setScreenMode(SceneMode.RENDER, false)
+          setScreenViewProvider(NlScreenViewProvider.RENDER, false)
         }
     }
 

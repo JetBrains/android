@@ -17,9 +17,12 @@ package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModel
+import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
-import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.model.warningsFilterActions
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
@@ -30,6 +33,7 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.render.RenderingHelper
 import com.intellij.ui.treeStructure.Tree
@@ -40,11 +44,13 @@ import org.jetbrains.annotations.NonNls
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Font
+import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 
 @NonNls
@@ -56,40 +62,58 @@ private const val SPLITTER_PROPERTY = "BuildAnalyzer.WarningsView.Splitter.Propo
 class WarningsPageView(
   val model: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers,
-  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(actionHandlers)
+  val detailPagesFactory: WarningsViewDetailPagesFactory = WarningsViewDetailPagesFactory(model, actionHandlers)
 ) : BuildAnalyzerDataPageView {
 
   // Flag to prevent triggering calls to action handler on pulled from the model updates.
   private var fireActionHandlerEvents = true
 
-  override val additionalControls = JPanel().apply { name = "warnings-view-additional-controls" }
+  val groupingCheckBox = JCheckBox("Group by plugin", false).apply {
+    name = "warningsGroupingCheckBox"
+    addActionListener { event ->
+      if (fireActionHandlerEvents) {
+        actionHandlers.warningsGroupingSelectionUpdated(isSelected)
+      }
+    }
+  }
+
+  override val additionalControls = JPanel().apply {
+    name = "warnings-view-additional-controls"
+    layout = HorizontalLayout(10)
+
+    val warningsFilterActions = warningsFilterActions(model, actionHandlers)
+    val defaultActionGroup = DefaultActionGroup().apply { add(warningsFilterActions) }
+    val filtersDropdown = ActionManager.getInstance().createActionToolbar("BuildAnalyzerView", defaultActionGroup, true)
+
+    add(groupingCheckBox)
+    add(filtersDropdown.component)
+  }
 
   val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
-    cellRenderer = BuildAnalyzerMasterTreeCellRenderer()
+    selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+    BuildAnalyzerMasterTreeCellRenderer.install(this)
     TreeSpeedSearch(this, TreeSpeedSearch.NODE_DESCRIPTOR_TOSTRING, true).apply {
       comparator = SpeedSearchComparator(false)
     }
     TreeUtil.installActions(this)
     addTreeSelectionListener { e ->
-      if (fireActionHandlerEvents && e.path != null && e.isAddedPath) {
-        (e.path.lastPathComponent as? WarningsTreeNode)?.let {
-          actionHandlers.warningsTreeNodeSelected(it)
-        }
+      if (fireActionHandlerEvents) {
+        actionHandlers.warningsTreeNodeSelected(e?.newLeadSelectionPath?.lastPathComponent as? WarningsTreeNode)
       }
     }
   }
 
   val treeHeaderLabel: JLabel = JBLabel().apply { font = font.deriveFont(Font.BOLD) }
 
-  val detailsPanel = object : CardLayoutPanel<WarningsTreePresentableNodeDescriptor, WarningsTreePresentableNodeDescriptor, JComponent>() {
-    override fun prepare(key: WarningsTreePresentableNodeDescriptor): WarningsTreePresentableNodeDescriptor = key
+  val detailsPanel = object : CardLayoutPanel<WarningsPageId, WarningsPageId, JComponent>() {
+    override fun prepare(key: WarningsPageId): WarningsPageId = key
 
-    override fun create(node: WarningsTreePresentableNodeDescriptor): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
-      name = "details-${node.pageId}"
+    override fun create(pageId: WarningsPageId): JComponent = JBPanel<JBPanel<*>>(BorderLayout()).apply {
+      name = "details-${pageId}"
       val scrollPane = JBScrollPane().apply {
         border = JBUI.Borders.empty()
-        setViewportView(detailPagesFactory.createDetailsPage(node))
+        setViewportView(detailPagesFactory.createDetailsPage(pageId))
       }
       add(scrollPane, BorderLayout.CENTER)
     }
@@ -131,19 +155,27 @@ class WarningsPageView(
   }
 
   init {
-    updateViewFromModel()
+    updateViewFromModel(true)
     model.setModelUpdatedListener(this::updateViewFromModel)
   }
 
-  private fun updateViewFromModel() {
+  private fun updateViewFromModel(treeStructureChanged: Boolean) {
     fireActionHandlerEvents = false
+    groupingCheckBox.isSelected = model.groupByPlugin
     treeHeaderLabel.text = model.treeHeaderText
-    if (tree.model.root != model.treeRoot) {
+    if (treeStructureChanged) {
       (tree.model as DefaultTreeModel).setRoot(model.treeRoot)
+      // Need to remove cached details pages as content might change on tree structure change, especially for grouping nodes.
+      detailsPanel.removeAll()
     }
-    model.selectedNode?.let {
-      detailsPanel.select(it.descriptor, true)
-      TreeUtil.selectNode(tree, it)
+
+    val selectedNode = model.selectedNode
+    if (selectedNode == null) {
+      detailsPanel.select(WarningsPageId.emptySelection, true)
+    }
+    else {
+      detailsPanel.select(selectedNode.descriptor.pageId, true)
+      TreeUtil.selectNode(tree, selectedNode)
     }
     fireActionHandlerEvents = true
   }

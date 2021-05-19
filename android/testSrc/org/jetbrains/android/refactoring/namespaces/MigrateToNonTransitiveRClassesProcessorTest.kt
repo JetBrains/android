@@ -72,6 +72,9 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="from_sublib">From sublib</string>
+          <declare-styleable name="styleable_from_sublib">
+            <attr name="Attr_from_sublib" format="string"/>
+          </declare-styleable>
         </resources>
       """.trimIndent()
     )
@@ -82,6 +85,9 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="from_lib">From lib</string>
+          <declare-styleable name="styleable_from_lib">
+            <attr name="Attr_from_lib" format="string"/>
+          </declare-styleable>
         </resources>
       """.trimIndent()
     )
@@ -92,6 +98,9 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="from_app">From app</string>
+          <declare-styleable name="styleable_from_app">
+            <attr name="Attr_from_app" format="string"/>
+          </declare-styleable>
         </resources>
       """.trimIndent()
     )
@@ -111,6 +120,14 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.lib.R.string.from_lib,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -131,7 +148,15 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
                   com.example.lib.R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+                  
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -150,6 +175,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_lib,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -167,7 +197,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                 val ids = intArrayOf(
                   R.string.from_lib,
                   R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+                  
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -199,6 +234,14 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.lib.R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -218,6 +261,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -243,7 +291,15 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -262,7 +318,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                 val ids = intArrayOf(
                   R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -289,6 +350,14 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.lib.R.string.from_lib,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -308,6 +377,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_lib,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -333,7 +407,15 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
                   com.example.lib.R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -352,7 +434,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                 val ids = intArrayOf(
                   R.string.from_lib,
                   R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -379,6 +466,14 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.lib.R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -398,6 +493,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
                 };
             }
         }
@@ -419,7 +519,15 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
                   com.example.sublib.R.string.from_sublib,
-                  com.example.sublib.R.string.from_sublib
+                  com.example.sublib.R.string.from_sublib,
+
+                  // Styleable_Attr has more logic than other ResourceTypes
+                  R.styleable.styleable_from_app_Attr_from_app,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.lib.R.styleable.styleable_from_lib_Attr_from_lib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                  com.example.sublib.R.styleable.styleable_from_sublib_Attr_from_sublib
                 )
             }
         }
@@ -428,6 +536,11 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     )
 
     val properties = VfsUtil.findRelativeFile(project.guessProjectDir(), "gradle.properties")!!
-    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo("android.nonTransitiveRClass=true")
+    assertThat(FileDocumentManager.getInstance().getDocument(properties)!!.text).isEqualTo(
+      """
+        android.experimental.nonTransitiveAppRClass=true
+        android.nonTransitiveRClass=true
+      """.trimIndent()
+    )
   }
 }

@@ -56,14 +56,7 @@ class ViewContextMenuFactoryTest {
   private var popupMenuComponent: JPopupMenu? = mock()
   private var createdGroup: ActionGroup? = null
 
-  private var inspectorModel: InspectorModel? = model {
-    view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
-      view(VIEW1)
-      view(VIEW2, qualifiedName = "viewName", imageTop = mock()) {
-        view(VIEW3, textValue = "myText", imageTop = mock())
-      }
-    }
-  }
+  private var inspectorModel: InspectorModel? = null
 
   @Before
   fun setUp() {
@@ -75,6 +68,17 @@ class ViewContextMenuFactoryTest {
       mockPopupMenu
     }
     `when`(mockPopupMenu.component).thenReturn(popupMenuComponent)
+    inspectorModel = model {
+      view(ROOT, viewId = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "rootId")) {
+        view(VIEW1)
+        view(VIEW2, qualifiedName = "viewName") {
+          view(VIEW3, textValue = "myText") {
+            image()
+          }
+          image()
+        }
+      }
+    }
   }
 
   @After
@@ -114,39 +118,39 @@ class ViewContextMenuFactoryTest {
     val hideSubtree = createdGroup?.getChildren(null)?.get(0)!!
     hideSubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(ROOT, VIEW1, -1L)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
 
     model.root.flatten().forEach { it.visible = true }
     val showOnlySubtree = createdGroup?.getChildren(null)?.get(1)!!
     showOnlySubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(VIEW2, VIEW3)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
 
     model.root.flatten().forEach { it.visible = true }
     val showOnlyParents = createdGroup?.getChildren(null)?.get(2)!!
     showOnlyParents.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }).containsExactly(ROOT, VIEW2, -1L)
+    assertThat(model.root.flatten().filter { it.visible }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
   }
 
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) },
+    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText })
       .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All").inOrder()
 
     val selectView = createdGroup?.getChildren(null)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(null)
-    assertThat(views.map { it.templateText }).containsExactly("rootId", "viewName", "myText").inOrder()
+    assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
     views[1].actionPerformed(mock())
     assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
   }
 }
 
@@ -202,19 +206,19 @@ class ViewContextMenuFactoryLegacyTest {
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) },
+    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(null)?.map { it.templateText }).containsExactly("Select View").inOrder()
 
     val selectView = createdGroup?.getChildren(null)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(null)
-    assertThat(views.map { it.templateText }).containsExactly("rootId", "viewName", "myText").inOrder()
+    assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
     views[1].actionPerformed(mock())
     assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
   }
 }

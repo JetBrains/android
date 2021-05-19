@@ -17,10 +17,10 @@
 package com.android.tools.idea.layoutlib;
 
 import com.android.annotations.NonNull;
-import com.android.ide.common.rendering.api.LayoutLog;
+import com.android.ide.common.rendering.api.ILayoutLog;
 import com.intellij.openapi.diagnostic.Logger;
 
-public class LayoutLogWrapper extends LayoutLog {
+public class LayoutLogWrapper implements ILayoutLog {
   private final Logger myLog;
 
   public LayoutLogWrapper(@NonNull Logger log) {

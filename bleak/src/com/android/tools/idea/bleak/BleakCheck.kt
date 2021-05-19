@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
-abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val whitelist: Whitelist<ResultType>, val knownIssues: Whitelist<ResultType>) {
+abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val ignoreList: IgnoreList<ResultType>, val knownIssues: IgnoreList<ResultType>) {
   // callbacks from BLeak
   abstract fun firstIterationFinished()
   abstract fun middleIterationFinished()
@@ -23,11 +23,11 @@ abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val
 
   abstract fun getResults(): List<ResultType>
   val success: Boolean
-    get() = getResults().all { whitelist.matches(it) || knownIssues.matches(it) }
+    get() = getResults().all { ignoreList.matches(it) || knownIssues.matches(it) }
   val report: String
     get() {
       val numKnownIssues = getResults().filter { knownIssues.matches(it) }.size
-      return getResults().filterNot { whitelist.matches(it) || knownIssues.matches(it) }.joinToString(separator = "\n----------------------\n") +
-      if (numKnownIssues > 0) "\n----------------------\nFound $numKnownIssues known issues" else ""
+      return getResults().filterNot { ignoreList.matches(it) || knownIssues.matches(it) }.joinToString(separator = "\n----------------------\n") +
+             if (numKnownIssues > 0) "\n----------------------\nFound $numKnownIssues known issues" else ""
     }
 }

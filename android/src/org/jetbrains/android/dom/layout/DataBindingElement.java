@@ -15,11 +15,13 @@
  */
 package org.jetbrains.android.dom.layout;
 
+import org.jetbrains.android.dom.AndroidDomElement;
+
 /**
  * Marker interface with no methods, used to distinguish plain LayoutElements from those that are
  * related to data binding, for now used in {@link org.jetbrains.android.dom.AndroidDomExtender} to
  * avoid adding completion of tools namespace attributes that should be available on views but
  * not on data binding tags.
  */
-public interface DataBindingElement {
+public interface DataBindingElement extends AndroidDomElement {
 }

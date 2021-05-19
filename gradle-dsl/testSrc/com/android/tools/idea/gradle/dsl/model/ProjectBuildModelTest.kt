@@ -285,6 +285,62 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     assertEquals(settingFile.virtualFile, settingModel.virtualFile)
   }
 
+  @Test
+  fun testReparseThenChange() {
+    writeToBuildFile("")
+    val pbm = projectBuildModel
+    val gbm = pbm.projectBuildModel!!
+    gbm.ext().findProperty("foo").setValue("bar")
+
+    applyChanges(pbm)
+    pbm.reparse()
+    verifyFileContents(myBuildFile, TestFile.REPARSE_THEN_CHANGE_EXPECTED_ONE)
+
+    verifyPropertyModel("foo1", gbm.ext().findProperty("foo"), "bar")
+
+    val gbm2 = pbm.projectBuildModel!!
+    gbm2.ext().findProperty("foo").setValue("baz")
+
+    applyChanges(pbm)
+    pbm.reparse()
+    verifyFileContents(myBuildFile, TestFile.REPARSE_THEN_CHANGE_EXPECTED_TWO)
+    verifyPropertyModel("foo1 again", gbm.ext().findProperty("foo"), "baz")
+    verifyPropertyModel("foo2", gbm2.ext().findProperty("foo"), "baz")
+  }
+
+  @Test
+  fun testBuildSrcModel() {
+    writeToBuildFile("")
+    writeToBuildSrcBuildFile(TestFile.BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY)
+    val pbm = projectBuildModel
+    val gbm = pbm.getModuleBuildModel(myBuildSrcBuildFile)
+
+    val dependencies = gbm.dependencies().artifacts()
+    assertSize(1, dependencies)
+    val dependency = dependencies[0]
+    assertEquals("com.android.tools.build", dependency.group().toString())
+    assertEquals("gradle", dependency.name().toString())
+    assertEquals("4.1.0-rc01", dependency.version().toString())
+    dependency.version().setValue("4.1.0")
+
+    applyChanges(pbm)
+    verifyFileContents(myBuildSrcBuildFile, TestFile.BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED)
+  }
+
+  @Test
+  fun testGetAllIncludedBuildModels() {
+    // We reuse build files here since we just need any sufficiently rich project for this test.
+    writeToSubModuleBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_SUB)
+    writeToBuildFile(TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER)
+    writeToSettingsFile(subModuleSettingsText)
+    writeToNewSubModuleFile("a", TestFile.ENSURE_PARSING_APPLIED_FILE_IN_SUBMODULE_FOLDER_APPLIED)
+
+    val pbm = projectBuildModel
+    val args = mutableListOf<Pair<Int, Int?>>()
+    pbm.getAllIncludedBuildModels { n, total -> args.add(n to total) }
+    assertEquals(listOf(1 to null, 2 to null, 3 to 4, 4 to 4), args)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
@@ -313,6 +369,10 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     RESOLVES_CORRECT_FILE_APPLIED("applyResolvesCorrectFileApplied"),
     RESOLVES_CORRECT_FILE_APPLIED_SUB("applyResolvesCorrectFileApplied_sub"),
     RESOLVES_CORRECT_FILE_SUB("applyResolvesCorrectFile_sub"),
+    REPARSE_THEN_CHANGE_EXPECTED_ONE("reparseThenChangeExpectedOne"),
+    REPARSE_THEN_CHANGE_EXPECTED_TWO("reparseThenChangeExpectedTwo"),
+    BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY("buildSrcAndroidGradlePluginDependency"),
+    BUILD_SRC_ANDROID_GRADLE_PLUGIN_DEPENDENCY_EXPECTED("buildSrcAndroidGradlePluginDependencyExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

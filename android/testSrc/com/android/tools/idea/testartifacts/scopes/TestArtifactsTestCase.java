@@ -19,6 +19,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.stubs.StubDateProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,17 +40,17 @@ public abstract class TestArtifactsTestCase extends AndroidGradleTestCase {
   }
 
   @NotNull
-  protected VirtualFile setUnitTestFileContent(@NotNull String filename, @NotNull String content) {
+  protected VirtualFile setUnitTestFileContent(@NotNull String filename, @NotNull String content) throws Exception {
     return setFileContent("module1/src/test/java/" + filename, content);
   }
 
   @NotNull
-  protected VirtualFile setAndroidTestFileContent(@NotNull String filename, @NotNull String content) {
+  protected VirtualFile setAndroidTestFileContent(@NotNull String filename, @NotNull String content) throws Exception {
     return setFileContent("module1/src/androidTest/java/" + filename, content);
   }
 
   @NotNull
-  protected VirtualFile setCommonFileContent(@NotNull String filename, @NotNull String content) {
+  protected VirtualFile setCommonFileContent(@NotNull String filename, @NotNull String content) throws Exception {
     return setFileContent("module1/src/main/java/" + filename, content);
   }
 
@@ -61,13 +62,14 @@ public abstract class TestArtifactsTestCase extends AndroidGradleTestCase {
    * @return virtual file for the specific path
    */
   @NotNull
-  protected VirtualFile setFileContent(@NotNull String path, @NotNull String content) {
+  protected VirtualFile setFileContent(@NotNull String path, @NotNull String content) throws Exception {
     File file = new File(myFixture.getProject().getBasePath(), path.replace('/', File.separatorChar));
     createIfDoesntExist(file);
     VirtualFile virtualFile = findFileByIoFile(file, true);
     assertNotNull(virtualFile);
     myFixture.saveText(virtualFile, content);
     myFixture.configureFromExistingVirtualFile(virtualFile);
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
     return virtualFile;
   }
 }

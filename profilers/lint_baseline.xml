@@ -85,7 +85,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="108"/>
     </issue>
 
@@ -93,7 +93,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="243"/>
     </issue>
 
@@ -101,7 +101,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="285"/>
     </issue>
 
@@ -109,7 +109,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="291"/>
     </issue>
 
@@ -117,7 +117,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="296"/>
     </issue>
 
@@ -125,7 +125,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="300"/>
     </issue>
 
@@ -133,7 +133,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="306"/>
     </issue>
 
@@ -141,7 +141,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="343"/>
     </issue>
 
@@ -149,7 +149,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="346"/>
     </issue>
 
@@ -157,7 +157,7 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
             line="348"/>
     </issue>
 

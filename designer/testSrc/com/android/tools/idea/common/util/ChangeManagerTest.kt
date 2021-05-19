@@ -17,6 +17,7 @@ package com.android.tools.idea.common.util
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
@@ -63,6 +64,10 @@ private class ChangeTracker {
    * Called when a non-code change happens an a refresh would be required.
    */
   fun onRefresh(lastUpdatedNanos: Long) {
+    refreshCounter++
+  }
+
+  fun onRefresh() {
     refreshCounter++
   }
 
@@ -123,13 +128,13 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
                                             0,
                                             true,
                                             null,
-                                            project).apply {
+                                            testRootDisposable).apply {
       isPassThrough = true
     }
     setupChangeListener(project,
                         composeTest,
                         tracker::onRefresh,
-                        project,
+                        testRootDisposable,
                         mergeQueue = testMergeQueue)
 
     tracker.assertRefreshed {
@@ -155,5 +160,44 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
         PsiDocumentManager.getInstance(project).commitDocument(document)
       }
     }
+  }
+
+  fun testOnSaveTriggers() {
+    @Language("kotlin")
+    val startFileContent = """
+      import androidx.ui.tooling.preview.Preview
+      import androidx.compose.Composable
+
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
+    """.trimIndent()
+
+    val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
+
+    val testMergeQueue = MergingUpdateQueue("Document change queue",
+                                            0,
+                                            true,
+                                            null,
+                                            testRootDisposable).apply {
+      isPassThrough = true
+    }
+    var saveCount = 0
+    setupOnSaveListener(project,
+                        composeTest,
+                        { saveCount++ },
+                        testRootDisposable,
+                        mergeQueue = testMergeQueue)
+    assertEquals(0, saveCount)
+    FileDocumentManager.getInstance().saveAllDocuments()
+    // No pending changes
+    assertEquals(0, saveCount)
+
+    composeTest.runOnDocument { _, document ->
+      document.insertString(0, "// Just a comment\n")
+    }
+    FileDocumentManager.getInstance().saveAllDocuments()
+    assertEquals(1, saveCount)
   }
 }

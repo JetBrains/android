@@ -27,7 +27,7 @@ import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.resources.ResourceType.STYLE_ITEM;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
-import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
@@ -37,8 +37,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.lint.detector.api.Lint;
@@ -790,7 +790,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
                                                 @NotNull List<ResourceItem> local,
                                                 @NotNull HtmlBuilder builder) {
     File root = VfsUtilCore.virtualToIoFile(project.getBaseDir());
-    Collection<Library> libraries = null;
+    Collection<IdeLibrary> libraries = null;
     // Write a set of descriptions to library references. Put them in a list first such that we can
     // sort the (to for example make test output stable.)
     List<String> descriptions = new ArrayList<>();

@@ -19,6 +19,7 @@ import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRendererFactor
 import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.ide.actions.OpenFileAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
 import com.intellij.openapi.project.DumbAware;
@@ -65,21 +66,21 @@ public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWin
       @Override
       public void openFile(@NotNull Path localPath) {
         // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
-        TransactionGuard.submitTransaction(project, () -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
           // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
           ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
           OpenFileAction.openFile(localPath.toString(), project);
-        });
+        }, project.getDisposed());
       }
 
       @Override
       public void openFile(@NotNull VirtualFile virtualFile) {
         // OpenFileAction.openFile triggers a write action, which needs to be executed from a write-safe context.
-        TransactionGuard.submitTransaction(project, () -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
           // We need this assertion because in tests OpenFileAction.openFile doesn't trigger it. But it does in production.
           ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
           OpenFileAction.openFile(virtualFile, project);
-        });
+        }, project.getDisposed());
       }
     };
 

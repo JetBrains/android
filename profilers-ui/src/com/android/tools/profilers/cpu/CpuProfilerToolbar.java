@@ -21,6 +21,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.cpu.config.CpuProfilingConfigurationView;
 import com.intellij.util.ui.JBDimension;
 import java.awt.BorderLayout;
 import javax.swing.JButton;

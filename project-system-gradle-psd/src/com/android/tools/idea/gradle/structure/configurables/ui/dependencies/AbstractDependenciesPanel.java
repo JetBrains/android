@@ -324,7 +324,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
   private class AddJarDependencyAction extends AbstractAddDependencyAction {
     AddJarDependencyAction() {
-      super(AddJarDependencyDialogKt.ADD_JAR_DEPENDENCY_DIALOG_TITLE, "Jar Dependency", JAR_ICON, 2);
+      super(AddJarDependencyDialogKt.ADD_JAR_DEPENDENCY_DIALOG_TITLE, "JAR/AAR Dependency", JAR_ICON, 2);
     }
 
     @Override

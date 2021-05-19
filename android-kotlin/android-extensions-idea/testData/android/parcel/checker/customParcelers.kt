@@ -1,6 +1,6 @@
 package test
 
-import kotlinx.android.parcel.*
+import kotlinx.parcelize.*
 import android.os.*
 
 object StringParceler : Parceler<String> {

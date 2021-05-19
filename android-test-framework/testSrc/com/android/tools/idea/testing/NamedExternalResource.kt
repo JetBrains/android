@@ -18,6 +18,7 @@ package com.android.tools.idea.testing
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
+import org.junit.runners.model.MultipleFailureException
 import org.junit.runners.model.Statement
 
 /**
@@ -26,23 +27,31 @@ import org.junit.runners.model.Statement
  * object.
  */
 abstract class NamedExternalResource : TestRule {
-  final override fun apply(base: Statement?, description: Description?): Statement {
+  final override fun apply(base: Statement, description: Description): Statement {
     return object : Statement() {
       @Throws(Throwable::class)
       override fun evaluate() {
-        if (description != null) {
-          before(description)
-          try {
-            base?.evaluate();
-          }
-          finally {
-            after(description)
-          }
+        // Unlike ExternalResource, we make sure that exceptions thrown from after() do not hide exceptions thrown from base.evaluate().
+        val errors = mutableListOf<Throwable>()
+        before(description)
+        try {
+          base.evaluate()
         }
+        catch (e: Throwable) {
+          errors.add(e)
+        }
+        try {
+          after(description)
+        }
+        catch (e: Throwable) {
+          errors.add(e)
+        }
+        MultipleFailureException.assertEmpty(errors)
       }
     }
   }
 
+  @Throws(Throwable::class)
   abstract fun before(description: Description)
   abstract fun after(description: Description)
 }

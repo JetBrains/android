@@ -18,11 +18,13 @@ package com.android.tools.idea.npw.project;
 import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
+import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
-import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
+import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
+import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
+import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -31,15 +33,11 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.device.FormFactor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
-import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider;
 import com.android.tools.idea.npw.template.components.LanguageComboProvider;
-import com.android.tools.idea.npw.ui.ActivityGallery;
-import com.android.tools.idea.npw.ui.TemplateIcon;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
@@ -59,7 +57,7 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.idea.wizard.template.BytecodeLevel;
+import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
@@ -67,10 +65,13 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBEmptyBorder;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,6 +80,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -97,6 +99,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private final List<UpdatablePackage> myInstallRequests = new ArrayList<>();
   private final List<RemotePackage> myInstallLicenseRequests = new ArrayList<>();
 
+  private final @NotNull JBScrollPane myRootPanel;
   private JPanel myPanel;
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
@@ -106,25 +109,30 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
   private JBLabel myAppCompatHelp;
-  private JBLabel myTemplateIconTitle;
-  private JBLabel myTemplateIconDetail;
+  private JBLabel myTemplateTitle;
+  private JBLabel myTemplateDetail;
+  private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JBCheckBox myGradleKtsCheck;
+  private JLabel myAppCompatComment;
+  private JComboBox myMinSdkCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
-    myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myRootPanel = wrapWithVScroll(myValidatorPanel);
 
     myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
     HelpTooltip helpTooltip = new HelpTooltip()
       .setDescription(message("android.wizard.project.help.appcompat"));
     helpTooltip.installOn(myAppCompatCheck);
     helpTooltip.installOn(myAppCompatHelp);
+    myAppCompatComment.setBorder(new JBEmptyBorder(computeCommentInsets(myAppCompatCheck, true)));
 
-    FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
+    FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
   @NotNull
@@ -189,16 +197,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
 
-    myValidatorPanel.registerTest(myProjectModel.getUseAppCompat().not(), WARNING, message("android.wizard.validate.select.appcompat"));
-
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
     myListeners.listenAndFire(getModel().formFactor, () -> {
       FormFactor formFactor = getModel().formFactor.get();
 
-      myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
-      myWearCheck.setVisible(formFactor == FormFactor.WEAR);
-      myTvCheck.setVisible(formFactor == FormFactor.TV);
+      myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.Mobile);
+      myWearCheck.setVisible(formFactor == FormFactor.Wear);
+      myTvCheck.setVisible(formFactor == FormFactor.Tv);
     });
 
     myListeners.listen(androidSdkInfo, () -> updateAppCompatCheckBox());
@@ -211,7 +217,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     int minSdk = newTemplate.getMinSdk();
 
-    myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
+    myFormFactorSdkControls.startDataLoading(toWizardFormFactor(formFactor), minSdk);
     boolean isKotlinOnly;
     setTemplateThumbnail(newTemplate);
     isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
@@ -228,7 +234,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor.get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
+      getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
     );
 
     myInstallRequests.clear();
@@ -247,7 +253,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myValidatorPanel;
+    return myRootPanel;
   }
 
   @Nullable
@@ -278,20 +284,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   }
 
   private void setTemplateThumbnail(@NotNull Template template) {
-    setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
-  }
+    myTemplateTitle.setText(template.getName());
+    myTemplateDetail.setText("<html>" + template.getDescription() + "</html>");
 
-  private void setTemplateThumbnail(@Nullable TemplateIcon icon, @NotNull String name, @NotNull String description) {
-    if (icon != null) {
-      icon.cropBlankWidth();
-      icon.setHeight(256);
-      myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(name);
-
-      myTemplateIconDetail.setText("<html>" + description + "</html>");
+    String documentationUrl = template.getDocumentationUrl();
+    if (documentationUrl != null) {
+      myDocumentationLink.setHyperlinkText(message("android.wizard.activity.add.cpp.docslinktext"));
+      myDocumentationLink.setHyperlinkTarget(documentationUrl);
     }
-    myTemplateIconTitle.setVisible(icon != null);
-    myTemplateIconDetail.setVisible(icon != null);
+    myDocumentationLink.setVisible(documentationUrl != null);
   }
 
   private void updateAppCompatCheckBox() {
@@ -314,5 +315,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myProjectLanguage = new LanguageComboProvider().createComponent();
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
+    myMinSdkCombo = myFormFactorSdkControls.getMinSdkComboBox();
+    myAppCompatComment = createCommentComponent(message("android.wizard.validate.select.appcompat"), true);
   }
 }

@@ -110,7 +110,7 @@ public class CreateDefaultActivityTest {
     guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
     myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
 
-    myConfigActivity = myDialog.getConfigureActivityStep();
+    myConfigActivity = myDialog.getConfigureActivityStep("Basic Activity");
   }
 
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName) {

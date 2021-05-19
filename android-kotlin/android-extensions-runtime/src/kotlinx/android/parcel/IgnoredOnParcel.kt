@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package kotlinx.android.parcel
+package kotlinx.parcelize
 
 /**
  * The property annotated with [IgnoredOnParcel] will not be stored into parcel.

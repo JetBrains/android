@@ -74,7 +74,7 @@ public class AndroidLaunchTaskProviderTest extends AndroidGradleTestCase {
       config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
     }
 
-    ProgramRunner runner = new AndroidProgramRunner();
+    ProgramRunner runner = new DefaultStudioProgramRunner();
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());

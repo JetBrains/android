@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
@@ -39,6 +40,7 @@ import com.android.tools.lint.model.LintModelLibrary;
 import com.android.tools.lint.model.LintModelModule;
 import com.android.tools.lint.model.LintModelModuleType;
 import com.android.tools.lint.model.LintModelVariant;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.facet.ProjectFacetManager;
@@ -312,7 +314,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
         AndroidModuleModel model = (AndroidModuleModel)androidModel;
         IdeAndroidProject builderModelProject = model.getAndroidProject();
         String variantName = model.getSelectedVariantName();
-        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, dir, !shallowModel);
+        String gradlePath = Strings.nullToEmpty(GradleUtil.getGradlePath(module));
+        LintModelModule lintModel = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
         LintModelVariant variant = lintModel.findVariant(variantName);
         if (variant == null) {
           variant = lintModel.getVariants().get(0);

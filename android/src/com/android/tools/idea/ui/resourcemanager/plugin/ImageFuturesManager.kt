@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
+import com.android.annotations.concurrency.GuardedBy
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.image.BufferedImage
 import java.util.HashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import javax.annotation.concurrent.GuardedBy
 
 private val LOG = Logger.getInstance(ImageFuturesManager::class.java)
 

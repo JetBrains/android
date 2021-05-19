@@ -24,5 +24,4 @@
     <projectService serviceImplementation="com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm$Storage" />
     <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />
   </extensions>
-
 </idea-plugin>

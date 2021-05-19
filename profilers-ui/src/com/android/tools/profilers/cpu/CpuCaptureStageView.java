@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
@@ -28,7 +30,6 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
-import com.android.tools.adtui.ui.AdtUiCursors;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
@@ -40,19 +41,24 @@ import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
-import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
+import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
+import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
+import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
+import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
+import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
+import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -98,7 +104,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
   private final JScrollPane myScrollPane;
-  private final HoverHyperlinkLabel myDeselectAllLabel;
+  private final LinkLabel<?> myDeselectAllLabel;
   private final JPanel myDeselectAllToolbar;
 
   /**
@@ -113,6 +119,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    myScrollPane.setBorder(JBUI.Borders.empty());
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
     myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myDeselectAllLabel = createDeselectAllLabel();
@@ -129,6 +136,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(SurfaceflingerTooltip.class, SurfaceflingerTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(VsyncTooltip.class, VsyncTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(BufferQueueTooltip.class, BufferQueueTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(RssMemoryTooltip.class, RssMemoryTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuFrequencyTooltip.class, CpuFrequencyTooltipView::new);
 
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.STATE, this::updateComponents);
     stage.getMultiSelectionModel().addDependency(this)
@@ -234,12 +244,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       @Override
       public void actionPerformed(ActionEvent e) {
         getStage().getTimeline().zoomIn();
+        getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomIn();
       }
     });
     actionMap.put(ZOOM_OUT_KEY, new AbstractAction() {
       @Override
       public void actionPerformed(ActionEvent e) {
         getStage().getTimeline().zoomOut();
+        getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
       }
     });
     actionMap.put(PAN_LEFT_KEY, new AbstractAction() {
@@ -299,9 +311,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
         if (AdtUiUtils.isActionKeyDown(e)) {
           if (e.getWheelRotation() > 0) {
             getStage().getTimeline().zoomOut();
+            getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
           }
           else {
             getStage().getTimeline().zoomIn();
+            getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomIn();
           }
         }
         else {
@@ -317,7 +331,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void setPanningMode(boolean isPanningMode, @NotNull TrackGroupListPanel trackGroupListPanel) {
     myIsPanningMode = isPanningMode;
     trackGroupListPanel.setEnabled(!isPanningMode);
-    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursors.GRABBING : null);
+    getProfilersView().getComponent().setCursor(isPanningMode ? AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING) : null);
   }
 
   private static JComponent createBottomAxisPanel(@NotNull Range range) {
@@ -328,16 +342,13 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                AxisComponent.AxisOrientation.BOTTOM);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
-    // Hide the axis line so it doesn't stack with panel border.
-    timeAxis.setShowAxisLine(false);
     // Align with track content.
     axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
     return axisPanel;
   }
 
-  private HoverHyperlinkLabel createDeselectAllLabel() {
-    HoverHyperlinkLabel label = new HoverHyperlinkLabel("Clear selection");
-    label.addHyperlinkListener(event -> getStage().getMultiSelectionModel().clearSelection());
+  private LinkLabel<?> createDeselectAllLabel() {
+    LinkLabel<?> label = LinkLabel.create("Clear thread/event selection", () -> getStage().getMultiSelectionModel().clearSelection());
     label.setBorder(new JBEmptyBorder(0, 0, 0, 4));
     label.setToolTipText("Click to deselect all threads/events");
     return label;
@@ -402,7 +413,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   @VisibleForTesting
-  HoverHyperlinkLabel getDeselectAllLabel() {
+  LinkLabel<?> getDeselectAllLabel() {
     return myDeselectAllLabel;
   }
 

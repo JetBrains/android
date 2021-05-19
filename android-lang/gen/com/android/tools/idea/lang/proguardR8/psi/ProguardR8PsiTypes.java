@@ -79,7 +79,7 @@ public interface ProguardR8PsiTypes {
   IElementType COMMA = new ProguardR8TokenType(",");
   IElementType DOT = new ProguardR8TokenType(".");
   IElementType DOUBLE = new ProguardR8TokenType("double");
-  IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("DOUBLE_ASTERISK");
+  IElementType DOUBLE_ASTERISK = new ProguardR8TokenType("**");
   IElementType DOUBLE_QUOTED_CLASS = new ProguardR8TokenType("DOUBLE_QUOTED_CLASS");
   IElementType DOUBLE_QUOTED_STRING = new ProguardR8TokenType("DOUBLE_QUOTED_STRING");
   IElementType EM = new ProguardR8TokenType("!");
@@ -114,6 +114,7 @@ public interface ProguardR8PsiTypes {
   IElementType STATIC = new ProguardR8TokenType("static");
   IElementType STRICTFP = new ProguardR8TokenType("strictfp");
   IElementType SYNCHRONIZED = new ProguardR8TokenType("synchronized");
+  IElementType SYNTHETIC = new ProguardR8TokenType("synthetic");
   IElementType TRANSIENT = new ProguardR8TokenType("transient");
   IElementType UNTERMINATED_DOUBLE_QUOTED_CLASS = new ProguardR8TokenType("UNTERMINATED_DOUBLE_QUOTED_CLASS");
   IElementType UNTERMINATED_DOUBLE_QUOTED_STRING = new ProguardR8TokenType("UNTERMINATED_DOUBLE_QUOTED_STRING");

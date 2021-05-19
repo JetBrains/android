@@ -110,6 +110,8 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
 
   @Nullable private JTree myReferenceTree;
 
+  @Nullable private JTree myFieldTree;
+
   @NotNull private final JBCheckBox myGCRootCheckBox = new JBCheckBox("Show nearest GC root only", false);
 
   @NotNull private final JPanel myRefPanel = new JPanel(new BorderLayout());
@@ -168,7 +170,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
           onSubclass(ReferenceObject.class,
                      v -> v.getName() + " in " + v.getValueText(),
                      ValueObject::getValueText),
-          value -> MemoryProfilerStageView.getValueObjectIcon(value.getAdapter()),
+          value -> ValueColumnRenderer.getValueObjectIcon(value.getAdapter()),
           SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
@@ -253,6 +255,12 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
   }
 
   @VisibleForTesting
+  @Nullable
+  JTree getFieldTree() {
+    return myFieldTree;
+  }
+
+  @VisibleForTesting
   JBCheckBox getGCRootCheckBox() {
     return myGCRootCheckBox;
   }
@@ -263,6 +271,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     List<FieldObject> fieldPath = mySelection.getSelectedFieldObjectPath();
 
     if (capture == null || instance == null) {
+      myFieldTree = null;
       myReferenceTree = null;
       myReferenceColumnTree = null;
       getComponent().setVisible(false);
@@ -283,8 +292,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     // Populate fields
     if (mySelection.getIdeServices().getFeatureConfig().isSeparateHeapDumpUiEnabled() &&
         instance.getFieldCount() > 0) {
-      JTree fieldTree = buildFieldTree(instance);
-      JComponent fieldColumnTree = buildFieldColumnTree(fieldTree, capture, instance);
+      JComponent fieldColumnTree = buildFieldColumnTree(capture, instance);
       myTabsPanel.addTab(TITLE_TAB_FIELDS, fieldColumnTree);
       hasContent = true;
     }
@@ -329,11 +337,12 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
     getComponent().setVisible(hasContent);
   }
 
-  private JComponent buildFieldColumnTree(@NotNull JTree tree, @NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
+  private JComponent buildFieldColumnTree(@NotNull CaptureObject captureObject, @NotNull InstanceObject instance) {
+    myFieldTree = buildFieldTree(instance);
     // Add the columns for the tree and take special care of the default sorted column.
     List<InstanceAttribute> supportedAttributes = captureObject.getInstanceAttributes();
     InstanceAttribute sortAttribute = Collections.max(supportedAttributes, Comparator.comparingInt(InstanceAttribute::getWeight));
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myFieldTree);
     for (InstanceAttribute attribute : supportedAttributes) {
       final AttributeColumn<MemoryObject> column = // TODO(philnguyen) refactor
         attribute == InstanceAttribute.LABEL ?
@@ -353,6 +362,13 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
       }
       builder.addColumn(columnBuilder);
     }
+    builder.setTreeSorter((Comparator<MemoryObjectTreeNode<MemoryObject>> comparator, SortOrder order) -> {
+      assert myFieldTree != null;
+      DefaultTreeModel treeModel = (DefaultTreeModel) myFieldTree.getModel();
+      MemoryObjectTreeNode<MemoryObject> root = (MemoryObjectTreeNode<MemoryObject>) treeModel.getRoot();
+      root.sort(comparator);
+      treeModel.nodeStructureChanged(root);
+    });
     return builder
       .setHoverColor(StandardColors.HOVER_COLOR)
       .setBackground(ProfilerColors.DEFAULT_BACKGROUND)

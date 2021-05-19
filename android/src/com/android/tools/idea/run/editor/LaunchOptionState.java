@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,11 +30,11 @@ import java.util.List;
 // DefaultJDOMExternalizer
 public abstract class LaunchOptionState {
   @Nullable
-  public abstract LaunchTask getLaunchTask(@NotNull String applicationId,
-                                           @NotNull AndroidFacet facet,
-                                           @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                           @NotNull ProfilerState profilerState,
-                                           @NotNull ApkProvider apkProvider);
+  public abstract AppLaunchTask getLaunchTask(@NotNull String applicationId,
+                                              @NotNull AndroidFacet facet,
+                                              @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
+                                              @NotNull ProfilerState profilerState,
+                                              @NotNull ApkProvider apkProvider);
 
   @NotNull
   public List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet) {

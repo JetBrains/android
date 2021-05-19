@@ -482,7 +482,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val debug = libModule.findBuildType("debug")
     assertNotNull(debug)
-    assertTrue(!debug!!.isDeclared)
+    assertTrue(debug!!.isDeclared)
   }
 
   fun testFallbackBuildTypes() {
@@ -495,8 +495,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(libModule)
 
     val buildTypes = libModule.buildTypes
-    assertThat(buildTypes.map { it.name }).containsExactly("release")
-    assertThat(buildTypes).hasSize(1)
+    assertThat(buildTypes.map { it.name }).containsExactly("release", "debug")
+    assertThat(buildTypes).hasSize(2)
 
     val release = libModule.findBuildType("release")
     assertNotNull(release)
@@ -595,7 +595,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "new_build_type", "debug").inOrder()  // "debug" is not declared and goes last.
+      .containsExactly("release", "debug", "new_build_type").inOrder()
 
     newBuildType = appModule.findBuildType("new_build_type")
     assertNotNull(newBuildType)
@@ -614,7 +614,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "specialRelease", "debug").inOrder()
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     appModule.removeBuildType(appModule.findBuildType("release")!!)
     assertThat(buildTypesChanged).isEqualTo(1)
@@ -631,11 +631,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("specialRelease", "debug", "release").inOrder()  // "release" is not declared and goes last.
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     val release = appModule.findBuildType("release")
     assertNotNull(release)
-    assertFalse(release!!.isDeclared)
+    assertTrue(release!!.isDeclared)
   }
 
   fun testRenameBuildType() {
@@ -650,7 +650,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     var buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("release", "specialRelease", "debug").inOrder()
+      .containsExactly("release", "debug", "specialRelease").inOrder()
 
     appModule.findBuildType("release")!!.rename("almostRelease")
     assertThat(buildTypesChanged).isEqualTo(1)
@@ -667,11 +667,11 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     buildTypes = appModule.buildTypes
     assertThat(buildTypes.map { it.name })
-      .containsExactly("almostRelease", "specialRelease", "debug", "release").inOrder()  // "release" is not declared and goes last.
+      .containsExactly("release", "debug", "almostRelease", "specialRelease").inOrder()
 
     val release = appModule.findBuildType("release")
     assertNotNull(release)
-    assertFalse(release!!.isDeclared)
+    assertTrue(release!!.isDeclared)
   }
 
   fun testVariants() {
@@ -741,7 +741,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 
     val debugConfig = appModule.findSigningConfig("debug")
     assertNotNull(debugConfig)
-    assertTrue(!debugConfig!!.isDeclared)
+    assertTrue(debugConfig!!.isDeclared)
   }
 
   fun testValidateSigningConfigName() {
@@ -776,7 +776,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     val myConfig = appModule.addNewSigningConfig("config2")
     assertThat(signingConfigsChanged).isEqualTo(1)
@@ -786,7 +786,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertTrue(myConfig.isDeclared)
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug", "config2").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig", "config2").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -795,7 +795,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "config2", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig", "config2").inOrder()
   }
 
   fun testRemoveSigningConfig() {
@@ -809,7 +809,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.removeSigningConfig(appModule.findSigningConfig("myConfig")!!)
     assertThat(signingConfigsChanged).isEqualTo(1)
@@ -839,14 +839,14 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.findSigningConfig("myConfig")!!.rename("yourConfig")
     assertThat(signingConfigsChanged).isEqualTo(1)
     appModule.removeBuildType(appModule.findBuildType("debug")!!)  // Remove (clean) the build type that refers to the signing config.
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -855,7 +855,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
   }
 
   fun testRenameSigningConfigAndReferences() {
@@ -869,13 +869,13 @@ class PsAndroidModuleTest : DependencyTestCase() {
     appModule.testSubscribeToChangeNotifications()
 
     var signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("myConfig", "debug").inOrder()
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "myConfig").inOrder()
 
     appModule.findSigningConfig("myConfig")!!.rename("yourConfig", true)
     assertThat(signingConfigsChanged).isEqualTo(1)
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     appModule.applyChanges()
     requestSyncAndWait()
@@ -884,7 +884,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     assertNotNull(appModule); appModule!!
 
     signingConfigs = appModule.signingConfigs
-    assertThat(signingConfigs.map { it.name }).containsExactly("yourConfig", "debug")
+    assertThat(signingConfigs.map { it.name }).containsExactly("debug", "yourConfig").inOrder()
 
     val debugSigningConfig = PsBuildType.BuildTypeDescriptors.signingConfig.bind(appModule.findBuildType("debug")!!).getValue()
     assertThat(debugSigningConfig.parsedValue)
@@ -1610,7 +1610,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
 internal fun moduleWithoutSyncedModel(project: PsProject, name: String): PsAndroidModule {
   val moduleWithSyncedModel = project.findModuleByName(name) as PsAndroidModule
   return PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
-    init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
+    init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
   }
 }
 

@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.parcel.quickfixes
 
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.jetbrains.kotlin.android.synthetic.diagnostic.ErrorsAndroid
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.util.addAnnotation
@@ -26,8 +26,7 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 
 class AnnotateWithParcelizeQuickFix(clazz: KtClassOrObject) : AbstractParcelableQuickFix<KtClassOrObject>(clazz) {
     object Factory : AbstractFactory({
-        val diagnostic = Errors.PLUGIN_ERROR.cast(this).a
-        val targetClass = ErrorsAndroid.CLASS_SHOULD_BE_PARCELIZE.cast(diagnostic.diagnostic).a
+        val targetClass = ErrorsAndroid.CLASS_SHOULD_BE_PARCELIZE.cast(this).a
         AnnotateWithParcelizeQuickFix(targetClass)
     })
 

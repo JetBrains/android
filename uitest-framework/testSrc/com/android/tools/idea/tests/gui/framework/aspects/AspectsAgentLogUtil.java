@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Manages the logs used by the aspects agent:
  * <ol>
- *   <li>Agent log: logs the non-whitelisted stack traces hit when running the UI tests.</li>
+ *   <li>Agent log: logs the non-ignored stack traces hit when running the UI tests.</li>
  *   <li>Active stack traces: logs the stack traces hit when running the UI tests. Useful to identify stack traces traces that can be
  *       removed from the baseline.
  *   </li>

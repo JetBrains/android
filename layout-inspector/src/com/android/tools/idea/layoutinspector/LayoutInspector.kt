@@ -26,21 +26,18 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 @VisibleForTesting
 const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable: Disposable) : Disposable {
-  var currentClient: InspectorClient = DisconnectedClient
-    set(client) {
-      if (field != client) {
-        field.disconnect()
-        field = client
-        layoutInspectorModel.updateConnection(client)
-      }
-    }
+  val currentClient: InspectorClient
+    get() = currentClientReference.get()
 
+  private val currentClientReference = AtomicReference<InspectorClient>(DisconnectedClient)
   private val latestLoadTime = AtomicLong(-1)
 
   val allClients: List<InspectorClient> = InspectorClient.createInstances(layoutInspectorModel, this)
@@ -55,28 +52,47 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
 
   private fun registerClientListeners(client: InspectorClient) {
     client.register(Common.Event.EventGroupIds.LAYOUT_INSPECTOR_ERROR, ::logError)
-    client.register(Common.Event.EventGroupIds.COMPONENT_TREE) { event ->
-      // TODO: maybe find a better place to do this?
-      currentClient = client
-      loadComponentTree(event)
+    client.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
+    client.registerProcessChanged(::processChanged)
+  }
+
+  @TestOnly
+  fun setCurrentTestClient(client: InspectorClient) {
+    currentClientReference.set(client)
+  }
+
+  private fun processChanged(client: InspectorClient) {
+    if (client.isConnected) {
+      val oldClient = currentClientReference.getAndSet(client)
+      if (oldClient !== client) {
+        oldClient.disconnect()
+        layoutInspectorModel.updateConnection(client)
+      }
     }
-    client.registerProcessChanged(::clearComponentTreeWhenProcessEnds)
+    else if (currentClientReference.compareAndSet(client, DisconnectedClient)) {
+      layoutInspectorModel.updateConnection(DisconnectedClient)
+      ApplicationManager.getApplication().invokeLater {
+        if (currentClient === DisconnectedClient) {
+          layoutInspectorModel.update(null, listOf<Any>(), 0)
+        }
+      }
+    }
   }
 
   private fun loadComponentTree(event: Any) {
+    // TODO: this should only run once at a time. If more requests are made while one is being processed, the last request should be
+    // processed after the existing run is complete, and intermediate ones should be dropped.
     val time = System.currentTimeMillis()
     val allIds = currentClient.treeLoader.getAllWindowIds(event, currentClient)
-    val (root, rootId) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
-                                                                    currentClient, layoutInspectorModel.project) ?: return
-    if (rootId != null && allIds != null) {
-      ApplicationManager.getApplication().invokeLater {
-        synchronized(latestLoadTime) {
-          if (latestLoadTime.get() > time) {
-            return@invokeLater
-          }
-          latestLoadTime.set(time)
-          layoutInspectorModel.update(root, rootId, allIds)
+    val (window, generation) = currentClient.treeLoader.loadComponentTree(event, layoutInspectorModel.resourceLookup,
+                                                                          currentClient, layoutInspectorModel.project) ?: return
+    if (allIds != null) {
+      synchronized(latestLoadTime) {
+         if (latestLoadTime.get() > time) {
+          return
         }
+        latestLoadTime.set(time)
+        layoutInspectorModel.update(window, allIds, generation)
       }
     }
   }
@@ -95,17 +111,6 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable
       ApplicationManager.getApplication().invokeLater {
         Messages.showErrorDialog(layoutInspectorModel.project, error, "Inspector Error")
       }
-    }
-  }
-
-  private fun clearComponentTreeWhenProcessEnds() {
-    if (currentClient.isConnected) {
-      return
-    }
-    currentClient = DisconnectedClient
-    val application = ApplicationManager.getApplication()
-    application.invokeLater {
-      layoutInspectorModel.update(null, 0, listOf<Any>())
     }
   }
 }

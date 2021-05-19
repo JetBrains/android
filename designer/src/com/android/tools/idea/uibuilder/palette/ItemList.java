@@ -26,6 +26,7 @@ import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import java.awt.event.MouseEvent;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;

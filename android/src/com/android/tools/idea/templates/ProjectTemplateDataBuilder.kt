@@ -51,6 +51,7 @@ val log: Logger get() = logger<ProjectTemplateDataBuilder>()
  */
 class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var androidXSupport: Boolean? = null
+  var addJetifierSupport = false
   var gradlePluginVersion: GradleVersion? = null
   var javaVersion: JavaVersion? = null
   var sdkDir: File? = null

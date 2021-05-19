@@ -24,8 +24,10 @@ import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefin
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.ui.enableLiveLayoutInspector
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.ide.DataManager
@@ -41,7 +43,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
@@ -52,7 +53,14 @@ val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector:
  * Get the [LayoutInspector] for the specified layout inspector [toolWindow].
  */
 fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
-  toolWindow.contentManager?.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
+  toolWindow.contentManager.getContent(0)?.getUserData(LAYOUT_INSPECTOR)
+
+/**
+ * Create a [DataProvider] for the specified [layoutInspector].
+ */
+@VisibleForTesting
+fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider =
+  DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else null }
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -72,7 +80,7 @@ internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
     val layoutInspector = LayoutInspector(model, workbench)
-    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
+    val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, workbench)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
@@ -81,14 +89,9 @@ internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentPanel.add(workbench, BorderLayout.CENTER)
     val content = contentManager.factory.createContent(contentPanel, "", true)
     content.putUserData(LAYOUT_INSPECTOR, layoutInspector)
-    DataManager.registerDataProvider(workbench, DataProvider { dataId ->
-      if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) {
-        return@DataProvider layoutInspector
-      }
-      null
-    })
+    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
     contentManager.addContent(content)
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
+    project.messageBus.connect(workbench).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
 
   override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()
@@ -108,9 +111,11 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
     if (windowVisibilityChanged && isWindowVisible) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT)
                          .setDynamicLayoutInspectorEvent(DynamicLayoutInspectorEvent.newBuilder()
-                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN)))
+                                                           .setType(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.OPEN))
+                         .withProjectId(project))
     }
     val preferredProcess = getPreferredInspectorProcess(project) ?: return
     if (!windowVisibilityChanged || !isWindowVisible) {

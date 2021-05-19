@@ -58,7 +58,7 @@ class CriticalPathAnalyzerTest {
     analyzer.onBuildStart()
 
     // Given tasks (A, B, C, D, E, F, CLEAN, MID1, MID2, MID3, LAST) with the following dependencies and execution times
-    // DUMMY(0) -> A(10) -> B(20) -> D(20) -> F(10)
+    // SAMPLE(0) -> A(10) -> B(20) -> D(20) -> F(10)
     //                   |                 ^
     //                   -------> C(30) -----> E(20)
     //
@@ -70,9 +70,9 @@ class CriticalPathAnalyzerTest {
     //
     // LAST(7)
 
-    val dummyTask = createTaskFinishEventStub(":dummyTask", pluginA, emptyList(), 0, 0)
+    val sampleTask = createTaskFinishEventStub(":sampleTask", pluginA, emptyList(), 0, 0)
     val taskClean = createTaskFinishEventStub(":clean", pluginA, emptyList(), 1, 6)
-    var taskA = createTaskFinishEventStub(":app:taskA", pluginA, listOf(dummyTask), 10, 20)
+    var taskA = createTaskFinishEventStub(":app:taskA", pluginA, listOf(sampleTask), 10, 20)
     val taskMid1 = createTaskFinishEventStub(":app:mid1", pluginA, emptyList(), 21, 25)
     val taskMid2 = createTaskFinishEventStub(":app:mid2", pluginB, listOf(taskMid1), 26, 30)
     val taskMid3 = createTaskFinishEventStub(":app:mid3", pluginB, emptyList(), 22, 28)
@@ -83,7 +83,7 @@ class CriticalPathAnalyzerTest {
     var taskF = createTaskFinishEventStub(":lib:taskF", pluginB, listOf(taskD), 80, 90)
     val taskLast = createTaskFinishEventStub(":lib:taskLast", pluginA, emptyList(), 100, 117)
 
-    analyzer.receiveEvent(dummyTask)
+    analyzer.receiveEvent(sampleTask)
     analyzer.receiveEvent(taskClean)
     analyzer.receiveEvent(taskA)
     analyzer.receiveEvent(taskMid1)
@@ -101,12 +101,12 @@ class CriticalPathAnalyzerTest {
     analyzer.onBuildSuccess()
 
     // Then the analyzer should find this critical path
-    // DUMMY(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
+    // SAMPLE(0) -> CLEAN(5) -> A(10) -> MID1(4) -> MID2(4) -> C(30) -> D(20) -> F(10) -> LAST(17)
 
     assertThat(analyzer.tasksDeterminingBuildDuration.sumByLong { it.executionTime }).isEqualTo(100)
 
     assertThat(analyzer.tasksDeterminingBuildDuration).isEqualTo(
-      listOf(TaskData.createTaskData(dummyTask, pluginContainer),
+      listOf(TaskData.createTaskData(sampleTask, pluginContainer),
              TaskData.createTaskData(taskClean, pluginContainer),
              TaskData.createTaskData(taskA, pluginContainer),
              TaskData.createTaskData(taskMid1, pluginContainer),

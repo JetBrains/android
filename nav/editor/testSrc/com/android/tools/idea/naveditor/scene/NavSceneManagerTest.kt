@@ -208,7 +208,7 @@ class NavSceneManagerTest : NavTestCase() {
     modelBuilder.updateModel(model)
 
     assertEquals(1, scene.root!!.childCount)
-    model.activate(this)
+    sceneManager.activate(this)
 
     assertEquals(2, scene.root!!.childCount)
   }

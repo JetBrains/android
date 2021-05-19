@@ -25,4 +25,7 @@ public interface BuildFeaturesModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel mlModelBinding();
+
+  @NotNull
+  ResolvedPropertyModel viewBinding();
 }

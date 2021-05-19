@@ -24,26 +24,25 @@ The Jetpack Compose IDE plugin
     <vendor url="http://www.android.com">Android</vendor>
 
     <idea-version since-build="191.5109.14" until-build="201.*"/>
+    <depends>org.jetbrains.android</depends>
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeFrameModelChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeTryCatchComposableChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeComposableAnnotationChecker" />
-        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.IdeUnionAnnotationCheckerProvider" />
-        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.IdeComposeDiagnosticSuppressor"/>
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.TryCatchComposableChecker" />
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableCallChecker" />
+        <storageComponentContainerContributor implementation="androidx.compose.plugins.idea.ComposableDeclarationChecker" />
+        <diagnosticSuppressor implementation="androidx.compose.plugins.idea.ComposeDiagnosticSuppressor"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <annotator
             language="kotlin"
-            implementationClass="androidx.compose.plugins.idea.IdeComposableAnnotator"/>
+            implementationClass="androidx.compose.plugins.idea.ComposableAnnotator"/>
         <additionalTextAttributes scheme="Default"
             file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
         <colorSettingsPage
-            implementation="androidx.compose.plugins.idea.IdeComposeColorSettingsPage"/>
+            implementation="androidx.compose.plugins.idea.ComposeColorSettingsPage"/>
     </extensions>
     <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-        <callResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.IdeComposeCallResolutionInterceptorExtension"/>
-        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.IdeComposeTypeResolutionInterceptorExtension"/>
+        <typeResolutionInterceptorExtension implementation="androidx.compose.plugins.idea.ComposeTypeResolutionInterceptorExtension"/>
     </extensions>
 </idea-plugin>

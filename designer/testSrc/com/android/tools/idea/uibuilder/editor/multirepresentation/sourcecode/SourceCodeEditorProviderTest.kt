@@ -17,8 +17,16 @@ package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentation
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
+import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.intellij.openapi.fileEditor.FileEditorStateLevel
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.JDOMUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import junit.framework.TestCase
+import org.jdom.Element
 
 class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
 
@@ -80,6 +88,38 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
     TestCase.assertNotNull(editor)
 
     provider.disposeEditor(editor)
+  }
+
+  fun testStateSerialization() {
+    val file = myFixture.addFileToProject("src/Preview.kt", "")
+    val representationWithState = object : TestPreviewRepresentation() {
+      override fun getState(): PreviewRepresentationState? = mapOf(
+        "key1" to "value1",
+        "key2" to "value2"
+      )
+    }
+    val serializationProvider = SourceCodeEditorProvider.forTesting(
+      listOf(TestPreviewRepresentationProvider("Representation1", true),
+             TestPreviewRepresentationProvider("Representation2", true, representationWithState))
+    )
+    val editor = serializationProvider.createEditor(file.project, file.virtualFile)
+    // Editor are not selected in unit testing. Force the preview activation so it loads the state.
+    (editor as TextEditorWithMultiRepresentationPreview<*>).preview.onActivate()
+    try {
+      val rootElement = Element("root")
+      serializationProvider.writeState(editor.getState(FileEditorStateLevel.FULL), myFixture.project, rootElement)
+      assertTrue(JDOMUtil.createOutputter("\n").outputString(rootElement).isNotBlank())
+      val state = serializationProvider.readState(rootElement, myFixture.project, file.virtualFile) as SourceCodeEditorWithMultiRepresentationPreviewState
+
+      assertContainsElements(state.previewState.representations.map { it.key }, "Representation1", "Representation2")
+      val settings = state.previewState.representations.single { it.key == "Representation2" }.settings
+      assertEquals("""
+        key1 -> value1
+        key2 -> value2
+      """.trimIndent(), settings.map { "${it.key} -> ${it.value}" }.joinToString("\n"))
+    } finally {
+      Disposer.dispose(editor)
+    }
   }
 
   override fun tearDown() {

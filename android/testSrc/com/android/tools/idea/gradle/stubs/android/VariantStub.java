@@ -129,7 +129,6 @@ public class VariantStub implements Variant {
   public Collection<AndroidArtifact> getExtraAndroidArtifacts() {
     return myExtraAndroidArtifacts;
   }
-
   @Override
   public boolean isInstantAppCompatible() {
     return false;

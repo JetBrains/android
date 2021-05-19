@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidResourceFileListenerAndroidStartupActivity implements AndroidStartupActivity {
 
   @Override
+  @UiThread
   public void runActivity(@NotNull Project project, @NotNull Disposable disposable) {
     final AndroidResourceFilesListener listener = new AndroidResourceFilesListener(project);
     Disposer.register(disposable, listener);

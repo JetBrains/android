@@ -16,6 +16,7 @@
 package com.android.tools.idea.emulator.actions
 
 import com.android.tools.idea.emulator.EMULATOR_MAIN_TOOLBAR_ID
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -51,6 +52,7 @@ class BootOptionsPopupActionGroup : DefaultActionGroup() {
   }
 
   override fun update(event: AnActionEvent) {
+    event.presentation.isVisible = !StudioFlags.EMBEDDED_EMULATOR_NEW_SNAPSHOT_UI.get()
     event.presentation.isEnabled = isEmulatorConnected(event)
   }
 }

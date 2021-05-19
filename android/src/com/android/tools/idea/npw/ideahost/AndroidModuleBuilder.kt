@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.npw.ideahost
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.module.createWithDefaultGallery
+import com.android.tools.idea.npw.module.ChooseModuleTypeWizard
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider
+import com.android.tools.idea.npw.module.deprecated.ChooseModuleTypeStep
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep
 import com.android.tools.idea.npw.project.ConfigureAndroidSdkStep
 import com.android.tools.idea.sdk.IdeSdks
@@ -31,6 +34,7 @@ import com.intellij.ide.util.projectWizard.SettingsStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.AbstractWizard
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.project.Project
@@ -56,7 +60,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
   /**
    * This adapter class hosts the Android Studio [ModelWizard] instance
    */
-  private var wizardAdapter: IdeaWizardAdapter? = null // null if no adapter has been instantiated
+  private var wizardAdapter: IdeaWizardDelegate? = null // null if no adapter has been instantiated
 
   override fun getBuilderId(): String? = javaClass.name
   override fun getPresentableName(): String = AndroidBundle.message("android.wizard.module.presentable.name")
@@ -85,7 +89,7 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
       createWizardAdaptor(ctx.wizard, if (ctx.isCreatingNewProject) WizardType.PROJECT else WizardType.MODULE, ctx.project)
     }
 
-    return wizardAdapter!!.proxyStep
+    return wizardAdapter!!.getCustomOptionsStep()
   }
 
   override fun doNextAction() = wizardAdapter!!.doNextAction()
@@ -94,10 +98,29 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
 
   override fun doFinishAction() = wizardAdapter!!.doFinishAction()
 
-  override fun canProceed(): Boolean = wizardAdapter!!.canProceed()
+  override fun canProceed(): Boolean {
+    ApplicationManager.getApplication().invokeLater {
+      // Unfortunately the [WizardDelegate] does not provide a call for "canGoBack", so we trigger an async full refresh of the buttons.
+      wizardAdapter?.updateButtons()
+    }
+    return wizardAdapter!!.canProceed()
+  }
 
   private fun createWizardAdaptor(hostWizard: AbstractWizard<*>, type: WizardType, project: Project?) {
     Preconditions.checkState(wizardAdapter == null, "Attempting to create a Wizard Adaptor when one already exists.")
+
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() && type == WizardType.MODULE) {
+      val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
+      val chooseModuleWizard =
+        ChooseModuleTypeWizard(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker())
+
+      wizardAdapter = IdeaMultiWizardAdapter(hostWizard, chooseModuleWizard.mainPanel).apply {
+        chooseModuleWizard.setWizardModelListenerAndFire { modelWizard ->
+          setModelWizard(modelWizard)
+        }
+      }
+      return
+    }
 
     val builder = ModelWizard.Builder().apply {
       if (IdeSdks.getInstance().androidSdkPath == null) {
@@ -107,7 +130,8 @@ class AndroidModuleBuilder : ModuleBuilder(), WizardDelegate {
         addStep(ChooseAndroidProjectStep(NewProjectModel()))
       }
       else {
-        addStep(createWithDefaultGallery(project!!, null, ProjectSyncInvoker.DefaultProjectSyncInvoker()))
+        val moduleDescriptions = ModuleDescriptionProvider.EP_NAME.extensions.flatMap { it.getDescriptions(project!!) }
+        addStep(ChooseModuleTypeStep(project!!, ":", moduleDescriptions, ProjectSyncInvoker.DefaultProjectSyncInvoker()))
       }
     }
 

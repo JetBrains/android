@@ -19,11 +19,12 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.ASGallery;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.ui.components.JBList;
 import javax.swing.JDialog;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JListFixture;
@@ -57,10 +58,29 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAutomotiveModule() {
+    clickNextToStep(message("android.wizard.module.new.automotive"), message("android.wizard.module.new.automotive"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
   public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextWearModule() {
     clickNextToStep(message("android.wizard.module.new.wear"), message("android.wizard.module.new.wear"));
     return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidTvModule() {
+    clickNextToStep(message("android.wizard.module.new.tv"), message("android.wizard.module.new.tv"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
+  @NotNull
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNextAndroidThingsModule() {
+    clickNextToStep(message("android.wizard.module.new.things"), message("android.wizard.module.new.things"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
+  }
+
   @NotNull
   public ConfigureDynamicFeatureStepFixture<NewModuleWizardFixture> clickNextToDynamicFeature() {
     clickNextToStep(message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.config.title"));
@@ -80,7 +100,7 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToJavaLibrary() {
+  public ConfigureLibraryStepFixture<NewModuleWizardFixture> clickNextToPureLibrary() {
     clickNextToStep(
       message("android.wizard.module.new.java.or.kotlin.library"),
       message("android.wizard.module.new.java.or.kotlin.library")
@@ -98,20 +118,22 @@ public class NewModuleWizardFixture extends AbstractWizardFixture<NewModuleWizar
   }
 
   @NotNull
-  public ConfigureNewModuleFromJarStepFixture<NewModuleWizardFixture> clickNextToModuleFromJar() {
-    clickNextToStep(message("android.wizard.module.import.archive.title"), message("android.wizard.module.import.library.title"));
-    return new ConfigureNewModuleFromJarStepFixture<>(this, target().getRootPane());
+  public ConfigureAndroidModuleStepFixture<NewModuleWizardFixture> clickNewNativeLibraryModule() {
+    clickNextToStep(message("android.wizard.module.new.native.library"), message("android.wizard.module.new.native.library"));
+    return new ConfigureAndroidModuleStepFixture<>(this, target().getRootPane());
   }
 
   private void clickNextToStep(String moduleName, String nextStepTitle) {
-    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
+    JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), JBList.class));
     listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
     listFixture.clickItem(moduleName);
 
-    clickNext();
+    if (!StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      clickNext();
 
-    Wait.seconds(5).expecting("next step to appear").until(
-      () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
+      Wait.seconds(5).expecting("next step to appear").until(
+        () -> robot().finder().findAll(target(), JLabelMatcher.withText(nextStepTitle).andShowing()).size() == 1);
+    }
   }
 
   private void clickFinish() {

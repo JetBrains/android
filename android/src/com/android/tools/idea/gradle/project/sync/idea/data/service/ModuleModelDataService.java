@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 import com.android.tools.idea.gradle.project.model.ModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -46,18 +43,6 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
-    try {
-      importData(toImport, project, modelsProvider);
-    }
-    catch (Throwable e) {
-      String msg = e.getMessage();
-      GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName(), e, null);
-    }
-  }
-
-  private void importData(@NotNull Collection<? extends DataNode<T>> toImport,
-                          @NotNull Project project,
-                          @NotNull IdeModifiableModelsProvider modelsProvider) {
     WriteCommandAction.runWriteCommandAction(project, ()->  {
         if (project.isDisposed()) {
           return;

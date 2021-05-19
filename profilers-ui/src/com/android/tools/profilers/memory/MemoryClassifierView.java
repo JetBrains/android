@@ -20,6 +20,7 @@ import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 
+import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
@@ -69,6 +70,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
@@ -135,7 +137,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @Nullable private Comparator<MemoryObjectTreeNode<ClassifierSet>> myInitialComparator;
 
-  MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public MemoryClassifierView(@NotNull MemoryCaptureSelection selection, @NotNull IdeProfilerComponents ideProfilerComponents) {
     mySelection = selection;
     myContextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
     myLoadingPanel = ideProfilerComponents.createLoadingPanel(HEAP_UPDATING_DELAY_MS);
@@ -261,7 +263,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
   @VisibleForTesting
   @Nullable
-  JTree getTree() {
+  public JTree getTree() {
     return myTree;
   }
 
@@ -313,7 +315,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
     }
   }
 
-  private void refreshCapture() {
+  @VisibleForTesting
+  public void refreshCapture() {
     myCaptureObject = mySelection.getSelectedCapture();
     if (myCaptureObject == null) {
       reset();
@@ -558,7 +561,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   /**
    * Refreshes the view based on the "group by" selection from the user.
    */
-  private void refreshGrouping() {
+  @VisibleForTesting
+  public void refreshGrouping() {
     HeapSet heapSet = mySelection.getSelectedHeapSet();
     // This gets called when a capture is loading, or we change the profiler configuration.
     // During a loading capture we adjust which configurations are available and reset set the selection to the first one.
@@ -642,9 +646,16 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
    * @param targetSet target set of {@link InstanceObject}s to search for
    * @return the path of chained {@link ClassifierSet} that leads to the given instanceObjects, or throws an exception if not found.
    */
+  @VisibleForTesting
+  @Nullable
+  public static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
+                                                                             @NotNull ClassifierSet targetSet) {
+    return findSmallestSuperSetNode(rootNode, targetSet.getInstancesStream().collect(Collectors.toSet()));
+  }
+
   @Nullable
   private static MemoryObjectTreeNode<ClassifierSet> findSmallestSuperSetNode(@NotNull MemoryObjectTreeNode<ClassifierSet> rootNode,
-                                                                              @NotNull ClassifierSet targetSet) {
+                                                                              @NotNull Set<InstanceObject> targetSet) {
     if (rootNode.getAdapter().isSupersetOf(targetSet)) {
       for (MemoryObjectTreeNode<ClassifierSet> child : rootNode.getChildren()) {
         MemoryObjectTreeNode<ClassifierSet> result = findSmallestSuperSetNode(child, targetSet);
@@ -733,7 +744,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
-          Icon i = StudioIcons.Common.WARNING;
+          Icon i = mySelected && isFocused()
+                   ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
+                   : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
           int iconHeight = i.getIconHeight();
           i.paintIcon(this, g, width - iconWidth - textWidth - 6, (height - iconHeight) / 2);
@@ -742,6 +755,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         // paint real content last
         super.paintComponent(g);
+      }
+
+      private void setIconColorized(Icon icon) {
+        setIcon(mySelected && isFocused() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       }
 
       @Override
@@ -760,7 +777,9 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         if (node.getAdapter() instanceof ClassSet) {
           ClassSet classSet = (ClassSet)node.getAdapter();
 
-          setIcon(((ClassSet)node.getAdapter()).hasStackInfo() ? StudioIcons.Profiler.Overlays.CLASS_STACK : PlatformIcons.CLASS_ICON);
+          setIconColorized(((ClassSet)node.getAdapter()).hasStackInfo()
+                           ? StudioIcons.Profiler.Overlays.CLASS_STACK
+                           : PlatformIcons.CLASS_ICON);
 
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
@@ -774,12 +793,12 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof MethodSet) {
-          setIcon(PlatformIcons.METHOD_ICON);
+          setIconColorized(PlatformIcons.METHOD_ICON);
 
           MethodSet methodObject = (MethodSet)node.getAdapter();
           String name = methodObject.getMethodName();
@@ -794,31 +813,31 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           }
         }
         else if (node.getAdapter() instanceof ThreadSet) {
-          setIcon(AllIcons.Debugger.ThreadSuspended);
+          setIconColorized(AllIcons.Debugger.ThreadSuspended);
           String threadName = node.getAdapter().getName();
           append(threadName, SimpleTextAttributes.REGULAR_ATTRIBUTES, threadName);
         }
         else if (node.getAdapter() instanceof HeapSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = set.getName() + " heap";
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof NativeCallStackSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(StudioIcons.Profiler.Overlays.METHOD_STACK);
+          setIconColorized(StudioIcons.Profiler.Overlays.METHOD_STACK);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof NativeAllocationMethodSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIcon(StudioIcons.Profiler.Overlays.ARRAY_STACK);
+          setIconColorized(StudioIcons.Profiler.Overlays.ARRAY_STACK);
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
 
         if (node.getAdapter() instanceof ClassifierSet) {
-          CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
+          CaptureObjectInstanceFilter leakFilter = myCaptureObject != null ? myCaptureObject.getActivityFragmentLeakFilter() : null;
           myLeakCount = leakFilter != null ?
                         ((ClassifierSet)node.getAdapter()).getInstanceFilterMatchCount(leakFilter) :
                         0;

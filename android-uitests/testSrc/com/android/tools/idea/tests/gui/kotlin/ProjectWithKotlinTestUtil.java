@@ -17,11 +17,6 @@ package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
 
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
@@ -33,11 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;
@@ -156,39 +147,7 @@ public class ProjectWithKotlinTestUtil {
       newProjectWizard.clickNext();
     }
 
-    IdeFrameFixture ideFrame = newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
-
-    // TODO remove the following hack: b/110174414
-    File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();
-    File ninja = new File(androidSdk, "cmake/3.10.4819442/bin/ninja");
-
-    AtomicReference<IOException> buildGradleFailure = new AtomicReference<>();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      WriteCommandAction.runWriteCommandAction(ideFrame.getProject(), () -> {
-        ProjectBuildModel pbm = ProjectBuildModel.get(ideFrame.getProject());
-        GradleBuildModel buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"));
-        CMakeOptionsModel cmakeModel = buildModel
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake();
-
-        ResolvedPropertyModel cmakeArgsModel = cmakeModel.arguments();
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.getCanonicalPath());
-          buildModel.applyChanges();
-        }
-        catch (IOException failureToWrite) {
-          buildGradleFailure.set(failureToWrite);
-        }
-      });
-    });
-    IOException errorsWhileModifyingBuild = buildGradleFailure.get();
-    if(errorsWhileModifyingBuild != null) {
-      throw errorsWhileModifyingBuild;
-    }
-    ideFrame.requestProjectSyncAndWaitForSyncToFinish();
-    // TODO end hack for b/110174414
+    newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
   }
 
   /**

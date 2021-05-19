@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,10 +44,11 @@ public class RenderResult {
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
-  @NotNull private final Map<Object, String> myDefaultStyles;
+  @NotNull private final Map<Object, ResourceReference> myDefaultStyles;
   @NotNull private final Module myModule;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
+  private final long myRenderDurationMs;
   private boolean isDisposed;
 
   protected RenderResult(@NotNull PsiFile file,
@@ -58,8 +60,9 @@ public class RenderResult {
                          @NotNull ImmutableList<ViewInfo> systemRootViews,
                          @NotNull ImagePool.Image image,
                          @NotNull Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties,
-                         @NotNull Map<Object, String> defaultStyles,
-                         @Nullable Object validatorResult) {
+                         @NotNull Map<Object, ResourceReference> defaultStyles,
+                         @Nullable Object validatorResult,
+                         long renderDurationMs) {
     myRenderTask = renderTask;
     myModule = module;
     myFile = file;
@@ -71,6 +74,29 @@ public class RenderResult {
     myDefaultProperties = defaultProperties;
     myDefaultStyles = defaultStyles;
     myValidatorResult = validatorResult;
+    myRenderDurationMs = renderDurationMs;
+  }
+
+  /**
+   * The {@link #dispose()} may be called in other thread, thus the returned image from {@link #getRenderedImage()} may has been disposed
+   * before using. This function gives a chance to process rendered image and guarantee the image is not disposed during the processing.
+   * If the image is disposed before executing task, then this function does nothing and return false.
+   *
+   * @param processTask The task to process on rendered image
+   * @return            True if the process is executed, false if the rendered image has disposed before executing processTask.
+   */
+  public boolean processImageIfNotDisposed(@NotNull Consumer<ImagePool.Image> processTask) {
+    myDisposeLock.readLock().lock();
+    try {
+      if (isDisposed) {
+        return false;
+      }
+      processTask.accept(myImage);
+      return true;
+    }
+    finally {
+      myDisposeLock.readLock().unlock();
+    }
   }
 
   public void dispose() {
@@ -95,7 +121,7 @@ public class RenderResult {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
-    Map<Object, String> defaultStyles = session.getDefaultStyles();
+    Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
       file,
       renderTask.getContext().getModule(),
@@ -107,7 +133,8 @@ public class RenderResult {
       image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
       defaultProperties != null ? ImmutableMap.copyOf(defaultProperties) : ImmutableMap.of(),
       defaultStyles != null ? ImmutableMap.copyOf(defaultStyles) : ImmutableMap.of(),
-      session.getValidationData());
+      session.getValidationData(),
+      -1);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -117,33 +144,23 @@ public class RenderResult {
   }
 
   /**
-   * Creates a new session initialization error {@link RenderResult} from a given RenderTask
+   * Creates a new {@link RenderResult} from this with recorded render duration.
    */
   @NotNull
-  public static RenderResult createSessionInitializationError(@NotNull RenderTask renderTask,
-                                                              @NotNull PsiFile file,
-                                                              @NotNull RenderLogger logger,
-                                                              @Nullable Throwable throwable) {
-    Module module = logger.getModule();
-    assert module != null;
-    RenderResult result = new RenderResult(
-      file,
-      module, // do not use renderTask.getModule as a disposed renderTask could be the reason we are here
-      logger,
-      renderTask,
-      Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session", throwable),
-      ImmutableList.of(),
-      ImmutableList.of(),
-      ImagePool.NULL_POOLED_IMAGE,
-      ImmutableMap.of(),
-      ImmutableMap.of(),
-      null);
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(result.toString());
-    }
-
-    return result;
+  public RenderResult createWithDuration(long renderDurationMs) {
+    return new RenderResult(
+      myFile,
+      myModule,
+      myLogger,
+      myRenderTask,
+      myRenderResult,
+      myRootViews,
+      mySystemRootViews,
+      myImage,
+      myDefaultProperties,
+      myDefaultStyles,
+      myValidatorResult,
+      renderDurationMs);
   }
 
   /**
@@ -169,6 +186,11 @@ public class RenderResult {
   }
 
   @NotNull
+  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @Nullable Throwable throwable) {
+    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable), null);
+  }
+
+  @NotNull
   private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
     assert module != null;
@@ -183,7 +205,8 @@ public class RenderResult {
       ImagePool.NULL_POOLED_IMAGE,
       ImmutableMap.of(),
       ImmutableMap.of(),
-      null);
+      null,
+      -1);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(result.toString());
@@ -256,7 +279,7 @@ public class RenderResult {
    * The map is index by view cookie.
    */
   @NotNull
-  public Map<Object, String> getDefaultStyles() {
+  public Map<Object, ResourceReference> getDefaultStyles() {
     return myDefaultStyles;
   }
 
@@ -268,5 +291,12 @@ public class RenderResult {
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .toString();
+  }
+
+  /**
+   * Returns render duration in ms or -1 if unknown.
+   */
+  public long getRenderDuration() {
+    return myRenderDurationMs;
   }
 }

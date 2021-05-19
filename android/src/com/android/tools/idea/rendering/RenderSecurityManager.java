@@ -21,11 +21,11 @@ import static com.android.SdkConstants.VALUE_FALSE;
 
 import com.android.annotations.Nullable;
 import com.android.utils.ILogger;
+import com.intellij.openapi.application.PathManager;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.lang.reflect.Member;
 import java.net.InetAddress;
 import java.security.Permission;
 import java.util.PropertyPermission;
@@ -85,13 +85,15 @@ public class RenderSecurityManager extends SecurityManager {
    * For debugging purposes
    */
   private static String sLastFailedPath;
+  private final String mIndexRootPath;
+  private final String mCachePath;
 
   private boolean mAllowSetSecurityManager;
   private boolean mDisabled;
-  @SuppressWarnings("FieldCanBeLocal") private String mSdkPath;
-  @SuppressWarnings("FieldCanBeLocal") private String mProjectPath;
-  private String mTempDir;
-  private String mNormalizedTempDir;
+  private final String mSdkPath;
+  private final String mProjectPath;
+  private final String mTempDir;
+  private final String mNormalizedTempDir;
   private String mCanonicalTempDir;
   private String mAppTempDir;
   private SecurityManager myPreviousSecurityManager;
@@ -128,7 +130,7 @@ public class RenderSecurityManager extends SecurityManager {
    * {@link System#setSecurityManager(SecurityManager)}.
    *
    * @param sdkPath     an optional path to the SDK install being used by layoutlib;
-   *                    this is used to white-list path prefixes for layoutlib resource
+   *                    this is used to allow specific path prefixes for layoutlib resource
    *                    lookup
    * @param projectPath a path to the project directory, used for similar purposes
    */
@@ -137,6 +139,8 @@ public class RenderSecurityManager extends SecurityManager {
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
+    mIndexRootPath = PathManager.getIndexRoot().getPath();
+    mCachePath = PathManager.getSystemPath() + "/caches/";
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
   }
@@ -275,13 +279,6 @@ public class RenderSecurityManager extends SecurityManager {
   public void checkPackageAccess(String pkg) {
   }
 
-  public void checkMemberAccess(Class<?> clazz, int which) {
-    if (which == Member.DECLARED && isRelevant() &&
-        RenderSecurityException.class.getName().equals(clazz.getName())) {
-      throw RenderSecurityException.create("Reflection", clazz.getName());
-    }
-  }
-
   @Override
   public void checkPropertyAccess(String property) {
   }
@@ -387,7 +384,11 @@ public class RenderSecurityManager extends SecurityManager {
 
   @SuppressWarnings("RedundantIfStatement")
   private boolean isWritingAllowed(String path) {
-    return isTempDirPath(path);
+    return isTempDirPath(path) ||
+           // When loading classes, IntelliJ might sometimes drop a corruption marker
+           path.startsWith(mIndexRootPath) ||
+           // When loading classes, IntelliJ might try to update cache hashes for the loaded files
+           path.startsWith(mCachePath);
   }
 
   private boolean isTempDirPath(String path) {
@@ -536,12 +537,6 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
-  public void checkAwtEventQueueAccess() {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Event", null);
-    }
-  }
-
   // Prevent writes
 
   @Override
@@ -569,19 +564,6 @@ public class RenderSecurityManager extends SecurityManager {
     if (isRelevant()) {
       throw RenderSecurityException.create("Print", null);
     }
-  }
-
-  public void checkSystemClipboardAccess() {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Clipboard", null);
-    }
-  }
-
-  public boolean checkTopLevelWindow(Object context) {
-    if (isRelevant()) {
-      throw RenderSecurityException.create("Window", null);
-    }
-    return false;
   }
 
   @Override
@@ -619,6 +601,21 @@ public class RenderSecurityManager extends SecurityManager {
       }
       else if (mLogger != null) {
         mLogger.warning("RenderSecurityManager being replaced by another thread");
+      }
+    }
+    else if ("accessEventQueue".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Event", null);
+      }
+    }
+    else if ("accessClipboard".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Clipboard", null);
+      }
+    }
+    else if ("showWindowWithoutWarningBanner".equals(name)) {
+      if (isRelevant()) {
+        throw RenderSecurityException.create("Window", null);
       }
     }
     else if (isRelevant()) {

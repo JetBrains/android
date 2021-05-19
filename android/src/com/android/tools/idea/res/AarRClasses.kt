@@ -23,6 +23,7 @@ import com.android.ide.common.symbols.SymbolIo
 import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.resources.ResourceType
+import com.android.resources.ResourceVisibility
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -184,19 +185,19 @@ private class TransitiveAarInnerRClass(
   symbolTable: SymbolTable
 ) : InnerRClassBase(parent, resourceType) {
 
-  private val styleableFields: ImmutableList<String>
+  private val otherFields: ImmutableList<Pair<String, ResourceVisibility>>
+  private val styleableFields: ImmutableList<Pair<String, ResourceVisibility>>
   private val styleableAttrFields: ImmutableList<StyleableAttrFieldUrl>
-  private val otherFields: ImmutableList<String>
 
   init {
-    val styleableFieldsBuilder = ImmutableList.builder<String>()
+    val otherFieldsBuilder = ImmutableList.builder<Pair<String, ResourceVisibility>>()
+    val styleableFieldsBuilder = ImmutableList.builder<Pair<String, ResourceVisibility>>()
     val styleableAttrFieldsBuilder = ImmutableList.builder<StyleableAttrFieldUrl>()
-    val otherFieldsBuilder = ImmutableList.builder<String>()
     for (symbol in symbolTable.getSymbolByResourceType(resourceType)) {
       when (symbol.javaType) {
-        SymbolJavaType.INT -> otherFieldsBuilder.add(symbol.canonicalName)
+        SymbolJavaType.INT -> otherFieldsBuilder.add(Pair(symbol.canonicalName, symbol.resourceVisibility))
         SymbolJavaType.INT_LIST -> {
-          styleableFieldsBuilder .add(symbol.canonicalName)
+          styleableFieldsBuilder.add(Pair(symbol.canonicalName, symbol.resourceVisibility))
           (symbol as? Symbol.StyleableSymbol)?.children?.forEach {
             val (packageName, attrName) = getNameComponents(it)
             val attrNamespace = if (packageName.isNullOrEmpty()) {

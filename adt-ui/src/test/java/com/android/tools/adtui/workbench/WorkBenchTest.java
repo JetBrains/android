@@ -80,6 +80,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     initMocks(this);
     registerApplicationService(WorkBenchManager.class, myWorkBenchManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
+    when(myFileEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     registerProjectComponent(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
@@ -99,7 +100,6 @@ public class WorkBenchTest extends WorkBenchTestCase {
                                                                       PalettePanelToolContent.getOtherDefinition(),
                                                                       PalettePanelToolContent.getThirdDefinition());
     when(myFileEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor, myFileEditor2});
-    when(myFileEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
     myWorkBench.init(myContent, "CONTEXT", definitions, false);
     myToolWindow1 = myModel.getAllTools().get(0);
     myToolWindow2 = myModel.getAllTools().get(1);

@@ -44,14 +44,16 @@ class ColorBlindModeScreenViewLayer(screenView: ScreenView, val mode: ColorBlind
       return
     }
 
-    val original = result?.renderedImage ?: return
-    val copied = original.copy ?: return
-    colorConverter.convert(copied, copied)
+    result?.processImageIfNotDisposed { image ->
+      val original = image ?: return@processImageIfNotDisposed
+      val copied = original.copy ?: return@processImageIfNotDisposed
+      colorConverter.convert(copied, copied)
 
-    original.paint{ g2D ->
-      val w = original.width
-      val h = original.height
-      g2D.drawImage(copied, 0, 0, w, h, 0, 0, w,  h, null)
+      original.paint { g2D ->
+        val w = original.width
+        val h = original.height
+        g2D.drawImage(copied, 0, 0, w, h, 0, 0, w, h, null)
+      }
     }
   }
 }

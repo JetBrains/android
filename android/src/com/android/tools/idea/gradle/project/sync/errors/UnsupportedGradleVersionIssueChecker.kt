@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
@@ -46,14 +47,14 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler.getRootCauseAndLocation
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler.FIX_GRADLE_VERSION
 import org.jetbrains.plugins.gradle.settings.DistributionType
-import org.jetbrains.uast.USuperExpression
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 import java.util.regex.Pattern
+import java.util.regex.Pattern.DOTALL
 
 class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
-  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_1 = Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*?")
-  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_2 = Pattern.compile("Gradle version (.*) is required.*?")
+  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_1 = Pattern.compile("Minimum supported Gradle version is (.*)\\. Current version is.*", DOTALL)
+  private val UNSUPPORTED_GRADLE_VERSION_PATTERN_2 = Pattern.compile("Gradle version (.*) is required.*", DOTALL)
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val error = getRootCauseAndLocation(issueData.error).first
@@ -82,7 +83,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
       val gradleVersion = getSupportedGradleVersion(message)
       if (gradleWrapper != null) {
         // It's likely that we need to fix the model version as well.
-        buildIssueComposer.addQuickFix("Fix Gradle wrapper and re-import project", FixGradleVersionInWrapperQuickFix(gradleWrapper, gradleVersion))
+        buildIssueComposer.addQuickFix(FixGradleVersionInWrapperQuickFix(gradleWrapper, gradleVersion))
         val propertiesFile = gradleWrapper.propertiesFilePath
         if (propertiesFile.exists()) {
           buildIssueComposer.addQuickFix(
@@ -157,14 +158,17 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     }
   }
 
-  class FixGradleVersionInWrapperQuickFix(private var gradleWrapper: GradleWrapper?, private val gradleVersion: String?): BuildIssueQuickFix {
+  class FixGradleVersionInWrapperQuickFix(private var gradleWrapper: GradleWrapper?, gradleVersion: String?): DescribedBuildIssueQuickFix {
+    override val description: String
+      get() = "Change Gradle version in Gradle wrapper to $gradleVersion and re-import project"
     override val id = "fix.gradle.version.in.wrapper"
+    val gradleVersion: String = gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION
 
     override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       invokeLater {
         if (gradleWrapper == null) gradleWrapper = GradleWrapper.find(project) ?: return@invokeLater
-        gradleWrapper!!.updateDistributionUrlAndDisplayFailure(gradleVersion ?: SdkConstants.GRADLE_LATEST_VERSION)
+        gradleWrapper!!.updateDistributionUrlAndDisplayFailure(gradleVersion)
         // Set the distribution type and request sync.
         val settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project)
         if (settings != null) {

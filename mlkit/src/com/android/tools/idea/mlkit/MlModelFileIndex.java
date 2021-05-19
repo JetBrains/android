@@ -96,7 +96,7 @@ public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMet
 
   @Override
   public int getVersion() {
-    return 4;
+    return 6;
   }
 
   @NotNull

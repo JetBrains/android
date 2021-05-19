@@ -281,6 +281,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       if (useDumbMode) {
         DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
       }
+      task.dispose();
     }
   }
 
@@ -407,7 +408,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
         "\tat java.lang.Thread.run(Thread.java:680)\n");
-      logger.error(null, null, throwable, null);
+      logger.error(null, null, throwable, null, null);
       //noinspection ConstantConditions
       target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
 
@@ -521,7 +522,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895)\n" +
         "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918)\n" +
         "\tat java.lang.Thread.run(Thread.java:680)\n");
-      logger.error(null, "Failed to configure parser for " + path, throwable, null);
+      logger.error(null, "Failed to configure parser for " + path, throwable, null, null);
     };
 
     List<RenderErrorModel.Issue> issues =
@@ -645,7 +646,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "\tat java.lang.Thread.run(Thread.java:695)\n",
         RenderSecurityException.create("Read access not allowed during rendering (/)"));
 
-      logger.error(null, null, throwable, null);
+      logger.error(null, null, throwable, null, null);
 
       //noinspection ConstantConditions
       target.set(render.getRenderTask().getContext().getConfiguration().getRealTarget());
@@ -667,21 +668,21 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
         "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-29/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-30/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
         "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
@@ -731,7 +732,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
     operation = (logger, render) -> {
       logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
-      logger.error("Error", "An error", null);
+      logger.error("Error", "An error", null, null);
     };
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(3, issues);

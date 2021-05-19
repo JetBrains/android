@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.completion
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
@@ -24,46 +23,6 @@ import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.project.guessProjectDir
 
 class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.KOTLIN_INCORRECT_SCOPE_CHECK_IN_TESTS.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
-  fun testAndroidTestIncorrectScopeCompletion() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
-    val unitTestPath = "app/src/androidTest/java/com/example/android/kotlin/ExampleInstrumentedTest.kt"
-    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
-    myFixture.openFileInEditor(file!!)
-
-    myFixture.moveCaret("assertEquals(\"com.example.android.kotlin\", appContext.packageName)|")
-    myFixture.type("\nExampleUnitTes")
-
-    myFixture.complete(CompletionType.BASIC)
-    assertThat(myFixture.lookupElementStrings).doesNotContain("ExampleUnitTest")
-  }
-
-  fun testUnitTestIncorrectScopeCompletion() {
-    loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)
-    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
-    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
-    myFixture.openFileInEditor(file!!)
-
-    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
-    myFixture.type("\nExampleInstrumentedTes")
-
-    myFixture.complete(CompletionType.BASIC)
-    assertThat(myFixture.lookupElementStrings).doesNotContain("ExampleInstrumentedTest")
-  }
 
   fun testFilteredPrivateResources() {
     loadProject(TestProjectPaths.TEST_ARTIFACTS_KOTLIN)

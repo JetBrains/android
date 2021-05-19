@@ -33,7 +33,7 @@ fun androidProjectBuildGradle(
         ${renderIf(generateKotlin) { "ext.kotlin_version = \"$kotlinVersion\"" }}
         repositories {
             google()
-            jcenter()
+            mavenCentral()
             $kotlinEapRepoBlock
         }
         dependencies {
@@ -48,7 +48,8 @@ fun androidProjectBuildGradle(
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
+            jcenter() // Warning: this repository is going to shut down soon
             $kotlinEapRepoBlock
         }
     }
@@ -72,7 +73,7 @@ fun androidProjectBuildGradleKts(
         ${renderIf(generateKotlin) { "val kotlin_version by extra(\"$kotlinVersion\")" }}
         repositories {
             google()
-            jcenter()
+            mavenCentral()
             $kotlinEapRepoBlock
         }
         dependencies {
@@ -87,7 +88,8 @@ fun androidProjectBuildGradleKts(
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
+            jcenter() // Warning: this repository is going to shut down soon
             $kotlinEapRepoBlock
         }
     }

@@ -64,7 +64,7 @@ public class CreateNavGraphTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
+      .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
       .setFilename("nav_g")
       .setType("navigation")
       .clickOkAndWaitForDependencyDialog()

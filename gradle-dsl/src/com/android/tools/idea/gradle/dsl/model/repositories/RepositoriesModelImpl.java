@@ -162,6 +162,11 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     model.name().setValue(name);
   }
 
+  @Override
+  public void removeRepository(@NotNull RepositoryModel repository) {
+    myDslElement.removeProperty(repository.getDslElement());
+  }
+
   /**
    * Looks for a repository by URL.
    *

@@ -15,27 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallSdkPackageHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Reporter for dealing with {@link SyncIssue#TYPE_MISSING_SDK_PACKAGE} issues.
+ * Reporter for dealing with {@link IdeSyncIssue#TYPE_MISSING_SDK_PACKAGE} issues.
  */
 public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
-    return SyncIssue.TYPE_MISSING_SDK_PACKAGE;
+    return IdeSyncIssue.TYPE_MISSING_SDK_PACKAGE;
   }
 
   @Override
@@ -46,7 +44,7 @@ public class MissingSdkPackageSyncIssuesReporter extends SimpleDeduplicatingSync
   @NotNull
   @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty();

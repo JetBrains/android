@@ -17,13 +17,7 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.intellij.util.ui.UIUtil;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Insets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,31 +28,8 @@ import org.jetbrains.annotations.Nullable;
 abstract class ScreenViewBase extends SceneView {
   protected boolean myIsSecondary;
 
-  // Use cached to avoid deriving same font multiple times.
-  @NotNull private Font myLabelFont;
-
   protected ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager, @NotNull ShapePolicy shapePolicy) {
     super(surface, manager, shapePolicy);
-    myLabelFont = createLabelFont();
-  }
-
-  @NotNull
-  @Override
-  public Insets getMargin() {
-    if (getSurface().isShowModelNames()) {
-      Graphics graphics = getSurface().getGraphics();
-      if (graphics != null) {
-        FontMetrics metrics = graphics.getFontMetrics(myLabelFont);
-        //noinspection UseDPIAwareInsets, this margin is not scaled
-        return new Insets(metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX, 0, 0, 0);
-      }
-    }
-    return NO_MARGIN;
-  }
-
-  @NotNull
-  public Font getLabelFont() {
-    return myLabelFont;
   }
 
   @NotNull
@@ -91,21 +62,5 @@ abstract class ScreenViewBase extends SceneView {
    */
   protected final boolean isSecondary() {
     return myIsSecondary;
-  }
-
-  /**
-   * This function is called when the UI of the {@link com.android.tools.idea.common.surface.DesignSurface} is changes such like
-   * switching to presentation mode, changing Studio Look & Feel, or change appearance of preferences.
-   */
-  @Override
-  public void updateUI() {
-    myLabelFont = createLabelFont();
-  }
-
-  @NotNull
-  private static Font createLabelFont() {
-    @SuppressWarnings("StaticMethodReferencedViaSubclass") // For coding convention, using UIUtil instead of StartupUiUtil
-    Font labelFont = UIUtil.getLabelFont();
-    return labelFont.deriveFont(labelFont.getSize() - 1f);
   }
 }

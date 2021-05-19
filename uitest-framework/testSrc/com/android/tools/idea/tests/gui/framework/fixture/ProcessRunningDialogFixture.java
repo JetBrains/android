@@ -29,9 +29,8 @@ public class ProcessRunningDialogFixture implements ContainerFixture<JDialog> {
 
   @NotNull
   public static ProcessRunningDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    String appModuleName = ideFrameFixture.getProject().getName() + ".app";
     JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(),
-                                               Matchers.byTitle(JDialog.class, "Process '" + appModuleName + "' Is Running"));
+                                               Matchers.byTitle(JDialog.class, "Process \'app\' Is Running"));
     return new ProcessRunningDialogFixture(ideFrameFixture, dialog);
   }
 

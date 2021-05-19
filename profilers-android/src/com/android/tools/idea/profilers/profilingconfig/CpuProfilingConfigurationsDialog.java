@@ -15,14 +15,22 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.tools.adtui.model.stdui.CommonAction;
+import com.android.tools.adtui.stdui.menu.CommonMenu;
+import com.android.tools.adtui.stdui.menu.CommonMenuItem;
+import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
+import com.android.tools.adtui.ui.options.OptionsPanel;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerConfigModel;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -52,11 +60,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -145,7 +156,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     /**
      * Panel containing key-value CPU profiling settings.
      */
-    private CpuProfilingConfigPanel myProfilersPanel;
+    private OptionsPanel myProfilersPanel;
 
     private CpuProfilerConfigModel myProfilerModel;
 
@@ -159,8 +170,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myFeatureTracker = featureTracker;
       myProfilerModel = model;
       myDeviceLevel = deviceLevel;
-      myProfilersPanel = new CpuProfilingConfigPanel(myDeviceLevel);
-
+      myProfilersPanel = new OptionsPanel();
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
       setUpConfigurationsList();
@@ -178,7 +188,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myConfigurations.setCellRenderer(new ProfilingConfigurationsListCellRenderer());
       myConfigurations.addListSelectionListener((e) -> {
         int index = myConfigurations.getSelectedIndex();
-        myProfilersPanel.setConfiguration(index < 0 ? null : myConfigurationsModel.get(index), index >= getCustomConfigurationCount());
+        myProfilersPanel.setOption(index < 0 ? null : myConfigurationsModel.get(index), index >= getCustomConfigurationCount());
       });
 
       // Restore saved configurations
@@ -225,7 +235,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         .setAddAction(addAction).setAddActionUpdater(addAction).setAddActionName(ADD)
         .setMinimumSize(new JBDimension(200, 200))
         .setForcedDnD();
-      return toolbarDecorator.createPanel();
+      JComponent panel = toolbarDecorator.createPanel();
+      addAction.setPopupParent(panel);
+      return panel;
     }
 
     @Nls
@@ -240,7 +252,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       JPanel mainComponent = new JPanel(new BorderLayout());
       mySplitter.setFirstComponent(createLeftPanel());
       mySplitter.setHonorComponentsMinimumSize(true);
-      mySplitter.setSecondComponent(myProfilersPanel.getComponent());
+      mySplitter.setSecondComponent(myProfilersPanel);
       mainComponent.add(mySplitter, BorderLayout.CENTER);
       mainComponent.setPreferredSize(new Dimension(800, 600));
       return mainComponent;
@@ -328,18 +340,36 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
      */
     private class MyAddAction extends AnAction implements AnActionButtonRunnable, AnActionButtonUpdater {
 
-      public MyAddAction() {
+      @NotNull private final CommonPopupMenu myPopup;
+      @NotNull private final List<CommonAction> myActions = new ArrayList<>();
+      private static final String UNNAMED = "Unnamed";
+      private JComponent myPanel;
+      private MyAddAction() {
         super("Add Configuration", "Add a new configuration", IconUtil.getAddIcon());
+        myPopup = new CommonPopupMenu();
+        myPopup.add(buildPopupMenuItem("Java Sampled", ArtSampledConfiguration::new));
+        myPopup.add(buildPopupMenuItem("Java Instrumented", ArtInstrumentedConfiguration::new));
+        myPopup.add(buildPopupMenuItem("C++ Sampled", SimpleperfConfiguration::new));
+        myPopup.add(buildPopupMenuItem("System Trace", PerfettoConfiguration::new));
+      }
+
+      private CommonMenuItem buildPopupMenuItem(String name, Function<String, ProfilingConfiguration> configurationConstructor) {
+        CommonAction action = new CommonAction(name, null);
+        action.setAction(() -> addConfiguration(configurationConstructor.apply(UNNAMED)));
+        return new CommonMenuItem(action);
       }
 
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        addConfiguration();
+      }
+
+      public void setPopupParent(JComponent panel) {
+        myPanel = panel;
       }
 
       @Override
       public void run(AnActionButton button) {
-        addConfiguration();
+        myPopup.show(myPanel, 0, 24);
       }
 
       @Override
@@ -347,17 +377,12 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         return true;
       }
 
-      private void addConfiguration() {
-        ProfilingConfiguration configuration = new ProfilingConfiguration(getUniqueName("Unnamed"),
-                                                                          Cpu.CpuTraceType.ART,
-                                                                          Cpu.CpuTraceMode.SAMPLED);
+      private void addConfiguration(ProfilingConfiguration configuration) {
         int lastConfigurationIndex = getCustomConfigurationCount();
         myConfigurationsModel.insertElementAt(configuration, lastConfigurationIndex);
         // Select the newly added configuration
         myConfigurations.setSelectedIndex(lastConfigurationIndex);
         myFeatureTracker.trackCreateCustomProfilingConfig();
-
-        myProfilersPanel.getPreferredFocusComponent().requestFocusInWindow();
       }
 
       /**

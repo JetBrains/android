@@ -63,6 +63,12 @@
                 text="Boot Options" description="Select an Emulator boot mode"/>
         <separator/>
       </group>
+      <action id="android.emulator.snapshots" class="com.android.tools.idea.emulator.actions.EmulatorManageSnapshotsAction"
+              icon="StudioIcons.Emulator.SNAPSHOTS"
+              text="Snapshots" description="Create, load, rename or delete snapshots"/>
+      <action id="android.emulator.extended.controls" class="com.android.tools.idea.emulator.actions.EmulatorShowExtendedControlsAction"
+              icon="AllIcons.Actions.More"
+              text="Extended Controls" description="Show extended controls"/>
     </group>
   </actions>
 </idea-plugin>

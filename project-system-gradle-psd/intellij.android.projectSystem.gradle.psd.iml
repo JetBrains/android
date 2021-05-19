@@ -6,6 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="library" name="Guava" level="project" />
@@ -20,7 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="library" name="swingx" level="project" />

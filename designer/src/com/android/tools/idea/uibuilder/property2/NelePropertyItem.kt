@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property2
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_ID
@@ -26,6 +27,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -39,12 +41,12 @@ import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions
@@ -70,7 +72,6 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.android.dom.AttributeProcessingUtil
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 import java.awt.Color
 import javax.swing.Icon
@@ -267,7 +268,8 @@ open class NelePropertyItem(
       ResourceType.INTEGER,
       ResourceType.STRING -> if (resValue.value != null) return resValue.value
       ResourceType.COLOR -> if (resValue.value?.startsWith("#") == true) return resValue.value
-      else -> {}
+      else -> {
+      }
     }
     // The value of the remaining resource types are file names or ids.
     // We don't want to show the file names and the ids don't have a value.
@@ -333,7 +335,7 @@ open class NelePropertyItem(
   protected open fun getCompletionValues(): List<String> {
     if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
       val tags = ReadAction.compute<Collection<String>, RuntimeException> {
-        AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getViewGroupClassMap(model.facet))
+        AndroidDomUtil.removeUnambiguousNames(TagToClassMapper.getInstance(model.facet.module).getClassMap(SdkConstants.CLASS_VIEWGROUP))
       }.toMutableList()
       tags.sort()
       return tags
@@ -365,11 +367,13 @@ open class NelePropertyItem(
       values.addAll(valueSet.sorted())
       valueSet.clear()
 
+      val publicResources = mutableSetOf<ResourceItem>()
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is BasicResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
-            valueSet.add(toName(resourceItem))
+          if (resourceItem is ResourceItemWithVisibility && resourceItem.visibility == ResourceVisibility.PUBLIC &&
+              resourceItem.libraryName != null) {
+            publicResources.add(resourceItem)
           }
           return ResourceVisitor.VisitResult.CONTINUE
         }
@@ -380,7 +384,7 @@ open class NelePropertyItem(
       })
 
       // Sort and add to the result list:
-      values.addAll(valueSet.sorted())
+      values.addAll(publicResources.map(toName).sorted())
       valueSet.clear()
 
       // Framework resources.

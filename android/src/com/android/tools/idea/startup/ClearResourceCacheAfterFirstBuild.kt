@@ -26,6 +26,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
 
@@ -34,36 +35,40 @@ import org.jetbrains.android.util.AndroidUtils
  * were accessed before source generation. If the last build of the project in the previous session was successful
  * (i.e. the initial build of this session is skipped), then the resource cache is already valid and will not be cleared.
  */
-class ClearResourceCacheStartupActivity : StartupActivity.DumbAware {
-  override fun runActivity(project: Project) {
-    // Listen for sync results until the first successful project sync.
-    val messageBusConnection = project.messageBus.connect()
-    messageBusConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        if (result.isSuccessful) {
-          messageBusConnection.disconnect()
-          ClearResourceCacheAfterFirstBuild.getInstance(project).syncSucceeded()
-        }
-        else {
-          ClearResourceCacheAfterFirstBuild.getInstance(project).syncFailed()
-        }
-      }
-    })
-  }
-}
-
 class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private class CacheClearedCallback(val onCacheCleared: Runnable, val onSourceGenerationError: Runnable)
 
   private val lock = Any()
-
   @GuardedBy("lock")
   private var cacheClean = false
-
   @GuardedBy("lock")
   private var errorOccurred = false
   private val callbacks = mutableListOf<CacheClearedCallback>()
-  private var syncSucceeded = false
+  private var messageBusConnection: MessageBusConnection? = null
+
+  class MyStartupActivity : StartupActivity.DumbAware {
+    override fun runActivity(project: Project) {
+      // Listen for sync results until the first successful project sync.
+      val serviceInstance = getInstance(project)
+      serviceInstance.messageBusConnection = project.messageBus.connect().apply {
+        subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
+          override fun syncEnded(result: SyncResult) {
+            if (result.isSuccessful) {
+              if (serviceInstance.messageBusConnection != null) {
+                serviceInstance.messageBusConnection = null
+                disconnect()
+              }
+
+              serviceInstance.syncSucceeded()
+            }
+            else {
+              serviceInstance.syncFailed()
+            }
+          }
+        })
+      }
+    }
+  }
 
   /**
    * Delays the execution of [onCacheClean] until after the initial project build finishes and, if necessary, the resource
@@ -80,10 +85,15 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   fun runWhenResourceCacheClean(onCacheClean: Runnable, onSourceGenerationError: Runnable) {
     // There's no need to wait for the first successful project sync this session if the project's sync state
     // is already clean. In this case, we can go ahead and clear the cache and notify callbacks of a success.
-    if (!syncSucceeded && syncStateClean()) {
-      syncSucceeded()
-      onCacheClean.run()
-      return
+    messageBusConnection?.apply {
+      if (syncStateClean()) {
+        messageBusConnection = null
+        disconnect()
+
+        syncSucceeded()
+        onCacheClean.run()
+        return
+      }
     }
 
     val (cacheClean, errorOccurred) = synchronized(lock) {
@@ -119,6 +129,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
       AndroidUtils.getApplicationFacets(project).forEach { facet ->
         ResourceRepositoryManager.getInstance(facet).resetAllCaches()
         ResourceIdManager.get(facet.module).resetDynamicIds()
+        ResourceClassRegistry.get(project).clearCache()
         ModuleResourceManagers.getInstance(facet).localResourceManager.invalidateAttributeDefinitions()
       }
     }
@@ -131,8 +142,6 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
 
   @VisibleForTesting
   fun syncSucceeded() {
-    if (syncSucceeded) return
-    syncSucceeded = true
     clearResourceCacheIfNecessary()
 
     callbacks.forEach { it.onCacheCleared.run() }
@@ -163,6 +172,6 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ClearResourceCacheAfterFirstBuild = project
-      .getService(ClearResourceCacheAfterFirstBuild::class.java)
+        .getService(ClearResourceCacheAfterFirstBuild::class.java)
   }
 }

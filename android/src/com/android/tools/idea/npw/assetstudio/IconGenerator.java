@@ -94,7 +94,7 @@ public abstract class IconGenerator implements Disposable {
     DENSITY_PATTERNS = builder.build();
   }
 
-  protected static final AnnotatedImage PLACEHOLDER_IMAGE = new AnnotatedImage(AssetStudioUtils.createDummyImage());
+  protected static final AnnotatedImage PLACEHOLDER_IMAGE = new AnnotatedImage(AssetStudioUtils.createPlaceholderImage());
 
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myOutputName = new StringValueProperty();
@@ -348,7 +348,7 @@ public abstract class IconGenerator implements Disposable {
       @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     List<Callable<GeneratedIcon>> tasks = createIconGenerationTasks(context, options, name);
     List<Future<GeneratedIcon>> futures = new ArrayList<>(tasks.size());
-    List<GeneratedIcon> icons = new ArrayList<>(futures.size());
+    List<GeneratedIcon> icons = new ArrayList<>(tasks.size());
 
     Disposable taskCanceler = () -> {
       synchronized (futures) {

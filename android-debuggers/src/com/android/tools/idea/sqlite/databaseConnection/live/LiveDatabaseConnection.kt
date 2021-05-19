@@ -53,7 +53,7 @@ class LiveDatabaseConnection(
     val commands = Command.newBuilder()
       .setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id))
       .build()
-    val responseFuture = messenger.sendCommand(commands)
+    val responseFuture = messenger.sendCommandAsync(commands)
 
     return responseFuture.transform(taskExecutor) { response ->
       response.getSchema.tablesList.toSqliteSchema()
@@ -74,7 +74,7 @@ class LiveDatabaseConnection(
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     val queryCommand = buildQueryCommand(sqliteStatement, id)
-    val responseFuture = messenger.sendCommand(queryCommand)
-    return responseFuture.transform { Unit }
+    val responseFuture = messenger.sendCommandAsync(queryCommand)
+    return responseFuture.transform(taskExecutor) { Unit }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.PathManager;
@@ -34,17 +35,7 @@ import java.nio.file.Paths;
 
 public final class SimpleperfSampleReporter implements TracePreProcessor {
 
-  private final String myHomePath;
-
-
-  public SimpleperfSampleReporter() {
-    this(PathManager.getHomePath());
-  }
-
-  @VisibleForTesting
-  SimpleperfSampleReporter(@NotNull String homePath) {
-    myHomePath = homePath;
-  }
+  public SimpleperfSampleReporter() { }
 
   private static Logger getLogger() {
     return Logger.getInstance(SimpleperfSampleReporter.class);
@@ -112,18 +103,17 @@ public final class SimpleperfSampleReporter implements TracePreProcessor {
 
   @VisibleForTesting
   String getSimpleperfBinaryPath() {
-    // First, try the release path. For instance:
-    // $IDEA_PATH/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
-    Path path =
-      Paths.get(myHomePath, "plugins", "android", "resources", "simpleperf", getSimpleperfBinarySubdirectory(), getSimpleperfBinaryName());
-    if (Files.notExists(path)) {
-      // If the release path doesn't exist, it means we're building from sources, so use the prebuilts path. For example:
-      // prebuilts/tools/windows/simpleperf/simpleperf.exe.
-      // Note: prebuilts directory is $IDEA_PATH/../../prebuilts
-      path =
-        Paths.get(myHomePath, "..", "..", "prebuilts", "tools", getSimpleperfBinarySubdirectory(), "simpleperf", getSimpleperfBinaryName());
+    String subDir = getSimpleperfBinarySubdirectory();
+    String binaryName = getSimpleperfBinaryName();
+    if (StudioPathManager.isRunningFromSources())  {
+      // Running from sources, so use the prebuilts path. For example:
+      // $REPO/prebuilts/tools/windows/simpleperf/simpleperf.exe.
+      return Paths.get(StudioPathManager.getSourcesRoot(), "prebuilts", "tools", subDir, "simpleperf", binaryName).toString();
+    } else {
+      // Release build. For instance:
+      // $IDEA_HOME/plugins/android/resources/simpleperf/darwin-x86_64/simpleperf
+      return Paths.get(PathManager.getHomePath(), "plugins", "android", "resources", "simpleperf", subDir, binaryName).toString();
     }
-    return path.toString();
   }
 
   private static File tempFileFromByteString(@NotNull ByteString bytes) throws IOException {

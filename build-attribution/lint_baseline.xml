@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 4.2.0-dev">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="167"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="165"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="216"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="217"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="219"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="220"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="221"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="222"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/build/attribution/ui/panels/TimeDistributionChart.java"
+            line="223"/>
+    </issue>
+
+</issues>

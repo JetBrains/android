@@ -18,5 +18,5 @@ package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 /**
  * Reserved for try catch block
  */
-public interface TryBlockEntryNode extends DummyNode {
+public interface TryBlockEntryNode extends PlaceholderNode {
 }

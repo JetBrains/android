@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.parcel.quickfixes
 
 import com.intellij.openapi.diagnostic.Logger
-import kotlinx.android.parcel.Parceler
+import kotlinx.parcelize.Parceler
 import org.jetbrains.kotlin.android.parcel.ANDROID_PARCELABLE_CREATOR_CLASS_FQNAME
 import org.jetbrains.kotlin.android.parcel.ANDROID_PARCEL_CLASS_FQNAME
 import org.jetbrains.kotlin.builtins.StandardNames

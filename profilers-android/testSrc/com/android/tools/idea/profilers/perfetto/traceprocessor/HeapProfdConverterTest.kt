@@ -122,10 +122,12 @@ class HeapProfdConverterTest {
     assertThat(instances[1].name).isEqualTo("Frame 1")
     // Invalid link returns unknown
     assertThat(instances[2].name).isEqualTo("unknown")
+    assertThat(symbolizer.stopCalled).isTrue()
   }
 
   class FakeFrameSymbolizer : NativeFrameSymbolizer {
     private val symbols = newHashMap<String, String>()
+    var stopCalled = false
     fun addValidSymbol(symbol: String, path: String) {
       symbols[symbol] = path
     }
@@ -136,6 +138,10 @@ class HeapProfdConverterTest {
       // Lookup symbol else return as if the symbolizer failed.
       val symbolName = symbols[unsymbolizedFrame!!.moduleName] ?: "0x00"
       return unsymbolizedFrame.toBuilder().setSymbolName(symbolName).setFileName(symbolName).setLineNumber(123).build()
+    }
+
+    override fun stop() {
+      stopCalled = true
     }
   }
 

@@ -214,8 +214,22 @@ object TypeResolver {
       SdkConstants.ATTR_THUMB_TINT,
       SdkConstants.ATTR_TICK_MARK_TINT,
       SdkConstants.ATTR_TINT,
-      SdkConstants.ATTR_TRACK_TINT -> NelePropertyType.COLOR_STATE_LIST
+      SdkConstants.ATTR_TRACK_TINT,
+      "boxStrokeErrorColor",
+      "checkedIconTint",
+      "haloColor",
+      "placeholderTextColor",
+      "prefixTextColor",
+      "suffixTextColor",
+      "thumbColor",
+      "tickColor",
+      "tickColorActive",
+      "tickColorInactive",
+      "trackColor",
+      "trackColorActive",
+      "trackColorInactive" -> NelePropertyType.COLOR_STATE_LIST
 
+      "values",  // actually an array of float for com.google.android.material.slider.RangeSlider
       SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NelePropertyType.ARRAY
 
       SdkConstants.ATTR_INTERPOLATOR,
@@ -225,7 +239,9 @@ object TypeResolver {
 
       SdkConstants.ATTR_IGNORE_GRAVITY -> NelePropertyType.THREE_STATE_BOOLEAN
 
-      SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO -> NelePropertyType.FLOAT
+      "value",
+      "valueFrom",
+      "valueTo" -> NelePropertyType.FLOAT
 
       SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
       SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,

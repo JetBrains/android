@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
+import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -25,8 +26,13 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.utils.FileUtils;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.JavaSdkVersionUtil;
+import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -54,7 +60,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   public void tearDown() throws Exception {
     try {
       if (myInitialJdkPath != null) {
-        ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myInitialJdkPath));
+        ApplicationManager.getApplication().runWriteAction(() -> {myIdeSdks.setJdkPath(myInitialJdkPath);});
       }
     }
     catch (Throwable e) {
@@ -133,10 +139,40 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Confirm that setting Jdk path also changes the result of isUsingEnvVariableJdk
    */
   public void testIsUsingEnvVariableJdk() {
-    myIdeSdks.cleanJdkEnvVariableInitialization();
-    myIdeSdks.initializeJdkEnvVariable(myInitialJdkPath.toAbsolutePath().toString());
+    myIdeSdks.overrideJdkEnvVariable(myInitialJdkPath.toAbsolutePath().toString());
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
-    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
+    ApplicationManager.getApplication().runWriteAction(() -> {myIdeSdks.setJdkPath(myJavaHomePath.toPath());});
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
+  }
+
+  /**
+   * Verify that the embedded JDK8 can be used in setJdk
+   */
+  public void testSetJdk8() throws IOException {
+    File jdkPath = new File(getEmbeddedJdk8Path());
+    AtomicReference<Sdk> createdJdkRef = new AtomicReference<>(null);
+    ApplicationManager.getApplication().runWriteAction(() -> {createdJdkRef.set(myIdeSdks.setJdkPath(jdkPath));});
+    Sdk createdJdk = createdJdkRef.get();
+    assertThat(createdJdk).isNotNull();
+    JavaSdkVersion createdVersion = JavaSdkVersionUtil.getJavaSdkVersion(createdJdk);
+    assertThat(createdVersion).isEqualTo(JavaSdkVersion.JDK_1_8);
+    assertThat(FileUtils.isSameFile(jdkPath, new File(createdJdk.getHomePath()))).isTrue();
+    assertThat(myIdeSdks.getJdk()).isEqualTo(createdJdk);
+  }
+
+  /**
+   * Confirm that isJdkCompatible returns true with embedded JDK 8
+   */
+  public void testIsJdkCompatibleJdk8() throws IOException {
+    @Nullable Sdk jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path());
+    assertThat(IdeSdks.isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
+  }
+
+  /**
+   * Confirm that isJdkCompatible returns true with embedded JDK
+   */
+  public void testIsJdkCompatibleEmbedded() throws IOException {
+    @Nullable Sdk jdk = Jdks.getInstance().createJdk(myIdeSdks.getEmbeddedJdkPath().getCanonicalPath());
+    assertThat(IdeSdks.isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
   }
 }

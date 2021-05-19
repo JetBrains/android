@@ -200,36 +200,12 @@ class LayoutBindingModuleCache(private val module: Module) {
         val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
         val modificationCount = moduleResources.modificationCount
         if (modificationCount != lastResourcesModificationCount) {
-          // Grab the latest snapshot of layout resources and group them by name
           val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
-          val latestGroups = layoutResources.values()
+          _bindingLayoutGroups = layoutResources.values()
             .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
             .groupBy { info -> info.file.name }
             .map { entry -> BindingLayoutGroup(entry.value) }
-            .associateBy { group -> group.layoutFileName }
-
-          // Organize our existing groups and group them by name, so we can compare with the data
-          // structure we just created above.
-          val currGroups = _bindingLayoutGroups.associateBy { group -> group.layoutFileName }
-
-          // Prepare a new set, which will use our old data when possible or new data if anything was updated.
-          val bindingLayoutGroups = mutableSetOf<BindingLayoutGroup>()
-          for (latestGroup in latestGroups.values) {
-            val currGroup = currGroups[latestGroup.layoutFileName]
-            val groupToAdd = when {
-              // Totally new group, no previous version
-              currGroup == null -> latestGroup
-              // A layout configuration was added or removed
-              latestGroup.layouts.size != currGroup.layouts.size -> latestGroup
-              // A layout XML file was edited since last time
-              currGroup.layouts.indices.any { i -> currGroup.layouts[i].data !== latestGroup.layouts[i].data } -> latestGroup
-              // No change, so keep the same group instance as before (as it may have user data cached against it)
-              else -> currGroup
-            }
-            bindingLayoutGroups.add(groupToAdd)
-          }
-
-          _bindingLayoutGroups = bindingLayoutGroups
+            .toSet()
           lastResourcesModificationCount = modificationCount
         }
 

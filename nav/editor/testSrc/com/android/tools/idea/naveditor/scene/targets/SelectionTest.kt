@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -35,6 +36,9 @@ import java.awt.event.MouseEvent.BUTTON1
  * Test to verify that components are selected when
  * mousePress event is received.
  */
+
+private const val LASSO_PADDING = 10
+
 class SelectionTest : NavTestCase() {
 
   fun testSelection() {
@@ -111,5 +115,62 @@ class SelectionTest : NavTestCase() {
     LayoutTestUtilities.moveMouse(interactionManager, 0, 0, swingX, swingY)
     LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
     LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, swingX, swingY, modifiers)
+  }
+
+  fun testLassoSelection() {
+    val model = model("nav.xml") {
+      navigation {
+        action("action1", destination = "fragment1")
+        fragment("fragment1")
+        fragment("fragment2") {
+          action("action2", destination = "fragment3")
+        }
+        fragment("fragment3") {
+          action("action3", destination = "fragment3")
+        }
+      }
+    }
+
+    val surface = model.surface as NavDesignSurface
+    val sceneView = NavView(surface, surface.sceneManager!!)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
+    `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(sceneView)
+
+    val scene = model.surface.scene!!
+    scene.layout(0, SceneContext.get())
+
+    val interactionManager = surface.interactionManager
+    interactionManager.startListening()
+
+    val fragment1 = scene.getSceneComponent("fragment1")!!
+    val fragment2 = scene.getSceneComponent("fragment2")!!
+    val fragment3 = scene.getSceneComponent("fragment3")!!
+
+    val action1 = scene.getSceneComponent("action1")!!
+    val action2 = scene.getSceneComponent("action2")!!
+    val action3 = scene.getSceneComponent("action3")!!
+
+    lassoSelect(sceneView, interactionManager, fragment1);
+    assertContainsElements(surface.selectionModel.selection, fragment1.nlComponent, action1.nlComponent)
+
+    lassoSelect(sceneView, interactionManager, fragment2);
+    assertContainsElements(surface.selectionModel.selection, fragment2.nlComponent, action2.nlComponent)
+
+    lassoSelect(sceneView, interactionManager, fragment3);
+    assertContainsElements(surface.selectionModel.selection, fragment3.nlComponent, action3.nlComponent)
+
+    interactionManager.stopListening()
+  }
+
+  private fun lassoSelect(sceneView: SceneView, interactionManager: InteractionManager, component: SceneComponent) {
+    val rect = component.fillRect(null)
+    @SwingCoordinate val x1s = Coordinates.getSwingX(sceneView, rect.x) - LASSO_PADDING
+    @SwingCoordinate val y1s = Coordinates.getSwingY(sceneView, rect.y) - LASSO_PADDING
+    @SwingCoordinate val x2s = Coordinates.getSwingX(sceneView, rect.x + rect.width) + LASSO_PADDING
+    @SwingCoordinate val y2s = Coordinates.getSwingY(sceneView, rect.y + rect.height) + LASSO_PADDING
+    LayoutTestUtilities.moveMouse(interactionManager, 0, 0, x1s, y1s)
+    LayoutTestUtilities.pressMouse(interactionManager, BUTTON1, x1s, y1s, InputEvent.SHIFT_DOWN_MASK)
+    LayoutTestUtilities.dragMouse(interactionManager, x1s, y1s, x2s, y2s, 0)
+    LayoutTestUtilities.releaseMouse(interactionManager, BUTTON1, x2s, y2s, InputEvent.SHIFT_DOWN_MASK)
   }
 }

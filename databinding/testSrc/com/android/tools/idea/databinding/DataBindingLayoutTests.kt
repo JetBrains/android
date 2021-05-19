@@ -118,6 +118,10 @@ class DataBindingLayoutTests(private val mode: DataBindingMode) {
     assertThat(cache.getClassesByName("FirstLayoutBinding", contextScope).toList().map { it.name }).contains("FirstLayoutBinding")
     assertThat(cache.getClassesByName("FirstLayoutBinding", invalidScope).toList()).isEmpty()
 
+    // "Binding" shortcuts to all bindings
+    assertThat(cache.getClassesByName("Binding", contextScope).toList().map { it.name })
+      .containsAllIn(listOf("FirstLayoutBinding", "SecondLayoutBinding"))
+
     assertThat(cache.allMethodNames.asIterable()).containsAllIn(listOf("inflate", "bind"))
     assertThat(cache.getMethodsByName("inflate", contextScope).toList().map { it.name }).contains("inflate")
     assertThat(cache.getMethodsByNameIfNotMoreThan("inflate", contextScope, 0).toList()).isEmpty()

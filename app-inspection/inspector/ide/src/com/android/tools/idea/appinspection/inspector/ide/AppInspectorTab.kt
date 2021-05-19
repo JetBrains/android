@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide
 
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorClient
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import javax.swing.JComponent
 
 interface AppInspectorTab {
-  val client: AppInspectorClient
+  val messenger: AppInspectorMessenger
   val component: JComponent
 }

@@ -15,23 +15,24 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromModuleModel
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
+import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.npw.validator.ProjectNameValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -39,50 +40,56 @@ import javax.swing.JTextField
 
 class ConfigureAndroidModuleStep(
   model: NewAndroidModuleModel,
-  private val formFactor: FormFactor,
   minSdkLevel: Int,
   basePackage: String?,
   title: String
-) : ConfigureModuleStep<NewAndroidModuleModel>(model, formFactor, minSdkLevel, basePackage, title) {
+) : ConfigureModuleStep<NewAndroidModuleModel>(model, model.formFactor.get().toWizardFormFactor(), minSdkLevel, basePackage, title) {
   private val appName: JTextField = JBTextField(model.applicationName.get())
   private val bytecodeCombo: JComboBox<BytecodeLevel> = BytecodeLevelComboProvider().createComponent()
 
-  private val panel: DialogPanel = panel {
-    row {
-      labelFor("Application/Library name", appName)
-      appName()
-    }.visible = !model.isLibrary
+  override fun createMainPanel(): DialogPanel = panel {
+    if (!model.isLibrary) {
+      row {
+        labelFor("Application/Library name", appName)
+        appName(pushX)
+      }
+    }
 
     row {
-      cell {
-        labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Module name", moduleName, message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
 
     row {
       labelFor("Package name", packageName)
-      packageName()
+      packageName(pushX)
     }
 
     row {
       labelFor("Language", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
 
     if (model.isLibrary) {
       row {
         labelFor("Bytecode Level", bytecodeCombo)
-        bytecodeCombo()
+        bytecodeCombo(growX)
       }
     }
 
     row {
       labelFor("Minimum SDK", apiLevelCombo)
-      apiLevelCombo()
+      apiLevelCombo(growX)
     }
-  }
-  override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
+
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      verticalGap()
+
+      row {
+        gradleKtsCheck()
+      }
+    }
+  }.withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(appName), model.applicationName)
@@ -100,5 +107,5 @@ class ConfigureAndroidModuleStep(
     return listOf(chooseActivityStep) + commonSteps
   }
 
-  override fun getPreferredFocusComponent(): JComponent? = appName
+  override fun getPreferredFocusComponent(): JComponent = if (appName.isVisible) appName else moduleName
 }

@@ -33,9 +33,6 @@ class NavComponentTreeTest {
   @get:Rule
   val guiTest = GuiTestRule()
 
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.NAV_NEW_COMPONENT_TREE, true)
-
   @Test
   fun testSelectComponent() {
     val frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")

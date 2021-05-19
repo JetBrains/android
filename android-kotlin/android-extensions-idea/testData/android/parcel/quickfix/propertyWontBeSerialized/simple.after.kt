@@ -4,8 +4,8 @@
 package com.myapp.activity
 
 import android.os.Parcelable
-import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.IgnoredOnParcel
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class Test : Parcelable {

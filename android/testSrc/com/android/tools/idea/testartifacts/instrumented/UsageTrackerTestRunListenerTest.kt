@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.testartifacts.instrumented
 
-import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.InstrumentationResultParser
+import com.android.ide.common.gradle.model.IdeTestOptions
+import com.android.ide.common.gradle.model.impl.ModelCache
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -43,7 +44,10 @@ class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
     UsageTracker.setWriterForTest(tracker)
     try {
       val listener = UsageTrackerTestRunListener(
-        AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+        ModelCache.createForTesting().androidArtifactFrom(
+          AndroidArtifactStub("stub artifact", "stubFolder", "debug", FileStructure("rootFolder")),
+          null
+        ),
         mock(IDevice::class.java)!!.also {
           `when`(it.serialNumber).thenReturn(serial)
         }
@@ -143,7 +147,7 @@ class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
   }
 
   fun testExecutionMapping() {
-    for (execution in TestOptions.Execution.values()) {
+    for (execution in IdeTestOptions.Execution.values()) {
       assertNotEquals(TestRun.TestExecution.UNKNOWN_TEST_EXECUTION, execution.toProtoValue())
     }
   }

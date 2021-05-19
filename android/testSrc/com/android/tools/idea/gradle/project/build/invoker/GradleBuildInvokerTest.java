@@ -157,33 +157,6 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     verify(myTasksExecutor, never()).queue();
   }
 
-  public void testCleanAndGenerateSources() {
-    List<String> tasks = setUpTasksForSourceGeneration();
-
-    myBuildInvoker.cleanAndGenerateSources();
-
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-
-    List<String> expectedTasks = new ArrayList<>(tasks);
-    expectedTasks.add(0, "clean");
-    assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
-
-    verifyInteractionWithMocks(SOURCE_GEN);
-  }
-
-  public void testGenerateSources() {
-    List<String> tasks = setUpTasksForSourceGeneration();
-
-    myBuildInvoker.generateSources();
-
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
-
-    verifyInteractionWithMocks(SOURCE_GEN);
-  }
-
   @NotNull
   private List<String> setUpTasksForSourceGeneration() {
     List<String> tasks = Arrays.asList("sourceGenTask1", "sourceGenTask2");

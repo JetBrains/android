@@ -30,7 +30,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
@@ -418,10 +419,14 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   private static ArtifactDependencySpec findNewExternalDependency(@NotNull Library library, @NotNull IdeVariant selectedVariant) {
     @Nullable ArtifactDependencySpec matchedLibrary = null;
-    for (IdeBaseArtifact testArtifact : selectedVariant.getTestArtifacts()) {
+    IdeBaseArtifact testArtifact = selectedVariant.getUnitTestArtifact();
+    if (testArtifact != null) {
       matchedLibrary = findMatchedLibrary(library, testArtifact);
-      if (matchedLibrary != null) {
-        break;
+    }
+    if (matchedLibrary == null) {
+      testArtifact = selectedVariant.getAndroidTestArtifact();
+      if (testArtifact != null) {
+        matchedLibrary = findMatchedLibrary(library, testArtifact);
       }
     }
     if (matchedLibrary == null) {
@@ -437,7 +442,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (com.android.builder.model.level2.Library gradleLibrary : dependencies.getJavaLibraries()) {
+    for (IdeLibrary gradleLibrary : dependencies.getJavaLibraries()) {
       String libraryName = getNameWithoutExtension(gradleLibrary.getArtifact());
       if (libraryName.equals(library.getName())) {
         return ArtifactDependencySpec.create(gradleLibrary.getArtifactAddress());

@@ -26,6 +26,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -202,7 +203,7 @@ public class BuildsToPathsMapper {
   @Nullable
   private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
     @SuppressWarnings("deprecation")
-    Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
     if (outputs.isEmpty()) {
       return null;
     }

@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.idea.uibuilder.property2.testutils.PropertyTestCase
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.PlatformTestUtil
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_CENTER
 import org.junit.Test
 import org.mockito.Mockito
@@ -59,6 +60,8 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     model.addListener(listener)
 
     model.selected = setValue
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
     assertThat(model.property.value).isEqualTo(expected)
   }
 

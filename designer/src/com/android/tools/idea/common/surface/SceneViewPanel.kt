@@ -15,83 +15,63 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
+import com.android.tools.idea.uibuilder.surface.layout.vertical
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.Nullable
 import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Container
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Insets
-import java.awt.LayoutManager
 import java.awt.Rectangle
-import java.awt.geom.Dimension2D
 import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlin.math.max
+
 
 /**
- * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a [DesignSurface]
- *
- * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do not need to layout them, just calculate the
- * size of the layout.
- * Eventually, PositionableContent will end up being actual Swing components and we will not need this specialized LayoutManager.
+ * Distance between the bottom bound of model name and top bound of SceneView.
  */
-abstract class PositionableContentLayoutManager : LayoutManager {
-  /**
-   * Method called by the [PositionableContentLayoutManager] to make sure that the layout of the [PositionableContent]s
-   * to ask them to be laid out within the [SceneViewPanel].
-   */
-  abstract fun layoutContent(content: Collection<PositionableContent>)
+@SwingCoordinate
+private const val TOP_BAR_BOTTOM_MARGIN = 3
 
-  final override fun layoutContainer(parent: Container) {
-    val sceneViewPeerPanels = parent.components.filterIsInstance<SceneViewPeerPanel>()
+/**
+ * Distance between the top bound of bottom bar and bottom bound of SceneView.
+ */
+@SwingCoordinate
+private const val BOTTOM_BAR_TOP_MARGIN = 3
 
-    // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
-    // bounds of the Swing components.
-    layoutContent(sceneViewPeerPanels.map { it.positionableAdapter })
-
-    // Now position all the wrapper panels to match the position of the SceneViews
-    sceneViewPeerPanels
-      .forEach {
-        val peerPreferredSize = it.preferredSize
-        it.setBounds(it.positionableAdapter.x - it.positionableAdapter.margin.left,
-                     it.positionableAdapter.y - it.positionableAdapter.margin.top,
-                     peerPreferredSize.width,
-                     peerPreferredSize.height)
-      }
-  }
-
-  override fun minimumLayoutSize(parent: Container): Dimension = Dimension(0, 0)
-  override fun addLayoutComponent(name: String?, comp: Component?) {}
-  override fun removeLayoutComponent(comp: Component?) {}
-}
+/**
+ * Minimum allowed width for the SceneViewPeerPanel.
+ */
+@SwingCoordinate
+private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 
 /**
  * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
  */
 class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
-  override fun layoutContent(content: Collection<PositionableContent>) {
+  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
     content.singleOrNull()?.setLocation(0, 0)
   }
 
-  override fun preferredLayoutSize(parent: Container): Dimension =
-    parent.components
-      .filterIsInstance<SceneViewPeerPanel>()
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
+    content
       .singleOrNull()
-      ?.positionableAdapter
       ?.getScaledContentSize(null)
-    ?: Dimension(0, 0)
+    ?: availableSize
 }
 
 private data class LayoutData private constructor(
@@ -111,7 +91,7 @@ private data class LayoutData private constructor(
     scale == sceneView.scale &&
     x == sceneView.x && y == sceneView.y &&
     modelName == sceneView.scene.sceneManager.model.modelDisplayName &&
-    scaledSize == sceneView.getScaledContentSize(cachedDimension)
+    scaledSize == sceneView.getContentSize(cachedDimension).scaleBy(sceneView.scale)
 
   companion object {
     fun fromSceneView(sceneView: SceneView): LayoutData =
@@ -120,7 +100,7 @@ private data class LayoutData private constructor(
         sceneView.scene.sceneManager.model.modelDisplayName,
         sceneView.x,
         sceneView.y,
-        sceneView.scaledContentSize)
+        sceneView.getContentSize(null).scaleBy(sceneView.scale))
   }
 }
 
@@ -131,54 +111,108 @@ private data class LayoutData private constructor(
  */
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
-                         private val sceneViewToolbar: JComponent?) : JPanel() {
+                         private val sceneViewToolbar: JComponent?,
+                         private val sceneViewBottomBar: JComponent?,
+                         private val sceneViewLeftBar: JComponent?) : JPanel() {
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
    * without having to explicitly call [revalidate]
    */
   private var layoutData = LayoutData.fromSceneView(sceneView)
 
+  private val cachedContentSize = Dimension()
+  private val cachedScaledContentSize = Dimension()
+  private val cachedPreferredSize = Dimension()
+
   /**
    * This label displays the [SceneView] model if there is any
    */
-  private val modelNameLabel = JLabel().apply {
+  private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
+    isEnabled = false
   }
 
   val positionableAdapter = object : PositionableContent() {
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
+
     override val margin: Insets
       get() {
-        // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space
-        val contentSize = if (sceneView.hasContent()) sceneView.getScaledContentSize(null) else JBUI.emptySize()
-        return if (contentSize.width < minimumSize.width &&
+        val contentSize = getScaledContentSize(null)
+        val sceneViewMargin = sceneView.margin.also {
+          // Extend top to account for the top toolbar
+          it.top += sceneViewTopPanel.preferredSize.height
+          it.bottom += sceneViewBottomPanel.preferredSize.height
+          it.left += sceneViewLeftPanel.preferredSize.width
+        }
+        return if (contentSize.width < minimumSize.width ||
                    contentSize.height < minimumSize.height) {
-          val hSpace = (minimumSize.width - contentSize.width) / 2
-          val vSpace = (minimumSize.height - contentSize.height) / 2
-          val originalMargin = sceneView.margin
-          Insets(originalMargin.top + vSpace,
-                 originalMargin.left + hSpace,
-                 originalMargin.bottom + vSpace,
-                 originalMargin.right + hSpace)
+          // If there is no content, or the content is smaller than the minimum size, pad the margins to occupy the empty space.
+          // Horizontally, we align the content to the left.
+          val hSpace = (minimumSize.width - contentSize.width).coerceAtLeast(0)
+          val vSpace = (minimumSize.height - contentSize.height).coerceAtLeast(0)
+
+          val (left, right) = when (alignmentX) {
+            LEFT_ALIGNMENT -> sceneViewMargin.left to sceneViewMargin.right + hSpace
+            RIGHT_ALIGNMENT -> sceneViewMargin.left + hSpace to sceneViewMargin.right
+            CENTER_ALIGNMENT -> sceneViewMargin.left + hSpace / 2 to sceneViewMargin.right + hSpace / 2
+            else -> throw IllegalArgumentException("$alignmentX is not supported")
+          }
+
+          Insets(sceneViewMargin.top,
+                 left,
+                 sceneViewMargin.bottom + vSpace,
+                 right)
         }
         else {
-          sceneView.margin
+          sceneViewMargin
         }
       }
 
-    override fun getContentSize(dimension: Dimension?): Dimension = sceneView.getContentSize(dimension)
+    override fun getContentSize(dimension: Dimension?): Dimension = if (sceneView.hasContent())
+      sceneView.getContentSize(dimension).also {
+        cachedContentSize.size = it
+      }
+    else
+      dimension?.apply {
+        size = cachedContentSize
+      } ?: Dimension(cachedContentSize)
+
+    /**
+     * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+     * current zoom level
+     *
+     * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+     *                  returned.
+     */
     override fun getScaledContentSize(dimension: Dimension?): Dimension {
       val outputDimension = dimension ?: Dimension()
 
-      val contentSize = getContentSize(outputDimension)
-      val scale: Double = sceneView.scale
-
-      outputDimension.setSize((scale * contentSize.width).toInt(), (scale * contentSize.height).toInt())
-      return outputDimension
+      return getContentSize(outputDimension).scaleBy(sceneView.scale)
     }
 
-    override fun setLocation(x: Int, y: Int) = sceneView.setLocation(x, y)
+
+    /**
+     * Applies the calculated coordinates from this adapter to the backing SceneView.
+     */
+    private fun applyLayout() {
+      getScaledContentSize(cachedScaledContentSize)
+      val margin = margin // To avoid recalculating the size
+      setBounds(x - margin.left,
+                y - margin.top,
+                cachedScaledContentSize.width + margin.left + margin.right,
+                cachedScaledContentSize.height + margin.top + margin.bottom)
+      sceneView.scene.needsRebuildList()
+    }
+
+    override fun setLocation(x: Int, y: Int) {
+      // The SceneView is painted right below the top toolbar panel
+      sceneView.setLocation(x, y)
+
+      // After positioning the view, we re-apply the bounds to the SceneViewPanel.
+      // We do this even if x & y did not change since the size might have.
+      applyLayout()
+    }
   }
 
   /**
@@ -187,6 +221,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   @VisibleForTesting
   val sceneViewTopPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
     isOpaque = false
     add(modelNameLabel, BorderLayout.CENTER)
     if (sceneViewToolbar != null) {
@@ -194,11 +229,31 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
   }
 
+  val sceneViewBottomPanel = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN)
+    isOpaque = false
+    isVisible = true
+    if (sceneViewBottomBar != null) {
+      add(sceneViewBottomBar, BorderLayout.CENTER)
+    }
+  }
+
+  val sceneViewLeftPanel = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    isVisible = true
+    if (sceneViewLeftBar != null) {
+      add(sceneViewLeftBar, BorderLayout.CENTER)
+    }
+  }
+
+
   init {
     isOpaque = false
     layout = null
 
     add(sceneViewTopPanel)
+    add(sceneViewBottomPanel)
+    add(sceneViewLeftPanel)
   }
 
   override fun isValid(): Boolean {
@@ -218,24 +273,28 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     else {
       modelNameLabel.text = layoutData.modelName
       modelNameLabel.toolTipText = layoutData.modelName
+      // We layout the top panel. We make the width to match the SceneViewPanel width and we let it choose its own
+      // height.
       sceneViewTopPanel.setBounds(0, 0,
                                   width + insets.horizontal,
-                                  positionableAdapter.margin.top - 2 + positionableAdapter.margin.bottom)
+                                  sceneViewTopPanel.preferredSize.height)
       sceneViewTopPanel.isVisible = true
     }
-
+    sceneViewBottomPanel.setBounds(0, sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height, width + insets.horizontal, sceneViewBottomPanel.preferredSize.height)
+    sceneViewLeftPanel.setBounds(0, sceneViewTopPanel.preferredSize.height, sceneViewLeftPanel.preferredSize.width, height)
     super.doLayout()
   }
 
   /** [Dimension] used to avoid extra allocations calculating [getPreferredSize] */
-  private val cachedContentSize = Dimension()
-  override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedContentSize).also {
+  override fun getPreferredSize(): Dimension = positionableAdapter.getScaledContentSize(cachedPreferredSize).also {
     it.width = it.width + positionableAdapter.margin.left + positionableAdapter.margin.right
     it.height = it.height + positionableAdapter.margin.top + positionableAdapter.margin.bottom
   }
 
   override fun getMinimumSize(): Dimension =
-    Dimension(sceneViewTopPanel.minimumSize.width, sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
+    Dimension(
+      max(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH),
+      sceneViewBottomPanel.preferredSize.height + sceneViewTopPanel.minimumSize.height + JBUI.scale(20))
 }
 
 /**
@@ -246,8 +305,23 @@ class SceneViewPeerPanel(val sceneView: SceneView,
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
 internal class SceneViewPanel(private val interactionLayersProvider: () -> List<Layer>,
-                              val layoutManager: PositionableContentLayoutManager) :
+                              layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
+  /**
+   * Alignment for the {@link SceneView} when its size is less than the minimum size.
+   * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
+   * the rectangle formed by the minimum size.
+   */
+  var sceneViewAlignment: Float = CENTER_ALIGNMENT
+    set(value) {
+      if (value != field) {
+        field = value
+        components
+          .filterIsInstance<SceneViewPeerPanel>()
+          .forEach { it.alignmentX = value }
+        repaint()
+      }
+    }
 
   /**
    * Returns the components of this panel that are [PositionableContent]
@@ -337,6 +411,13 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
       .filterIsInstance<SceneViewPeerPanel>()
       .any { sceneView == it.sceneView }
 
+    // The left bar should only be added for only one of the SceneViewPeerPanels
+    // Check if a left Panel already exists and is visible, and if not add one
+    val leftBarAlreadyAdded = components
+      .filterIsInstance<SceneViewPeerPanel>().any {
+        it.sceneViewLeftPanel.isVisible
+      }
+
     if (!alreadyAdded) {
       val toolbar = if (StudioFlags.NELE_SCENEVIEW_TOP_TOOLBAR.get()) {
         sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
@@ -345,18 +426,39 @@ internal class SceneViewPanel(private val interactionLayersProvider: () -> List<
         null
       }
 
-      add(SceneViewPeerPanel(sceneView, toolbar))
+      val bottomBar = if(StudioFlags.NELE_SCENEVIEW_BOTTOM_BAR.get()) {
+        sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
+      } else {
+        null
+      }
+
+      val leftBar = if(StudioFlags.NELE_SCENEVIEW_LEFT_BAR.get() && !leftBarAlreadyAdded) {
+        sceneView.surface.actionManager.getSceneViewLeftBar(sceneView)
+      } else {
+        null
+      }
+
+      add(SceneViewPeerPanel(sceneView, toolbar, bottomBar, leftBar).also {
+        it.alignmentX = sceneViewAlignment
+      })
     }
   }
 
   /**
    * Removes the given [SceneView] from the panel.
    */
-  @AnyThread
+  @UiThread
   fun removeSceneView(sceneView: SceneView) {
     components
       .filterIsInstance<SceneViewPeerPanel>()
       .filter { sceneView == it.sceneView }
       .forEach { remove(it) }
   }
+
+  fun findSceneViewRectangle(sceneView: SceneView): Rectangle? =
+    components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .filter { sceneView == it.sceneView }
+      .map { it.bounds }
+      .firstOrNull()
 }

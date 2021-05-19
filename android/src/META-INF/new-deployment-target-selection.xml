@@ -24,10 +24,8 @@
     <action id="RunOnMultipleDevices" class="com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction"
             text="Run on Multiple Devices" icon="AllIcons.Actions.Execute"/>
 
-    <action id="MultipleDevices" class="com.android.tools.idea.run.deployment.MultipleDevicesAction" text="Multiple Devices"
-            icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
-
-    <action id="ModifyDeviceSet" class="com.android.tools.idea.run.deployment.ModifyDeviceSetAction" text="Modify Device Set..."/>
+    <action id="SelectMultipleDevices" class="com.android.tools.idea.run.deployment.SelectMultipleDevicesAction"
+            text="Select Multiple Devices..." icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
 
     <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
             text="Select Device">

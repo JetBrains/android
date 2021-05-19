@@ -40,13 +40,13 @@ public class IncludeViewTests {
    */
   static List<? extends AbstractTreeNode<?>> getChildNodesForIncludes(@NotNull Project project, @NotNull NativeIncludes nativeIncludes) {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    IncludesViewNode includesViewNode = new IncludesViewNode(Mockito.mock(VirtualFile.class), project, nativeIncludes, settings);
+    IncludesViewNode includesViewNode = new IncludesViewNode(project, nativeIncludes, settings);
     return Lists.newArrayList(includesViewNode.getChildren());
   }
 
   static <T extends AbstractTreeNode> List<T> getChildNodesForIncludes(@Nullable Project project, @NotNull NativeIncludes nativeIncludes, @NotNull Class<T> clazz) {
     ViewSettings settings = Mockito.mock(ViewSettings.class);
-    IncludesViewNode includesViewNode = new IncludesViewNode(Mockito.mock(VirtualFile.class), project, nativeIncludes, settings);
+    IncludesViewNode includesViewNode = new IncludesViewNode(project, nativeIncludes, settings);
     return Lists.newArrayList(getChildrenOfType(includesViewNode.getChildren(), clazz));
   }
 

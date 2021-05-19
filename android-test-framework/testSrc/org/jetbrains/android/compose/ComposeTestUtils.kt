@@ -17,27 +17,36 @@ package org.jetbrains.android.compose
 
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
-fun CodeInsightTestFixture.stubComposableAnnotation() {
+fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose") {
   addFileToProject(
-    "src/androidx/compose/Composable.kt",
+    "src/${composableAnnotationPackage.replace(".", "/")}/Composable.kt",
     // language=kotlin
     """
-    package androidx.compose
+    package $composableAnnotationPackage
 
     annotation class Composable
     """.trimIndent()
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation() {
+fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.ui.tooling.preview") {
   addFileToProject(
-    "src/com/android/tools/preview/Preview.kt",
+    "src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
     // language=kotlin
     """
-    package androidx.ui.tooling.preview
+    package $previewAnnotationPackage
 
     import kotlin.reflect.KClass
 
+    object Devices {
+        const val DEFAULT = ""
+
+        const val NEXUS_7 = "id:Nexus 7"
+        const val NEXUS_10 = "name:Nexus 10"
+    }
+
+
+    @Repeatable
     annotation class Preview(
       val name: String = "",
       val group: String = "",
@@ -47,7 +56,10 @@ fun CodeInsightTestFixture.stubPreviewAnnotation() {
       val heightDp: Int = -1,
       val fontScale: Float = 1f,
       val showDecoration: Boolean = false,
-      val showBackground: Boolean = false
+      val showBackground: Boolean = false,
+      val backgroundColor: Long = 0,
+      val uiMode: Int = 0,
+      val device: String = ""
     )
 
     interface PreviewParameterProvider<T> {

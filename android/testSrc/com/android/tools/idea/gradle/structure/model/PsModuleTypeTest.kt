@@ -56,7 +56,7 @@ private fun moduleWithoutSyncedModel(project: PsProject, name: String): PsModule
   val moduleWithSyncedModel = project.findModuleByName(name)
   return when (moduleWithSyncedModel) {
     is PsAndroidModule -> PsAndroidModule(project, moduleWithSyncedModel.gradlePath).apply {
-      init(moduleWithSyncedModel.name, null, null, null, moduleWithSyncedModel.parsedModel)
+      init(moduleWithSyncedModel.name, null, null, null, null, moduleWithSyncedModel.parsedModel)
     }
     is PsJavaModule -> PsJavaModule(project, moduleWithSyncedModel.gradlePath).apply {
       init(moduleWithSyncedModel.name, null, null, moduleWithSyncedModel.parsedModel)

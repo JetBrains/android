@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.DependencyScope;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,12 +29,9 @@ public class ModuleDependency extends Dependency {
   /**
    * Creates a new {@link ModuleDependency}.
    *
-   * @param scope      the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  @VisibleForTesting
-  public ModuleDependency(@NotNull DependencyScope scope, @NotNull Module module) {
-    super(scope);
+  public ModuleDependency(@NotNull Module module) {
     myModule = module;
   }
 
@@ -66,7 +61,6 @@ public class ModuleDependency extends Dependency {
   public String toString() {
     return getClass().getSimpleName() + "[" +
            "module=" + myModule +
-           ", scope=" + getScope() +
            "]";
   }
 }

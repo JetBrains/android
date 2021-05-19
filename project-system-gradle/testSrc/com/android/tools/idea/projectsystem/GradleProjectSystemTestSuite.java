@@ -24,8 +24,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  GradleProjectSystemTestSuite.class,
-  GradleModelConverterMergeTest.class // b/136028658
+  GradleProjectSystemTestSuite.class
 })
 public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();

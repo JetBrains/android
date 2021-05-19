@@ -55,6 +55,11 @@ public class SceneDecorator {
    * </ol>
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    if (!component.isSelected() && component.isHighlighted()) {
+      buildListComponent(list, time, sceneContext, component);
+      buildListChildren(list, time, sceneContext, component);
+      return;
+    }
     if (sceneContext.showOnlySelection()) {
       addFrame(list, sceneContext, component);
       buildListTargets(list, time, sceneContext, component);

@@ -185,7 +185,7 @@ public final class ResourcesUtil {
                                               @NotNull Project project,
                                               @NotNull WidgetCreator.DoneCallback doneCallback,
                                               @NotNull Object requestor) {
-    Collection<VirtualFile> resDirectories = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getResDirectories();
+    Iterable<VirtualFile> resDirectories = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getResDirectories();
     Iterator<VirtualFile> iterator = resDirectories.iterator();
     if (iterator.hasNext()) {
       CommandProcessor.getInstance().executeCommand(

@@ -29,7 +29,7 @@ import javax.swing.*;
  */
 public class TfliteModelFileType implements FileType {
   public static final TfliteModelFileType INSTANCE = new TfliteModelFileType();
-  private static final String TFLITE_EXTENSION = "tflite";
+  public static final String TFLITE_EXTENSION = "tflite";
 
   private TfliteModelFileType() {
   }

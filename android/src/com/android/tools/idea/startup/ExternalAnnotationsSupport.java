@@ -21,6 +21,7 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -58,11 +59,6 @@ import static java.io.File.separator;
 @SuppressWarnings("SpellCheckingInspection") // "Modificator" in API usage
 public class ExternalAnnotationsSupport {
   private static final Logger LOG = Logger.getInstance(ExternalAnnotationsSupport.class);
-  private static final String[] DEVELOPMENT_ANNOTATIONS_PATHS = {
-    "/../adt/idea/android/annotations",
-    "/android/android/annotations",
-    "/community/android/android/annotations"
-  };
 
   // Based on similar code in MagicConstantInspection
   @SuppressWarnings("ALL")
@@ -178,10 +174,17 @@ public class ExternalAnnotationsSupport {
 
       if (root == null) {
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
-        for (String relativePath : DEVELOPMENT_ANNOTATIONS_PATHS) {
+        final String[] paths = {
+          StudioPathManager.isRunningFromSources()
+          ? FileUtil.join(StudioPathManager.getSourcesRoot(), "tools/adt/idea/android/annotations")
+          : null,
+          FileUtil.join(homePath, "android/android/annotations"),
+          FileUtil.join(homePath, "community/android/android/annotations")
+        };
+        for (String relativePath : paths) {
+          if (relativePath == null) continue;
           if (root != null) break;
-          String developmentLocation = homePath + relativePath;
-          root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(developmentLocation));
+          root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(relativePath));
         }
       }
 

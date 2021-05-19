@@ -178,7 +178,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   @Override
   public CaptureNodeModel getMethodModel() {
     if (myIsRoot) {
-      // Return a dummy entry for the root.
+      // Return a sample entry for the root.
       return new SingleNameModel("");
     }
     return myPathNodes.get(0).getData();

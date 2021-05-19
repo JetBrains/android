@@ -144,28 +144,28 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   public void testCaptureAndHeapView() {
     myIdeProfilerServices.enableSeparateHeapDumpUi(true);
 
-    final String dummyClassName1 = "DUMMY_CLASS1";
-    final String dummyClassName2 = "DUMMY_CLASS2";
+    final String sampleClassName1 = "SAMPLE_CLASS1";
+    final String sampleClassName2 = "SAMPLE_CLASS2";
 
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
     FakeCaptureObject fakeCapture1 = new FakeCaptureObject.Builder()
-      .setCaptureName("DUMMY_CAPTURE1")
+      .setCaptureName("SAMPLE_CAPTURE1")
       .setHeapIdToNameMap(heapIdMap)
       .setStartTime(5)
       .setEndTime(10)
       .build();
-    InstanceObject fakeInstance1 = new FakeInstanceObject.Builder(fakeCapture1, 1, dummyClassName1)
-      .setName("DUMMY_INSTANCE1")
+    InstanceObject fakeInstance1 = new FakeInstanceObject.Builder(fakeCapture1, 1, sampleClassName1)
+      .setName("SAMPLE_INSTANCE1")
       .setHeapId(0)
       .setDepth(4)
       .setShallowSize(5)
       .setRetainedSize(6)
       .build();
-    InstanceObject fakeInstance2 = new FakeInstanceObject.Builder(fakeCapture1, 2, dummyClassName2)
-      .setName("DUMMY_INSTANCE2")
+    InstanceObject fakeInstance2 = new FakeInstanceObject.Builder(fakeCapture1, 2, sampleClassName2)
+      .setName("SAMPLE_INSTANCE2")
       .setDepth(1)
       .setShallowSize(2)
       .setRetainedSize(3)
@@ -173,20 +173,20 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
 
     FakeCaptureObject fakeCapture2 = new FakeCaptureObject.Builder()
-      .setCaptureName("DUMMY_CAPTURE2")
+      .setCaptureName("SAMPLE_CAPTURE2")
       .setHeapIdToNameMap(heapIdMap)
       .setStartTime(5)
       .setEndTime(10)
       .build();
-    InstanceObject fakeInstance3 = new FakeInstanceObject.Builder(fakeCapture2, 1, dummyClassName1)
-      .setName("DUMMY_INSTANCE1")
+    InstanceObject fakeInstance3 = new FakeInstanceObject.Builder(fakeCapture2, 1, sampleClassName1)
+      .setName("SAMPLE_INSTANCE1")
       .setHeapId(0)
       .setDepth(4)
       .setShallowSize(5)
       .setRetainedSize(6)
       .build();
-    InstanceObject fakeInstance4 = new FakeInstanceObject.Builder(fakeCapture2, 2, dummyClassName2)
-      .setName("DUMMY_INSTANCE2")
+    InstanceObject fakeInstance4 = new FakeInstanceObject.Builder(fakeCapture2, 2, sampleClassName2)
+      .setName("SAMPLE_INSTANCE2")
       .setDepth(1)
       .setShallowSize(2)
       .setRetainedSize(3)
@@ -241,7 +241,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
-    MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, dummyClassName1);
+    MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, sampleClassName1);
     classifierTree.setSelectionPath(new TreePath(new Object[]{memoryClassRoot, targetSet}));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), null);
 
@@ -255,30 +255,30 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
   @Test
   public void testCaptureAndHeapViewLegacy() {
-    final String dummyClassName1 = "DUMMY_CLASS1";
-    final String dummyClassName2 = "DUMMY_CLASS2";
+    final String sampleClassName1 = "SAMPLE_CLASS1";
+    final String sampleClassName2 = "SAMPLE_CLASS2";
 
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     MemoryProfilerStageView stageView = (MemoryProfilerStageView)myProfilersView.getStageView();
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture1, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+      new FakeInstanceObject.Builder(fakeCapture1, 1, sampleClassName1).setName("SAMPLE_INSTANCE1").setHeapId(0).setDepth(4)
         .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance2 =
-      new FakeInstanceObject.Builder(fakeCapture1, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture1, 2, sampleClassName2).setName("SAMPLE_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture1.addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2));
 
     FakeCaptureObject fakeCapture2 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     InstanceObject fakeInstance3 =
-      new FakeInstanceObject.Builder(fakeCapture2, 1, dummyClassName1).setName("DUMMY_INSTANCE1").setHeapId(0).setDepth(4)
+      new FakeInstanceObject.Builder(fakeCapture2, 1, sampleClassName1).setName("SAMPLE_INSTANCE1").setHeapId(0).setDepth(4)
         .setShallowSize(5).setRetainedSize(6).build();
     InstanceObject fakeInstance4 =
-      new FakeInstanceObject.Builder(fakeCapture2, 2, dummyClassName2).setName("DUMMY_INSTANCE2").setDepth(1).setShallowSize(2)
+      new FakeInstanceObject.Builder(fakeCapture2, 2, sampleClassName2).setName("SAMPLE_INSTANCE2").setDepth(1).setShallowSize(2)
         .setRetainedSize(3).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance3, fakeInstance4));
 
@@ -329,7 +329,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     myAspectObserver.assertAndResetCounts(0, 0, 0, 1, 0, 1, 0, 0);
 
     MemoryObjectTreeNode<ClassifierSet> memoryClassRoot = getRootClassifierSet(classifierTree);
-    MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, dummyClassName1);
+    MemoryObjectTreeNode<ClassSet> targetSet = findChildClassSetNodeWithClassName(memoryClassRoot, sampleClassName1);
     classifierTree.setSelectionPath(new TreePath(new Object[]{memoryClassRoot, targetSet}));
     assertSelection(fakeCapture2, fakeCapture2.getHeapSet(0), targetSet.getAdapter(), null);
 
@@ -398,12 +398,12 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     FakeCaptureObject fakeCapture2 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture2, 1, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
+      new FakeInstanceObject.Builder(fakeCapture2, 1, "SAMPLE_CLASS").setName("SAMPLE_INSTANCE1").setDepth(4).setShallowSize(5)
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
@@ -430,12 +430,12 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     Map<Integer, String> heapIdMap = ImmutableMap.of(0, "heap1", 1, "heap2");
 
     FakeCaptureObject fakeCapture1 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setHeapIdToNameMap(heapIdMap).setStartTime(5).setEndTime(10).build();
     FakeCaptureObject fakeCapture2 =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE2").setHeapIdToNameMap(heapIdMap).setStartTime(10).setEndTime(15)
         .build();
     InstanceObject fakeInstance1 =
-      new FakeInstanceObject.Builder(fakeCapture2, 1, "DUMMY_CLASS").setName("DUMMY_INSTANCE1").setDepth(4).setShallowSize(5)
+      new FakeInstanceObject.Builder(fakeCapture2, 1, "SAMPLE_CLASS").setName("SAMPLE_INSTANCE1").setDepth(4).setShallowSize(5)
         .setRetainedSize(6).build();
     fakeCapture2.addInstanceObjects(ImmutableSet.of(fakeInstance1));
 
@@ -536,7 +536,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
         // which would execute the logic that had a null pointer exception as reported by b/117796712.
         FakeCaptureObject captureObj =
           new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-        FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
+        FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "SAMPLE_CLASS1").setHeapId(0).build();
         captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
         stage.selectCaptureDuration(
           new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
@@ -580,7 +580,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
         FakeCaptureObject captureObj = new FakeCaptureObject.Builder()
           .setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
         FakeInstanceObject instanceObject =
-          new FakeInstanceObject.Builder(captureObj, 1, "DUMMY_CLASS1").setHeapId(0).build();
+          new FakeInstanceObject.Builder(captureObj, 1, "SAMPLE_CLASS1").setHeapId(0).build();
         captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
         CaptureEntry<CaptureObject> entry = new CaptureEntry<>(new Object(), () -> captureObj);
         stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, entry),
@@ -980,7 +980,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
-    DurationDataRenderer<GcDurationData> durationDataRenderer = view.getGcDurationDataRenderer();
+    DurationDataRenderer<GcDurationData> durationDataRenderer = view.getTimelineComponent().getGcDurationDataRenderer();
     java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
     assertThat(renderedRegions.size()).isEqualTo(4);
     int iconWidth = StudioIcons.Profiler.Events.GARBAGE_EVENT.getIconWidth();
@@ -1062,7 +1062,8 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     // Tick a large enough time so that the renders interpolates to the final positions
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
-    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer = view.getAllocationSamplingRateRenderer();
+    DurationDataRenderer<AllocationSamplingRateDurationData> durationDataRenderer =
+      view.getTimelineComponent().getAllocationSamplingRateRenderer();
     java.util.List<Rectangle2D.Float> renderedRegions = durationDataRenderer.getClickRegionCache();
     assertThat(renderedRegions.size()).isEqualTo(4);
     int iconWidth = StudioIcons.Profiler.Events.ALLOCATION_TRACKING_NONE.getIconWidth();
@@ -1085,7 +1086,7 @@ public final class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
 
     // Load a fake capture with a non-null info message and verify the message is displayed.
     FakeCaptureObject fakeCapture =
-      new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(10).setInfoMessage("Foo").build();
+      new FakeCaptureObject.Builder().setCaptureName("SAMPLE_CAPTURE1").setStartTime(0).setEndTime(10).setInfoMessage("Foo").build();
     myStage.selectCaptureDuration(
       new CaptureDurationData<>(1, false, false, new CaptureEntry<>(new Object(), () -> fakeCapture)), joiner);
     // FakeCaptureObject's load() is a no-op, so force refresh here.

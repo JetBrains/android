@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.model
 
+import com.intellij.mock.MockVirtualFile
 import junit.framework.TestCase
 import java.sql.JDBCType
 
@@ -102,5 +103,26 @@ class ModelTest : TestCase() {
     assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.REF_CURSOR))
     assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIME_WITH_TIMEZONE))
     assertEquals(SqliteAffinity.NUMERIC, SqliteAffinity.fromJDBCType(JDBCType.TIMESTAMP_WITH_TIMEZONE))
+  }
+
+  fun testFileDatabaseNameAndPath() {
+    val databaseId = SqliteDatabaseId.fromFileDatabase(
+      DatabaseFileData(MockVirtualFile("someDir/data/data/com.example.package/databases/db-file"))
+    )
+
+    assertEquals("db-file", databaseId.name)
+    assertEquals("/data/data/com.example.package/databases/db-file", databaseId.path)
+  }
+
+  fun testLiveDatabasePathIsConverted() {
+    val databaseId = SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
+
+    assertEquals("db-file", databaseId.name)
+    assertEquals("/data/data/com.example.package/databases/db-file", databaseId.path)
+
+    val databaseIdSdCard = SqliteDatabaseId.fromLiveDatabase("/storage/emulated/0/com.example.package/databases/db-file", 0)
+
+    assertEquals("db-file", databaseIdSdCard.name)
+    assertEquals("/sdcard/com.example.package/databases/db-file", databaseIdSdCard.path)
   }
 }

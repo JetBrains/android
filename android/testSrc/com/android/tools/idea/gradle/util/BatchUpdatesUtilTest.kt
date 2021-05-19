@@ -17,14 +17,16 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 /**
  * Tests for [BatchUpdatesUtil]
  */
-class BatchUpdatesUtilTest : HeavyPlatformTestCase() {
+class BatchUpdatesUtilTest : LightPlatformTestCase() {
+
   lateinit var mockUpdatePublisher: BatchUpdateListener
   lateinit var mockFileChangeListener: BatchFileChangeListener
 
@@ -39,6 +41,7 @@ class BatchUpdatesUtilTest : HeavyPlatformTestCase() {
 
   fun testStartBatchUpdate() {
     BatchUpdatesUtil.startBatchUpdate(project)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     verify(mockUpdatePublisher).onBatchUpdateStarted()
     verify(mockFileChangeListener).batchChangeStarted(project, "batch update")
@@ -46,6 +49,7 @@ class BatchUpdatesUtilTest : HeavyPlatformTestCase() {
 
   fun testFinishBatchUpdate() {
     BatchUpdatesUtil.finishBatchUpdate(project)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     verify(mockUpdatePublisher).onBatchUpdateFinished()
     verify(mockFileChangeListener).batchChangeCompleted(project)

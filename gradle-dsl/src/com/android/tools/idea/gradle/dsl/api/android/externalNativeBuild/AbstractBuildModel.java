@@ -22,4 +22,7 @@ import org.jetbrains.annotations.NotNull;
 public interface AbstractBuildModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel path();
+
+  @NotNull
+  ResolvedPropertyModel version();
 }

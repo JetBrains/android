@@ -60,7 +60,7 @@ public class ImageAssetErrorCheckTest {
       .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset")
+      .openFromContextualMenu(AssetStudioWizardFixture::find, "New", "Vector Asset")
       .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/call.svg")
       .waitUntilStepErrorMessageIsGone()
       .useLocalFile(GuiTests.getTestDataDir() + "/TestImages/android_wrong.svg")

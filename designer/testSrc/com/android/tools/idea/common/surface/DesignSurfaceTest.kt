@@ -26,13 +26,13 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import java.awt.Container
 import java.awt.Dimension
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.ComponentEvent
@@ -110,7 +110,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertTrue(surface.setScale(0.335, -1, -1))
   }
 
-  fun testResizeSurfaceRebuildTheScene() {
+  fun testResizeSurfaceRebuildScene() {
     val builder = model("relative.xml",
                         component(RELATIVE_LAYOUT)
                           .withBounds(0, 0, 1000, 1000)
@@ -130,8 +130,32 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
 
-    assert(scene1.displayListVersion > oldVersion1)
-    assert(scene2.displayListVersion > oldVersion2)
+    assertFalse(scene1.displayListVersion == oldVersion1)
+    assertFalse(scene2.displayListVersion == oldVersion2)
+  }
+
+  fun testResizeSurfaceDoesNotChangeScale() {
+    // This also checks if the zoom level is same after resizing, because the screen factor of TestDesignSurface is always 1.
+    val builder = model("relative.xml",
+                        component(RELATIVE_LAYOUT)
+                          .withBounds(0, 0, 1000, 1000)
+                          .matchParentWidth()
+                          .matchParentHeight())
+    val model1 = builder.build()
+    val model2 = builder.build()
+
+    val surface = TestDesignSurface(project, testRootDisposable)
+    surface.addModelWithoutRender(model1)
+    surface.addModelWithoutRender(model2)
+
+    surface.setSize(1000, 1000)
+    surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
+    val oldScale = surface.scale
+
+    surface.setSize(500, 500)
+    surface.dispatchEvent(ComponentEvent(surface, ComponentEvent.COMPONENT_RESIZED))
+
+    assertTrue(oldScale == surface.scale)
   }
 
   fun testDesignSurfaceModelOrdering() {
@@ -175,12 +199,10 @@ class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(su
 }
 
 class TestLayoutManager(private val surface: DesignSurface) : PositionableContentLayoutManager() {
-  override fun layoutContent(content: Collection<PositionableContent>) {
-  }
+  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {}
 
-  override fun preferredLayoutSize(parent: Container?): Dimension = surface.sceneViews.map { it.contentSize }.firstOrNull() ?: Dimension(0,
-                                                                                                                                         0)
-
+  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
+    surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
 }
 
 class TestActionHandler(surface: DesignSurface) : DesignSurfaceActionHandler(surface) {
@@ -212,6 +234,8 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
+
+  override fun canZoomToFit() = true
 
   override fun getDefaultOffset() = Dimension()
 

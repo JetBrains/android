@@ -27,7 +27,6 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -45,7 +44,6 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
     // Disable Gradle plugin notifications in Android Studio.
     if (IdeInfo.getInstance().isAndroidStudio()) {
       disableGradlePluginNotifications();
-      disableGradleAutoImport(project);
     }
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
@@ -53,10 +51,6 @@ public class AndroidGradleProjectDumbStartupActivity implements StartupActivity.
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
     registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(project);
-  }
-
-  private void disableGradleAutoImport(Project project) {
-    ExternalSystemProjectTrackerSettings.getInstance(project).setAutoReloadType(ExternalSystemProjectTrackerSettings.AutoReloadType.NONE);
   }
 
   private void registerAfterTaskForAndroidGradleProjectCompiledViaGradleInvocation(Project project) {

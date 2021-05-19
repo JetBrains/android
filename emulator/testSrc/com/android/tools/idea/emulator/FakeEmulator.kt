@@ -27,8 +27,12 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.emulator.control.SnapshotDetails
+import com.android.emulator.control.SnapshotList
 import com.android.emulator.control.SnapshotPackage
 import com.android.emulator.control.SnapshotServiceGrpc
+import com.android.emulator.control.ThemingStyle
+import com.android.emulator.control.UiControllerGrpc
 import com.android.emulator.control.VmRunState
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.testutils.TestUtils
@@ -41,6 +45,7 @@ import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
 import io.grpc.ForwardingServerCall.SimpleForwardingServerCall
@@ -81,7 +86,9 @@ import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 import javax.imageio.ImageIO
+import kotlin.concurrent.withLock
 import kotlin.math.roundToInt
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 
@@ -113,11 +120,14 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       }
     }
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
+  /** Ids of snapshots that were marked "invalid" by calling the [markSnapshotInvalid] method. */
+  private val invalidSnapshots = ContainerUtil.newConcurrentSet<String>()
 
   val serialPort
     get() = grpcPort - 3000 // Just like a real emulator.
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
+  private val grpcLock = ReentrantLock()
 
   init {
     val embeddedFlags = if (standalone) "" else """ "-qt-hide-window""""
@@ -196,10 +206,31 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     throw TimeoutException()
   }
 
+  /**
+   * Clears the gRPC call log.
+   */
+  @UiThread
+  fun clearGrpcCallLog() {
+    grpcCallLog.clear()
+  }
+
+  fun pauseGrpc() {
+    grpcLock.lock()
+  }
+
+  fun resumeGrpc() {
+    grpcLock.unlock()
+  }
+
+  fun markSnapshotInvalid(snapshotId: String) {
+    invalidSnapshots.add(snapshotId)
+  }
+
   private fun createGrpcServer(): Server {
     return InProcessServerBuilder.forName(grpcServerName(grpcPort))
         .addService(ServerInterceptors.intercept(EmulatorControllerService(executor), LoggingInterceptor()))
         .addService(ServerInterceptors.intercept(EmulatorSnapshotService(executor), LoggingInterceptor()))
+        .addService(ServerInterceptors.intercept(UiControllerService(executor), LoggingInterceptor()))
         .build()
   }
 
@@ -242,7 +273,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     return image
   }
 
-  private fun createSnapshot(snapshotId: String) {
+  fun createSnapshot(snapshotId: String) {
     val snapshotFolder = avdFolder.resolve("snapshots").resolve(snapshotId)
     Files.createDirectories(snapshotFolder)
 
@@ -254,6 +285,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     val snapshotMessage = Snapshot.newBuilder()
       .addImages(SnapshotImage.getDefaultInstance()) // Need an image for the snapshot to be considered valid.
+      .setCreationTime(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
       .build()
     val snapshotFile = snapshotFolder.resolve("snapshot.pb")
     Files.newOutputStream(snapshotFile, CREATE).use { stream ->
@@ -261,6 +293,11 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       snapshotMessage.writeTo(codedStream)
       codedStream.flush()
     }
+  }
+
+  fun createInvalidSnapshot(snapshotId: String) {
+    createSnapshot(snapshotId)
+    markSnapshotInvalid(snapshotId)
   }
 
   private fun sendEmptyResponse(responseObserver: StreamObserver<Empty>) {
@@ -386,8 +423,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
         val image = drawDisplayImage(w, h)
         val rotatedImage = rotateByQuadrants(image, displayRotation.ordinal)
-        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 4)
-        val alpha = 0xFF.toByte()
+        val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
         var i = 0
         for (y in 0 until rotatedImage.height) {
           for (x in 0 until rotatedImage.width) {
@@ -395,13 +431,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
             imageBytes[i++] = (rgb ushr 16).toByte()
             imageBytes[i++] = (rgb ushr 8).toByte()
             imageBytes[i++] = rgb.toByte()
-            imageBytes[i++] = alpha
           }
         }
         val response = Image.newBuilder()
           .setImage(ByteString.copyFrom(imageBytes))
           .setFormat(ImageFormat.newBuilder()
-            .setFormat(request.format)
+            .setFormat(ImgFormat.RGB888)
             .setWidth(rotatedImage.width)
             .setHeight(rotatedImage.height)
             .setRotation(Rotation.newBuilder().setRotation(displayRotation))
@@ -413,6 +448,41 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
+
+    override fun listSnapshots(request: Empty, responseObserver: StreamObserver<SnapshotList>) {
+      executor.execute {
+        val response = SnapshotList.newBuilder()
+        val snapshotsFolder = avdFolder.resolve("snapshots")
+        try {
+          Files.list(snapshotsFolder).use { stream ->
+            stream.forEach { snapshotFolder ->
+              val snapshotId = snapshotFolder.fileName.toString()
+              if (snapshotId !in invalidSnapshots) {
+                val snapshotProtoFile = snapshotFolder.resolve("snapshot.pb")
+                val snapshotMessage = Files.newInputStream(snapshotProtoFile).use {
+                  Snapshot.parseFrom(it)
+                }
+                val snapshotDetails = SnapshotDetails.newBuilder()
+                snapshotDetails.snapshotId = snapshotId
+                val details = Snapshot.newBuilder()
+                details.logicalName = snapshotMessage.logicalName
+                details.description = snapshotMessage.description
+                details.rotation = snapshotMessage.rotation
+                details.creationTime = snapshotMessage.creationTime
+                snapshotDetails.setDetails(details)
+                response.addSnapshots(snapshotDetails)
+              }
+            }
+          }
+        }
+        catch (_: NoSuchFileException) {
+          // The "snapshots" folder hasn't been created yet - ignore to return an empty snapshot list.
+        }
+
+        sendResponse(responseObserver, response.build())
+      }
+    }
+
     override fun loadSnapshot(request: SnapshotPackage, responseObserver: StreamObserver<SnapshotPackage>) {
       executor.execute {
         sendDefaultSnapshotPackage(responseObserver)
@@ -420,7 +490,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     override fun pushSnapshot(responseObserver: StreamObserver<SnapshotPackage>): StreamObserver<SnapshotPackage> {
-      return object : DummyStreamObserver<SnapshotPackage>() {
+      return object : EmptyStreamObserver<SnapshotPackage>() {
         override fun onCompleted() {
           sendDefaultSnapshotPackage(responseObserver)
         }
@@ -440,6 +510,29 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
+  private inner class UiControllerService(
+    private val executor: ExecutorService
+  ) : UiControllerGrpc.UiControllerImplBase() {
+
+    override fun showExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun closeExtendedControls(empty: Empty, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+
+    override fun setUiTheme(themingStyle: ThemingStyle, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        sendEmptyResponse(responseObserver)
+      }
+    }
+  }
+
   private inner class LoggingInterceptor : ServerInterceptor {
 
     override fun <ReqT, RespT> interceptCall(call: ServerCall<ReqT, RespT>,
@@ -449,15 +542,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
       val forwardingCall = object: SimpleForwardingServerCall<ReqT, RespT>(call) {
         override fun sendMessage(response: RespT) {
-          callRecord.responseMessageCounter.add(Unit)
-          super.sendMessage(response)
+          grpcLock.withLock {
+            callRecord.responseMessageCounter.add(Unit)
+            super.sendMessage(response)
+          }
         }
       }
       return object : SimpleForwardingServerCallListener<ReqT>(handler.startCall(forwardingCall, headers)) {
         override fun onMessage(request: ReqT) {
-          callRecord.request = request as MessageOrBuilder
-          grpcCallLog.add(callRecord)
-          super.onMessage(request)
+          grpcLock.withLock {
+            callRecord.request = request as MessageOrBuilder
+            grpcCallLog.add(callRecord)
+            super.onMessage(request)
+          }
         }
 
         override fun onComplete() {
@@ -548,6 +645,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=480
+          hw.lcd.height=2960
+          hw.lcd.width=1440
           hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false
@@ -626,6 +726,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=320
+          hw.lcd.height=2560
+          hw.lcd.width=1600
           hw.ramSize = 2048
           hw.screen = multi-touch
           hw.dPad = false
@@ -702,6 +805,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.cpu.arch = x86
           hw.cpu.model = qemu32
           hw.cpu.ncore = 4
+          hw.lcd.density=240
+          hw.lcd.height=320
+          hw.lcd.width=320
           hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false

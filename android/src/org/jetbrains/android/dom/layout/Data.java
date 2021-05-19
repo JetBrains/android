@@ -17,13 +17,13 @@ package org.jetbrains.android.dom.layout;
 
 import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.DefinesXml;
-
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 
 @DefinesXml
-public interface Data extends LayoutElement, DataBindingElement {
+public interface Data extends DataBindingElement {
   List<Variable> getVariables();
+
   List<Import> getImports();
 
   /**

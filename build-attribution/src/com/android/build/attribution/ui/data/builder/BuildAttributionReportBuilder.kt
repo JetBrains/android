@@ -63,6 +63,10 @@ class BuildAttributionReportBuilder(
     override val totalBuildDuration = TimeWithPercentage(buildAnalysisResult.getTotalBuildTimeMs(), buildAnalysisResult.getTotalBuildTimeMs())
     override val criticalPathDuration = TimeWithPercentage(criticalPathDurationMs, buildAnalysisResult.getTotalBuildTimeMs())
     override val configurationDuration = pluginConfigurationTimeReport.totalConfigurationTime
+    override val garbageCollectionTime =
+      TimeWithPercentage(buildAnalysisResult.getTotalGarbageCollectionTimeMs(), buildAnalysisResult.getTotalBuildTimeMs())
+    override val javaVersionUsed = buildAnalysisResult.getJavaVersion()
+    override val isGarbageCollectorSettingSet = buildAnalysisResult.isGCSettingSet()
   }
 
   private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {

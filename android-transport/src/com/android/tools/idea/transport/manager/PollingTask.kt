@@ -31,19 +31,20 @@ interface PollingTask {
  */
 internal class StreamEventPollingTask(private val streamId: Long, internal val listener: TransportStreamEventListener) :
   PollingTask {
-  private var lastTimeStamp = listener.startTime?.invoke() ?: Long.MIN_VALUE
+  private var lastTimeStamp = listener.streamEventQuery.startTime?.invoke() ?: Long.MIN_VALUE
 
   override fun poll(client: TransportServiceGrpc.TransportServiceBlockingStub): Boolean {
     val startTimestamp = lastTimeStamp
-    val endTimestamp = listener.endTime.invoke()
+    val query = listener.streamEventQuery
+    val endTimestamp = query.endTime.invoke()
 
     val builder = Transport.GetEventGroupsRequest.newBuilder()
       .setStreamId(streamId)
-      .setKind(listener.eventKind)
+      .setKind(query.eventKind)
       .setFromTimestamp(startTimestamp)
       .setToTimestamp(endTimestamp)
-    listener.processId?.invoke()?.let { builder.pid = it }
-    listener.groupId?.invoke()?.let { builder.groupId = it }
+    query.processId?.invoke()?.let { builder.pid = it }
+    query.groupId?.invoke()?.let { builder.groupId = it }
 
     val request = builder.build()
 
@@ -52,8 +53,8 @@ internal class StreamEventPollingTask(private val streamId: Long, internal val l
     if (response != Transport.GetEventGroupsResponse.getDefaultInstance()) {
       val filtered = response.groupsList
         .flatMap { group -> group.eventsList }
-        .sortedWith(listener.sortOrder)
-        .filter { event -> event.timestamp >= startTimestamp && listener.filter(event) }
+        .sortedWith(query.sortOrder)
+        .filter { event -> event.timestamp >= startTimestamp && query.filter(event) }
       filtered.forEach { event -> listener.executor.execute { listener.callback(event) } }
       val maxTimeEvent = filtered.maxBy { it.timestamp }
       maxTimeEvent?.let { lastTimeStamp = max(startTimestamp, it.timestamp + 1) }

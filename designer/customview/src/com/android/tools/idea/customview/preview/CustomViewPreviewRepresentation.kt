@@ -35,13 +35,12 @@ import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
@@ -59,6 +58,7 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
@@ -85,7 +85,7 @@ fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
   val prevBuildStatus = gradleState.summary?.status
   return when {
     gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
-    prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
+    prevBuildStatus == null || prevBuildStatus.isBuildSuccessful ->
       CustomViewVisualStateTracker.BuildState.SUCCESSFUL
     else -> CustomViewVisualStateTracker.BuildState.FAILED
   }
@@ -179,7 +179,7 @@ class CustomViewPreviewRepresentation(
         setShrinkRendering(true)
       }
     }.build().apply {
-      setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
+      setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
     }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
@@ -224,8 +224,7 @@ class CustomViewPreviewRepresentation(
       buildState = buildState,
       fileState = fileState,
       onNotificationStateChanged = {
-        val file = psiFilePointer.element
-        if (file == null || !file.isValid) {
+        val file = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
           LOG.warn("onNotificationStateChanged with invalid PsiFile")
           return@CustomViewVisualStateTracker
         }
@@ -257,9 +256,8 @@ class CustomViewPreviewRepresentation(
 
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        val file = psiFilePointer.element
-        if (file == null || !file.isValid) {
-          LOG.debug("invalid PsiFile")
+        AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
+          LOG.warn("invalid PsiFile")
           return
         }
 
@@ -295,8 +293,7 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("refresh with invalid PsiFile")
       return
     }
@@ -322,12 +319,13 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModel() {
-    uniqueTaskLauncher.launch(::updateModelSync)
+    launch(uiThread) {
+      uniqueTaskLauncher.launch(::updateModelSync)
+    }
   }
 
   private suspend fun updateModelSync() {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("updateModelSync with invalid PsiFile")
       return
     }
@@ -386,8 +384,7 @@ class CustomViewPreviewRepresentation(
   }
 
   override fun updateNotifications(parentEditor: FileEditor) {
-    val psiFile = psiFilePointer.element
-    if (psiFile == null || !psiFile.isValid) {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(psiFilePointer) ?: run {
       LOG.warn("updateNotifications with invalid PsiFile")
       return
     }

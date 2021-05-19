@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.view
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.tools.adtui.TreeWalker
@@ -36,7 +37,7 @@ class BuildAnalyzerComboBoxViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  val model = BuildAnalyzerViewModel(MockUiData())
+  val model = BuildAnalyzerViewModel(MockUiData(), BuildAttributionWarningsFilter())
   val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
   lateinit var view: BuildAnalyzerComboBoxView
 

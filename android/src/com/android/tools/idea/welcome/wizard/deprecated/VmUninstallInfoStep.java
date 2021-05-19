@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * GVM/HAXM uninstallation is about to start. It is here just to make sure we don't
  * run uninstallation operations straight away as the first wizard step, as this
  * would not be in line with common wizard conventions
- * @deprecated use {@link com.android.tools.idea.welcome.wizard.HaxmUninstallInfoStep}
+ * @deprecated use {@link com.android.tools.idea.welcome.wizard.VmUninstallInfoStep}
  */
 public class VmUninstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;

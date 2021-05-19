@@ -152,7 +152,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     warnings2: Map<Issue, Map<File, List<LintProblemData>>>?,
     severityModule: Module?
   ): Map<String, LintIssueId.Builder> {
-    val map = HashMap<String, LintIssueId.Builder>(BuiltinIssueRegistry.INITIAL_CAPACITY)
+    val map = HashMap<String, LintIssueId.Builder>(100)
 
     if (warnings1 != null) {
       recordIssueData(warnings1, map)

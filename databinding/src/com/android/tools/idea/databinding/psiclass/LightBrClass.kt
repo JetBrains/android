@@ -102,7 +102,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
     setModuleInfo(facet.module, false)
 
-    // Create a dummy, backing file to represent this BR file
+    // Create a fake backing file to represent this BR file
     val factory = PsiFileFactory.getInstance(project)
     val backingFile = factory.createFileFromText("BR.java", JavaFileType.INSTANCE,
                                                  "// This class is generated on-the-fly by the IDE.") as PsiJavaFile

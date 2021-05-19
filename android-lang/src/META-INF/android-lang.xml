@@ -131,6 +131,8 @@
     <lang.syntaxHighlighter language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
+
+
     <!-- SQL support -->
     <fileType name="Android Room SQL"
               implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlFileType"
@@ -194,4 +196,5 @@
   <extensions defaultExtensionNs="org.intellij.intelliLang">
     <injectionConfig config="injections/roomSqlInjections.xml"/>
   </extensions>
+
 </idea-plugin>

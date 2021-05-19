@@ -119,26 +119,28 @@ public class HaxmAlert extends JPanel {
           myErrorInstructionsLink.setToolTipText(result.getSolution() != NONE ? result.getSolutionMessage() : null);
         }
 
-        if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
-          if (warningTextBuilder.length() > 0) {
-            warningTextBuilder.append("<br>");
+        if (myImageDescription != null) {
+          if (myImageDescription.getVersion().getApiLevel() < SdkVersionInfo.LOWEST_ACTIVE_API) {
+            if (warningTextBuilder.length() > 0) {
+              warningTextBuilder.append("<br>");
+            }
+            warningTextBuilder.append("This API Level is Deprecated<br>");
           }
-          warningTextBuilder.append("This API Level is Deprecated<br>");
-        }
 
-        Abi abi = Abi.getEnum(myImageDescription.getAbiType());
-        if (abi != Abi.X86 && abi != Abi.X86_64) {
-          if (warningTextBuilder.length() > 0) {
-            warningTextBuilder.append("<br>");
+          Abi abi = Abi.getEnum(myImageDescription.getAbiType());
+          if (abi != Abi.X86 && abi != Abi.X86_64) {
+            if (warningTextBuilder.length() > 0) {
+              warningTextBuilder.append("<br>");
+            }
+            warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
           }
-          warningTextBuilder.append("Consider using an x86 system image on an x86 host for better emulation performance.<br>");
-        }
 
-        if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
-          if (warningTextBuilder.length() > 0) {
-            warningTextBuilder.append("<br>");
+          if (!TAGS_WITH_GOOGLE_API.contains(myImageDescription.getTag())) {
+            if (warningTextBuilder.length() > 0) {
+              warningTextBuilder.append("<br>");
+            }
+            warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
           }
-          warningTextBuilder.append("Consider using a system image with Google APIs to enable testing with Google Play Services.");
         }
 
         String warningText = warningTextBuilder.toString();

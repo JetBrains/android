@@ -26,6 +26,7 @@ import com.android.tools.idea.res.FileResourceReader
 import org.xmlpull.v1.XmlPullParser
 
 import com.android.SdkConstants.*
+import com.android.support.FragmentTagUtil.isFragmentTag
 
 /**
  * Creates a new [ILayoutPullParser] for the given XML file.
@@ -86,7 +87,7 @@ private class LayoutPullParserImpl constructor(
     val name = delegate.name
 
     // At design time, replace fragments with includes.
-    if (VIEW_FRAGMENT == name) {
+    if (isFragmentTag(name)) {
       fragmentLayout = LayoutMetadata.getProperty(delegate, LayoutMetadata.KEY_FRAGMENT_LAYOUT)
       if (fragmentLayout != null) {
         return VIEW_INCLUDE

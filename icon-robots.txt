@@ -1,4 +1,3 @@
 skip: android/**/*
-skip: adt-branding/**/*
 skip: designer/**/*
 skip: smali/**/*

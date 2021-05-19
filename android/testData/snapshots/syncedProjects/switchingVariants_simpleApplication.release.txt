@@ -1,6 +1,6 @@
 PROJECT             : testSwitchingVariants_simpleApplication
-    PROJECT_JDK         : corretto-11
-        Version             : Amazon Corretto version <JDK_VERSION>
+    PROJECT_JDK         : <JAVA_VERSION>
+        Version             : java version "<JDK_VERSION>"
     MODULE              : testSwitchingVariants_simpleApplication
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -12,11 +12,10 @@ PROJECT             : testSwitchingVariants_simpleApplication
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testSwitchingVariants_simpleApplication [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/testSwitchingVariants_simpleApplication.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
@@ -36,11 +35,10 @@ PROJECT             : testSwitchingVariants_simpleApplication
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/releaseUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/testSwitchingVariants_simpleApplication.app.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/app/testSwitchingVariants_simpleApplication.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : release
             AssembleTaskName    : assembleRelease
             CompileJavaTaskName : compileReleaseSources
@@ -51,11 +49,11 @@ PROJECT             : testSwitchingVariants_simpleApplication
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/release/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/release [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/release [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestRelease/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -76,77 +74,83 @@ PROJECT             : testSwitchingVariants_simpleApplication
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out
-            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out
-            JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/release
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/release
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/release
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
             JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/jni
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/ml
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/res
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestRelease/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestRelease/shaders
-            JavaSource          : file://<PROJECT>/app/src/main/aidl
-            JavaResource        : file://<PROJECT>/app/src/main/assets
             JavaSource          : file://<PROJECT>/app/src/main/java
-            JavaSource          : file://<PROJECT>/app/src/main/jni
-            JavaResource        : file://<PROJECT>/app/src/main/ml
             JavaResource        : file://<PROJECT>/app/src/main/res
-            JavaResource        : file://<PROJECT>/app/src/main/resources
-            JavaSource          : file://<PROJECT>/app/src/main/rs
-            JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaSource          : file://<PROJECT>/app/src/release/aidl
-            JavaResource        : file://<PROJECT>/app/src/release/assets
-            JavaSource          : file://<PROJECT>/app/src/release/java
-            JavaSource          : file://<PROJECT>/app/src/release/jni
-            JavaResource        : file://<PROJECT>/app/src/release/ml
-            JavaResource        : file://<PROJECT>/app/src/release/res
-            JavaResource        : file://<PROJECT>/app/src/release/resources
-            JavaSource          : file://<PROJECT>/app/src/release/rs
-            JavaSource          : file://<PROJECT>/app/src/release/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/test/assets
             JavaSource (test)   : file://<PROJECT>/app/src/test/java
-            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
-            JavaResource (test) : file://<PROJECT>/app/src/test/ml
-            JavaResource (test) : file://<PROJECT>/app/src/test/res
-            JavaResource (test) : file://<PROJECT>/app/src/test/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/test/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/java
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/jni
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/ml
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/res
-            JavaResource (test) : file://<PROJECT>/app/src/testRelease/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/testRelease/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/releaseUnitTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/release/out [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/release [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/release [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/release [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestRelease/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestRelease/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/release/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/release/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testRelease/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testRelease/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : Amazon Corretto version <JDK_VERSION>
+            VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -154,7 +158,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.core:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/core/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -170,7 +174,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -241,6 +245,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -266,6 +271,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -302,6 +308,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -338,6 +345,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -363,6 +371,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -390,6 +399,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -408,6 +418,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -446,7 +457,7 @@ PROJECT             : testSwitchingVariants_simpleApplication
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: org.apache.http.legacy [=]
-            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
+            *CLASSES            : jar://<ANDROID_SDK>/platforms/android-30/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
             LibraryLevel        : project
             IsModuleLevel       : false

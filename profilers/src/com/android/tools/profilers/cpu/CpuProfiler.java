@@ -25,10 +25,6 @@ import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.Transport;
@@ -36,7 +32,9 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.atrace.AtraceExporter;
+import com.android.tools.profilers.cpu.config.ImportedConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
@@ -86,8 +84,7 @@ public class CpuProfiler extends StudioProfiler {
 
     assert mySessionTraceFiles.containsKey(session.getSessionId());
     if (myProfilers.getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      ProfilingConfiguration importConfig =
-        new ProfilingConfiguration("Imported", CpuTraceType.UNSPECIFIED_TYPE, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
+      ProfilingConfiguration importConfig = new ImportedConfiguration();
       myProfilers.setStage(
         CpuCaptureStage.create(myProfilers, importConfig, mySessionTraceFiles.get(session.getSessionId()), session.getSessionId()));
     }
@@ -168,11 +165,7 @@ public class CpuProfiler extends StudioProfiler {
   }
 
   @Override
-  public void startProfiling(Common.Session session) {
-    // TODO: handle different status of the response
-    CpuStartResponse response =
-        myProfilers.getClient().getCpuClient().startMonitoringApp(CpuStartRequest.newBuilder().setSession(session).build());
-  }
+  public void startProfiling(Common.Session session) { }
 
   @Override
   public void stopProfiling(Common.Session session) {
@@ -185,10 +178,6 @@ public class CpuProfiler extends StudioProfiler {
                   mostRecentTrace.getConfiguration(),
                   null);
     }
-
-    // TODO: handle different status of the response
-    CpuStopResponse response =
-        myProfilers.getClient().getCpuClient().stopMonitoringApp(CpuStopRequest.newBuilder().setSession(session).build());
   }
 
   /**

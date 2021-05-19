@@ -18,9 +18,11 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.Result
 import com.android.testutils.TestUtils
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -30,16 +32,15 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
-private fun checkComplexLayoutInflateResult(result: RenderResult) {
+fun checkComplexLayoutInflateResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 }
 
 /**
  * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
  */
-private fun checkComplexLayoutRenderResult(result: RenderResult) {
+fun checkComplexLayoutRenderResult(result: RenderResult) {
   AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
 
   AndroidGradleTestCase.assertNotNull(result.renderedImage)
@@ -58,6 +59,7 @@ class RenderComplexPerfgateTest {
 
     val baseTestPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer-perf-tests/testData").path
     gradleRule.fixture.testDataPath = baseTestPath
+    IdeComponents(gradleRule.project).mockProjectService(SyncIssueUsageReporter::class.java)
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
     gradleRule.requestSyncAndWait()
     facet = gradleRule.androidFacet(":app")
@@ -81,10 +83,11 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexInflate() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
-      val metric = getInflateMetric(task, ::checkComplexLayoutInflateResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
+        metric = getInflateMetric(it, ::checkComplexLayoutInflateResult)
+      }
+      metric!!
     }
 
     computeAndRecordMetric("inflate_time_complex", "inflate_memory_complex", computable)
@@ -93,10 +96,11 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexRender() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
-      val metric = getRenderMetric(task, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
-      task.dispose().get(5, TimeUnit.SECONDS)
-      metric
+      var metric: PerfgateRenderMetric? = null
+      RenderTestUtil.withRenderTask(facet, layoutFile, layoutConfiguration) {
+        metric = getRenderMetric(it, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
+      }
+      metric!!
     }
 
     computeAndRecordMetric("render_time_complex", "render_memory_complex", computable)

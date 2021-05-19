@@ -77,6 +77,13 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * NOTE: If you are writing a new test, consider using JUnit4 with
+ * {@link com.android.tools.idea.testing.AndroidProjectRule} instead. This allows you to use
+ * features introduced in JUnit4 (such as parameterization) while also providing a more
+ * compositional approach - instead of your test class inheriting dozens and dozens of methods you
+ * might not be familiar with, those methods will be constrained to the rule.
+ */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
   protected Module myModule;
@@ -499,6 +506,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     public AndroidModuleFixtureBuilderImpl(TestFixtureBuilder<? extends IdeaProjectTestFixture> fixtureBuilder) {
       super(fixtureBuilder);
+      JavaCodeInsightFixtureAdtTestCase.addJdk(this);
     }
 
     @Override

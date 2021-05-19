@@ -36,7 +36,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConf
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsConfigToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlViewActionToolbarFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.properties.PropertiesPanelFixture;
@@ -451,10 +450,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   public HostPanelFixture hostPanel() {
     return HostPanelFixture.Companion.create(robot());
-  }
-
-  public DestinationListFixture destinationList() {
-    return DestinationListFixture.Companion.create(robot());
   }
 
   public ComponentTreeFixture<NlComponent> navComponentTree() {

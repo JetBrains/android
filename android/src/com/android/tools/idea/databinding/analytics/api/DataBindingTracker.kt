@@ -27,7 +27,7 @@ interface DataBindingTracker {
     @JvmStatic
     /**
      * This will always return data binding module's implementation of [DataBindingTracker] if data binding module is enabled.
-     * Otherwise return a default dummy [DataBindingDefaultTracker] that returns a default (negative) proto.
+     * Otherwise return a fake [DataBindingDefaultTracker] that returns a default (negative) proto.
      */
     fun getInstance(project: Project): DataBindingTracker {
       return project.getService(DataBindingTracker::class.java)

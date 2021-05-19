@@ -31,13 +31,15 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
   public void testWhenProjectSync() {
     // Load service on demand
     ProjectSyncModificationTracker projectSyncTracker = ProjectSyncModificationTracker.getInstance(myProject);
+    long baseProjectSyncTrackerCount = projectSyncTracker.getModificationCount();
+
     MergedManifestModificationTracker mergedManifestTracker = MergedManifestModificationTracker.getInstance(myModule);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(0);
+    long baseMergedManifestTrackerCount = mergedManifestTracker.getModificationCount();
 
     projectSync();
 
-    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(1);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(1);
+    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(baseProjectSyncTrackerCount + 1);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
   }
 
   public void testWhenManifestChanged() {
@@ -48,10 +50,10 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
 
     // Load service on demand
     MergedManifestModificationTracker mergedManifestTracker = MergedManifestModificationTracker.getInstance(myModule);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(0);
+    long baseMergedManifestTrackerCount = mergedManifestTracker.getModificationCount();
 
     updateManifest(modificationListener, stringPath, androidFacet);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(1);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
   }
 
   public void testCombinationCases() {
@@ -63,33 +65,33 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
 
     // Load service on demand
     ProjectSyncModificationTracker projectSyncTracker = ProjectSyncModificationTracker.getInstance(myProject);
-    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(0);
+    long baseProjectSyncTrackerCount = projectSyncTracker.getModificationCount();
 
     MergedManifestModificationTracker mergedManifestTracker = MergedManifestModificationTracker.getInstance(myModule);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(0);
+    long baseMergedManifestTrackerCount = mergedManifestTracker.getModificationCount();
 
     // update manifest
     updateManifest(modificationListener, stringPath, androidFacet);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(1);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 1);
 
     // sync
     projectSync();
-    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(1);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(2);
+    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(baseProjectSyncTrackerCount + 1);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 2);
 
     // update manifest
     updateManifest(modificationListener, stringPath, androidFacet);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(3);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 3);
 
     // sync
     projectSync();
-    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(2);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(4);
+    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(baseProjectSyncTrackerCount + 2);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 4);
 
     // sync
     projectSync();
-    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(3);
-    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(5);
+    assertThat(projectSyncTracker.getModificationCount()).isEqualTo(baseProjectSyncTrackerCount + 3);
+    assertThat(mergedManifestTracker.getModificationCount()).isEqualTo(baseMergedManifestTrackerCount + 5);
   }
 
 
@@ -97,7 +99,9 @@ public class MergedManifestModificationTrackerTest extends PlatformTestCase {
     myProject.getMessageBus().syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS);
   }
 
-  private static void updateManifest(MergedManifestModificationListener modificationListener, PathString stringPath, AndroidFacet androidFacet) {
+  private static void updateManifest(MergedManifestModificationListener modificationListener,
+                                     PathString stringPath,
+                                     AndroidFacet androidFacet) {
     modificationListener.fileChanged(stringPath, androidFacet);
   }
 }

@@ -15,12 +15,14 @@ package com.android.tools.idea.gradle.dsl.model.ext;
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.GradleNameElementUtil;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -59,6 +61,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myTransforms.add(DEFAULT_TRANSFORM);
 
     GradleDslElement parent = element.getParent();
+    if (parent == null) {
+      assert (element instanceof GradleDslFile);
+      parent = element;
+    }
     assert (parent instanceof GradlePropertiesDslElement ||
             parent instanceof GradleDslMethodCall) : "Property found to be invalid, this should never happen!";
     myPropertyHolder = parent;
@@ -576,7 +582,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       GradleDslSimpleExpression ref = (GradleDslSimpleExpression)element;
       String refText = ref.getReferenceText();
       if (typeReference.getType() == Object.class || typeReference.getType() == ReferenceTo.class) {
-        value = refText == null ? null : typeReference.castTo(new ReferenceTo(refText));
+        if (refText != null) {
+          ReferenceTo referenceVal = ReferenceTo.createReferenceFromText(refText, this);
+          value = referenceVal != null ? typeReference.castTo(referenceVal) : typeReference.castTo(new RawText(refText, refText));
+        } else {
+          value = null;
+        }
       }
       else {
         value = refText == null ? null : typeReference.castTo(refText);
@@ -673,6 +684,12 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable
   public GradleDslElement getRawElement() {
     return myElement;
+  }
+
+  @Override
+  @NotNull
+  public GradleDslElement getRawPropertyHolder() {
+    return myPropertyHolder;
   }
 
   @NotNull

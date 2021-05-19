@@ -17,10 +17,17 @@ package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.AtraceConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.TracePreProcessor;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.FakeCodeNavigator;
@@ -36,7 +43,6 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,26 +60,29 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_SYMBOL_DIR = "/fake/sym/dir/";
 
-  public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ProfilingConfiguration(FAKE_ART_SAMPLED_NAME,
-                                                                                             Cpu.CpuTraceType.ART,
-                                                                                             Cpu.CpuTraceMode.SAMPLED);
-  public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ProfilingConfiguration(FAKE_ART_INSTRUMENTED_NAME,
-                                                                                                  Cpu.CpuTraceType.ART,
-                                                                                                  Cpu.CpuTraceMode.INSTRUMENTED);
-  public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new ProfilingConfiguration(FAKE_SIMPLEPERF_NAME,
-                                                                                            Cpu.CpuTraceType.SIMPLEPERF,
-                                                                                            Cpu.CpuTraceMode.SAMPLED);
-  public static final ProfilingConfiguration ATRACE_CONFIG = new ProfilingConfiguration(FAKE_ATRACE_NAME,
-                                                                                        Cpu.CpuTraceType.ATRACE,
-                                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
-  public static final ProfilingConfiguration PERFETTO_CONFIG = new ProfilingConfiguration(FAKE_PERFETTO_NAME,
-                                                                                        Cpu.CpuTraceType.PERFETTO,
-                                                                                        Cpu.CpuTraceMode.INSTRUMENTED);
+  public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ArtSampledConfiguration(FAKE_ART_SAMPLED_NAME);
+  public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ArtInstrumentedConfiguration(FAKE_ART_INSTRUMENTED_NAME);
+  public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new SimpleperfConfiguration(FAKE_SIMPLEPERF_NAME);
+  public static final ProfilingConfiguration ATRACE_CONFIG = new AtraceConfiguration(FAKE_ATRACE_NAME);
+  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
-  private NativeFrameSymbolizer myFakeSymbolizer = (abi, nativeFrame) -> nativeFrame;
   private final CodeNavigator myFakeNavigationService = new FakeCodeNavigator(myFakeFeatureTracker);
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
+  private TraceProcessorService myTraceProcessorService = new FakeTraceProcessorService();
+  private NativeFrameSymbolizer myFakeSymbolizer = new NativeFrameSymbolizer() {
+    @NotNull
+    @Override
+    public Memory.NativeCallStack.NativeFrame symbolize(String abi,
+                                                        Memory.NativeCallStack.NativeFrame unsymbolizedFrame) {
+      return unsymbolizedFrame;
+    }
+
+    @Override
+    public void stop() {
+
+    }
+  };
 
   /**
    * Toggle for including an energy profiler in our profiler view.
@@ -111,11 +120,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myStartupCpuProfilingEnabled = false;
 
   /**
-   * Can toggle for tests via {@link #enableCpuApiTracing(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myIsCpuApiTracingEnabled = false;
-
-  /**
    * Whether the new pipeline is used or the old one for devices / processes / sessions.
    */
   private boolean myEventsPipelineEnabled = false;
@@ -148,7 +152,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we use TraceProcessor to parse Perfetto traces.
    */
-  private boolean myUseTraceProcessor = false;
+  private boolean myUseTraceProcessor = true;
 
   /**
    * Whether separate heap-dump view is enabled
@@ -250,16 +254,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
-      @Override
-      public int getNativeMemorySamplingRateForCurrentConfig() {
-        return 0;
-      }
-
-      @Override
-      public boolean isCpuApiTracingEnabled() {
-        return myIsCpuApiTracingEnabled;
-      }
-
       @Override
       public boolean isCpuCaptureStageEnabled() { return myIsCaptureStageEnabled; }
 
@@ -372,8 +366,22 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {
-    ProfilingConfiguration config =
-      new ProfilingConfiguration(name, type, Cpu.CpuTraceMode.UNSPECIFIED_MODE);
+    ProfilingConfiguration config;
+    if (type == Cpu.CpuTraceType.ART) {
+      config = new ArtSampledConfiguration(name);
+    }
+    else if (type == Cpu.CpuTraceType.SIMPLEPERF) {
+      config = new SimpleperfConfiguration(name);
+    }
+    else if (type == Cpu.CpuTraceType.PERFETTO) {
+      config = new PerfettoConfiguration(name);
+    }
+    else if (type == Cpu.CpuTraceType.ATRACE) {
+      config = new AtraceConfiguration(name);
+    }
+    else {
+      config = new UnspecifiedConfiguration(name);
+    }
     myCustomProfilingConfigurations.add(config);
   }
 
@@ -386,15 +394,20 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     if (apiLevel >= AndroidVersion.VersionCodes.P) {
       return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_CONFIG);
-    } else {
+    }
+    else {
       return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
     }
-
   }
 
   @Override
   public boolean isNativeProfilingConfigurationPreferred() {
     return myNativeProfilingConfigurationPreferred;
+  }
+
+  @Override
+  public int getNativeMemorySamplingRateForCurrentConfig() {
+    return 0;
   }
 
   @Override
@@ -411,7 +424,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @NotNull
   @Override
   public TraceProcessorService getTraceProcessorService() {
-    return new FakeTraceProcessorService();
+    return myTraceProcessorService;
+  }
+
+  public void setTraceProcessorService(@NotNull TraceProcessorService service) {
+    myTraceProcessorService = service;
   }
 
   @Nullable
@@ -435,10 +452,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void enableStartupCpuProfiling(boolean enabled) {
     myStartupCpuProfilingEnabled = enabled;
-  }
-
-  public void enableCpuApiTracing(boolean enabled) {
-    myIsCpuApiTracingEnabled = enabled;
   }
 
   public void enableEventsPipeline(boolean enabled) {

@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import org.mockito.Mockito
 
@@ -41,17 +41,17 @@ class LayoutlibSceneManagerTest: SceneTest() {
     val nlSurface = myScene.designSurface as NlDesignSurface
     val sceneManager = nlSurface.sceneManager!!
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER)
+    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.BLUEPRINT)
+    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNull(sceneManager.secondarySceneView)
 
-    Mockito.`when`(nlSurface.sceneMode).thenReturn(SceneMode.RENDER_AND_BLUEPRINT)
+    Mockito.`when`(nlSurface.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER_AND_BLUEPRINT)
     sceneManager.updateSceneView()
     assertNotNull(sceneManager.sceneView)
     assertNotNull(sceneManager.secondarySceneView)

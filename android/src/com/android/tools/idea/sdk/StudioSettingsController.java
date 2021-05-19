@@ -43,7 +43,8 @@ import org.jetbrains.annotations.Nullable;
   name = "StudioSettingsController",
   storages = @Storage(value = "remotesdk.xml", roamingType = RoamingType.DISABLED)
 )
-public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>, SettingsController,
+public class StudioSettingsController implements PersistentStateComponent<StudioSettingsController.PersistentState>,
+                                                 SettingsController,
                                                  Disposable {
 
   private PersistentState myState = new PersistentState();

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom.layout;
 
+import com.intellij.util.xml.CustomChildren;
 import com.intellij.util.xml.SubTagList;
 import java.util.List;
 import org.jetbrains.android.dom.AndroidDomElement;
@@ -24,7 +25,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Base interface for tags that can own all view classes as sub-tags (e.g. {@code Button},
- * {@code TextView}, etc.)
+ * {@code TextView}, etc.) or support android:layout_XXX attributes.
  * <p>
  * See also {@link SubtagsProcessingUtil#processSubtags(AndroidFacet, AndroidDomElement, SubtagsProcessingUtil.SubtagProcessor)}
  * which is responsible for dynamically registering the sub-tags for all view classes, which will
@@ -33,4 +34,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 public interface LayoutElement extends AndroidDomElement {
   @SubTagList("requestFocus")
   List<LayoutElement> getRequestFocuses();
+
+  @CustomChildren
+  List<LayoutViewElement> getSubView();
 }

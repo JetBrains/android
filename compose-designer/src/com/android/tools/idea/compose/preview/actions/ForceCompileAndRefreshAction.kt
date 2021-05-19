@@ -24,25 +24,34 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.ui.JBColor
 
 private val GREEN_REFRESH_BUTTON = ColoredIconGenerator.generateColoredIcon(AllIcons.Actions.ForceRefresh,
                                                                             JBColor(0x59A869, 0x499C54))
 
-
-internal fun requestBuildForSurface(surface: DesignSurface) {
-  surface.models.map { it.module }.distinct().forEach {
-    requestBuild(surface.project, it)
-  }
-}
+internal fun requestBuildForSurface(surface: DesignSurface) =
+  surface.models.map { it.module }.distinct()
+    .onEach {
+      requestBuild(surface.project, it)
+    }
+    .isNotEmpty()
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
-  AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
-  override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
+  AnAction(message("action.build.and.refresh.title"), null, GREEN_REFRESH_BUTTON) {
+  override fun actionPerformed(e: AnActionEvent) {
+    if (!requestBuildForSurface(surface)) {
+      // If there are no models in the surface, we can not infer which models we should trigger
+      // the build for. The fallback is to find the module for the editor and trigger that.
+      LangDataKeys.MODULE.getData(e.dataContext)?.let {
+        requestBuild(surface.project, it)
+      }
+    }
+  }
 
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return

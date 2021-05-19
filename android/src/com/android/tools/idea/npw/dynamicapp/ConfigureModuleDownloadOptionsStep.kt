@@ -27,7 +27,7 @@ import com.android.tools.idea.observable.expressions.bool.IsEqualToExpression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ide.BrowserUtil
@@ -76,14 +76,12 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     row {
-      cell {
-        labelFor(
-          "Module title (this may be visible to users)",
-          featureTitle,
-          "The platform uses this title to identify the module to users when," +
-          " for example, confirming whether the user wants to download the module."
-        )
-      }
+      labelFor(
+        "Module title (this may be visible to users)",
+        featureTitle,
+        "The platform uses this title to identify the module to users when," +
+        " for example, confirming whether the user wants to download the module."
+      )
     }
 
     row {
@@ -91,13 +89,11 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     row {
-      cell {
-        labelFor(
-          "Install-time inclusion",
-          installationOptionCombo,
-          "Specify whether to include this module at install-time unconditionally, or based on device features."
-        )
-      }
+      labelFor(
+        "Install-time inclusion",
+        installationOptionCombo,
+        "Specify whether to include this module at install-time unconditionally, or based on device features."
+      )
     }
 
     row {
@@ -123,7 +119,7 @@ class ConfigureModuleDownloadOptionsStep(
     }
   }
 
-  private val validatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
+  private val validatorPanel = ValidatorPanel(this, wrapWithVScroll(panel))
 
   init {
     FormScalingUtil.scaleComponentTree(this.javaClass, validatorPanel)

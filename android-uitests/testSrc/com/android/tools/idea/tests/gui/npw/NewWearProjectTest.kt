@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.npw
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
@@ -38,7 +38,6 @@ class NewWearProjectTest {
     createWearProject("Blank Activity", Language.Java, false)
 
     guiTest.getProjectFileText("app/build.gradle").apply {
-      assertThat(this).contains("compileOnly 'com.google.android.wearable")
       assertThat(this).contains("implementation 'androidx.wear:wear:")
 
       assertThat(this).doesNotContain("wearApp project")

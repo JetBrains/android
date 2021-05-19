@@ -15,103 +15,81 @@
  */
 package com.android.tools.idea.mlkit.importmodel;
 
-import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.MIN_SDK_VERSION;
 import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.MIN_AGP_VERSION;
+import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.MIN_SDK_VERSION;
 import static com.android.tools.idea.mlkit.importmodel.ImportMlModelAction.TITLE;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.facet.FacetManager;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.module.Module;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.testFramework.MapDataContext;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.TestActionEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 /**
  * Unit tests for {@link ImportMlModelAction}.
  */
+@RunsInEdt
 public class ImportMlModelActionTest {
 
-  @Mock private AndroidModuleModel myMockAndroidModuleModel;
-  @Mock private AndroidModuleInfo myMockAndroidModuleInfo;
-  @Mock private AnActionEvent myMockActionEvent;
+  private AnActionEvent myEvent;
   private ImportMlModelAction myAction;
 
   @Rule
-  public AndroidProjectRule projectRule = AndroidProjectRule.inMemory();
+  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
   @Before
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
-
-    AndroidFacet selectedAndroidFacet = AndroidFacet.getInstance(projectRule.getModule());
-
-    when(myMockAndroidModuleModel.getAndroidProject()).thenReturn(mock(IdeAndroidProject.class));
-    when(myMockAndroidModuleModel.getModelVersion()).thenReturn(GradleVersion.parse(MIN_AGP_VERSION));
-    AndroidModel.set(selectedAndroidFacet, myMockAndroidModuleModel);
-
-    when(myMockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(MIN_SDK_VERSION));
-    AndroidModuleInfo.setInstanceForTest(selectedAndroidFacet, myMockAndroidModuleInfo);
-
-    FacetManager mockFacetManager = mock(FacetManager.class);
-    when(mockFacetManager.getFacetByType(AndroidFacet.ID)).thenReturn(selectedAndroidFacet);
-
-    Module mockModel = mock(Module.class);
-    doReturn(mockFacetManager).when(mockModel).getComponent(FacetManager.class);
-    when(mockModel.getProject()).thenReturn(projectRule.getProject());
-
-    DataContext dataContext = mock(DataContext.class);
-    when(dataContext.getData(LangDataKeys.MODULE.getName())).thenReturn(mockModel);
-
-    when(myMockActionEvent.getDataContext()).thenReturn(dataContext);
-    when(myMockActionEvent.getPresentation()).thenReturn(new Presentation());
-    when(myMockActionEvent.getProject()).thenReturn(projectRule.getProject());
-
     myAction = new ImportMlModelAction();
+  }
+
+  private void setupProject(String version, int version2) {
+    MlProjectTestUtil.setupTestMlProject(projectRule.getProject(), version, version2);
+    myEvent = new TestActionEvent(new MapDataContext(
+      ImmutableMap.of(
+        CommonDataKeys.PROJECT, projectRule.getProject(),
+        LangDataKeys.MODULE, gradleModule(projectRule.getProject(), ":")
+      )
+    ));
   }
 
   @Test
   public void allConditionsMet_shouldEnabledPresentation() {
-    myAction.update(myMockActionEvent);
-    assertThat(myMockActionEvent.getPresentation().isEnabled()).isTrue();
+    setupProject(MIN_AGP_VERSION, MIN_SDK_VERSION);
+    myAction.update(myEvent);
+    assertThat(myEvent.getPresentation().isEnabled()).isTrue();
   }
 
   @Test
   public void lowAgpVersion_shouldDisablePresentation() {
-    when(myMockAndroidModuleModel.getModelVersion()).thenReturn(GradleVersion.parse("3.6.0"));
+    setupProject("3.6.0", MIN_SDK_VERSION);
 
-    myAction.update(myMockActionEvent);
+    myAction.update(myEvent);
 
-    assertThat(myMockActionEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myMockActionEvent.getPresentation().getText()).isEqualTo(
+    assertThat(myEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myEvent.getPresentation().getText()).isEqualTo(
       AndroidBundle.message("android.wizard.action.requires.new.agp", TITLE, MIN_AGP_VERSION));
   }
 
   @Test
   public void lowMinSdkApi_shouldDisablePresentation() {
-    when(myMockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(MIN_SDK_VERSION - 2));
+    setupProject(MIN_AGP_VERSION, MIN_SDK_VERSION - 2);
 
-    myAction.update(myMockActionEvent);
+    myAction.update(myEvent);
 
-    assertThat(myMockActionEvent.getPresentation().isEnabled()).isFalse();
-    assertThat(myMockActionEvent.getPresentation().getText()).isEqualTo(
+    assertThat(myEvent.getPresentation().isEnabled()).isFalse();
+    assertThat(myEvent.getPresentation().getText()).isEqualTo(
       AndroidBundle.message("android.wizard.action.requires.minsdk", TITLE, MIN_SDK_VERSION));
   }
 }

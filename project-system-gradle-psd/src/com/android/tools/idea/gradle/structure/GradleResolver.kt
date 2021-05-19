@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueData
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.ListenableFutureTask
@@ -59,17 +61,20 @@ private fun findModel(module: GradleModuleModels): PsResolvedModuleModel? {
   fun tryAndroidModels(): PsResolvedModuleModel.PsAndroidModuleResolvedModel? {
     val androidModel = module.findModel(AndroidModuleModel::class.java) ?: return null
     val nativeModel = module.findModel(NdkModuleModel::class.java)
+    val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
     return PsResolvedModuleModel.PsAndroidModuleResolvedModel(
       gradlePath,
       gradleModuleModel.buildFilePath?.absolutePath,
       androidModel,
-      nativeModel
+      nativeModel,
+      syncIssues
     )
   }
 
   fun tryJavaModels(): PsResolvedModuleModel.PsJavaModuleResolvedModel? {
     val javaModel = module.findModel(JavaModuleModel::class.java) ?: return null
-    return PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, javaModel)
+    val syncIssues = module.findModel(SyncIssues::class.java) ?: SyncIssues.EMPTY
+    return PsResolvedModuleModel.PsJavaModuleResolvedModel(gradlePath, gradleModuleModel.buildFilePath?.absolutePath, javaModel, syncIssues)
   }
 
   return tryAndroidModels() ?: tryJavaModels()

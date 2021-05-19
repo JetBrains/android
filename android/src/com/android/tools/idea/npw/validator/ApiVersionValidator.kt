@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.validator
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.validation.Validator
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional

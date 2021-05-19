@@ -17,6 +17,7 @@ package com.android.tools.idea.apk.viewer.diff;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.util.HumanReadableUtil;
 import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.apk.analyzer.internal.ApkDiffEntry;
@@ -37,17 +38,18 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Function;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.Convertor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
-
-import javax.swing.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-
-import static com.android.tools.idea.apk.viewer.ApkViewPanel.getHumanizedSize;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 public class ApkDiffPanel {
 
@@ -213,7 +215,7 @@ public class ApkDiffPanel {
         return;
       }
 
-      append(getHumanizedSize(mySizeMapper.fun(entry)));
+      append(HumanReadableUtil.getHumanizedSize(mySizeMapper.fun(entry)));
     }
   }
 

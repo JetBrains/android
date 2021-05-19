@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.KeyboardEvent
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.adtui.swing.FakeUi.setPortableUiFont
+import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
@@ -36,7 +36,6 @@ import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.rules.TempDirectory
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
@@ -51,11 +50,10 @@ import java.util.concurrent.TimeUnit
 @RunsInEdt
 class EmulatorToolWindowManagerTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val tempDirectory = TempDirectory()
-  private val emulatorRule = FakeEmulatorRule(tempDirectory)
+  private val emulatorRule = FakeEmulatorRule()
   private var nullableToolWindow: ToolWindow? = null
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   private val project
     get() = projectRule.project
@@ -80,7 +78,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = tempDirectory.root.toPath()
+    val tempFolder = emulatorRule.root.toPath()
     val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
     val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), 8555, standalone = true)
     val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), 8556, standalone = false)
@@ -104,8 +102,9 @@ class EmulatorToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
     waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != "No Running Emulators" }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     // Start the third emulator.
     emulator3.start()
@@ -156,7 +155,7 @@ class EmulatorToolWindowManagerTest {
     val contentManager = toolWindow.contentManager
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = tempDirectory.root.toPath()
+    val tempFolder = emulatorRule.root.toPath()
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554, standalone = false)
 
     toolWindow.show()

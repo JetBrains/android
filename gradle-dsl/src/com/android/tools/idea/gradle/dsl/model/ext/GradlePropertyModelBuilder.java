@@ -224,6 +224,54 @@ public final class GradlePropertyModelBuilder {
     return new JvmTargetPropertyModelImpl(build());
   }
 
+  /**
+   * Build a {@link GradlePropertyModel} from a text.
+   * @deprecated use {@link #getModelFromInternalText(String, GradleDslElement)}.
+   * This function will be deleted as b/142454204 will be fixed.
+   * @param name the external name (i.e. build language syntax) of the property we want to get the model for.
+   * @param context the dsl context from which we are looking.
+   * @return a GradlePropertyModel if a dsl property is found, or null otherwise.
+   */
+  @Nullable
+  @Deprecated
+  public static GradlePropertyModel getModelFromExternalText(@NotNull String name,
+                                                             @NotNull GradleDslElement context) {
+    GradleDslElement dslElement = context.resolveExternalSyntaxReference(name, false);
+    if (dslElement == null) return null;
+    return createModelFromDslElement(dslElement);
+  }
+
+  /**
+   * Build a {@link GradlePropertyModel} from a text.
+   * @param name the internal name of the property we want to get the model for.
+   * @param context the dsl context from which we are looking.
+   * @return a GradlePropertyModel if a dsl property is found, or null otherwise.
+   */
+  @Nullable
+  public static GradlePropertyModel getModelFromInternalText(@NotNull String name,
+                                                              @NotNull GradleDslElement context) {
+    GradleDslElement dslElement = context.resolveInternalSyntaxReference(name, false);
+    if (dslElement == null) return null;
+    return createModelFromDslElement(dslElement);
+  }
+
+
+  /**
+   * Create and build a {@link GradlePropertyModel} from a dslElement.
+   * @param dslElement the dslElement
+   * @return a {@link GradlePropertyModel}
+   */
+  @NotNull
+  public static GradlePropertyModel createModelFromDslElement(@NotNull GradleDslElement dslElement) {
+    if (dslElement.getParent() != null) {
+      if (dslElement instanceof GradlePropertiesDslElement) {
+        GradlePropertiesDslElement parent = (GradlePropertiesDslElement)dslElement.getParent();
+        return create(parent, dslElement.getName()).build();
+      }
+    }
+    return create(dslElement).build();
+  }
+
   @NotNull
   private <T extends GradlePropertyModelImpl> T setUpModel(@NotNull T model) {
     if (myDefault != null) {

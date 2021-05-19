@@ -55,6 +55,11 @@ final class ExecutionTargetService {
     return project.getService(ExecutionTargetService.class);
   }
 
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxExecutionTarget getActiveTarget() {
+    return (DeviceAndSnapshotComboBoxExecutionTarget)myExecutionTargetManagerGetInstance.apply(myProject).getActiveTarget();
+  }
+
   void setActiveTarget(@NotNull DeviceAndSnapshotComboBoxExecutionTarget target) {
     ExecutionTargetManager executionTargetManager = myExecutionTargetManagerGetInstance.apply(myProject);
 

@@ -15,23 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.run.MakeBeforeRunTask
-import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
-import com.intellij.execution.RunManager.Companion.getInstance
-import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
-import com.intellij.openapi.actionSystem.DataContext
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -50,7 +42,7 @@ class ApplicationIdProviderIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
     openPreparedProject("project") { project ->
       val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-      val applicationId = project.gradleModule(":app")?.getModuleSystem()?.getApplicationIdProvider(runConfiguration)?.packageName
+      val applicationId = project.getProjectSystem().getApplicationIdProvider(runConfiguration)?.packageName
       // Falls back to package name since build is never run.
       assertThat(applicationId).isEqualTo("one.name")
     }
@@ -61,31 +53,10 @@ class ApplicationIdProviderIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(TestProjectPaths.APPLICATION_ID_SUFFIX, "project")
     openPreparedProject("project") { project ->
       val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-      executeMakeBeforeRunStep(runConfiguration)
-      val applicationId = project.gradleModule(":app")?.getModuleSystem()?.getApplicationIdProvider(runConfiguration)?.packageName
+      runConfiguration.executeMakeBeforeRunStepInTest()
+      val applicationId = project.getProjectSystem().getApplicationIdProvider(runConfiguration)?.packageName
       assertThat(applicationId).isEqualTo("one.name.debug")
     }
-  }
-
-  private fun executeMakeBeforeRunStep(runConfiguration: AndroidRunConfiguration) {
-    val project = runConfiguration.project
-    val makeBeforeRunTask = runConfiguration.beforeRunTasks.filterIsInstance<MakeBeforeRunTask>().single()
-    val factory = runConfiguration.factory!!
-    val runnerAndConfigurationSettings = getInstance(project).createConfiguration(runConfiguration, factory)
-    assertThat(
-      MakeBeforeRunTaskProvider.getProvider(project, MakeBeforeRunTaskProvider.ID)!!
-        .executeTask(
-          DataContext.EMPTY_CONTEXT,
-          runConfiguration,
-          ExecutionEnvironment(
-            DefaultRunExecutor.getRunExecutorInstance(),
-            ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, runConfiguration)!!,
-            runnerAndConfigurationSettings,
-            project
-          ),
-          makeBeforeRunTask
-        )
-    ).isTrue()
   }
 
   override fun getName(): String = testName.methodName

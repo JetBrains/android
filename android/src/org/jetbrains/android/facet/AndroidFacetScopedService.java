@@ -15,12 +15,11 @@
  */
 package org.jetbrains.android.facet;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.concurrent.GuardedBy;
 
 public abstract class AndroidFacetScopedService implements Disposable {
   private final Object myLock = new Object();

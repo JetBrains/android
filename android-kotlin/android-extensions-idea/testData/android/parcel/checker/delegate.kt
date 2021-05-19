@@ -1,6 +1,6 @@
 package test
 
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import android.os.Parcelable
 import android.os.Parcel
 
@@ -10,4 +10,4 @@ open class Delegate : Parcelable {
 }
 
 @Parcelize
-class Test : Parcelable <error descr="[PLUGIN_ERROR] Delegating 'Parcelable' is not allowed">by</error> Delegate()
+class Test : Parcelable <error descr="[PARCELABLE_DELEGATE_IS_NOT_ALLOWED] Delegating 'Parcelable' is not allowed">by</error> Delegate()

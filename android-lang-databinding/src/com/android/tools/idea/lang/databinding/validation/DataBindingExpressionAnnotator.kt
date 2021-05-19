@@ -244,7 +244,7 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
    * Data binding expressions are called within the context of a parent ViewDataBinding
    * base class. These classes have a bunch of hidden API methods that users can
    * technically call, but since they are hidden (and stripped), we can't use reflection
-   * to know what they are. So we whitelist those special methods here.
+   * to know what they are. So we explicitly list those special methods here.
    * TODO: (b/135638810) Add additional methods here
    */
   private fun isViewDataBindingMethod(name: String) = name == "safeUnbox"
@@ -308,12 +308,12 @@ class DataBindingExpressionAnnotator : PsiDbVisitor(), Annotator {
         }
 
         val expr = parent.expr
-        // Whitelist special-case names when there's no better way to check if they resolve to references
+        // Allow special-case names when there's no better way to check if they resolve to references
         if (expr == null) {
           if (isViewDataBindingMethod(id.text)) {
             return
           }
-          // TODO: (b/135948299) Once we can resolve lambda parameters, we don't need to whitelist their usages any more.
+          // TODO: (b/135948299) Once we can resolve lambda parameters, we don't need to explicitly allow their usages any more.
           if (isLambdaParameter(id, id.text)) {
             return
           }

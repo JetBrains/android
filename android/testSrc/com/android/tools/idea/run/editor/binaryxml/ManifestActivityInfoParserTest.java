@@ -29,6 +29,8 @@ import org.junit.Test;
 
 public class ManifestActivityInfoParserTest {
 
+  // This test can be run alone with command:
+  // bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --test_filter=run.editor.binaryxml
   private static final String BASE = "binary.manifest/";
 
   @Test

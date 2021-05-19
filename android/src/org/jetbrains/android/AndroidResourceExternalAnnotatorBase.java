@@ -176,11 +176,10 @@ public abstract class AndroidResourceExternalAnnotatorBase
       return null;
     }
     // This adds the gutter icon for color reference in xml, java, and kotlin files.
-    // For xml files, we want to open raw color and color resource picker.
-    // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
-    // TODO: Open color resource picker for java and kotlin files.
-    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, isClickable, configuration);
+    // For java and kotlin files, it opens color resource picker only and set R.color.[resource_name] or android.R.color.[resource_name].
+    // For xml files, it opens custom color palette and color resource picker. (which shows as 2 tabs)
+    boolean withCustomColorPalette = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, reference, withCustomColorPalette, configuration);
   }
 
   @Override

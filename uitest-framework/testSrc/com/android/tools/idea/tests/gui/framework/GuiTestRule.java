@@ -48,8 +48,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
@@ -88,6 +86,7 @@ import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
 
 public class GuiTestRule implements TestRule {
+  public static final Wait DEFAULT_IMPORT_AND_SYNC_WAIT = Wait.seconds(60);
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
@@ -144,7 +143,6 @@ public class GuiTestRule implements TestRule {
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
-      .around(new NpwControl())
       .around(new ScreenshotOnFailure())
       .around(myInnerTimeout);
 
@@ -332,20 +330,28 @@ public class GuiTestRule implements TestRule {
   }
 
   @NotNull
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
-    File projectDir = setUpProject(projectDirName);
-    return openProjectAndWaitForProjectSyncToFinish(projectDir);
-  }
-
-  @NotNull
-  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
-    File projectDir = setUpProject(projectDirName);
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName,
+                                                                    @Nullable String gradleVersion,
+                                                                    @Nullable String gradlePluginVersion,
+                                                                    @Nullable String kotlinVersion,
+                                                                    @NotNull Wait waitForSync) throws IOException {
+    File projectDir = setUpProject(projectDirName, gradleVersion, gradlePluginVersion, kotlinVersion);
     return openProjectAndWaitForProjectSyncToFinish(projectDir, waitForSync);
   }
 
   @NotNull
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName, @NotNull Wait waitForSync) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, waitForSync);
+  }
+
+  @NotNull
+  public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
+    return importProjectAndWaitForProjectSyncToFinish(projectDirName, null, null, null, DEFAULT_IMPORT_AND_SYNC_WAIT);
+  }
+
+  @NotNull
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir) {
-    return openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(60));
+    return openProjectAndWaitForProjectSyncToFinish(projectDir, DEFAULT_IMPORT_AND_SYNC_WAIT);
   }
 
   @NotNull
@@ -363,7 +369,42 @@ public class GuiTestRule implements TestRule {
    * <li>Creates a Gradle wrapper for the test project.</li>
    * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
    * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
-   * 'ANDROID_HOME'</li>
+   * 'ANDROID_SDK_ROOT'</li>
+   * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
+   * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
+   * <p/>
+   * </ul>
+   *
+   * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
+   * @param gradleVersion              optional Gradle version to use or null to use the default.
+   * @param gradlePluginVersion              optional Gradle Plugin version to use or null to use the default.
+   * @param kotlinVersion              optional Kotlin version to use or null to use the default.
+   * @throws IOException if an unexpected I/O error occurs.
+   */
+  @NotNull
+  public File setUpProject(@NotNull String projectDirName,
+                           @Nullable String gradleVersion,
+                           @Nullable String gradlePluginVersion,
+                           @Nullable String kotlinVersion) throws IOException {
+    File projectPath = copyProjectBeforeOpening(projectDirName);
+
+    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
+    updateGradleVersions(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
+    updateLocalProperties(projectPath);
+    cleanUpProjectForImport(projectPath);
+    refreshFiles();
+    return projectPath;
+  }
+
+  /**
+   * Sets up a project before using it in a UI test:
+   * <ul>
+   * <li>Makes a copy of the project in testData/guiTests/newProjects (deletes any existing copy of the project first.) This copy is
+   * the one the test will use.</li>
+   * <li>Creates a Gradle wrapper for the test project.</li>
+   * <li>Updates the version of the Android Gradle plug-in used by the project, if applicable</li>
+   * <li>Creates a local.properties file pointing to the Android SDK path specified by the system property (or environment variable)
+   * 'ANDROID_SDK_ROOT'</li>
    * <li>Copies over missing files to the .idea directory (if the project will be opened, instead of imported.)</li>
    * <li>Deletes .idea directory, .iml files and build directories, if the project will be imported.</li>
    * <p/>
@@ -374,14 +415,7 @@ public class GuiTestRule implements TestRule {
    */
   @NotNull
   public File setUpProject(@NotNull String projectDirName) throws IOException {
-    File projectPath = copyProjectBeforeOpening(projectDirName);
-
-    createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
-    updateGradleVersions(projectPath);
-    updateLocalProperties(projectPath);
-    cleanUpProjectForImport(projectPath);
-    refreshFiles();
-    return projectPath;
+    return setUpProject(projectDirName, null, null, null);
   }
 
   @NotNull
@@ -416,7 +450,14 @@ public class GuiTestRule implements TestRule {
   }
 
   protected void updateGradleVersions(@NotNull File projectPath) throws IOException {
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath);
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, null, null, null);
+  }
+
+  protected void updateGradleVersions(@NotNull File projectPath,
+                                      @Nullable String gradleVersion,
+                                      @Nullable String gradlePluginVersion,
+                                      @Nullable String kotlinVersion) throws IOException {
+    AndroidGradleTests.updateToolingVersionsAndPaths(projectPath, gradleVersion, gradlePluginVersion, kotlinVersion);
   }
 
   @NotNull
@@ -500,9 +541,6 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public IdeFrameFixture ideFrame() {
     if (myIdeFrameFixture == null || myIdeFrameFixture.isClosed()) {
-      // This call to find() creates a new IdeFrameFixture object every time. Each of these Objects creates a new gradleProjectEventListener
-      // and registers it with GradleSyncState. This keeps adding more and more listeners, and the new recent listeners are only updated
-      // with gradle State when that State changes. This means the listeners may have outdated info.
       myIdeFrameFixture = IdeFrameFixture.find(robot());
       myIdeFrameFixture.requestFocusIfLost();
     }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.model.DIMMER_QNAME
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED
@@ -24,10 +26,12 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTre
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent.PayloadType.UNKNOWN
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.ApplicationManager
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
+import java.awt.geom.Area
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan
@@ -37,7 +41,15 @@ import kotlin.math.sqrt
 
 val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
-data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
+data class ViewDrawInfo(
+  val bounds: Shape,
+  val transform: AffineTransform,
+  val node: DrawViewNode,
+  val hitLevel: Int,
+  val isCollapsed: Boolean
+)
+
+private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolean)
 
 class DeviceViewPanelModel(private val model: InspectorModel) {
   @VisibleForTesting
@@ -98,15 +110,15 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val pictureType
     get() =
       when {
-        model.root.children.any { it.imageType == PNG_AS_REQUESTED } -> {
+        model.windows.values.any { it.imageType == PNG_AS_REQUESTED } -> {
           // If we find that we've requested and received a png, that's what we'll use first
           PNG_AS_REQUESTED
         }
-        model.root.children.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
+        model.windows.values.any { it.imageType == PNG_SKP_TOO_LARGE } -> {
           // We got a PNG because the SKP we would have gotten was too big.
           PNG_SKP_TOO_LARGE
         }
-        model.root.children.all { it.imageType == PNG_SKP_TOO_LARGE || it.qualifiedName == DIMMER_QNAME } -> {
+        model.windows.values.all { it.imageType == PNG_SKP_TOO_LARGE } -> {
           // If everything is an SKP (or a dimmer we added) then the type is SKP
           SKP
         }
@@ -118,12 +130,20 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val isActive
     get() = !model.isEmpty
 
-  fun findViewsAt(x: Double, y: Double): List<ViewNode> =
-    hitRects
+  /**
+   * Find all the views drawn under the given point, in order from closest to farthest from the front, except
+   * if the view is an image drawn by a parent at a different depth, the depth of the parent is used rather than
+   * the depth of the child.
+   */
+  fun findViewsAt(x: Double, y: Double): Sequence<ViewNode> =
+    hitRects.asReversed()
+      .asSequence()
       .filter { it.bounds.contains(x, y) }
-      .map { it.node }
+      .sortedByDescending { it.hitLevel }
+      .map { it.node.owner }
+      .distinct()
 
-  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).lastOrNull()
+  fun findTopViewAt(x: Double, y: Double): ViewNode? = findViewsAt(x, y).firstOrNull()
 
   fun rotate(xRotation: Double, yRotation: Double) {
     xOff = (xOff + xRotation).coerceIn(-1.0, 1.0)
@@ -136,6 +156,12 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       xOff = 0.0
       yOff = 0.0
     }
+    if (xOff == 0.0 && yOff == 0.0) {
+      model.stats.rotation.toggledTo2D()
+    }
+    else {
+      model.stats.rotation.toggledTo3D()
+    }
     if (model.isEmpty) {
       rootBounds = Rectangle()
       maxDepth = 0
@@ -145,9 +171,11 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     }
     val root = model.root
 
-    val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
+    val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    root.children.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
+    ViewNode.readDrawChildren { drawChildren ->
+      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, drawChildren) }
+    }
     maxDepth = levelLists.size
 
     val newHitRects = mutableListOf<ViewDrawInfo>()
@@ -155,10 +183,16 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     var magnitude = 0.0
     var angle = 0.0
     if (maxDepth > 0) {
-      rootBounds = levelLists[0].map { it.second }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      rootBounds = levelLists[0].map { it.node.owner.transformedBounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      root.x = rootBounds.x
+      root.y = rootBounds.x
+      root.width = rootBounds.width
+      root.height = rootBounds.height
       transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-      magnitude = min(1.0, hypot(xOff, yOff))
+      // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
+      // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.
+      magnitude = min(0.98, hypot(xOff, yOff))
       angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
       transform.translate(rootBounds.width / 2.0 - rootBounds.x, rootBounds.height / 2.0 - rootBounds.y)
@@ -168,41 +202,63 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       rootBounds = Rectangle()
     }
     rebuildRectsForLevel(transform, magnitude, angle, levelLists, newHitRects)
+    newHitRects.forEach { it.bounds }
     hitRects = newHitRects.toList()
     modificationListeners.forEach { it() }
   }
 
-  private fun buildLevelLists(root: ViewNode,
-                              parentClip: Rectangle,
-                              levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
-                              level: Int) {
-    var childClip = parentClip
-    var newLevelIndex = level
-    if (root.visible) {
+  private fun buildLevelLists(root: DrawViewNode,
+                              levelListCollector: MutableList<MutableList<LevelListItem>>,
+                              minLevel: Int,
+                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
+    var newLevelIndex = levelListCollector.size
+    if (root.owner.visible) {
+      // Starting from the highest level and going down, find the first level where something intersects with this view. We'll put this view
+      // in the next level above that (that is, the last level, starting from the top, where there's space).
+      val rootArea = Area(root.owner.transformedBounds)
       newLevelIndex = levelListCollector
-        .subList(level, levelListCollector.size)
-        .indexOfFirst { it.none { (node, _) -> node.bounds.intersects(root.bounds) } }
+        .subList(minLevel, levelListCollector.size)
+        .indexOfLast { it.map { (node, _) -> Area(node.owner.transformedBounds) }.any { a -> a.run { intersect(rootArea); !isEmpty } } }
       if (newLevelIndex == -1) {
         newLevelIndex = levelListCollector.size
-        levelListCollector.add(mutableListOf())
       }
       else {
-        newLevelIndex += level
+        newLevelIndex += minLevel + 1
       }
-      val levelList = levelListCollector[newLevelIndex]
-      childClip = parentClip.intersection(root.bounds)
-      levelList.add(Pair(root, childClip))
+      val levelList = levelListCollector.getOrElse(newLevelIndex) {
+        mutableListOf<LevelListItem>().also { levelListCollector.add(it) }
+      }
+      levelList.add(LevelListItem(root, false))
+      if (!root.canCollapse) {
+        // Add leading images to this level
+        root.owner.drawChildren()
+          .takeWhile { it.canCollapse }
+          .mapTo(levelList) { LevelListItem(it, true) }
+      }
     }
-    root.children.forEach { buildLevelLists(it, childClip, levelListCollector, newLevelIndex) }
+    if (root is DrawViewChild) {
+      var sawChild = false
+      for (drawChild in root.owner.drawChildren()) {
+        if (!sawChild && drawChild is DrawViewImage) {
+          // Skip leading images -- they're already added
+          continue
+        }
+        sawChild = true
+        buildLevelLists(drawChild, levelListCollector, newLevelIndex, drawChildren)
+      }
+    }
   }
 
   private fun rebuildRectsForLevel(transform: AffineTransform,
                                    magnitude: Double,
                                    angle: Double,
-                                   allLevels: List<List<Pair<ViewNode, Rectangle>>>,
+                                   allLevels: List<List<LevelListItem>>,
                                    newHitRects: MutableList<ViewDrawInfo>) {
+    val ownerToLevel = mutableMapOf<ViewNode, Int>()
+
     allLevels.forEachIndexed { level, levelList ->
-      levelList.forEach { (view, clip) ->
+      levelList.forEach { (view, isCollapsed) ->
+        val hitLevel = ownerToLevel.getOrPut(view.owner) { level }
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
@@ -211,8 +267,8 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
-        val rect = viewTransform.createTransformedShape(view.bounds)
-        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, clip))
+        val rect = viewTransform.createTransformedShape(view.owner.transformedBounds)
+        newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))
       }
     }
   }

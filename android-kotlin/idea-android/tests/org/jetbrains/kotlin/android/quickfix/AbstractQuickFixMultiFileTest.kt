@@ -20,6 +20,7 @@ import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.quickFix.ActionHint
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.io.FileUtil
@@ -34,12 +35,10 @@ import com.intellij.util.ArrayUtil
 import com.intellij.util.PathUtil
 import junit.framework.ComparisonFailure
 import junit.framework.TestCase
+import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
 import org.jetbrains.kotlin.android.KotlinLightProjectDescriptor
-import org.jetbrains.kotlin.idea.test.DirectiveBasedActionUtils
-import org.jetbrains.kotlin.idea.test.configureCompilerOptions
+import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.test.KotlinTestUtils
-import org.jetbrains.kotlin.test.testFramework.runWriteAction
 import java.io.File
 import java.util.ArrayList
 import java.util.regex.Pattern
@@ -72,7 +71,6 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
     val beforeFileName = "$beforeFileNamePrefix.before.Main.kt"
     val mainFile = File(testDataPath, beforeFileName)
     val originalFileText = FileUtil.loadFile(mainFile, true)
-    configureCompilerOptions(originalFileText, project, myFixture.module)
 
     val mainFileDir = mainFile.parentFile!!
 
@@ -106,12 +104,7 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
 
         if (actionShouldBeAvailable) {
           val afterFilePath = beforeFileName.replace(".before.Main.", ".after.")
-          try {
-            myFixture.checkResultByFile(afterFilePath)
-          }
-          catch (e: ComparisonFailure) {
-            KotlinTestUtils.assertEqualsToFile(File(testDataPath, afterFilePath), editor)
-          }
+          myFixture.checkResultByFile(afterFilePath)
 
           for (file in myFixture.file.containingDirectory.files) {
             val fileName = file.name

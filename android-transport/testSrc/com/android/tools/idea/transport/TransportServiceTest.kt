@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.LightPlatformTestCase
 import java.io.IOException
 import java.util.concurrent.BlockingDeque

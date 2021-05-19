@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.res
 
-import com.android.builder.model.AaptOptions.Namespacing
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ModuleRClass.Transitivity
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
@@ -53,8 +54,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
-import org.jetbrains.android.dom.manifest.getPackageName
-import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import java.io.IOException
@@ -131,7 +130,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
     LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
       override fun afterLibraryAdded(newLibrary: Library) = dropAarClassesCache()
-      override fun afterLibraryRenamed(library: Library) = dropAarClassesCache()
+      override fun afterLibraryRenamed(library: Library, oldName: String?) = dropAarClassesCache()
       override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
 
       private fun dropAarClassesCache() {
@@ -209,14 +208,22 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     return moduleClassesCache.getAndUnwrap(facet) {
       val psiManager = PsiManager.getInstance(project)
       // TODO: get this from the model
-      val modifier = if (facet.configuration.isLibraryProject) FieldModifier.NON_FINAL else FieldModifier.FINAL
-      val transitivity = if (facet.module.getModuleSystem().isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
+      val isLibraryProject = facet.configuration.isLibraryProject
+
+      val moduleSystem = facet.module.getModuleSystem()
+      val transitivity = if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
+
+      val fieldModifier =
+        if (isLibraryProject || !moduleSystem.applicationRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+
+      val testFieldModifier =
+        if (isLibraryProject || !moduleSystem.testRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
 
       ResourceClasses(
-        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, transitivity, modifier),
-        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, transitivity, modifier),
-        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, modifier),
-        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, modifier)
+        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, transitivity, fieldModifier),
+        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, transitivity, testFieldModifier),
+        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, fieldModifier),
+        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, testFieldModifier)
       )
     }
   }
@@ -281,10 +288,19 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       .toList()
   }
 
-  private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
-    // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter {
-      getPackageName(it) == packageName || getTestPackageName(it) == packageName
+  private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
+    val projectSystem = project.getProjectSystem()
+    val projectScope = GlobalSearchScope.projectScope(project)
+    val facetsInferredFromPackageName = projectSystem.getAndroidFacetsWithPackageName(project, packageName, projectScope)
+
+    return if (packageName.endsWith(".test")) {
+      val facetsInferredFromTestPackageName = packageName.substringBeforeLast('.').let {
+        projectSystem.getAndroidFacetsWithPackageName(project, it, projectScope)
+      }
+      facetsInferredFromPackageName + facetsInferredFromTestPackageName
+    }
+    else {
+      facetsInferredFromPackageName
     }
   }
 

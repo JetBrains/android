@@ -985,7 +985,7 @@ class DataBindingCompletionContributorTest(private val dataBindingMode: DataBind
       import android.view.View;
 
       public class Model {
-        public String getValue() { return "dummy"; }
+        public String getValue() { return "unused"; }
       }
     """.trimIndent())
 

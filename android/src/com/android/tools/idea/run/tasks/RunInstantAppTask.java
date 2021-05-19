@@ -22,13 +22,11 @@ import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.android.instantapps.sdk.api.HandlerResult;
 import com.google.android.instantapps.sdk.api.ProgressIndicator;
 import com.google.android.instantapps.sdk.api.ResultStream;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
-import com.intellij.execution.Executor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
@@ -79,9 +77,9 @@ public class RunInstantAppTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(
-    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
-    if (launchStatus.isLaunchTerminated()) {
+  public LaunchResult run(@NotNull LaunchContext launchContext) {
+    ConsolePrinter printer = launchContext.getConsolePrinter();
+    if (launchContext.getLaunchStatus().isLaunchTerminated()) {
       return LaunchResult.error("", getDescription());
     }
 
@@ -118,6 +116,7 @@ public class RunInstantAppTask implements LaunchTask {
     };
 
     try {
+      IDevice device = launchContext.getDevice();
       ExtendedSdk aiaSdk = mySdk.loadLibrary();
 
       ApkInfo apkInfo = myPackages.iterator().next();

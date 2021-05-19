@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -25,13 +26,16 @@ import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.ui.wizard.SimpleStudioWizardLayout
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
+import com.android.tools.idea.ui.wizard.StudioWizardLayout
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.ui.wizard.WizardUtils.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.WizardUiContext
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.MENU_GALLERY
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -43,6 +47,7 @@ import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.refactoring.isJetifierEnabled
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
@@ -95,8 +100,12 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minbuildsdk", templateName, minBuildSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !hasAndroidXEnabled(module) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
+        presentation.isEnabled = false
+      }
+      templateConstraints.contains(TemplateConstraint.Jetifier) && !hasJetifierEnabled(module) -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.jetifier", templateName)
         presentation.isEnabled = false
       }
       !WizardUtils.hasComposeMinAgpVersion(module.project, category) -> {
@@ -132,7 +141,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       if (targetDirectory == null) facet.getPackageForApplication() else facet.getPackageForPath(moduleTemplates, targetDirectory)
     val templateModel = fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], "New $activityDescription", DefaultProjectSyncInvoker(),
-      shouldOpenFiles
+      shouldOpenFiles, MENU_GALLERY
     )
     val newActivity = TemplateResolver.getAllTemplates()
       .filter { WizardUiContext.MenuEntry in it.uiContexts }
@@ -149,11 +158,16 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val wizardBuilder = ModelWizard.Builder().apply {
       addStep(ConfigureTemplateParametersStep(templateModel, stepTitle, moduleTemplates))
     }
-    StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build().show()
+    val wizardLayout = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) SimpleStudioWizardLayout() else StudioWizardLayout()
+    StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build(wizardLayout).show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
   }
 
   companion object {
-    private fun useAndroidX(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
+    private fun hasAndroidXEnabled(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
+
+    private fun hasJetifierEnabled(module: Module?): Boolean =
+      // If androidX is not enabled, we assume Jetfier is not enabled too (ie appcompat dependencies should work)
+      hasAndroidXEnabled(module) && module != null && module.project.isJetifierEnabled()
   }
 }

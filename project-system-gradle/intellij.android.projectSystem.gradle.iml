@@ -6,6 +6,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -36,5 +40,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="library" name="studio-proto" level="project" />
   </component>
 </module>

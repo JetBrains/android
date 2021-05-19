@@ -71,7 +71,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -87,9 +86,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -98,13 +97,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -166,7 +165,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
-  private boolean myEnableLayoutValidator = false;
+  private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
@@ -182,12 +181,13 @@ public class RenderTask {
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
   @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
+  @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
    *
-   * @param quality Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
-   *                during rendering at the expense of quality. 1 means that downscaling is disabled.
+   * @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
+   *                           during rendering at the expense of quality. 1 means that downscaling is disabled.
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    */
   RenderTask(@NotNull AndroidFacet facet,
@@ -204,7 +204,9 @@ public class RenderTask {
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
              @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
-             boolean privateClassLoader) {
+             boolean privateClassLoader,
+             @NotNull Function<ClassVisitor, ClassVisitor> additionalProjectTransform,
+             @NotNull Function<ClassVisitor, ClassVisitor> additionalNonProjectTransform) {
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
 
     if (!isSecurityManagerEnabled) {
@@ -226,24 +228,38 @@ public class RenderTask {
     LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(facet);
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     Module module = facet.getModule();
-    myLayoutlibCallback =
-        new LayoutlibCallbackImpl(
-          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, privateClassLoader);
-    if (ResourceIdManager.get(module).finalIdsUsed()) {
-      myLayoutlibCallback.loadAndParseRClass();
+    ModuleClassLoaderManager manager = ModuleClassLoaderManager.get();
+    if (privateClassLoader) {
+      myModuleClassLoader = manager.getPrivate(
+        myLayoutLib.getClassLoader(),
+        module,
+        this, additionalProjectTransform, additionalNonProjectTransform);
+    } else {
+      myModuleClassLoader = manager.getShared(myLayoutLib.getClassLoader(), module, this);
     }
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
-    myLocale = configuration.getLocale();
-    myContext = new RenderTaskContext(module.getProject(),
-                                      module,
-                                      configuration,
-                                      moduleInfo,
-                                      renderService.getPlatform(facet));
-    myDefaultQuality = quality;
-    restoreDefaultQuality();
-    myManifestProvider = manifestProvider;
+    try {
+      myLayoutlibCallback =
+        new LayoutlibCallbackImpl(
+          this, myLayoutLib, appResources, module, facet, myLogger, myCredential, actionBarHandler, parserFactory, myModuleClassLoader);
+      if (ResourceIdManager.get(module).finalIdsUsed()) {
+        myLayoutlibCallback.loadAndParseRClass();
+      }
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
+      myLocale = configuration.getLocale();
+      myContext = new RenderTaskContext(module.getProject(),
+                                        module,
+                                        configuration,
+                                        moduleInfo,
+                                        renderService.getPlatform(facet));
+      myDefaultQuality = quality;
+      restoreDefaultQuality();
+      myManifestProvider = manifestProvider;
 
-    stackTraceCaptureElement.bind(this);
+      stackTraceCaptureElement.bind(this);
+    } catch (Exception ex) {
+      clearClassLoader();
+      throw ex;
+    }
   }
 
   public void setQuality(float quality) {
@@ -317,7 +333,7 @@ public class RenderTask {
       gapWorkerField.setAccessible(true);
 
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
-      RenderService.runAsyncRenderAction(() -> {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
         try {
           ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
@@ -327,25 +343,9 @@ public class RenderTask {
           LOG.debug(e);
         }
       });
-    } catch(Throwable t) {
-      LOG.debug(t);
     }
-  }
-
-  private void clearHandlerCallbacks() {
-    try {
-      Class<?> handlerDelegateClass = myLayoutlibCallback.findClass("android.os.Handler_Delegate");
-      Field runnableQueueField = handlerDelegateClass.getDeclaredField("sRunnablesQueues");
-      runnableQueueField.setAccessible(true);
-      WeakHashMap<?, ?> runnablesQueue = (WeakHashMap<?, ?>)runnableQueueField.get(null);
-      runnablesQueue.clear();
-    } catch (NoSuchFieldException e) {
-      // layoutlib-standard may have no sRunnablesQueues. ignore exception.
-      if (LayoutLibrary.isNative()) {
-        LOG.warn(e);
-      }
-    } catch (Throwable t) {
-      LOG.warn(t);
+    catch (Throwable t) {
+      LOG.debug(t);
     }
   }
 
@@ -369,28 +369,14 @@ public class RenderTask {
   }
 
   // Workaround for http://b/143378087
-  private void clearCompose() {
-    if (!myLayoutlibCallback.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
-      // If Compose has not been loaded, we do not need to care about disposing it
-      return;
-    }
-
+  private void clearClassLoader() {
     try {
-      Class<?> adapterClass = myLayoutlibCallback.findClass(CLASS_COMPOSE_VIEW_ADAPTER);
-      ClassLoader adapterClassClassLoader = adapterClass.getClassLoader();
-      if (!(adapterClassClassLoader instanceof ModuleClassLoader)) {
-        LOG.warn("Unexpected ClassLoader for " + CLASS_COMPOSE_VIEW_ADAPTER + ": " + adapterClassClassLoader);
-        return;
-      }
-
-      // Let ModuleClassLoaderManager know we are no longer using this ClassLoader
-      ModuleClassLoaderManager.get().release((ModuleClassLoader)adapterClassClassLoader);
+      ModuleClassLoaderManager.get().release(myModuleClassLoader, this);
     }
     catch (Throwable t) {
       LOG.warn(t); // Failure detected here will most probably cause a memory leak
     }
   }
-
 
 
   /**
@@ -431,7 +417,7 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      clearCompose();
+      clearClassLoader();
 
       return null;
     });
@@ -547,8 +533,8 @@ public class RenderTask {
    * which enables layout validation during the render process. The validation includes accessibility checks (whether the layout properly
    * support accessibilty cases), and various other layout sanity checks.
    */
-  public RenderTask setEnableLayoutValidator(boolean enableLayoutValidator) {
-    myEnableLayoutValidator = enableLayoutValidator;
+  public RenderTask setEnableLayoutScanner(boolean enableLayoutScanner) {
+    myEnableLayoutScanner = enableLayoutScanner;
     return this;
   }
 
@@ -563,7 +549,9 @@ public class RenderTask {
     return this;
   }
 
-  /** Returns whether this parser will provide view cookies for included views. */
+  /**
+   * Returns whether this parser will provide view cookies for included views.
+   */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
   }
@@ -622,9 +610,9 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
-        new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
-                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
-                          myLogger, simulatedPlatform);
+      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+                        myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                        myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
     params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
@@ -634,7 +622,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_SHADOW, myShadowEnabled);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_HIGH_QUALITY_SHADOW, myHighQualityShadow);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_VALIDATOR, myEnableLayoutValidator);
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ENABLE_LAYOUT_SCANNER, myEnableLayoutScanner);
+    params.setFlag(RenderParamsFlags.FLAG_ENABLE_LAYOUT_SCANNER_IMAGE_CHECK, myEnableLayoutScanner);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -648,13 +637,15 @@ public class RenderTask {
       // We don't have a flag to force RTL regardless of locale, so just pick a RTL locale (note that
       // this is decoupled from resource lookup)
       params.setLocale("ur");
-    } else {
+    }
+    else {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
       @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
       params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       // ignore.
     }
 
@@ -669,7 +660,7 @@ public class RenderTask {
         ResourceValue appLabel = manifestInfo != null
                                  ? manifestInfo.getApplicationLabel()
                                  : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
-        if (manifestInfo != null)  {
+        if (manifestInfo != null) {
           params.setAppIcon(manifestInfo.getApplicationIcon());
         }
         String activity = configuration.getActivity();
@@ -705,12 +696,13 @@ public class RenderTask {
     }
 
     params.setFontScale(configuration.getFontScale());
+    params.setUiMode(configuration.getUiModeFlagValue());
 
     try {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-          isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -719,14 +711,17 @@ public class RenderTask {
         RenderSession session = myLayoutLib.createSession(params);
 
         if (session.getResult().isSuccess()) {
-          long now = System.nanoTime();
-          session.setSystemBootTimeNanos(now);
-          session.setSystemTimeNanos(now);
+          session.setSystemBootTimeNanos(0);
+          session.setSystemTimeNanos(0);
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
         RenderResult result = RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
+        if (oldRenderSession != null) {
+          disposeRenderSession(oldRenderSession);
+        }
         addDiagnostics(result.getRenderResult());
         return result;
       }
@@ -764,7 +759,7 @@ public class RenderTask {
 
     ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
-      assert Comparing.equal(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
+      assert Objects.equals(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
       // TODO: Validate that we're really including the same layout here!
       //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
       //if (contextLayout != null) {
@@ -785,7 +780,8 @@ public class RenderTask {
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
-      } else {
+      }
+      else {
         // TODO(namespaces, b/74003372): figure out where to get the namespace from.
         topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO());
         if (topParser == null) {
@@ -806,17 +802,24 @@ public class RenderTask {
   /**
    * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
    * wait until all the async actions have finished running.
-   * See {@link RenderService#runAsyncRenderAction(Supplier)}.
+   *
+   * @param callable the {@link Callable} to be executed in the Render thread.
+   * @param timeout  maximum time to wait for the action to execute. If <= 0, the default timeout
+   *                 (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) will be used.
+   * @param unit     the {@link TimeUnit} for the timeout.
+   *                 See {@link RenderService#getRenderAsyncActionExecutor()}.
    */
   @VisibleForTesting
   @NotNull
-  <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Supplier<V> callable) {
+  private <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable, long timeout, @NotNull TimeUnit unit) {
     if (isDisposed.get()) {
       return immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
     synchronized (myRunningFutures) {
-      CompletableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
+      CompletableFuture<V> newFuture = timeout < 1 ?
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(callable) :
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, callable);
       myRunningFutures.add(newFuture);
       newFuture
         .whenCompleteAsync((result, ex) -> {
@@ -830,7 +833,19 @@ public class RenderTask {
   }
 
   /**
+   * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
+   * wait until all the async actions have finished running. This will wait the default timeout
+   * (see {@link RenderAsyncActionExecutor#DEFAULT_RENDER_THREAD_TIMEOUT_MS}) for the invoked action to complete.
+   * See {@link RenderService#getRenderAsyncActionExecutor()}.
+   */
+  @VisibleForTesting
+  @NotNull <V> CompletableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+    return runAsyncRenderAction(callable, 0, TimeUnit.SECONDS);
+  }
+
+  /**
    * Inflates the layout but does not render it.
+   *
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
   @NotNull
@@ -846,23 +861,24 @@ public class RenderTask {
       return CompletableFuture.completedFuture(null);
     }
 
-    try {
-      return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
-        if (myImageFactoryDelegate != null) {
-          return myImageFactoryDelegate.getImage(width, height);
-        }
-
-        return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-      }));
-    }
-    catch (Exception e) {
-      String message = e.getMessage();
-      if (message == null) {
-        message = e.toString();
+    // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
+    // That's why, for inflating, we allow a more generous timeout than for rendering.
+    return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
+      if (myImageFactoryDelegate != null) {
+        return myImageFactoryDelegate.getImage(width, height);
       }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, xmlFile, myLogger, e));
-    }
+
+      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
+      .whenComplete((result, ex) -> {
+        if (ex != null) {
+          String message = ex.getMessage();
+          if (message == null) {
+            message = ex.toString();
+          }
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
+        }
+      });
   }
 
   /**
@@ -892,36 +908,41 @@ public class RenderTask {
 
   /**
    * Triggers execution of the Handler and frame callbacks in layoutlib
+   *
    * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Boolean> executeCallbacks() {
+  public CompletableFuture<Boolean> executeCallbacks(long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(false);
     }
 
+    // Execute the callbacks with a 500ms timeout for all of them to run. Callbacks should not take a long time to execute, if they do,
+    // we can safely ignore this render request and wait for the next.
+    // With the current implementation, the callbacks will eventually run anyway, the timeout will allow us to detect the timeout sooner.
     return runAsyncRenderAction(() -> {
-      myRenderSession.setSystemTimeNanos(System.nanoTime());
-      return myRenderSession.executeCallbacks(System.nanoTime());
-    });
+      myRenderSession.setSystemTimeNanos(timeNanos);
+      return myRenderSession.executeCallbacks(timeNanos);
+    }, 500, TimeUnit.MILLISECONDS);
   }
 
   /**
    * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
    * detected of a particular type at a particular point.
+   *
    * @param touchEventType type of a touch event
-   * @param x horizontal android coordinate of the detected touch event
-   * @param y vertical android coordinate of the detected touch event
+   * @param x              horizontal android coordinate of the detected touch event
+   * @param y              vertical android coordinate of the detected touch event
    * @return a future that is completed when layoutlib handled the touch event
    */
   @NotNull
-  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y) {
+  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y, long timeNanos) {
     if (myRenderSession == null) {
       return CompletableFuture.completedFuture(null);
     }
 
     return runAsyncRenderAction(() -> {
-      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      myRenderSession.setSystemTimeNanos(timeNanos);
       myRenderSession.triggerTouchEvent(touchEventType, x, y);
       return null;
     });
@@ -982,7 +1003,6 @@ public class RenderTask {
           clearComposeTables();
           // After render clean-up. Dispose the GapWorker cache.
           clearGapWorkerCache();
-          clearHandlerCallbacks();
         });
       }
       catch (Exception e) {
@@ -992,7 +1012,7 @@ public class RenderTask {
           message = e.toString();
         }
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-        return CompletableFuture.completedFuture(RenderResult.createSessionInitializationError(this, psiFile, myLogger, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(psiFile, e));
       }
     });
   }
@@ -1036,12 +1056,15 @@ public class RenderTask {
     if (!myLogger.hasProblems() && !result.isSuccess()) {
       if (result.getException() != null || result.getErrorMessage() != null) {
         myLogger.error(null, result.getErrorMessage(), result.getException(), null, null);
-      } else if (result.getStatus() == Result.Status.ERROR_TIMEOUT) {
+      }
+      else if (result.getStatus() == Result.Status.ERROR_TIMEOUT) {
         myLogger.error(null, "Rendering timed out.", null, null, null);
-      } else {
+      }
+      else {
         myLogger.error(null, "Unknown render problem: " + result.getStatus(), null, null, null);
       }
-    } else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
+    }
+    else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
       if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
         myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +
@@ -1065,37 +1088,36 @@ public class RenderTask {
     RenderTaskContext context = getContext();
     Module module = getContext().getModule();
     DrawableParams params =
-        new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
-                           myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
-                           myLogger);
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                         myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
     return runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params))
-        .thenCompose(result -> {
-          if (result != null && result.isSuccess()) {
-            Object data = result.getData();
-            if (!(data instanceof BufferedImage)) {
-              data = null;
-            }
-            return CompletableFuture.completedFuture((BufferedImage)data);
+      .thenCompose(result -> {
+        if (result != null && result.isSuccess()) {
+          Object data = result.getData();
+          if (!(data instanceof BufferedImage)) {
+            data = null;
           }
-          else {
-            if (result.getStatus() == Result.Status.ERROR_NOT_A_DRAWABLE) {
-              LOG.debug("renderDrawable called with a non-drawable resource" + drawableResourceValue);
-              return CompletableFuture.completedFuture(null);
-            }
-
-            Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
-            if (exception == null) {
-              String message = result.getErrorMessage();
-              exception = new RuntimeException(message == null ? "Rendering failed" : "Rendering failed - " + message);
-            }
-            reportException(exception);
-            return immediateFailedFuture(exception);
+          return CompletableFuture.completedFuture((BufferedImage)data);
+        }
+        else {
+          if (result.getStatus() == Result.Status.ERROR_NOT_A_DRAWABLE) {
+            LOG.debug("renderDrawable called with a non-drawable resource" + drawableResourceValue);
+            return CompletableFuture.completedFuture(null);
           }
 
-        });
+          Throwable exception = result == null ? new RuntimeException("Rendering failed - null result") : result.getException();
+          if (exception == null) {
+            String message = result.getErrorMessage();
+            exception = new RuntimeException(message == null ? "Rendering failed" : "Rendering failed - " + message);
+          }
+          reportException(exception);
+          return immediateFailedFuture(exception);
+        }
+      });
   }
 
   /**
@@ -1117,9 +1139,9 @@ public class RenderTask {
     RenderTaskContext context = getContext();
     Module module = context.getModule();
     DrawableParams params =
-        new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
-                           myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
-                           myLogger);
+      new DrawableParams(drawableResourceValue, module, hardwareConfig, context.getConfiguration().getResourceResolver(),
+                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
+                         myLogger);
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
@@ -1151,7 +1173,9 @@ public class RenderTask {
     return myLayoutlibCallback;
   }
 
-  /** Returns true if this service can render a non-rectangular shape */
+  /**
+   * Returns true if this service can render a non-rectangular shape
+   */
   private boolean isNonRectangular() {
     ResourceFolderType folderType = getContext().getFolderType();
     // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
@@ -1159,7 +1183,9 @@ public class RenderTask {
     return folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MIPMAP;
   }
 
-  /** Returns true if this service requires rendering into a transparent/alpha channel image */
+  /**
+   * Returns true if this service requires rendering into a transparent/alpha channel image
+   */
   private boolean requiresTransparency() {
     // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
     // background with full alpha
@@ -1178,40 +1204,40 @@ public class RenderTask {
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
     Map<XmlTag, ViewInfo> map = new HashMap<>();
-    return RenderService.runAsyncRenderAction(() -> measure(modelParser))
-        .thenComposeAsync(session -> {
-          if (session != null) {
-            try {
-              Result result = session.getResult();
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> measure(modelParser))
+      .thenComposeAsync(session -> {
+        if (session != null) {
+          try {
+            Result result = session.getResult();
 
-              if (result != null && result.isSuccess()) {
-                assert session.getRootViews().size() == 1;
-                ViewInfo root = session.getRootViews().get(0);
-                List<ViewInfo> children = root.getChildren();
-                for (ViewInfo info : children) {
-                  XmlTag tag = RenderService.getXmlTag(info);
-                  if (tag != null) {
-                    map.put(tag, info);
-                  }
+            if (result != null && result.isSuccess()) {
+              assert session.getRootViews().size() == 1;
+              ViewInfo root = session.getRootViews().get(0);
+              List<ViewInfo> children = root.getChildren();
+              for (ViewInfo info : children) {
+                XmlTag tag = RenderService.getXmlTag(info);
+                if (tag != null) {
+                  map.put(tag, info);
                 }
               }
+            }
 
-              return CompletableFuture.completedFuture(map);
-            }
-            finally {
-              disposeRenderSession(session);
-            }
+            return CompletableFuture.completedFuture(map);
           }
+          finally {
+            disposeRenderSession(session);
+          }
+        }
 
-          return CompletableFuture.completedFuture(Collections.emptyMap());
-        }, AppExecutorUtil.getAppExecutorService());
+        return CompletableFuture.completedFuture(Collections.emptyMap());
+      }, AppExecutorUtil.getAppExecutorService());
   }
 
   /**
    * Measure the given child in context, applying the given filter to the
    * pull parser's attribute values.
    *
-   * @param tag the child to measure
+   * @param tag    the child to measure
    * @param filter the filter to apply to the attribute values
    * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
@@ -1311,6 +1337,7 @@ public class RenderTask {
 
   /**
    * Properly disposes {@link RenderSession} as a single {@link RenderService} call.
+   *
    * @param renderSession a session to be disposed of
    */
   private void disposeRenderSession(@NotNull RenderSession renderSession) {
@@ -1321,20 +1348,27 @@ public class RenderTask {
         // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
         disposeMethod = Arrays.stream(composeViewAdapter.getMethods()).filter(m -> m.getName().contains("dispose")).findFirst();
       }
-    } catch (ClassNotFoundException ex) {
+    }
+    catch (ClassNotFoundException ex) {
       LOG.warn(CLASS_COMPOSE_VIEW_ADAPTER + " class not found", ex);
     }
     disposeMethod.ifPresent(m -> m.setAccessible(true));
     Optional<Method> finalDisposeMethod = disposeMethod;
-    RenderService.runAsyncRenderAction(() -> {
-      finalDisposeMethod.ifPresent(m -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m)));
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+
+      finalDisposeMethod.ifPresent(
+        m -> renderSession.execute(
+          () -> renderSession.getRootViews().forEach(v -> disposeIfCompose(v, m))
+        )
+      );
       renderSession.dispose();
     });
   }
 
   /**
    * Performs dispose() call against View object associated with {@link ViewInfo} if that object is an instance of ComposeViewAdapter
-   * @param viewInfo a {@link ViewInfo} associated with the View object to be potentially disposed of
+   *
+   * @param viewInfo      a {@link ViewInfo} associated with the View object to be potentially disposed of
    * @param disposeMethod a dispose method to be executed against View object
    */
   private static void disposeIfCompose(@NotNull ViewInfo viewInfo, @NotNull Method disposeMethod) {
@@ -1344,8 +1378,9 @@ public class RenderTask {
     }
     try {
       disposeMethod.invoke(viewObject);
-    } catch (IllegalAccessException | InvocationTargetException ex) {
-      LOG.warn( "Unexpected error while disposing compose view", ex);
+    }
+    catch (IllegalAccessException | InvocationTargetException ex) {
+      LOG.warn("Unexpected error while disposing compose view", ex);
     }
   }
 }

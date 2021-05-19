@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
@@ -40,6 +41,7 @@ public class RenderUtils {
         Module module = configuration.getModule();
         if (module != null) {
           ResourceIdManager.get(module).resetDynamicIds();
+          ResourceClassRegistry.get(module.getProject()).clearCache();
           if (target != null) {
             AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
             if (targetData != null) {

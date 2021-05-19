@@ -21,6 +21,8 @@ import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspect
 import com.android.tools.idea.lint.common.AndroidLintGradleIdeErrorInspection;
 import com.android.tools.idea.lint.common.AndroidLintGradlePathInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidLintJavaPluginLanguageLevelInspection;
+import com.android.tools.idea.lint.common.AndroidLintJcenterRepositoryObsoleteInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
@@ -37,21 +39,13 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  public void testDependenciesWithTask() throws Exception {
+    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
+    doTest(inspection, null);
+  }
+
   public void testIncompatiblePlugin() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
-    doTest(inspection, null);
-  }
-
-  public void testOldBetaPlugin() throws Exception {
-    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
-    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
-    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
-    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
-    doTest(inspection, null);
-  }
-
-  public void testOldBetaPluginNoGMaven() throws Exception {
-    AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
   }
 
@@ -160,6 +154,41 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   public void testDeprecatedConfigurationUse() throws Exception {
     AndroidLintGradleDeprecatedConfigurationInspection inspection = new AndroidLintGradleDeprecatedConfigurationInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaNoLanguageLevel() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelBlock() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelReceiver() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelToplevel() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJavaLanguageLevelToplevelMissing() throws Exception {
+    AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJcenterCall() throws Exception {
+    AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
+    doTest(inspection, null);
+  }
+
+  public void testJcenterBlock() throws Exception {
+    AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
     doTest(inspection, null);
   }
 

@@ -30,11 +30,11 @@ import com.google.common.hash.Hashing
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.kotlin.utils.ThreadSafe
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
-import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Cache of AAR resource repositories.
@@ -106,7 +106,11 @@ class AarResourceRepositoryCache private constructor() {
       return null // No caching if the resource directory doesn't exist.
     }
     library.location?.let {
-      modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+      try {
+        modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(it.toPath()!!))
+      }
+      catch (ignore: NoSuchFileException) {
+      }
     }
     val contentVersion = modificationTime.toString()
 

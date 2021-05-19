@@ -10,6 +10,7 @@ addressability
 affordance
 affordances
 aidl
+allowlist
 androidx
 anim
 antialias
@@ -48,6 +49,7 @@ bitmask
 bitrate
 blit
 blittable
+blocklist
 blowfish
 bluetooth
 bootloader
@@ -82,6 +84,7 @@ declarator
 deduplication
 defrag
 densityless
+denylist
 deobfuscator
 dependee
 depender

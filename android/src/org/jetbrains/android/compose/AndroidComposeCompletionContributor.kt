@@ -61,7 +61,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
-private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Misc.COMPOSABLE_FUNCTION
+private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
 /**
  * Checks if this completion is for a statement (where Compose views usually called) and not part of another expression.
@@ -81,7 +81,8 @@ private fun LookupElement.getFunctionDescriptor(): FunctionDescriptor? {
 
 private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() {
   val lastArgType = lastOrNull()?.type ?: return false
-  return lastArgType.isBuiltinFunctionalType && lastArgType.annotations.hasAnnotation(FqName(COMPOSABLE_FQ_NAME))
+  return lastArgType.isBuiltinFunctionalType
+         && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
 }
 
 /**

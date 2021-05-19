@@ -24,11 +24,10 @@ import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidat
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.module.createWithDefaultGallery
+import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
-import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
@@ -55,7 +54,6 @@ import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -322,13 +320,11 @@ abstract class BasePerspectiveConfigurable protected constructor(
         ) {
           context.project.ideProject.logUsagePsdAction(AndroidStudioEvent.EventKind.PROJECT_STRUCTURE_DIALOG_MODULES_ADD)
           var synced = false
-          val chooseModuleTypeStep = // TODO(b/134652202)
-              createWithDefaultGallery(context.project.ideProject, null, object: ProjectSyncInvoker {
-                override fun syncProject(project: Project) { synced = true } })
           context.applyRunAndReparse {
-            StudioWizardDialogBuilder(chooseModuleTypeStep, AndroidBundle.message("android.wizard.module.new.module.title"))
-                .build()
-                .show()
+            // TODO(b/134652202)
+            showDefaultWizard(context.project.ideProject, ":", object: ProjectSyncInvoker {
+              override fun syncProject(project: Project) { synced = true }
+            })
             synced  // Tells whether the context needs to reparse the config.
           }
         }

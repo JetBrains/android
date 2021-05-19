@@ -18,6 +18,8 @@ package com.android.tools.idea.observable.ui;
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.StringProperty;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.EditorComboBox;
 import com.intellij.ui.EditorTextField;
 import java.beans.PropertyChangeEvent;
@@ -25,6 +27,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -65,6 +68,10 @@ public final class TextProperty extends StringProperty implements DocumentListen
   public TextProperty(@NotNull EditorTextField editorTextField) {
     myComponent = editorTextField;
     editorTextField.getDocument().addDocumentListener(this);
+  }
+
+  public TextProperty(@NotNull TextFieldWithBrowseButton textFieldWithBrowseButton) {
+    this(textFieldWithBrowseButton.getTextField());
   }
 
   @Override

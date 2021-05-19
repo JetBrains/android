@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.util.BuildMode;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradleProjectEventListener implements GradleBuildListener {
   @GuardedBy("myLock")
-  private BuildMode myBuildMode;
+  private BuildStatus myBuildStatus;
 
   @GuardedBy("myLock")
   private long myBuildFinished;
@@ -43,29 +42,21 @@ public class GradleProjectEventListener implements GradleBuildListener {
 
   @Override
   public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-    if (status == BuildStatus.SUCCESS) {
-      synchronized (myLock) {
+    synchronized (myLock) {
       myBuildFinished = System.currentTimeMillis();
-      myBuildMode = context != null ? context.getBuildMode() : null;
-      }
-    }
-  }
-
-  public void reset() {
-    synchronized (myLock) {
-      myBuildMode = null;
-      myBuildFinished = -1;
-    }
-  }
-  public boolean isBuildFinished(@NotNull BuildMode mode) {
-    synchronized (myLock) {
-      return myBuildFinished > 0 && myBuildMode == mode;
+      myBuildStatus = status;
     }
   }
 
   public long getLastBuildTimestamp() {
     synchronized (myLock) {
       return myBuildFinished;
+    }
+  }
+
+  public BuildStatus getBuildStatus() {
+    synchronized (myLock) {
+      return myBuildStatus;
     }
   }
 }

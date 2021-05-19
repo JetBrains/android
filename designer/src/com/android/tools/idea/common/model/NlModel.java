@@ -211,10 +211,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Notify model that it's active. A model is active by default.
    *
    * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
+   * @returns true if the model was not active before and was activated.
    */
-  public void activate(@NotNull Object source) {
+  public boolean activate(@NotNull Object source) {
     if (getFacet().isDisposed()) {
-      return;
+      return false;
     }
 
     // TODO: Tracking the source is just a workaround for the model being shared so the activations and deactivations are
@@ -235,6 +236,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
       manager.addListener(this, myFacet, myFile, myConfiguration);
       myListeners.forEach(listener -> listener.modelActivated(this));
+      return true;
+    }
+    else {
+      return false;
     }
   }
 
@@ -249,7 +254,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   private void deactivate() {
-    myListeners.forEach(listener -> listener.modelDeactivated(this));
     ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
     manager.removeListener(this, myFacet, myFile, myConfiguration);
     myConfigurationModificationCount = myConfiguration.getModificationCount();
@@ -260,8 +264,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
    *               deactivate(Object), the model will be really deactivated.
+   * @returns true if the model was active before and was deactivated.
    */
-  public void deactivate(@NotNull Object source) {
+  public boolean deactivate(@NotNull Object source) {
     boolean shouldDeactivate;
     synchronized (myActivations) {
       boolean removed = myActivations.remove(source);
@@ -270,6 +275,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     if (shouldDeactivate) {
       deactivate();
+      return true;
+    }
+    else {
+      return false;
     }
   }
 
@@ -877,6 +886,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Override
   public void dispose() {
     boolean shouldDeactivate;
+    myLintAnnotationsModel = null;
     synchronized (myActivations) {
       // If there are no activations left, make sure we deactivate the model correctly
       shouldDeactivate = !myActivations.isEmpty();

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.1.0-dev">
+<issues format="5" by="lint 4.2.0-dev">
 
     <issue
         id="SimpleDateFormat"
@@ -14,7 +14,7 @@
         message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
         <location
             file="src/com/android/tools/idea/run/LaunchTaskRunner.java"
-            line="230"/>
+            line="279"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="613"/>
+            line="614"/>
     </issue>
 
     <issue
@@ -62,15 +62,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="752"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="917"/>
+            line="753"/>
     </issue>
 
     <issue
@@ -86,7 +78,15 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="1382"/>
+            line="919"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
+            line="1383"/>
     </issue>
 
     <issue
@@ -278,7 +278,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="89"/>
+            line="61"/>
     </issue>
 
     <issue
@@ -286,7 +286,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/rendering/GutterIconRenderer.java"
-            line="90"/>
+            line="62"/>
     </issue>
 
     <issue
@@ -541,8 +541,8 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/DependenciesExtractor.java"
-            line="119"/>
+            file="src/com/android/tools/idea/startup/AndroidStudioAnalyticsImpl.java"
+            line="52"/>
     </issue>
 
     <issue
@@ -550,7 +550,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleTasksExecutorImpl.java"
-            line="381"/>
+            line="383"/>
     </issue>
 
     <issue
@@ -606,7 +606,7 @@
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
             file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="985"/>
+            line="986"/>
     </issue>
 
     <issue
@@ -614,7 +614,7 @@
         message="Use `Integer.valueOf(0)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="93"/>
+            line="94"/>
     </issue>
 
     <issue
@@ -622,7 +622,7 @@
         message="Use `Integer.valueOf(100)` instead">
         <location
             file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="94"/>
+            line="95"/>
     </issue>
 
     <issue
@@ -646,7 +646,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/build/invoker/GradleBuildInvoker.java"
-            line="740"/>
+            line="738"/>
     </issue>
 
     <issue
@@ -686,7 +686,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/gradle/project/sync/setup/module/dependency/LibraryDependency.java"
-            line="138"/>
+            line="86"/>
     </issue>
 
     <issue
@@ -712,21 +712,13 @@
             file="src/com/android/tools/idea/navigator/nodes/apk/ndk/NdkSourceNode.java"
             line="99"/>
     </issue>
- 
+
     <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/ui/wizard/ProposedFileTreeModel.kt"
             line="105"/>
-    </issue>
-
-    <issue
-        id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
-        <location
-            file="src/com/android/tools/idea/gradle/project/sync/VariantOnlySyncOptions.java"
-            line="55"/>
     </issue>
 
     <issue
@@ -774,7 +766,7 @@
         message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="775"/>
+            line="817"/>
     </issue>
 
     <issue

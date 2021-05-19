@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.SigningConfig
+import com.android.ide.common.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.helpers.matchFiles
@@ -38,18 +38,18 @@ class PsSigningConfig(
   private val renamed: (String, String) -> Unit
 ) : PsChildModel() {
   override val descriptor by SigningConfigDescriptors
-  var resolvedModel: SigningConfig? = null ; private set
+  var resolvedModel: IdeSigningConfig? = null ; private set
   private var parsedModel: SigningConfigModel? = null
 
   internal fun init(
-    resolvedModel: SigningConfig?,
+    resolvedModel: IdeSigningConfig?,
     parsedModel: SigningConfigModel?
   ) {
     this.resolvedModel = resolvedModel
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
@@ -73,8 +73,8 @@ class PsSigningConfig(
     renamed(oldName, newName)
   }
 
-  object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, SigningConfig, SigningConfigModel> {
-    override fun getResolved(model: PsSigningConfig): SigningConfig? = model.resolvedModel
+  object SigningConfigDescriptors : ModelDescriptor<PsSigningConfig, IdeSigningConfig, SigningConfigModel> {
+    override fun getResolved(model: PsSigningConfig): IdeSigningConfig? = model.resolvedModel
 
     override fun getParsed(model: PsSigningConfig): SigningConfigModel? = model.parsedModel
 
@@ -108,16 +108,6 @@ class PsSigningConfig(
       parser = ::parseString
     )
 
-    val storeType: SimpleProperty<PsSigningConfig, String> = property(
-      "Store Type",
-      resolvedValueGetter = { storeType },
-      // TODO: Properly handle other password types.
-      parsedPropertyGetter = { storeType() },
-      getter = { asString() },
-      setter = { setValue(it) },
-      parser = ::parseString
-    )
-
     val keyAlias: SimpleProperty<PsSigningConfig, String> = property(
       "Key Alias",
       resolvedValueGetter = { keyAlias },
@@ -139,6 +129,6 @@ class PsSigningConfig(
     )
 
     override val properties: Collection<ModelProperty<PsSigningConfig, *, *, *>> =
-      listOf(storeFile, storePassword, storeType, keyAlias, keyPassword)
+      listOf(storeFile, storePassword, keyAlias, keyPassword)
   }
 }

@@ -28,12 +28,14 @@ import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.DismissKeyguardTask;
+import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
@@ -97,7 +99,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     launchTasks.add(new DismissKeyguardTask());
 
     final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
-    final boolean startNewAndroidApplication = !useApplyChanges && !shouldDeployAsInstant();
+    final boolean terminateLaunchOnError = !useApplyChanges && !shouldDeployAsInstant();
     String packageName;
     try {
       packageName = myApplicationIdProvider.getPackageName();
@@ -116,13 +118,17 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (startNewAndroidApplication) {
+      if (!shouldDeployAsInstant()) {
         // A separate deep link launch task is not necessary if launch will be handled by
         // RunInstantAppTask
-        LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
-                                                                        amStartOptions.toString(),
-                                                                        myLaunchOptions.isDebug(), launchStatus, myApkProvider);
+        AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
+                                                                           amStartOptions.toString(),
+                                                                           myLaunchOptions.isDebug(), launchStatus, myApkProvider,
+                                                                           consolePrinter, device);
+
         if (appLaunchTask != null) {
+          // Apply (Code) Changes needs additional control over killing/restarting the app.
+          launchTasks.add(new KillAndRestartAppLaunchTask(packageName));
           launchTasks.add(appLaunchTask);
         }
       }
@@ -134,14 +140,12 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       } else {
         myLogger.warn(e);
       }
-      launchStatus.terminateLaunch("Unable to determine application id: " + e,
-                                   /*destroyProcess=*/startNewAndroidApplication);
+      launchStatus.terminateLaunch("Unable to determine application id: " + e, /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
     catch (IllegalStateException e) {
       myLogger.error(e);
-      launchStatus.terminateLaunch(e.getMessage(),
-                                   /*destroyProcess=*/startNewAndroidApplication);
+      launchStatus.terminateLaunch(e.getMessage(), /*destroyProcess=*/terminateLaunchOnError);
       return Collections.emptyList();
     }
 
@@ -167,35 +171,50 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       tasks.add(new UninstallIotLauncherAppsTask(myProject, packageName));
     }
     List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
-    if (shouldDeployAsInstant()) {
-      AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
-      DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
-      assert state != null;
-      tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
+    // Add packages to the deployment, filtering out any dynamic features that are disabled.
+    ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
+    for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
+      packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
     }
-    else {
-      // Add packages to the deployment, filtering out any dynamic features that are disabled.
-      ImmutableMap.Builder<String, List<File>> packages = ImmutableMap.builder();
-      for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
-        packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
-      }
-
-      // Set the appropriate action based on which deployment we're doing.
-      Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
-      if (shouldApplyChanges()) {
-
-        tasks.add(new ApplyChangesTask(myProject, packages.build(), isApplyChangesFallbackToRun(), installPathProvider));
-      }
-      else if (shouldApplyCodeChanges()) {
-        tasks.add(new ApplyCodeChangesTask(myProject, packages.build(), isApplyCodeChangesFallbackToRun(), installPathProvider));
-      }
-      else {
-        tasks.add(new DeployTask(myProject, packages.build(), myLaunchOptions.getPmInstallOptions(device),
-                                 myLaunchOptions.getInstallOnAllUsers(), installPathProvider));
-      }
+    switch (getDeployType()) {
+      case RUN_INSTANT_APP:
+        AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
+        DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+        assert state != null;
+        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
+        break;
+      case APPLY_CHANGES:
+        tasks.add(new ApplyChangesTask(
+          myProject,
+          packages.build(),
+          isApplyChangesFallbackToRun(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
+        break;
+      case APPLY_CODE_CHANGES:
+        tasks.add(new ApplyCodeChangesTask(
+          myProject,
+          packages.build(),
+          isApplyCodeChangesFallbackToRun(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
+        break;
+      case DEPLOY:
+        tasks.add(new DeployTask(
+          myProject,
+          packages.build(),
+          myLaunchOptions.getPmInstallOptions(device),
+          myLaunchOptions.getInstallOnAllUsers(),
+          myLaunchOptions.getAlwaysInstallWithPm()));
+        break;
+      default: throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
   }
+
+  @Override
+  public String getLaunchTypeDisplayName() {
+    return getDeployType().asDisplayName();
+  }
+
 
   private boolean isApplyCodeChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN;
@@ -289,5 +308,42 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private boolean shouldApplyCodeChanges() {
     SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
     return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
+  }
+
+  private enum DeployType {
+    RUN_INSTANT_APP{
+      @Override
+      public String asDisplayName() {
+        return "Instant App Launch";
+      }},
+    APPLY_CHANGES{
+      @Override
+      public String asDisplayName() {
+        return "Apply Changes";
+      }},
+    APPLY_CODE_CHANGES {
+      @Override
+      public String asDisplayName() {
+        return "Apply Code Changes";
+      }},
+    DEPLOY {
+      @Override
+      public String asDisplayName() {
+        return "Launch";
+      }},
+    ;
+    public abstract String asDisplayName();
+  }
+
+  private DeployType getDeployType() {
+    if (shouldDeployAsInstant()) {
+      return DeployType.RUN_INSTANT_APP;
+    } else if (shouldApplyChanges()) {
+      return DeployType.APPLY_CHANGES;
+    } else if (shouldApplyCodeChanges()) {
+      return DeployType.APPLY_CODE_CHANGES;
+    } else {
+      return DeployType.DEPLOY;
+    }
   }
 }

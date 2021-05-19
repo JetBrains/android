@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.module
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -38,26 +38,30 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
+import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
-import com.android.tools.idea.wizard.model.ModelWizard
+import com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
-import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import org.jetbrains.android.refactoring.isAndroidx
 import java.util.function.Consumer
 import javax.swing.JComboBox
 import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTextField
 
 abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   model: ModuleModelKind,
-  private val formFactor: FormFactor,
+  val formFactor: FormFactor,
   private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
   basePackage: String? = getSuggestedProjectPackage(),
   title: String
@@ -70,16 +74,34 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   private var installLicenseRequests: List<RemotePackage> = listOf()
 
   protected val moduleName: JTextField = JBTextField()
-  protected val packageName: LabelWithEditButton = LabelWithEditButton()
+  protected val packageName: JTextField = JBTextField()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
+  protected val gradleKtsCheck: JBCheckBox = JBCheckBox("Use Kotlin script (.kts) for Gradle build files")
+  protected val validatorPanel: ValidatorPanel by lazy {
+    ValidatorPanel(this, createMainPanel()).apply {
+      registerValidator(model.moduleName, moduleValidator)
+      registerValidator(model.packageName, PackageNameValidator())
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
+      FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
+    }
+  }
+  protected val rootPanel: JScrollPane by lazy {
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      wrapWithVScroll(validatorPanel, SMALL)
+    }
+    else {
+      wrapWithVScroll(validatorPanel)
+    }
+  }
 
-  abstract val validatorPanel: ValidatorPanel
+  abstract fun createMainPanel(): JPanel
 
   private val moduleValidator = ModuleValidator(model.project)
   init {
     bindings.bindTwoWay(SelectedItemProperty(languageCombo), model.language)
     bindings.bind(model.androidSdkInfo, SelectedItemProperty(apiLevelCombo))
+    bindings.bindTwoWay(SelectedProperty(gradleKtsCheck), model.useGradleKts)
 
     val isPackageNameSynced: BoolProperty = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)
@@ -100,24 +122,6 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
     bindings.bind(moduleNameText, computedModuleName, isModuleNameSynced)
     bindings.bind(model.moduleName, moduleNameText)
     listeners.listen(moduleNameText) { value: String -> isModuleNameSynced.set(value == computedModuleName.get()) }
-  }
-
-  // This is a separate function only because onWizardStarting is protected
-  // and we need to initialize validators in some unit (non UI) tests.
-  @VisibleForTesting
-  fun registerValidators() {
-    validatorPanel.apply {
-      registerValidator(model.moduleName, moduleValidator)
-      registerValidator(model.packageName, PackageNameValidator())
-      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
-    }
-  }
-
-  override fun onWizardStarting(wizard: ModelWizard.Facade) {
-    // TODO(qumeric): we register validators here because validatorPanel is abstract. Consider finding a way to do it in init.
-    //                The obvious way is to pass validatorPanel as an argument but it looks dubious syntactically because panel is huge
-    registerValidators()
-    FormScalingUtil.scaleComponentTree(this.javaClass, validatorPanel)
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
@@ -146,7 +150,7 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
 
   public final override fun canGoForward(): ObservableBool = validatorPanel.hasErrors().not()
 
-  final override fun getComponent(): JComponent = validatorPanel
+  final override fun getComponent(): JComponent = rootPanel
 
   override fun dispose() {
     bindings.releaseAll()

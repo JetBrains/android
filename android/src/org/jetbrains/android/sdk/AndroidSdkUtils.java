@@ -30,6 +30,7 @@ import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 import static org.jetbrains.android.util.AndroidUtils.ANDROID_TARGET_PROPERTY;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
@@ -219,6 +220,12 @@ public final class AndroidSdkUtils {
     String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
     if (androidHomeValue != null &&
         tryToCreateAndSetAndroidSdk(module, new File(toSystemIndependentName(androidHomeValue)), targetHashString)) {
+      return true;
+    }
+
+    String androidSdkRootValue = System.getenv(SdkConstants.ANDROID_SDK_ROOT_ENV);
+    if (androidSdkRootValue != null &&
+        tryToCreateAndSetAndroidSdk(module, new File(toSystemIndependentName(androidSdkRootValue)), targetHashString)) {
       return true;
     }
 

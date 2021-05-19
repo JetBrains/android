@@ -99,26 +99,6 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   private fun <T> any(): T = ArgumentMatchers.any() as T
 
-  fun testSkipContentResize() {
-    val surface = NavDesignSurface(project, myRootDisposable)
-    surface.model = model("nav.xml") {
-      navigation("root") {
-        fragment("f1")
-      }
-    }
-    LayoutTestCase.assertFalse(surface.isSkipContentResize)
-    surface.zoomToFit()
-    LayoutTestCase.assertFalse(surface.isSkipContentResize)
-    surface.zoom(ZoomType.ACTUAL)
-    LayoutTestCase.assertTrue(surface.isSkipContentResize)
-    surface.zoom(ZoomType.IN)
-    LayoutTestCase.assertTrue(surface.isSkipContentResize)
-    surface.zoomToFit()
-    LayoutTestCase.assertFalse(surface.isSkipContentResize)
-    surface.setScale(1.23, 100, 100)
-    LayoutTestCase.assertTrue(surface.isSkipContentResize)
-  }
-
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)
     val model = model("nav.xml") {

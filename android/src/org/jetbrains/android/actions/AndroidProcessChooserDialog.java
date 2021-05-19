@@ -11,8 +11,10 @@ import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.execution.RunManager;
@@ -39,6 +41,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -246,18 +249,32 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     // The attach dialog contains the project's run configurations.
     // We also add null to the front of the list to represent "[Create New]" run configuration.
-    List<RunConfiguration> runConfigurations = RunManager.getInstance(myProject).getAllConfigurationsList();
-    runConfigurations.add(0, null);
+    // Note we can't use ImmutableList here because ImmutableList doesn't allow null elements.
+    List<RunConfiguration> existingValidRunConfigurations =
+      ContainerUtil.filter(
+        RunManager.getInstance(myProject).getAllConfigurationsList(),
+        AndroidProcessChooserDialog::isAndroidRunConfig);
+    ArrayList<RunConfiguration> runConfigurations = new ArrayList<>();
+    runConfigurations.add(null);
+    runConfigurations.addAll(existingValidRunConfigurations);
     myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel(runConfigurations));
     myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Create New]", RunConfiguration::getName));
 
     // The run configuration dropdown is initialized to the project's currently selected run configuration; if there is no run configuration,
     // then [Create New] remains as the default initial selection.
     RunConfiguration configuration = getCurrentRunConfiguration();
+    if (!existingValidRunConfigurations.contains(configuration)) {
+      configuration = null;
+    }
     myDebuggerRunConfigCombo.setSelectedItem(configuration);
 
     // Initialize the DebuggerType dropdown contents and the selection.
     populateDebuggerTypeCombo(configuration, lastSelectedDebuggerId);
+  }
+
+  private static boolean isAndroidRunConfig(@NotNull RunConfiguration config) {
+    return config instanceof AndroidRunConfiguration ||
+           config instanceof AndroidTestRunConfiguration;
   }
 
   /**

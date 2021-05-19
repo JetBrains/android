@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -36,8 +37,18 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * A virtual device. If it's in the Android Virtual Device Manager Device.myKey is a VirtualDevicePath and myNameKey is not null. If not,
+ * Device.myKey may be a VirtualDevicePath, VirtualDeviceName, or SerialNumber depending on what the IDevice returns and myNameKey is null.
+ */
 final class VirtualDevice extends Device {
-  private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+  @VisibleForTesting
+  static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+
+  /**
+   * Matches with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator in Version 30.0.18
+   */
+  private final @Nullable VirtualDeviceName myNameKey;
 
   @Nullable
   private final Snapshot mySnapshot;
@@ -46,7 +57,18 @@ final class VirtualDevice extends Device {
   static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
                                           @NotNull KeyToConnectionTimeMap map,
                                           @Nullable VirtualDevice virtualDevice) {
-    Device device = virtualDevice == null ? connectedDevice : virtualDevice;
+    Device device;
+    VirtualDeviceName nameKey;
+
+    if (virtualDevice == null) {
+      device = connectedDevice;
+      nameKey = null;
+    }
+    else {
+      device = virtualDevice;
+      nameKey = virtualDevice.myNameKey;
+    }
+
     Key key = device.getKey();
 
     return new Builder()
@@ -56,11 +78,14 @@ final class VirtualDevice extends Device {
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
+      .setNameKey(nameKey)
       .setSnapshot(device.getSnapshot())
       .build();
   }
 
   static final class Builder extends Device.Builder {
+    private @Nullable VirtualDeviceName myNameKey;
+
     @Nullable
     private Snapshot mySnapshot;
 
@@ -101,6 +126,11 @@ final class VirtualDevice extends Device {
       return this;
     }
 
+    @NotNull Builder setNameKey(@Nullable VirtualDeviceName nameKey) {
+      myNameKey = nameKey;
+      return this;
+    }
+
     @NotNull
     Builder setSnapshot(@Nullable Snapshot snapshot) {
       mySnapshot = snapshot;
@@ -116,6 +146,8 @@ final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
+
+    myNameKey = builder.myNameKey;
     mySnapshot = builder.mySnapshot;
   }
 
@@ -136,13 +168,30 @@ final class VirtualDevice extends Device {
     return mySnapshot;
   }
 
+  @Override
+  boolean matches(@NotNull Key key) {
+    if (myNameKey == null) {
+      return getKey().matches(key);
+    }
+
+    return getKey().matches(key) || myNameKey.matches(key);
+  }
+
+  @Override
+  boolean hasKeyContainedBy(@NotNull Collection<@NotNull Key> keys) {
+    if (myNameKey == null) {
+      return keys.contains(getKey()) || keys.contains(getKey().asNonprefixedKey());
+    }
+
+    return keys.contains(getKey()) || keys.contains(myNameKey) || keys.contains(myNameKey.asNonprefixedKey());
+  }
+
   @NotNull
   @Override
   Future<AndroidVersion> getAndroidVersion() {
     Object androidDevice = getAndroidDevice();
 
     if (androidDevice instanceof LaunchableAndroidDevice) {
-      // noinspection UnstableApiUsage
       return Futures.immediateFuture(((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion());
     }
 
@@ -186,6 +235,7 @@ final class VirtualDevice extends Device {
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
+           Objects.equals(myNameKey, device.myNameKey) &&
            Objects.equals(mySnapshot, device.mySnapshot);
   }
 
@@ -198,6 +248,7 @@ final class VirtualDevice extends Device {
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),
+      myNameKey,
       mySnapshot);
   }
 }

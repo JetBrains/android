@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.appinspection.api.process
 
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+
 /**
  * Defines a listener that is fired when a new inspectable process is available or an existing one is disconnected.
  */

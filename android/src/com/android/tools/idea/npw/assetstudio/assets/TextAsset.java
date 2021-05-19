@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.annotations.concurrency.AnyThread;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.npw.assetstudio.TextRenderUtil;
@@ -31,7 +32,6 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

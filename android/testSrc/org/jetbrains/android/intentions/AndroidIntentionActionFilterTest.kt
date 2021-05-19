@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.intentions
 
+import com.android.tools.idea.res.isRJavaClass
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -22,9 +23,9 @@ import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.JavaProjectRootsUtil
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
-import com.android.tools.idea.res.isRJavaClass
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 
@@ -34,6 +35,7 @@ class AndroidIntentionActionFilterTest : AndroidTestCase() {
 
   fun testLightClasses() {
     myFixture.addFileToProject("res/values/strings.xml", "<resources><string name='existing_res'></string></resources>")
+    ensureIndexesUpToDate(project)
 
     runWriteCommandAction(project) {
       val permission = Manifest.getMainManifest(myFacet)!!.addPermission()

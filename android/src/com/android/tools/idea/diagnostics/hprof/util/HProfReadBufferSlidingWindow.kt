@@ -16,7 +16,11 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.idea.diagnostics.hprof.util
 
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.SystemInfoRt
+import sun.misc.Unsafe
 import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -29,6 +33,10 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
 
   private var buffer: ByteBuffer
   private var bufferOffset = 0L
+
+  companion object {
+    private val LOG = Logger.getInstance(HProfReadBufferSlidingWindow::class.java)
+  }
 
   init {
     buffer = channel.map(FileChannel.MapMode.READ_ONLY, bufferOffset, Math.min(bufferSize, size))
@@ -59,7 +67,7 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
     bufferOffset = newPosition
 
     // Force clean up previous buffer
-    (oldBuffer as? DirectBuffer)?.cleaner()?.clean()
+    invokeCleaner(oldBuffer)
   }
 
   override fun isEof(): Boolean {

@@ -35,6 +35,13 @@ interface EnumSupport {
     get() = EnumValue.DEFAULT_RENDERER
 
   /**
+   * Create an [EnumValue] from an initial string value.
+   *
+   * This is used by DropDown controls for showing the initial value without asking for all possible enum values.
+   */
+  fun createValue(stringValue: String): EnumValue = EnumValue.item(stringValue)
+
+  /**
    * A simple [EnumSupport] implementation where the values and renderer is specified up front.
    */
   private class SimpleEnumSupport(override val values: List<EnumValue>) : EnumSupport

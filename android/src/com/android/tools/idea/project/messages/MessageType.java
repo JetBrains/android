@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.project.messages;
 
-import com.android.builder.model.SyncIssue;
 import com.android.ide.common.blame.Message;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import com.intellij.util.ui.MessageCategory;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import static com.android.builder.model.SyncIssue.SEVERITY_ERROR;
 
@@ -61,7 +60,7 @@ public enum MessageType {
    * Find the MessageType from SyncIssue severity.
    */
   @NotNull
-  public static MessageType findFromSyncIssue(@NotNull SyncIssue syncIssue) {
+  public static MessageType findFromSyncIssue(@NotNull IdeSyncIssue syncIssue) {
     return syncIssue.getSeverity() == SEVERITY_ERROR ? ERROR : WARNING;
   }
 }

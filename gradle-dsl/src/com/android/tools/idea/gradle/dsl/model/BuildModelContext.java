@@ -77,14 +77,14 @@ public final class BuildModelContext {
   @NotNull
   private final DependencyManager myDependencyManager;
   @Nullable
-  private GradleDslFile myRootProjectFile;
+  private GradleBuildFile myRootProjectFile;
 
-  public void setRootProjectFile(@NotNull GradleDslFile rootProjectFile) {
+  public void setRootProjectFile(@NotNull GradleBuildFile rootProjectFile) {
     myRootProjectFile = rootProjectFile;
   }
 
   @Nullable
-  public GradleDslFile getRootProjectFile() {
+  public GradleBuildFile getRootProjectFile() {
     return myRootProjectFile;
   }
 

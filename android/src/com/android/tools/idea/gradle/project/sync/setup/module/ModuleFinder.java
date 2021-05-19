@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
-import com.android.builder.model.level2.Library;
-import com.android.tools.idea.gradle.project.sync.Modules;
+import com.android.ide.common.gradle.model.IdeLibrary;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -123,8 +122,8 @@ public class ModuleFinder {
    * @return the module for module dependency library.
    */
   @Nullable
-  public Module findModuleFromLibrary(@NotNull Library library) {
-    if (library.getType() != Library.LIBRARY_MODULE) {
+  public Module findModuleFromLibrary(@NotNull IdeLibrary library) {
+    if (library.getType() != IdeLibrary.LibraryType.LIBRARY_MODULE) {
       return null;
     }
     String gradlePath = library.getProjectPath();

@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.controllers.TableController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.selectAllAndRowIdFromTable
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
@@ -34,6 +35,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
+import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
@@ -120,12 +122,12 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     // Assert
     assertEquals(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, table.autoResizeMode)
 
-    assertEquals(598, table.size.width)
+    assertEquals(600, table.size.width)
     assertEquals(60, table.columnModel.getColumn(0).width)
-    assertEquals(538, table.columnModel.getColumn(1).width)
+    assertEquals(540, table.columnModel.getColumn(1).width)
 
     assertEquals(0, jbScrollPane.horizontalScrollBar.model.minimum)
-    assertEquals(598, jbScrollPane.horizontalScrollBar.model.maximum)
+    assertEquals(600, jbScrollPane.horizontalScrollBar.model.maximum)
   }
 
   fun testTableIsScrollableIfTooManyColumns() {
@@ -454,7 +456,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -503,7 +505,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -552,7 +554,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -601,7 +603,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -717,6 +719,43 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
     verify(mockActionManager).createActionPopupMenu(any(String::class.java), any(ActionGroup::class.java))
   }
 
+  fun testRightClickOutsideOfTableRows() {
+    // Prepare
+    val table = TreeWalker(view.component).descendants().filterIsInstance<JBTable>().first()
+
+    val col1 = ResultSetSqliteColumn("col1", SqliteAffinity.INTEGER, false, false)
+    val col2 = ResultSetSqliteColumn("col2", SqliteAffinity.INTEGER, false, false)
+    val cols = listOf(col1, col2)
+    val rows = listOf(
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val1")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val2"))
+      )),
+      SqliteRow(listOf(
+        SqliteColumnValue("col1", SqliteValue.StringValue("val3")),
+        SqliteColumnValue("col2", SqliteValue.StringValue("val4"))
+      ))
+    )
+
+    view.startTableLoading()
+    view.showTableColumns(cols.toViewColumns())
+    view.updateRows(rows.map { RowDiffOperation.AddRow(it) })
+    view.stopTableLoading()
+
+    table.size = Dimension(600, 200)
+    table.preferredSize = table.size
+    fakeUi = FakeUi(table)
+
+    val rect = table.getCellRect(1, 1, false)
+
+    // Act
+    // click outside of last row
+    fakeUi.mouse.rightClick(rect.x + rect.width / 2, (rect.y + rect.height / 2) * 2)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // we should reach this point without exceptions being thrown after clicking
+  }
+
   fun testTableModelIsNotRecreatedIfColumnsAreNotDifferent() {
     // Prepare
     val column = ResultSetSqliteColumn("name", SqliteAffinity.NUMERIC, false, false)
@@ -802,7 +841,7 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
       getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
     val databaseRepository = DatabaseRepositoryImpl(project, EdtExecutorService.getInstance())
-    val databaseId = SqliteDatabaseId.fromFileDatabase(customSqliteFile)
+    val databaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(customSqliteFile))
     runDispatching {
       databaseRepository.addDatabaseConnection(databaseId, realDatabaseConnection!!)
     }
@@ -934,6 +973,37 @@ class TableViewImplTest : LightJavaCodeInsightFixtureTestCase() {
 
     // Assert
     assertEquals(null, table.model.getValueAt(0, 1))
+  }
+
+  fun testDisabledLiveUpdates() {
+    // Prepare
+    val liveUpdatesCheckBox = TreeWalker(view.component).descendants().first { it.name == "live-updates-checkbox" }
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.setLiveUpdatesButtonState(false)
+    view.startTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+
+    // Act
+    view.stopTableLoading()
+
+    // Assert
+    assertFalse(liveUpdatesCheckBox.isEnabled)
+  }
+
+  fun testNoSortingAfterResetView() {
+    view.setColumnSortIndicator(OrderBy.Asc("col"))
+
+    assertEquals(view.orderBy, OrderBy.Asc("col"))
+
+    view.resetView()
+
+    assertEquals(view.orderBy, OrderBy.NotOrdered)
   }
 
   private fun getColumnAt(table: JTable, colIndex: Int): List<String?> {

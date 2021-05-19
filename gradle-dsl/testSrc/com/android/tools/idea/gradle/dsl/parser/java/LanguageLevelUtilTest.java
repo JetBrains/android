@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.conve
 import static com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString;
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil;
 import com.intellij.pom.java.LanguageLevel;
@@ -51,7 +52,7 @@ public class LanguageLevelUtilTest {
 
     // Different format
     assertEquals("'1.6'", convertToGradleString(LanguageLevel.JDK_1_6, "'1.3'"));
-    assertEquals(new ReferenceTo("VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "VERSION_1_3"));
-    assertEquals(new ReferenceTo("JavaVersion.VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "JavaVersion.VERSION_1_3"));
+    assertEquals(new RawText("VERSION_1_6", "VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "VERSION_1_3"));
+    assertEquals(new RawText("JavaVersion.VERSION_1_6", "JavaVersion.VERSION_1_6"), convertToGradleString(LanguageLevel.JDK_1_6, "JavaVersion.VERSION_1_3"));
   }
 }

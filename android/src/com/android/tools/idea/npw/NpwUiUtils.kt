@@ -22,10 +22,12 @@ import com.android.tools.idea.observable.expressions.Expression
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.ui.ContextHelpLabel
-import com.intellij.ui.components.Label
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.layout.Cell
+import com.intellij.ui.layout.LayoutBuilder
 import java.awt.Component
 import javax.swing.JLabel
+import javax.swing.SwingConstants
 
 fun <T, O> BindingsManager.bindExpression(dest: SettableValue<T>, listenTo: ObservableValue<O>, supplier: () -> T) {
   bind(dest, object: Expression<T>(listenTo) {
@@ -41,14 +43,24 @@ fun invokeLater(modalityState: ModalityState = ModalityState.any(), f: () -> Uni
  * It is recommended to create it inside of a cell if context help is used.
  */
 fun Cell.labelFor(text: String, forComponent: Component, contextHelpText: String? = null): JLabel {
-  val label = Label(text).apply {
+  val label = if (contextHelpText == null) {
+    JBLabel(text)
+  }
+  else {
+    ContextHelpLabel.create(contextHelpText).apply {
+      setText(text)
+      horizontalTextPosition = SwingConstants.LEFT
+    }
+  }.apply {
     labelFor = forComponent
   }
-  label()
 
-  if (contextHelpText != null) {
-    ContextHelpLabel.create(contextHelpText)()
-  }
+  label()
   return label
 }
 
+fun LayoutBuilder.verticalGap() {
+  row {
+    label("")
+  }
+}

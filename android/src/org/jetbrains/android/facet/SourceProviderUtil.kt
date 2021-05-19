@@ -16,7 +16,7 @@
 @file:JvmName("SourceProviderUtil")
 package org.jetbrains.android.facet
 
-import com.android.builder.model.SourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.ScopeType
@@ -25,23 +25,27 @@ import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
 @JvmOverloads
-fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
+fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvider, scopeType: ScopeType = ScopeType.MAIN): NamedIdeaSourceProvider {
   return NamedIdeaSourceProviderImpl(
     it.name,
     scopeType,
-    VfsUtil.fileToUrl(it.manifestFile),
-    javaDirectoryUrls = convertToUrlSet(it.javaDirectories),
-    resourcesDirectoryUrls = convertToUrlSet(it.resourcesDirectories),
-    aidlDirectoryUrls = convertToUrlSet(it.aidlDirectories),
-    renderscriptDirectoryUrls = convertToUrlSet(it.renderscriptDirectories),
-    // Even though the model has separate methods to get the C and Cpp directories,
-    // they both return the same set of folders. So we combine them here.
-    jniDirectoryUrls = convertToUrlSet(it.cDirectories + it.cppDirectories).toSet(),
-    jniLibsDirectoryUrls = convertToUrlSet(it.jniLibsDirectories),
-    resDirectoryUrls = convertToUrlSet(it.resDirectories),
-    assetsDirectoryUrls = convertToUrlSet(it.assetsDirectories),
-    shadersDirectoryUrls = convertToUrlSet(it.shadersDirectories),
-    mlModelsDirectoryUrls = convertToUrlSet(it.mlModelsDirectories)
+    core = object : NamedIdeaSourceProviderImpl.Core {
+      override val manifestFileUrl: String get() = VfsUtil.fileToUrl(it.manifestFile)
+      override val javaDirectoryUrls: Sequence<String> get() = it.javaDirectories.asSequence().toUrls()
+      override val resourcesDirectoryUrls: Sequence<String> get() = it.resourcesDirectories.asSequence().toUrls()
+      override val aidlDirectoryUrls: Sequence<String> get() = it.aidlDirectories.asSequence().toUrls()
+      override val renderscriptDirectoryUrls: Sequence<String> get() = it.renderscriptDirectories.asSequence().toUrls()
+
+      // Even though the model has separate methods to get the C and Cpp directories,
+      // they both return the same set of folders. So we combine them here.
+      override val jniDirectoryUrls: Sequence<String>
+        get() = (it.cDirectories.asSequence() + it.cppDirectories.asSequence()).distinct().toUrls()
+      override val jniLibsDirectoryUrls: Sequence<String> get() = it.jniLibsDirectories.asSequence().toUrls()
+      override val resDirectoryUrls: Sequence<String> get() = it.resDirectories.asSequence().toUrls()
+      override val assetsDirectoryUrls: Sequence<String> get() = it.assetsDirectories.asSequence().toUrls()
+      override val shadersDirectoryUrls: Sequence<String> get() = it.shadersDirectories.asSequence().toUrls()
+      override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
+    }
   )
 }
 
@@ -49,5 +53,5 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders =
   com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule(facet)
 
 /** Convert a set of IO files into a set of IDEA file urls referring to equivalent virtual files  */
-private fun convertToUrlSet(fileSet: Collection<File>): Collection<String> = fileSet.map { VfsUtil.fileToUrl(it) }
+private fun Sequence<File>.toUrls(): Sequence<String> = map { VfsUtil.fileToUrl(it) }
 

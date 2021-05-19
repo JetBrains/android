@@ -94,10 +94,7 @@ public class ImportAndRunInstantAppTest {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstantAppsService", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
 
-    guiTest.ideFrame().runApp(runConfigName, avdRule.getMyAvd().getName());
-
-    // Wait for background tasks to finish before requesting Run Tool Window. Otherwise Run Tool Window won't activate.
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(10)));
+    guiTest.ideFrame().runApp(runConfigName, avdRule.getMyAvd().getName(), Wait.seconds(TimeUnit.MINUTES.toSeconds(10)));
 
     Pattern CONNECTED_APP_PATTERN = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
     ExecutionToolWindowFixture.ContentFixture runWindow = guiTest.ideFrame().getRunToolWindow().findContent(runConfigName);

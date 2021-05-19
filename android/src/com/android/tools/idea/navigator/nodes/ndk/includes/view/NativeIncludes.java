@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 
-import com.android.builder.model.NativeArtifact;
-import com.android.builder.model.NativeSettings;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeArtifact;
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeSettings;
 import com.google.common.collect.ImmutableList;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -29,18 +29,18 @@ import java.util.function.Function;
  */
 public class NativeIncludes {
   @NotNull
-  public final ImmutableList<NativeArtifact> myArtifacts;
+  public final ImmutableList<IdeNativeArtifact> myArtifacts;
 
   @NotNull
-  private final Function<String, NativeSettings> myFindNativeSettingsFunction;
+  private final Function<String, IdeNativeSettings> myFindNativeSettingsFunction;
 
-  public NativeIncludes(@NotNull Function<String, NativeSettings> nativeSettings, @NotNull Collection<NativeArtifact> artifacts) {
+  public NativeIncludes(@NotNull Function<String, IdeNativeSettings> nativeSettings, @NotNull Collection<IdeNativeArtifact> artifacts) {
     this.myFindNativeSettingsFunction = nativeSettings;
     this.myArtifacts = ImmutableList.copyOf(artifacts);
   }
 
   @NotNull
-  public NativeSettings findExpectedSettings(@NotNull String name) {
+  public IdeNativeSettings findExpectedSettings(@NotNull String name) {
     return myFindNativeSettingsFunction.apply(name);
   }
 

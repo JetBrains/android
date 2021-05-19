@@ -1,2 +1,2 @@
-include ':lib1'
 rootProject.name='My Application'
+include ':lib1'

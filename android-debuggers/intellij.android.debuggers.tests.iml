@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.debuggers" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
@@ -33,5 +34,7 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" scope="TEST" />
   </component>
 </module>

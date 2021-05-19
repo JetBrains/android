@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.AndroidStartupActivity;
 import com.intellij.compiler.impl.CompileContextImpl;
 import com.intellij.compiler.impl.ModuleCompileScope;
@@ -47,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
 class CreateAlarmForAutoGenerationAndroidStartupActivity implements AndroidStartupActivity {
 
   @Override
+  @UiThread
   public void runActivity(@NotNull Project project, @NotNull Disposable disposable) {
     // TODO: for external build systems, this alarm is unnecessary and should not be added
     createAlarmForAutogeneration(project, disposable);

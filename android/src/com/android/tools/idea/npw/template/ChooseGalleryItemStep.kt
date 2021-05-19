@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
@@ -46,6 +46,7 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.refactoring.isJetifierEnabled
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
@@ -142,10 +143,10 @@ abstract class ChooseGalleryItemStep(
     val moduleBuildApiLevel = sdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
     val project = renderModel.project
-    val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
-      renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, isAndroidxProject, renderModel.language.value, messageKeys)
+      renderModel.newTemplate.validate(moduleApiLevel, moduleBuildApiLevel, isNewModule, project.isAndroidx(), project.isJetifierEnabled(),
+                                       renderModel.language.value, messageKeys)
     )
 
     if (invalidParameterMessage.get() == "" && !hasComposeMinAgpVersion(project, renderModel.newTemplate.category)) {
@@ -188,6 +189,7 @@ fun Template.validate(moduleApiLevel: Int,
                       moduleBuildApiLevel: Int,
                       isNewModule: Boolean,
                       isAndroidxProject: Boolean,
+                      isJetifierEnabled: Boolean,
                       language: Language,
                       messageKeys: WizardGalleryItemsStepMessageKeys
 ): String = when {
@@ -195,6 +197,7 @@ fun Template.validate(moduleApiLevel: Int,
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
   constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
+  constraints.contains(TemplateConstraint.Jetifier) && isAndroidxProject && !isJetifierEnabled -> message(messageKeys.invalidJetifier)
   constraints.contains(TemplateConstraint.Kotlin) && language != Language.Kotlin && isNewModule -> message(messageKeys.invalidNeedsKotlin)
   else -> ""
 }
@@ -206,5 +209,6 @@ data class WizardGalleryItemsStepMessageKeys(
   val invalidMinSdk: String,
   val invalidMinBuild: String,
   val invalidAndroidX: String,
+  val invalidJetifier: String,
   val invalidNeedsKotlin: String
 )

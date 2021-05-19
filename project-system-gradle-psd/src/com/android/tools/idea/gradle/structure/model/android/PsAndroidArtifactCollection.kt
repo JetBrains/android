@@ -15,32 +15,24 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.ide.common.gradle.model.IdeBaseArtifact
-
-
 class PsAndroidArtifactCollection internal constructor(parent: PsVariant) : PsCollectionBase<PsAndroidArtifact, String, PsVariant>(parent) {
   init {
     refresh()
   }
 
   override fun getKeys(from: PsVariant): Set<String> {
-    val result = mutableSetOf<String>()
     val variant = from.resolvedModel
-    if (variant != null) {
-      result.add(variant.mainArtifact.name)
-      result.addAll(variant.extraAndroidArtifacts.map { it.name })
-      result.addAll(variant.extraJavaArtifacts.map { it.name })
-    }
-    return result
+    return listOfNotNull(variant?.mainArtifact?.name, variant?.androidTestArtifact?.name, variant?.unitTestArtifact?.name).toSet()
   }
 
   override fun create(key: String): PsAndroidArtifact = PsAndroidArtifact(parent, key)
 
   override fun update(key: String, model: PsAndroidArtifact) {
-    val resolved = parent.resolvedModel?.let {
-      it.mainArtifact.takeIf { it.name == key } ?: it.extraAndroidArtifacts.firstOrNull { it.name == key }
-      ?: it.extraJavaArtifacts.firstOrNull { it.name == key }
-    } as? IdeBaseArtifact
+    val resolved = parent.resolvedModel?.let { variant ->
+      variant.mainArtifact.takeIf { it.name == key }
+      ?: variant.androidTestArtifact?.takeIf { it.name == key }
+      ?: variant.unitTestArtifact?.takeIf { it.name == key }
+    }
     model.init(resolved ?: throw IllegalStateException("Cannot find a resolved artifact named '$key' in variant '${parent.name}'"))
   }
 }

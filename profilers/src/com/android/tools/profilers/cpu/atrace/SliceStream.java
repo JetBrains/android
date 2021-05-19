@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.atrace;
+package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.systemtrace.TraceEventModel;
-import org.jetbrains.annotations.NotNull;
-import trebuchet.model.base.SliceGroup;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This class assist with doing a depth first search enumeration of SliceGroups.

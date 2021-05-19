@@ -45,13 +45,32 @@ public class IncludeDslElement extends GradlePropertiesDslElement {
     return myParent != null ? myParent.create() : null;
   }
 
+  private List<GradleDslSimpleExpression> myCachedModules;
+
   public List<GradleDslSimpleExpression> getModules() {
-    return getPropertyElements(GradleDslElement.class).stream().
-      filter( e -> e instanceof GradleDslMethodCall || e instanceof GradleDslExpressionList || e instanceof GradleDslLiteral).
-      flatMap(e -> (e instanceof GradleDslMethodCall) ?
-                   ((GradleDslMethodCall)e).getArgumentsElement().getSimpleExpressions().stream() :
-                   (e instanceof GradleDslExpressionList) ? ((GradleDslExpressionList)e).getSimpleExpressions().stream() :
-                   new ArrayList<GradleDslSimpleExpression>(Collections.singleton((GradleDslLiteral)e)).stream()).collect(Collectors.toList());
+    if (myCachedModules == null) {
+      myCachedModules =
+        getPropertyElements(GradleDslElement.class).stream()
+          .filter(e -> e instanceof GradleDslMethodCall || e instanceof GradleDslExpressionList || e instanceof GradleDslLiteral)
+          .flatMap(e -> (e instanceof GradleDslMethodCall) ?
+                        ((GradleDslMethodCall)e).getArgumentsElement().getSimpleExpressions().stream() :
+                        (e instanceof GradleDslExpressionList) ? ((GradleDslExpressionList)e).getSimpleExpressions().stream() :
+                        new ArrayList<GradleDslSimpleExpression>(Collections.singleton((GradleDslLiteral)e)).stream())
+          .collect(Collectors.toList());
+    }
+    return myCachedModules;
+  }
+
+  @Override
+  public void setModified() {
+    myCachedModules = null;
+    super.setModified();
+  }
+
+  @Override
+  protected void reset() {
+    myCachedModules = null;
+    super.reset();
   }
 
   public void removeModule(@NotNull Object value) {

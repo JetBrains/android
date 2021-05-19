@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AbstractBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class AbstractBuildModelImpl extends GradleDslBlockModel implements AbstractBuildModel {
   @NonNls public static final String PATH = "mPath";
+  @NonNls public static final String VERSION = "mVersion";
   // TODO(xof): support buildStagingPath here
 
   protected AbstractBuildModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
@@ -40,5 +39,11 @@ public abstract class AbstractBuildModelImpl extends GradleDslBlockModel impleme
   @NotNull
   public ResolvedPropertyModel path() {
     return getFileModelForProperty(PATH);
+  }
+
+  @Override
+  @NotNull
+  public ResolvedPropertyModel version() {
+    return getModelForProperty(VERSION);
   }
 }

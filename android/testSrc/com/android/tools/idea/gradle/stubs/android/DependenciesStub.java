@@ -17,19 +17,16 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
-import com.android.ide.common.gradle.model.IdeAndroidLibrary;
-import com.android.ide.common.gradle.model.IdeDependencies;
-import com.android.ide.common.gradle.model.IdeJavaLibrary;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
-public class DependenciesStub implements IdeDependencies {
+public class DependenciesStub implements Dependencies {
   @NotNull private final List<AndroidLibrary> myLibraries = new ArrayList<>();
   @NotNull private final List<JavaLibrary> myJavaLibraries = new ArrayList<>();
   @NotNull private final List<String> myProjects = new ArrayList<>();
@@ -75,13 +72,5 @@ public class DependenciesStub implements IdeDependencies {
   @Override
   public Collection<File> getRuntimeOnlyClasses() {
     return myRuntimeOnlyClasses;
-  }
-
-  @Override
-  public void forEachLibrary(@NotNull Consumer<IdeAndroidLibrary> action) {
-  }
-
-  @Override
-  public void forEachJavaLibrary(@NotNull Consumer<IdeJavaLibrary> action) {
   }
 }

@@ -42,4 +42,9 @@ inline class SwingRectangle(override val value: Rectangle2D.Float) : SwingShape 
 
   fun growRectangle(growX: SwingLength, growY: SwingLength) =
     SwingRectangle(this.x - growX, this.y - growY, this.width + 2 * growX, this.height + 2 * growY)
+
+  fun contains(p: SwingPoint) =
+    p.x > this.x && p.x < this.x + this.width && p.y > this.y && p.y < this.y + this.height
+
+  fun intersects(r: SwingRectangle) = value.intersects(r.value)
 }

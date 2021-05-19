@@ -22,7 +22,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
   public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
-  public static final String NON_STANDARD_SOURCE_SETS = "projects/nonStandardSourceSets/application";
+  public static final String NON_STANDARD_SOURCE_SETS = "projects/nonStandardSourceSets";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";

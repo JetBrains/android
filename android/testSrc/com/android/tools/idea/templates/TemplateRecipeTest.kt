@@ -38,7 +38,7 @@ class TemplateRecipeTest {
       projectRule.project,
       projectRule.module,
       "file already exists test",
-      getDummyModuleTemplateDataBuilder(projectRule.project).build(),
+      getExistingModuleTemplateDataBuilder(projectRule.module).build(),
       tmpFolderRule.root,
       tmpFolderRule.root,
       true,

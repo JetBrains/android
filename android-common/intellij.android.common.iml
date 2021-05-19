@@ -7,6 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
@@ -16,8 +18,8 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.branding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="android.sdktools.ninepatch" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
@@ -38,8 +40,9 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
-    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" exported="" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
+    <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
   </component>
 </module>

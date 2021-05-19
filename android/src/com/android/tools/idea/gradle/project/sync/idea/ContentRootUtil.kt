@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.builder.model.SourceProvider
-import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.ide.common.gradle.model.IdeSourceProvider
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
-import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.*
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.RESOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.RESOURCE_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.SOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.SOURCE_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_GENERATED
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType.TEST_RESOURCE_GENERATED
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll
@@ -49,12 +54,11 @@ import java.io.File
 fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null) {
   // 1 - Extract all of the information (models) we need from the nodes
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return
-  val nativeModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.NDK_MODEL)?.data
   val selectedVariant = variant ?: androidModel.selectedVariant
 
   // 2 - Compute all of the content roots that this module requires from the models we obtained above.
   val existingContentRoots = findAll(this, ProjectKeys.CONTENT_ROOT)
-  val contentRoots = collectContentRootData(selectedVariant, androidModel, nativeModel, existingContentRoots)
+  val contentRoots = collectContentRootData(selectedVariant, androidModel, existingContentRoots)
 
   // 3 - Add the ContentRootData nodes to the module.
   contentRoots.forEach { contentRootData ->
@@ -74,9 +78,8 @@ fun DataNode<ModuleData>.setupAndroidContentEntries(variant: IdeVariant? = null)
 private fun collectContentRootData(
   variant: IdeVariant,
   androidModel: AndroidModuleModel,
-  ndkModel: NdkModuleModel?,
   existingContentRoots: Collection<DataNode<ContentRootData>>?
-) : Collection<ContentRootData> {
+): Collection<ContentRootData> {
   val moduleRootPath = ExternalSystemApiUtil.toCanonicalPath(androidModel.rootDirPath.absolutePath)
 
   // Attempt to reuse the main content root, we do this to reduce the work later when merging content roots in idea,
@@ -120,13 +123,6 @@ private fun collectContentRootData(
     sourceProvider.processAll(true, ::addSourceFolder)
   }
 
-  // Deal with any NDK specific folders.
-  if (ndkModel != null) {
-    // Exclude .externalNativeBuild (b/72450552)
-    addSourceFolder(File(ndkModel.rootDirPath, ".externalNativeBuild").absolutePath, EXCLUDED)
-    addSourceFolder(File(ndkModel.rootDirPath, ".cxx").absolutePath, EXCLUDED)
-  }
-
   return newContentRoots
 }
 
@@ -139,34 +135,25 @@ private fun IdeVariant.processGeneratedSources(
   androidModel: AndroidModuleModel,
   processor: (String, ExternalSystemSourceType) -> Unit
 ) {
+
+  fun IdeBaseArtifact.applicableGeneratedSourceFolders(): Collection<File> = GradleUtil.getGeneratedSourceFoldersToUse(this, androidModel)
+  fun File.processAs(type: ExternalSystemSourceType) = processor(this.absolutePath, type)
+  fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { it.processAs(type) }
+
   // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
   // this far back.
-  GradleUtil.getGeneratedSourceFoldersToUse(mainArtifact, androidModel).forEach {
-    processor(it.absolutePath, SOURCE_GENERATED)
-  }
-  mainArtifact.generatedResourceFolders.forEach {
-    processor(it.absolutePath, RESOURCE_GENERATED)
-  }
-
-  testArtifacts.forEach { testArtifact ->
-    // Note: This only works with Gradle plugin versions 1.2 or higher. However we should be fine not supporting
-    // this far back.
-    GradleUtil.getGeneratedSourceFoldersToUse(testArtifact, androidModel).forEach {
-      processor(it.absolutePath, TEST_GENERATED)
-    }
-    if (testArtifact is IdeAndroidArtifact) {
-      testArtifact.generatedResourceFolders.forEach {
-        processor(it.absolutePath, TEST_RESOURCE_GENERATED)
-      }
-    }
-  }
+  mainArtifact.applicableGeneratedSourceFolders().processAs(SOURCE_GENERATED)
+  mainArtifact.generatedResourceFolders.processAs(RESOURCE_GENERATED)
+  unitTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
+  androidTestArtifact?.applicableGeneratedSourceFolders()?.processAs(TEST_GENERATED)
+  androidTestArtifact?.generatedResourceFolders?.processAs(TEST_RESOURCE_GENERATED)
 }
 
 /**
  * Processes all sources contained within this [SourceProvider] using the given [processor]. This
  * [processor] is called with the absolute path to the file and the type of the source.
  */
-private fun SourceProvider.processAll(
+private fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {

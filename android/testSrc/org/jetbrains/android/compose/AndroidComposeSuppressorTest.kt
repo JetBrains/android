@@ -33,7 +33,7 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)
-    stubComposableAnnotation()
+    stubComposableAnnotation(ANDROIDX_COMPOSE_PACKAGE)
 
     val file = addFileToProject(
       "src/com/example/views.kt",
@@ -45,7 +45,7 @@ class AndroidComposeSuppressorTest : AndroidTestCase() {
       @Composable
       fun MyView() {}
 
-      fun <weak_warning descr="Function name'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
+      fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
       """.trimIndent()
     )
 

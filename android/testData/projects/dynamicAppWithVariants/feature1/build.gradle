@@ -1,0 +1,29 @@
+apply plugin: 'com.android.dynamic-feature'
+android {
+    compileSdkVersion 23
+
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions "dim1", "dim2"
+    productFlavors {
+      fl1 { dimension "dim1" }
+      fl2 { dimension "dim1" }
+      ab { dimension "dim2" }
+      xy { dimension "dim2" }
+    }
+
+}
+
+dependencies {
+    implementation project(':app')
+    androidTestImplementation 'com.android.support:appcompat-v7:+'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}

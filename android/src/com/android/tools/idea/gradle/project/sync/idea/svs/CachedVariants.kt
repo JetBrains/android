@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.svs
 
-import com.android.ide.common.gradle.model.IdeNativeVariantAbi
+import com.android.ide.common.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.gradle.model.IdeVariant
 
 /**
@@ -23,6 +23,22 @@ import com.android.ide.common.gradle.model.IdeVariant
  * Used to store cached variants and native variants from previous sync.
  */
 class CachedVariants(
-  val variants: MutableList<IdeVariant> = mutableListOf(),
-  val nativeVariants: MutableList<IdeNativeVariantAbi> = mutableListOf()
-)
+  private val variants: List<IdeVariant>,
+  private val nativeVariants: List<IdeNativeVariantAbi>
+) {
+
+  companion object {
+    @JvmField
+    val EMPTY: CachedVariants = CachedVariants(emptyList(), emptyList())
+  }
+
+  fun getVariantsExcept(fetchedVariants: Collection<IdeVariant>): List<IdeVariant> {
+    val fetchedNames = fetchedVariants.map { it.name }.toSet()
+    return variants.filter { !fetchedNames.contains(it.name) }
+  }
+
+  fun getNativeVariantsExcept(fetchedVariants: Collection<IdeNativeVariantAbi>): List<IdeNativeVariantAbi> {
+    val fetchedNames = fetchedVariants.map { it.abi }.toSet()
+    return nativeVariants.filter { !fetchedNames.contains(it.abi) }
+  }
+}

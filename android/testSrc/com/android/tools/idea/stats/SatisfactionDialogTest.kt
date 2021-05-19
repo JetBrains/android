@@ -41,7 +41,7 @@ class SatisfactionDialogTest {
 
   @Before
   fun setUp() {
-    disposable = Disposer.newDisposable(this::class.simpleName?:"")
+    disposable = Disposer.newDisposable(this::class.simpleName!!)
   }
 
   @After

@@ -87,15 +87,15 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
     return null
   }
 
-  private fun getDummyActionEvent() =
+  private fun getFakeActionEvent() =
     AnActionEvent(null, DataManager.getInstance().getDataContext(component), "", Presentation(), ActionManager.getInstance(), 0)
 
   // TODO(b/143210506): Review the current APIs for selecting and checking the current mode to be backed by an enum.
-  fun isTextMode() = textViewAction.isSelected(getDummyActionEvent())
+  fun isTextMode() = textViewAction.isSelected(getFakeActionEvent())
 
-  fun isSplitMode() = splitViewAction.isSelected(getDummyActionEvent())
+  fun isSplitMode() = splitViewAction.isSelected(getFakeActionEvent())
 
-  fun isDesignMode() = previewViewAction.isSelected(getDummyActionEvent())
+  fun isDesignMode() = previewViewAction.isSelected(getFakeActionEvent())
 
   fun selectTextMode(userExplicitlyTriggered: Boolean) = selectAction(showEditorAction, userExplicitlyTriggered)
 
@@ -104,9 +104,9 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   fun selectDesignMode(userExplicitlyTriggered: Boolean) = selectAction(showPreviewAction, userExplicitlyTriggered)
 
   protected fun selectAction(action: SplitEditorAction, userExplicitlyTriggered: Boolean) =
-    action.setSelected(getDummyActionEvent(), true, userExplicitlyTriggered)
+    action.setSelected(getFakeActionEvent(), true, userExplicitlyTriggered)
 
-  protected fun getSelectedAction() = actions.firstOrNull { it.isSelected(getDummyActionEvent()) }
+  protected fun getSelectedAction() = actions.firstOrNull { it.isSelected(getFakeActionEvent()) }
 
   private fun List<SplitEditorAction>.next(selectedIndex: Int): SplitEditorAction = this[(selectedIndex + 1) % this.size]
 

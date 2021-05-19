@@ -92,7 +92,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
 
-    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.DummyVo").findMethodsByName("getLiveDataString",
+    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getLiveDataString",
                                                                                                              false)[0].sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML
@@ -108,7 +108,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
     moveCaretToString("getObservableFieldString")
     // Call configureFromExistingVirtualFile again to set fixture.file to DbFile at the caret position.
     fixture.configureFromExistingVirtualFile(layoutFile)
-    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.DummyVo").findMethodsByName("getObservableFieldString",
+    val javaStrValue = fixture.findClass("com.android.example.appwithdatabinding.SampleVo").findMethodsByName("getObservableFieldString",
                                                                                                              false)[0].sourceElement!!
     val xmlStrValue = fixture.getReferenceAtCaretPosition()!!
     // If both of these are true, it means XML can reach Java and Java can reach XML

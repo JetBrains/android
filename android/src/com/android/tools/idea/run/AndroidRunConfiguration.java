@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
@@ -30,7 +31,7 @@ import com.android.tools.idea.run.editor.LaunchOption;
 import com.android.tools.idea.run.editor.LaunchOptionState;
 import com.android.tools.idea.run.editor.NoLaunch;
 import com.android.tools.idea.run.editor.SpecificActivityLaunch;
-import com.android.tools.idea.run.tasks.LaunchTask;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
@@ -102,6 +103,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public String ARTIFACT_NAME = "";
   public String PM_INSTALL_OPTIONS = "";
   public boolean ALL_USERS = false;
+  public boolean ALWAYS_INSTALL_WITH_PM = false;
   public String DYNAMIC_FEATURES_DISABLED_LIST = "";
 
   // Launch options
@@ -160,7 +162,8 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       .setAllUsers(ALL_USERS)
       .setDisabledDynamicFeatures(getDisabledDynamicFeatures())
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
-      .setDeployAsInstant(DEPLOY_AS_INSTANT);
+      .setDeployAsInstant(DEPLOY_AS_INSTANT)
+      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM);
   }
 
   @NotNull
@@ -246,12 +249,14 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
 
   @Nullable
   @Override
-  protected LaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                @NotNull AndroidFacet facet,
-                                                @NotNull String contributorsAmStartOptions,
-                                                boolean waitForDebugger,
-                                                @NotNull LaunchStatus launchStatus,
-                                                @NotNull ApkProvider apkProvider) {
+  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
+                                                   @NotNull AndroidFacet facet,
+                                                   @NotNull String contributorsAmStartOptions,
+                                                   boolean waitForDebugger,
+                                                   @NotNull LaunchStatus launchStatus,
+                                                   @NotNull ApkProvider apkProvider,
+                                                   @NotNull ConsolePrinter consolePrinter,
+                                                   @NotNull IDevice device) {
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 

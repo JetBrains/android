@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.errors.tryExtractPreferredNdkDownloadVersion
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.CxxConfigurationIssuesReporter.Classification.MISSING_NDK_WITH_PREFERRED_VERSION
@@ -30,12 +30,12 @@ import com.intellij.openapi.vfs.VirtualFile
  */
 class CxxConfigurationIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
 
-  override fun getDeduplicationKey(issue: SyncIssue) : Any = classifySyncIssue(issue)
+  override fun getDeduplicationKey(issue: IdeSyncIssue) : Any = classifySyncIssue(issue)
 
-  override fun getSupportedIssueType() = SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
+  override fun getSupportedIssueType() = IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
 
   override fun getCustomLinks(project: Project,
-                              syncIssues: List<SyncIssue>,
+                              syncIssues: List<IdeSyncIssue>,
                               affectedModules: List<Module>,
                               buildFileMap: MutableMap<Module, VirtualFile>): List<NotificationHyperlink> {
     return when(classifySyncIssue(syncIssues[0])) {
@@ -62,7 +62,7 @@ class CxxConfigurationIssuesReporter : SimpleDeduplicatingSyncIssueReporter() {
   /**
    * Determine which action, if any, is available to address this issue.
    */
-  private fun classifySyncIssue(issue: SyncIssue) =
+  private fun classifySyncIssue(issue: IdeSyncIssue) =
     when {
       tryExtractPreferredNdkDownloadVersion(issue.message) != null -> MISSING_NDK_WITH_PREFERRED_VERSION
       else -> NOT_ACTIONABLE

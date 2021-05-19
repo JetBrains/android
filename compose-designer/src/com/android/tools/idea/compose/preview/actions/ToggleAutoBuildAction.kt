@@ -20,13 +20,13 @@ import com.android.tools.idea.compose.preview.findComposePreviewManagersForConte
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 
-internal class ToggleAutoBuildAction :
+internal class ToggleAutoBuildOnSave :
   CheckboxAction(
-    message("action.auto.build.title"),
-    message("action.auto.build.description"), null) {
-  override fun isSelected(e: AnActionEvent): Boolean = findComposePreviewManagersForContext(e.dataContext).any { it.isAutoBuildEnabled }
+    message("action.build.on.save.title"),
+    message("action.build.on.save.description"), null) {
+  override fun isSelected(e: AnActionEvent): Boolean = findComposePreviewManagersForContext(e.dataContext).any { it.isBuildOnSaveEnabled }
 
   override fun setSelected(e: AnActionEvent, enabled: Boolean) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.isAutoBuildEnabled = enabled }
+    findComposePreviewManagersForContext(e.dataContext).forEach { it.isBuildOnSaveEnabled = enabled }
   }
 }

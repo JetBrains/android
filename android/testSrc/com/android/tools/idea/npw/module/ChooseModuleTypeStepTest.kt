@@ -15,33 +15,46 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
 import com.android.tools.idea.npw.java.NewLibraryModuleDescriptionProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
   fun testSortSingleModuleEntries() {
-    assertThat(sort("Phone & Tablet Module")).containsExactly("Phone & Tablet Module").inOrder()
+    assertThat(sort(message("android.wizard.module.new.mobile"))).containsExactly(message("android.wizard.module.new.mobile")).inOrder()
   }
 
   fun testSortTwoModuleEntries() {
-    assertThat(sort("Android Library", "Phone & Tablet Module")).containsExactly("Phone & Tablet Module", "Android Library").inOrder()
-    assertThat(sort("A", "Phone & Tablet Module")).containsExactly("Phone & Tablet Module", "A").inOrder()
-    assertThat(sort("Wear OS Module", "A")).containsExactly("Wear OS Module", "A").inOrder()
+    assertThat(sort(message("android.wizard.module.new.library"), message("android.wizard.module.new.mobile")))
+      .containsExactly(message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library")).inOrder()
+    assertThat(sort("A", message("android.wizard.module.new.mobile")))
+      .containsExactly(message("android.wizard.module.new.mobile"), "A").inOrder()
+    assertThat(sort(message("android.wizard.module.new.wear"), "A"))
+      .containsExactly(message("android.wizard.module.new.wear"), "A").inOrder()
     assertThat(sort("C", "A")).containsExactly("A", "C").inOrder()
   }
 
   fun testSortFullModuleEntries() {
-    assertThat(sort("Z", "Import .JAR/.AAR Package", "Android Library", "Phone & Tablet Module", "Wear OS Module", "Android TV Module",
-                    "Import Gradle Project", "Import Eclipse ADT Project", "Google Cloud Module", "Java or Kotlin Library", "Benchmark Module",
-                    "A")).containsExactly("Phone & Tablet Module", "Android Library", "Wear OS Module", "Android TV Module",
-                                          "Import Gradle Project", "Import Eclipse ADT Project", "Import .JAR/.AAR Package",
-                                          "Java or Kotlin Library", "Google Cloud Module", "Benchmark Module", "A", "Z").inOrder()
+    assertThat(
+      sort("Z", message("android.wizard.module.new.library"), message("android.wizard.module.new.mobile"),
+           message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
+           message("android.wizard.module.import.gradle.title"), message("android.wizard.module.import.eclipse.title"),
+           message("android.wizard.module.new.google.cloud"), message("android.wizard.module.new.java.or.kotlin.library"),
+           message("android.wizard.module.new.benchmark.module.app"), "A"))
+      .containsExactly(
+        message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
+        message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
+        message("android.wizard.module.import.gradle.title"), message("android.wizard.module.import.eclipse.title"),
+        message("android.wizard.module.new.java.or.kotlin.library"), message("android.wizard.module.new.google.cloud"),
+        message("android.wizard.module.new.benchmark.module.app"), "A", "Z")
+      .inOrder()
   }
 
   fun testSortExistingModuleEntries() {
@@ -53,9 +66,16 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
     val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
 
     val expectedEntries = listOf(
-      "Phone & Tablet Module", "Android Library", "Dynamic Feature Module", "Instant Dynamic Feature Module",
-      "Automotive Module", "Wear OS Module", "Android TV Module", "Android Things Module", "Import Gradle Project",
-      "Import Eclipse ADT Project", "Import .JAR/.AAR Package", "Java or Kotlin Library", "Benchmark Module")
+      message("android.wizard.module.new.mobile"), message("android.wizard.module.new.library"),
+      message("android.wizard.module.new.dynamic.module"), message("android.wizard.module.new.dynamic.module.instant"),
+      message("android.wizard.module.new.automotive"), message("android.wizard.module.new.wear"), message("android.wizard.module.new.tv"),
+      message("android.wizard.module.new.things"), message("android.wizard.module.import.gradle.title"),
+      message("android.wizard.module.import.eclipse.title"), message("android.wizard.module.new.java.or.kotlin.library"),
+      message("android.wizard.module.new.benchmark.module.app"))
+      .filterNot {
+        StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get() &&
+        (it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title"))
+      }
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

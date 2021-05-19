@@ -17,20 +17,29 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.icons.AllIcons
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import icons.StudioIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import java.time.Duration
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 /**
  * Unit tests for [DetailsViewDeviceSelectorListView].
@@ -50,7 +59,7 @@ class DetailsViewDeviceSelectorListViewTest {
   @Test
   fun deviceListIsEmptyByDefault() {
     val view = DetailsViewDeviceSelectorListView(mockListener)
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(0)
+    assertThat(view.deviceList.itemsCount).isEqualTo(0)
   }
 
   @Test
@@ -60,8 +69,8 @@ class DetailsViewDeviceSelectorListViewTest {
 
     view.addDevice(device)
 
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(1)
-    assertThat(view.deviceListForTesting.model.getElementAt(0)).isEqualTo(device)
+    assertThat(view.deviceList.itemsCount).isEqualTo(1)
+    assertThat(view.deviceList.model.getElementAt(0)).isEqualTo(device)
   }
 
   @Test
@@ -73,12 +82,50 @@ class DetailsViewDeviceSelectorListViewTest {
     view.addDevice(device1)
     view.addDevice(device2)
 
-    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(2)
-    assertThat(view.deviceListForTesting.selectedIndices).isEmpty()  // Nothing is selected initially.
+    assertThat(view.deviceList.itemsCount).isEqualTo(2)
+    assertThat(view.deviceList.selectedIndices).isEmpty()  // Nothing is selected initially.
 
-    view.deviceListForTesting.selectedIndex = 0
+    view.deviceList.selectedIndex = 0
 
     verify(mockListener).onDeviceSelected(eq(device1))
+  }
+
+  @Test
+  fun selectRawOutputItem() {
+    val view = DetailsViewDeviceSelectorListView(mockListener)
+    val device = device(id = "device id", name = "device name")
+
+    view.addDevice(device)
+    view.selectRawOutputItem()
+
+    assertThat(view.deviceList.itemsCount).isEqualTo(2)
+    assertThat(view.deviceList.model.getElementAt(0)).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+    assertThat(view.deviceList.model.getElementAt(1)).isEqualTo(device)
+    assertThat(view.deviceList.selectedValue).isInstanceOf(DetailsViewDeviceSelectorListView.RawOutputItem::class.java)
+  }
+
+  @Test
+  fun cellRenderer() {
+    val device = device(id = "device id", name = "<device name>")
+    val results = mock<AndroidTestResults>().apply {
+      `when`(getDuration(eq(device))).thenReturn(Duration.ofMillis(1234))
+      `when`(getTestCaseResult(eq(device))).thenReturn(AndroidTestCaseResult.FAILED)
+    }
+    val view = DetailsViewDeviceSelectorListView(mockListener).apply {
+      addDevice(device)
+      setAndroidTestResults(results)
+    }
+
+    val rendererComponent = view.deviceList.cellRenderer.getListCellRendererComponent(
+      view.deviceList, view.deviceList.model.getElementAt(0), 0, true, true) as JPanel
+    val deviceLabelContainer = rendererComponent.getComponent(0) as JPanel
+    val deviceLabel = deviceLabelContainer.getComponent(1) as JLabel
+    val statusLabel = rendererComponent.getComponent(1) as JLabel
+
+    assertThat(deviceLabel.text).isEqualTo("<html>&lt;device name&gt;<br><font color='#999999'>API 28 - 1 s</font></html>")
+    assertThat(deviceLabel.icon).isSameAs(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+    assertThat(statusLabel.text).isEqualTo("")
+    assertThat(statusLabel.icon).isSameAs(AllIcons.RunConfigurations.TestFailed)
   }
 
   private fun device(id: String, name: String): AndroidDevice {

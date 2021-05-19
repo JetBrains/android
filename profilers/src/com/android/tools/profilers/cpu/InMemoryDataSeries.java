@@ -18,8 +18,9 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,41 +29,42 @@ import org.jetbrains.annotations.NotNull;
  * returned if {@link #getDataForRange(Range)} receives a range with maximum length.
  */
 abstract class InMemoryDataSeries<T> implements DataSeries<T> {
-
+  /**
+   * @return list of {@link SeriesData} within the given range, plus the data points before/after unless they match exactly the boundaries
+   * of the given range.
+   */
   @Override
   public List<SeriesData<T>> getDataForRange(Range range) {
-    long min = (long)range.getMin();
-    long max = (long)range.getMax();
-    List<SeriesData<T>> series = new ArrayList<>();
+    List<SeriesData<T>> result = new ArrayList<>();
     List<SeriesData<T>> seriesDataList = inMemoryDataList();
-    if (seriesDataList.isEmpty()) {
-      return series;
+    if (seriesDataList.isEmpty() || range.isEmpty()) {
+      return result;
     }
-    for (int i = 0; i < seriesDataList.size() - 1; i++) {
-      SeriesData<T> data = seriesDataList.get(i);
-      SeriesData<T> nextData = seriesDataList.get(i + 1);
-      // If our series overlaps with the start of the range upto excluding the end. We add the series.
-      if (data.x >= max) {
-        break;
-      }
-      // If our next series is greater than our min then we add our current element to the return set. This works because
-      // we want to add the element just before our range starts so checking the next element gives us that.
-      // After that point all elements will be greater than our min until our current element is > than our max in which case
-      // we break out of the loop.
-      if (nextData.x > min) {
-        series.add(data);
-      }
+    // Create fake SeriesData for min and max as search keys.
+    SeriesData<Object> minSearchKey = new SeriesData<>((long)range.getMin(), null);
+    SeriesData<Object> maxSearchKey = new SeriesData<>((long)range.getMax(), null);
+    int minIndex = Collections.binarySearch(seriesDataList, minSearchKey, Comparator.comparingLong(o -> o.x));
+    int maxIndex = Collections.binarySearch(seriesDataList, maxSearchKey, Comparator.comparingLong(o -> o.x));
+    // When the search key is not found, binarySearch returns (-insertion_point - 1), where insertion_point is the index at which the key
+    // would be inserted into the list.
+    if (minIndex < 0) {
+      // Range.min not found. The insertion_point is (-minIndex - 1). We want to include the point before it, i.e. (insertion_point - 1),
+      // unless it is already the first point.
+      minIndex = Math.max(-minIndex - 2, 0);
     }
-    SeriesData<T> lastElement = seriesDataList.get(seriesDataList.size() - 1);
-    // Always add the last element if it is less than the max.
-    if (lastElement.x < max) {
-      series.add(lastElement);
+    if (maxIndex < 0) {
+      // Range.max not found. The insertion_point is (-maxIndex - 1). We want to include the point after it, i.e. insertion_point, unless it
+      // is already the last point.
+      maxIndex = Math.min(-maxIndex - 1, seriesDataList.size() - 1);
     }
-    return series;
+    // Return all data points from minIndex to maxIndex, both inclusive.
+    result.addAll(seriesDataList.subList(minIndex, maxIndex + 1));
+    return result;
   }
 
   /**
-   * Returns all the {@link SeriesData} stored in memory, to be filtered by range in {@link #getDataForRange(Range)}
+   * @return all the {@link SeriesData} stored in memory (sorted by {@link SeriesData#x}, to be filtered by range in
+   * {@link #getDataForRange(Range)}. Note that for best performance it is recommended to returning a {@link java.util.RandomAccess} list.
    */
   @NotNull
   protected abstract List<SeriesData<T>> inMemoryDataList();

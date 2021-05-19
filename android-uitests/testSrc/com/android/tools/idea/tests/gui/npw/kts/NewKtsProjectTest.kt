@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.npw.kts
 import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroidProjectStepFixture
@@ -71,6 +71,7 @@ class NewKtsProjectTest {
       contains("applicationId =")
       contains("minSdkVersion(")
       contains("isMinifyEnabled =")
+      doesNotContainMatch("""buildToolsVersion ['"]""")
     }
   }
 

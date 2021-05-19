@@ -26,7 +26,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
-import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
@@ -49,14 +49,14 @@ data class ClassEnumValue(override val value: String,
     val component = property.components.firstOrNull() ?: return false
     val layout = findLayoutForClass(component, value)
 
-    TransactionGuard.submitTransaction(property.model, Runnable {
+    ApplicationManager.getApplication().invokeLater(Runnable {
       NlWriteCommandActionUtil.run(property.components,
                                    "Set $component.tagName.${property.name} to $value") {
         property.value = value
         property.components.forEach { it.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
         property.components.forEach { it.setAttribute(AUTO_URI, ATTR_MODULE_NAME, moduleName) }
       }
-    })
+    }, property.project.disposed)
 
     return true
   }

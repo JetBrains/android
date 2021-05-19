@@ -19,12 +19,12 @@ import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.Color;
 import java.awt.Font;
@@ -76,8 +76,8 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
       return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
-    else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
+    else if (nodeModel instanceof SystemTraceNodeModel) {
+      return SystemTraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     else if (nodeModel instanceof SingleNameModel) {
       return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
@@ -91,16 +91,16 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // The only nodes that actually show idle time are the atrace nodes. As such they are the only ones,
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
-    if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
+    if (nodeModel instanceof SystemTraceNodeModel) {
+      return SystemTraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     return getFillColor(node, isFocused, isDeselected);
   }
 
   private Color getTextColor(CaptureNode node, boolean isDeselected) {
     CaptureNodeModel nodeModel = node.getData();
-    if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getTextColor(nodeModel, myType, isDeselected);
+    if (nodeModel instanceof SystemTraceNodeModel) {
+      return SystemTraceNodeModelHChartColors.getTextColor(nodeModel, myType, isDeselected);
     }
     return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }
@@ -133,7 +133,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     double threadLength = node.getEndThread() - node.getStartThread();
     // If we have a difference in our clock length and thread time that means we have idle time.
     // For now we only do this for node that have an atrace capture node model.
-    if (nodeModel instanceof AtraceNodeModel && threadLength > 0 && clockLength - threadLength > 0) {
+    if (nodeModel instanceof SystemTraceNodeModel && threadLength > 0 && clockLength - threadLength > 0) {
       // Idle time width is 1 minus the  ratio of clock time, and thread time.
       double ratio = 1 - (threadLength / clockLength);
       double idleTimeWidth = ratio * fullDrawingArea.getWidth();
@@ -170,11 +170,15 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
 
     float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
     float availableHeight = (float)drawingArea.getHeight();
-    String text = generateFittingText(
-      node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
-    float textPositionX = MARGIN_PX + (float)drawingArea.getX();
-    float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
-    g.drawString(text, textPositionX, textPositionY);
+    // Testing text fit can be slow from calling FontMetrics#stringWidth, so skip the calculation here if [availableWidth] is sufficiently
+    // small.
+    if (availableWidth > 1.0f) {
+      String text = generateFittingText(
+        node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
+      float textPositionX = MARGIN_PX + (float)drawingArea.getX();
+      float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
+      g.drawString(text, textPositionX, textPositionY);
+    }
 
     g.setFont(restoreFont);
   }

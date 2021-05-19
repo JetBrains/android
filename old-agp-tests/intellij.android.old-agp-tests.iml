@@ -6,6 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -31,5 +34,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" scope="TEST" />
   </component>
 </module>

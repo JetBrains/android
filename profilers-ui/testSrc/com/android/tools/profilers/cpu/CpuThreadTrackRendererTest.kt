@@ -35,7 +35,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
-import com.android.tools.profilers.cpu.atrace.SystemTraceCpuCapture
+import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
@@ -72,10 +72,15 @@ class CpuThreadTrackRendererTest {
     val threadInfo = CpuThreadInfo(1, "Thread-1")
     val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
     val captureNode = CaptureNode(StubCaptureNodeModel())
-    val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
-    Mockito.`when`(mockCapture.range).thenReturn(Range())
-    Mockito.`when`(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
-    Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(captureNode)
+    val sysTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
+      Mockito.`when`(getThreadStatesForThread(1)).thenReturn(listOf())
+    }
+    val mockCapture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(range).thenReturn(Range())
+      Mockito.`when`(type).thenReturn(Cpu.CpuTraceType.ATRACE)
+      Mockito.`when`(getCaptureNode(1)).thenReturn(captureNode)
+      Mockito.`when`(systemTraceData).thenReturn(sysTraceData)
+    }
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
         mockCapture,

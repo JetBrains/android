@@ -38,12 +38,4 @@ public final class StateListActionGroups extends ToolbarActionGroups {
 
     return group;
   }
-
-  @NotNull
-  @Override
-  protected ActionGroup getNorthEastGroup() {
-    DefaultActionGroup group = new DefaultActionGroup();
-    group.addAll(getZoomActions());
-    return group;
-  }
 }

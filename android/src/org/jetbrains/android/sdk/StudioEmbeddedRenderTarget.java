@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,20 +47,6 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   private static final Logger LOG = Logger.getInstance(StudioEmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
   private static final String FRAMEWORK_RES_JAR = "framework_res.jar";
-
-  public static final String LAYOUTLIB_BUNDLED_PATH = "plugins/android/lib/layoutlib/";
-
-  // Possible paths of the embedded "layoutlib" directory.
-  private static final String[] EMBEDDED_LAYOUTLIB_PATHS = {
-    // Bundled path.
-    LAYOUTLIB_BUNDLED_PATH,
-    // Development path.
-    "../../prebuilts/studio/layoutlib/",
-    // IDEA path.
-    "community/build/dependencies/build/android-sdk/layoutlib/plugins/android/lib/layoutlib",
-    // IDEA community path.
-    "build/dependencies/build/android-sdk/layoutlib/plugins/android/lib/layoutlib"
-  };
 
   @Nullable private final String myBasePath;
 
@@ -122,20 +109,30 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   public static String getEmbeddedLayoutLibPath() {
     String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath() + "/");
 
+    // Possible paths of the embedded "layoutlib" directory.
+    final String[] paths = {
+      FileUtil.join(homePath, "plugins/android/lib/layoutlib/"), // Bundled path.
+      StudioPathManager.isRunningFromSources() //Dev path.
+      ? FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/")
+      : null,
+      FileUtil.join(homePath, "community/android/tools-base/layoutlib/"), // IDEA path.
+      FileUtil.join(homePath, "android/tools-base/layoutlib/"), // IDEA community path.
+    };
+
     StringBuilder notFoundPaths = new StringBuilder();
-    for (String path : EMBEDDED_LAYOUTLIB_PATHS) {
-      String jarPath = homePath + path;
-      VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jarPath));
+    for (String path : paths) {
+      if (path == null) continue;
+      VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
 
       if (root != null) {
         File rootFile = VfsUtilCore.virtualToIoFile(root);
         if (rootFile.exists() && rootFile.isDirectory()) {
-          LOG.debug("Embedded layoutlib found at " + jarPath);
+          LOG.debug("Embedded layoutlib found at " + path);
           return rootFile.getAbsolutePath() + File.separator;
         }
       }
       else {
-        notFoundPaths.append(jarPath).append('\n');
+        notFoundPaths.append(path).append('\n');
       }
     }
 

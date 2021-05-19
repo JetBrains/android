@@ -16,12 +16,10 @@
 package org.jetbrains.android.dom;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.reflect.DomExtender;
 import com.intellij.util.xml.reflect.DomExtensionsRegistrar;
 import java.util.Set;
-import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +48,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
 
   @Override
   public void registerExtensions(@NotNull AndroidDomElement element, @NotNull final DomExtensionsRegistrar registrar) {
-    if (element instanceof LayoutElement) {
-      if (StudioFlags.LAYOUT_XML_MODE.get() == StudioFlags.LayoutXmlMode.NO_DOM_EXTENDER) {
-        return;
-      }
-    }
     final AndroidFacet facet = AndroidFacet.getInstance(element);
 
     if (facet == null) {
@@ -67,8 +60,6 @@ public class AndroidDomExtender extends DomExtender<AndroidDomElement> {
       return registrar.registerGenericAttributeValueChildExtension(xmlName, valueClass);
     });
 
-    if (!(element instanceof LayoutElement) || StudioFlags.LAYOUT_XML_MODE.get() != StudioFlags.LayoutXmlMode.CUSTOM_CHILDREN) {
-      SubtagsProcessingUtil.processSubTags(facet, element, true, registrar::registerCollectionChildrenExtension);
-    }
+    SubtagsProcessingUtil.processSubTags(facet, element, true, registrar::registerCollectionChildrenExtension);
   }
 }

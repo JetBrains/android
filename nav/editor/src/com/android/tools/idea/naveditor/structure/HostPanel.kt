@@ -19,16 +19,16 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_NAV_GRAPH
-import com.android.SdkConstants.VIEW_FRAGMENT
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.resources.ResourceFolderType
+import com.android.support.FragmentTagUtil.isFragmentTag
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
@@ -55,7 +55,7 @@ import com.intellij.util.Query
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription
+import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isFileInResourceFolderType
 import org.jetbrains.android.dom.navigation.isNavHostFragment
 import java.awt.BorderLayout
 import java.awt.CardLayout
@@ -117,9 +117,7 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
     add(createEmptyPanel(), "EMPTY")
     cardLayout.show(this, "LOADING")
 
-    if (!StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
-      list.emptyText.text = "No NavHostFragments found"
-    }
+    list.emptyText.text = "No NavHostFragments found"
 
     list.background = secondaryPanelBackground
     if (GeneralSettings.getInstance().isSupportScreenReaders) {
@@ -210,39 +208,50 @@ class HostPanel(private val surface: DesignSurface) : AdtSecondaryPanel(CardLayo
       }
 
       val psi = AndroidPsiUtils.getPsiFileSafely(model.project, model.virtualFile) as? XmlFile ?: return@executeOnPooledThread
+      surface.model?.project?.let { project ->
+        (list.model as DefaultListModel).clear()
+        DumbService.getInstance(project).waitForSmartMode()
+        doLoad(psi)
+      }
+    }
+  }
 
-      ProgressManager.getInstance().executeProcessUnderProgress(
-        {
-          surface.model?.project?.let { project ->
-            val listModel = list.model as DefaultListModel
-            listModel.clear()
-            val module = surface.model?.module
-            if (module != null) {
-              DumbService.getInstance(project).runReadActionInSmartMode {
-                findReferences(psi, module).forEach { listModel.addElement(SmartPointerManager.createPointer(it)) }
-              }
-            }
-          }
-          val name = if (list.model.size == 0 && StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
-            "EMPTY"
-          }
-          else {
-            "LIST"
-          }
-          cardLayout.show(this, name)
-        }, EmptyProgressIndicator())
+  private fun doLoad(psiFile: XmlFile) {
+    val cancellableAction = {
+      val listModel = list.model as DefaultListModel
+      listModel.clear()
+      val module = surface.model?.module
+      if (module != null) {
+        val newReferences = findReferences(psiFile, module).map { SmartPointerManager.createPointer(it) }
+        newReferences.forEach { listModel.addElement(it) }
+      }
+      val name = if (list.model.size == 0) {
+        "EMPTY"
+      }
+      else {
+        "LIST"
+      }
+      cardLayout.show(this, name)
+    }
+    repeat(1000) {
+      if (ProgressManager.getInstance().runInReadActionWithWriteActionPriority(cancellableAction, EmptyProgressIndicator())) {
+        return
+      }
+      Thread.sleep(10)
     }
   }
 }
 
 @VisibleForTesting
 fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
+  ProgressManager.checkCanceled()
   val result = mutableListOf<XmlTag>()
   val query: Query<PsiReference> = ReferencesSearch.search(psi)
   for (ref: PsiReference in query) {
+    ProgressManager.checkCanceled()
     val element = ref.element as? XmlAttributeValue ?: continue
     val file = element.containingFile as? XmlFile ?: continue
-    if (!LayoutDomFileDescription.isLayoutFile(file)) {
+    if (!isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)) {
       continue
     }
     val attribute = element.parent as? XmlAttribute ?: continue
@@ -250,7 +259,7 @@ fun findReferences(psi: XmlFile, module: Module): List<XmlTag> {
       continue
     }
     val tag = attribute.parent
-    if (tag.name != VIEW_FRAGMENT) {
+    if (!isFragmentTag(tag.name)) {
       continue
     }
     val className = tag.getAttributeValue(ATTR_NAME, ANDROID_URI) ?: continue
@@ -276,7 +285,7 @@ private fun createEmptyPanel(): Component {
   return panel
 }
 
-private fun addLabel(text: String, container: Container, separation: Int = 0) {
+private fun addLabel(text: String, container: Container) {
   val label = JBLabel(text)
   label.isEnabled = false
   container.add(label)

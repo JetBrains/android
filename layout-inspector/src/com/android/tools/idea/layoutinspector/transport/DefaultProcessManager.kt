@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.transport
 
+import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamEventListener
 import com.android.tools.idea.transport.manager.TransportStreamListener
@@ -27,8 +28,8 @@ import com.android.tools.profiler.proto.TransportServiceGrpc.TransportServiceBlo
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import java.util.ArrayDeque
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -67,7 +68,7 @@ class DefaultProcessManager(
   /**
    * Contains the streams for which a process may have changed state.
    */
-  private val invalidations = object : ArrayDeque<Common.Stream>() {
+  private val invalidations = object : ConcurrentLinkedDeque<Common.Stream>() {
     // Override add to make this Deque function as Set.
     // i.e. multiple invalidation of the same stream should only cause a single update.
     override fun add(element: Common.Stream): Boolean {
@@ -79,8 +80,9 @@ class DefaultProcessManager(
     override fun onStreamConnected(streamChannel: TransportStreamChannel) {
       if (streamFilter(streamChannel.stream)) {
         addStream(streamChannel.stream)
+        val streamQuery = StreamEventQuery(eventKind = PROCESS)
         streamChannel.registerStreamEventListener(
-          TransportStreamEventListener(eventKind = PROCESS, executor = executor) {
+          TransportStreamEventListener(streamEventQuery = streamQuery, executor = executor) {
             invalidateCache(streamChannel.stream)
           }
         )
@@ -147,7 +149,9 @@ class DefaultProcessManager(
     }
     finally {
       validationScheduled.set(false)
-      stream?.let { scheduleNext() }
+      if (invalidations.isNotEmpty()) {
+        scheduleNext()
+      }
     }
   }
 

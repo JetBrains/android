@@ -16,10 +16,52 @@
 package com.android.tools.idea.lint.common;
 
 import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.detector.api.LintFix;
+import com.intellij.psi.PsiElement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 public class AndroidLintGradleDeprecatedConfigurationInspection extends AndroidLintInspectionBase {
   public AndroidLintGradleDeprecatedConfigurationInspection() {
     super(LintBundle.message("android.lint.inspections.gradle.deprecated.configuration"), GradleDetector.DEPRECATED_CONFIGURATION);
+  }
+
+  @NotNull
+  @Override
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
+    LintIdeQuickFix[] quickFixes = super.getQuickFixes(startElement, endElement, message, fixData);
+    if (!LintIdeSupport.get().shouldOfferUpgradeAssistantForDeprecatedConfigurations(startElement.getProject())) {
+      return quickFixes;
+    }
+    return Stream.concat(Arrays.stream(quickFixes), Stream.of(new InvokeAGPUpgradeAssistantQuickFix())).toArray(LintIdeQuickFix[]::new);
+  }
+
+  class InvokeAGPUpgradeAssistantQuickFix implements LintIdeQuickFix {
+    @Override
+    public void apply(@NotNull PsiElement startElement,
+                      @NotNull PsiElement endElement,
+                      @NotNull AndroidQuickfixContexts.Context context) {
+      LintIdeSupport.get().updateDeprecatedConfigurations(startElement.getProject(), startElement);
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull PsiElement startElement,
+                                @NotNull PsiElement endElement,
+                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return "Invoke AGP Upgrade Assistant on deprecated configurations";
+    }
   }
 }

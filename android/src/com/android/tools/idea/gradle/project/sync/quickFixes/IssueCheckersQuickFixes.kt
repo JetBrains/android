@@ -23,7 +23,7 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor

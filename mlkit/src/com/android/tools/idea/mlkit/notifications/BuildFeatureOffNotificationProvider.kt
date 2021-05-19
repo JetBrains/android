@@ -20,7 +20,7 @@ import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getSyncManager
-import com.android.tools.idea.templates.getDummyModuleTemplateDataBuilder
+import com.android.tools.idea.templates.getExistingModuleTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.template.Recipe
@@ -77,7 +77,7 @@ class BuildFeatureOffNotificationProvider : EditorNotifications.Provider<EditorN
       module.project,
       module,
       "Add build feature mlModelBinding",
-      getDummyModuleTemplateDataBuilder(module.project).build(),
+      getExistingModuleTemplateDataBuilder(module).build(),
       showErrors = true,
       dryRun = false,
       moduleRoot = null

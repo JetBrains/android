@@ -59,7 +59,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         LibraryOrSdkOrderEntry orderEntry = value.getOrderEntry();
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();
-          if (sdk.getSdkType() instanceof JavaSdk) {
+          if (sdk != null && sdk.getSdkType() instanceof JavaSdk) {
             List<AbstractTreeNode<?>> newChildren = new ArrayList<>();
             for (AbstractTreeNode child : children) {
               if (isRtJar(child)) {

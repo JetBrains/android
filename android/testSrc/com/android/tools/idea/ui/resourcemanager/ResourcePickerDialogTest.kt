@@ -191,6 +191,7 @@ class ResourcePickerDialogTest {
                                             supportedTypes = supportedTypes,
                                             preferredType = preferredType,
                                             showSampleData = showSampleData,
+                                            showThemeAttributes = true,
                                             currentFile = null)
     }
     assertThat(explorerDialog).isNotNull()

@@ -17,6 +17,7 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.util.HumanReadableUtil;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.apk.analyzer.AndroidApplicationInfo;
 import com.android.tools.apk.analyzer.ArchiveEntry;
@@ -58,7 +59,6 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import icons.StudioIcons;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DecimalFormat;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
@@ -302,7 +302,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     mySizeComponent.setIcon(AllIcons.General.BalloonInformation);
     if (myApkParser.getArchive() instanceof ApkArchive) {
       mySizeComponent.append("APK size: ");
-      mySizeComponent.append(getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      mySizeComponent.append(HumanReadableUtil.getHumanizedSize(uncompressed), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       mySizeComponent.append(", Download Size: ");
       mySizeComponent.setToolTipText(
         "1. The <b>APK size</b> reflects the actual size of the file, and is the minimum amount of space it will consume on the disk after "
@@ -317,7 +317,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     } else {
       mySizeComponent.append("Raw File Size: ");
     }
-    mySizeComponent.append(getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+    mySizeComponent.append(HumanReadableUtil.getHumanizedSize(compressedFullApk), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
   }
 
   private void setAppInfo(@NotNull AndroidApplicationInfo appInfo) {
@@ -365,27 +365,6 @@ public class ApkViewPanel implements TreeSelectionListener {
         }
       }
       myListener.selectionChanged(components);
-    }
-  }
-
-  public static String getHumanizedSize(long sizeInBytes) {
-    long kilo = 1024;
-    long mega = kilo * kilo;
-
-    DecimalFormat formatter = new DecimalFormat("#.#");
-
-    int sign = sizeInBytes < 0 ? -1 : 1;
-
-    sizeInBytes = Math.abs(sizeInBytes);
-
-    if (sizeInBytes > mega) {
-      return formatter.format((sign * sizeInBytes) / (double)mega) + " MB";
-    }
-    else if (sizeInBytes > kilo) {
-      return formatter.format((sign * sizeInBytes) / (double)kilo) + " KB";
-    }
-    else {
-      return (sign * sizeInBytes) + " B";
     }
   }
 
@@ -482,7 +461,7 @@ public class ApkViewPanel implements TreeSelectionListener {
       ArchiveEntry data = ((ArchiveTreeNode)value).getData();
       long size = myUseDownloadSize ? data.getDownloadFileSize() : data.getRawFileSize();
       if (size > 0) {
-        append(getHumanizedSize(size));
+        append(HumanReadableUtil.getHumanizedSize(size));
       }
     }
   }

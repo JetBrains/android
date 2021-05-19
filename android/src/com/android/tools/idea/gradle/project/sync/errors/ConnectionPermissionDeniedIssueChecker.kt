@@ -26,7 +26,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.openapi.application.invokeLater
-import org.jetbrains.kotlin.tools.projectWizard.core.failure
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.function.Consumer
 import java.util.regex.Pattern

@@ -56,7 +56,7 @@ public class CpuCaptureMinimapView {
   public CpuCaptureMinimapView(@NotNull CpuCaptureMinimapModel model) {
     myInnerPanel = new JPanel(new TabularLayout("*", "*"));
     myInnerPanel.setBackground(StudioColorsKt.getPrimaryContentBackground());
-    myInnerPanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1));
+    myInnerPanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
 
     JLabel chartLabel = new JLabel();
     chartLabel.setText("CPU Usage");
@@ -81,7 +81,7 @@ public class CpuCaptureMinimapView {
     }
 
     myPanel = new JPanel(new TabularLayout("*", "60px"));
-    myPanel.setBorder(JBUI.Borders.empty(4, 8));
+    myPanel.setBorder(JBUI.Borders.empty(0, 8));
     myPanel.setBackground(StudioColorsKt.getPrimaryPanelBackground());
     myPanel.add(myInnerPanel, new TabularLayout.Constraint(0, 0));
   }

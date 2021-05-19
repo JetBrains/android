@@ -65,7 +65,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
     getter = { asString() },
     setter = { setValue(it) },
     parser = ::parseString,
-    defaultValueGetter = { it.resolvedNativeModel?.androidProject?.defaultNdkVersion },
+    defaultValueGetter = { it.resolvedNativeModel?.defaultNdkVersion },
     knownValuesGetter = ::ndkVersionValues,
     variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
   )
@@ -97,7 +97,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val viewBindingEnabled: SimpleProperty<PsAndroidModule, Boolean> = property(
     "Enable View Binding",
     preferredVariableName = { "viewBindingEnabled" },
-    resolvedValueGetter = { viewBindingOptions?.isEnabled },
+    resolvedValueGetter = { viewBindingOptions?.enabled },
     parsedPropertyGetter = { viewBinding().enabled() },
     getter = { asBoolean() },
     setter = { setValue(it) },

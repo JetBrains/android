@@ -15,10 +15,16 @@
  */
 package com.android.tools.idea.npw.importing
 
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.ModuleImporter
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.observable.core.StringValueProperty
+import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.wizard.model.WizardModel
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.NO_ACTIVITY
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule.ModuleType.IMPORT_GRADLE
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -49,6 +55,25 @@ class SourceToGradleModuleModel(
     ApplicationManager.getApplication().invokeLater {
       projectSyncInvoker.syncProject(project)
     }
+
+    val templateComponentBuilder = AndroidStudioEvent.TemplatesUsage.TemplateComponent.newBuilder().apply {
+      templateType = NO_ACTIVITY
+      wizardUiContext = NEW_MODULE
+    }
+
+    val templateModuleBuilder = AndroidStudioEvent.TemplatesUsage.TemplateModule.newBuilder().apply {
+      moduleType = IMPORT_GRADLE
+    }
+
+    val aseBuilder = AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.TEMPLATE)
+      .setKind(AndroidStudioEvent.EventKind.WIZARD_TEMPLATES_USAGE)
+      .setTemplateUsage(
+        AndroidStudioEvent.TemplatesUsage.newBuilder()
+          .setTemplateComponent(templateComponentBuilder)
+          .setTemplateModule(templateModuleBuilder)
+      )
+    UsageTracker.log(aseBuilder.withProjectId(project))
   }
 
   fun setModulesToImport(value: Map<String, VirtualFile>) {

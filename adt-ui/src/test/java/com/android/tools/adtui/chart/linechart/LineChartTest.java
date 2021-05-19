@@ -15,23 +15,32 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
-import com.android.tools.adtui.model.*;
-import com.google.common.truth.Truth;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.BasicStroke.CAP_SQUARE;
+import static java.awt.BasicStroke.JOIN_MITER;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import java.awt.*;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.*;
-import static java.awt.BasicStroke.CAP_SQUARE;
-import static java.awt.BasicStroke.JOIN_MITER;
-import static org.mockito.Mockito.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class LineChartTest {
 
@@ -149,7 +158,7 @@ public class LineChartTest {
   }
 
   @Test
-  public void testAdjustDashPhaseForSteppedConfig() throws Exception {
+  public void testAdjustDashPhaseForSteppedConfig() {
     LineChartModel model = new LineChartModel();
     Range xRange = new Range(0, 15);
     Range yRange = new Range(0, 15);
@@ -250,21 +259,21 @@ public class LineChartTest {
 
     // Configure Mocks.
     Graphics2D fakeGraphics = mock(Graphics2D.class);
-    ArgumentCaptor valueCapture = ArgumentCaptor.forClass(Shape.class);
+    ArgumentCaptor<Path2D.Float> valueCapture = ArgumentCaptor.forClass(Path2D.Float.class);
     when(fakeGraphics.create()).thenReturn(fakeGraphics);
-    doNothing().when(fakeGraphics).draw((Shape)valueCapture.capture());
+    doNothing().when(fakeGraphics).draw(valueCapture.capture());
 
     // Update and draw chart.
     shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
     java.util.List<Path2D.Float> values = valueCapture.getAllValues();
-    Assert.assertEquals(values.size(), 1);
+    assertThat(values).hasSize(1);
 
     // Validate each point
     PathIterator it = values.get(0).getPathIterator(null);
     for (int i = 0; !it.isDone() && i < expectedPoints.length; i++) {
       float[] coords = new float[2];
       it.currentSegment(coords);
-      Assert.assertArrayEquals(expectedPoints[i], coords, 0.000001f);
+      assertThat(coords).usingTolerance(0.000001f).containsExactly(expectedPoints[i]);
       it.next();
     }
   }
@@ -308,21 +317,21 @@ public class LineChartTest {
 
     // Configure Mocks.
     Graphics2D fakeGraphics = mock(Graphics2D.class);
-    ArgumentCaptor valueCapture = ArgumentCaptor.forClass(Shape.class);
+    ArgumentCaptor<Path2D.Float> valueCapture = ArgumentCaptor.forClass(Path2D.Float.class);
     when(fakeGraphics.create()).thenReturn(fakeGraphics);
-    doNothing().when(fakeGraphics).draw((Shape)valueCapture.capture());
+    doNothing().when(fakeGraphics).draw(valueCapture.capture());
 
     // Update and draw chart.
     shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
     java.util.List<Path2D.Float> values = valueCapture.getAllValues();
-    Assert.assertEquals(1, values.size());
+    assertThat(values).hasSize(1);
 
     // Validate each point
     PathIterator it = values.get(0).getPathIterator(null);
     for (int i = 0; !it.isDone(); i++) {
       float[] coords = new float[2];
       it.currentSegment(coords);
-      Assert.assertArrayEquals(coords, expectedPoints[i], 0.000001f);
+      assertThat(coords).usingTolerance(0.000001f).containsExactly(expectedPoints[i]);
       it.next();
     }
   }
@@ -357,6 +366,71 @@ public class LineChartTest {
     }
   }
 
+  @Test
+  public void drawPathWhenAllPointsAreOutsideRange() {
+    // LineChart will draw on a canvas of width 4 and height 10
+    int windowWidth = 4;
+    int windowHeight = 10;
+    Range xRange = new Range(4, 8);
+    Range dataRange = new Range(0, 8);
+    Range yRange = new Range(0, 10);
+    LineChartModel model = new LineChartModel();
+
+    // We add two data points outside of the View Range. When fillEndGap is set to true,
+    // a line should be drawn across the entire range using the last data point.
+    //
+    //      |   |
+    //    * -----
+    //  *   |   |
+    //  2 3 4 5 6
+    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
+    testSeries.add(2, 4L);
+    testSeries.add(3, 6L);
+
+    /*
+     * We expect that our LineChart draws the last point at the beginning of the range
+     * (4,6) and extend it to (8,6).
+     * Since Swing's (0,0) is in the top left, our y values 6 will turn into 4 to represent
+     * their offset from the top; since the x values are normalized to starting at 4, we
+     * thus expect the points (0,4) and (4,4)
+     */
+    float[][] expectedPoints = {
+      {0.0f, 4.0f},
+      {4.0f, 4.0f}
+    };
+
+    RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries, dataRange);
+    model.add(rangedSeries);
+
+    // Configure Chart.
+    LineChart chart = new LineChart(model);
+    chart.setSize(windowWidth, windowHeight);
+    BasicStroke stroke = new BasicStroke(1f);
+    LineConfig config = new LineConfig(Color.BLACK).setStroke(stroke).setStepped(false);
+    chart.configure(rangedSeries, config);
+    chart.setFillEndGap(true);
+
+    // Configure Mocks.
+    Graphics2D fakeGraphics = mock(Graphics2D.class);
+    ArgumentCaptor<Path2D.Float> valueCapture = ArgumentCaptor.forClass(Path2D.Float.class);
+    when(fakeGraphics.create()).thenReturn(fakeGraphics);
+    doNothing().when(fakeGraphics).draw(valueCapture.capture());
+
+    // Update and draw chart.
+    shiftRangeAndRepaintChart(chart, model, xRange, fakeGraphics, 0);
+    java.util.List<Path2D.Float> values = valueCapture.getAllValues();
+    assertThat(values).hasSize(1);
+
+    // Validate each point
+    PathIterator it = values.get(0).getPathIterator(null);
+    for (int i = 0; !it.isDone(); i++) {
+      float[] coords = new float[2];
+      it.currentSegment(coords);
+      assertThat(coords).usingTolerance(0.000001f).containsExactly(expectedPoints[i]);
+      it.next();
+    }
+  }
+
   /**
    * Helper function to convert from series data to expected test value.
    *
@@ -367,17 +441,17 @@ public class LineChartTest {
    * @param windowHeight the scaler used to scale the y points back to the window size.
    * @return the pixel location of two Y values interpolated between some ratio.
    */
-  private float computeYValue(float previousY, float nextY, float ratio, Range range, int windowHeight) {
+  private static float computeYValue(float previousY, float nextY, float ratio, Range range, int windowHeight) {
     double ydPrev = 1 - (previousY - range.getMin()) / range.getLength();
     double ydNext = 1 - (nextY - range.getMin()) / range.getLength();
     return (float)((((1 - ratio) * ydPrev) + (ratio * ydNext)) * windowHeight);
   }
 
-  private void shiftRangeAndRepaintChart(@NotNull LineChart chart,
-                                         @NotNull LineChartModel model,
-                                         @NotNull Range range,
-                                         @NotNull Graphics graphics,
-                                         double delta) {
+  private static void shiftRangeAndRepaintChart(@NotNull LineChart chart,
+                                                @NotNull LineChartModel model,
+                                                @NotNull Range range,
+                                                @NotNull Graphics graphics,
+                                                double delta) {
     range.shift(delta);
     model.update(FakeTimer.ONE_SECOND_IN_NS);
     chart.paint(graphics);

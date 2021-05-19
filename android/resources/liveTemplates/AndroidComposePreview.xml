@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="AndroidComposePreview">
+  <template name="prev"
+            value="@androidx.ui.tooling.preview.Preview&#10;@androidx.compose.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
+            description="Create @Preview composable function"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
+
+  <!-- region Data sources -->
+  <template name="prevCol"
+            value="class $NAME$: CollectionPreviewParameterProvider&lt;$TYPE$&gt;(listOf($DATA$))"
+            description="Creates a CollectionPreviewParameterProvider"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+    <variable name="TYPE" expression="" defaultValue="" alwaysStopAt="true"/>
+    <variable name="DATA" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_CLASS" value="false"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+      <option name="KOTLIN_EXPRESSION" value="false"/>
+      <option name="KOTLIN_OBJECT_DECLARATION" value="false"/>
+      <option name="KOTLIN_STATEMENT" value="false"/>
+    </context>
+  </template>
+  <!-- endregion -->
+</templateSet>
+

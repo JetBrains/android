@@ -111,7 +111,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
     rememberAttributes()
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
+  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>, ignored: SceneContext) {
     if (myComponent.parent == null) {
       return
     }

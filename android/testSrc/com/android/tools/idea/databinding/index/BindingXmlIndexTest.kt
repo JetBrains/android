@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.index
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -111,6 +110,36 @@ class BindingXmlIndexTest {
   }
 
   @Test
+  fun indexBindingLayoutSkipsComments() {
+    val file = fixture.configureByText(
+      "layout.xml",
+      // language=XML
+      """
+      <!-- Leading comment -->
+      <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- Normally & unescaped isn't allowed but should be OK in a comment -->
+        <TextView android:id="@+id/testId1"/>
+        <!-- Comment in the middle -->
+        <Button android:id="@+id/testId2"/> <!-- Same line comment -->
+      </constraint_layout>
+      <!-- Trailing comment that we "forgot" to close
+    """.trimIndent()).virtualFile
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    val data = map.values.first()
+    assertThat(data.layoutType).isEqualTo(BindingLayoutType.PLAIN_LAYOUT)
+    assertThat(data.rootTag).isEqualTo("constraint_layout")
+    assertThat(data.customBindingName).isNull()
+    assertThat(data.viewBindingIgnore).isFalse()
+    assertThat(data.imports).isEmpty()
+    assertThat(data.variables).isEmpty()
+    assertThat(data.viewIds).containsExactly(ViewIdData("testId1", "TextView", null), ViewIdData("testId2", "Button", null))
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
   fun indexViewBindingIgnoreLayout() {
     val file = fixture.configureByText("layout.xml", """
       <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -168,6 +197,31 @@ class BindingXmlIndexTest {
       ViewIdData("testId5", "include", "this_other_layout"),
       ViewIdData("testId6", "merge", "this_other_layout")
     ).inOrder()
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun canIndexVeryLargeXmlFiles() {
+    // XML parsing happens in chunks of ~8K, so make sure we feed enough text to stress the system
+    // that patches the chunks together.
+    val layoutXml = buildString {
+      append("""<layout xmlns:android="http://schemas.android.com/apk/res/android">""")
+      for (i in 1..20000) {
+        append("""<TextView android:id="@+id/testId$i"/>""")
+      }
+      append("</layout>")
+    }
+    val file = fixture.configureByText("layout.xml", layoutXml).virtualFile
+
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    val data = map.values.first()
+    // Make sure we didn't drop a single item
+    assertThat(data.viewIds.size).isEqualTo(20000)
+    assertThat(data.viewIds.first().id).isEqualTo("testId1")
+    assertThat(data.viewIds.last().id).isEqualTo("testId20000")
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }

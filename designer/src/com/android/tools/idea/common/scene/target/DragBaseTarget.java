@@ -169,7 +169,10 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> closestTargets) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> closestTargets,
+                        @NotNull SceneContext ignored) {
     if (myComponent.getParent() == null) {
       return;
     }

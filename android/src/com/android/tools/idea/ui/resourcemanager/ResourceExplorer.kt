@@ -112,6 +112,7 @@ class ResourceExplorer private constructor(
       preselectedResourceName: String?,
       preferredResourceType: ResourceType?,
       showSampleData: Boolean,
+      showThemeAttributes: Boolean,
       currentFile: VirtualFile?,
       updateResourceCallback: (resourceItem: ResourceItem) -> Unit,
       doSelectResourceCallback: (resourceItem: ResourceItem) -> Unit): ResourceExplorer {
@@ -121,6 +122,7 @@ class ResourceExplorer private constructor(
                                                                                          preferredResourceType ?: types.first(),
                                                                                          types,
                                                                                          showSampleData,
+                                                                                         showThemeAttributes,
                                                                                          { asset ->
                                                                                            doSelectResourceCallback(asset.resourceItem)
                                                                                          },

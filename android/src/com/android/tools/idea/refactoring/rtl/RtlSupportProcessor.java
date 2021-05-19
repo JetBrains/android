@@ -70,6 +70,7 @@ import static com.android.xml.AndroidManifest.ATTRIBUTE_SUPPORTS_RTL;
 import static com.android.xml.AndroidManifest.ATTRIBUTE_TARGET_SDK_VERSION;
 import static com.android.xml.AndroidManifest.NODE_APPLICATION;
 import static com.android.xml.AndroidManifest.NODE_USES_SDK;
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
@@ -102,7 +103,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -407,7 +407,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     final List<UsageInfo> result = new ArrayList<>();
 
     if (layoutFile instanceof XmlFile &&
-        DomManager.getDomManager(myProject).getDomFileDescription((XmlFile)layoutFile) instanceof LayoutDomFileDescription) {
+        isFileInResourceFolderType((XmlFile)layoutFile, ResourceFolderType.LAYOUT)) {
       layoutFile.accept(new XmlRecursiveElementVisitor() {
         @Override
         public void visitXmlTag(XmlTag tag) {
@@ -548,7 +548,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
       LOG.info("Processing refactoring for attribute: " + attribute.getName() + " into file: " + layoutV17File.getPath());
 
-      if (DomManager.getDomManager(myProject).getDomFileDescription(xmlV17File) instanceof LayoutDomFileDescription) {
+      if (isFileInResourceFolderType(xmlV17File, ResourceFolderType.LAYOUT)) {
         xmlV17File.accept(new XmlRecursiveElementVisitor() {
           @Override
           public void visitXmlTag(XmlTag tag) {

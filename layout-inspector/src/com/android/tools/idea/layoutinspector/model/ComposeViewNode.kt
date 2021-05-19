@@ -32,6 +32,7 @@ class ComposeViewNode(
   textValue: String,
   layoutFlags: Int,
   var composeFilename: String,
-  var composeMethod: String,
+  var composePackageHash: Int,
+  var composeOffset: Int,
   var composeLineNumber: Int
-): ViewNode(drawId, qualifiedName, layout, x, y, width, height, viewId, textValue, layoutFlags)
+): ViewNode(drawId, qualifiedName, layout, x, y, width, height, null, viewId, textValue, layoutFlags)

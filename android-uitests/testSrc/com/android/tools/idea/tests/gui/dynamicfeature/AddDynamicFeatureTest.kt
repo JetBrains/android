@@ -269,9 +269,7 @@ class AddDynamicFeatureTest {
     val ideFrame = guiTest.importSimpleApplication()
 
     createDynamicModule(ideFrame, Java)
-      .invokeMenuPath("File", "New", "Activity", "Login Activity")
-    NewActivityWizardFixture.find(ideFrame)
-      .clickFinishAndWaitForSyncToFinish()
+      .addActivity("MyDynamicFeature", "Activity", "Login Activity")
 
     guiTest.getProjectFileText("app/src/main/res/values/strings.xml").run {
       assertThat(this).contains("title_activity_login")
@@ -312,22 +310,26 @@ class AddDynamicFeatureTest {
     }
 
     createDynamicModule(ideFrame, Java)
-      .invokeMenuPath("File", "New", "Google", "Google Maps Activity")
-    NewActivityWizardFixture.find(ideFrame)
-      .clickFinishAndWaitForSyncToFinish()
 
-    guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
-      assertThat(this).doesNotContain("play-services-maps")
-      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
-      assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
+    // Adding two "Google Maps Activity", should only add dependencies to "base" module and no duplicates
+    repeat(2) {
+      ideFrame
+        .addActivity("MyDynamicFeature", "Google", "Google Maps Activity")
+
+      guiTest.getProjectFileText("MyDynamicFeature/build.gradle").run {
+        assertThat(this).doesNotContain("play-services-maps")
+        assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
+        assertThat(this).contains("implementation 'androidx.constraintlayout:constraintlayout:")
+      }
+
+      fun String.countSubString(sub: String): Int = split(sub).size - 1
+
+      guiTest.getProjectFileText("app/build.gradle").run {
+        assertThat(countSubString("api 'com.google.android.gms:play-services-maps")).isEqualTo(1)
+        assertThat(countSubString("implementation 'androidx.appcompat:appcompat:")).isEqualTo(1)
+        assertThat(this).doesNotContain("api 'androidx.constraintlayout:constraintlayout:")
+      }
     }
-
-    guiTest.getProjectFileText("app/build.gradle").run {
-      assertThat(this).contains("api 'com.google.android.gms:play-services-maps")
-      assertThat(this).contains("implementation 'androidx.appcompat:appcompat:")
-      assertThat(this).doesNotContain("api 'androidx.constraintlayout:constraintlayout:")
-    }
-
   }
 
   /**
@@ -429,9 +431,6 @@ class AddDynamicFeatureTest {
       .setFeatures()
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
-      .projectView
-      .selectAndroidPane()
-      .clickPath("MyDynamicFeature")
 
     // Check we created the instrumented test files
     val fileName = "MyDynamicFeature/src/androidTest/java/com/example/mydynamicfeature/ExampleInstrumentedTest.${lang.extension}"
@@ -449,5 +448,14 @@ class AddDynamicFeatureTest {
       .clickFinishAndWaitForSyncToFinish()
 
     return ideFrame
+  }
+
+  private fun IdeFrameFixture.addActivity(moduleName: String, activityGroup: String, activityName: String) {
+    projectView
+      .selectAndroidPane()
+      .clickPath(moduleName)
+      .invokeMenuPath("File", "New", activityGroup, activityName)
+    NewActivityWizardFixture.find(this)
+      .clickFinishAndWaitForSyncToFinish()
   }
 }

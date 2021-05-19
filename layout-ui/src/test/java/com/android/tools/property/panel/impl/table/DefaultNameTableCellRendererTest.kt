@@ -41,6 +41,7 @@ import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
+import javax.swing.SwingUtilities
 
 class DefaultNameTableCellRendererTest {
 
@@ -64,10 +65,15 @@ class DefaultNameTableCellRendererTest {
   fun testGetToolTipText() {
     val renderer = DefaultNameTableCellRenderer()
     val table = createTable() as PTable
+    val jTable = table.component as JTable
     val item = table.item(1)
-    val event = MouseEvent(table.component, 0, 0L, 0, 10, 10, 1, false)
     val component = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
-    component.getToolTipText(event)
+    val rect = jTable.getCellRect(0, 0, true)
+    component.setBounds(0, 0, rect.width, rect.height)
+    component.doLayout()
+    val event = MouseEvent(table.component, 0, 0L, 0, rect.width / 2, rect.height / 2, 1, false)
+    val control = SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y) as? JComponent
+    control!!.getToolTipText(event)
 
     val captor = ArgumentCaptor.forClass(PropertyTooltip::class.java)
     verify(manager!!).setCustomTooltip(any(JComponent::class.java), captor.capture())

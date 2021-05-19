@@ -1,38 +1,38 @@
 apply plugin: 'com.android.application'
-apply plugin: DummyPlugin
+apply plugin: SamplePlugin
 
-class DummyTask extends DefaultTask {
+class SampleTask extends DefaultTask {
     @TaskAction
     def run() {
     }
 }
 
-class DummyPlugin implements Plugin<Project> {
+class SamplePlugin implements Plugin<Project> {
     void apply(Project project) {
         project.android.applicationVariants.all { variant ->
             if (variant.name == "debug") {
-                DummyTask dummy1 = project.tasks.create("dummy1", DummyTask)
+                SampleTask sample1 = project.tasks.create("sample1", SampleTask)
 
-                DummyTask dummy2 = project.tasks.create("dummy2", DummyTask)
+                SampleTask sample2 = project.tasks.create("sample2", SampleTask)
                 variant.mergeResourcesProvider.configure {
-                    dependsOn(dummy2)
+                    dependsOn(sample2)
                 }
-                project.tasks.findByName("preBuild").dependsOn(dummy2)
-                dummy2.dependsOn dummy1
-                dummy2.outputs.upToDateWhen { false }
+                project.tasks.findByName("preBuild").dependsOn(sample2)
+                sample2.dependsOn sample1
+                sample2.outputs.upToDateWhen { false }
             }
         }
     }
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.example.buildattributionapp"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
     }

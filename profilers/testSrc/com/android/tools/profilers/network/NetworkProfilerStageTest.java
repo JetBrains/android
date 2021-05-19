@@ -108,8 +108,8 @@ public class NetworkProfilerStageTest {
 
   @Test
   public void getConnectionsModel() {
-    String dummyPayloadContent = "Dummy Contents";
-    myTransportService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(dummyPayloadContent));
+    String samplePayloadContent = "Sample Contents";
+    myTransportService.addFile(TEST_PAYLOAD_ID, ByteString.copyFromUtf8(samplePayloadContent));
 
     NetworkConnectionsModel connectionsModel = myStage.getConnectionsModel();
     List<HttpData> dataList = connectionsModel.getData(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(16)));

@@ -7,7 +7,7 @@ import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -48,9 +48,10 @@ private const val DESCRIBE_CONTENTS_TEXT = "override fun describeContents(): Int
 private val CONSTRUCTOR_TEXT = "constructor($PARCEL_NAME: $CLASS_PARCEL)"
 
 private val PARCELIZE_FQNAME = FqName(Parcelize::class.java.name)
+private val PARCELIZE_FQNAME_LEGACY = FqName("kotlinx.android.parcel.Parcelize")
 
 //TODO add test
-fun KtClass.isParcelize() = findAnnotation(PARCELIZE_FQNAME) != null
+fun KtClass.isParcelize() = findAnnotation(PARCELIZE_FQNAME) != null || findAnnotation(PARCELIZE_FQNAME_LEGACY) != null
 
 fun KtClass.canAddParcelable(): Boolean =
         findParcelableSupertype() == null

@@ -26,7 +26,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -34,8 +34,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidDeviceSpec;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
@@ -172,7 +170,7 @@ public class DynamicAppUtils {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null && model.getAndroidProject().isBaseSplit()) {
-        if (model.getSelectedVariant().isInstantAppCompatible()) {
+        if (model.getSelectedVariant().getInstantAppCompatible()) {
           return true;
         }
       }
@@ -338,16 +336,7 @@ public class DynamicAppUtils {
    */
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull AndroidRunConfigurationBase configuration,
-                                                       @Nullable AndroidDeviceSpec targetDeviceSpec) {
-    return useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec != null ? targetDeviceSpec.getVersion() : null);
-  }
-
-  /**
-   * Returns {@code true} if a module should be built using the "select apks from bundle" task
-   */
-  public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
-                                                       @NotNull AndroidRunConfigurationBase configuration,
-                                                       @Nullable AndroidVersion targetDeviceVersion) {
+                                                       @Nullable AndroidVersion minTargetDeviceVersion) {
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
       if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
@@ -357,7 +346,7 @@ public class DynamicAppUtils {
     }
 
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
-    if (targetDeviceVersion != null && targetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
+    if (minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
       return true;
     }
@@ -380,15 +369,15 @@ public class DynamicAppUtils {
    */
   public static boolean shouldCollectListOfLanguages(@NotNull Module module,
                                                      @NotNull AndroidRunConfigurationBase configuration,
-                                                     @Nullable AndroidDeviceSpec targetDeviceSpec) {
+                                                     @Nullable AndroidVersion minTargetDeviceVersion) {
     // Don't collect if not using the bundle tool
-    if (!useSelectApksFromBundleBuilder(module, configuration, targetDeviceSpec)) {
+    if (!useSelectApksFromBundleBuilder(module, configuration, minTargetDeviceVersion)) {
       return false;
     }
 
     // Only collect if all devices are L or later devices, because pre-L devices don't support split apks, meaning
     // they don't support install on demand, meaning all languages should be installed.
-    return targetDeviceSpec == null || targetDeviceSpec.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
+    return minTargetDeviceVersion == null || minTargetDeviceVersion.getFeatureLevel() >= AndroidVersion.VersionCodes.LOLLIPOP;
   }
 
   /**
@@ -412,7 +401,7 @@ public class DynamicAppUtils {
     return androidProject.getDynamicFeatures().stream()
       .map(featurePath -> featureMap.get(featurePath))
       .filter(Objects::nonNull)
-      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().isInstantAppCompatible())
+      .filter(f -> AndroidModuleModel.get(f).getSelectedVariant().getInstantAppCompatible())
       .collect(Collectors.toList());
   }
 

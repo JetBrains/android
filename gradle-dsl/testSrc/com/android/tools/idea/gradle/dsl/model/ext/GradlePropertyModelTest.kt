@@ -19,13 +19,20 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.*
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.*
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.google.common.collect.ImmutableMap
 import com.intellij.testFramework.UsefulTestCase
+import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -36,6 +43,47 @@ import java.io.File
 import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
+
+  @Test
+  fun testCreateExternalReferences() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    val dslFile = (gradleBuildModel as? GradleBuildModelImpl)?.dslFile!!
+    val model = GradlePropertyModelBuilder.getModelFromExternalText(extraName("prop1"), dslFile)
+    TestCase.assertNotNull(model)
+
+    val model2 = GradlePropertyModelBuilder.getModelFromExternalText("prop1", dslFile)
+    TestCase.assertNotNull(model2)
+  }
+
+  @Test
+  fun testCreateInternalReferences() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    val dslFile = (gradleBuildModel as? GradleBuildModelImpl)?.dslFile!!
+    val model = GradlePropertyModelBuilder.getModelFromInternalText(extraName("prop1"), dslFile)
+    when (isGroovy) {
+      true -> TestCase.assertNotNull(model)
+      else -> TestCase.assertNull(model)
+    }
+
+    val buildTypes = (dslFile.getElement("android") as GradlePropertiesDslElement).getElement("buildTypes")!!
+    val model2 = GradlePropertyModelBuilder.getModelFromInternalText("signingConfigs.release", buildTypes)
+    TestCase.assertNotNull(model2)
+  }
+
+  @Test
+  fun testGetReferredElement() {
+    writeToBuildFile(TestFile.PROPERTIES_EXTERNAL)
+
+    // Create a reference to prop1.
+    val extModel = gradleBuildModel.ext()
+    val prop1Model = extModel.findProperty("prop1")
+    TestCase.assertNotNull(prop1Model)
+    val referenceTo = ReferenceTo(prop1Model)
+    assertEquals(referenceTo.referredElement, prop1Model.rawElement)
+  }
+
   @Test
   fun testPropertiesFromScratch() {
     writeToBuildFile(TestFile.PROPERTIES_FROM_SCRATCH)
@@ -44,7 +92,8 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     val extModel = buildModel.ext()
 
     extModel.findProperty("newProp").setValue(123)
-    extModel.findProperty("prop1").setValue(ReferenceTo("newProp"))
+    val prop1Model = extModel.findProperty("prop1")
+    ReferenceTo.createReferenceFromText("newProp", prop1Model)?.let { prop1Model.setValue(it) }
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.PROPERTIES_FROM_SCRATCH_EXPECTED)
@@ -58,8 +107,10 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
     var extModel = buildModel.ext()
 
     extModel.findProperty("ext.newProp").setValue(123)
-    extModel.findProperty("ext.prop1").setValue(ReferenceTo("newProp"))
-    extModel.findProperty("prop2").setValue(ReferenceTo("ext.newProp"))
+    val prop1Model = extModel.findProperty("ext.prop1")
+    ReferenceTo.createReferenceFromText("newProp", prop1Model)?.let { prop1Model.setValue(it) }
+    val prop2Model = extModel.findProperty("prop2")
+    ReferenceTo.createReferenceFromText("ext.newProp", prop2Model)?.let { prop2Model.setValue(it) }
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION_EXPECTED)
@@ -1125,7 +1176,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop2")
       verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
 
-      propertyModel.setValue(ReferenceTo("in a voice like thunder"))
+      propertyModel.setValue(RawText("in a voice like thunder", "in a voice like thunder"))
       // Note: Since this doesn't actually make any sense, the word "in" gets removed as it is a keyword in Groovy.
       verifyPropertyModel(propertyModel, STRING_TYPE, "a voice like thunder", UNKNOWN, REGULAR, 0)
     }
@@ -1205,7 +1256,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val propertyModel = buildModel.ext().findProperty("prop3")
       verifyPropertyModel(propertyModel, STRING_TYPE, "prop2", REFERENCE, REGULAR, 1)
 
-      propertyModel.setValue(ReferenceTo("prop1"))
+      ReferenceTo.createReferenceFromText("prop1", propertyModel)?.let { propertyModel.setValue(it) }
     }
 
     applyChangesAndReparse(buildModel)
@@ -1233,7 +1284,7 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
       // Set to a reference.
 
-      propertyModel.setValue(ReferenceTo("prop1"))
+      ReferenceTo.createReferenceFromText("prop1", propertyModel)?.let { propertyModel.setValue(it) }
       verifyPropertyModel(propertyModel, STRING_TYPE, "prop1", REFERENCE, REGULAR, 1)
     }
 
@@ -2105,14 +2156,14 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
       val varModel = secondModel.dependencies[0]!!
       verifyPropertyModel(varModel, STRING_TYPE, "hello", STRING, VARIABLE, 0)
       varModel.convertToEmptyList().addListValue().setValue("goodbye")
-      secondModel.setValue(ReferenceTo("var1[0]"))
+      ReferenceTo.createReferenceFromText("var1[0]", secondModel)?.let { secondModel.setValue(it) }
       verifyPropertyModel(secondModel, STRING_TYPE, "var1[0]", REFERENCE, REGULAR, 1)
       val depModel = secondModel.dependencies[0]!!
       verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)
 
       val thirdModel = buildModel.ext().findProperty("prop3")
       verifyPropertyModel(thirdModel, STRING_TYPE, "goodbye", STRING, REGULAR, 1)
-      thirdModel.convertToEmptyList().addListValue().setValue(ReferenceTo("prop2"))
+      ReferenceTo.createReferenceFromText("prop2", thirdModel)?.let { thirdModel.convertToEmptyList().addListValue().setValue(it) }
       assertEquals(LIST, thirdModel.valueType)
       val thirdList = thirdModel.getValue(LIST_TYPE)!!
       assertSize(1, thirdList)
@@ -2209,7 +2260,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       propertyModel.addListValueAt(0).setValue("1")
       propertyModel.addListValueAt(1).setValue("2")
       propertyModel.addListValueAt(4).setValue(5)
-      propertyModel.addListValueAt(5).setValue(ReferenceTo("six"))
+      ReferenceTo.createReferenceFromText("six", propertyModel)?.let { propertyModel.addListValueAt(5).setValue(it) }
 
       val list = propertyModel.getValue(LIST_TYPE)!!
       assertSize(6, list)
@@ -2302,7 +2353,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
       val thirdModel = buildModel.ext().findProperty("prop3")
       verifyListProperty(thirdModel, listOf(54), REGULAR, 0)
-      thirdModel.setValue(ReferenceTo("prop1[1]"))
+      ReferenceTo.createReferenceFromText("prop1[1]", thirdModel)?.let { thirdModel.setValue(it) }
       verifyPropertyModel(thirdModel, STRING_TYPE, "prop1[1]", REFERENCE, REGULAR, 1)
       verifyPropertyModel(thirdModel.dependencies[0], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
     }
@@ -2334,7 +2385,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 4), REGULAR, 0)
 
-      propertyModel.addListValueAt(1).setValue(ReferenceTo("var1"))
+      ReferenceTo.createReferenceFromText("var1", propertyModel)?.let { propertyModel.addListValueAt(1).setValue(it) }
       propertyModel.addListValueAt(2).setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2359,7 +2410,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val propertyModel = buildModel.ext().findProperty("prop1")
       verifyListProperty(propertyModel, listOf(1, 2, "2", 4), REGULAR, 1)
 
-      propertyModel.getValue(LIST_TYPE)!![1].setValue(ReferenceTo("var1"))
+      ReferenceTo.createReferenceFromText("var1", propertyModel)?.let { propertyModel.getValue(LIST_TYPE)!![1].setValue(it) }
       propertyModel.getValue(LIST_TYPE)!![2].setValue(3)
 
       verifyListProperty(propertyModel, listOf(1, "2", 3, 4), REGULAR, 1)
@@ -2500,7 +2551,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(map["key3"], INTEGER_TYPE, 23, INTEGER, DERIVED, 0)
       verifyPropertyModel(map["key4"], BOOLEAN_TYPE, true, BOOLEAN, DERIVED, 0)
 
-      propertyModel.getMapValue("key1").setValue(ReferenceTo("otherVal"))
+      ReferenceTo.createReferenceFromText("otherVal", propertyModel)?.let { propertyModel.getMapValue("key1").setValue(it) }
       propertyModel.getMapValue("key2").setValue("newValue")
       propertyModel.getMapValue("key3").setValue(false)
       propertyModel.getMapValue("key4").setValue(32)
@@ -2659,7 +2710,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(properties["prop5"], INTEGER_TYPE, 5, INTEGER, REGULAR, 0, "prop5", "ext.prop5")
 
       // Check we can actually make changes to all the files.
-      properties["prop5"]!!.setValue(ReferenceTo("prop2"))
+      ReferenceTo.createReferenceFromText("prop2", properties["prop5"]!!)?.let { properties["prop5"]!!.setValue(it) }
       properties["prop1"]!!.getValue(LIST_TYPE)!![1].dependencies[0].setValue(false)
       properties["prop1"]!!.getValue(LIST_TYPE)!![0].setValue(2)
       properties["prop2"]!!.setValue("true")
@@ -2754,7 +2805,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       val extModel = buildModel.ext()
       val propertyModel = extModel.findProperty("propList")
       verifyListProperty(propertyModel, listOf("1", "2", "3", "2", "2nd"), REGULAR, 4)
-      propertyModel.toList()!![0].setValue(ReferenceTo("propC"))
+      ReferenceTo.createReferenceFromText("propC", propertyModel)?.let { propertyModel.toList()!![0].setValue(it) }
       verifyListProperty(propertyModel, listOf("3", "2", "3", "2", "2nd"), REGULAR, 5)
     }
 
@@ -2911,7 +2962,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val topProperties = buildModel.declaredProperties
     val extProperties = buildModel.ext().declaredProperties
     val androidProperties = buildModel.android().declaredProperties
-    val debugProperties = buildModel.android().buildTypes()[0].declaredProperties
+    val debugBuildType = buildModel.android().buildTypes().first { it.name() == "debug" }
+    val debugProperties = debugBuildType.declaredProperties
 
     assertSize(1, extProperties)
     assertSize(3, androidProperties)
@@ -3100,7 +3152,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       assertThat(listItem.fullExpressionPsiElement!!.text, equalTo(it))
     }
 
-    val configModel = buildModel.android().signingConfigs()[0]!!
+    val configModel = buildModel.android().signingConfigs()[1]!!
     (if (isGroovy) listOf("'my_file.txt'", "file('my_file.txt')") else listOf("\"my_file.txt\"", "file(\"my_file.txt\")")).let {
       assertThat(configModel.storeFile().expressionPsiElement!!.text, equalTo(it[0]))
       assertThat(configModel.storeFile().fullExpressionPsiElement!!.text, equalTo(it[1]))
@@ -3130,7 +3182,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
     val buildModel = gradleBuildModel
     val newProperty = buildModel.ext().findProperty("var1")
-    newProperty.setValue(ReferenceTo("var1"))
+    newProperty.setValue(RawText("var1", "var1"))
 
     verifyPropertyModel(newProperty, STRING_TYPE, "var1", REFERENCE, REGULAR, 0)
   }
@@ -3151,8 +3203,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(refValue, instanceOf(ReferenceTo::class.java))
     val referenceTo = value as ReferenceTo
     val refReferenceTo = refValue as ReferenceTo
-    assertThat(referenceTo.text, equalTo(extraName("hello")))
-    assertThat(refReferenceTo.text, equalTo(extraName("hello")))
+    assertThat(referenceTo.text, equalTo("ext.hello"))
+    assertThat(refReferenceTo.text, equalTo("ext.hello"))
   }
 
   @Test
@@ -3193,6 +3245,36 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertSize(2, map.keys)
     assertThat(map["key1"]!!.forceString(), equalTo("25"))
     assertThat(map["key1 "]!!.forceString(), equalTo("30"))
+  }
+
+  @Test
+  fun testWriteReferenceToMap() {
+    writeToBuildFile(TestFile.WRITE_REFERENCE_TO_MAP)
+
+    val buildModel = gradleBuildModel
+    val mapModel = buildModel.ext().findProperty("mP")
+    assertContainsElements(listOf("a", "c"), mapModel.toMap()!!.keys)
+    assertEquals("b", mapModel.toMap()!!["a"]!!.forceString())
+    assertEquals("d", mapModel.toMap()!!["c"]!!.forceString())
+    buildModel.android().defaultConfig().manifestPlaceholders().setValue(ReferenceTo(mapModel))
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.WRITE_REFERENCE_TO_MAP_EXPECTED)
+  }
+
+  @Test
+  fun testWriteReferenceToBuildscriptExt() {
+    writeToBuildFile(TestFile.WRITE_REFERENCE_TO_BUILDSCRIPT_EXT)
+    writeToSubModuleBuildFile(TestFile.WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP)
+    writeToSettingsFile(subModuleSettingsText)
+
+
+    val mainBuildModel = gradleBuildModel
+    val appBuildModel = subModuleGradleBuildModel
+
+    val kotlinVersionModel = mainBuildModel.ext().findProperty("kotlin_version")
+    appBuildModel.dependencies().artifacts().get(0).version().setValue(ReferenceTo(kotlinVersionModel))
+    applyChangesAndReparse(appBuildModel)
+    verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
   }
 
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
@@ -3341,7 +3423,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       }
 
       // Set the new value.
-      propertyModel.getMapValue("key1").setValue(ReferenceTo("val1"))
+      ReferenceTo.createReferenceFromText("val1", propertyModel)?.let { propertyModel.getMapValue("key1").setValue(it) }
 
       // Check the correct values are shown in the property.
       run {
@@ -3576,7 +3658,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
       verifyPropertyModel(secondInnerMap["key4"], STRING_TYPE, "value2", STRING, DERIVED, 0)
       verifyPropertyModel(secondInnerMap["key5"], INTEGER_TYPE, 43, INTEGER, DERIVED, 0)
       // Delete one of these values, and change the other.
-      secondInnerMap["key4"]!!.setValue(ReferenceTo("var1"))
+      ReferenceTo.createReferenceFromText("var1", secondInnerMap["key4"]!!)?.let { secondInnerMap["key4"]!!.setValue(it) }
       secondInnerMap["key5"]!!.delete()
 
       // Check the values are correct.
@@ -3631,6 +3713,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
 
   enum class TestFile(val path: @SystemDependent String): TestFileName {
     PROPERTIES("properties"),
+    PROPERTIES_EXTERNAL("propertiesExternal"),
     PROPERTIES_FROM_SCRATCH("propertiesFromScratch"),
     PROPERTIES_FROM_SCRATCH_EXPECTED("propertiesFromScratchExpected"),
     PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION("propertiesFromScratchArrayExpression"),
@@ -3802,6 +3885,11 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     IN_SCOPE_ELEMENT_SUB("inScopeElement_sub"),
     DUPLICATE_MAP_KEY("duplicateMapKey"),
     PARSE_MAP_WITH_SPACES_IN_KEYS("parseMapWithSpacesInKeys"),
+    WRITE_REFERENCE_TO_MAP("writeReferenceToMap"),
+    WRITE_REFERENCE_TO_MAP_EXPECTED("writeReferenceToMapExpected"),
+    WRITE_REFERENCE_TO_BUILDSCRIPT_EXT("writeReferenceToBuildscriptExt"),
+    WRITE_REFERENCE_TO_BUILDSCRIPT_EXT_APP("writeReferenceToBuildscriptExtApp"),
+    WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

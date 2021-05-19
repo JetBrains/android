@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.UISettings;
 import java.awt.Component;
 import java.awt.Container;
@@ -175,6 +176,11 @@ public abstract class AnimatedComponent extends JComponent {
 
   protected void opaqueRepaint(int x, int y, int width, int height) {
     getOpaqueContainer().repaint(x, y, width, height);
+  }
+
+  @VisibleForTesting
+  public FontMetrics getDefaultFontMetrics() {
+    return mDefaultFontMetrics;
   }
 
   @NotNull

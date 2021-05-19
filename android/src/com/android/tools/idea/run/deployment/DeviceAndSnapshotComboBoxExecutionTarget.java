@@ -17,17 +17,18 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.util.containers.ContainerUtil;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.Icon;
+import java.util.stream.Stream;
+import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,66 +36,60 @@ import org.jetbrains.annotations.NotNull;
  * (but <em>not</em> the apply changes) toolbar buttons.
  */
 final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
-  @NotNull
-  private final List<Device> myDevices;
+  private final @NotNull Collection<@NotNull Key> myKeys;
+  private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
-  /**
-   * ExecutionTarget equals comparisons use this ID. Two lists with the same devices but different orders should resolve to the same ID. Do
-   * not depend on its exact format.
-   */
-  @NotNull
-  private final String myId;
-
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Device device) {
-    this(Collections.singletonList(device));
-  }
-
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull List<Device> devices) {
-    myDevices = devices.stream()
-      .filter(Device::isConnected)
-      .sorted(Comparator.comparing(Device::getKey))
-      .collect(Collectors.toList());
-
-    myId = myDevices.stream()
-      .map(Device::getKey)
-      .map(Key::toString)
-      .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
-  }
-
-  @NotNull
-  @VisibleForTesting
-  Object getDeploymentDevices() {
-    return myDevices;
+  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Set<@NotNull Key> keys, @NotNull AsyncDevicesGetter devicesGetter) {
+    myKeys = keys;
+    myDevicesGetter = devicesGetter;
   }
 
   @Override
   public boolean isApplicationRunning(@NotNull String appPackage) {
-    return myDevices.stream().anyMatch(device -> device.isRunning(appPackage));
+    return deviceStream().anyMatch(device -> device.isRunning(appPackage));
+  }
+
+  @Override
+  public int getAvailableDeviceCount() {
+    return (int)deviceStream().count();
   }
 
   @NotNull
   @Override
-  public Collection<IDevice> getDevices() {
-    return myDevices.stream()
+  public Collection<IDevice> getRunningDevices() {
+    return deviceStream()
       .map(Device::getDdmlibDevice)
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
+  private @NotNull Stream<@NotNull Device> deviceStream() {
+    return myDevicesGetter.get().map(this::filteredStream).orElseGet(Stream::empty);
+  }
+
+  private @NotNull Stream<@NotNull Device> filteredStream(@NotNull Collection<@NotNull Device> devices) {
+    return devices.stream().filter(device -> device.hasKeyContainedBy(myKeys));
+  }
+
   @NotNull
   @Override
   public String getId() {
-    return myId;
+    return myKeys.stream()
+      .sorted()
+      .map(Key::toString)
+      .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
   }
 
   @NotNull
   @Override
   public String getDisplayName() {
-    switch (myDevices.size()) {
+    List<Device> devices = getDeploymentDevices();
+
+    switch (devices.size()) {
       case 0:
         return "No Devices";
       case 1:
-        return myDevices.get(0).getName();
+        return devices.get(0).getName();
       default:
         return "Multiple Devices";
     }
@@ -103,11 +98,21 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @NotNull
   @Override
   public Icon getIcon() {
-    if (myDevices.size() == 1) {
-      return myDevices.get(0).getIcon();
+    List<Device> devices = getDeploymentDevices();
+
+    if (devices.size() == 1) {
+      return devices.get(0).getIcon();
     }
 
     return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
+  }
+
+  private @NotNull List<@NotNull Device> getDeploymentDevices() {
+    return myDevicesGetter.get().map(this::filteredList).orElseGet(Collections::emptyList);
+  }
+
+  private @NotNull List<@NotNull Device> filteredList(@NotNull Collection<@NotNull Device> devices) {
+    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(myKeys));
   }
 
   @Override

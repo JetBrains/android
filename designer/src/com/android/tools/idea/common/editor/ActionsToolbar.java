@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.event.AdjustmentEvent;
 import java.util.Collections;
@@ -273,12 +274,12 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
 
   @Override
   public void zoomChanged() {
-    myNorthEastToolbar.updateActionsImmediately();
+    UIUtil.invokeLaterIfNeeded(() -> myNorthEastToolbar.updateActionsImmediately());
   }
 
   @Override
   public void panningChanged(@NotNull AdjustmentEvent event) {
-    myNorthEastToolbar.updateActionsImmediately();
+    UIUtil.invokeLaterIfNeeded(() -> myNorthEastToolbar.updateActionsImmediately());
   }
 
   @Override
@@ -286,7 +287,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     if ((flags & CONFIGURATION_UPDATE_FLAGS) > 0) {
       if (myNorthToolbar != null) {
         // the North toolbar is the one holding the Configuration Actions
-        myNorthToolbar.updateActionsImmediately();
+        UIUtil.invokeLaterIfNeeded(() -> myNorthEastToolbar.updateActionsImmediately());
       }
     }
     return true;

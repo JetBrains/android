@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.property.panel.api.PropertiesModel
@@ -81,7 +82,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleModelChange(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
+  private fun handleModelChange(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
       structuralUpdates++
     }

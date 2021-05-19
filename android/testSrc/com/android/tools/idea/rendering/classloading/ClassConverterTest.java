@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering.classloading;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.classVersionToJdk;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.findHighestMajorVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
-import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentJdkVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMagic;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMajorVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getMinorVersion;
@@ -46,15 +45,12 @@ import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
 import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
 import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import junit.framework.TestCase;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.org.objectweb.asm.ClassReader;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -102,10 +98,6 @@ public class ClassConverterTest extends TestCase {
     assertTrue(getCurrentClassVersion() >= 50);
   }
 
-  public void testGetCurrentJdkVersion() {
-    assertTrue(getCurrentJdkVersion().startsWith("1."));
-  }
-
   public void testMangling() throws Exception {
     // Compile
     //     public class Test { public static int test() { return 42; } }
@@ -144,7 +136,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(0, getMinorVersion(data));
     assertEquals(0xCAFEBABE, getMagic(data));
 
-    ClassLoader classLoader = new TestClassLoader(data);
+    ClassLoader classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     Class<?> clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     Object result = clz.getMethod("test").invoke(null);
@@ -153,7 +145,7 @@ public class ClassConverterTest extends TestCase {
 
     data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE));
     assertEquals(48, getMajorVersion(data));
-    classLoader = new TestClassLoader(data);
+    classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     assertNotSame(clz, oldClz);
@@ -162,7 +154,7 @@ public class ClassConverterTest extends TestCase {
 
     data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)); // latest known
     assertEquals(52, getMajorVersion(data));
-    classLoader = new TestClassLoader(data);
+    classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
     clz = classLoader.loadClass("Test");
     assertNotNull(clz);
     result = clz.getMethod("test").invoke(null);
@@ -449,29 +441,6 @@ public class ClassConverterTest extends TestCase {
     cw.visitEnd();
 
     return cw.toByteArray();
-  }
-
-  private static final class TestClassLoader extends RenderClassLoader {
-    final byte[] myData;
-
-    public TestClassLoader(byte[] data) {
-      super(null);
-      myData = data;
-    }
-
-    @Override
-    protected List<Path> getExternalJars() {
-      return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    protected Class<?> load(String name) {
-      assertEquals("Test", name);
-      Class<?> clz = loadClass(name, myData);
-      assertNotNull(clz);
-      return clz;
-    }
   }
 
   /**

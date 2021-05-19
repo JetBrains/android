@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -39,15 +37,12 @@ import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * A quick fix that creates non-existing class, used, e.g., for invalid android:name references in AndroidManifest.xml file
@@ -106,11 +101,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final Collection<NamedIdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
-    final List<VirtualFile> javaDirectories = new ArrayList<>();
-    for (IdeaSourceProvider provider : providerList) {
-      javaDirectories.addAll(provider.getJavaDirectories());
-    }
+    final Iterable<VirtualFile> javaDirectories = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
     final PsiDirectory[] directories = aPackage.getDirectories();
     final List<PsiDirectory> filteredDirectories = Lists.newArrayListWithExpectedSize(directories.length);
     for (PsiDirectory directory : directories) {

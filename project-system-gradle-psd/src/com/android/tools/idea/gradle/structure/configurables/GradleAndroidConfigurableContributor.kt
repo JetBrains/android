@@ -36,10 +36,6 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
     val repositorySearchFactory = CachingRepositorySearchFactory()
     val context = PsContextImpl(PsProjectImpl(project, repositorySearchFactory), parentDisposable, false, false, repositorySearchFactory)
 
-    if (!StudioFlags.KOTLIN_DSL_PARSING.get()) {
-      return ktsRestrictedProjectStructure(project, context)
-    }
-
     return listOf(
       ProjectStructureItemGroup("main",
                                 ProjectPerspectiveConfigurable(context),
@@ -51,14 +47,6 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
                                 BuildVariantsPerspectiveConfigurable(context)
       ),
       ProjectStructureItemGroup("additional", SuggestionsPerspectiveConfigurable(context))
-    )
-  }
-
-  private fun ktsRestrictedProjectStructure(project: Project, context: PsContextImpl): List<ProjectStructureItemGroup> {
-    return listOf(
-      ProjectStructureItemGroup("main",
-                                KtsProjectPerspectiveConfigurable(),
-                                IdeSdksConfigurable(project))
     )
   }
 }

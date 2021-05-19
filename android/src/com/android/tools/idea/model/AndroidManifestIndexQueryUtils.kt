@@ -31,17 +31,16 @@ import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getA
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.LinkedList
+import java.util.*
 import java.util.stream.Stream
 import kotlin.streams.asSequence
 
-private val LOG: Logger get() = Logger.getInstance("#com.android.tools.idea.model.AndroidManifestIndexQueryUtils")
+private val LOG: Logger get() = logger("AndroidManifestIndexQueryUtils.kt")
 
 /**
  * Applies [processContributors] to the data indexed for [facet]'s merged manifest contributors,
@@ -78,7 +77,6 @@ private fun <T> AndroidFacet.queryManifestIndex(
  * Must be called in a smart read action.
  */
 fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
-  check(!DumbService.isDumb(this.module.project) && ApplicationManager.getApplication().isReadAccessAllowed)
   val activityWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
   val activityAliasWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
 

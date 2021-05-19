@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection
 import com.android.tools.idea.lint.AndroidLintAllowBackupInspection
 import com.android.tools.idea.lint.AndroidLintAlwaysShowActionInspection
+import com.android.tools.idea.lint.AndroidLintAndroidGradlePluginVersionInspection
 import com.android.tools.idea.lint.AndroidLintAnimatorKeepInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection
 import com.android.tools.idea.lint.AndroidLintAppCompatMethodInspection
@@ -53,6 +54,7 @@ import com.android.tools.idea.lint.AndroidLintGridLayoutInspection
 import com.android.tools.idea.lint.AndroidLintHardcodedTextInspection
 import com.android.tools.idea.lint.AndroidLintIconDuplicatesInspection
 import com.android.tools.idea.lint.AndroidLintIdeClient
+import com.android.tools.idea.lint.AndroidLintIdeSupport
 import com.android.tools.idea.lint.AndroidLintImpliedTouchscreenHardwareInspection
 import com.android.tools.idea.lint.AndroidLintIncludeLayoutParamInspection
 import com.android.tools.idea.lint.AndroidLintInefficientWeightInspection
@@ -121,9 +123,12 @@ import com.android.tools.idea.lint.AndroidLintWrongCaseInspection
 import com.android.tools.idea.lint.AndroidLintWrongViewCastInspection
 import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintExternalAnnotator.MyFixingIntention
 import com.android.tools.idea.lint.common.LintIdeIssueRegistry
+import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintIgnoredResult
+import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
@@ -131,15 +136,19 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.getIntentionAction
+import com.android.tools.lint.checks.HardcodedValuesDetector
 import com.android.tools.lint.checks.IconDetector
 import com.android.tools.lint.checks.TextViewDetector
 import com.android.tools.lint.client.api.IssueRegistry
+import com.android.tools.lint.client.api.LintClient
+import com.android.tools.lint.client.api.LintDriver
+import com.android.tools.lint.client.api.LintRequest
 import com.android.tools.lint.detector.api.Desugaring
+import com.android.tools.lint.detector.api.Severity
 import com.android.utils.CharSequences
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
@@ -159,21 +168,26 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import java.nio.charset.StandardCharsets
-import java.util.stream.Collectors
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
+import java.nio.charset.StandardCharsets
+import java.util.stream.Collectors
 
 class AndroidLintTest : AndroidTestCase() {
+  init {
+    LintClient.clientName = LintClient.CLIENT_UNIT_TESTS
+  }
+
   public override fun setUp() {
     super.setUp()
     val analyticsSettings = AnalyticsSettingsData()
@@ -253,6 +267,13 @@ class AndroidLintTest : AndroidTestCase() {
     val usageTracker = TestUsageTracker(scheduler)
     setWriterForTest(usageTracker)
     try {
+      // Carefully chosen seed such that logSession()'s first *two* random results
+      // will be in the expected range to pick it for submission (nextDouble() < 0.01)
+      // since we want the data to be logged with the usage tracker such that we can
+      // inspect the various fields of the usage data
+      val lint = LintIdeSupport.Companion.get() as AndroidLintIdeSupport
+      lint.random.setSeed(5356)
+
       doTestWithFix(AndroidLintContentDescriptionInspection(),
                     "Set contentDescription",
                     "/res/layout/layout.xml", "xml")
@@ -270,6 +291,46 @@ class AndroidLintTest : AndroidTestCase() {
       assertThat(issue1.severity).isEqualTo(LintSeverity.DEFAULT_SEVERITY)
       val performance = session.lintPerformance
       assertThat(performance.fileCount).isEqualTo(1)
+    } finally {
+      usageTracker.close()
+      cleanAfterTesting()
+    }
+  }
+
+  fun testContentDescription2() {
+    val scheduler = VirtualTimeScheduler()
+    val usageTracker = TestUsageTracker(scheduler)
+    setWriterForTest(usageTracker)
+    try {
+      val source =
+        """
+        package test.pkg;
+        public class MyActivity {
+           public static class Inner extends android.app.Activity {
+           };
+        }
+        """.trimIndent()
+      val mainFile = myFixture.addFileToProject("/src/test/pkg/MyActivity.java", source)
+
+      val lint = LintIdeSupport.Companion.get() as AndroidLintIdeSupport
+      lint.random.setSeed(0)
+      val result = LintEditorResult(myModule, mainFile.virtualFile, source, setOf(HardcodedValuesDetector.ISSUE))
+      val data = LintProblemData(HardcodedValuesDetector.ISSUE, "Sample issue", TextRange.EMPTY_RANGE, Severity.WARNING, null)
+      (result.problems as MutableList).add(data)
+      val client = lint.createEditorClient(result)
+      val driver = LintDriver(lint.getIssueRegistry(), client, LintRequest(client, emptyList()))
+      val rolls = 100000
+      for (i in 0..rolls) {
+        lint.logSession(driver, result)
+      }
+      val loggedLintSessions = usageTracker.usages.stream()
+        .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
+        .collect(Collectors.toList())
+
+      // Make sure we're submitting around 1% of reports.
+      // This test is not flaky because we're using a fixed seed to the random generator!
+      val percentage = loggedLintSessions.size * 100.0 / rolls
+      assertEquals("Unexpected percentage of reports submitted", 1.047, percentage, 0.001)
     } finally {
       usageTracker.close()
       cleanAfterTesting()
@@ -954,7 +1015,7 @@ class AndroidLintTest : AndroidTestCase() {
       "    <issue id=\"IconDuplicates\">\n" +
       "        <ignore path=\"res/drawable/dup1.png\" />\n" +
       "    </issue>\n" +
-      "</lint>\n")
+      "</lint>")
   }
 
   fun testSuppressingInXml1() {
@@ -1091,8 +1152,6 @@ class AndroidLintTest : AndroidTestCase() {
         if (fixes != null) {
           for (fix in fixes) {
             val name = fix.name
-            println("Next fix = $name")
-            println("Next fix.family = " + fix.familyName)
             assertTrue(familyNames.add(fix.familyName))
             if ("Remove Declarations for R.string.unused" == name) {
               targetDescriptor = descriptor
@@ -1308,6 +1367,17 @@ class AndroidLintTest : AndroidTestCase() {
     // Make sure that we don't include the non-Android lint checks here.
     val issues: IssueRegistry = LintIdeIssueRegistry()
     assertNull(issues.getIssue("LintImplDollarEscapes"))
+  }
+
+  fun testOldBetaPlugin() {
+    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
+    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
+    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
+    doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
+  }
+
+  fun testOldBetaPluginNoGMaven() {
+    doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
   }
 
   private fun doGlobalInspectionTest(inspection: AndroidLintInspectionBase): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {

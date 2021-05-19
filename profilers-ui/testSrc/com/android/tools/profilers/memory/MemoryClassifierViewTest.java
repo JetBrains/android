@@ -193,7 +193,8 @@ public class MemoryClassifierViewTest {
     assertThat(selectionPath.getLastPathComponent()).isInstanceOf(MemoryObjectTreeNode.class);
     MemoryObject reselectedClassifier = ((MemoryObjectTreeNode)classifierTree.getSelectionPath().getLastPathComponent()).getAdapter();
     assertThat(reselectedClassifier).isInstanceOf(ClassSet.class);
-    assertThat(((ClassSet)selectedClassifier).isSupersetOf((ClassSet)reselectedClassifier)).isTrue();
+    Set<InstanceObject> instances = ((ClassSet)reselectedClassifier).getInstancesStream().collect(Collectors.toSet());
+    assertThat(((ClassSet)selectedClassifier).isSupersetOf(instances)).isTrue();
 
     verifyNode((MemoryObjectTreeNode)root, 1, 8, 16, 33);
     MemoryObjectTreeNode<? extends ClassifierSet> comNode = findChildWithName(rootNode, "com");
@@ -347,7 +348,8 @@ public class MemoryClassifierViewTest {
     assertThat(reselected).isInstanceOf(MemoryObjectTreeNode.class);
     assertThat(((MemoryObjectTreeNode)reselected).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
-    assertThat(selectedClassNode.getAdapter().isSupersetOf(((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter())).isTrue();
+    Set<InstanceObject> instances = (((MemoryObjectTreeNode<ClassSet>)reselected).getAdapter()).getInstancesStream().collect(Collectors.toSet());
+    assertThat(selectedClassNode.getAdapter().isSupersetOf(instances)).isTrue();
 
     // Clear the selection from the model. The Tree's selection should get cleared as well.
     myStage.getCaptureSelection().selectClassSet(null);
@@ -670,7 +672,8 @@ public class MemoryClassifierViewTest {
     assertThat(selectedObject).isInstanceOf(MemoryObjectTreeNode.class);
     assertThat(((MemoryObjectTreeNode)selectedObject).getAdapter()).isInstanceOf(ClassSet.class);
     //noinspection unchecked
-    assertThat(((MemoryObjectTreeNode<ClassSet>)selectedObject).getAdapter().isSupersetOf(nodeToSelect.getAdapter())).isTrue();
+    Set<InstanceObject> instances = (nodeToSelect.getAdapter()).getInstancesStream().collect(Collectors.toSet());;
+    assertThat(((MemoryObjectTreeNode<ClassSet>)selectedObject).getAdapter().isSupersetOf(instances)).isTrue();
   }
 
   @Test

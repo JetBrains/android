@@ -121,13 +121,14 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
     val selected = ClassifierSetHNode(model, selection.selectedHeapSet!!, 0)
     selected.updateChildrenOffsets()
     val captureRange = Range(0.0, selected.end.toDouble())
+    val globalRange = Range(captureRange)
     // We use selectionRange here instead of nodeRange, because nodeRange synchronises with selectionRange and vice versa.
     // In other words, there is a constant ratio between them. And the horizontal scrollbar represents selection range within
     // capture range.
-    val horizontalScrollBar = RangeTimeScrollBar(captureRange, captureRange, TimeUnit.MICROSECONDS)
+    val horizontalScrollBar = RangeTimeScrollBar(globalRange, captureRange, TimeUnit.MICROSECONDS)
     horizontalScrollBar.preferredSize = Dimension(horizontalScrollBar.preferredSize.width, 10)
-    val axis = createAxis(model.formatter(), captureRange, captureRange)
-    val chart = createChart(selected, captureRange)
+    val axis = createAxis(model.formatter(), captureRange)
+    val chart = createChart(selected, captureRange, globalRange)
     chart.addMouseMotionListener(
       MemoryVisualizationTooltipView(chart, profilersView.component, VisualizationTooltipModel(captureRange, model)))
     val panel = JPanel(TabularLayout("*,Fit", "*,Fit"))
@@ -156,9 +157,8 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
   }
 
   private fun createAxis(formatter: BaseAxisFormatter,
-                         range: Range,
-                         globalRange: Range): AxisComponent {
-    val axisModel: AxisComponentModel = ResizingAxisComponentModel.Builder(range, formatter).setGlobalRange(globalRange).build()
+                         range: Range): AxisComponent {
+    val axisModel: AxisComponentModel = ResizingAxisComponentModel.Builder(range, formatter).build()
     val axis = AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM)
     axis.setShowAxisLine(false)
     axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR)
@@ -171,13 +171,16 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
     return axis
   }
 
-  private fun createChart(node: ClassifierSetHNode, range: Range): HTreeChart<ClassifierSetHNode> {
+  private fun createChart(node: ClassifierSetHNode, range: Range, globalRange: Range): HTreeChart<ClassifierSetHNode> {
     val orientation = HTreeChart.Orientation.TOP_DOWN
     return HTreeChart.Builder<ClassifierSetHNode>(node, range, HeapSetNodeHRenderer())
       // Create a new Range for the global range. This allows the global range to remain fixed while the view range updates.
-      .setGlobalXRange(Range(range))
+      .setGlobalXRange(globalRange)
       .setOrientation(orientation)
       .setRootVisible(false)
       .build()
+      .apply {
+        isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled
+      }
   }
 }

@@ -15,26 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.kotlin
 
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.timing.Wait
-import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
-import java.io.IOException
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 @RunWith(GuiTestRemoteRunner::class)
 class BuildCppKotlinTest {
@@ -74,50 +63,8 @@ class BuildCppKotlinTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   fun buildCppKotlinProj() {
-    val ideFrame = try {
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin")
-    } catch(timeout: WaitTimedOutError) {
-      // Ignore. We do not care about project indexing or syncing timeouts in QA tests
-      GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
-      guiTest.ideFrame()
-    }
-
-    // TODO remove the following hack: b/110174414
-    val androidSdk = IdeSdks.getInstance().androidSdkPath
-    val ninja = File(androidSdk, "cmake/3.10.4819442/bin/ninja")
-
-    val buildGradleFailure = AtomicReference<IOException>()
-    ApplicationManager.getApplication().invokeAndWait {
-      WriteCommandAction.runWriteCommandAction(ideFrame.project) {
-        val pbm = ProjectBuildModel.get(ideFrame.project)
-        val buildModel = pbm.getModuleBuildModel(ideFrame.getModule("app"))
-        val cmakeModel = buildModel!!
-          .android()
-          .defaultConfig()
-          .externalNativeBuild()
-          .cmake()
-
-        val cmakeArgsModel = cmakeModel.arguments()
-        try {
-          cmakeArgsModel.setValue("-DCMAKE_MAKE_PROGRAM=" + ninja.canonicalPath)
-          buildModel.applyChanges()
-        }
-        catch (failureToWrite: IOException) {
-          buildGradleFailure.set(failureToWrite)
-        }
-      }
-    }
-    val errorsWhileModifyingBuild = buildGradleFailure.get()
-    if (errorsWhileModifyingBuild != null) {
-      throw errorsWhileModifyingBuild
-    }
-    // TODO end hack for b/110174414
-
-    try {
-      ideFrame.invokeMenuPath("Build", "Rebuild Project").waitForBuildToFinish(BuildMode.REBUILD, Wait.seconds(60))
-    }
-    catch (timedout: WaitTimedOutError) {
-      Assert.fail("Could not build a project!")
-    }
+    val ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
+    ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project")
   }
 }

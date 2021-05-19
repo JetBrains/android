@@ -20,6 +20,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
@@ -33,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 
 class LegacyPropertiesProviderTest {
   @get:Rule
@@ -83,10 +85,11 @@ class LegacyPropertiesProviderTest {
 
   @Test
   fun testExample() {
-    val resourceLookup = Mockito.mock(ResourceLookup::class.java)
-    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, "", 0)
+    val lookup = Mockito.mock(ViewNodeAndResourceLookup::class.java)
+    `when`(lookup.resourceLookup).thenReturn(Mockito.mock(ResourceLookup::class.java))
+    val root = ViewNode(1234, "TextView", null, 0, 0, 0, 0, null, null, "", 0)
     val provider = LegacyPropertiesProvider()
-    val propertyLoader = LegacyPropertiesProvider.Updater(resourceLookup)
+    val propertyLoader = LegacyPropertiesProvider.Updater(lookup)
     propertyLoader.parseProperties(root, example)
     propertyLoader.apply(provider)
     var properties = PropertiesTable.emptyTable<InspectorPropertyItem>()

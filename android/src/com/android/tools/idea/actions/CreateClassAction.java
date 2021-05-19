@@ -18,12 +18,8 @@ package com.android.tools.idea.actions;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
-import com.intellij.ide.IdeView;
-import com.intellij.ide.actions.CreateFromTemplateAction;
-import com.intellij.ide.fileTemplates.FileTemplate;
-import com.intellij.java.JavaBundle;
-import com.intellij.openapi.actionSystem.*;
-import com.google.common.collect.Streams;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -38,7 +34,6 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.ex.util.EditorUtil;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -56,11 +51,8 @@ import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiQualifiedNamedElement;
 import com.intellij.util.IncorrectOperationException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -152,10 +144,9 @@ public final class CreateClassAction extends AnAction {
     }
 
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
-    Collection<VirtualFile> files =
-      Stream.of(sourceProviderManager.getSources(), sourceProviderManager.getUnitTestSources(), sourceProviderManager.getAndroidTestSources())
-        .flatMap(it -> it.getJavaDirectories().stream())
-        .collect(Collectors.toList());
+    List<VirtualFile> files = ImmutableList.copyOf(Iterables.concat(sourceProviderManager.getSources().getJavaDirectories(),
+                                                                    sourceProviderManager.getUnitTestSources().getJavaDirectories(),
+                                                                    sourceProviderManager.getAndroidTestSources().getJavaDirectories()));
 
     if (files.size() != 1) {
       return ide.getOrChooseDirectory();

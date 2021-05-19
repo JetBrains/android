@@ -36,7 +36,7 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.NewRowInstruction;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.instructions.UrlInstruction;
+import com.android.tools.adtui.instructions.HyperlinkInstruction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionListener;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -140,8 +140,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       new TextInstruction(UIUtilities.getFontMetrics(infoPanel, ProfilerFonts.STANDARD_FONT),
                           "There is no information for the network traffic you've selected."),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      new UrlInstruction(ProfilerFonts.STANDARD_FONT, "Learn More",
-                         "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
+      new HyperlinkInstruction(ProfilerFonts.STANDARD_FONT, "Learn More",
+                               "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
       .setColors(JBColor.foreground(), null)
       .build();
     infoPanel.add(infoMessage, BorderLayout.CENTER);

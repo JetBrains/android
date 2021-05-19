@@ -116,7 +116,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   /**
-   * Test for [GradleUsageTypeProvider]
+   * Tests for [GradleUsageTypeProvider]
    */
   fun testGroovyElement() {
     val file = myFixture.addFileToProject("Foo.gradle", "class F${caret}oo {}")
@@ -125,6 +125,36 @@ class UsageTypeProvidersTest : AndroidTestCase() {
     val usageType = getUsageType(elementAtCaret!!)
     assertThat(usageType).isNotNull()
     assertThat(usageType.toString()).isEqualTo("In Gradle build script")
+  }
+
+  fun testKotlinScriptElement() {
+    val file = myFixture.addFileToProject("Foo.gradle.kts", "class F${caret}oo {}")
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
+    val usageType = getUsageType(elementAtCaret!!)
+    assertThat(usageType).isNotNull()
+    assertThat(usageType.toString()).isEqualTo("{0} in Gradle build script")
+  }
+
+  // whatever is returned on a normal Kotlin file, it should not be related to Gradle (a null result is OK)
+  fun testKotlinClassNameElement() {
+    val file = myFixture.addFileToProject("Foo.kt", "class F${caret}oo {}")
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
+    val usageType = getUsageType(elementAtCaret!!)
+    if (usageType != null) {
+      assertThat(usageType.toString()).doesNotContainMatch("Gradle")
+    }
+  }
+
+  fun testKotlinClassReferenceElement() {
+    val file = myFixture.addFileToProject("Foo.kt", "class Foo {}\n\nclass Bar : F${caret}oo {}")
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = file.findElementAt(myFixture.caretOffset)
+    val usageType = getUsageType(elementAtCaret!!)
+    if (usageType != null) {
+      assertThat(usageType.toString()).doesNotContainMatch("Gradle")
+    }
   }
 
   /**
@@ -192,7 +222,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   private fun getUsageType(element: PsiElement) : UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
       if (provider is UsageTypeProviderEx) {
-        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.getEditor() as EditorEx).dataContext.getData(dataId) }
+        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.editor as EditorEx).dataContext.getData(dataId) }
         return provider.getUsageType(element, targets) ?: continue
       }
       else {

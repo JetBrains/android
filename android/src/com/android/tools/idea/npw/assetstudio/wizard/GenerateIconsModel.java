@@ -18,11 +18,14 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.wizard.model.WizardModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.io.File;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 public final class GenerateIconsModel extends WizardModel {
   @Nullable private IconGenerator myIconGenerator;
   @NotNull private AndroidModulePaths myPaths;
+  @NotNull private List<File> myFilesToDelete = ImmutableList.of();
   @NotNull private final StateStorage myStateStorage;
   @NotNull private final String myWizardId;
 
@@ -67,6 +71,10 @@ public final class GenerateIconsModel extends WizardModel {
     myPaths = paths;
   }
 
+  public void setFilesToDelete(@NotNull List<File> files) {
+    myFilesToDelete = ImmutableList.copyOf(files);
+  }
+
   @NotNull
   public AndroidModulePaths getPaths() {
     return myPaths;
@@ -80,6 +88,10 @@ public final class GenerateIconsModel extends WizardModel {
     }
 
     myIconGenerator.generateIconsToDisk(myPaths);
+    for (File file : myFilesToDelete) {
+      //noinspection ResultOfMethodCallIgnored
+      file.delete();
+    }
   }
 
   /**

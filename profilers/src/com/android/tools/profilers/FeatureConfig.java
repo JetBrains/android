@@ -20,8 +20,6 @@ package com.android.tools.profilers;
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
-  int getNativeMemorySamplingRateForCurrentConfig();
-  boolean isCpuApiTracingEnabled();
   boolean isCpuCaptureStageEnabled();
   boolean isCpuNewRecordingWorkflowEnabled();
   boolean isCustomEventVisualizationEnabled();

@@ -17,15 +17,22 @@
 
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.NdkVariant
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.plugins.gradle.model.ExternalProject
+import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.io.File
 
 fun <T : Any> DataNode<T>.dump(): String = buildString {
 
@@ -72,7 +79,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       javaModuleDependencies = ${javaModuleDependencies}
       jarLibraryDependencies = ${jarLibraryDependencies}
       artifactsByConfiguration = ${artifactsByConfiguration}
-      syncIssues = ${syncIssues}
       configurations = ${configurations}
       """.replaceIndent("    ")
     is AndroidModuleModel -> format()
@@ -95,11 +101,8 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
 fun NdkModuleModel.format(): String = "\n" + """
     moduleName = ${moduleName}
     rootDirPath = ${rootDirPath}
-    androidProject = ${androidProject.format()}
-    variantAbi = ${variantAbi.format()}
-    variants = ${variants.format{ format()}}
+    ndkModel = ${ndkModel.format()}
     features = ${features.format()}
-    selectedVariant = ${selectedVariant.format()}
   """
 
 fun <T> Collection<T>.format(format: T.() -> String): String = """[
@@ -145,7 +148,6 @@ fun AndroidModuleModel.format(): String = "\n" + """
     variantNames = ${variantNames.format()}
     javaLanguageLevel = $javaLanguageLevel
     overridesManifestPackage = ${overridesManifestPackage()}
-    syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
     flavorSourceProviders = ${flavorSourceProviders.format()}
@@ -201,5 +203,18 @@ private fun Any.format(prefix: String = "      "): String {
       appendln("**********")
       appendln(t)
     }
+  }
+}
+
+class DumpProjectDataAction : DumbAwareAction("Dump Project Data Nodes") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project!!
+    val dataManager = ProjectDataManager.getInstance()
+    val projectPath = Projects.getBaseDirPath(project).path
+    val data = dataManager.getExternalProjectData(project, GradleConstants.SYSTEM_ID, projectPath) ?: return
+    val dump = data.externalProjectStructure?.dump() ?: return
+    val outputFile = File(File(projectPath), sanitizeFileName(project.name) + ".project_data_nodes_dump")
+    outputFile.writeText(dump)
+    println("Dumped to: file://$outputFile")
   }
 }

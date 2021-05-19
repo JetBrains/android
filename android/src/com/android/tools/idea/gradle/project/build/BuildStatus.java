@@ -16,5 +16,15 @@
 package com.android.tools.idea.gradle.project.build;
 
 public enum BuildStatus {
-  SKIPPED, SUCCESS, FAILED, CANCELED
+  SUCCESS(true), FAILED(false), CANCELED(false);
+
+  private final boolean myIsBuildSuccessful;
+
+  BuildStatus(boolean successful) {
+    myIsBuildSuccessful = successful;
+  }
+
+  public boolean isBuildSuccessful() {
+    return myIsBuildSuccessful;
+  }
 }

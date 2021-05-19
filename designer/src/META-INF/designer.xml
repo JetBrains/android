@@ -35,6 +35,13 @@
     <editorNotificationProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewNotificationForwarder" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationManager" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
+    <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
+  </extensions>
+
   <!-- Collects all the providers for source code preview representations -->
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.sourceCodePreviewRepresentationProvider"
@@ -47,23 +54,12 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.sampledata.CsvEditorProvider"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
     <keymapExtension implementation="com.android.tools.idea.DesignerKeymapExtension"/>
   </extensions>
-
-  <extensions defaultExtensionNs="com.intellij">
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" />
-    <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
-    <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
-  </extensions>
-
 
   <!-- The design tool actions which the shortcuts are configurable. -->
   <!-- The action ids should be listed in com.android.tools.idea.actions.DesignerActions.kt file  -->
@@ -97,7 +93,7 @@
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
       <action id="Android.Designer.SwitchDesignMode"
               icon="StudioIcons.LayoutEditor.Toolbar.VIEW_MODE"
-              class="com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction"
+              class="com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction"
               text="Switch Design Mode"
               description="Switch the design mode cycling within Design, Blueprint, and Design + Blueprint">
         <keyboard-shortcut keymap="$default" first-keystroke="B"/>
@@ -108,6 +104,13 @@
               text="Toggle Device Orientation"
               description="Toggle the preview orientation between portrait and landscape">
         <keyboard-shortcut keymap="$default" first-keystroke="O"/>
+      </action>
+      <action id="Android.Designer.ToggleDeviceNightMode"
+              icon="StudioIcons.DeviceConfiguration.NIGHT_MODE"
+              class="com.android.tools.idea.common.actions.ToggleDeviceNightModeAction"
+              text="Toggle Device Night Mode"
+              description="Enable or disable the Night mode of preview">
+        <keyboard-shortcut keymap="$default" first-keystroke="N"/>
       </action>
       <action id="Android.Designer.NextDevice"
               class="com.android.tools.idea.common.actions.NextDeviceAction"
@@ -129,10 +132,10 @@
     <!-- TODO: add shortcuts and group for nav editor, multi-preview, custom view, compose, and split editor -->
 
 
-    <action id="Android.Designer.LayoutValidatorAction"
-            text="Run Layout Validator"
+    <action id="Android.Designer.LayoutScannerAction"
+            text="Run accessibility scanner"
             icon="StudioIcons.LayoutEditor.Toolbar.ACCESSIBILITY"
-            class="com.android.tools.idea.uibuilder.surface.LayoutValidatorAction">
+            class="com.android.tools.idea.uibuilder.surface.LayoutScannerAction">
     </action>
 
     <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
@@ -160,5 +163,4 @@
     <!-- fixme-ank4: there is no assistant in idea yet -->
     <navlistener implementation="com.android.tools.idea.uibuilder.actions.analytics.AssistantPanelNavListener" />
   </extensions>
-
 </idea-plugin>

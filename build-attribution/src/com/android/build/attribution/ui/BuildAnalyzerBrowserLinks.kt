@@ -44,5 +44,10 @@ enum class BuildAnalyzerBrowserLinks(
   OPTIMIZE_CONFIGURATION_PHASE(
     "https://d.android.com/r/tools/build-attribution/optimize-configuration-phase",
     BuildAttributionUiEvent.OutgoingLinkTarget.OPTIMIZE_CONFIGURATION_PHASE_HELP
+  ),
+  CONFIGURE_GC(
+    "https://d.android.com/r/tools/build-attribution/configure-gc",
+    // TODO (mlazeba): add event to metrics
+    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
   )
 }

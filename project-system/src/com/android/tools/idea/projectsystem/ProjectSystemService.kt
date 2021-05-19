@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.intellij.ProjectTopics
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
@@ -45,7 +46,9 @@ open class ProjectSystemService(val project: Project) {
         // point, so we can't hold any locks or be inside a synchronized block while invoking it or
         // it would be a deadlock risk.
         cache = detectProjectSystem(project)
-        cachedProjectSystem.compareAndSet(null, cache)
+        if (cachedProjectSystem.compareAndSet(null, cache)) {
+          Logger.getInstance(ProjectSystemService::class.java).info("${cache.javaClass.simpleName} project system has been detected")
+        }
         // Can't return null since we've set it to a non-null value earlier in the method and there
         // is no code that ever sets it back to null once set to a non-null value. However, it's
         // possible that another thread initialized it to a different non-null value, so we should

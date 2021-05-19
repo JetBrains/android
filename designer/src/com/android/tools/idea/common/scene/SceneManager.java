@@ -60,6 +60,20 @@ abstract public class SceneManager implements Disposable {
     void syncFromNlComponent(@NotNull SceneComponent sceneComponent);
   }
 
+  /**
+   * Listener that allows performing additional operations affected by the scene root component when updating the scene.
+   */
+  public interface SceneUpdateListener {
+    void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface);
+  }
+
+  public static class DefaultSceneUpdateListener implements SceneUpdateListener {
+    @Override
+    public void onUpdate(@NotNull NlComponent component, @NotNull DesignSurface designSurface) {
+      // By default, don't do anything extra when updating the scene.
+    }
+  }
+
   public static final boolean SUPPORTS_LOCKING = false;
 
   @NotNull private final NlModel myModel;
@@ -69,6 +83,7 @@ abstract public class SceneManager implements Disposable {
   @Nullable private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
+  @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
 
   /**
    * Creates a new {@link SceneManager}.
@@ -78,17 +93,20 @@ abstract public class SceneManager implements Disposable {
    *                         {@link SceneManager#requestRender} happens.
    * @param sceneComponentProvider a {@link SceneComponentHierarchyProvider} that will generate the {@link SceneComponent}s from the
    *                               given {@link NlComponent}.
+   * @param sceneUpdateListener a {@link SceneUpdateListener} that allows performing additional operations when updating the scene.
    */
   public SceneManager(
     @NotNull NlModel model,
     @NotNull DesignSurface surface,
     boolean useLiveRendering,
-    @Nullable SceneComponentHierarchyProvider sceneComponentProvider) {
+    @Nullable SceneComponentHierarchyProvider sceneComponentProvider,
+    @Nullable SceneManager.SceneUpdateListener sceneUpdateListener) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
     mySceneComponentProvider = sceneComponentProvider == null ? new DefaultSceneManagerHierarchyProvider() : sceneComponentProvider;
+    mySceneUpdateListener = sceneUpdateListener == null ? new DefaultSceneUpdateListener() : sceneUpdateListener;
     myScene = new Scene(this, myDesignSurface, useLiveRendering);
   }
 
@@ -171,6 +189,7 @@ abstract public class SceneManager implements Disposable {
       scene.removeAllComponents();
       scene.setRoot(null);
     }
+    mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root = hierarchy.isEmpty() ? null : hierarchy.get(0);
@@ -271,10 +290,32 @@ abstract public class SceneManager implements Disposable {
 
   public abstract Map<Object, Map<ResourceReference, ResourceValue>> getDefaultProperties();
 
-  public abstract Map<Object, String> getDefaultStyles();
+  public abstract Map<Object, ResourceReference> getDefaultStyles();
 
   @NotNull
   protected HitProvider getHitProvider(@NotNull NlComponent component) {
     return myHitProvider;
+  }
+
+  /**
+   * Notify this {@link SceneManager} that is active. It will be active by default.
+   *
+   * @param source caller used to keep track of the references to this model. See {@link #deactivate(Object)}
+   * @returns true if the {@link SceneManager} was not active before and was activated.
+   */
+  public boolean activate(@NotNull Object source) {
+    return getModel().activate(source);
+  }
+
+  /**
+   * Notify this {@link SceneManager} that it's not active. This means it can stop watching for events etc. It may be activated again in the
+   * future.
+   *
+   * @param source the source is used to keep track of the references that are using this model. Only when all the sources have called
+   *               deactivate(Object), the model will be really deactivated.
+   * @returns true if the {@link SceneManager} was active before and was deactivated.
+   */
+  public boolean deactivate(@NotNull Object source) {
+    return getModel().deactivate(source);
   }
 }

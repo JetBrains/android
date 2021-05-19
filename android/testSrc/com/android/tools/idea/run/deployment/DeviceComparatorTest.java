@@ -27,14 +27,14 @@ public final class DeviceComparatorTest {
   public void compareConnectionTime() {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
-      .setKey(new Key("Pixel_3_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
       .setConnectionTime(Instant.parse("2019-06-03T20:57:00.687Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
-      .setKey(new Key("Pixel_2_XL_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
       .setConnectionTime(Instant.parse("2019-06-03T20:56:58.176Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -46,14 +46,14 @@ public final class DeviceComparatorTest {
   public void compareConnectionTimeNullsLast() {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
-      .setKey(new Key("Pixel_3_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
-      .setKey(new Key("Pixel_2_XL_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -64,14 +64,14 @@ public final class DeviceComparatorTest {
   public void compareValid() {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
-      .setKey(new Key("Pixel_3_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
       .setValid(false)
-      .setKey(new Key("Pixel_2_XL_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -82,14 +82,14 @@ public final class DeviceComparatorTest {
   public void compareType() {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
-      .setKey(new Key("Pixel_3_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
       .setName("LGE Nexus 5X")
-      .setKey(new Key("00fff9d2279fa601"))
+      .setKey(new SerialNumber("00fff9d2279fa601"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -100,13 +100,13 @@ public final class DeviceComparatorTest {
   public void compareName() {
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 2 XL API 28")
-      .setKey(new Key("Pixel_2_XL_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 28")
-      .setKey(new Key("Pixel_3_API_28"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

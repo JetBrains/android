@@ -126,8 +126,7 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     return this
   }
 
-  fun build(): ModelWizardDialog {
-    val customLayout = StudioWizardLayout()
+  fun build(customLayout: ModelWizardDialog.CustomLayout): ModelWizardDialog {
     minimumSize = minimumSize ?: customLayout.defaultMinSize
     preferredSize = preferredSize ?: customLayout.defaultPreferredSize
     val dialog: ModelWizardDialog = if (parent != null)
@@ -141,6 +140,8 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
     }
     return dialog
   }
+
+  fun build(): ModelWizardDialog = build(StudioWizardLayout())
 }
 
 /**

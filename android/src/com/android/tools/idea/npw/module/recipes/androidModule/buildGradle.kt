@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.module.recipes.getConfigurationName
 import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.has
@@ -40,14 +41,14 @@ fun buildGradle(
   targetApi: String,
   useAndroidX: Boolean,
   gradlePluginVersion: GradlePluginVersion,
-  includeCppSupport: Boolean = false,
-  cppFlags: String = "",
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
   formFactorNames: Map<FormFactor, List<String>>,
   hasTests: Boolean = true,
-  addLintOptions: Boolean = false
+  addLintOptions: Boolean = false,
+  enableCpp: Boolean = false,
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
 ): String {
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
@@ -60,14 +61,14 @@ fun buildGradle(
     minApi,
     targetApi,
     useAndroidX,
-    cppFlags,
     isLibraryProject,
-    includeCppSupport,
     isApplicationProject,
     packageName,
     hasTests = hasTests,
     canUseProguard = true,
-    addLintOptions = addLintOptions
+    addLintOptions = addLintOptions,
+    enableCpp = enableCpp,
+    cppStandard = cppStandard
   )
 
   if (isDynamicFeature) {
@@ -77,7 +78,7 @@ $androidConfigBlock
 dependencies {
     implementation project("${baseFeatureName}")
 }
-"""
+""".gradleToKtsIfKts(isKts)
   }
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
@@ -113,27 +114,7 @@ dependencies {
     $dependenciesBlock
     """
 
-  return if (isKts) {
-    allBlocks
-      .split("\n").joinToString("\n") {
-        it.replace("'", "\"")
-          .toKtsFunction("compileSdkVersion")
-          .toKtsProperty("applicationId")
-          .toKtsFunction("minSdkVersion")
-          .toKtsFunction("targetSdkVersion")
-          .toKtsProperty("versionCode")
-          .toKtsProperty("versionName")
-          .toKtsProperty("testInstrumentationRunner")
-          .toKtsProperty("minifyEnabled")
-          .toKtsFunction("proguardFiles")
-          .toKtsFunction("wearApp")
-          .replace("minifyEnabled", "isMinifyEnabled")
-          .replace("release {", "getByName(\"release\") {")
-      }
-  }
-  else {
-    allBlocks
-  }
+  return allBlocks.gradleToKtsIfKts(isKts)
 }
 
 private fun String.toKtsFunction(funcName: String): String = if (this.contains("$funcName ")) {
@@ -145,3 +126,31 @@ else {
 
 private fun String.toKtsProperty(funcName: String): String = this.replace("$funcName ", "$funcName = ")
 
+internal fun String.gradleToKtsIfKts(isKts: Boolean): String = if (isKts) {
+  split("\n").joinToString("\n") {
+    it.replace("'", "\"")
+      .toKtsFunction("compileSdkVersion")
+      .toKtsProperty("buildToolsVersion")
+      .toKtsProperty("applicationId")
+      .toKtsFunction("minSdkVersion")
+      .toKtsFunction("targetSdkVersion")
+      .toKtsProperty("versionCode")
+      .toKtsProperty("versionName")
+      .toKtsProperty("testInstrumentationRunner")
+      .toKtsProperty("minifyEnabled")
+      .toKtsFunction("proguardFiles")
+      .toKtsFunction("consumerProguardFiles")
+      .toKtsFunction("wearApp")
+      .toKtsFunction("implementation") // For dynamic app: implementation project(":app") -> implementation(project(":app"))
+      .replace("minifyEnabled", "isMinifyEnabled")
+      .replace("release {", "getByName(\"release\") {")
+      .replace("debug {", "getByName(\"debug\") {")
+      // The followings are for externalNativeBuild
+      .toKtsFunction("cppFlags")
+      .toKtsFunction("path")
+      .toKtsProperty("version")
+  }
+}
+else {
+  this
+}

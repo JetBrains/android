@@ -25,7 +25,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.NewLibraryEditor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightProjectDescriptor
-import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
+import org.jetbrains.kotlin.android.ConfigLibraryUtil
 import java.io.File
 
 // Adapted from the Kotlin test framework (after taking over android-kotlin sources).

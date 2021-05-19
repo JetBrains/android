@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
-import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_VALIDATOR_KEY;
-import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_VALIDATOR_IN_EDITOR;
+import static com.android.tools.idea.actions.DesignerDataKeys.LAYOUT_SCANNER_KEY;
+import static com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_IN_EDITOR;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
@@ -27,13 +26,17 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.editor.ActionManager;
+import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.ScaleKt;
+import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -41,8 +44,9 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.InteractionHandler;
-import com.android.tools.idea.common.surface.PositionableContentLayoutManager;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SurfaceScale;
+import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -60,10 +64,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
-import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
-import com.android.tools.idea.validator.ValidatorResult;
 import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -78,13 +80,10 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
 import java.awt.*;
-import java.util.ArrayList;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -102,54 +101,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
-  private static final double DEFAULT_MIN_SCALE = 0.1;
-  private static final double DEFAULT_MAX_SCALE = 10;
+  @SurfaceScale private static final double DEFAULT_MIN_SCALE = 0.1;
+  @SurfaceScale private static final double DEFAULT_MAX_SCALE = 10;
 
   /**
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
    */
   @Nullable private final DataProvider myDelegateDataProvider;
-
-  private static class NlDesignSurfacePositionableContentLayoutManager extends PositionableContentLayoutManager {
-    private final NlDesignSurface myDesignSurface;
-    private final SurfaceLayoutManager myLayoutManager;
-
-    NlDesignSurfacePositionableContentLayoutManager(@NotNull NlDesignSurface surface, @NotNull SurfaceLayoutManager surfaceLayoutManager) {
-      myDesignSurface = surface;
-      myLayoutManager = surfaceLayoutManager;
-    }
-
-    @Override
-    public void layoutContent(@NotNull Collection<? extends PositionableContent> content) {
-      Dimension extentSize = myDesignSurface.getExtentSize();
-      int availableWidth = extentSize.width;
-      int availableHeight = extentSize.height;
-      myLayoutManager.layout(content, availableWidth, availableHeight, myDesignSurface.isCanvasResizing());
-    }
-
-    @Override
-    public Dimension preferredLayoutSize(Container parent) {
-      Dimension extentSize = myDesignSurface.getExtentSize();
-      int availableWidth = extentSize.width;
-      int availableHeight = extentSize.height;
-      Dimension dimension = myLayoutManager.getRequiredSize(myDesignSurface.getPositionableContent(), availableWidth, availableHeight, null);
-
-      if (dimension.width >= 0 && dimension.height >= 0) {
-        dimension.setSize(dimension.width + 2 * DEFAULT_SCREEN_OFFSET_X, dimension.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
-      }
-      else {
-        // The layout manager returned an invalid layout
-        dimension.setSize(0, 0);
-      }
-
-      dimension.setSize(
-        Math.max(myDesignSurface.myScrollableViewMinSize.width, dimension.width),
-        Math.max(myDesignSurface.myScrollableViewMinSize.height, dimension.height)
-      );
-
-      return dimension;
-    }
-  }
 
   public static class Builder {
     private final Project myProject;
@@ -161,8 +119,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private boolean myIsEditable = true;
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
-    private double myMinScale = DEFAULT_MIN_SCALE;
-    private double myMaxScale = DEFAULT_MAX_SCALE;
+    @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
+    @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
     /**
      * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
@@ -181,6 +139,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     private Function<DesignSurface, InteractionHandler> myInteractionHandlerProvider = NlDesignSurface::defaultInteractionHandlerProvider;
     private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
+    @Nullable private SelectionModel mySelectionModel = null;
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
       myProject = project;
@@ -283,7 +242,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      *
      * @see #setMaxScale(double)
      */
-    public Builder setMinScale(double scale) {
+    public Builder setMinScale(@SurfaceScale double scale) {
       if (scale <= 0) {
         throw new IllegalStateException("The min scale (" + scale + ") is not larger than 0");
       }
@@ -301,7 +260,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      *
      * @see #setMinScale(double)
      */
-    public Builder setMaxScale(double scale) {
+    public Builder setMaxScale(@SurfaceScale double scale) {
       myMaxScale = scale;
       return this;
     }
@@ -335,6 +294,15 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Sets a new {@link SelectionModel} for this surface.
+     */
+    @NotNull
+    public Builder setSelectionModel(@NotNull SelectionModel selectionModel) {
+      mySelectionModel = selectionModel;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -355,7 +323,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myMaxScale,
                                  myOnChangeZoom,
                                  myActionHandlerProvider,
-                                 myDelegateDataProvider);
+                                 myDelegateDataProvider,
+                                 mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel());
     }
   }
 
@@ -381,7 +350,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                            boolean requestFocus);
   }
 
-  @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();
+  @NotNull private ScreenViewProvider myScreenViewProvider = NlScreenViewProvider.Companion.loadPreferredMode();
   private boolean myIsCanvasResizing = false;
   private boolean myShowModelNames = false;
   private boolean myMockupVisible;
@@ -389,7 +358,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   private final boolean myIsInPreview;
   private ShapeMenuAction.AdaptiveIconShape myAdaptiveIconShape = ShapeMenuAction.AdaptiveIconShape.getDefaultShape();
   private final RenderListener myRenderListener = this::modelRendered;
-  private RenderIssueProvider myRenderIssueProvider;
+  @NotNull private ImmutableList<? extends IssueProvider> myRenderIssueProviders = ImmutableList.of();
   private AccessoryPanel myAccessoryPanel = new AccessoryPanel(AccessoryPanel.Type.SOUTH_PANEL, true);
   @NotNull private final NlAnalyticsManager myAnalyticsManager;
   /**
@@ -397,19 +366,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  @NotNull private final SurfaceLayoutManager myLayoutManager;
+  @NotNull private SurfaceLayoutManager myLayoutManager;
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
-  private final double myMinScale;
-  private final double myMaxScale;
+  @SurfaceScale private final double myMinScale;
+  @SurfaceScale private final double myMaxScale;
 
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
   private final Dimension myScrollableViewMinSize = new Dimension();
-  @Nullable private NlLayoutValidator myValidator;
-  @Nullable private LayoutValidatorControl myValidatorControl;
+  @Nullable private LayoutScannerControl myValidatorControl;
 
   private NlDesignSurface(@NotNull Project project,
                           @NotNull Disposable parentDisposable,
@@ -417,23 +385,25 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           boolean isEditable,
                           boolean showModelNames,
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
-                          @NotNull SurfaceLayoutManager layoutManager,
+                          @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler,
-                          double minScale,
-                          double maxScale,
+                          @SurfaceScale double minScale,
+                          @SurfaceScale double maxScale,
                           @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
-                          @Nullable DataProvider delegateDataProvider) {
+                          @Nullable DataProvider delegateDataProvider,
+                          @NotNull SelectionModel selectionModel) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
-          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, layoutManager),
-          actionHandlerProvider);
+          (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
+          actionHandlerProvider,
+          selectionModel);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
     myShowModelNames = showModelNames;
-    myLayoutManager = layoutManager;
+    myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
 
@@ -444,9 +414,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get()) {
-      myValidator = new NlLayoutValidator(myIssueModel, this);
-      myValidatorControl = new NlLayoutValidatorControl(this, myValidator);
+    if (NELE_LAYOUT_SCANNER_IN_EDITOR.get()) {
+      myValidatorControl = new NlLayoutScannerControl(this, this);
     }
 
     myDelegateDataProvider = delegateDataProvider;
@@ -457,7 +426,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    */
   @NotNull
   public static LayoutlibSceneManager defaultSceneManagerProvider(@NotNull NlDesignSurface surface, @NotNull NlModel model) {
-    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface);
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, surface, new LayoutScannerEnabled());
     RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
     sceneManager.setShowDecorations(settings.getShowDecorations());
     sceneManager.setUseImagePool(settings.getUseLiveRendering());
@@ -467,7 +436,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @NotNull
   public static SurfaceLayoutManager createDefaultSurfaceLayoutManager() {
-     return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA);
+    return new SingleDirectionLayoutManager(DEFAULT_SCREEN_OFFSET_X, DEFAULT_SCREEN_OFFSET_Y, SCREEN_DELTA, SCREEN_DELTA,
+                                            SingleDirectionLayoutManager.Alignment.CENTER);
   }
 
   /**
@@ -547,33 +517,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @NotNull
-  public SceneMode getSceneMode() {
-    return mySceneMode;
+  public ScreenViewProvider getScreenViewProvider() {
+    return myScreenViewProvider;
+  }
+
+  public void setScreenViewProvider(@NotNull ScreenViewProvider screenViewProvider, boolean setAsDefault) {
+    // TODO(b/160021437): Make ScreenViewProvider a property of SceneManager instead, the way is currently implemented, changes made to
+    //  DesignSurface properties affect previews from all NlModels, that's not always the desired behavior like in this case
+    if (setAsDefault && screenViewProvider instanceof NlScreenViewProvider) {
+      NlScreenViewProvider.Companion.savePreferredMode((NlScreenViewProvider)screenViewProvider);
+    }
+
+    if (screenViewProvider != myScreenViewProvider) {
+      myScreenViewProvider = screenViewProvider;
+
+      for (SceneManager manager : getSceneManagers()) {
+        manager.updateSceneView();
+        manager.requestLayoutAndRender(false);
+      }
+      revalidateScrollArea();
+    }
   }
 
   @Nullable
   public NavigationHandler getNavigationHandler() {
     return myNavigationHandler;
-  }
-
-  public void setScreenMode(@NotNull SceneMode sceneMode, boolean setAsDefault) {
-    if (setAsDefault) {
-      SceneMode.Companion.savePreferredMode(sceneMode);
-    }
-
-    if (sceneMode != mySceneMode) {
-      mySceneMode = sceneMode;
-
-      LayoutlibSceneManager manager = getSceneManager();
-      if (manager != null) {
-        manager.updateSceneView();
-        manager.requestLayoutAndRender(false);
-      }
-      if (!contentResizeSkipped()) {
-        zoomToFit();
-        revalidateScrollArea();
-      }
-    }
   }
 
   /**
@@ -626,8 +594,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @Override
   public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
+    Dimension scaledSize = new Dimension();
     for (SceneView view : sceneViews) {
-      if (view.getX() <= x && x <= (view.getX() + view.getScaledContentSize().width) && view.getY() <= y && y <= (view.getY() + view.getScaledContentSize().height)) {
+      ScaleKt.scaleBy(view.getContentSize(scaledSize), view.getScale());
+      if (view.getX() <= x &&
+          x <= (view.getX() + scaledSize.width) &&
+          view.getY() <= y &&
+          y <= (view.getY() + scaledSize.height)) {
         return view;
       }
     }
@@ -679,7 +652,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public float getScreenScalingFactor() {
+  @SurfaceScreenScalingFactor
+  public double getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
   }
 
@@ -713,9 +687,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   protected Dimension getPreferredContentSize(@SwingCoordinate int availableWidth, @SwingCoordinate int availableHeight) {
-    Collection<SceneView> sceneViews = getSceneViews();
     Dimension extent = getExtentSize();
-    return myLayoutManager.getPreferredSize(sceneViews, extent.width, extent.height, null);
+    return ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+      .getLayoutManager()
+      .getPreferredSize(getPositionableContent(), extent.width, extent.height, null);
   }
 
   @Override
@@ -782,13 +757,18 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       @Override
       public void run() {
         // Look up *current* result; a newer one could be available
-        LayoutlibSceneManager sceneManager = getSceneManager();
-        RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
-        if (result == null) {
+        Map<LayoutlibSceneManager, RenderResult> results = getSceneManagers().stream()
+          .filter(LayoutlibSceneManager.class::isInstance)
+          .map(LayoutlibSceneManager.class::cast)
+          .filter(sceneManager -> sceneManager.getRenderResult() != null)
+          .collect(Collectors.toMap(Function.identity(), LayoutlibSceneManager::getRenderResult));
+        if (results.isEmpty()) {
           return;
         }
-        if (NELE_LAYOUT_VALIDATOR_IN_EDITOR.get() && !getModels().isEmpty()) {
-          myValidator.validateAndUpdateLint(result, getModels().get(0));
+        if (NELE_LAYOUT_SCANNER_IN_EDITOR.get() && myValidatorControl != null) {
+          for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
+            myValidatorControl.getScanner().validateAndUpdateLint(entry.getValue(), entry.getKey().getModel());
+          }
         }
 
         Project project = getProject();
@@ -799,15 +779,31 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
         // createErrorModel needs to run in Smart mode to resolve the classes correctly
         DumbService.getInstance(project).runReadActionInSmartMode(() -> {
           BuildMode gradleBuildMode = BuildSettings.getInstance(project).getBuildMode();
-          RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
-                                   ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
-                                   : RenderErrorModelFactory
-                                     .createErrorModel(NlDesignSurface.this, result, null);
-          if (myRenderIssueProvider != null) {
-            getIssueModel().removeIssueProvider(myRenderIssueProvider);
+          ImmutableList<RenderIssueProvider> renderIssueProviders = null;
+          if (gradleBuildMode != null) {
+            for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
+              if (entry.getValue().getLogger().hasErrors()) {
+                // We are still building, display the message to the user.
+                renderIssueProviders = ImmutableList.of(new RenderIssueProvider(
+                  entry.getKey().getModel(), RenderErrorModel.STILL_BUILDING_ERROR_MODEL));
+                break;
+              }
+            }
           }
-          myRenderIssueProvider = new RenderIssueProvider(model);
-          getIssueModel().addIssueProvider(myRenderIssueProvider);
+
+          if (renderIssueProviders == null) {
+            renderIssueProviders = results.entrySet().stream()
+              .map(entry -> {
+                RenderErrorModel errorModel = RenderErrorModelFactory
+                  .createErrorModel(NlDesignSurface.this, entry.getValue(),
+                                    DataManager.getInstance().getDataContext(getIssuePanel()));
+                return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
+              })
+              .collect(ImmutableList.toImmutableList());
+          }
+          myRenderIssueProviders.forEach(renderIssueProvider -> getIssueModel().removeIssueProvider(renderIssueProvider));
+          myRenderIssueProviders = renderIssueProviders;
+          renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
       }
 
@@ -843,21 +839,30 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
+  @SurfaceScale
   protected double getMinScale() {
     return Math.max(getFitScale(true), myMinScale);
   }
 
   @Override
+  @SurfaceScale
   protected double getMaxScale() {
     return myMaxScale;
   }
 
   @Override
   public boolean canZoomToFit() {
-    double minZoomLevel = myMinScale / getScreenScalingFactor();
-    double maxZoomLevel = myMaxScale / getScreenScalingFactor();
-    double zoomToFitLevel = Math.max(minZoomLevel, Math.min(getFitScale(true), maxZoomLevel));
-    return Math.abs(getScale() - zoomToFitLevel) > 0.01;
+    @SurfaceScale double minZoomLevel = myMinScale;
+    @SurfaceScale double maxZoomLevel = myMaxScale;
+    @SurfaceScale double zoomToFitLevel = Math.max(minZoomLevel, Math.min(getFitScale(true), maxZoomLevel));
+    return Math.abs(getScale() - zoomToFitLevel) > SCALING_THRESHOLD / getScreenScalingFactor();
+  }
+
+  @Override
+  public boolean canZoomToActual() {
+    @SurfaceScale double currentScale = getScale();
+    @SurfaceScale double scaleOfActual = 1d / getScreenScalingFactor();
+    return (currentScale > scaleOfActual && canZoomOut()) || (currentScale < scaleOfActual && canZoomIn());
   }
 
   @Override
@@ -895,7 +900,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @SwingCoordinate int targetSwingY = (int)areaToCenter.getCenterY();
     // Center to position.
     setScrollPosition(targetSwingX - swingViewportSize.width / 2, targetSwingY - swingViewportSize.height / 2);
-    double fitScale = getFitScale(areaToCenter.getSize(), false);
+    @SurfaceScale double fitScale = getFitScale(areaToCenter.getSize(), false);
 
     if (getScale() > fitScale) {
       // Scale down to fit selection.
@@ -964,7 +969,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId) ) {
       return this;
     }
-    else if(LAYOUT_VALIDATOR_KEY.is(dataId)) {
+    else if(LAYOUT_SCANNER_KEY.is(dataId)) {
       return myValidatorControl;
     }
 
@@ -982,5 +987,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
       forceUserRequestedRefresh();
     }
+  }
+
+  @NotNull
+  Dimension getScrollableViewMinSize() {
+    return myScrollableViewMinSize;
   }
 }

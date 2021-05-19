@@ -22,9 +22,11 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
+import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +69,42 @@ public class IssueModel {
 
   public IssueModel() {
     this(command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+  }
+
+  @Nullable
+  public Issue getHighestSeverityIssue(NlComponent component) {
+    IssueSource componentSource = IssueSource.fromNlComponent(component);
+    Issue[] filtered = myIssues.stream()
+      .filter((it) -> componentSource.equals(it.getSource()))
+      .toArray(size -> new Issue[size]);
+
+    if (filtered.length == 0) {
+      return null;
+    }
+
+    Issue max = filtered[0];
+    for (int i = 1; i < filtered.length; i++) {
+      Issue it = filtered[i];
+      if (max.getSeverity().compareTo(it.getSeverity()) < 0) {
+        max = it;
+      }
+    }
+
+    return max;
+  }
+
+  /**
+   * Get the icon for the severity level.
+   *
+   * @return The icon for the severity level of the issue.
+   */
+  @Nullable
+  public static Icon getIssueIcon(@NotNull HighlightSeverity severity, boolean selected) {
+    boolean isError = severity == HighlightSeverity.ERROR;
+    if (selected) {
+      return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
+    }
+    return isError ? StudioIcons.Common.ERROR_INLINE : StudioIcons.Common.WARNING_INLINE;
   }
 
   @VisibleForTesting

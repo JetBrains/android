@@ -18,10 +18,14 @@ package com.android.tools.idea.layoutinspector.legacydevice
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.DrawViewChild
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.collect.Lists
@@ -49,9 +53,9 @@ object LegacyTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
     data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-  ): Pair<ViewNode, String>? {
+  ): Pair<AndroidWindow, Int>? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
-    return capture(client, windowName, updater)?.let { Pair(it, windowName) }
+    return capture(client, windowName, updater)?.let { Pair(it, 0) }
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<String>? {
@@ -64,32 +68,36 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   @Slow
-  private fun capture(client: InspectorClient, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
+  private fun capture(client: InspectorClient, windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
     val legacyClient = client as? LegacyClient ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
-    ddmClient.dumpViewHierarchy(window, false, true, false, hierarchyHandler)
-    propertiesUpdater.resourceLookup.dpi = ddmClient.device.density
+    ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
+    propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
-    ddmClient.captureView(window, hash, imageHandler)
-    try {
-      val imageData = imageHandler.getData()
-      if (imageData != null) {
-        rootNode.imageBottom = ImageIO.read(ByteArrayInputStream(imageData))
+    ddmClient.captureView(windowName, hash, imageHandler)
+    ViewNode.writeDrawChildren { drawChildren ->
+      try {
+        val imageData = imageHandler.getData()
+        if (imageData != null) {
+          rootNode.drawChildren().add(DrawViewImage(ImageIO.read(ByteArrayInputStream(imageData)), rootNode))
+        }
+      }
+      catch (e: IOException) {
+        // We didn't get an image, but still return the hierarchy and properties
+      }
+      rootNode.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+      if (rootNode.drawChildren().size != rootNode.children.size) {
+        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
+      }
+      else {
+        client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
       }
     }
-    catch (e: IOException) {
-      // We didn't get an image, but still return the hierarchy and properties
-    }
-    if (rootNode.imageBottom != null) {
-      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
-    }
-    else {
-      client.logEvent(DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
-    }
-    return rootNode
+
+    return AndroidWindow(rootNode, windowName, LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG_AS_REQUESTED)
   }
 
   private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {
@@ -158,7 +166,7 @@ object LegacyTreeLoader : TreeLoader {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
-    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, "", 0)
+    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, null, "", 0)
     view.parent = parent
     parent?.children?.add(view)
     propertyLoader.parseProperties(view, properties)
@@ -194,7 +202,7 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   private class ListViewRootsHandler :
-    DebugViewDumpHandler(DebugViewDumpHandler.CHUNK_VULW) {
+    DebugViewDumpHandler(CHUNK_VULW) {
 
     private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
 

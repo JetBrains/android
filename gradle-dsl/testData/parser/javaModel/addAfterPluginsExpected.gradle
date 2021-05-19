@@ -1,0 +1,4 @@
+plugins {
+  id 'java-library'
+}
+sourceCompatibility = JavaVersion.VERSION_1_8

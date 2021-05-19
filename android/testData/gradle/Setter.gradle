@@ -15,7 +15,7 @@ android {
     defaultConfig {
         minSdkVersion 7
         targetSdkVersion 17
-        versionCode <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">getVersionCode</error>
-        versionName <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">getVersionName</error>
+        <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">versionCode getVersionCode</error>
+        <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">versionName getVersionName</error>
     }
 }

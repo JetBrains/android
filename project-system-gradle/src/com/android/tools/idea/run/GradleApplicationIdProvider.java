@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePa
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.TestedTargetVariant;
+import com.android.ide.common.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -180,13 +181,13 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    Collection<TestedTargetVariant> targetVariants = androidModel.getSelectedVariant().getTestedTargetVariants();
+    Collection<IdeTestedTargetVariant> targetVariants = androidModel.getSelectedVariant().getTestedTargetVariants();
     if (targetVariants.size() != 1) {
       // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
       return null;
     }
 
-    TestedTargetVariant targetVariant = targetVariants.iterator().next();
+    IdeTestedTargetVariant targetVariant = targetVariants.iterator().next();
     Module targetModule = findModuleByGradlePath(myFacet.getModule().getProject(), targetVariant.getTargetProjectPath());
     if (targetModule == null) {
       return null;

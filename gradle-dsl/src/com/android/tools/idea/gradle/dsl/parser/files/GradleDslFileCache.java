@@ -68,7 +68,7 @@ public class GradleDslFileCache {
         myParsedBuildFiles.put(file.getUrl(), dslFile);
       }
       else {
-        // create a dummy GradleBuildFile.  (It'll get overwritten in the cache anyway when popping from the stack)
+        // create a placeholder GradleBuildFile.  (It'll get overwritten in the cache anyway when popping from the stack)
         dslFile = new GradleBuildFile(file, myProject, name, context);
         // produce a notification.  Arguably notifying on a dslFile which won't end up in the cache is dubious, but we don't actually have
         // anywhere else at this point.

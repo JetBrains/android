@@ -39,6 +39,7 @@ import java.awt.KeyboardFocusManager
 import java.awt.Window
 import java.awt.event.FocusEvent
 import java.awt.peer.ComponentPeer
+import java.lang.reflect.Constructor
 import javax.swing.JComponent
 
 /**
@@ -77,7 +78,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
       }
       var value = _window
       if (value == null) {
-        value = DummyFrame()
+        value = FakeFrame()
         setSinglePeer(value)
         _window = value
       }
@@ -117,13 +118,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     val accessor = AWTAccessor.getComponentAccessor()
     if (accessor.getPeer<ComponentPeer>(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
-
-      val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
-      val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
-                                          Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
-                                          Long::class.javaPrimitiveType, causeClass)
-
-      Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+      Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
                                        ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
       accessor.setPeer(component, peer)
     }
@@ -139,7 +134,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
   override fun before() {
     overrideGraphicsEnvironment(false)
-    _window = DummyFrame()
+    _window = FakeFrame()
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
     appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
@@ -248,7 +243,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
    * be visible. Override methods such that Swing thinks it
    * is visible without displaying a window on the screen.
    */
-  private class DummyFrame : Frame() {
+  private class FakeFrame : Frame() {
     override fun isShowing(): Boolean {
       return true
     }

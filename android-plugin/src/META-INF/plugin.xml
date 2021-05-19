@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>10.4.1.1</version>
+  <version>10.4.2</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java-capable</depends>
@@ -34,7 +34,6 @@
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/project-system-gradle-sync.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <!-- Currently we do not include "assistant.xml", "connection-assistant.xml" and "whats-new-assistant.xml" into IJ.
        These modules are only included into AndroidStudio (see AndroidStudioPlugin.xml) -->
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -42,6 +41,7 @@
   <xi:include href="/META-INF/customview.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspection.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/workmanager-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-test-retention.xml" xpointer="xpointer(/idea-plugin/*)"/>

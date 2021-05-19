@@ -16,15 +16,17 @@
 package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.validator.ClassNameValidator
+import com.android.tools.idea.npw.verticalGap
 import com.android.tools.idea.observable.ui.TextProperty
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.layout.panel
+import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JTextField
 
@@ -35,28 +37,31 @@ class ConfigureLibraryModuleStep(
 ) {
   private val className: JTextField = JBTextField()
 
-  private val panel = panel {
+  override fun createMainPanel(): DialogPanel = panel {
     row {
-      cell {
-        labelFor("Library name:", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
-      }
-      moduleName()
+      labelFor("Library name:", moduleName, AndroidBundle.message("android.wizard.module.help.name"))
+      moduleName(pushX)
     }
     row {
-      labelFor("Package name:", packageName.textField)
-      packageName()
+      labelFor("Package name:", packageName)
+      packageName(pushX)
     }
     row {
       labelFor("Class name:", className)
-      className()
+      className(pushX)
     }
     row {
       labelFor("Language:", languageCombo)
-      languageCombo()
+      languageCombo(growX)
     }
-  }
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      verticalGap()
 
-  override val validatorPanel: ValidatorPanel = ValidatorPanel(this, StudioWizardStepPanel.wrappedWithVScroll(panel))
+      row {
+        gradleKtsCheck()
+      }
+    }
+  }.withBorder(empty(6))
 
   init {
     bindings.bindTwoWay(TextProperty(className), model.className)

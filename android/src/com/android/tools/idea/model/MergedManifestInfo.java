@@ -39,6 +39,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -333,6 +334,7 @@ final class MergedManifestInfo {
     manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
       protected InputStream getInputStream(@NotNull File file) throws IOException {
+        ProgressManager.checkCanceled();
         VirtualFile vFile;
         if (file == mainManifestFile) {
           // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest

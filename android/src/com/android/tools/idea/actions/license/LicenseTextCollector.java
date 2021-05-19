@@ -42,6 +42,7 @@ public class LicenseTextCollector {
   private String getLicenseTextSync() {
     StringBuilder sb = new StringBuilder(10*1024);
 
+    sb.append("<html>");
     for (Path license : myLicenses) {
       sb.append("------------ License file: ");
       sb.append(myHome.relativize(license).toString());
@@ -50,6 +51,7 @@ public class LicenseTextCollector {
       sb.append(getLicenseText(license.toFile()));
       sb.append("<br><br>");
     }
+    sb.append("</html>");
 
     return sb.toString();
   }

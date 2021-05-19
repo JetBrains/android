@@ -27,6 +27,7 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -84,11 +85,15 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_TEXT
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val delegate = property.delegate!!
+
     assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
     assertThat(delegate.name).isEqualTo(ATTR_TEXT)
 
     property.value = "Hello"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(property.value).isEqualTo("Hello")
     assertThat(property.type).isEqualTo(NelePropertyType.STRING)
     assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
@@ -120,7 +125,9 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
     property.name = PREFIX_ANDROID + ATTR_GRAVITY
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val delegate = property.delegate!!
+
     assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
     assertThat(delegate.name).isEqualTo(ATTR_GRAVITY)
     assertThat(property.children.map { it.name }).containsExactly(
@@ -128,6 +135,8 @@ class NeleNewPropertyItemTest {
       "clip_horizontal", "clip_vertical", "center", "fill", "fill_horizontal", "fill_vertical")
 
     property.flag("center")?.value = "true"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(property.value).isEqualTo("center")
     assertThat(property.resolvedValue).isEqualTo("center")
     assertThat(property.isReference).isFalse()
@@ -153,8 +162,11 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties, { it.rawValue == null })
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     properties[ANDROID_URI, ATTR_TEXT_COLOR].value = "#445566"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val values = property.nameEditingSupport.completion("")
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     assertThat(values).containsExactly("style", "android:textSize", "android:gravity", "app:srcCompat",
                                        "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
   }
@@ -165,6 +177,8 @@ class NeleNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NeleNewPropertyItem(model, properties)
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
     assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
     assertThat(property.nameEditingSupport.validation("android:text"))
       .isEqualTo(Pair(ERROR, "A property by the name: 'android:text' is already specified"))

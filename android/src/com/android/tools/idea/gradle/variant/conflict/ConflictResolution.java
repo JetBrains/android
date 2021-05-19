@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.gradle.project.model.VariantAbi;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Optional;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 public final class ConflictResolution {
   private ConflictResolution() {
@@ -75,12 +73,12 @@ public final class ConflictResolution {
     NdkFacet ndkFacet = NdkFacet.getInstance(conflict.getSource());
     NdkModuleModel ndkModel = ndkFacet == null ? null : ndkFacet.getNdkModuleModel();
     if (ndkModel != null) {
-      String newNdkVariant = resolveNewNdkVariant(ndkModel, newVariant);
-      if (newNdkVariant == null) {
+      VariantAbi newVariantAbi = resolveNewVariantAbi(ndkFacet, ndkModel, newVariant);
+      if (newVariantAbi == null) {
         return false;  // Cannot solve NDK variant induced conflict.
       }
 
-      ndkModel.setSelectedVariantName(newNdkVariant);
+      ndkFacet.setSelectedVariantAbi(newVariantAbi);
       ndkFacet.setNdkModuleModel(ndkModel);
     }
 
@@ -112,24 +110,28 @@ public final class ConflictResolution {
   }
 
   /**
-   * @param ndkModel The NDK model for the conflicting module.
-   * @param newVariant The variant (without ABI) that will be used to resolve the current conflict.
-   * @return The name of the variant (with ABI) to use in order to resolve the current conflict.
+   * @param ndkFacet   the NDK facet for the conflicting module
+   * @param ndkModel   the NDK model for the conflicting module
+   * @param newVariant the variant (without ABI) that will be used to resolve the current conflict
+   * @return the name of the variant (with ABI) to use in order to resolve the current conflict
    */
   @Nullable
-  private static String resolveNewNdkVariant(@NotNull NdkModuleModel ndkModel, @NotNull String newVariant) {
-    String userSelectedAbi = ndkModel.getAbiName(ndkModel.getSelectedVariant().getName());  // e.g., x86
-    String ndkVariant = newVariant + "-" + userSelectedAbi;  // e.g., debug-x86
+  private static VariantAbi resolveNewVariantAbi(@NotNull NdkFacet ndkFacet,
+                                                 @NotNull NdkModuleModel ndkModel,
+                                                 @NotNull String newVariant) {
+    VariantAbi selectedVariantAbi = ndkFacet.getSelectedVariantAbi();
+    if (selectedVariantAbi != null) {
+      String userSelectedAbi = selectedVariantAbi.getAbi();
+      VariantAbi newVariantAbi = new VariantAbi(newVariant, userSelectedAbi);
 
-    if (ndkModel.variantExists(ndkVariant)) {
-      return ndkVariant;
+      if (ndkModel.getAllVariantAbis().contains(newVariantAbi)) {
+        return newVariantAbi;
+      }
     }
 
     // The given newVariant does not have the same ABI available. For instance, we are trying to fix a conflict by changing variant from
     // "release-x86" to "debug-x86", but the user has explicitly filtered out "debug-x86".
     // We fall back to any other available ABI under that variant, such as "debug-x86_64".
-    String expectedPrefix = newVariant + "-";
-    Optional<NdkVariant> variant = ndkModel.getVariants().stream().filter(it -> it.getName().startsWith(expectedPrefix)).findFirst();
-    return variant.map(NdkVariant::getName).orElse(null);
+    return ndkModel.getAllVariantAbis().stream().filter(variantAbi -> variantAbi.getVariant().equals(newVariant)).findFirst().orElse(null);
   }
 }

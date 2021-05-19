@@ -24,33 +24,33 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardPathTest.DummyDynamicWizardPath;
-import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.DummyDynamicWizardStep;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardPathTest.SampleDynamicWizardPath;
+import static com.android.tools.idea.wizard.dynamic.DynamicWizardStepTest.SampleDynamicWizardStep;
 
 /**
- * Tests for {@link DynamicWizard} and a dummy implementation
+ * Tests for {@link DynamicWizard} and a sample implementation
  */
 public class DynamicWizardTest extends LightIdeaTestCase {
 
-  DummyDynamicWizard myWizard;
-  DummyDynamicWizardPath myPath1;
-  DummyDynamicWizardPath myPath2;
-  DummyDynamicWizardStep myStep1;
-  DummyDynamicWizardStep myStep2;
-  DummyDynamicWizardStep myStep3;
-  DummyDynamicWizardStep myStep4;
+  SampleDynamicWizard myWizard;
+  SampleDynamicWizardPath myPath1;
+  SampleDynamicWizardPath myPath2;
+  SampleDynamicWizardStep myStep1;
+  SampleDynamicWizardStep myStep2;
+  SampleDynamicWizardStep myStep3;
+  SampleDynamicWizardStep myStep4;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myWizard = new DummyDynamicWizard(null, null, "TestWizard");
+    myWizard = new SampleDynamicWizard(null, null, "TestWizard");
     Disposer.register(getTestRootDisposable(), myWizard.getDisposable());
-    myPath1 = new DummyDynamicWizardPath("TestPath1");
-    myPath2 = new DummyDynamicWizardPath("TestPath2");
-    myStep1 = new DummyDynamicWizardStep("TestStep1");
-    myStep2 = new DummyDynamicWizardStep("TestStep2");
-    myStep3 = new DummyDynamicWizardStep("TestStep3");
-    myStep4 = new DummyDynamicWizardStep("TestStep4");
+    myPath1 = new SampleDynamicWizardPath("TestPath1");
+    myPath2 = new SampleDynamicWizardPath("TestPath2");
+    myStep1 = new SampleDynamicWizardStep("TestStep1");
+    myStep2 = new SampleDynamicWizardStep("TestStep2");
+    myStep3 = new SampleDynamicWizardStep("TestStep3");
+    myStep4 = new SampleDynamicWizardStep("TestStep4");
 
     myPath1.addStep(myStep1);
     myPath1.addStep(myStep2);
@@ -87,9 +87,9 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     assertEquals(visibleStep, wizard.getCurrentPath().getCurrentStep());
   }
 
-  public static class DummyDynamicWizard extends DynamicWizard {
+  public static class SampleDynamicWizard extends DynamicWizard {
 
-    public DummyDynamicWizard(@Nullable Project project, @Nullable Module module, @NotNull String name) {
+    public SampleDynamicWizard(@Nullable Project project, @Nullable Module module, @NotNull String name) {
       super(project, module, name);
     }
 
@@ -101,7 +101,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     @NotNull
     @Override
     protected String getProgressTitle() {
-      return "dummy";
+      return "sample";
     }
 
     @Override
@@ -192,7 +192,7 @@ public class DynamicWizardTest extends LightIdeaTestCase {
     @NotNull
     @Override
     protected String getProgressTitle() {
-      return "dummy";
+      return "sample";
     }
 
     @Override

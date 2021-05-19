@@ -50,7 +50,6 @@ import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -290,9 +289,6 @@ public class AndroidPrecompileTask implements CompileTask {
                                    " -> " +
                                    depModule.getName() +
                                    ": Android application module depends on other application module. Possibly, you should ";
-                  if (AndroidMavenUtil.isMavenizedModule(depModule)) {
-                    message += "change packaging type of module " + depModule.getName() + " to 'apklib' in pom.xml file or ";
-                  }
                   message += "change dependency scope to 'Provided'.";
                   context.addMessage(CompilerMessageCategory.WARNING, message, null, -1, -1, null, Collections.singleton(module.getName()));
                 }

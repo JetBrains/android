@@ -18,21 +18,13 @@ package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.DesignSurfaceFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
-import javax.swing.Icon;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -52,21 +44,21 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     return target().isShowing();
   }
 
+  public boolean hasRenderResult() {
+    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    return sceneManager != null && sceneManager.getRenderResult() != null;
+  }
+
+  public boolean isRendering() {
+    LayoutlibSceneManager sceneManager = target().getSceneManager();
+    return sceneManager != null && sceneManager.isRendering();
+  }
+
   @Override
   public void waitForRenderToFinish(@NotNull Wait wait) {
     super.waitForRenderToFinish(wait);
 
-    wait.expecting("render to finish").until(() -> {
-      LayoutlibSceneManager sceneManager = target().getSceneManager();
-      RenderResult result = sceneManager != null ? sceneManager.getRenderResult() : null;
-      if (result == null) {
-        return false;
-      }
-      if (result.getLogger().hasErrors()) {
-        return target().isShowing() && getIssuePanelFixture().hasRenderError();
-      }
-      return target().isShowing() && !getIssuePanelFixture().hasRenderError();
-    });
+    wait.expecting("surface is showing and rendered").until(() -> isShowing() && !isRendering() && hasRenderResult());
     // Wait for the animation to finish
     pause(SceneComponent.ANIMATION_DURATION);
   }
@@ -117,8 +109,8 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     }
   }
 
-  public boolean isInScreenMode(@NotNull SceneMode mode) {
-    return target().getSceneMode() == mode;
+  public boolean isInScreenMode(@NotNull NlScreenViewProvider sceneModesProvider) {
+    return target().getScreenViewProvider() == sceneModesProvider;
   }
 
   public void waitUntilNotShowing(@NotNull Wait wait) {

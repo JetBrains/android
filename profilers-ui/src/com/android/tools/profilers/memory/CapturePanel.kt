@@ -33,8 +33,13 @@ import com.android.tools.profilers.ProfilerLayout.createToolbarLayout
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationView
+import com.google.common.util.concurrent.ListenableFutureTask
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBTabbedPane
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -150,7 +155,7 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
                              private val classifierView: MemoryClassifierView,
                              private val filterComponent: FilterComponent,
                              private val captureInfoMessage: JLabel,
-                             profilersView: StudioProfilersView)
+                             private val profilersView: StudioProfilersView)
   : JPanel(BorderLayout()) {
   private val observer = AspectObserver()
   private val instanceFilterMenu = MemoryInstanceFilterMenu(selection)
@@ -246,14 +251,20 @@ private class CapturePanelUi(private val selection: MemoryCaptureSelection,
     val totalShallowSizeLabel = mkLabel("Shallow Size")
     val totalRetainedSizeLabel = mkLabel("Retained Size")
 
+    // Compute total classes asynchronously because it can take multiple seconds
+    fun refreshTotalClassesAsync(heap: HeapSet) = profilersView.studioProfilers.ideServices.poolExecutor.execute {
+      // Handle "no filter" case specially, because it recomputes from the current instance stream,
+      // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
+      // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
+      val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
+      // Totals other than class count don't need this, because they are direct fields initialized correctly
+      val count = filterMatches.mapToLong { it.classEntry.classId }.distinct().count()
+      profilersView.studioProfilers.ideServices.mainExecutor.execute { totalClassLabel.numValue = count }
+    }
+
     fun refreshSummaries() {
       selection.selectedHeapSet?.let { heap ->
-        // Handle "no filter" case specially, because it recomputes from the current instance stream,
-        // and `ClassifierSet` only considers instances as "matched" if the filter is not empty.
-        // This is analogous to how `MemoryClassifierView` is checking if filter is empty to treat it specially
-        val filterMatches = if (selection.filterHandler.filter.isEmpty) heap.instancesStream else heap.filterMatches
-        // Other totals other than class count don't need this, because they are direct fields initialized correctly
-        totalClassLabel.numValue = filterMatches.map{it.classEntry.classId}.distinct().count()
+        refreshTotalClassesAsync(heap)
         totalCountLabel.numValue = heap.totalObjectCount.toLong()
         totalNativeSizeLabel.numValue = heap.totalNativeSize
         totalShallowSizeLabel.numValue = heap.totalShallowSize

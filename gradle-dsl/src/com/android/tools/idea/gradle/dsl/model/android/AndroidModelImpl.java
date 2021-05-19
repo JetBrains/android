@@ -21,6 +21,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslE
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES;
 import static com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement.COMPILE_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.ComposeOptionsDslElement.COMPOSE_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement.DEFAULT_CONFIG;
 import static com.android.tools.idea.gradle.dsl.parser.android.DependenciesInfoDslElement.DEPENDENCIES_INFO;
@@ -46,6 +47,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildFeaturesModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.ComposeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.DependenciesInfoModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
@@ -61,7 +63,6 @@ import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
@@ -69,6 +70,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.ComposeOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DependenciesInfoDslElement;
@@ -145,8 +147,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
     @NotNull
   @Override
   public List<BuildTypeModel> buildTypes() {
-    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES);
-    return buildTypes == null ? ImmutableList.of() : buildTypes.get();
+    BuildTypesDslElement buildTypes = myDslElement.ensurePropertyElement(BUILD_TYPES);
+    return buildTypes.get();
   }
 
   @NotNull
@@ -176,6 +178,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   public ResolvedPropertyModel compileSdkVersion() {
     return getModelForProperty(COMPILE_SDK_VERSION);
+  }
+
+  @NotNull
+  @Override
+  public ComposeOptionsModel composeOptions() {
+    ComposeOptionsDslElement composeOptionsElement = myDslElement.ensurePropertyElement(COMPOSE_OPTIONS);
+    return new ComposeOptionsModelImpl(composeOptionsElement);
   }
 
   @Override
@@ -277,8 +286,8 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public List<SigningConfigModel> signingConfigs() {
-    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS);
-    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+    SigningConfigsDslElement signingConfigs = myDslElement.ensurePropertyElementAt(SIGNING_CONFIGS, 0);
+    return signingConfigs.get();
   }
 
   @Override

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
 import static com.android.repository.Revision.parseRevision;
 import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
 import static com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueCheckerKt.doesAndroidGradlePluginPackageBuildTools;
@@ -48,13 +47,13 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
   @Override
   int getSupportedIssueType() {
-    return TYPE_BUILD_TOOLS_TOO_LOW;
+    return IdeSyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
   }
 
   @NotNull
   @Override
   protected List<NotificationHyperlink> getCustomLinks(@NotNull Project project,
-                                                       @NotNull List<SyncIssue> syncIssues,
+                                                       @NotNull List<IdeSyncIssue> syncIssues,
                                                        @NotNull List<Module> affectedModules,
                                                        @NotNull Map<Module, VirtualFile> buildFileMap) {
     assert !syncIssues.isEmpty() && !affectedModules.isEmpty();

@@ -302,6 +302,10 @@ object MavenClassRegistry {
         // In AndroidX this is androidx.fragment.app
         Library(artifact = "androidx.fragment:fragment", import = "android.support.v4.app")
 
+      "FragmentContainerView" ->
+        // Not available prior to AndroidX
+        Library(artifact = "androidx.fragment:fragment", import = "androidx.fragment.app")
+
       "GridLayout" ->
         // In AndroidX this is androidx.gridlayout.widget
         Library(artifact = "com.android.support:gridlayout-v7", import = "android.support.v7.widget")

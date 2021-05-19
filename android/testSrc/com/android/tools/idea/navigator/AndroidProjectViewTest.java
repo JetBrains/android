@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.android.utils.FileUtils;
@@ -355,7 +356,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                 "package com.application; public final class BuildConfig {}");
 
     refreshProjectFiles();
-
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 

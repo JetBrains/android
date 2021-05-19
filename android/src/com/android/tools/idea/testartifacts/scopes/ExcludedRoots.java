@@ -21,12 +21,11 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 
-import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.SourceProvider;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
+import com.android.ide.common.gradle.model.IdeDependencies;
+import com.android.ide.common.gradle.model.IdeSourceProvider;
 import com.android.ide.common.gradle.model.IdeVariant;
-import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
@@ -151,8 +150,8 @@ class ExcludedRoots {
     }
 
     String artifactName = artifact.getName();
-    List<SourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
-    for (SourceProvider sourceProvider : testSourceProviders) {
+    List<IdeSourceProvider> testSourceProviders = androidModel.getTestSourceProviders(artifactName);
+    for (IdeSourceProvider sourceProvider : testSourceProviders) {
       for (File file : getAllSourceFolders(sourceProvider)) {
         action.accept(file);
       }
@@ -165,7 +164,7 @@ class ExcludedRoots {
    * <p>These folders are added to the classpath by {@link AndroidJunitPatcher} and potentially filtered out by this class via
    * {@link GradleTestArtifactSearchScopes}.
    */
-  public static List<File> getAdditionalClasspathFolders(@NotNull BaseArtifact artifact) {
+  public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
     return ImmutableList.<File>builder()
       .add(artifact.getJavaResourcesFolder())
       .addAll(artifact.getAdditionalClassesFolders())
@@ -212,7 +211,7 @@ class ExcludedRoots {
   }
 
   private void addLibraryPaths(@NotNull IdeBaseArtifact artifact) {
-    com.android.ide.common.gradle.model.level2.IdeDependencies dependencies = artifact.getLevel2Dependencies();
+    IdeDependencies dependencies = artifact.getLevel2Dependencies();
     dependencies.getAndroidLibraries().forEach(library -> {
       for (String path : library.getLocalJars()) {
         File file = new File(path);
@@ -253,7 +252,7 @@ class ExcludedRoots {
     return myExcludedRoots;
   }
 
-  public static Collection<File> getAllSourceFolders(SourceProvider provider) {
+  public static Collection<File> getAllSourceFolders(IdeSourceProvider provider) {
     return Stream.of(
       provider.getJavaDirectories(),
       provider.getResDirectories(),

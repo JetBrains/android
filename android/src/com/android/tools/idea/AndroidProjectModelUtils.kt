@@ -24,10 +24,9 @@
 
 package com.android.tools.idea
 
-import com.android.builder.model.AaptOptions
-import com.android.projectmodel.AndroidSubmodule
 import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -37,8 +36,6 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Returns information about all [ExternalLibrary] dependencies that contribute resources in the project, indexed by
  * [ExternalLibrary.address] which is unique within a project.
- *
- * TODO: ExternalLibrary.address is unique within an [AndroidSubmodule], not necessarily within a [Project]
  */
 fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary> {
   return ModuleManager.getInstance(project)
@@ -61,7 +58,6 @@ fun findAllLibrariesWithResources(project: Project): Map<String, ExternalLibrary
 fun findDependenciesWithResources(module: Module, recursively: Boolean = true): Map<String, ExternalLibrary> {
   return module.getModuleSystem()
     .getResolvedLibraryDependencies(recursively)
-    .filterIsInstance<ExternalLibrary>()
     .filter { it.hasResources }
     .associateBy { library -> library.address }
 }
@@ -69,4 +65,4 @@ fun findDependenciesWithResources(module: Module, recursively: Boolean = true): 
 /**
  * Checks namespacing of the module with the given [AndroidFacet].
  */
-val AndroidFacet.namespacing: AaptOptions.Namespacing get() = AndroidModel.get(this)?.namespacing ?: AaptOptions.Namespacing.DISABLED
+val AndroidFacet.namespacing: Namespacing get() = AndroidModel.get(this)?.namespacing ?: Namespacing.DISABLED

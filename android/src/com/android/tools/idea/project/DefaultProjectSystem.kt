@@ -16,7 +16,7 @@
 package com.android.tools.idea.project
 
 import com.android.tools.apk.analyzer.AaptInvoker
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -33,9 +33,18 @@ import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
+import com.android.tools.idea.run.AndroidRunConfiguration
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.FileSystemApkProvider
+import com.android.tools.idea.run.NonGradleApkProvider
+import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.configurations.ModuleBasedConfiguration
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -46,6 +55,7 @@ import com.intellij.ui.AppUIUtil
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -84,6 +94,28 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
   override val projectSystem = this
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem = DefaultModuleSystem(module)
+
+  override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? {
+    val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
+    return NonGradleApplicationIdProvider(
+      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"))
+  }
+
+  override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
+    val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
+    val forTests: Boolean = (runConfiguration as? AndroidRunConfigurationBase)?.isTestConfiguration ?: false
+    val facet = AndroidFacet.getInstance(module)!!
+    val applicationIdProvider = getApplicationIdProvider(runConfiguration) ?: return null
+    if (forTests) {
+      return NonGradleApkProvider(facet, applicationIdProvider, null)
+    }
+    val apkFacet = ApkFacet.getInstance(module)
+    return when {
+      apkFacet != null -> FileSystemApkProvider(apkFacet.module, File(apkFacet.configuration.APK_PATH))
+      runConfiguration is AndroidRunConfiguration -> NonGradleApkProvider(facet, applicationIdProvider, runConfiguration.ARTIFACT_NAME)
+      else -> null
+    }
+  }
 
   override fun getPsiElementFinders(): List<PsiElementFinder> {
     return listOf(

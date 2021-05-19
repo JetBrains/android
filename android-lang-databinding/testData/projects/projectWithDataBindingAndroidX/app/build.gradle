@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "com.android.example.appwithdatabinding"
         minSdkVersion 15
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
     }

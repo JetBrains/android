@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.*
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -41,6 +42,8 @@ import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import java.math.BigDecimal
 
 /**
@@ -228,13 +231,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
 
-    if (parent is DependenciesDslElement) {
-      // There is an extension method on String.invoke() in KotlinScript dependencies.  (Meant to be used to add dependencies to
-      // configurations which are not predefined set, but would in principle work for all configurations)
-      referenceName = unquoteString(referenceName);
-    }
-
-    val referenceExpression = expression.referenceExpression()
+    val referenceExpression = expression.calleeExpression
     var name =
       if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
 
@@ -352,14 +349,20 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   override fun visitBinaryExpression(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
-    var parentBlock = parent
-    val name: GradleNameElement
-    // Check the expression is valid.
-    if (expression.operationToken != KtTokens.EQ) return
+    when {
+      expression.operationToken == KtTokens.EQ -> processAssignment(expression, parent)
+      // TODO(b/165576187): this allows us to parse plugins with versions, but the association between the Dsl and Psi is not ideal
+      //  (deleting the plugin from the Dsl Model will only delete the left-hand side of the version infix operator.
+      expression.operationReference.getReferencedName() == "version" && parent is PluginsDslElement ->
+        expression.left?.let { it.accept(this, parent) }
+    }
+  }
+
+  private fun processAssignment(expression: KtBinaryExpression, parent: GradlePropertiesDslElement) {
     val left = expression.left ?: return
     val right = expression.right ?: return
-
-    name = GradleNameElement.from(left, this)
+    var parentBlock = parent
+    val name = GradleNameElement.from(left, this)
     if (name.isEmpty) return
     if (name.isQualified) {
       val nestedElement = getPropertiesElement(name.qualifyingParts(), parent, null) ?: return
@@ -377,7 +380,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         parentBlock = GradleDslSimpleExpression.dereferencePropertiesElement(parentBlock, index) ?: return
         index = matcher.group(1)
       }
-      when(parentBlock) {
+      when (parentBlock) {
         is GradleDslExpressionMap -> {
           val name = GradleNameElement.create(unquoteString(index))
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return

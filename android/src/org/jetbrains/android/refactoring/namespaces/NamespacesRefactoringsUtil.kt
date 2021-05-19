@@ -17,6 +17,7 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.StyleableResourceValue
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.kotlin.getNextInQualifiedChain
@@ -34,8 +35,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMigration
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
+import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -43,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 const val NON_TRANSITIVE_R_CLASSES_PROPERTY = "android.nonTransitiveRClass"
+const val NON_TRANSITIVE_APP_R_CLASSES_PROPERTY = "android.experimental.nonTransitiveAppRClass"
 
 /**
  * Information about an Android resource reference.
@@ -140,6 +145,28 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
         else -> continue@referencesLoop
       }
 
+      // Special case for styleable attr fields as they will not by default be found in ResourceRepository using expression text
+      if (resource.resourceType == ResourceType.STYLEABLE) {
+        val resourceField = extractResourceFieldFromNameElement(nameRef)
+        if (resourceField is StyleableAttrLightField) {
+          val styleableAttrFieldUrl = resourceField.styleableAttrFieldUrl
+          val resources = moduleRepo.getResources(styleableAttrFieldUrl.styleable)
+          if (!resources
+              .map { it.resourceValue }
+              .filterIsInstance<StyleableResourceValue>()
+              .flatMap { it.allAttributes }
+              .any { it.name == styleableAttrFieldUrl.attr.name }) {
+            result += CodeUsageInfo(
+              fieldReferenceExpression = nameRef,
+              classReference = psiReference,
+              resourceType = resource.resourceType,
+              name = styleableAttrFieldUrl.styleable.name
+            )
+          }
+          continue@referencesLoop
+        }
+      }
+
       if (!moduleRepo.hasResources(resource.namespace, resource.resourceType, resource.name)) {
         result += CodeUsageInfo(
           fieldReferenceExpression = nameRef,
@@ -152,6 +179,11 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
   }
 
   return result
+}
+
+private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement): AndroidLightField? {
+  val references = resourceNameElement.references
+  return PsiMultiReference(references, references[references.size - 1].element).resolve() as? AndroidLightField
 }
 
 internal fun inferPackageNames(

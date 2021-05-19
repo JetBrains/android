@@ -35,4 +35,8 @@ public interface LaunchTasksProvider {
   DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
 
   default void fillStats(RunStats stats) {}
+
+  default String getLaunchTypeDisplayName() {
+    return "Launch";
+  }
 }

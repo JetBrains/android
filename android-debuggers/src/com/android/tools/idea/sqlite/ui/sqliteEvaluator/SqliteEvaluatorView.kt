@@ -51,11 +51,30 @@ interface SqliteEvaluatorView {
    */
   fun setRunSqliteStatementEnabled(enabled: Boolean)
 
+  fun reportError(message: String, t: Throwable?)
+
+  /** Sets a list of queries to show in the query history popup */
+  fun setQueryHistory(queries: List<String>)
+
+  /**
+   * Shows a panel that shows [message] to the user.
+   * [message] will be rendered on multiple lines if contains "\n"
+   *
+   * The panel hides the table.
+   */
+  fun showMessagePanel(message: String)
+
+  /**
+   * Shows the table and hides the message panel.
+   */
+  fun showTableView()
+
   interface Listener {
     /**
      * Invoked when a database is selected in the combobox
      */
     fun onDatabaseSelected(databaseId: SqliteDatabaseId) {}
+
     /**
      * Method invoked when an sql statement needs to be evaluated.
      */

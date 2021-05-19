@@ -29,17 +29,9 @@
           <text value="&lt;html&gt;&lt;br&gt;&lt;/html&gt;"/>
         </properties>
       </component>
-      <component id="f46fa" class="com.intellij.ui.components.JBLabel">
-        <constraints>
-          <grid row="3" column="7" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="&lt;html&gt;&lt;br&gt;&lt;/html&gt;"/>
-        </properties>
-      </component>
       <component id="3077f" class="javax.swing.JCheckBox" binding="myUseL2DependenciesCheckBox">
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Use new dependency mechanism during Gradle sync"/>
@@ -53,17 +45,9 @@
           <text value="Gradle"/>
         </properties>
       </component>
-      <component id="ee9d9" class="javax.swing.JCheckBox" binding="myUseSingleVariantSyncCheckbox">
-        <constraints>
-          <grid row="3" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Only sync the active variant"/>
-        </properties>
-      </component>
       <component id="17fa7" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="8" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="7" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Quality Setting"/>
@@ -71,7 +55,7 @@
       </component>
       <component id="ec211" class="javax.swing.JSlider" binding="myLayoutEditorQualitySlider" default-binding="true">
         <constraints>
-          <grid row="8" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
+          <grid row="7" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <minimum-size width="150" height="-1"/>
             <preferred-size width="90" height="-1"/>
           </grid>
@@ -80,7 +64,7 @@
       </component>
       <component id="4a93a" class="com.intellij.ui.TitledSeparator">
         <constraints>
-          <grid row="7" column="0" row-span="1" col-span="8" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="6" column="0" row-span="1" col-span="8" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Layout Editor"/>
@@ -104,7 +88,7 @@
       </component>
       <component id="7a499" class="javax.swing.JCheckBox" binding="mySkipGradleTasksList">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="4" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Do not build Gradle task list during Gradle sync"/>
@@ -120,7 +104,7 @@
       </component>
       <component id="c5310" class="javax.swing.JCheckBox" binding="myTraceGradleSyncCheckBox">
         <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Trace Gradle import with profile:"/>
@@ -128,15 +112,23 @@
       </component>
       <component id="e448e" class="javax.swing.JComboBox" binding="myTraceProfileComboBox">
         <constraints>
-          <grid row="6" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
       </component>
       <component id="d8be4" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myTraceProfilePathField">
         <constraints>
-          <grid row="6" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
+      </component>
+      <component id="a3584" class="javax.swing.JCheckBox" binding="myAtfCheckBox">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="6" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Use new Accessibility Testing Framework"/>
+        </properties>
       </component>
     </children>
   </grid>

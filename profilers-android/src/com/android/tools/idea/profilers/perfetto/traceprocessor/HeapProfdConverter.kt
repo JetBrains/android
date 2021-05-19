@@ -82,6 +82,9 @@ class HeapProfdConverter(private val abi: String,
     }
     // Demangle in place is significantly faster than passing in names 1 by 1
     demangler.demangleInplace(frameIdToFrame.values)
+    // On windows the llvm-symbolizer holds a file lock on the last file loaded. This can be a pain if you want to rebuild / redeploy the
+    // app after a single line change. Stopping the symbolizer kills the llvm-symbolizer process.
+    symbolizer.stop();
     // Reduce duplication of UI StackFrame elements, by doing a one time conversion between StackFrameInfo objects and StackFrame protos
     val it = frameIdToFrame.iterator()
     while(it.hasNext()) {

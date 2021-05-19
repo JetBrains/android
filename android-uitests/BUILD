@@ -27,12 +27,12 @@ COMMON_DATA = [
     "//prebuilts/tools:bazel-dist",
     "//tools/adt/idea/android/annotations",
     "//tools/adt/idea/artwork:device-art-resources",
-    "//tools/adt/idea/adt-ui/lib/libwebp",
     "//tools/base/build-system:studio_repo.zip",
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/idea/bin:log.xml",
+    "//tools/idea/plugins/webp/lib/libwebp",
     "//tools/vendor/google/testing/display:xvfb",
 ]
 
@@ -57,10 +57,8 @@ iml_module(
         "//tools/idea/plugins/properties/properties-resource-bundle-editor:intellij.properties.resource.bundle.editor",
         "//tools/idea/colorSchemes:intellij.platform.colorSchemes",
         "//tools/idea/plugins/groovy/structuralsearch-groovy:intellij.groovy.structuralSearch",
-        "//tools/vendor/intellij/cidr/cidr-workspaceModel:intellij.cidr.workspaceModel",
-        "//tools/adt/idea/android:intellij.android.core.tests",
-        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/7.2.1:jar",
-        "//tools/idea/plugins/git4idea/remote-servers-git-java:intellij.java.remoteServers.git",
+        "//tools/vendor/intellij/cidr/cidr-workspaceModelBridge:intellij.cidr.workspaceModelBridge",
+        "//prebuilts/tools/common/m2/repository/it/unimi/dsi/fastutil/8.4.0:jar",
         "//tools/idea/jps/javac-ref-scanner-8:intellij.java.jps.javacRefScanner8",
         "//tools/idea/plugins/stream-debugger:intellij.java.debugger.streams",
         "//tools/idea/plugins/editorconfig:intellij.editorconfig",
@@ -82,17 +80,20 @@ iml_module(
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/platform/statistics/devkit:intellij.platform.statistics.devkit",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/.idea/libraries:javassist",
         "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/.idea/libraries:error-prone-annotations",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-jsr223",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-json",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-templates",
+        "//tools/idea/.idea/libraries:org.codehaus.groovy_groovy-xml",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/201.11:jar",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//prebuilts/tools/common/m2/repository/com/jetbrains/intellij/documentation/tips-intellij-idea-community/202.13:jar",
+        "//tools/idea/adt-branding:intellij.android.adt.branding",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/.idea/libraries:precompiled_jshell-frontend",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     # do not sort: must match IML order
     deps = [
@@ -100,7 +101,9 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:kotlin-test[test]",
         "//tools/idea/.idea/libraries:jna[test]",
+        "//tools/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea:intellij.idea.community.main[module, test]",
@@ -151,6 +154,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+        "//tools/idea/plugins/webp:intellij.webp[module, test]",
     ],
 )
 
@@ -377,6 +381,19 @@ java_test(
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
 
+java_test(
+    name = "EmbeddedEmulatorTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/android-emulator:emulator",
+        "@system_image_latest_default_x86_64//:images",
+    ] + glob(["testData/TextInput/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
+    tags = COMMON_TAGS + ["manual"],  # b/154963251
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
 # sanity test
 java_test(
     name = "CompileWithJava8Test",
@@ -394,7 +411,6 @@ java_test(
 # sanity test
 java_test(
     name = "CreateDefaultActivityTest",
-    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -550,6 +566,8 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BaselineConstraintHandlingTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "qa_sanity_unreliable",  # b/159635974
+        "qa_unreliable",  # b/159635974
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -612,6 +630,8 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
+        "qa_sanity_unreliable",  # b/160247726
+        "qa_unreliable",  # b/160247726
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -792,6 +812,8 @@ java_test(
     tags = COMMON_TAGS + [
         "qa_sanity",
         "no_crostini",
+        "qa_sanity_unreliable",  # b/161711253
+        "qa_unreliable",  # b/161711253
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1093,6 +1115,34 @@ java_test(
     size = "large",
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.compose.NewComposeProjectTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "QuickFixForJniTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/debugger/CLionNdkHelloJni/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# sanity test
+java_test(
+    name = "OpenExistingProjectTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
     ],
@@ -1449,6 +1499,18 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ImageAssetErrorCheckTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "AddCppToModuleActionTest",
+    size = "large",
+    data = COMMON_DATA,
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
+    tags = COMMON_TAGS + [
+        "qa_sanity",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -2161,4 +2223,61 @@ java_test(
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+# managed by go/iml_to_build [unb]
+iml_module(
+    name = "intellij.android.guiTests",
+    iml_files = ["intellij.android.guiTests.iml"],
+    project = "unb",
+    test_srcs = ["testSrc"],
+    test_tags = ["manual"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//tools/adt/idea/.idea/libraries:unb.truth[test]",
+        "//tools/adt/idea/.idea/libraries:unb.emulator-proto[test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/swing-testing/fest-swing[module, test]",
+        "//tools/adt/idea/designer:intellij.android.designer[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/uitest-framework:intellij.android.guiTestFramework[module, test]",
+        "//tools/adt/idea/bleak:intellij.android.bleak[module, test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//prebuilts/studio/layoutlib/data:unb.layoutlib_native[test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/adt/idea/.idea/libraries:unb.transport-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.protobuf[test]",
+        "//tools/adt/idea/.idea/libraries:unb.layoutinspector-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:unb.studio-grpc[test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
+        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
+        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
+    ],
 )

@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.crashlytics.CrashlyticsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
@@ -82,6 +83,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     {"android", AndroidDslElement.ANDROID},
     {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
     {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
+    {"crashlytics", CrashlyticsDslElement.CRASHLYTICS},
     {"dependencies", DependenciesDslElement.DEPENDENCIES},
     {"ext", ExtDslElement.EXT},
     {"java", JavaDslElement.JAVA},

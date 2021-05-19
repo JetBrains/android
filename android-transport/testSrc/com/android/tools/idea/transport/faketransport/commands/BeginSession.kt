@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.Common
 class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
   var nextSessionId = 0L
   var attachAgentCalled = false
+  var agentStatus = Common.AgentData.Status.ATTACHED
 
   fun getAgentAttachCalled(): Boolean {
     return attachAgentCalled
@@ -39,7 +40,7 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
         kind = Common.Event.Kind.AGENT
         timestamp = timer.currentTimeNs
         agentData = Common.AgentData.newBuilder().apply {
-          status = Common.AgentData.Status.ATTACHED
+          status = agentStatus
         }.build()
       }.build())
     }

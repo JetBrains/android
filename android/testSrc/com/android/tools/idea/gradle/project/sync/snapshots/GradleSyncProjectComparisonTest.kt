@@ -36,7 +36,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.CENTRAL_BUILD_D
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.COMPOSITE_BUILD
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.KOTLIN_KAPT
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.MULTI_FLAVOR
@@ -91,30 +90,21 @@ import java.io.File
  * details on the way in which the file names are constructed.
  *
  * NOTE: It you made changes to sync or the test projects which make these tests fail in an expected way, you can re-run the tests
- *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files. (You may need to re-run several times (currently up to 3) to
- *       update multiple snapshots used in one test.
+ *       from IDE with -DUPDATE_TEST_SNAPSHOTS to update the files.
  *
  *       Or with bazel:
-bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
---test_filter="GradleSyncProjectComparisonTestCase" --nocache_test_results --strategy=TestRunner=standalone \
---jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
+```
+bazel test \
+--jvmopt="-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)" \
+--test_output=streamed \
+--nocache_test_results \
+--strategy=TestRunner=standalone \
+//tools/adt/idea/android:intellij.android.core.tests_tests__gradle.project.sync.snapshots
+ ```
  */
-abstract class GradleSyncProjectComparisonTest(
-  private val singleVariantSync: Boolean = false
-) : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
-  override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
+abstract class GradleSyncProjectComparisonTest : GradleSyncIntegrationTestCase(), GradleIntegrationTest, SnapshotComparisonTest {
 
-  class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase() {
-    // TODO(b/135453395): Re-enable after variant switching from cache is fixed.
-    override fun testSwitchingVariantsWithReopenAndResync_simpleApplication() = Unit
-  }
-
-  class SingleVariantGradleSyncProjectComparisonTest :
-    GradleSyncProjectComparisonTestCase(singleVariantSync = true) {
-  }
-
-  abstract class GradleSyncProjectComparisonTestCase(singleVariantSync: Boolean = false
-  ) : GradleSyncProjectComparisonTest(singleVariantSync) {
+  class GradleSyncProjectComparisonTestCase : GradleSyncProjectComparisonTest() {
     fun testImportNoSync() {
       prepareProjectForImport(SIMPLE_APPLICATION)
       val request = GradleProjectImporter.Request(project)
@@ -134,12 +124,6 @@ abstract class GradleSyncProjectComparisonTest(
     // See https://code.google.com/p/android/issues/detail?id=226802
     fun testNestedModule() {
       val text = importSyncAndDumpProject(NESTED_MODULE)
-      assertIsEqualToSnapshot(text)
-    }
-
-    // See https://code.google.com/p/android/issues/detail?id=224985
-    open fun testNdkProjectSync() {
-      val text = importSyncAndDumpProject(HELLO_JNI)
       assertIsEqualToSnapshot(text)
     }
 
@@ -174,18 +158,14 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testExternalSourceSets() {
-      val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
-      val request = GradleSyncInvoker.Request.testRequest(true)
-      AndroidGradleTests.importProject(project, request) {
-        // ignore missing manifest errors
-        it.type == SyncIssue.TYPE_MISSING_ANDROID_MANIFEST
+      val projectRootPath = prepareGradleProject(NON_STANDARD_SOURCE_SETS, "project")
+      openPreparedProject("project/application") { project ->
+        val text = project.saveAndDump(
+          mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath, "externalRoot"),
+                "EXTERNAL_MANIFEST" to File(projectRootPath, "externalManifest"))
+        )
+        assertIsEqualToSnapshot(text)
       }
-
-      val text = project.saveAndDump(
-        mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
-              "EXTERNAL_MANIFEST" to File(projectRootPath.parentFile, "externalManifest"))
-      )
-      assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=74259
@@ -264,12 +244,12 @@ abstract class GradleSyncProjectComparisonTest(
       )
     }
 
-    open fun testPsdSample() {
+    fun testPsdSample() {
       val text = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       assertIsEqualToSnapshot(text)
     }
 
-    open fun testPsdSampleRenamingModule() {
+    fun testPsdSampleRenamingModule() {
       val beforeRename = importSyncAndDumpProject(PSD_SAMPLE_GROOVY)
       PsProjectImpl(project).let { projectModel ->
         projectModel.removeModule(":nested1")
@@ -343,9 +323,9 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testSwitchingVariants_simpleApplication() {
       val debugBefore = importSyncAndDumpProject(SIMPLE_APPLICATION)
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
       val release = project.saveAndDump()
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "debug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "debug")
       val debugAfter = project.saveAndDump()
       assertAreEqualToSnapshots(
         debugBefore to ".debug",
@@ -376,7 +356,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         project.saveAndDump()
       }
@@ -397,7 +377,7 @@ abstract class GradleSyncProjectComparisonTest(
         project.saveAndDump()
       }
       val release = openPreparedProject("project") { project ->
-        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release", true)
+        BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "release")
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runWriteAction {
           // Modify the project build file to ensure the project is synced when opened.
@@ -420,10 +400,10 @@ abstract class GradleSyncProjectComparisonTest(
     fun testSwitchingVariants_variantSpecificDependencies() {
       val freeDebugBefore = importSyncAndDumpProject(VARIANT_SPECIFIC_DEPENDENCIES)
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "paidDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "paidDebug")
       val paidDebug = project.saveAndDump()
 
-      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "freeDebug", true)
+      BuildVariantUpdater.getInstance(project).updateSelectedBuildVariant(project, project.findAppModule().name, "freeDebug")
       val freeDebugAfter = project.saveAndDump()
 
       assertAreEqualToSnapshots(
@@ -458,7 +438,7 @@ abstract class GradleSyncProjectComparisonTest(
   override val snapshotDirectoryAdtIdeaRelativePath: String = "android/testData/snapshots/syncedProjects"
   override val snapshotSuffixes = listOfNotNull(
     // Suffixes to use to override the default expected result.
-    ".single_variant".takeIf { singleVariantSync },
+    ".single_variant", // TODO(b/168452472): Rename snapshots and remove.
     ""
   )
 
@@ -474,7 +454,7 @@ abstract class GradleSyncProjectComparisonTest(
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
     // In order to display all the information we are interested in we need to force creation of missing content roots.
-    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(true), issueFilter)
+    AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest(), issueFilter)
     return project.saveAndDump()
   }
 
@@ -509,4 +489,3 @@ abstract class GradleSyncProjectComparisonTest(
     return File(super.getBaseTestPath(), tempSuffix).absolutePath
   }
 }
-

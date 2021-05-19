@@ -44,6 +44,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.search.FilenameIndex
 import java.io.File
@@ -62,7 +63,7 @@ fun installedBuildTools(model: Any?): ListenableFuture<List<ValueDescriptor<Stri
   immediateFuture(installedEnvironments().buildTools)
 
 fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescriptor<String>>> {
-  val defaultNdkVersion = model?.resolvedNativeModel?.androidProject?.defaultNdkVersion?.let { ValueDescriptor(it) }
+  val defaultNdkVersion = model?.resolvedNativeModel?.defaultNdkVersion?.let { ValueDescriptor(it) }
   return immediateFuture((listOfNotNull(defaultNdkVersion) + installedEnvironments().ndks).distinct())
 }
 
@@ -155,7 +156,7 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
 
 
 fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
-  GradleVersionsRepository.getKnownVersionsFuture().transform {
+  GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> = it.stream().map { ValueDescriptor<String>(it) }.toList()
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false

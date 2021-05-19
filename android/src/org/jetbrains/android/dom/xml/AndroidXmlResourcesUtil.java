@@ -25,6 +25,7 @@ import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP_ANDROIDX;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.dom.xml.PathsDomFileDescription;
+import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
@@ -40,9 +41,8 @@ import com.intellij.util.IncorrectOperationException;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.AttributeProcessingUtil;
+import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.LayoutViewClassUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,9 +66,9 @@ public class AndroidXmlResourcesUtil {
     .put("header", "PreferenceHeader")
     .build();
 
-  private static final ImmutableSet<String> ROOT_TAGS = ImmutableSet.of(
-    SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
-    PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
+   public static final ImmutableSet<String> ROOT_TAGS = ImmutableSet.of(
+     SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
+     PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
 
   private AndroidXmlResourcesUtil() {
   }
@@ -80,12 +80,18 @@ public class AndroidXmlResourcesUtil {
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(facet.getModule().getProject());
     boolean hasAndroidXClass = javaPsiFacade.findClass(CLASS_PREFERENCE_ANDROIDX.newName(), facet.getModule().getModuleWithLibrariesScope()) != null;
     if (hasAndroidXClass) {
-      result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getClassMap(facet, CLASS_PREFERENCE_ANDROIDX.newName())));
+      result.addAll(
+        AndroidDomUtil
+          .removeUnambiguousNames(TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_PREFERENCE_ANDROIDX.newName()))
+      );
     } else if (javaPsiFacade.findClass(CLASS_PREFERENCE_ANDROIDX.oldName(), facet.getModule().getModuleWithLibrariesScope()) != null) {
-      result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getClassMap(facet, CLASS_PREFERENCE_ANDROIDX.oldName())));
+      result.addAll(
+        AndroidDomUtil
+          .removeUnambiguousNames(TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_PREFERENCE_ANDROIDX.oldName()))
+      );
     }
     else {
-      result.addAll(AndroidDomUtil.removeUnambiguousNames(AttributeProcessingUtil.getFrameworkPreferencesClassMap(facet)));
+      result.addAll(AndroidDomUtil.removeUnambiguousNames(TagToClassMapper.getInstance(facet.getModule()).getClassMap(CLASS_PREFERENCE)));
     }
     result.addAll(ROOT_TAGS);
 
@@ -94,7 +100,7 @@ public class AndroidXmlResourcesUtil {
 
   public static boolean isSupportedRootTag(@NotNull AndroidFacet facet, @NotNull String rootTagName) {
     return ROOT_TAGS.contains(rootTagName) ||
-           LayoutViewClassUtils.findClassByTagName(facet, rootTagName, SdkConstants.CLASS_PREFERENCE) != null;
+           AndroidClassesForXmlUtilKt.findClassValidInXMLByName(facet, rootTagName, CLASS_PREFERENCE) != null;
   }
 
   public enum PreferenceSource {

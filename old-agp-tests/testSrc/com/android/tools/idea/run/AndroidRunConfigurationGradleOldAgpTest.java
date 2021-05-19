@@ -31,5 +31,4 @@ public class AndroidRunConfigurationGradleOldAgpTest extends AndroidRunConfigura
     assertThat(errors).hasSize(1);
     assertThat(errors.get(0).getMessage()).isEqualTo("This option requires a newer version of the Android Gradle Plugin");
   }
-
 }

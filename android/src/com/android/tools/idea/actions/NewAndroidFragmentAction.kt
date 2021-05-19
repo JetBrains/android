@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.project.getPackageForPath
 import com.android.tools.idea.npw.template.ChooseFragmentTypeStep
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder
 import com.android.tools.idea.wizard.model.ModelWizard
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.FRAGMENT_GALLERY
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -72,7 +73,7 @@ class NewAndroidFragmentAction
     val projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
     val renderModel = RenderTemplateModel.fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], AndroidBundle.message("android.wizard.fragment.add", FormFactor.MOBILE.id),
-      projectSyncInvoker, shouldOpenFiles)
+      projectSyncInvoker, shouldOpenFiles, FRAGMENT_GALLERY)
 
     val fragmentTypeStep = ChooseFragmentTypeStep(renderModel, FormFactor.MOBILE, directory)
     val wizard = ModelWizard.Builder().addStep(fragmentTypeStep).build()

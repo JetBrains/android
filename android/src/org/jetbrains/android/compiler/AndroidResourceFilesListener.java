@@ -22,12 +22,11 @@ import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -42,6 +41,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,7 +77,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
     for (VFileEvent event : events) {
       VirtualFile file = event.getFile();
 
-      if (file != null && AndroidFileChangeListener.isRelevantFile(file)) {
+      if (file != null && AndroidFileChangeListener.isPossiblyRelevantFile(file)) {
         result.add(file);
       }
     }
@@ -102,9 +102,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
         return;
       }
 
-      MultiMap<Module, AndroidAutogeneratorMode> map =
-          ApplicationManager.getApplication().runReadAction(
-              (Computable<MultiMap<Module, AndroidAutogeneratorMode>>)() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
+      MultiMap<Module, AndroidAutogeneratorMode> map = ReadAction.compute(() -> computeCompilersToRunAndInvalidateLocalAttributesMap());
 
       if (map.isEmpty()) {
         return;
@@ -169,7 +167,7 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
       List<AndroidAutogeneratorMode> modes = new ArrayList<>();
 
-      if (Comparing.equal(manifestFile, file)) {
+      if (Objects.equals(manifestFile, file)) {
         Manifest manifest = Manifest.getMainManifest(facet);
         String aPackage = manifest != null ? manifest.getPackage().getValue() : null;
         String cachedPackage = facet.getUserData(CACHED_PACKAGE_KEY);
@@ -183,13 +181,13 @@ public class AndroidResourceFilesListener implements Disposable, BulkFileListene
       }
       else if (FileTypeRegistry.getInstance().isFileOfType(file, AidlFileType.INSTANCE)) {
         VirtualFile sourceRoot = findSourceRoot(module, file);
-        if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
+        if (sourceRoot != null && !Objects.equals(AndroidRootUtil.getAidlGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.AIDL);
         }
       }
       else if (file.getFileType() == AndroidRenderscriptFileType.INSTANCE) {
-        final VirtualFile sourceRoot = findSourceRoot(module, file);
-        if (sourceRoot != null && !Comparing.equal(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
+        VirtualFile sourceRoot = findSourceRoot(module, file);
+        if (sourceRoot != null && !Objects.equals(AndroidRootUtil.getRenderscriptGenDir(facet), sourceRoot)) {
           modes.add(AndroidAutogeneratorMode.RENDERSCRIPT);
         }
       }

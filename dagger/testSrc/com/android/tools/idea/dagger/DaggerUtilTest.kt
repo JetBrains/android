@@ -131,6 +131,50 @@ class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
     assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import androidx.hilt.lifecycle.ViewModelInject;
+
+        public class MyViewClass {
+          @ViewModelInject public MyViewClass(String consumer) {}
+          public MyViewClass(int notConsumer) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
+
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import androidx.hilt.lifecycle.ViewModelInject
+
+        class MyViewClassKt @ViewModelInject constructor(consumer: String)
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer).isTrue()
+
+    myFixture.configureByText(
+      //language=JAVA
+      JavaFileType.INSTANCE,
+      """
+        import androidx.hilt.work.WorkerInject;
+
+        public class MyWorkerClass {
+          @WorkerInject public MyWorkerClass(String consumer) {}
+          public MyWorkerClass(int notConsumer) {}
+        }
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer).isTrue()
+    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer).isFalse()
   }
 
   fun testIsConsumer_injectedConstructorParam_kotlin() {
@@ -899,6 +943,58 @@ class DaggerUtilTest : DaggerTestCase() {
 
   }
 
+  fun testDaggerProviders_kotlin_importAlias() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      public class MyClass{}
+
+    """.trimIndent())
+
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+        import test.MyClass as alias
+
+        @Module
+        class MyClass {
+          @Provides fun aliasProvider():alias {}
+        }
+      """.trimIndent()
+    )
+
+    val providers = getProvidersForInjectedField("test.MyClass")
+    assertThat(providers.single().name).isEqualTo("aliasProvider")
+  }
+
+  fun testDaggerProviders_kotlin_arrays() {
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides
+        import dagger.Module
+
+        @Module
+        class MyClass {
+          @Provides fun primitiveArrayProvider():IntArray {}
+          @Provides fun arrayProvider():Array<Int> {}
+        }
+      """.trimIndent()
+    )
+
+    var providers = getProvidersForInjectedField("int[]")
+    assertThat(providers.single().name).isEqualTo("primitiveArrayProvider")
+
+    providers = getProvidersForInjectedField("Integer[]")
+    assertThat(providers.single().name).isEqualTo("arrayProvider")
+  }
+
   fun testGetDaggerProviders_kotlin_bindsInstanceMethod() {
     myFixture.configureByText(
       //language=kotlin
@@ -1011,6 +1107,73 @@ class DaggerUtilTest : DaggerTestCase() {
     assertThat(getProvidersForInjectedField_kotlin("Int")).hasSize(4)
     assertThat(getProvidersForInjectedField_kotlin("Int?")).hasSize(4)
   }
+
+  fun test_annotations_imports() {
+    // Kotlin provider.
+    myFixture.configureByText(
+      //language=kotlin
+      KotlinFileType.INSTANCE,
+      """
+        import dagger.Provides as Provider2
+        import dagger.Module
+
+        @Module
+        class MyClassKt {
+          @dagger.Provides fun provider():Int? {}
+          @Provider2 fun provider2():Int {}
+        }
+      """.trimIndent()
+    )
+
+    // Consumer in JAVA.
+    assertThat(getProvidersForInjectedField("int")).hasSize(2)
+  }
+
+  fun testLazy() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+        import dagger.Provides;
+
+        @Module
+        class MyModule {
+          @Provides String providesString();
+        }
+      """.trimIndent()
+    )
+
+    val providers = getProvidersForInjectedField_kotlin("dagger.Lazy<String>")
+    assertThat(providers).isNotEmpty()
+    assertThat(providers.map { it.name }).containsExactly("providesString")
+
+    val consumers = getDaggerConsumersFor(providers.first()).first()
+    assertThat(consumers.type.canonicalText).isEqualTo("dagger.Lazy<java.lang.String>")
+  }
+
+  fun testJavaxInjectProvider() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+        package test;
+        import dagger.Module;
+        import dagger.Provides;
+
+        @Module
+        class MyModule {
+          @Provides String providesString();
+        }
+      """.trimIndent()
+    )
+
+    val providers = getProvidersForInjectedField_kotlin("javax.inject.Provider<String>")
+    assertThat(providers).isNotEmpty()
+    assertThat(providers.map { it.name }).containsExactly("providesString")
+
+    val consumers = getDaggerConsumersFor(providers.first()).first()
+    assertThat(consumers.type.canonicalText).isEqualTo("javax.inject.Provider<java.lang.String>")
+  }
 }
 
 class DaggerCrossModuleTest : UsefulTestCase() {
@@ -1054,8 +1217,13 @@ class DaggerCrossModuleTest : UsefulTestCase() {
   }
 
   override fun tearDown() {
-    super.tearDown()
-    myFixture.tearDown()
+    try {
+      myFixture.tearDown()
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   private fun newModule(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>, contentRoot: String): ModuleFixture {

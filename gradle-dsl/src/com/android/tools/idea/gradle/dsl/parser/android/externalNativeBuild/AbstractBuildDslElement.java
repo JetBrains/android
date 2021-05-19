@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild;
 
 import static com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.AbstractBuildModelImpl.PATH;
+import static com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.AbstractBuildModelImpl.VERSION;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -36,13 +37,17 @@ public abstract class AbstractBuildDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"path", property, PATH, VAR},
-    {"setPath", exactly(1), PATH, SET}
+    {"setPath", exactly(1), PATH, SET},
+    {"version", property, VERSION, VAR},
+    {"setVersion", exactly(1), VERSION, SET}
   }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> groovyToModelNameMap = Stream.of(new Object[][]{
     {"path", property, PATH, VAR},
-    {"path", exactly(1), PATH, SET}
+    {"path", exactly(1), PATH, SET},
+    {"version", property, VERSION, VAR},
+    {"version", exactly(1), VERSION, SET}
   }).collect(toModelMap());
 
   @Override

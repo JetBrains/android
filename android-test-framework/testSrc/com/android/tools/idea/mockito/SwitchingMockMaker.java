@@ -1,7 +1,7 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.mockito;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.internal.creation.bytebuddy.ByteBuddyMockMaker;
 import org.mockito.internal.creation.bytebuddy.InlineByteBuddyMockMaker;
 import org.mockito.internal.util.concurrent.WeakConcurrentMap;

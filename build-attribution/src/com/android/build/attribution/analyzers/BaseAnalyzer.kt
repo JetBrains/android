@@ -53,7 +53,7 @@ abstract class BaseAnalyzer(private val taskContainer: TaskContainer, private va
   /**
    * Filter to ignore certain tasks or tasks from certain plugins.
    */
-  protected fun applyWhitelistedTasksFilter(task: TaskData): Boolean {
+  protected fun applyIgnoredTasksFilter(task: TaskData): Boolean {
     // ignore tasks from our plugins
     return !isAndroidPlugin(task.originPlugin) &&
            // ignore tasks from Gradle plugins

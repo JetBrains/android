@@ -15,35 +15,22 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import java.util.List;
+import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
+import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
 public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
-  private boolean myUseSingleVariantSync;
-  private boolean myDefaultUseSingleVariantSync;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    myUseSingleVariantSync = StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.get();
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(useSingleVariantSyncInfrastructure());
-    myDefaultUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = useSingleVariantSyncInfrastructure();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(myUseSingleVariantSync);
-      GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myDefaultUseSingleVariantSync;
+  static boolean areGradleDaemonsRunning() {
+    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
+    for (DaemonState status : daemonStatus) {
+      if (!equalsIgnoreCase(status.getStatus(), "stopped")) {
+        return true;
+      }
     }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return true;
+    return false;
   }
 }

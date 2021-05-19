@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.util.Segment
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UElement
 
@@ -68,3 +71,45 @@ internal fun modelAffinity(dataContext: DataContext, element: PreviewElementInst
 
   return modelAffinity(modelPreviewElement, element)
 }
+
+private fun calcAffinityMatrix(models: List<NlModel>, elements: List<PreviewElementInstance>) =
+  elements.map { element -> models.map { modelAffinity(it.dataContext, element) } }
+
+/**
+ * Matches [PreviewElementInstance]s with the most similar [NlModel]s. For a [List] of [PreviewElementInstance] ([elements]) returns a
+ * [List] of the same size with the indices of the best matched [NlModel]s. The indices are for the input [models] [List]. If there are less
+ * [models] than [elements] then indices for some [PreviewElementInstance]s will be set to -1.
+ */
+internal fun matchElementsToModels(models: List<NlModel>, elements: List<PreviewElementInstance>): List<Int> {
+  val affinityMatrix = calcAffinityMatrix(models, elements)
+  if (affinityMatrix.isEmpty()) {
+    return emptyList()
+  }
+  val sortedPairs =
+    affinityMatrix.first().indices
+      .flatMap { modelIdx -> affinityMatrix.indices.map { it to modelIdx } }
+      .sortedByDescending { affinityMatrix[it.first][it.second] } // sort in the reverse order to pop from back (quickly)
+      .toMutableList()
+  val matchedElements = mutableSetOf<Int>()
+  val matchedModels = mutableSetOf<Int>()
+  val matches = MutableList(affinityMatrix.size) { -1 }
+
+  while (sortedPairs.isNotEmpty()) {
+    val (elementIdx, modelIdx) = sortedPairs.pop()
+    if (elementIdx in matchedElements || modelIdx in matchedModels) {
+      continue
+    }
+    matches[elementIdx] = modelIdx
+    matchedElements.add(elementIdx)
+    matchedModels.add(modelIdx)
+    // If we either matched all preview elements or all models we have nothing else to do and can finish early
+    if (matchedElements.size == affinityMatrix.size || matchedModels.size == affinityMatrix.first().size) {
+      break
+    }
+  }
+  return matches
+}
+
+fun Segment?.containsOffset(offset: Int) = this?.let {
+  it.startOffset <= offset && offset <= it.endOffset
+} ?: false

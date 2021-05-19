@@ -6,6 +6,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -23,6 +25,9 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
   </component>
 </module>

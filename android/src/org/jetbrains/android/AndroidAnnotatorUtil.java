@@ -19,8 +19,8 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_DRAWABLE;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.DOT_XML;
-import static com.android.SdkConstants.FD_RES_LAYOUT;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
@@ -28,27 +28,24 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
-import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
+import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
-import com.android.tools.idea.ui.resourcemanager.rendering.ColorIconProvider;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.utils.HashCodes;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -58,12 +55,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiExpression;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.ui.scale.JBUIScale;
@@ -71,35 +70,33 @@ import com.intellij.util.Consumer;
 import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.*;
-import com.intellij.util.ui.JBScalableIcon;
-import com.intellij.util.ui.JBUI;
-import java.awt.Color;
-import java.awt.MouseInfo;
-import java.util.List;
-import java.util.Objects;
-import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
+import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Static methods to be used by Android annotators.
  */
 public class AndroidAnnotatorUtil {
-  static final int MAX_ICON_SIZE = 5000;
+  static final int MAX_ICON_SIZE = 20000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;
 
   /**
    * Returns a bitmap to be used as an icon to annotate an Android resource reference in an XML file.
    *
-   * @param resourceValue the resource value defining the resource being referenced
+   * @param resourceValue    the resource value defining the resource being referenced
    * @param resourceResolver the resource resolver to use
-   * @param facet the android facet
+   * @param facet            the android facet
    * @return the bitmap for the annotation icon, or null to have no annotation icon
    */
   @Nullable
@@ -137,7 +134,7 @@ public class AndroidAnnotatorUtil {
           // Take a look and see if we have a bitmap we can fall back to.
           LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
-              resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
+            resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
             FolderConfiguration configuration = item.getConfiguration();
             DensityQualifier densityQualifier = configuration.getDensityQualifier();
@@ -234,7 +231,7 @@ public class AndroidAnnotatorUtil {
       String fileName = bitmap.getName();
       Density[] densities = Density.values();
       // Iterate in reverse, since the Density enum is in descending order.
-      for (int i = densities.length; --i >= 0;) {
+      for (int i = densities.length; --i >= 0; ) {
         Density d = densities[i];
         if (d.isValidValueForDevice()) {
           String folderName = parentName.replace(density.getResourceValue(), d.getResourceValue());
@@ -259,7 +256,7 @@ public class AndroidAnnotatorUtil {
   /**
    * Picks a suitable configuration to use for resource resolution within a given file.
    *
-   * @param file the file to determine a configuration for
+   * @param file  the file to determine a configuration for
    * @param facet {@link AndroidFacet} of the {@code file}
    */
   @Nullable
@@ -269,22 +266,19 @@ public class AndroidAnnotatorUtil {
       return null;
     }
 
-    VirtualFile parent = virtualFile.getParent();
-    if (parent == null) {
-      return null;
-    }
-    VirtualFile layout;
-    String parentName = parent.getName();
-    if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = IdeResourcesUtil.pickAnyLayoutFile(facet);
-      if (layout == null) {
-        return null;
+    VirtualFile nearestConfigurationFile;
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
+    if (!(file instanceof XmlFile)) {
+      nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
+      if (nearestConfigurationFile == null) {
+        return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
       }
-    } else {
-      layout = virtualFile;
+    }
+    else {
+      nearestConfigurationFile = virtualFile;
     }
 
-    return ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(layout);
+    return configurationManager.getConfiguration(nearestConfigurationFile);
   }
 
 
@@ -303,26 +297,29 @@ public class AndroidAnnotatorUtil {
   }
 
   public static class ColorRenderer extends GutterIconRenderer {
-    @NotNull private final PsiElement myElement;
+    @NotNull private PsiElement myElement;
     @Nullable private final Color myColor;
     @NotNull private final ResourceResolver myResolver;
     @Nullable private final ResourceReference myResourceReference;
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
+    private final boolean myHasCustomColor;
     @Nullable private final Configuration myConfiguration;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
                          @NotNull ResourceResolver resolver,
                          @Nullable ResourceReference resourceReference,
-                         boolean includeClickAction,
+                         boolean hasCustomColor,
                          @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
       myResolver = resolver;
       myResourceReference = resourceReference;
-      myIncludeClickAction = includeClickAction;
-      mySetColorTask = createSetAttributeTask(myElement);
+
+      myIncludeClickAction = true;
+      myHasCustomColor = hasCustomColor;
+      mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
       myConfiguration = configuration;
     }
 
@@ -354,17 +351,25 @@ public class AndroidAnnotatorUtil {
     private Color getCurrentColor() {
       if (myColor != null) {
         return myColor;
-      } else if (myElement instanceof XmlTag) {
+      }
+      else if (myElement instanceof XmlTag) {
         return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
-      } else if (myElement instanceof XmlAttributeValue) {
+      }
+      else if (myElement instanceof XmlAttributeValue) {
         return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
-      } else {
+      }
+      else {
         return null;
       }
     }
 
     @Override
     public AnAction getClickAction() {
+      if (myElement instanceof PsiReferenceExpression || myElement instanceof KtNameReferenceExpression) {
+        if (!StudioFlags.NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS.get()) {
+          return null;
+        }
+      }
       if (!myIncludeClickAction) { // Cannot set colors that were derived.
         return null;
       }
@@ -379,18 +384,34 @@ public class AndroidAnnotatorUtil {
       };
     }
 
+    @TestOnly
+    @NotNull
+    public PsiElement getElement() {
+      return myElement;
+    }
+
     private void openColorPicker(@Nullable Color currentColor) {
+      List<ResourcePickerSources> pickerSources = new ArrayList<>();
+      pickerSources.add(ResourcePickerSources.PROJECT);
+      pickerSources.add(ResourcePickerSources.ANDROID);
+      pickerSources.add(ResourcePickerSources.LIBRARY);
+      if (getFileType(myElement) == XmlFileType.INSTANCE) {
+        // We can only support theme attributes for Xml files, since we can't substitute R.color.[resource_name] for a theme attribute.
+        pickerSources.add(ResourcePickerSources.THEME_ATTR);
+      }
+
       // TODO: When the color is color state, open color picker with resource tab and select it.
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceReference,
         myConfiguration,
+        pickerSources,
         null,
         MouseInfo.getPointerInfo().getLocation(),
-        color -> {
+        myHasCustomColor ? color -> {
           setColorToAttribute(color);
           return null;
-        },
+        } : null,
         resourceString -> {
           setColorStringAttribute(resourceString);
           return null;
@@ -403,9 +424,9 @@ public class AndroidAnnotatorUtil {
 
     private void setColorStringAttribute(@NotNull String colorString) {
       Project project = myElement.getProject();
-      TransactionGuard.submitTransaction(project, () ->
-        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString))
-      );
+      ApplicationManager.getApplication().invokeLater(
+        () -> WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString)),
+        project.getDisposed());
     }
 
     @Override
@@ -428,22 +449,129 @@ public class AndroidAnnotatorUtil {
   }
 
   /**
-   * Returns a {@link Consumer} that sets the value of an {@link XmlAttribute} or an {@link XmlTag}.
+   * A {@link Consumer} that can be used to edit resources in XML and Java/Kt files.
+   * <p>
+   * Supports Tags and Attribute for XML and it uses the resource expression: namespace.R.resource_type.resource_name for Java/Kt.
    */
-  public static Consumer<String> createSetAttributeTask(@NotNull PsiElement psiElement) {
-    SmartPsiElementPointer<PsiElement> smartPsiElementPointer = ReadAction.compute(() -> SmartPointerManager.createPointer(psiElement));
-    return attributeValue -> {
-      PsiElement element = smartPsiElementPointer.getElement();
-      if (element instanceof XmlTag) {
-        XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        xmlTagValue.setText(attributeValue);
-      }
-      else if (element instanceof XmlAttributeValue) {
-        XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
-        if (xmlAttribute != null) {
-          xmlAttribute.setValue(attributeValue);
+  public static class SetAttributeConsumer implements Consumer<String> {
+    private PsiElement myElement;
+    private final Consumer<String> myAttributeConsumer;
+    private final ResourceType myResourceType;
+
+    /**
+     * @param psiElement   The PsiElement of the reference to edit. {@link XmlTag} or {@link XmlAttributeValue} for XML.
+     * {@link PsiReferenceExpression} for Java and {@link KtNameReferenceExpression} for Kotlin
+     * @param resourceType The type of the resource reference being edited.
+     */
+    public SetAttributeConsumer(PsiElement psiElement, ResourceType resourceType) {
+      myElement = psiElement;
+      myResourceType = resourceType;
+      myAttributeConsumer = createSetAttributeTask();
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public PsiElement getElement() {
+      return myElement;
+    }
+
+    @Override
+    public void consume(String s) {
+      myAttributeConsumer.consume(s);
+    }
+
+    /**
+     * Returns a {@link Consumer} that sets the value for all eligible Java, Kotlin, and Xml files.
+     * For now it supports Java/Kotlin files with (android.)R.resource_type and XML resource files.
+     */
+    @NotNull
+    private Consumer<String> createSetAttributeTask() {
+      return attributeValue -> {
+        PsiElement psiElement = myElement;
+        if (psiElement instanceof PsiReferenceExpression || psiElement instanceof KtNameReferenceExpression) {
+          // The element is in Java or kotlin file.
+          // In Java file, the type of psiElement is PsiReferenceExpression. Its text is "R.color.[resource_name]" or "android.R.color.xxx"
+          // In Kotlin file, the type of psiElement is KtNameReferenceExpression. Its text is [resource_name].
+          myElement = setJavaOrKotlinAttribute(psiElement, attributeValue, myResourceType);
         }
+        else if (psiElement != null) {
+          // xml file cases.
+          myElement = setXmlAttribute(psiElement, attributeValue);
+        }
+      };
+    }
+  }
+
+  /**
+   * Convert color attribute value (e.g. @color/resource_name or @android:color/resource_name) to Java/Kotlin Identifier.<br>
+   * The returned identifier will be android.R.color.resource_name or R.color.resource_name.<br>
+   * If the given color attribute value is not eligible, return null.
+   */
+  @Nullable
+  private static String convertResourceAttributeToIdentifier(@NotNull String colorAttributeValue, @NotNull ResourceType resourceType) {
+    int nameStartIndex = colorAttributeValue.lastIndexOf('/');
+    if (nameStartIndex == -1) {
+      return null;
+    }
+    String resourceName = colorAttributeValue.substring(nameStartIndex + 1);
+    if (resourceName.isEmpty()) {
+      return null;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    if (colorAttributeValue.startsWith(SdkConstants.ANDROID_PREFIX)) {
+      builder.append(SdkConstants.ANDROID_PKG_PREFIX);
+    }
+    return builder.append(SdkConstants.R_PREFIX)
+      .append(resourceType.getName()).append(".")
+      .append(resourceName)
+      .toString();
+  }
+
+  /**
+   * Replaces the PsiElement for an expression of the given attribute value.
+   *
+   * @param psiElement The PsiElement of the resource reference being edited. Eg: The PsiElement of 'R.color.foo_color'
+   * @param attributeValue Resource reference String to be written. Expected in the form: '@color/resource_name'
+   * @return The new {@link PsiElement} resulting from replacing the original element for an expression of the given value.
+   */
+  public static PsiElement setJavaOrKotlinAttribute(@NotNull PsiElement psiElement,
+                                                    @NotNull String attributeValue,
+                                                    @NotNull ResourceType resourceType) {
+    String resourceIdentifier = convertResourceAttributeToIdentifier(attributeValue, resourceType);
+    if (resourceIdentifier == null) {
+      return psiElement;
+    }
+    if (psiElement instanceof PsiReferenceExpression) {
+      // Java file case.
+      PsiExpression expression =
+        PsiElementFactory.getInstance(psiElement.getProject()).createExpressionFromText(resourceIdentifier, psiElement);
+      return psiElement.replace(expression);
+    }
+    else {
+      // Kotlin file case
+      KtExpression expression = KtPsiFactoryKt.KtPsiFactory(psiElement.getProject()).createExpression(resourceIdentifier);
+      // Replace the parent with the resulting expression, but return the last child, which corresponds to the name of the resource
+      return psiElement.getParent().replace(expression).getLastChild();
+    }
+  }
+
+  /**
+   * Sets the given attributeValue to the {@link XmlTag} or {@link XmlAttributeValue} given.
+   * @return The {@link PsiElement} of either the original {@link XmlTag} or the new {@link XmlAttributeValue} set.
+   */
+  public static PsiElement setXmlAttribute(@NotNull PsiElement element, @NotNull String attributeValue) {
+    if (element instanceof XmlTag) {
+      XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
+      xmlTagValue.setText(attributeValue);
+    }
+    else if (element instanceof XmlAttributeValue) {
+      XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+      if (xmlAttribute != null) {
+        xmlAttribute.setValue(attributeValue);
+        return xmlAttribute.getValueElement();
       }
-    };
+    }
+    return element;
   }
 }

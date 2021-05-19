@@ -16,14 +16,20 @@
 package com.android.tools.idea.common.analytics;
 
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
-import com.android.tools.idea.common.surface.DesignSurface;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.android.AndroidTestCase;
 
 public class DesignerUsageTrackerManagerTest extends AndroidTestCase {
+  private static class DisposableObject implements Disposable {
+    @Override
+    public void dispose() {
+    }
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -35,14 +41,24 @@ public class DesignerUsageTrackerManagerTest extends AndroidTestCase {
 
   public void testGetInstance() {
     Object nopTracker = new Object();
-    DesignerUsageTrackerManager<Object, Object> manager =  new DesignerUsageTrackerManager<>((a, b, c) -> new Object(), nopTracker);
+    DesignerUsageTrackerManager<Object, DisposableObject> manager = new DesignerUsageTrackerManager<>((a, b, c) -> new Object(), nopTracker);
     // Because we are testing the actual getInstanceInner instantiation, we tell the method
     assertEquals(nopTracker, manager.getInstanceInner(null, true));
 
-    DesignSurface surface1 = mock(DesignSurface.class);
-    DesignSurface surface2 = mock(DesignSurface.class);
-    Object realTracker = manager.getInstanceInner(surface1, true);
-    assertEquals(realTracker, manager.getInstanceInner(surface1, true));
-    assertNotEquals(realTracker, manager.getInstanceInner(surface2, true));
+    DisposableObject key1 = new DisposableObject();
+    DisposableObject key2 = new DisposableObject();
+    Disposer.register(getTestRootDisposable(), key1);
+    Disposer.register(getTestRootDisposable(), key2);
+    Object realTracker = manager.getInstanceInner(key1, true);
+    assertEquals(realTracker, manager.getInstanceInner(key1, true));
+    assertNotEquals(realTracker, manager.getInstanceInner(key2, true));
+
+    assertNotEquals(nopTracker, manager.getInstanceInner(key1, false));
+    // This should automatically dispose the cached tracker
+    Disposer.dispose(key1);
+    assertEquals("Dispose should invalidate the cache", nopTracker, manager.getInstanceInner(key1, false));
+    assertEquals(
+      "Expected a NopTracker. Disposed keys should not allocate new trackers.",
+      nopTracker, manager.getInstanceInner(key1, true));
   }
 }

@@ -51,6 +51,7 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
+import com.android.tools.idea.wizard.template.ViewBindingSupport
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
@@ -74,8 +75,9 @@ data class ProjectChecker(
   private val usageTracker: TestUsageTracker
 ) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
-  fun checkProject(moduleName: String, vararg customizers: ProjectStateCustomizer) {
-    val modifiedModuleName = getModifiedModuleName(moduleName)
+
+  fun checkProject(moduleName: String, avoidModifiedModuleName: Boolean = false, vararg customizers: ProjectStateCustomizer) {
+    val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
     val fixture = setUpFixtureForProject(modifiedModuleName)
     val project = fixture.project!!
     moduleState = getDefaultModuleState(project)
@@ -150,22 +152,24 @@ data class ProjectChecker(
     val appTitle = "Template Test App Title"
 
     val language = moduleState.projectTemplateDataBuilder.language
+    val addJetifierSupport = moduleState.projectTemplateDataBuilder.addJetifierSupport
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
         data as ProjectTemplateData, "Template Test project",
-        language!!, true, false
+        language!!, true, addJetifierSupport, false
       )
     }
 
     val moduleRecipe: Recipe = when (template.formFactor) {
       // TODO(qumeric): support C++
       // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
-      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, false, "", BytecodeLevel.L8) }
+      FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(
+        data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8) }
       FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
       FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate") }
+      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
     }
 
     val projectContext = RenderingContext(
@@ -196,11 +200,11 @@ data class ProjectChecker(
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
-    projectRecipe.render(projectContext, executor1, null)
-    moduleRecipe.render(context, executor2, null)
+    projectRecipe.render(projectContext, executor1)
+    moduleRecipe.render(context, executor2)
     template.render(context, executor3)
     setGradleWrapperExecutable(projectRoot)
-    verifyLastLoggedUsage(usageTracker, titleToTemplateRenderer(template.name, template.formFactor), moduleState.build())
+    verifyLastLoggedUsage(usageTracker, template.name, template.formFactor, moduleState.build())
 
     // Make sure we didn't forgot to specify a thumbnail
     assertNotEquals(template.thumb(), Thumb.NoThumb)

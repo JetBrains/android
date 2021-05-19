@@ -15,19 +15,14 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import static com.android.ide.common.gradle.model.IdeMavenCoordinates.LOCAL_AARS;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
-import kotlin.io.FilesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -44,64 +39,28 @@ public class LibraryDependency extends Dependency {
   @NotNull private final Collection<File> myBinaryPaths;
   @NotNull private final File myArtifactPath;
 
-  private String myName;
-
   /**
    * Creates a new {@link LibraryDependency}.
    *
    * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
-   * @param name         the name of the library to depend on.
    * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  public static LibraryDependency create(@NotNull File basePath,
-                                         @NotNull File artifactPath,
-                                         @NotNull String artifactAddress,
-                                         @NotNull DependencyScope scope,
-                                         @NotNull Collection<File> binaryPaths) {
-    String adjustedArtifactAddress;
-    if (artifactAddress.startsWith(LOCAL_AARS)) {
-      adjustedArtifactAddress = createShortLocalArtifactAddress(basePath, artifactPath);
-    } else {
-      adjustedArtifactAddress = artifactAddress;
-    }
-    return new LibraryDependency(artifactPath, adjustedArtifactAddress, scope, binaryPaths);
-  }
-
-  /**
-   * Creates a short
-   */
-  @NotNull
-  private static String createShortLocalArtifactAddress(@NotNull File basePath, @NotNull File artifactPath) {
-    File maybeRelative = FilesKt.relativeToOrSelf(artifactPath, basePath);
-    String suffix;
-    if (filesEqual(maybeRelative, artifactPath)) {
-      suffix = "";
-    }
-    else {
-      suffix = "./";
-    }
-    return suffix + toSystemIndependentName(maybeRelative.getPath()).replace(':', '.');
+  public static LibraryDependency create(@NotNull File artifactPath, @NotNull Collection<File> binaryPaths) {
+    return new LibraryDependency(artifactPath, binaryPaths);
   }
 
 
   /**
    * Creates a new {@link LibraryDependency}.
    *
-   * @param artifactPath     the path, in the file system, of the binary file that represents the library to depend on.
-   * @param artifactAddress  the artifact address to bu sed a a base for the library name
-   * @param scope            the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
+   * @param artifactPath    the path, in the file system, of the binary file that represents the library to depend on.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   @VisibleForTesting
-  public LibraryDependency(@NotNull File artifactPath,
-                           @NotNull String artifactAddress,
-                           @NotNull DependencyScope scope,
-                           @NotNull Collection<File> binaryPaths) {
-    super(scope);
+  public LibraryDependency(@NotNull File artifactPath, @NotNull Collection<File> binaryPaths) {
     myBinaryPaths = new LinkedHashSet<>(binaryPaths);
     myArtifactPath = artifactPath;
-    setName(artifactAddress);
   }
 
   @NotNull
@@ -114,17 +73,6 @@ public class LibraryDependency extends Dependency {
     return myArtifactPath;
   }
 
-  @NotNull
-  public String getName() {
-    return myName;
-  }
-
-  void setName(@NotNull String name) {
-    // Let's use the same format for libraries imported from Gradle, to be compatible with API like
-    // ExternalSystemApiUtil.isExternalSystemLibrary() and be able to reuse common cleanup service, see LibraryDataService.postProcess()
-    myName = name.isEmpty() || StringUtil.startsWith(name, NAME_PREFIX) ? name : NAME_PREFIX + name;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -135,20 +83,17 @@ public class LibraryDependency extends Dependency {
     }
     LibraryDependency that = (LibraryDependency)o;
     return Objects.equals(myBinaryPaths, that.myBinaryPaths) &&
-           Objects.equals(myArtifactPath, that.myArtifactPath) &&
-           Objects.equals(myName, that.myName);
+           Objects.equals(myArtifactPath, that.myArtifactPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myBinaryPaths, myArtifactPath, myName);
+    return Objects.hash(myBinaryPaths, myArtifactPath);
   }
 
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" +
-           "name='" + myName + '\'' +
-           ", scope=" + getScope() +
            ", pathsByType=" + myBinaryPaths +
            "]";
   }

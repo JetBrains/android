@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.common.model.NlComponent
 import com.intellij.lang.annotation.HighlightSeverity
 
-internal class TooManyIssuesIssue(private val extraIssuesCount: Int): Issue() {
-  override fun getSource(): NlComponent? = null
-  override fun getSummary(): String =
-    "Too many issues found. $extraIssuesCount not shown."
-
-  override fun getDescription(): String = """
+internal class TooManyIssuesIssue(extraIssuesCount: Int): Issue() {
+  override val source: IssueSource = IssueSource.NONE
+  override val summary = "Too many issues found. $extraIssuesCount not shown."
+  override val description = """
     Too many issues were found in this preview, not all of them will be shown in this panel.
     $extraIssuesCount were found and not displayed.
   """.trimIndent()
-  override fun getCategory(): String = ""
-  override fun getSeverity(): HighlightSeverity = HighlightSeverity.WEAK_WARNING
+  override val category: String = ""
+  override val severity: HighlightSeverity = HighlightSeverity.WEAK_WARNING
 }

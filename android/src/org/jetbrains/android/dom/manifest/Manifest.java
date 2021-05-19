@@ -93,4 +93,6 @@ public interface Manifest extends ManifestElement {
 
   @Attribute("versionCode")
   AndroidAttributeValue<Integer> getVersionCode();
+
+  List<Overlay> getOverlays();
 }

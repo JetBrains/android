@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.lint;
 
+import com.android.tools.idea.common.error.IssueSource;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.RtlDetector;
@@ -26,11 +27,9 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
-import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,33 +40,6 @@ public class LintAnnotationsModel {
   private ListMultimap<NlComponent, IssueData> myIssues = ImmutableListMultimap.of();
   private ListMultimap<AttributeKey, IssueData> myAttributeIssues = ImmutableListMultimap.of();
   private List<IssueData> myIssueList = Collections.emptyList();
-
-  /**
-   * Get the icon for the severity level of the issue associated with the
-   * given component. If the component has no issue, the returned icon will be null
-   *
-   * @param component The component the get the icon for
-   * @param selected
-   * @return The icon for the severity level of the issue.
-   */
-  @Nullable
-  public Icon getIssueIcon(@NotNull NlComponent component, boolean selected) {
-    if (myIssues == null) {
-      return null;
-    }
-    List<IssueData> issueData = myIssues.get(component);
-    if (issueData == null || issueData.isEmpty()) {
-      return null;
-    }
-
-    IssueData max = findHighestSeverityIssue(issueData);
-    boolean isError = HighlightDisplayLevel.ERROR.equals(max.level);
-
-    if (selected) {
-      return isError ? StudioIcons.Common.ERROR_INLINE_SELECTED : StudioIcons.Common.WARNING_INLINE_SELECTED;
-    }
-    return isError ? StudioIcons.Common.ERROR_INLINE : StudioIcons.Common.WARNING_INLINE;
-  }
 
   /**
    * If the provided component has an issue, return the message associated with the highest
@@ -158,6 +130,7 @@ public class LintAnnotationsModel {
     @NotNull public final PsiElement endElement;
     @NotNull public final PsiElement startElement;
     @NotNull public final NlComponent component;
+    @NotNull public final IssueSource issueSource;
     @Nullable public final AttributeKey attribute;
     @Nullable public final LintFix quickfixData;
 
@@ -171,6 +144,7 @@ public class LintAnnotationsModel {
                       @NotNull PsiElement endElement,
                       @Nullable LintFix quickfixData) {
       this.component = component;
+      this.issueSource = IssueSource.fromNlComponent(component);
       this.attribute = attribute;
       this.inspection = inspection;
       this.issue = issue;

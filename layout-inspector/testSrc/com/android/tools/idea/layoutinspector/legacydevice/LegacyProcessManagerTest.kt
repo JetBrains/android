@@ -17,11 +17,14 @@ package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.ClientData
+import com.android.ddmlib.IDevice
+import com.android.ddmlib.internal.DeviceImpl
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler
 import com.android.fakeadbserver.devicecommandhandlers.ddmsHandlers.FeaturesHandler
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.util.ProcessManagerAsserts
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
@@ -32,6 +35,8 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 
 private const val DEVICE1 = "1234"
+private const val EMULATOR1 = "emulator-678"
+private const val EMULATOR2 = "emulator-789"
 
 private const val PROCESS1 = 12345
 private const val PROCESS2 = 12346
@@ -41,6 +46,8 @@ private const val PROCESS5 = 12349
 
 private const val MANUFACTURER = "Google"
 
+private const val FIND_DEVICE_RETRY_COUNT = 10
+
 class LegacyProcessManagerTest {
 
   @get:Rule
@@ -48,6 +55,7 @@ class LegacyProcessManagerTest {
 
   private var adbServer: FakeAdbServer? = null
   private var bridge: AndroidDebugBridge? = null
+  private val emulatorRegEx = IDevice.RE_EMULATOR_SN.toRegex()
 
   @Before
   fun before() {
@@ -66,6 +74,7 @@ class LegacyProcessManagerTest {
 
   @After
   fun after() {
+    bridge!!.devices.forEach { adbServer!!.disconnectDevice(it.serialNumber).get() }
     AndroidDebugBridge.terminate()
     AndroidDebugBridge.disableFakeAdbServerMode()
     adbServer?.close()
@@ -75,7 +84,7 @@ class LegacyProcessManagerTest {
 
   @Test
   fun addDevice() {
-    startDevice()
+    startDevice1()
   }
 
   @Test
@@ -98,7 +107,7 @@ class LegacyProcessManagerTest {
   fun testStopDevice() {
     val manager = startProcesses()
 
-    adbServer!!.disconnectDevice(DEVICE1)
+    adbServer!!.disconnectDevice(DEVICE1).get()
 
     val waiter = ProcessManagerAsserts(manager)
     waiter.assertNoDevices()
@@ -127,6 +136,26 @@ class LegacyProcessManagerTest {
     waiter.assertDeviceWithProcesses(DEVICE1, PROCESS1) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
   }
 
+  @Test
+  fun testEmulator() {
+    val (_, manager) = startDevice(EMULATOR1, MANUFACTURER, "My Avd", "2.0", "28")
+    val stream = manager.getStreams().firstOrNull() ?: error("Emulator not found")
+    val preferred = LayoutInspectorPreferredProcess(findDevice(EMULATOR1)!!, "com.example")
+    assertThat(stream.device.manufacturer).isEqualTo(MANUFACTURER)
+    assertThat(stream.device.model).isEqualTo("My Avd")
+    assertThat(preferred.isDeviceMatch(stream.device)).isTrue()
+  }
+
+  @Test
+  fun testEmulatorWithoutUnknownManufacturer() {
+    val (_, manager) = startDevice(EMULATOR2, "unknown", "My Pixel", "2.0", "28")
+    val stream = manager.getStreams().firstOrNull() ?: error("Emulator not found")
+    val preferred = LayoutInspectorPreferredProcess(findDevice(EMULATOR2)!!, "com.example")
+    assertThat(stream.device.manufacturer).isEqualTo("Emulator")
+    assertThat(stream.device.model).isEqualTo("My Pixel")
+    assertThat(preferred.isDeviceMatch(stream.device)).isTrue()
+  }
+
   /**
    * Starts one [DEVICE1] with 5 processes: [PROCESS1], [PROCESS2], [PROCESS3], [PROCESS4], [PROCESS5]
    *
@@ -136,7 +165,7 @@ class LegacyProcessManagerTest {
    * [PROCESS5] has a package name of "<pre-initialized>" indicating it is not fully initialized and is ignored.
    */
   private fun startProcesses(): LegacyProcessManager {
-    val (device1, manager) = startDevice()
+    val (device1, manager) = startDevice1()
     device1.startClient(PROCESS1, 123, "com.example.myapplication", true)
     device1.startClient(PROCESS2, 234, "com.example.basic_app", true)
     device1.startClient(PROCESS3, 345, "com.example.compose_app", true)
@@ -148,21 +177,50 @@ class LegacyProcessManagerTest {
     return manager
   }
 
-  private fun startDevice(): Pair<DeviceState, LegacyProcessManager> {
+  private fun startDevice1(): Pair<DeviceState, LegacyProcessManager> =
+    startDevice(DEVICE1, MANUFACTURER, "My Model", "3.0", "27")
+
+  private fun startDevice(
+    serial: String,
+    manufacturer: String,
+    model: String,
+    release: String,
+    sdk: String
+  ): Pair<DeviceState, LegacyProcessManager> {
     val scheduler = VirtualTimeScheduler()
     val manager = LegacyProcessManager(disposableRule.disposable, scheduler)
     assertThat(manager.getStreams().toList()).isEmpty()
 
-    val device1 = adbServer!!.connectDevice(DEVICE1, MANUFACTURER, "My Model", "3.0", "27", DeviceState.HostConnectionType.USB)?.get()!!
+    val device1 = adbServer!!.connectDevice(serial, manufacturer, model, release, sdk, DeviceState.HostConnectionType.USB)?.get()!!
     device1.deviceStatus = DeviceState.DeviceStatus.ONLINE
     assertThat(manager.getStreams().toList()).isEmpty()
+
+    if (emulatorRegEx.matches(serial)) {
+      setAvdNameByReflection(serial, model)
+    }
 
     // The LegacyProcessManager will not register the device before the properties are loaded by the thread
     // created in: PropertyFetcher.initiatePropertiesQuery.
     // Wait for that here while advancing the time scheduler to force another check of the properties being loaded.
     val waiter = ProcessManagerAsserts(manager)
-    waiter.assertDeviceWithProcesses(DEVICE1) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
+    waiter.assertDeviceWithProcesses(serial) { scheduler.advanceBy(50, TimeUnit.MILLISECONDS) }
 
     return Pair(device1, manager)
+  }
+
+  private fun setAvdNameByReflection(serial: String, avdName: String) {
+    val device = findDevice(serial) as? DeviceImpl ?: error("Emulator not found: $serial")
+    val field = device.javaClass.getDeclaredField("mAvdName") ?: error("Could not set AvdName on emulator device")
+    field.isAccessible = true
+    field.set(device, avdName)
+  }
+
+  private fun findDevice(serial: String): IDevice? {
+    var retries = 0
+    while (retries++ < FIND_DEVICE_RETRY_COUNT) {
+      Thread.sleep(100)
+      bridge?.devices?.singleOrNull { it.serialNumber == serial }?.let { return it }
+    }
+    return null
   }
 }

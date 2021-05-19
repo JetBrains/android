@@ -177,7 +177,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(minSdkModel, maxSdkModel, "android.defaultConfig.maxSdkVersion")
 
     // Now the signing config
-    val signingConfig = buildModel.android().signingConfigs()[0]
+    val signingConfig = buildModel.android().signingConfigs()[1]
     val storeFileModel = signingConfig.storeFile()
     val storePasswordModel = signingConfig.storePassword()
 
@@ -259,7 +259,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyNumbers(buildToolsModel, 1, 1, 0, 0)
     assertDependencyBetween(buildToolsModel, varRefString, "varRefString")
 
-    val signingConfig = android.signingConfigs()[0]!!
+    val signingConfig = android.signingConfigs()[1]!!
     assertDependencyNumbers(signingConfig.storeFile().fileModelToElement(), 1, 1, 0, 0)
     assertDependencyBetween(signingConfig.storeFile().fileModelToElement(), storeFModel.element(), "vars['signing'].storeF")
     assertDependencyNumbers(signingConfig.storePassword(), 1, 1, 0, 0)
@@ -286,11 +286,11 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val filesModel = buildModel.ext().findProperty("files")
     // Add a property that depends on an existing one
     val newModel = buildModel.ext().findProperty("newProp")
-    newModel.setValue(ReferenceTo("versions[2]"))
+    ReferenceTo.createReferenceFromText("versions[2]", newModel)?.let { newModel.setValue(it) }
     assertDependencyNumbers(newModel, 1, 1, 0, 0)
     assertDependencyBetween(newModel, versionsModel.toList()!![2], "versions[2]")
     val otherNewModel = buildModel.ext().findProperty("otherNewProp")
-    otherNewModel.setValue(ReferenceTo("N0"))
+    ReferenceTo.createReferenceFromText("N0", otherNewModel)?.let { otherNewModel.setValue(it) }
     assertDependencyNumbers(otherNewModel, 1, 1, 0, 0)
     assertDependencyBetween(otherNewModel, buildModel.ext().findProperty("N0"), "N0")
     val keyPass = buildModel.android().signingConfigs()[0]!!.keyPassword()
@@ -303,7 +303,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     val key3 = filesModel.getMapValue("key3")
     key3.setValue("boo")
     assertDependencyNumbers(key3, 0, 0, 0, 1)
-    val storePass = buildModel.android().signingConfigs()[0]!!.storePassword()
+    val storePass = buildModel.android().signingConfigs()[1]!!.storePassword()
     assertDependencyNumbers(storePass, 1, 1, 0, 0)
     assertDependencyBetween(storePass, key3, "prop2['key3']")
   }
@@ -380,7 +380,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
       assertDependencyNumbers(childMinSdk, 1, 1, 0, 0)
     }
     // Change the value to break the cycle.
-    appliedMaxSdk.setValue(ReferenceTo("vars.maxSdk"))
+    ReferenceTo.createReferenceFromText("vars.maxSdk", appliedMaxSdk)?.let { appliedMaxSdk.setValue(it) }
     if (isGroovy) {
       assertDependencyNumbers(appliedMaxSdk, 1, 1, 0, 1)
       assertDependencyBetween(childMaxSdk, appliedMinSdk, "vars.maxSdk")
@@ -440,10 +440,10 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     oldN0Property.delete()
 
     val newN0Property = extModel.findProperty("N0")
-    newN0Property.setValue(ReferenceTo("O"))
+    ReferenceTo.createReferenceFromText("O", newN0Property)?.let { newN0Property.setValue(it) }
 
     val listDependent = extModel.findProperty("listItem")
-    listDependent.setValue(ReferenceTo("versions[0]"))
+    ReferenceTo.createReferenceFromText("versions[0]", listDependent)?.let { listDependent.setValue(it) }
 
     verifyPropertyModel(listDependent.resolve(), INTEGER_TYPE, 27, INTEGER, REGULAR, 1, "listItem")
 
@@ -466,7 +466,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
       debugFileModel.setValue("myDebugFile.txt")
 
       val newMapReference = childModel.ext().findProperty("mapItem")
-      newMapReference.setValue(ReferenceTo("varProGuardFiles['debug']"))
+      ReferenceTo.createReferenceFromText("varProGuardFiles['debug']", newMapReference)?.let { newMapReference.setValue(it) }
 
       verifyPropertyModel(newMapReference.resolve(), STRING_TYPE, "myDebugFile.txt", STRING, REGULAR, 1, "mapItem")
     }
@@ -612,7 +612,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
 
     val prop1Model = buildModel.ext().findProperty("prop1")
     val prop2Model = buildModel.ext().findProperty("prop2")
-    prop2Model.setValue(ReferenceTo("repositories"))
+    ReferenceTo.createReferenceFromText("repositories", prop2Model)?.let { prop2Model.setValue(it) }
     verifyPropertyModel(prop1Model.resolve(), STRING_TYPE, "android", UNKNOWN, REGULAR, 1)
     verifyPropertyModel(prop2Model.resolve(), STRING_TYPE, "repositories", REFERENCE, REGULAR, 0)
   }

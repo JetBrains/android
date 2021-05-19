@@ -68,7 +68,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
     }?.toList() ?: return null
 
     val buildIssues = errors.mapIndexedNotNull{ index, errorJson ->
-      convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX))
+      convertToBuildIssue(index, errorJson.removePrefix(ERROR_LOG_PREFIX), issueData.projectPath)
     }
 
     if (buildIssues.isEmpty()) return null
@@ -89,7 +89,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
     }
   }
 
-  private fun convertToBuildIssue(index: Int, errorJson: String): BuildIssue? {
+  private fun convertToBuildIssue(index: Int, errorJson: String, projectPath: String): BuildIssue? {
     try {
       val msg = gson.fromJson(errorJson, EncodedMessage::class.java)
       val summary = msg.message.substringBefore('\n')
@@ -102,9 +102,9 @@ class DataBindingIssueChecker : GradleIssueChecker {
         }
       }
       else {
-        // Note: msg.filePath is relative, but the build output window can't seem to find the
+        // Note: msg.filePath is relative to the project, but the build output window can't seem to find the
         // file unless we feed it the absolute path directly.
-        val sourceFile = File(msg.filePath).absoluteFile
+        val sourceFile = File(projectPath, msg.filePath).absoluteFile
         val location = msg.locations.first()
         val filePosition = FilePosition(sourceFile, location.startLine, location.startCol, location.endLine, location.endCol)
         val goToFile = OpenFileWithLocationQuickFix("open.file.$index", filePosition)
@@ -129,7 +129,7 @@ class DataBindingIssueChecker : GradleIssueChecker {
  * This is an adaptation of [OpenFileAtLocationQuickFix] which allows a customisable ID to allow multiple links
  * in a single message.
  */
-class OpenFileWithLocationQuickFix(private val uniqueId: String, private val myFilePosition: FilePosition) : BuildIssueQuickFix {
+class OpenFileWithLocationQuickFix(uniqueId: String, val myFilePosition: FilePosition) : BuildIssueQuickFix {
   override val id = uniqueId
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {

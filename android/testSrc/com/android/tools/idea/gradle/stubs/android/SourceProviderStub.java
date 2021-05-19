@@ -36,7 +36,7 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myResourcesDirectories = new HashSet<File>();
 
   @NotNull String myName = "test";
-  @Nullable File myManifestFile;
+  @NotNull File myManifestFile;
 
   @NotNull private final FileStructure myFileStructure;
 
@@ -50,8 +50,9 @@ public class SourceProviderStub implements SourceProvider {
    *
    * @param fileStructure the file structure of the Android project this {@code SourceProvider} belongs to.
    */
-  public SourceProviderStub(@NotNull FileStructure fileStructure) {
+  public SourceProviderStub(@NotNull FileStructure fileStructure, @NotNull String manifestFilePath) {
     myFileStructure = fileStructure;
+    myManifestFile = myFileStructure.createProjectFile(manifestFilePath);
   }
 
   public void setName(@NotNull String name) {
@@ -62,10 +63,6 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull
   public String getName() {
     return myName;
-  }
-
-  public void setManifestFile(@NotNull String manifestFilePath) {
-    myManifestFile = myFileStructure.createProjectFile(manifestFilePath);
   }
 
   @Override

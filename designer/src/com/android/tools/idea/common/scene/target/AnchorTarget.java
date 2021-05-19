@@ -372,7 +372,10 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
    * On mouse drag, we can connect (in memory) to existing targets, or revert to the original state that we captured on mouseDown.
    */
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull List<Target> ignored) {
+  public void mouseDrag(@AndroidDpCoordinate int x,
+                        @AndroidDpCoordinate int y,
+                        @NotNull List<Target> ignored,
+                        @NotNull SceneContext ignored2) {
     Optional<Point> p = mySnapper.trySnapCircle(x, y);
     myLastX = p.map(point -> point.x).orElse(x);
     myLastY = p.map(point -> point.y).orElse(y);

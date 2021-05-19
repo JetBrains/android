@@ -15,25 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeprecatedConfigurationReporter extends SimpleDeduplicatingSyncIssueReporter {
   @Override
   int getSupportedIssueType() {
-    return SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
+    return IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION;
   }
 
   @Override
   @NotNull
-  protected String getDeduplicationKey(@NotNull SyncIssue issue) {
+  protected String getDeduplicationKey(@NotNull IdeSyncIssue issue) {
     String config = extractConfigurationName(issue);
     return (config != null) ? config : issue.toString();
   }
 
   @Nullable
-  private static String extractConfigurationName(@NotNull SyncIssue issue) {
+  private static String extractConfigurationName(@NotNull IdeSyncIssue issue) {
     String data = issue.getData();
     if (data == null) {
       return null;

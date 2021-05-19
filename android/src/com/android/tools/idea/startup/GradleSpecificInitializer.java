@@ -19,7 +19,6 @@ import static com.intellij.openapi.actionSystem.Anchor.AFTER;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 
-import com.android.prefs.AndroidLocation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.idea.actions.AndroidActionGroupRemover;
@@ -38,8 +37,6 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.actions.MarkRootGroup;
 import com.intellij.ide.projectView.impl.MoveModuleToGroupTopLevel;
 import com.intellij.notification.Notification;
@@ -56,25 +53,23 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.RootProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -108,12 +103,16 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       try {
         // Setup JDK and Android SDK if necessary
         setupSdks();
-        checkAndroidSdkHome();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
       }
       checkAndSetAndroidSdkSources();
+    }
+
+    // Check JDKs in Android Studio folder since they can be invalid when changing Java versions (b/185562147)
+    if (ConfigImportHelper.isConfigImported()) {
+      cleanProjectJdkTable();
     }
   }
 
@@ -155,9 +154,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void setUpWelcomeScreenActions(ActionManager actionManager) {
-    // Force the new "flat" welcome screen.
-    System.setProperty("ide.new.welcome.screen.force", "true");
-
     // Update the Welcome Screen actions
     Actions.replaceAction(actionManager, "WelcomeScreen.OpenProject", new AndroidOpenFileAction("Open an Existing Project"));
     Actions.replaceAction(actionManager, "WelcomeScreen.CreateNewProject", new AndroidNewProjectAction("Create New Project"));
@@ -235,13 +231,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
   }
 
   private static void setupSdks() {
-    try {
-      repairDuplicateAndroidSdks(); // TODO(b/143326468): Remove in Studio 4.2.
-    }
-    catch (Throwable e) {
-      LOG.error("Failed to remove duplicate Android SDKs", e);
-    }
-
     IdeSdks ideSdks = IdeSdks.getInstance();
     File androidHome = ideSdks.getAndroidSdkPath();
 
@@ -303,55 +292,6 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
     });
   }
 
-  /**
-   * Removes duplicate Android SDKs that could be created due to b/142005646.
-   */
-  private static void repairDuplicateAndroidSdks() {
-    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
-    Sdk[] sdks = jdkTable.getAllJdks();
-    if (sdks.length <= 1) {
-      return;
-    }
-
-    Multimap<List<String>, Sdk> androidSdksByClasses = ArrayListMultimap.create();
-    for (Sdk sdk : sdks) {
-      if (sdk.getSdkType().getName().equals(AndroidSdkType.SDK_NAME)) {
-        RootProvider rootProvider = sdk.getRootProvider();
-        String[] urls = rootProvider.getUrls(OrderRootType.CLASSES);
-        androidSdksByClasses.put(Arrays.asList(urls), sdk);
-      }
-    }
-    if (androidSdksByClasses.size() == androidSdksByClasses.keySet().size()) {
-      return; // No duplicates to remove.
-    }
-
-    for (List<String> classes : androidSdksByClasses.keySet()) {
-      Collection<Sdk> duplicateSdks = androidSdksByClasses.get(classes);
-      if (duplicateSdks.size() > 1) {
-        ApplicationManager.getApplication().invokeLater(() -> {
-          ApplicationManager.getApplication().runWriteAction(() -> {
-            boolean firstSkipped = false;
-            for (Sdk sdk : duplicateSdks) {
-              if (firstSkipped) {
-                jdkTable.removeJdk(sdk);
-              }
-              firstSkipped = true;
-            }
-          });
-        });
-      }
-    }
-  }
-
-  private static void checkAndroidSdkHome() {
-    try {
-      AndroidLocation.checkAndroidSdkHome();
-    }
-    catch (AndroidLocation.AndroidLocationException e) {
-      addStartupWarning(e.getMessage(), null);
-    }
-  }
-
   @Nullable
   private static Sdk findFirstAndroidSdk() {
     List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
@@ -385,5 +325,22 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
+  }
+
+  private static void cleanProjectJdkTable() {
+    Runnable cleanJdkTableAction = () -> {
+      // Recreate remaining JDKs to ensure they are up to date after an update (b/185562147)
+      ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+      JavaSdk javaSdk = JavaSdk.getInstance();
+      for (Sdk jdk : jdkTable.getSdksOfType(javaSdk)) {
+        String jdkPath = jdk.getHomePath();
+        if (jdkPath == null) {
+          continue;
+        }
+        Sdk newJdk = javaSdk.createJdk(jdk.getName(), jdkPath);
+        jdkTable.updateJdk(jdk, newJdk);
+      }
+    };
+    ApplicationManager.getApplication().invokeLaterOnWriteThread(cleanJdkTableAction);
   }
 }

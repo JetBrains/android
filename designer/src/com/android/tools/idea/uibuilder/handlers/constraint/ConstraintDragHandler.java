@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.*;
@@ -85,8 +86,8 @@ public class ConstraintDragHandler extends DragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-    String result = super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+    String result = super.update(x, y, modifiers, sceneContext);
     if (myComponent == null) {
       return "undefined";
     }
@@ -98,7 +99,7 @@ public class ConstraintDragHandler extends DragHandler {
     for (int i = 0; i < targets.size(); i++) {
       if (targets.get(i) instanceof ConstraintDragDndTarget) {
         ConstraintDragDndTarget target = (ConstraintDragDndTarget)targets.get(i);
-        target.mouseDrag(dx, dy, targets);
+        target.mouseDrag(dx, dy, targets, sceneContext);
         break;
       }
     }

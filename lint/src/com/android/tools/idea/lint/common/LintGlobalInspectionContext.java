@@ -258,7 +258,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
           severityModule = module;
         }
       }
-      File baselineFile = ideSupport.getBaselineFile(module);
+      File baselineFile = ideSupport.getBaselineFile(client, module);
       if (baselineFile != null && !AndroidLintLintBaselineInspection.ourSkipBaselineNextRun) {
         if (!baselineFile.isAbsolute()) {
           String path = module.getProject().getBasePath();

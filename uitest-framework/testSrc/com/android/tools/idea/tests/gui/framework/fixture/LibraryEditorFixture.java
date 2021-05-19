@@ -25,7 +25,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -70,7 +69,7 @@ public class LibraryEditorFixture extends EditorFixture {
         robot,
         new GenericTypeMatcher<JDialog>(JDialog.class) {
           @Override
-          protected boolean isMatching(@Nonnull JDialog component) {
+          protected boolean isMatching(@NotNull JDialog component) {
             return "Debug Symbols".equals(component.getTitle());
          }
         });

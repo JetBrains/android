@@ -18,21 +18,26 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
+import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.validator.ValidatorData
+import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import java.awt.Desktop
+import java.net.URL
 import java.util.stream.Stream
+import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
+/**
+ * Lint integrator for issues created by ATF (Accessibility Testing Framework)
+ */
 class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
 
-  private val ACCESSIBILITY_CATEGORY = "Accessibility"
-  private val ACCESSIBILITY_ERROR = "Accessibility Error"
-  private val ACCESSIBILITY_WARNING = "Accessibility Warning"
-  private val ACCESSIBILITY_INFO = "Accessibility Info"
-
-  private val issueProvider: IssueProvider = object : IssueProvider() {
+  @VisibleForTesting
+  val issueProvider: IssueProvider = object : IssueProvider() {
     override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
       issues.forEach {
         issueListBuilder.add(it)
@@ -40,11 +45,13 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     }
   }
 
-  @VisibleForTesting
-  val issues = ArrayList<Issue>()
+  /**
+   * Returns the list of accessibility issues created by ATF.
+   */
+  val issues = HashSet<Issue>()
 
   /**
-   * Clear all lints and disable accessibility lint.
+   * Clear all lints and disable atf lint.
    */
   fun disableAccessibilityLint() {
     issueModel.removeIssueProvider(issueProvider)
@@ -58,53 +65,79 @@ class AccessibilityLintIntegrator(private val issueModel: IssueModel) {
     issueModel.addIssueProvider(issueProvider)
   }
 
-  private fun forceUpdate() {
-    issueModel.removeIssueProvider(issueProvider)
-    issueModel.addIssueProvider(issueProvider)
-  }
-
   /**
    * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order for issues to be visible.
    */
-  fun createIssue(result: ValidatorData.Issue, source: NlComponent?) {
-    issues.add(object : Issue() {
-      override fun getSummary(): String {
-        return when (result.mLevel) {
-          ValidatorData.Level.ERROR -> ACCESSIBILITY_ERROR
-          ValidatorData.Level.WARNING -> ACCESSIBILITY_WARNING
-          else -> ACCESSIBILITY_INFO
-        }
+  fun createIssue(result: ValidatorData.Issue, component: NlComponent?) {
+    val source = if (component == null) {
+      IssueSource.NONE
+    }
+    else {
+      IssueSource.fromNlComponent(component)
+    }
+    issues.add(NlAtfIssue(result, source))
+  }
+
+}
+
+/**  Issue created by [ValidatorData.Issue] */
+class NlAtfIssue(
+  private val result: ValidatorData.Issue,
+  issueSource: IssueSource): Issue() {
+
+  companion object {
+    private const val CONTENT_LABELING = "CONTENT_LABELING"
+    private const val TOUCH_TARGET_SIZE = "TOUCH_TARGET_SIZE"
+    private const val LOW_CONTRAST = "LOW_CONTRAST"
+  }
+
+  override val summary: String
+    get() =
+      when (result.mCategory) {
+        CONTENT_LABELING -> "Content labels missing or confusing"
+        TOUCH_TARGET_SIZE -> "Touch size too small"
+        LOW_CONTRAST -> "Low contrast"
+        else -> "Accessibility Issue"
       }
 
-      override fun getDescription(): String {
+  override val description: String
+    get() {
+      if (result.mHelpfulUrl.isNullOrEmpty()) {
         return result.mMsg
       }
+      return """${result.mMsg}<br><br>Learn more at <a href="${result.mHelpfulUrl}">${result.mHelpfulUrl}</a>"""
+    }
 
-      override fun getSeverity(): HighlightSeverity {
-        return when (result.mLevel) {
-          ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
-          ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
-          else ->  HighlightSeverity.INFORMATION
+  override val severity: HighlightSeverity
+    get() {
+      return when (result.mLevel) {
+        ValidatorData.Level.ERROR -> HighlightSeverity.ERROR
+        ValidatorData.Level.WARNING -> HighlightSeverity.WARNING
+        else -> HighlightSeverity.INFORMATION
+      }
+    }
+
+  override val source: IssueSource = issueSource
+
+  override val category: String = Category.A11Y.name
+
+  override val fixes: Stream<Fix>
+    get() {
+      return ArrayList<Fix>().stream()
+    }
+
+  override val hyperlinkListener: HyperlinkListener?
+    get() {
+      if (result.mHelpfulUrl.isNullOrEmpty()) {
+        return null
+      }
+      return HyperlinkListener {
+        if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
         }
       }
+    }
 
-      override fun getSource(): NlComponent? {
-        return source
-      }
-
-      override fun getCategory(): String {
-        return ACCESSIBILITY_CATEGORY
-      }
-
-      override fun getFixes(): Stream<Fix> {
-        return convertToFix(this, source, result)
-      }
-    })
-  }
-
-  private fun convertToFix(issue: Issue, component: NlComponent?, result: ValidatorData.Issue): Stream<Issue.Fix> {
-    // TODO b/150331000 Implement this based on result later.
-    val fixes = ArrayList<Issue.Fix>()
-    return fixes.stream()
-  }
+  /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
+  val srcClass: String = result.mSourceClass
 }

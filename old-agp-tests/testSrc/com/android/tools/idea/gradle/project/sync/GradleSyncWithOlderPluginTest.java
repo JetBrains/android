@@ -28,30 +28,20 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
-import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
-import com.android.builder.model.AndroidArtifactOutput;
+import com.android.ide.common.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
-import com.android.tools.idea.testing.AndroidGradleTests;
-import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.idea.Bombed;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
-import java.util.Collection;
-import java.io.IOException;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -76,33 +66,32 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
   }
 
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
-  public void loadProjectWithOlderPlugin(@NotNull String relativePath) throws Exception {
+  private void loadProjectWithOlderPlugin(@NotNull String relativePath) throws Exception {
     loadProject(relativePath, null, myGradleVersion, myPluginVersion);
   }
 
   // Syncs a project with Android plugin 1.5.0 and Gradle 2.2.1
-  public void testWithPluginOneDotFive() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/WithPluginOneDotFive() throws Exception {
     // We are verifying that sync succeeds without errors.
     loadProjectWithOlderPlugin(PROJECT_WITH1_DOT5);
   }
 
-  public void testGetOutputFileWithPluginOneDotFive() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/GetOutputFileWithPluginOneDotFive() throws Exception {
     loadProjectWithOlderPlugin(PROJECT_WITH1_DOT5);
+    requestSyncAndWait();
     Module appModule = TestModuleUtil.findAppModule(getProject());
     AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
     assertNotNull(androidModel);
     @SuppressWarnings("deprecation")
-    Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
     assertNotEmpty(outputs);
-    assertThat(outputs.iterator().next().getMainOutputFile().getOutputFile().getName()).isEqualTo("app-debug.apk");
+    assertThat(outputs.iterator().next().getOutputFile().getName()).isEqualTo("app-debug.apk");
   }
 
-  public void testWithInterAndroidModuleDependencies() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/WithInterAndroidModuleDependencies() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // 'app' -> 'library2'
@@ -110,7 +99,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(moduleDependencies()).that(appModule).hasDependency(findModule(getProject(), "library2").getName(), COMPILE, true);
   }
 
-  public void testWithInterJavaModuleDependencies() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/WithInterJavaModuleDependencies() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module appModule = TestModuleUtil.findAppModule(getProject());
     // 'app' -> 'lib'
@@ -119,7 +109,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("javalib1", COMPILE);
   }
 
-  public void testJavaLibraryDependenciesFromJavaModule() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/JavaLibraryDependenciesFromJavaModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module javaLibModule = findModule(getProject(), "javalib1");
     // 'app' -> 'javalib1' -> 'guava'
@@ -129,7 +120,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(moduleDependencies()).that(javaLibModule).hasDependency(findModule(getProject(), "javalib2").getName(), COMPILE, true);
   }
 
-  public void testLocalJarDependenciesFromAndroidModule() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/LocalJarDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'fakelib.jar'
@@ -137,7 +129,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*fakelib.*", COMPILE);
   }
 
-  public void testJavaLibraryDependenciesFromAndroidModule() throws Exception {
+  public void /*test*/JavaLibraryDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'gson'
@@ -145,22 +137,25 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*gson.*", COMPILE);
   }
 
-  public void testAndroidModuleDependenciesFromAndroidModule() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/AndroidModuleDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = findModule(getProject(), "library2");
     // 'app' -> 'library2' -> 'library1'
     assertAbout(moduleDependencies()).that(androidLibModule).hasDependency(findModule(getProject(), "library1").getName(), COMPILE, true);
   }
 
-  public void testAndroidLibraryDependenciesFromAndroidModule() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/AndroidLibraryDependenciesFromAndroidModule() throws Exception {
     loadProjectWithOlderPlugin(TRANSITIVE_DEPENDENCIES_PRE30);
     Module androidLibModule = findModule(getProject(), "library1");
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
     assertAbout(libraryDependencies()).that(androidLibModule).containsMatching(true, ".*commons-io.*", COMPILE);
   }
 
-  public void testSyncWithGradleBuildCacheUninitialized() throws Exception {
-    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30, myGradleVersion, myPluginVersion);
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/SyncWithGradleBuildCacheUninitialized() throws Exception {
+    prepareProjectForImport(TRANSITIVE_DEPENDENCIES_PRE30, myGradleVersion, myPluginVersion, null);
     Project project = getProject();
     BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
@@ -184,7 +179,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
    * Verify that Gradle daemons can be stopped for Gradle 3.5 (b/155991417).
    * @throws Exception
    */
-  public void testDaemonStops3Dot5() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/DaemonStops3Dot5() throws Exception {
     loadProject(SIMPLE_APPLICATION_PRE30, null, "3.5", "2.2.0");
     verifyDaemonStops();
   }
@@ -193,7 +189,8 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
    * Verify that Gradle daemons can be stopped for Gradle 4.5 (b/155991417).
    * @throws Exception
    */
-  public void testDaemonStops4Dot5() throws Exception {
+  // Disabled due to https://github.com/gradle/gradle/issues/8431
+  public void /*test*/DaemonStops4Dot5() throws Exception {
     loadProject(SIMPLE_APPLICATION, null, "4.5", "3.0.0");
     verifyDaemonStops();
   }
@@ -207,17 +204,12 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     verifyDaemonStops();
   }
 
-  private void verifyDaemonStops() throws Exception {
-    List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
+  void verifyDaemonStops() throws Exception {
     GradleDaemonServices.stopDaemons();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
-    for (DaemonState status : daemonStatus) {
-      assertThat(equalsIgnoreCase(status.getStatus(), "stopped")).isTrue();
-    }
+    assertThat(areGradleDaemonsRunning()).isFalse();
     requestSyncAndWait();
-    daemonStatus = GradleDaemonServices.getDaemonsStatus();
-    assertThat(daemonStatus).isNotEmpty();
+    assertThat(areGradleDaemonsRunning()).isTrue();
+    GradleDaemonServices.stopDaemons();
+    assertThat(areGradleDaemonsRunning()).isFalse();
   }
 }

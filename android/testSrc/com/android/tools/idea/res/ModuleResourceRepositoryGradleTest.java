@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.tools.idea.testing.AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates;
 import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.VfsTestUtil.createFile;
@@ -32,6 +33,12 @@ import java.util.List;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
 public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
+
+  private void commitAllDocumentsAndWaitForUpdatesToPropagate() throws Exception {
+    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+    waitForSourceFolderManagerToProcessUpdates(getProject());
+  }
+
   /**
    * This test provides additional coverage relative to ModuleResourceRepositoryTest.testOverlays by exercising
    * the ModuleResourceRepository.forMainResources method that may affect resource overlay order. See http://b/117805863.
@@ -40,11 +47,12 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
     loadProject(PROJECT_WITH_APPAND_LIB);
     createFile(
       PlatformTestUtil.getOrCreateProjectBaseDir(getProject()),
-      "app/src/debug/res/values/strings.xml",
+        "app/src/debug/res/values/strings.xml",
         "" +
         "<resources>\n" +
         "  <string name=\"app_name\">This app_name definition should win</string>\n" +
         "</resources>");
+    commitAllDocumentsAndWaitForUpdatesToPropagate();
     LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(myAndroidFacet);
     List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(resources).hasSize(1);
@@ -66,14 +74,12 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
 
     createFile(
       PlatformTestUtil.getOrCreateProjectBaseDir(getProject()),
-      "app/src/androidTest/res/values/strings.xml",
-      "" +
-      "<resources>\n" +
-      "  <string name=\"test_res\">test res value</string>\n" +
-      "</resources>");
-    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-
+        "app/src/androidTest/res/values/strings.xml",
+        "" +
+        "<resources>\n" +
+        "  <string name=\"test_res\">test res value</string>\n" +
+        "</resources>");
+    commitAllDocumentsAndWaitForUpdatesToPropagate();
     List<ResourceItem> newResources = repository.getAllResources();
     assertThat(newResources).hasSize(1);
     ResourceItem resourceItem = Iterables.getOnlyElement(newResources);

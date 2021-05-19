@@ -27,7 +27,9 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -80,6 +82,9 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
 
     @Override
     protected void tearDown() throws Exception {
+      // Copy the list of repositories before super.tearDown() nulls it out via UsefulTestCase.clearDeclaredFields().
+      List<ResourceRepository> repositories = new ArrayList<>(repositoriesToDispose);
+
       Project project;
       Set<ResourceRepository> repositoriesToDispose = this.repositoriesToDispose;
       try {
@@ -90,7 +95,7 @@ public class ResourceRepositoryManagerTest extends AndroidTestCase {
 
       assertThat(Disposer.isDisposed(project)).isTrue();
 
-      for (ResourceRepository repository : repositoriesToDispose) {
+      for (ResourceRepository repository : repositories) {
         if (repository instanceof Disposable) {
           assertThat(Disposer.isDisposed((Disposable)repository)).named(repository + " disposed").isTrue();
         }

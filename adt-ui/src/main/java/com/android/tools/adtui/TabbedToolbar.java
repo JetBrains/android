@@ -30,6 +30,10 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.Icon;
@@ -40,8 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class builds a tool window bar that looks like the intellij {@link ToolWIndow} however has the ability to add custom
- * behaviors when things are clicked, and provides the ability to remove tabs.
+ * This class builds a tool window bar that looks like the intellij {@link com.intellij.openapi.wm.ToolWindow} however has the ability to
+ * add custom behaviors when things are clicked, and provides the ability to remove tabs.
  */
 public class TabbedToolbar extends JPanel {
   private final JPanel myActionPanel = new JPanel();
@@ -119,6 +123,25 @@ public class TabbedToolbar extends JPanel {
         repaint();
       }
     });
+    tab.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        myMouseOverTab = tab.hashCode();
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        myMouseOverTab = 0;
+      }
+    });
+    tab.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+          selectTab(tab, selectedListener);
+        }
+      }
+    });
     myTabsPanel.add(tab);
     // Cache preferred height of control so we can properly adjust child elements sizes.
     myPreferredHeight = getPreferredSize().height;
@@ -162,6 +185,7 @@ public class TabbedToolbar extends JPanel {
       setLayout(new BorderLayout());
       // Add spacing to match mocks.
       setBorder(JBUI.Borders.empty(5, 10));
+      setFocusable(true);
       add(new JLabel(name), BorderLayout.CENTER);
       if (onClosed != null) {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);

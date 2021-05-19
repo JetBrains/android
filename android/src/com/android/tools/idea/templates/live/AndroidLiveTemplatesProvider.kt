@@ -29,8 +29,9 @@ import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
   override fun getDefaultLiveTemplateFiles(): Array<String> {
     val templates = mutableListOf("liveTemplates/AndroidTesting")
-    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get() && StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get()) {
+    if (StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
       templates.add("liveTemplates/AndroidCompose")
+      templates.add("liveTemplates/AndroidComposePreview")
     }
 
     return templates.toTypedArray()

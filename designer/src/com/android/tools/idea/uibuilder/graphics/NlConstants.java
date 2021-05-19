@@ -30,12 +30,6 @@ public class NlConstants {
   public static final int SCREEN_DELTA = 48;
 
   /**
-   * Distance between the bottom bound of model name and top bound of SceneView.
-   */
-  @SwingCoordinate
-  public static final int NAME_LABEL_BOTTOM_MARGIN_PX = 12;
-
-  /**
    * The maximum number of pixels will be considered a "match" when snapping
    * resize or move positions to edges or other constraints
    */

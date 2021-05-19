@@ -26,6 +26,7 @@ import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -42,6 +43,7 @@ import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -72,6 +74,21 @@ public class AndroidPsiUtils {
       }
       return file.isValid() ? PsiManager.getInstance(project).findFile(file) : null;
     });
+  }
+
+  /**
+   * Looks up the {@link PsiFile} for a given {@link SmartPsiElementPointer}, in a safe way (meaning it will acquire a read lock first,
+   * and will check that the file is valid
+   * @param psiFilePointer smart pointer to the {@link PsiFile}
+   * @return the corresponding {@link PsiFile}, or null if not found or valid
+   */
+  @Nullable
+  public static PsiFile getPsiFileSafely(@NotNull SmartPsiElementPointer<PsiFile> psiFilePointer) {
+    PsiFile psiFile = ReadAction.compute(() -> psiFilePointer.getElement());
+    if (psiFile == null || !psiFile.isValid()) {
+      return null;
+    }
+    return psiFile;
   }
 
   /**

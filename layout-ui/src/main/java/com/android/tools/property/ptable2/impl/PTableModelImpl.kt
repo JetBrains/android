@@ -22,6 +22,7 @@ import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.intellij.util.ThreeState
+import java.util.IdentityHashMap
 import javax.swing.table.AbstractTableModel
 
 /**
@@ -29,7 +30,7 @@ import javax.swing.table.AbstractTableModel
  */
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val items = mutableListOf<PTableItem>()
-  private val parentItems = mutableMapOf<PTableItem, PTableGroupItem>()
+  private val parentItems = IdentityHashMap<PTableItem, PTableGroupItem>()
   private var hasEditableCells = ThreeState.UNSURE
 
   @VisibleForTesting
@@ -46,14 +47,12 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
         }
         else {
           hasEditableCells = ThreeState.UNSURE
+          val previousExpandedPaths = computeExpandedPaths()
           items.clear()
           items.addAll(tableModel.items)
           recomputeParents()
-          expandedItems.retainAll { isGroupItem(it) }
-          val previousExpandedItems = HashSet(expandedItems)
-          expandedItems.clear()
-          restoreExpanded(previousExpandedItems)
-          val index = if (nextEditedItem != null) items.indexOf(nextEditedItem) else -1
+          restoreExpanded(previousExpandedPaths)
+          val index = if (nextEditedItem != null) indexOf(nextEditedItem) else -1
           fireTableChanged(PTableModelEvent(this@PTableModelImpl, index))
         }
       }
@@ -71,7 +70,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   fun indexOf(item: PTableItem?): Int {
-    return if (item != null) items.indexOf(item) else -1
+    return if (item != null) items.indexOfFirst { item === it } else -1
   }
 
   fun parentOf(item: PTableItem): PTableGroupItem? {
@@ -87,7 +86,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   fun toggle(item: PTableGroupItem): Int {
-    val index = items.indexOf(item)
+    val index = indexOf(item)
     if (index < 0) {
       return index
     }
@@ -139,25 +138,17 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return if (isGroupItem(item)) item as PTableGroupItem else null
   }
 
-  private fun restoreExpanded(previousExpandedItems: Set<PTableGroupItem>) {
-    previousExpandedItems.forEach { restoreExpandedInnerGroup(it) }
-    previousExpandedItems.forEach { restoreExpandedOuterGroup(it) }
+  private fun computeExpandedPaths(): List<List<PTableGroupItem>> {
+    expandedItems.retainAll { isGroupItem(it) }
+    return expandedItems.map { node -> generateSequence(node) { parentOf(it) }.toList().reversed() }
   }
 
-  private fun restoreExpandedInnerGroup(oldItem: PTableGroupItem) {
-    val newParent = parentItems[oldItem] ?: return
-    val index = newParent.children.indexOf(oldItem)
-    // Note that the item added may be a different instance than oldItem:
-    expandedItems.add(newParent.children[index] as PTableGroupItem)
-  }
-
-  private fun restoreExpandedOuterGroup(oldItem: PTableGroupItem) {
-    if (!expandedItems.contains(oldItem)) {
-      val index = items.indexOf(oldItem)
-      if (index >= 0) {
-        // Note that the item expanded may be a different instance than oldItem:
-        val newItem = items[index] as PTableGroupItem
-        expand(newItem, index)
+  private fun restoreExpanded(previousExpandedPaths: List<List<PTableGroupItem>>) {
+    expandedItems.clear()
+    for (path in previousExpandedPaths) {
+      for (node in path) {
+        val index = items.indexOf(node)
+        expand(index)
       }
     }
   }

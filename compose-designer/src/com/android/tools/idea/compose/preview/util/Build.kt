@@ -18,13 +18,21 @@ package com.android.tools.idea.compose.preview.util
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
@@ -78,3 +86,41 @@ internal fun requestBuild(project: Project, module: Module) {
     requestCompileJavaBuild(project, modules)
   }
 }
+
+fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {
+  val androidModuleSystem by lazy {
+    ReadAction.compute<AndroidModuleSystem?, Throwable> {
+      psiFile.getModuleSystem()
+    }
+  }
+  ReadAction.compute<List<String>, Throwable> { psiFile.classes.mapNotNull { it.qualifiedName } }
+    .mapNotNull { androidModuleSystem?.findClassFile(it) }
+    .firstOrNull() != null
+}
+else false
+
+/**
+ * Returns whether the [PsiFile] has been built. It does this by checking the build status of the module if available.
+ * If not available, this method will look for the compiled classes and check if they exist.
+ *
+ * @param project the [Project] the [PsiFile] belongs to.
+ * @param lazyFileProvider a lazy provider for the [PsiFile]. It will only be called if needed to obtain the status
+ *  of the build.
+ */
+fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile): Boolean {
+  val summary = GradleBuildState.getInstance(project).summary
+  if (summary != null) {
+    return summary.status.isBuildSuccessful && summary.context?.buildMode != BuildMode.CLEAN
+
+  }
+
+  // We do not have information from the last build, try to find if the class file exists
+  return hasExistingClassFile(lazyFileProvider())
+}
+
+/**
+ * Returns whether the [PsiFile] has been built. It does this by checking the build status of the module if available.
+ * If not available, this method will look for the compiled classes and check if they exist.
+ */
+fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): Boolean =
+  hasBeenBuiltSuccessfully(psiFilePointer.project) { ReadAction.compute<PsiFile, Throwable> { psiFilePointer.element } }

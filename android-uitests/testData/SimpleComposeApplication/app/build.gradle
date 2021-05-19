@@ -52,6 +52,7 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "+"
+        kotlinCompilerVersion = "1.4.31"
     }
 }
 
@@ -60,8 +61,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.appcompat:appcompat:+'
     implementation 'androidx.core:core-ktx:+'
-    implementation 'androidx.ui:ui-framework:+'
-    implementation 'androidx.ui:ui-layout:+'
-    implementation 'androidx.ui:ui-material:+'
+    implementation 'androidx.compose.ui:ui:+'
+    implementation 'androidx.compose.material:material:+'
     implementation 'androidx.ui:ui-tooling:+'
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-alpha06"
 }

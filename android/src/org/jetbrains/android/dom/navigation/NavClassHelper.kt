@@ -68,9 +68,6 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 }
 
 fun dynamicModules(module: Module): List<Module> {
-  if (!StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
-    return emptyList()
-  }
   return module.getModuleSystem().getDynamicFeatureModules()
 }
 

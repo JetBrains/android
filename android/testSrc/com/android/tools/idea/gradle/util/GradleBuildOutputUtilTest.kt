@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.gradle.util
 
+import com.android.ide.common.build.GenericBuiltArtifactsLoader
+import com.android.tools.idea.log.LogWrapper
 import com.android.utils.FileUtils.writeToFile
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.rules.TempDirectory
 import junit.framework.TestCase.assertEquals
 import org.intellij.lang.annotations.Language
@@ -115,6 +118,8 @@ class GradleBuildOutputUtilTest {
   fun getApplicationIdFromOutputListingFile() {
     val outputFile = tempDir.newFile("output.json")
     writeToFile(outputFile, multiAPKsOutputFileText)
-    assertEquals("com.example.myapplication", getApplicationIdFromListingFile(outputFile.path))
+
+    val logger = LogWrapper(Logger.getInstance(GradleBuildOutputUtilTest::class.java))
+    assertEquals("com.example.myapplication", GenericBuiltArtifactsLoader.loadFromFile(File(outputFile.path), logger)!!.applicationId)
   }
 }

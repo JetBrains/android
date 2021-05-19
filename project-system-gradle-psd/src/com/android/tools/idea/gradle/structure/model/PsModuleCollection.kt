@@ -112,6 +112,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
                   findParentModuleFor(key.gradlePath),
                   androidModuleResolvedModel?.model,
                   androidModuleResolvedModel?.nativeModel,
+                  androidModuleResolvedModel?.syncIssues,
                   moduleParsedModel)
       }
       ModuleKind.JAVA ->
@@ -188,4 +189,4 @@ private fun ProjectBuildModel.getModuleByGradlePath(gradlePath: String): GradleB
     }
 
 private val ProjectBuildModel.modules: Set<String>
-  get() = projectSettingsModel.let { it?.modulePaths()?.toSet() ?: setOf(":") }
+  get() = projectSettingsModel.let { it?.modulePaths() ?: setOf(":") }

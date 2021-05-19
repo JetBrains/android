@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.analysis;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.profilers.StudioProfilersView;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
@@ -43,6 +44,7 @@ public class CpuAnalysisSummaryTab extends CpuAnalysisTab<CpuAnalysisSummaryTabM
     JScrollPane scrollPane = new JBScrollPane(myViewBinder.build(getProfilersView(), getModel()),
                                               ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                               ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setBorder(JBUI.Borders.empty());
     add(scrollPane);
   }
 }

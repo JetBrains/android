@@ -22,6 +22,7 @@ import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubGraphicsDevice;
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
+import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.DeviceInfo;
 import com.google.wireless.android.sdk.stats.DisplayDetails;
 import com.google.wireless.android.sdk.stats.MachineDetails;
@@ -121,4 +122,20 @@ public class AndroidStudioUsageTrackerTest extends TestCase {
       HostData.setGraphicsEnvironment(null);
     }
   }
+
+  public void testBuildActiveExperimentList() {
+    try {
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "");
+      Truth.assertThat(AndroidStudioUsageTracker.buildActiveExperimentList()).hasSize(0);
+
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "single");
+      Truth.assertThat(AndroidStudioUsageTracker.buildActiveExperimentList()).containsExactly("single");
+
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "one,two");
+      Truth.assertThat(AndroidStudioUsageTracker.buildActiveExperimentList()).containsExactly("one", "two");
+    } finally {
+      System.setProperty(AndroidStudioUsageTracker.STUDIO_EXPERIMENTS_OVERRIDE, "");
+    }
+  }
+
 }

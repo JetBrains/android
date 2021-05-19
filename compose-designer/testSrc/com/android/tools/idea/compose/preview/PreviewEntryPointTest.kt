@@ -23,10 +23,23 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class PreviewEntryPointTest {
+@RunWith(Parameterized::class)
+class PreviewEntryPointTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
+    val namespaces = namespaceVariations
+  }
+
+  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
+
   @get:Rule
-  val projectRule = ComposeProjectRule()
+  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
+                                       composableAnnotationPackage = composableAnnotationPackage)
   private val fixture get() = projectRule.fixture
 
   @Before
@@ -39,7 +52,7 @@ class PreviewEntryPointTest {
     @Language("kotlin")
     val fileContent = """
       import androidx.compose.Composable
-      import androidx.ui.tooling.preview.Preview
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview

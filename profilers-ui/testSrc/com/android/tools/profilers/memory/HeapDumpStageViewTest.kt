@@ -16,7 +16,6 @@
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.AspectModel
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -38,14 +37,10 @@ import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.util.function.Supplier
 import javax.swing.JLabel
 
-
-@RunWith(Parameterized::class)
-class HeapDumpStageViewTest(val useNewEventPipeline: Boolean) {
+class HeapDumpStageViewTest {
 
   private lateinit var profilers: StudioProfilers
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -68,25 +63,38 @@ class HeapDumpStageViewTest(val useNewEventPipeline: Boolean) {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, myTimer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    ideProfilerServices.enableEventsPipeline(useNewEventPipeline)
+    ideProfilerServices.enableEventsPipeline(true)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     mockLoader = FakeCaptureObjectLoader()
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    ideProfilerServices.enableSeparateHeapDumpUi(true)
   }
 
   @Test
   fun testNavigationButtonNameIsCaptureInNewUi() {
-    ideProfilerServices.enableSeparateHeapDumpUi(true)
     // Load a fake capture
-    val fakeCapture = FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE1").setStartTime(0).setEndTime(
-      10).setInfoMessage("Foo").build()
+    val fakeCapture = makeFakeCapture()
     val stage = createStageWithCaptureLoaded(fakeCapture)
     val view = HeapDumpStageView(profilersView, stage)
     val walker = TreeWalker(view.toolbar)
     val label = walker.descendantStream().filter { c -> c is JLabel }.findFirst().get() as JLabel
     assertThat(label.text).startsWith(fakeCapture.name)
+  }
+
+  @Test
+  fun `cancelling in large heap dump dialog cancels loading`() {
+    val capture = makeFakeCapture { setCanSafelyLoad(false) }
+    ideProfilerServices.setShouldProceedYesNoDialog(false)
+    assertThat(createStageWithCaptureLoaded(capture).captureSelection.selectedCapture).isNull()
+  }
+
+  @Test
+  fun `confirming in large heap dump dialog proceeds loading`() {
+    val capture = makeFakeCapture { setCanSafelyLoad(false) }
+    ideProfilerServices.setShouldProceedYesNoDialog(true)
+    assertThat(createStageWithCaptureLoaded(capture).captureSelection.selectedCapture).isEqualTo(capture)
   }
 
   private fun createStageWithCaptureLoaded(capture: CaptureObject) = HeapDumpStage(
@@ -99,11 +107,11 @@ class HeapDumpStageViewTest(val useNewEventPipeline: Boolean) {
     captureSelection.refreshSelectedHeap()
   }
 
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters
-    fun useNewEventPipelineParameter(): Collection<Array<Boolean>> {
-      return listOf(arrayOf(false), arrayOf(true))
-    }
-  }
+  private fun makeFakeCapture(prepare: FakeCaptureObject.Builder.() -> Unit = {}) = FakeCaptureObject.Builder()
+    .setCaptureName("SAMPLE_CAPTURE1")
+    .setStartTime(0)
+    .setEndTime(10)
+    .setInfoMessage("Foo")
+    .apply(prepare)
+    .build()
 }

@@ -40,8 +40,8 @@ public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityW
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<NewActivityWizardFixture> getConfigureActivityStep() {
-    JRootPane rootPane = findStepWithTitle("Configure Activity");
+  public ConfigureBasicActivityStepFixture<NewActivityWizardFixture> getConfigureActivityStep(@NotNull String activityTitle) {
+    JRootPane rootPane = findStepWithTitle(activityTitle);
     return new ConfigureBasicActivityStepFixture<>(this, rootPane);
   }
 

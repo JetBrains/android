@@ -94,13 +94,13 @@ class RunningEmulatorCatalog : Disposable.Parent {
   }
 
   /**
-   * Removes a listener add by the [addListener] method.
+   * Removes a listener added by the [addListener] method.
    */
   @AnyThread
   fun removeListener(listener: Listener) {
     synchronized(updateLock) {
       listeners = listeners.minus(listener)
-      val interval = updateIntervalsByListener.remove(listener)
+      val interval = updateIntervalsByListener.removeLong(listener)
       if (interval == updateInterval) {
         updateInterval = -1
       }
@@ -133,8 +133,9 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun getUpdateInterval(): Long {
     if (updateInterval < 0) {
       var value = Long.MAX_VALUE
-      for (interval in updateIntervalsByListener.values) {
-        value = value.coerceAtMost(interval)
+      val iter = updateIntervalsByListener.values.iterator()
+      while (iter.hasNext()) {
+        value = value.coerceAtMost(iter.nextLong())
       }
       updateInterval = value
     }

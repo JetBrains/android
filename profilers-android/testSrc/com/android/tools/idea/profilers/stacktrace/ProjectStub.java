@@ -63,7 +63,7 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @NotNull
   @NonNls
   public String getLocationHash() {
-    return "dummy";
+    return "sample";
   }
 
   @Override

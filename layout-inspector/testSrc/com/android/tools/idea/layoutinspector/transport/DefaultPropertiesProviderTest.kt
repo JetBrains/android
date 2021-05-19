@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.DEFAULT_PROCESS
+import com.android.tools.idea.layoutinspector.DEFAULT_STREAM
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
@@ -47,6 +49,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.ClassUtil
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
@@ -57,12 +60,11 @@ import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class DefaultPropertiesProviderTest {
+  private var generationInAgent = 1
   private val projectRule = AndroidProjectRule.withSdk()
   private val inspectorRule = LayoutInspectorTransportRule(projectRule = projectRule)
     .withDefaultDevice()
     .withDemoLayout()
-    .withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::handleGetPropertiesCommand)
-    .attach()
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(inspectorRule).around(EdtRule())!!
@@ -75,24 +77,41 @@ class DefaultPropertiesProviderTest {
   }
 
   @Test
-  fun testRejectLatePropertyEvent() {
+  fun testDisconnected() {
     val provider = inspectorRule.inspectorClient.provider
     val result = ProviderResult()
     provider.resultListeners.add(result::receiveProperties)
-
-    // Request properties for a non existing view.
-    // The method handleGetPropertiesCommand generate properties for another view.
-
-    // This imitates that properties are requested on a view but the event is received
-    // after the view is no longer accessible. We would want to ignore this event.
     val view = inspectorRule.inspectorModel.root
-    provider.requestProperties(view)
-    inspectorRule.advanceTime(110, TimeUnit.MILLISECONDS)
-    assertThat(result.received).isFalse()
+    provider.requestProperties(view).get()
+
+    // Expect to receive an empty table that will clear the properties panel:
+    assertThat(result.received).isTrue()
+    assertThat(result.table.size).isEqualTo(0)
+  }
+
+  @Test
+  fun testGetPropertiesFromCache() {
+    with (inspectorRule) {
+      attach()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      val view = inspectorModel["title"]!!
+      transportService.addEventToStream(DEFAULT_STREAM.streamId, generateSimplePropertyEvent(view.drawId, generationInAgent))
+      advanceTime(1100, TimeUnit.MILLISECONDS)
+
+      val provider = inspectorClient.provider
+      val result = ProviderResult()
+      provider.resultListeners.add(result::receiveProperties)
+      provider.requestProperties(view).get()
+
+      // Expect to receive a simple table:
+      checkSimpleProperties(result, view)
+    }
   }
 
   @Test
   fun testGetProperties() {
+    inspectorRule.withCommandHandler(LayoutInspectorCommand.Type.GET_PROPERTIES, ::handleGetPropertiesCommand).attach()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val provider = inspectorRule.inspectorClient.provider
     val result = ProviderResult()
     provider.resultListeners.add(result::receiveProperties)
@@ -122,7 +141,8 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "short", Type.INT16, "70", PropertySection.DEFAULT, null)
     checkProperty(table, view, "text", Type.STRING, "Hello My World!", PropertySection.DECLARED, demo, ANDROID_URI, true)
     checkProperty(table, view, "textColor", Type.COLOR, "#FF0000", PropertySection.DECLARED, demo, ANDROID_URI, true,
-                  detail = listOf(PropertyDetail("#888800", textAppearanceExtra), PropertyDetail("#2122F8", textAppearance)))
+                  detail = listOf(PropertyDetail("", Type.COLOR, "#888800", textAppearanceExtra),
+                                  PropertyDetail("", Type.COLOR, "#2122F8", textAppearance)))
     checkProperty(table, view, "foregroundGravity", Type.GRAVITY, "top|fill_horizontal", PropertySection.DEFAULT, null)
     checkProperty(table, view, "visibility", Type.INT_ENUM, "invisible", PropertySection.DEFAULT, null)
     checkProperty(table, view, "labelFor", Type.RESOURCE, "@id/other", PropertySection.DEFAULT, null)
@@ -177,7 +197,73 @@ class DefaultPropertiesProviderTest {
     checkProperty(table, view, "double_null", Type.DOUBLE, null, PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_zero", Type.FLOAT, "0.0", PropertySection.DEFAULT, null)
     checkProperty(table, view, "float_null", Type.FLOAT, null, PropertySection.DEFAULT, null)
-    assertThat(table.size).isEqualTo(44)
+    checkProperty(table, view, "padding", Type.STRING, "Padding", PropertySection.DEFAULT, null, expandable = true,
+      detail = listOf(PropertyDetail("x", Type.DIMENSION_DP, "20.0px"), PropertyDetail("y", Type.DIMENSION_DP, "40.0px")))
+    assertThat(table.size).isEqualTo(45)
+  }
+
+  @Test
+  fun testNotAvailableInSnapshotMode() {
+    with (inspectorRule) {
+      inSnapshotMode().attach()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+      val provider = inspectorClient.provider
+      val result = ProviderResult()
+      provider.resultListeners.add(result::receiveProperties)
+      val view = inspectorModel["title"]!!
+      provider.requestProperties(view).get()
+
+      // Expect to not receive anything:
+      assertThat(result.received).isFalse()
+
+      // Now let the agent send an outdated property event:
+      transportService.addEventToStream(DEFAULT_STREAM.streamId, generateSimplePropertyEvent(view.drawId, 0, Color.BLUE.rgb))
+      advanceTime(1100, TimeUnit.MILLISECONDS)
+
+      // Again expect to not receive anything:
+      assertThat(result.received).isFalse()
+
+      // Now let the agent send a current property event:
+      transportService.addEventToStream(DEFAULT_STREAM.streamId, generateSimplePropertyEvent(view.drawId, generationInAgent))
+      advanceTime(1100, TimeUnit.MILLISECONDS)
+
+      // Expect to receive a simple table:
+      checkSimpleProperties(result, view)
+    }
+  }
+
+  @Test
+  fun testFuturePropertyEventInSnapshotMode() {
+    with(inspectorRule) {
+      inSnapshotMode().attach()
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+      val provider = inspectorClient.provider
+      val result = ProviderResult()
+      provider.resultListeners.add(result::receiveProperties)
+      val view = inspectorModel["title"]!!
+      provider.requestProperties(view).get()
+
+      // Expect to not receive anything:
+      assertThat(result.received).isFalse()
+
+      // Now let the agent send a property event that belongs to a future generation:
+      transportService.addEventToStream(DEFAULT_STREAM.streamId, generateSimplePropertyEvent(view.drawId, 2))
+      advanceTime(1100, TimeUnit.MILLISECONDS)
+
+      // Expect still nothing:
+      assertThat(result.received).isFalse()
+
+      // Let the agent generate another component tree with generation 2:
+      transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
+      advanceTime(1100, TimeUnit.MILLISECONDS)
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+      // Expect to receive a simple table if asked again:
+      provider.requestProperties(view).get()
+      checkSimpleProperties(result, view)
+    }
   }
 
   private fun findNavigatableFor(className: String): Navigatable {
@@ -206,8 +292,8 @@ class DefaultPropertiesProviderTest {
     assertThat(property.value).isEqualTo(value)
     assertThat(property.group).isEqualTo(group)
     assertThat(property.source).isEqualTo(source)
-    assertThat(property.view).isSameAs(view)
-    assertThat(property.resourceLookup).isSameAs(inspectorRule.inspectorModel.resourceLookup)
+    assertThat(property.viewId).isEqualTo(view.drawId)
+    assertThat(property.lookup).isSameAs(inspectorRule.inspectorModel)
     if (!expandable) {
       assertThat(property).isNotInstanceOf(InspectorGroupPropertyItem::class.java)
     }
@@ -215,7 +301,7 @@ class DefaultPropertiesProviderTest {
       assertThat(property).isInstanceOf(InspectorGroupPropertyItem::class.java)
       val exProperty = property as InspectorGroupPropertyItem
       assertThat(exProperty.classLocation).isEqualTo(className)
-      assertThat(exProperty.children.map { detailFromResolutionStackItem(it) }).containsExactlyElementsIn(detail).inOrder()
+      assertThat(exProperty.children.map { detailFromItem(it) }).containsExactlyElementsIn(detail).inOrder()
     }
   }
 
@@ -233,8 +319,9 @@ class DefaultPropertiesProviderTest {
       kind = Kind.LAYOUT_INSPECTOR
       groupId = EventGroupIds.PROPERTIES.number.toLong()
       layoutInspectorEventBuilder.propertiesBuilder.apply {
-        viewId = 1
+        viewId = command.layoutInspector.viewId
         layout = demo
+        generation = generationInAgent
         addString(StringEntry.newBuilder().apply { id = 1; str = "com.example"})
         addString(StringEntry.newBuilder().apply { id = 2; str = "focused"})
         addString(StringEntry.newBuilder().apply { id = 3; str = "byte"})
@@ -300,6 +387,10 @@ class DefaultPropertiesProviderTest {
         addString(StringEntry.newBuilder().apply { id = 63; str = "style"})
         addString(StringEntry.newBuilder().apply { id = 64; str = "MyTextStyle"})
         addString(StringEntry.newBuilder().apply { id = 65; str = "MyTextStyle.Extra"})
+        addString(StringEntry.newBuilder().apply { id = 66; str = "padding"})
+        addString(StringEntry.newBuilder().apply { id = 67; str = "Padding"})
+        addString(StringEntry.newBuilder().apply { id = 68; str = "x"})
+        addString(StringEntry.newBuilder().apply { id = 69; str = "y"})
         addProperty(Property.newBuilder().apply { name = 2; namespace = 1; type = Type.BOOLEAN; int32Value = 1 })
         addProperty(Property.newBuilder().apply { name = 3; namespace = 1; type = Type.BYTE; int32Value = 7 })
         addProperty(Property.newBuilder().apply { name = 4; namespace = 1; type = Type.CHAR; int32Value = 'g'.toInt() })
@@ -340,8 +431,38 @@ class DefaultPropertiesProviderTest {
         addProperty(Property.newBuilder().apply { name = 60; namespace = 1; type = Type.DOUBLE })
         addProperty(Property.newBuilder().apply { name = 61; namespace = 1; type = Type.FLOAT; floatValue = 0.0f })
         addProperty(Property.newBuilder().apply { name = 62; namespace = 1; type = Type.FLOAT })
+        addProperty(Property.newBuilder().apply { name = 66; namespace = 1; type = Type.STRING; int32Value = 67 }
+                      .addElement(Property.newBuilder().apply { name = 68; namespace = 1; type = Type.DIMENSION_DP; floatValue = 20.0f })
+                      .addElement(Property.newBuilder().apply { name = 69; namespace = 1; type = Type.DIMENSION_DP; floatValue = 40.0f }))
       }
     }.build())
+  }
+
+  private fun generateSimplePropertyEvent(eventViewId: Long, currentGeneration: Int, color: Int = Color.RED.rgb) =
+    Common.Event.newBuilder().apply {
+      pid = DEFAULT_PROCESS.pid
+      timestamp = inspectorRule.getCurrentTimeNanos()
+      kind = Kind.LAYOUT_INSPECTOR
+      groupId = EventGroupIds.PROPERTIES.number.toLong()
+      layoutInspectorEventBuilder.propertiesBuilder.apply {
+        viewId = eventViewId
+        generation = currentGeneration
+        addString(StringEntry.newBuilder().apply { id = 1; str = "com.example"})
+        addString(StringEntry.newBuilder().apply { id = 2; str = "background"})
+        addProperty(Property.newBuilder().apply { name = 2; namespace = 1; type = Type.COLOR; int32Value = color })
+      }
+    }.build()
+
+  private fun checkSimpleProperties(result: ProviderResult, view: ViewNode, backgroundColor: String = "#FF0000") {
+    assertThat(result.received).isTrue()
+    val table = result.table
+    checkProperty(table, view, "name", Type.STRING, "android.widget.TextView", PropertySection.VIEW, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "x", Type.DIMENSION, "200px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "y", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "width", Type.DIMENSION, "400px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "height", Type.DIMENSION, "100px", PropertySection.DIMENSION, null, NAMESPACE_INTERNAL)
+    checkProperty(table, view, "background", Type.COLOR, backgroundColor, PropertySection.DEFAULT, null, ANDROID_URI)
+    assertThat(table.size).isEqualTo(6)
   }
 
   /**
@@ -364,8 +485,8 @@ class DefaultPropertiesProviderTest {
     }
   }
 
-  private fun detailFromResolutionStackItem(item: InspectorPropertyItem) =
-    PropertyDetail(item.value, item.source)
+  private fun detailFromItem(item: InspectorPropertyItem) =
+    PropertyDetail(item.name, item.type, item.value, item.source)
 
-  private data class PropertyDetail(val value: String?, val source: ResourceReference?)
+  private data class PropertyDetail(val name: String, val type: Type, val value: String?, val source: ResourceReference? = null)
 }

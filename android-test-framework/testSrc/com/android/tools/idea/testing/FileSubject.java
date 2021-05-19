@@ -19,8 +19,8 @@ import com.google.common.truth.ComparableSubject;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import org.jetbrains.annotations.Nullable;
 
 /** Propositions for {@link File} subjects. */
 public class FileSubject extends ComparableSubject<FileSubject, File> {

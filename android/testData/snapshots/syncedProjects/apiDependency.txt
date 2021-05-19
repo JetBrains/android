@@ -1,6 +1,6 @@
 PROJECT             : testApiDependency
-    PROJECT_JDK         : corretto-11
-        Version             : Amazon Corretto version <JDK_VERSION>
+    PROJECT_JDK         : <JAVA_VERSION>
+        Version             : java version "<JDK_VERSION>"
     MODULE              : testApiDependency
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
@@ -12,11 +12,10 @@ PROJECT             : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/testApiDependency [-]
             isCompilerPathInherited       : true
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/testApiDependency.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/testApiDependency.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : false
             BuildFolderPath     : <PROJECT>/build [-]
         CONENT_ENTRY        : file://<PROJECT>
@@ -36,11 +35,10 @@ PROJECT             : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/app/testApiDependency.app.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/app/testApiDependency.app.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -50,14 +48,14 @@ PROJECT             : testApiDependency
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -78,83 +76,95 @@ PROJECT             : testApiDependency
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :app
         CONENT_ENTRY        : file://<PROJECT>/app
-            JavaSource          : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out
-            JavaSource          : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out
-            JavaSource          : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
-            JavaResource (test) : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
-            JavaResource        : file://<PROJECT>/app/build/generated/res/resValues/debug
-            JavaResource (test) : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug
-            JavaResource        : file://<PROJECT>/app/build/generated/res/rs/debug
-            JavaSource (test)   : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug
-            JavaSource          : file://<PROJECT>/app/build/generated/source/buildConfig/debug
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/jni
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/ml
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/res
-            JavaResource (test) : file://<PROJECT>/app/src/androidTest/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTest/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/java
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/jni
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/ml
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/res
-            JavaResource (test) : file://<PROJECT>/app/src/androidTestDebug/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/androidTestDebug/shaders
-            JavaSource          : file://<PROJECT>/app/src/debug/aidl
-            JavaResource        : file://<PROJECT>/app/src/debug/assets
-            JavaSource          : file://<PROJECT>/app/src/debug/java
-            JavaSource          : file://<PROJECT>/app/src/debug/jni
-            JavaResource        : file://<PROJECT>/app/src/debug/ml
-            JavaResource        : file://<PROJECT>/app/src/debug/res
-            JavaResource        : file://<PROJECT>/app/src/debug/resources
-            JavaSource          : file://<PROJECT>/app/src/debug/rs
-            JavaSource          : file://<PROJECT>/app/src/debug/shaders
-            JavaSource          : file://<PROJECT>/app/src/main/aidl
-            JavaResource        : file://<PROJECT>/app/src/main/assets
-            JavaSource          : file://<PROJECT>/app/src/main/java
-            JavaSource          : file://<PROJECT>/app/src/main/jni
-            JavaResource        : file://<PROJECT>/app/src/main/ml
-            JavaResource        : file://<PROJECT>/app/src/main/res
-            JavaResource        : file://<PROJECT>/app/src/main/resources
-            JavaSource          : file://<PROJECT>/app/src/main/rs
-            JavaSource          : file://<PROJECT>/app/src/main/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/test/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/test/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/test/java
-            JavaSource (test)   : file://<PROJECT>/app/src/test/jni
-            JavaResource (test) : file://<PROJECT>/app/src/test/ml
-            JavaResource (test) : file://<PROJECT>/app/src/test/res
-            JavaResource (test) : file://<PROJECT>/app/src/test/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/test/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/test/shaders
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/aidl
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/assets
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/java
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/jni
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/ml
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/res
-            JavaResource (test) : file://<PROJECT>/app/src/testDebug/resources
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/rs
-            JavaSource (test)   : file://<PROJECT>/app/src/testDebug/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/app/build [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            Generated           : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/buildConfig/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTestDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/testDebug/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : Amazon Corretto version <JDK_VERSION>
+            VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -162,7 +172,7 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.core:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/core/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -178,7 +188,7 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -233,6 +243,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -258,6 +269,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -294,6 +306,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -330,6 +343,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -355,6 +369,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -382,6 +397,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -400,6 +416,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -424,14 +441,14 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -464,8 +481,8 @@ PROJECT             : testApiDependency
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        ORDER_ENTRY         : testApiDependency.jlib.main
-        ORDER_ENTRY         : testApiDependency.jlib0.main
+        ORDER_ENTRY         : testApiDependency.jlib
+        ORDER_ENTRY         : testApiDependency.jlib0
         ORDER_ENTRY         : testApiDependency.lib
     MODULE              : testApiDependency.jlib
         ExternalModuleGroup : testApiDependency
@@ -478,49 +495,22 @@ PROJECT             : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :jlib
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jlib/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-    MODULE              : testApiDependency.jlib.main
-        ExternalModuleGroup : testApiDependency
-        ExternalModuleType  : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jlib:main
-        LinkedProjectPath   : <PROJECT>/jlib
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.main.iml [-]
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            ExternalSource      : GRADLE
-            GradlePath          : :jlib
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            ExternalSource      : GRADLE
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jlib/src/main
-            JavaSource          : file://<PROJECT>/jlib/src/main/java
-            JavaResource        : file://<PROJECT>/jlib/src/main/resources
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/jlib/src/main/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/jlib/src/main/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/jlib/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/jlib/src/test/resources [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -538,50 +528,6 @@ PROJECT             : testApiDependency
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-    MODULE              : testApiDependency.jlib.test
-        ExternalModuleGroup : testApiDependency
-        ExternalModuleType  : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jlib:test
-        LinkedProjectPath   : <PROJECT>/jlib
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib/testApiDependency.jlib.test.iml [-]
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            ExternalSource      : GRADLE
-            GradlePath          : :jlib
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            ExternalSource      : GRADLE
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jlib/src/test
-            JavaSource (test)   : file://<PROJECT>/jlib/src/test/java
-            JavaResource (test) : file://<PROJECT>/jlib/src/test/resources
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: junit:junit:4.12
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: junit:junit:4.12 [=]
-            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        ORDER_ENTRY         : testApiDependency.jlib.main
     MODULE              : testApiDependency.jlib0
         ExternalModuleGroup : testApiDependency
         ExternalModuleVersion         : unspecified
@@ -593,49 +539,22 @@ PROJECT             : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :jlib0
         FACET               : Java-Gradle
             TypeId              : java-gradle
-            ExternalSource      : GRADLE
             Buildable           : true
             BuildFolderPath     : <PROJECT>/jlib0/build [-]
         CONENT_ENTRY        : file://<PROJECT>/jlib0
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/.gradle [-]
             EXCLUDE_FOLDER      : file://<PROJECT>/jlib0/build [-]
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-    MODULE              : testApiDependency.jlib0.main
-        ExternalModuleGroup : testApiDependency
-        ExternalModuleType  : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jlib0:main
-        LinkedProjectPath   : <PROJECT>/jlib0
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.main.iml [-]
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            ExternalSource      : GRADLE
-            GradlePath          : :jlib0
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            ExternalSource      : GRADLE
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib0/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jlib0/src/main
-            JavaSource          : file://<PROJECT>/jlib0/src/main/java
-            JavaResource        : file://<PROJECT>/jlib0/src/main/resources
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/jlib0/src/main/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/jlib0/src/main/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/jlib0/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/jlib0/src/test/resources [-]
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
@@ -653,52 +572,7 @@ PROJECT             : testApiDependency
             IsExported          : false
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        ORDER_ENTRY         : testApiDependency.jlib.main
-    MODULE              : testApiDependency.jlib0.test
-        ExternalModuleGroup : testApiDependency
-        ExternalModuleType  : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId     : :jlib0:test
-        LinkedProjectPath   : <PROJECT>/jlib0
-        RootProjectPath     : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/jlib0/build/classes/java/main [-]
-            compilerTestOutputPath        : file://<PROJECT>/jlib0/build/classes/java/test [-]
-            isCompilerPathInherited       : false
-            isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/jlib0/testApiDependency.jlib0.test.iml [-]
-        ModuleTypeName      : JAVA_MODULE
-        FACET               : Android-Gradle
-            TypeId              : android-gradle
-            ExternalSource      : GRADLE
-            GradlePath          : :jlib0
-        FACET               : Java-Gradle
-            TypeId              : java-gradle
-            ExternalSource      : GRADLE
-            Buildable           : true
-            BuildFolderPath     : <PROJECT>/jlib0/build [-]
-        CONENT_ENTRY        : file://<PROJECT>/jlib0/src/test
-            JavaSource (test)   : file://<PROJECT>/jlib0/src/test/java
-            JavaResource (test) : file://<PROJECT>/jlib0/src/test/resources
-        JDK                 : <NAME_CUT> JavaSDK
-        *isInherited        : true
-        ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: junit:junit:4.12
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: junit:junit:4.12 [=]
-            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
-            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        ORDER_ENTRY         : testApiDependency.jlib.main
-        ORDER_ENTRY         : testApiDependency.jlib0.main
+        ORDER_ENTRY         : testApiDependency.jlib
     MODULE              : testApiDependency.lib
         ExternalModuleGroup : testApiDependency
         ExternalModuleVersion         : unspecified
@@ -710,11 +584,10 @@ PROJECT             : testApiDependency
             compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput     : true
-        ModuleFile          : <PROJECT>/.idea/modules/lib/testApiDependency.lib.iml [-]
+        ModuleFile          : <PROJECT>/.idea/modules/lib/testApiDependency.lib.iml
         ModuleTypeName      : JAVA_MODULE
         FACET               : Android
             TypeId              : android
-            ExternalSource      : GRADLE
             SelectedBuildVariant          : debug
             AssembleTaskName    : assembleDebug
             CompileJavaTaskName : compileDebugSources
@@ -724,14 +597,14 @@ PROJECT             : testApiDependency
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug
-            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug
-            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/main/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -752,83 +625,95 @@ PROJECT             : testApiDependency
             - ProGuardCfgFiles  : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET               : Android-Gradle
             TypeId              : android-gradle
-            ExternalSource      : GRADLE
             GradlePath          : :lib
         CONENT_ENTRY        : file://<PROJECT>/lib
-            JavaSource          : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
-            JavaSource          : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out
-            JavaSource          : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
-            JavaResource (test) : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug
-            JavaResource        : file://<PROJECT>/lib/build/generated/res/resValues/debug
-            JavaResource (test) : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug
-            JavaResource        : file://<PROJECT>/lib/build/generated/res/rs/debug
-            JavaSource (test)   : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug
-            JavaSource          : file://<PROJECT>/lib/build/generated/source/buildConfig/debug
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/aidl
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/assets
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/java
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/jni
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/ml
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/res
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTest/resources
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/rs
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTest/shaders
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/aidl
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/assets
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/java
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/jni
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/ml
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/res
-            JavaResource (test) : file://<PROJECT>/lib/src/androidTestDebug/resources
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/rs
-            JavaSource (test)   : file://<PROJECT>/lib/src/androidTestDebug/shaders
-            JavaSource          : file://<PROJECT>/lib/src/debug/aidl
-            JavaResource        : file://<PROJECT>/lib/src/debug/assets
-            JavaSource          : file://<PROJECT>/lib/src/debug/java
-            JavaSource          : file://<PROJECT>/lib/src/debug/jni
-            JavaResource        : file://<PROJECT>/lib/src/debug/ml
-            JavaResource        : file://<PROJECT>/lib/src/debug/res
-            JavaResource        : file://<PROJECT>/lib/src/debug/resources
-            JavaSource          : file://<PROJECT>/lib/src/debug/rs
-            JavaSource          : file://<PROJECT>/lib/src/debug/shaders
-            JavaSource          : file://<PROJECT>/lib/src/main/aidl
-            JavaResource        : file://<PROJECT>/lib/src/main/assets
-            JavaSource          : file://<PROJECT>/lib/src/main/java
-            JavaSource          : file://<PROJECT>/lib/src/main/jni
-            JavaResource        : file://<PROJECT>/lib/src/main/ml
-            JavaResource        : file://<PROJECT>/lib/src/main/res
-            JavaResource        : file://<PROJECT>/lib/src/main/resources
-            JavaSource          : file://<PROJECT>/lib/src/main/rs
-            JavaSource          : file://<PROJECT>/lib/src/main/shaders
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/aidl
-            JavaResource (test) : file://<PROJECT>/lib/src/test/assets
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/java
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/jni
-            JavaResource (test) : file://<PROJECT>/lib/src/test/ml
-            JavaResource (test) : file://<PROJECT>/lib/src/test/res
-            JavaResource (test) : file://<PROJECT>/lib/src/test/resources
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/rs
-            JavaSource (test)   : file://<PROJECT>/lib/src/test/shaders
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/aidl
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/assets
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/java
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/jni
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/ml
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/res
-            JavaResource (test) : file://<PROJECT>/lib/src/testDebug/resources
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/rs
-            JavaSource (test)   : file://<PROJECT>/lib/src/testDebug/shaders
             EXCLUDE_FOLDER      : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build
+            EXCLUDE_FOLDER      : file://<PROJECT>/lib/build [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/ap_generated_sources/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
+            Generated           : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/resValues/androidTest/debug [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/resValues/debug [-]
+            Generated           : true
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/build/generated/res/rs/androidTest/debug [-]
+            Generated           : true
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/build/generated/res/rs/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
+            Generated           : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/build/generated/source/buildConfig/debug [-]
+            Generated           : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTest/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/androidTestDebug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/debug/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/jni [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/ml [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/lib/src/main/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/rs [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/lib/src/main/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/test/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/test/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/aidl [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/jni [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/ml [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/lib/src/testDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/rs [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/lib/src/testDebug/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK
             HomePath            : <ANDROID_SDK>
-            VersionString       : Amazon Corretto version <JDK_VERSION>
+            VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
@@ -836,7 +721,7 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.core:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/core/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -852,7 +737,7 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
-            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/<VERSION>/common-<VERSION>.jar!/
+            *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -907,6 +792,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -932,6 +818,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -968,6 +855,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1004,6 +892,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1029,6 +918,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1056,6 +946,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1074,6 +965,7 @@ PROJECT             : testApiDependency
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
+            *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1098,14 +990,14 @@ PROJECT             : testApiDependency
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
-            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
-            *CLASSES            : jar://<DEV_ADT>/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false

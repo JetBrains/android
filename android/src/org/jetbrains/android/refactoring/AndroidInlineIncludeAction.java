@@ -1,14 +1,15 @@
 package org.jetbrains.android.refactoring;
 
+import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFileInResourceFolderType;
+
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.RefactoringBundle;
-import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +73,6 @@ public class AndroidInlineIncludeAction extends AndroidBaseXmlRefactoringAction 
 
   @Override
   protected boolean isMyFile(PsiFile file) {
-    return DomManager.getDomManager(file.getProject()).
-      getDomFileDescription((XmlFile)file) instanceof LayoutDomFileDescription;
+    return file instanceof XmlFile && isFileInResourceFolderType((XmlFile)file, ResourceFolderType.LAYOUT);
   }
 }

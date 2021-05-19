@@ -21,8 +21,6 @@ import org.junit.Test
 class PackageFamilyValueTest {
   @Test
   fun testEqualsHash() {
-    val equalsVerifier = EqualsVerifier.forClass<PackageFamilyValue>(PackageFamilyValue::class.java)
-    equalsVerifier
-      .verify()
+    EqualsVerifier.forClass(PackageFamilyValue::class.java).verify()
   }
 }

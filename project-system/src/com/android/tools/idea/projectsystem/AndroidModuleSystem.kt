@@ -17,17 +17,11 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
-import com.android.projectmodel.Library
-import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.ApkInfo
-import com.android.tools.idea.run.ApkProvider
+import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ValidationError
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
@@ -137,12 +131,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * `false` = search only own module dependencies
    * `true` = search module direct dependencies + exported transitive dependencies
    */
-  fun getResolvedLibraryDependencies(includeExportedTransitiveDeps : Boolean): Collection<Library>
+  fun getResolvedLibraryDependencies(includeExportedTransitiveDeps : Boolean): Collection<ExternalLibrary>
 
   /**
    * Same as `getResolvedDependentLibraries(includeExportedTransitiveDeps = true)`.
    */
-  fun getResolvedLibraryDependencies(): Collection<Library> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
+  fun getResolvedLibraryDependencies(): Collection<ExternalLibrary> = getResolvedLibraryDependencies(includeExportedTransitiveDeps = true)
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
@@ -192,22 +186,11 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * The resource package name is equivalent to the "package" attribute of the module's
    * merged manifest once it has been built. Depending on the build system, however,
    * this method may be optimized to avoid the costs of merged manifest computation.
+   *
+   * The returned package name is guaranteed to reflect the latest contents of the Android
+   * manifests including changes that haven't been saved yet.
    */
   fun getPackageName(): String?
-
-  /**
-   * Returns the best effort [ApplicationIdProvider] for the given module and [runConfiguration].
-   *
-   * Some project systems may be unable to retrieve the package name before the project has been successfully
-   * built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s or return a name derived
-   * from incomplete configuration in this case.
-   */
-  // TODO(b/154038950): Move to AndroidProjectSystem when runConfiguration made non-nullable.
-  @JvmDefault
-  fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider = object : ApplicationIdProvider {
-    override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
-    override fun getTestPackageName(): String? = null
-  }
 
   /**
    * DO NOT USE!
@@ -224,15 +207,6 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
     override fun getPackageName(): String = throw ApkProvisionException("The project system cannot obtain the package name at this moment.")
     override fun getTestPackageName(): String? = null
   }
-
-  /**
-   * Returns the [ApkProvider] for the given [runConfiguration] such that describes APKs suitable for [targetDeviceSpec].
-   *
-   * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
-   */
-  @JvmDefault
-  // TODO(b/154038950): Move to AndroidProjectSystem together with getApplicationIdProvider(). It is here for the sake of consistency.
-  fun getApkProvider(runConfiguration: RunConfiguration, targetDeviceSpec: AndroidDeviceSpec?): ApkProvider? = null
 
   /**
    * Returns the [GlobalSearchScope] for a given module that should be used to resolving references.
@@ -273,6 +247,24 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
   /** Whether the ML model binding feature is enabled for this module. */
   @JvmDefault
   val isMlModelBindingEnabled: Boolean get() = false
+
+  /**
+   * Whether the R class in applications and dynamic features are constant.
+   *
+   * If they are constant they can be inlined by the java compiler and used in places that
+   * require constants such as annotations and cases of switch statements.
+   */
+  @JvmDefault
+  val applicationRClassConstantIds: Boolean get() = true
+
+  /**
+   * Whether the R class in instrumentation tests are constant.
+   *
+   * If they are constant they can be inlined by the java compiler and used in places that
+   * require constants such as annotations and cases of switch statements.
+   */
+  @JvmDefault
+  val testRClassConstantIds: Boolean get() = true
 }
 
 /**

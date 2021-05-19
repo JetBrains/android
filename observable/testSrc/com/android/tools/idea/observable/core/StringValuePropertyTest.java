@@ -43,7 +43,7 @@ public final class StringValuePropertyTest {
 
   @Test
   public void testClearValue() {
-    StringValueProperty stringValue = new StringValueProperty("Dummy text");
+    StringValueProperty stringValue = new StringValueProperty("Unused text");
     stringValue.clear();
     assertThat(stringValue.get()).isEqualTo("");
   }

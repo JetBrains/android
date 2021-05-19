@@ -23,9 +23,9 @@ import com.android.SdkConstants.FQCN_BUTTON
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth.assertThat
 import icons.StudioIcons
@@ -64,15 +64,13 @@ class SelectedViewModelTest {
   }
 
   private fun nameOf(name: String): InspectorPropertyItem {
-    val lookup: ResourceLookup = mock()
-    val view: ViewNode = mock()
-    return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, Type.STRING, name, PropertySection.VIEW, null, view, lookup)
+    val lookup: ViewNodeAndResourceLookup = mock()
+    return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, Type.STRING, name, PropertySection.VIEW, null, 1L, lookup)
   }
 
   private fun idOf(id: String?): InspectorPropertyItem {
-    val lookup: ResourceLookup = mock()
-    val view: ViewNode = mock()
+    val lookup: ViewNodeAndResourceLookup = mock()
     val value = id?.let { "@id/$id" }
-    return InspectorPropertyItem(ANDROID_URI, ATTR_ID, Type.STRING, value, PropertySection.VIEW, null, view, lookup)
+    return InspectorPropertyItem(ANDROID_URI, ATTR_ID, Type.STRING, value, PropertySection.VIEW, null, 1L, lookup)
   }
 }

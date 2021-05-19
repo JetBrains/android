@@ -19,10 +19,9 @@ import com.android.annotations.concurrency.Slow
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.emulator.DummyStreamObserver
+import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
 import com.android.tools.idea.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
-import com.android.tools.idea.emulator.invokeLaterInAnyModalityState
 import com.android.tools.idea.emulator.logger
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,6 +29,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.io.IOException
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
@@ -52,7 +52,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     emulatorController.getScreenshot(imageFormat, ScreenshotReceiver(project))
   }
 
-  private class ScreenshotReceiver(val project: Project) : DummyStreamObserver<Image>() {
+  private class ScreenshotReceiver(val project: Project) : EmptyStreamObserver<Image>() {
 
     override fun onNext(response: Image) {
       val timestamp = Date()
@@ -83,7 +83,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
           val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file.toFile()) ?: return
 
-          invokeLaterInAnyModalityState {
+          invokeLater {
             FileEditorManager.getInstance(project).openFile(virtualFile, true)
           }
           return

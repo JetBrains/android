@@ -46,6 +46,20 @@ class MotionSelectionTest {
   }
 
   @Test
+  fun testComponentForCustomAttributeCompletionsFromKeyAttributeOnButton() {
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 13, "button")
+    val component = motionRule.selection.componentForCustomAttributeCompletions
+    assertThat(component?.id).isEqualTo("button")
+  }
+
+  @Test
+  fun testComponentForCustomAttributeCompletionsFromKeyAttributeViaTagMatching() {
+    motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 27, ".*Window")
+    val component = motionRule.selection.componentForCustomAttributeCompletions
+    assertThat(component?.id).isEqualTo("buttonEmptyConstraint")
+  }
+
+  @Test
   fun testComponentForCustomAttributeCompletionsFromKeyCycle() {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_CYCLE, 15, "widget")
     val component = motionRule.selection.componentForCustomAttributeCompletions

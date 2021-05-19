@@ -21,10 +21,11 @@ import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.analytics.energy.EnergyEventMetadata;
 import com.android.tools.profilers.analytics.energy.EnergyRangeMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureMetadata;
-import com.android.tools.profilers.cpu.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,6 +162,11 @@ public interface FeatureTracker {
    * Track when the user takes an action to restore zoom to its default level.
    */
   void trackResetZoom();
+
+  /**
+   * Track when the user takes an action to zoom to the current selection.
+   */
+  void trackZoomToSelection();
 
   /**
    * Track the user toggling whether the profiler should stream or not.
@@ -364,4 +370,100 @@ public interface FeatureTracker {
    * Track when the user selects instance filter for a Memory Profiler's CaptureObject.
    */
   void trackMemoryProfilerInstanceFilter(@NotNull CaptureObjectInstanceFilter filter);
+
+  /**
+   * Track an attempt of spawning a new instance of the Trace Processor Daemon and how long it took
+   * to either the instance is ready to serve requests (if the spawn was successful) or how long we
+   * took to detect that we failed to spawn the new instance.
+   */
+  void trackTraceProcessorDaemonSpawnAttempt(boolean successful, long timeToSpawnMs);
+
+  /**
+   * Track a load trace query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   * @param traceSizeBytes the size in bytes of the trace being loaded in this query.
+   */
+  void trackTraceProcessorLoadTrace(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes);
+
+  /**
+   * Track a process metadata query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorProcessMetadata(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track a cpu data query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorCpuData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track a memory data query sent to the Trace Processor Daemon.
+   *
+   * @param queryStatus tracks the status of the query result:
+   *                    OK - query returned without issues.
+   *                    QUERY_ERROR - query returned but TPD identified some issues while processing the query.
+   *                    QUERY_FAIL - query failed to reach TPD.
+   * @param methodTimeMs how long - in milliseconds - we spent in the whole method (query + business logic).
+   * @param queryTimeMs  how long - in milliseconds - we spent waiting for the query to return from TPD.
+   */
+  void trackTraceProcessorMemoryData(
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs);
+
+  /**
+   * Track when a track group is moved up.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackMoveTrackGroupUp(@NotNull String title);
+
+  /**
+   * Track when a track group is moved down.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackMoveTrackGroupDown(@NotNull String title);
+
+  /**
+   * Track when a track group is expanded.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackExpandTrackGroup(@NotNull String title);
+
+  /**
+   * Track when a track group is collapsed.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  void trackCollapseTrackGroup(@NotNull String title);
+
+  /**
+   * Track when a box selection is performed.
+   *
+   * @param durationUs box selection duration in microseconds.
+   * @param trackCount number fo tracks included in the selection.
+   */
+  void trackSelectBox(long durationUs, int trackCount);
 }

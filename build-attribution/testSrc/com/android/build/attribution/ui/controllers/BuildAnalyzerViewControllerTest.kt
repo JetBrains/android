@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
@@ -30,9 +31,14 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
+import com.android.tools.idea.testing.IdeComponents
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -41,11 +47,15 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import java.awt.Dimension
 import java.util.UUID
 
 class BuildAnalyzerViewControllerTest {
   @get:Rule
   val projectRule: ProjectRule = ProjectRule()
+
+  @get:Rule
+  var disposableRule = DisposableRule()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -58,13 +68,18 @@ class BuildAnalyzerViewControllerTest {
   val task2 = mockTask(":app", "resources", "resources.plugin", 1000)
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000)
 
-  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)))
-  val analytics = BuildAttributionUiAnalytics(projectRule.project)
+  val warningSuppressions = BuildAttributionWarningsFilter()
+  val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3)), warningSuppressions = warningSuppressions)
+  val analytics = BuildAttributionUiAnalytics(projectRule.project, uiSizeProvider = { Dimension(300, 200) })
   val buildSessionId = UUID.randomUUID().toString()
   val issueReporter = Mockito.mock(TaskIssueReporter::class.java)
+  lateinit var showSettingsUtilMock: ShowSettingsUtil
 
   @Before
   fun setUp() {
+    val ideComponents = IdeComponents(projectRule.project, disposableRule.disposable)
+    showSettingsUtilMock = ideComponents.mockApplicationService(ShowSettingsUtil::class.java)
+    ideComponents.replaceProjectService(BuildAttributionWarningsFilter::class.java, warningSuppressions)
     UsageTracker.setWriterForTest(tracker)
     analytics.newReportSessionId(buildSessionId)
   }
@@ -79,7 +94,7 @@ class BuildAnalyzerViewControllerTest {
   fun testDataSetComboBoxSelectionUpdatedToTasks() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.OVERVIEW
 
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     controller.dataSetComboBoxSelectionUpdated(BuildAnalyzerViewModel.DataSet.TASKS)
 
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
@@ -89,7 +104,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE
+      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
     )
   }
 
@@ -98,7 +113,7 @@ class BuildAnalyzerViewControllerTest {
   fun testDataSetComboBoxSelectionUpdatedToWarnings() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.OVERVIEW
 
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     controller.dataSetComboBoxSelectionUpdated(BuildAnalyzerViewModel.DataSet.WARNINGS)
 
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.WARNINGS)
@@ -108,8 +123,8 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      // First node in warnings tree
-      to = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT
+      // No selection in warnings page
+      to = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT
     )
   }
 
@@ -118,7 +133,7 @@ class BuildAnalyzerViewControllerTest {
   fun testDataSetComboBoxSelectionUpdatedToOverview() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
 
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     controller.dataSetComboBoxSelectionUpdated(BuildAnalyzerViewModel.DataSet.OVERVIEW)
 
     assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.OVERVIEW)
@@ -128,7 +143,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       // First node in warnings tree
-      from = BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT,
+      from = BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT,
       to = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY
     )
   }
@@ -136,7 +151,7 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testOpenTasksUngroupedLinkClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
     controller.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED)
@@ -148,14 +163,14 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
   @Test
   @RunsInEdt
   fun testOpenTasksGroupedByPluginLinkClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
     controller.changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
@@ -167,14 +182,14 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
   @Test
   @RunsInEdt
   fun testOpenAllWarningsLinkClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
     controller.changeViewToWarningsLinkClicked()
@@ -185,7 +200,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_ISSUE_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
     }
   }
 
@@ -193,7 +208,7 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testTasksGroupingSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
     controller.tasksGroupingSelectionUpdated(TasksDataPageModel.Grouping.BY_PLUGIN)
@@ -203,8 +218,8 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
-      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
 
@@ -212,9 +227,9 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testTasksNodeSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
-    // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.tasksPageModel.selectedNode!!.nextNode as TasksTreeNode
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+    // First node in current (ungrouped) tasks tree.
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
 
     // Act
     controller.tasksTreeNodeSelected(nodeToSelect)
@@ -232,9 +247,9 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testTasksDetailsLinkClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.tasksPageModel.selectedNode!!.nextNode as TasksTreeNode
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
 
     // Act
     controller.tasksDetailsLinkClicked(nodeToSelect.descriptor.pageId)
@@ -254,7 +269,7 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testTasksDetailsLinkClickedOnPlugin() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
     val pluginPageId = TasksPageId.plugin(model.reportUiData.criticalPathPlugins.plugins[0])
 
     // Act
@@ -276,9 +291,9 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testWarningsNodeSelectionUpdated() {
     model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
-    // Second node in current (ungrouped) tasks tree.
-    val nodeToSelect = model.warningsPageModel.selectedNode!!.nextNode as WarningsTreeNode
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+    // First warning node (leaf) in current tree.
+    val nodeToSelect = model.warningsPageModel.treeRoot.firstLeaf as WarningsTreeNode
 
     // Act
     controller.warningsTreeNodeSelected(nodeToSelect)
@@ -295,9 +310,32 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testWarningsGroupingSelectionUpdated() {
+    model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.warningsGroupingSelectionUpdated(groupByPlugin = true)
+
+    // Assert
+    assertThat(model.warningsPageModel.groupByPlugin).isTrue()
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.WARNINGS_ROOT)
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testGenerateReportClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+    // Prepare: Select first node
+    val nodeToSelect = model.tasksPageModel.treeRoot.firstLeaf as TasksTreeNode
+    controller.tasksTreeNodeSelected(nodeToSelect)
     val taskData = (model.tasksPageModel.selectedNode!!.descriptor as TaskDetailsNodeDescriptor).taskData
+    tracker.usages.clear()
 
     // Act
     controller.generateReportClicked(taskData)
@@ -314,7 +352,7 @@ class BuildAnalyzerViewControllerTest {
   @Test
   @RunsInEdt
   fun testHelpLinkClicked() {
-    val controller = BuildAnalyzerViewController(model, analytics, issueReporter)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
     // Act
     controller.helpLinkClicked(BuildAnalyzerBrowserLinks.CRITICAL_PATH)
@@ -324,6 +362,39 @@ class BuildAnalyzerViewControllerTest {
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED)
       assertThat(linkTarget).isEqualTo(BuildAttributionUiEvent.OutgoingLinkTarget.CRITICAL_PATH_HELP)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testMemorySettingsOpened() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.openMemorySettings()
+
+    // Verify
+    Mockito.verify(showSettingsUtilMock).showSettingsDialog(eq(projectRule.project), eq(MemorySettingsConfigurable::class.java))
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.OPEN_MEMORY_SETTINGS_BUTTON_CLICKED)
+    }
+  }
+
+  @Test
+  @RunsInEdt
+  fun testSuppressNoGCSettingWarning() {
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.dontShowAgainNoGCSettingWarningClicked()
+
+    // Verify
+    assertThat(warningSuppressions.suppressNoGCSettingWarning).isTrue()
+
+    val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
+    buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
+      assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
     }
   }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.bindExpression
 import com.android.tools.idea.npw.invokeLater
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -46,7 +47,7 @@ import com.android.tools.idea.observable.ui.VisibleProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.uniquenessSatisfied
 import com.android.tools.idea.templates.validate
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.CheckBoxWidget
@@ -84,11 +85,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.Label
+import com.intellij.ui.layout.CCFlags
+import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER
 import com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH
 import com.intellij.uiDesigner.core.GridConstraints.FILL_NONE
 import com.intellij.uiDesigner.core.GridLayoutManager
+import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.awt.Dimension
@@ -101,6 +106,7 @@ import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.SwingConstants
 
 val TYPE_CONSTRAINTS: EnumSet<Constraint> = EnumSet.of(
@@ -136,6 +142,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   private val templateDescriptionLabel = JLabel().apply {
     font = Font("Default", Font.PLAIN, 11)
   }
+  private val templateTitleLabel: JLabel = Label("", bold = true)
+  // TODO: When StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR is removed, this field can be removed.
   private val templateThumbLabel = JLabel().apply {
     horizontalTextPosition = SwingConstants.CENTER
     verticalAlignment = SwingConstants.TOP
@@ -144,18 +152,39 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
   }
   private var parametersPanel = JPanel(TabularLayout("Fit-,*").setVGap(10))
 
-  // TODO(b/142107543) Replace it with TabularLayout for more readability
-  private val rootPanel = JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
-    val anySize = Dimension(-1, -1)
-    val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
-    add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
-    add(parametersPanel,
-        GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
-                        anySize, anySize, anySize))
-    add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+  private val mainPanel = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+    panel {
+      row {
+        templateTitleLabel()
+      }
+      row {
+        cell(isVerticalFlow = true, isFullWidth = true) {
+          templateDescriptionLabel()
+        }
+      }
+      row {
+        cell(isFullWidth = true) {
+          parametersPanel(constraints = arrayOf(CCFlags.growX))
+        }
+      }
+    }.apply {
+      border = JBUI.Borders.emptyTop(32)
+    }
+  } else {
+    // TODO(b/142107543) Replace it with TabularLayout for more readability
+    JBPanel<JBPanel<*>>(GridLayoutManager(2, 2)).apply {
+      val anySize = Dimension(-1, -1)
+      val defaultSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_CAN_SHRINK
+      add(templateThumbLabel, GridConstraints(0, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, 0, 0, anySize, anySize, anySize))
+      add(parametersPanel,
+          GridConstraints(0, 1, 1, 1, ANCHOR_CENTER, FILL_BOTH, defaultSizePolicy, defaultSizePolicy or GridConstraints.SIZEPOLICY_WANT_GROW,
+                          anySize, anySize, anySize))
+      add(templateDescriptionLabel, GridConstraints(1, 0, 1, 1, ANCHOR_CENTER, FILL_NONE, defaultSizePolicy, 0, anySize, anySize, anySize))
+    }
   }
 
-  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, wrappedWithVScroll(rootPanel))
+  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, mainPanel)
+  private val rootPanel: JScrollPane = wrapWithVScroll(validatorPanel)
   private var evaluationState = EvaluationState.NOT_EVALUATING
   private val parameters: Collection<Parameter<*>> get() = model.newTemplate.parameters
 
@@ -184,7 +213,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     invokeLater {
       // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
       // width calculation gets involved and can really stretch out some wizards if the label is
-      // particularly long (see Master/Detail Activity for example).
+      // particularly long (see Primary/Detail Activity for example).
       templateDescriptionLabel.text = WizardUtils.toHtmlString(newTemplate.description)
     }
 
@@ -197,10 +226,15 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       bindExpression(thumbVisibility, thumb) { thumb.get().isPresent }
     }
     thumbPath.set(thumbnailPath)
-    templateThumbLabel.text = newTemplate.name
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      templateTitleLabel.text = newTemplate.name
+    }
+    else {
+      templateThumbLabel.text = newTemplate.name
+    }
 
     for (widget in model.newTemplate.widgets) {
-      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNew || model.projectTemplateDataBuilder.isNewProject)) {
+      if (widget is LanguageWidget && (model.moduleTemplateDataBuilder.isNewModule || model.projectTemplateDataBuilder.isNewProject)) {
         // We should not show language chooser in "New Module" and "New Project" wizards because it should be selected on a previous step.
         continue
       }
@@ -215,7 +249,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val parameter = widget.parameter as Parameter<in Any>
       property?.addListener {
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
-        if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
+        if (evaluationState != EvaluationState.EVALUATING && mainPanel.isShowing) {
           userValues[parameter] = property.get()
           parameter.setFromProperty(property)
           // Evaluate later to prevent modifying Swing values that are locked during read
@@ -360,7 +394,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
   }
 
-  override fun getComponent(): JComponent = validatorPanel
+  override fun getComponent(): JComponent = rootPanel
 
   override fun getPreferredFocusComponent(): JComponent? = parametersPanel.components.firstOrNull {
     val child = it as JComponent
@@ -389,16 +423,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     // Some parameter values should be saved for later runs through this wizard, so do that first.
     parameterRows.values.forEach(RowEntry<*>::accept)
 
-    // TODO: Find a better way to configure new module cpp support - b/155256488
-    model.enableCppSupport.set(false)
     parameterRows.forEach { (p, row) ->
       p.setFromProperty(row.property!!)
-
-      // Cpp changes are  at Module level, but cpp flags are at the Activity level, and there is no good way to pass them around
-      if (p is EnumParameter && "C++ Standard" == p.name) {
-        model.enableCppSupport.set(true)
-        model.cppFlags.set(p.value.toString())
-      }
     }
   }
 

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-abstract class ProguardR8TestCase : JavaCodeInsightFixtureTestCase() {
+abstract class ProguardR8TestCase : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.enableInspections(ProguardR8ReferenceInspection::class.java)

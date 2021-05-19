@@ -58,7 +58,7 @@ const val DEPTH_INDENT = 8
  */
 class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPanel(BorderLayout()) {
   private val iconLabel = LabelWithFocusBorder()
-  private val label = JBLabel()
+  private val label = LabelWithTooltipFromParent()
   private var standardIndent = 0
   private var standardRightIndent = 0
   private var minSpacing = 0
@@ -208,13 +208,23 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
   }
 
   /**
+   * Label which delegates tooltip to the parent.
+   *
+   * The label itself does not have the context to display tooltip for the property.
+   */
+  private open class LabelWithTooltipFromParent : JBLabel() {
+    override fun getToolTipText(event: MouseEvent): String? =
+      (parent as? JComponent)?.getToolTipText(event)
+  }
+
+  /**
    * Label which displays a focus border around the label.
    *
    * This is used for the tree expansion icons.
    * Notice that it is the parent panel [DefaultNameComponent] that has
    * focus not the label.
    */
-  private class LabelWithFocusBorder : JBLabel() {
+  private class LabelWithFocusBorder : LabelWithTooltipFromParent() {
 
     override fun paintComponent(g: Graphics) {
       super.paintComponent(g)

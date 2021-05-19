@@ -15,22 +15,22 @@
  */
 package com.android.tools.idea.npw.importing;
 
+import static com.android.tools.idea.ui.wizard.WizardUtils.WIZARD_BORDER.SMALL;
+import static com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.project.ProjectUtil.guessProjectDir;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.ModuleImporter;
 import com.android.tools.idea.gradle.project.ModuleToImport;
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.ui.validation.validators.PathValidator;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.util.FormatUtil;
 import com.android.tools.idea.wizard.model.ModelWizard.Facade;
@@ -51,6 +51,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import java.io.File;
 import java.io.IOException;
@@ -67,10 +68,9 @@ import org.jetbrains.annotations.Nullable;
  * Also allows selection of sub-modules to import. Most functionality is contained within existing {@link ModulesTable} class.
  */
 public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceToGradleModuleModel> {
-  private final ListenerManager myListeners = new ListenerManager();
   private final BindingsManager myBindings = new BindingsManager();
 
-  @NotNull private final StudioWizardStepPanel myRootPanel;
+  @NotNull private final JComponent myRootPanel;
   @NotNull private ValidatorPanel myValidatorPanel;
 
   private final BoolProperty myCanGoForward = new BoolValueProperty();
@@ -83,8 +83,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private JBScrollPane myModulesScroller;
   private ModulesTable myModulesPanel;
   private JLabel myRequiredModulesLabel;
+  private JBLabel mySourceDirTitle;
+  private PrimaryModuleImportSettings myPrimaryModel;
+  private JBLabel myModuleNameLabel;
+  private JTextField myModuleNameField;
+  private JBLabel myPrimaryModuleState;
 
-  // TODO(qumeric): Improve logic so these don't need to all be set to null in applyValidationResult
   @Nullable private VirtualFile myVFile;
   @Nullable private ModuleImporter myImporter;
   @Nullable private Collection<ModuleToImport> myModules;
@@ -99,7 +103,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
     myBindings.bindTwoWay(new TextProperty(mySourceLocation.getTextField()), model.sourceLocation);
 
-    myModulesPanel.bindPrimaryModuleEntryComponents(new PrimaryModuleImportSettings(), myRequiredModulesLabel);
+    myModulesPanel.bindPrimaryModuleEntryComponents(myPrimaryModel, myRequiredModulesLabel);
     myModulesPanel.addPropertyChangeListener(ModulesTable.PROPERTY_SELECTED_MODULES, event -> {
       if (ModulesTable.PROPERTY_SELECTED_MODULES.equals(event.getPropertyName())) {
         updateStepStatus();
@@ -107,11 +111,15 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     });
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myValidatorPanel.registerValidator(model.sourceLocation, value -> checkPath(model.sourceLocation.get()));
+    myValidatorPanel.registerValidator(model.sourceLocation, value -> updateStepStatus(model.sourceLocation.get()));
 
-    myListeners.listen(myValidatorPanel.getValidationResult(), result -> applyValidationResult(result));
-
-    myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
+    if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) {
+      myRootPanel = wrapWithVScroll(myValidatorPanel, SMALL);
+    }
+    else {
+      mySourceDirTitle.setVisible(false);
+      myRootPanel = wrapWithVScroll(myValidatorPanel);
+    }
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -128,7 +136,6 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   @Override
   public void dispose() {
     myBindings.releaseAll();
-    myListeners.releaseAll();
   }
 
   @NotNull
@@ -164,22 +171,41 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     return wrappedSteps;
   }
 
-  private void applyValidationResult(@NotNull PathValidator.Result result) {
-    if (result.getSeverity().equals(Validator.Severity.ERROR)) {
-      myVFile = null;
-      myModules = null;
-      myImporter = null;
+  @NotNull
+  @VisibleForTesting
+  Validator.Result updateStepStatus(@NotNull String path) {
+    // Hide modules UI. They will be enabled again if all validation is OK.
+    myPrimaryModel.setVisible(false);
+    myRequiredModulesLabel.setVisible(false);
+    myModulesScroller.setVisible(false);
+
+    if (Strings.isNullOrEmpty(path)) {
+      // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
+      myCanGoForward.set(false);
+      return Validator.Result.OK;
     }
+
+    Validator.Result result = checkPath(path);
+    if (result.getSeverity() != Validator.Severity.ERROR) {
+      updateModuleValidation();
+    }
+
+    updateStepStatus();
+
+    return result;
+  }
+
+  private void updateModuleValidation() {
     myModulesPanel.setModules(getModel().getProject(), myVFile, myModules);
     myModulesScroller.setVisible(myModulesPanel.getComponentCount() > 0);
+    myRootPanel.revalidate(); // We may have added new UI
+    myRootPanel.repaint();
 
     // Setting the active importer affects the visibility of other steps in the wizard so we need to call updateNavigationProperties
     // to make sure Finish / Next is displayed correctly
     ModuleImporter.setImporter(getModel().getContext(), myImporter);
     assert myFacade != null;
     myFacade.updateNavigationProperties();
-
-    updateStepStatus();
   }
 
   private void updateStepStatus() {
@@ -189,15 +215,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
       return;
     }
 
-    myCanGoForward.set(myValidatorPanel.hasErrors().not().get() && myModulesPanel.canImport());
+    myCanGoForward.set(!myValidatorPanel.hasErrors().get() && myModulesPanel.canImport());
   }
 
   @NotNull
   @VisibleForTesting
   Validator.Result checkPath(@NotNull String path) {
-    if (Strings.isNullOrEmpty(path)) {
-      return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.no.location"));
-    }
     myVFile = VfsUtil.findFileByIoFile(new File(path), false);
     if (myVFile == null || !myVFile.exists()) {
       return new Validator.Result(Validator.Severity.ERROR, message("android.wizard.module.import.source.browse.invalid.location"));
@@ -253,5 +276,12 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
     }
 
     return false;
+  }
+
+  private void createUIComponents() {
+    myPrimaryModel = new PrimaryModuleImportSettings();
+    myModuleNameLabel = myPrimaryModel.getModuleNameLabel();
+    myModuleNameField = myPrimaryModel.getModuleNameField();
+    myPrimaryModuleState = myPrimaryModel.getPrimaryModuleState();
   }
 }

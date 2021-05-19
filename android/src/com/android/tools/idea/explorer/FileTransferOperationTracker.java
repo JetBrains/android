@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.android.tools.idea.apk.viewer.ApkViewPanel;
+import com.android.tools.adtui.util.HumanReadableUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ExceptionUtil;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import org.jetbrains.annotations.NotNull;
@@ -104,8 +103,8 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
 
     if (totalBytes > 0) {
       text += String.format(" (%s / %s)",
-                            ApkViewPanel.getHumanizedSize(currentBytes),
-                            ApkViewPanel.getHumanizedSize(totalBytes));
+                            HumanReadableUtil.getHumanizedSize(currentBytes),
+                            HumanReadableUtil.getHumanizedSize(totalBytes));
     }
     setStatusText(text);
   }
@@ -122,8 +121,8 @@ public class FileTransferOperationTracker extends LongRunningOperationTracker {
     }
     if (totalBytes > 0) {
       text += String.format(" (%s / %s)",
-                            ApkViewPanel.getHumanizedSize(currentBytes),
-                            ApkViewPanel.getHumanizedSize(totalBytes));
+                            HumanReadableUtil.getHumanizedSize(currentBytes),
+                            HumanReadableUtil.getHumanizedSize(totalBytes));
     }
     setStatusText(text);
   }

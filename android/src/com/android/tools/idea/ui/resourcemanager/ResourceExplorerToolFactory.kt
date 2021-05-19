@@ -196,7 +196,7 @@ private fun displayInToolWindow(facet: AndroidFacet, toolWindow: ToolWindow) {
   contentManager.addContent(content)
   content.preferredFocusableComponent = resourceExplorer
   connectListeners(toolWindow, facet.module.project, resourceExplorer)
-  ResourceManagerTracking.logPanelOpens()
+  ResourceManagerTracking.logPanelOpens(facet)
 }
 
 private class MyFileEditorListener(

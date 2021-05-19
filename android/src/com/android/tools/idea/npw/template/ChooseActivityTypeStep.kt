@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.template
 
-import com.android.tools.idea.device.FormFactor
+import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -77,5 +77,6 @@ val activityGalleryStepMessageKeys = WizardGalleryItemsStepMessageKeys(
   "android.wizard.activity.invalid.min.sdk",
   "android.wizard.activity.invalid.min.build",
   "android.wizard.activity.invalid.androidx",
+  "android.wizard.activity.invalid.jetifier",
   "android.wizard.activity.invalid.needs.kotlin"
 )

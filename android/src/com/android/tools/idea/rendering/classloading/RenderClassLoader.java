@@ -19,6 +19,7 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.base.Suppliers;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
@@ -32,9 +33,9 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.org.objectweb.asm.ClassVisitor;
 
 /**
@@ -44,8 +45,10 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 public abstract class RenderClassLoader extends ClassLoader {
   protected static final Logger LOG = Logger.getInstance(RenderClassLoader.class);
 
-  private final Function<ClassVisitor, ClassVisitor> myTransformationProvider;
+  private final Function<ClassVisitor, ClassVisitor> myProjectClassesTransformationProvider;
+  private final Function<ClassVisitor, ClassVisitor> myNonProjectClassesTransformationProvider;
   private final Object myJarClassLoaderLock = new Object();
+  private final Function<String, String> myNonProjectClassNameLookup;
   @GuardedBy("myJarClassLoaderLock")
   private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
@@ -54,12 +57,37 @@ public abstract class RenderClassLoader extends ClassLoader {
    * Creates a new {@link RenderClassLoader}.
    *
    * @param parent the parent {@link ClassLoader}
+   * @param projectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
+   *                                             transformation. This transformation is only applied to classes from the user project.
+   * @param nonProjectClassesTransformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any
+   *                                                desired transformation. This transformation is applied to all classes except user
+   *                                                project classes.
+   * @param nonProjectClassNameLookup a {@link Function} that allows mapping "modified" class names to its original form so they can be
+   *                                  correctly loaded from the file system. For example, if the class loader is renaming classes to names
+   *                                  that do not exist on disk, this allows the {@link RenderClassLoader} to lookup the correct name and
+   *                                  load it from disk.
+   */
+  public RenderClassLoader(@Nullable ClassLoader parent,
+                           @NotNull Function<ClassVisitor, ClassVisitor> projectClassesTransformationProvider,
+                           @NotNull Function<ClassVisitor, ClassVisitor> nonProjectClassesTransformationProvider,
+                           @NotNull Function<String, String> nonProjectClassNameLookup) {
+    super(parent);
+    myProjectClassesTransformationProvider = projectClassesTransformationProvider;
+    myNonProjectClassesTransformationProvider = nonProjectClassesTransformationProvider;
+    myNonProjectClassNameLookup = nonProjectClassNameLookup;
+  }
+
+
+  /**
+   * Creates a new {@link RenderClassLoader} with transformations that apply to both project and non project classes..
+   *
+   * @param parent the parent {@link ClassLoader}.
    * @param transformationProvider a {@link Function} that given a {@link ClassVisitor} returns a new one applying any desired
    *                               transformation.
    */
+  @TestOnly
   public RenderClassLoader(@Nullable ClassLoader parent, @NotNull Function<ClassVisitor, ClassVisitor> transformationProvider) {
-    super(parent);
-    myTransformationProvider = transformationProvider;
+    this(parent, transformationProvider, transformationProvider, Function.identity());
   }
 
   /**
@@ -68,7 +96,7 @@ public abstract class RenderClassLoader extends ClassLoader {
    * @param parent the parent {@link ClassLoader}.
    */
   public RenderClassLoader(@Nullable ClassLoader parent) {
-    this(parent, Function.identity());
+    this(parent, Function.identity(), Function.identity(), Function.identity());
   }
 
   protected abstract List<Path> getExternalJars();
@@ -101,8 +129,9 @@ public abstract class RenderClassLoader extends ClassLoader {
       jarClassLoaders = myJarClassLoader.get();
     }
 
+    String diskLookupName = myNonProjectClassNameLookup.apply(name);
     myInsideJarClassLoader = true;
-    try (InputStream is = jarClassLoaders.getResourceAsStream(name.replace('.', '/') + SdkConstants.DOT_CLASS)) {
+    try (InputStream is = jarClassLoaders.getResourceAsStream(diskLookupName.replace('.', '/') + SdkConstants.DOT_CLASS)) {
       if (is == null) {
         throw new ClassNotFoundException(name);
       }
@@ -111,7 +140,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       if (!isValidClassFile(data)) {
         throw new ClassFormatError(name);
       }
-      byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
+      byte[] rewritten = ClassConverter.rewriteClass(data, myNonProjectClassesTransformationProvider);
       return defineClassAndPackage(name, rewritten, 0, rewritten.length);
     }
     catch (IOException | ClassNotFoundException e) {
@@ -144,7 +173,7 @@ public abstract class RenderClassLoader extends ClassLoader {
       throw new ClassFormatError(fqcn);
     }
 
-    byte[] rewritten = ClassConverter.rewriteClass(data, myTransformationProvider);
+    byte[] rewritten = ClassConverter.rewriteClass(data, myProjectClassesTransformationProvider);
     try {
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("Defining class '%s' from disk file", anonymizeClassName(fqcn)));

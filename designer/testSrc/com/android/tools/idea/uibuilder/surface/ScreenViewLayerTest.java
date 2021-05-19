@@ -21,6 +21,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.ide.common.rendering.api.Result;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.RenderResult;
@@ -96,6 +97,7 @@ public class ScreenViewLayerTest {
   private static RenderResult createRenderResultMock(@NotNull ImagePool.Image resultImage) {
     RenderResult result = mock(RenderResult.class);
     when(result.getRenderedImage()).thenReturn(resultImage);
+    when(result.getRenderResult()).thenReturn(Result.Status.SUCCESS.createResult());
 
     return result;
   }

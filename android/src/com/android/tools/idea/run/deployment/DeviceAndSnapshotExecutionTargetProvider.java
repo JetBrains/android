@@ -21,13 +21,14 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
   @NotNull
   @Override
   public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
-    List<Device> devices = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDevices(project);
-    return Collections.singletonList(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
+    Set<Key> keys = DeviceAndSnapshotComboBoxAction.getInstance().getSelectedDeviceKeys(project);
+    return Collections.singletonList(new DeviceAndSnapshotComboBoxExecutionTarget(keys, AsyncDevicesGetter.getInstance(project)));
   }
 }

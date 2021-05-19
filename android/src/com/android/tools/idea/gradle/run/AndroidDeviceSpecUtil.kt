@@ -16,6 +16,7 @@
 @file:JvmName("AndroidDeviceSpecUtil")
 package com.android.tools.idea.gradle.run
 
+import com.android.ddmlib.IDevice
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -31,8 +32,18 @@ import java.io.Writer
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
 
+data class AndroidDeviceSpecImpl @JvmOverloads constructor (
+  override val commonVersion: AndroidVersion?,
+  override val minVersion: AndroidVersion,
+  override val density: Density? = null,
+  override val abis: List<String> = emptyList(),
+  val languagesProvider: () -> List<String> = { emptyList() }
+) : AndroidDeviceSpec {
+  override val languages: List<String> by lazy { languagesProvider() }
+}
+
+const val DEVICE_SPEC_TIMEOUT_SECONDS = 10L
 
 /**
  * Creates an [AndroidDeviceSpec] instance from a list of [devices][AndroidDevice], or `null` if the list of
@@ -52,11 +63,14 @@ fun createSpec(
     return null
   }
 
+  val versions = devices.map { it.version }.toSet()
+  // Find the common value of the device version to pass to the build
+  val version = versions.singleOrNull()
   var density: Density? = null
   var abis: List<String> = emptyList()
 
-  // Find the minimum value of the build API level and pass it to Gradle as a property
-  val minVersion = devices.map { it.version }.minWith(Ordering.natural())!!
+  // Find the minimum value of the build API level for making other decisions
+  val minVersion = versions.minWith(Ordering.natural())!!
 
   // If we are building for only one device, pass the density and the ABI
   if (devices.size == 1) {
@@ -67,12 +81,7 @@ fun createSpec(
     abis = device.abis.map { it.toString() }
   }
 
-  return object : AndroidDeviceSpec {
-    override val version: AndroidVersion = minVersion
-    override val density: Density? = density
-    override val abis: List<String> = abis
-    override val languages: List<String> by lazy { combineDeviceLanguages(devices, timeout, unit) }
-  }
+  return AndroidDeviceSpecImpl(version, minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
 }
 
 /**
@@ -128,7 +137,12 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
 private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   JsonWriter(out).use { writer ->
     writer.beginObject()
-    writer.name("sdk_version").value(version.apiLevel.toLong())
+    commonVersion?.let {
+      writer.name("sdk_version").value(it.apiLevel.toLong())
+      it.codename?.let { codename ->
+        writer.name("codename").value(codename)
+      }
+    }
     density?.let {
       if (it.dpiValue > 0) {
         writer.name("screen_density").value(it.dpiValue.toLong())
@@ -154,6 +168,16 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
     }
     writer.endObject()
   }
+}
+
+fun IDevice.createSpec(): AndroidDeviceSpec {
+  return AndroidDeviceSpecImpl(
+    version,
+    version,
+    Density.getEnum(density),
+    abis,
+    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
+  )
 }
 
 private val log: Logger

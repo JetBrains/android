@@ -20,6 +20,7 @@ import com.google.common.truth.Truth
 import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
+import java.io.File
 import java.lang.reflect.InvocationTargetException
 
 class DataBindingIssueCheckerTest {
@@ -41,14 +42,17 @@ class DataBindingIssueCheckerTest {
 
   @Test
   fun handleSingleExceptionBasedDataBindingError() {
+    val relativePath = "src/main/res/layout/activity_main1.xml"
+    val projectPath = "/some/project/path"
+    val expectedPath = File(projectPath, relativePath).absolutePath
     val error = "Found data binding error(s):\n" +
                 "\n" +
-                "[databinding] {\"msg\":\"Could not find identifier \\u0027var1\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/src/main/res/layout/activity_main1.xml\",\"pos\":[{\"line0\":36,\"col0\":28,\"line1\":36,\"col1\":32}]}\n"
+                "[databinding] {\"msg\":\"Could not find identifier \\u0027var1\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/$relativePath\",\"pos\":[{\"line0\":36,\"col0\":28,\"line1\":36,\"col1\":32}]}\n"
     val realError = RuntimeException(error)
     val invocationException = InvocationTargetException(KaptError(KaptError.Kind.ERROR_RAISED, realError))
     val topException = RuntimeException(invocationException)
 
-    val gradleIssueData = GradleIssueData("some/project/path", topException, null, null)
+    val gradleIssueData = GradleIssueData(projectPath, topException, null, null)
 
     val handler = DataBindingIssueChecker()
 
@@ -59,19 +63,25 @@ class DataBindingIssueCheckerTest {
     Truth.assertThat(resultIssue.quickFixes).hasSize(1)
     val link = resultIssue.quickFixes[0]
     Truth.assertThat(link).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
+    Truth.assertThat((link as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath)
   }
 
   @Test
   fun handleMultipleExceptionBasedDataBindingError() {
+    val relativePath1 = "src/main/res/layout/activity_main1.xml"
+    val relativePath2 = "src/main/res/layout/activity_main2.xml"
+    val projectPath = "/some/project/path"
+    val expectedPath1 = File(projectPath, relativePath1).absolutePath
+    val expectedPath2 = File(projectPath, relativePath2).absolutePath
     val error = "Found data binding error(s):\n" +
                 "\n" +
-                "[databinding] {\"msg\":\"Could not find identifier \\u0027var1\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/src/main/res/layout/activity_main1.xml\",\"pos\":[{\"line0\":36,\"col0\":28,\"line1\":36,\"col1\":32}]}\n" +
-                "[databinding] {\"msg\":\"Could not find identifier \\u0027var2\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/src/main/res/layout/activity_main2.xml\",\"pos\":[{\"line0\":58,\"col0\":23,\"line1\":58,\"col1\":27}]}\n"
+                "[databinding] {\"msg\":\"Could not find identifier \\u0027var1\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/$relativePath1\",\"pos\":[{\"line0\":36,\"col0\":28,\"line1\":36,\"col1\":32}]}\n" +
+                "[databinding] {\"msg\":\"Could not find identifier \\u0027var2\\u0027\\n\\nCheck that the identifier is spelled correctly, and that no \\u003cimport\\u003e or \\u003cvariable\\u003e tags are missing.\",\"file\":\"/$relativePath2\",\"pos\":[{\"line0\":58,\"col0\":23,\"line1\":58,\"col1\":27}]}\n"
     val realError = RuntimeException(error)
     val invocationException = InvocationTargetException(KaptError(KaptError.Kind.ERROR_RAISED, realError))
     val topException = RuntimeException(invocationException)
 
-    val gradleIssueData = GradleIssueData("some/project/path", topException, null, null)
+    val gradleIssueData = GradleIssueData(projectPath, topException, null, null)
 
     val handler = DataBindingIssueChecker()
 
@@ -93,6 +103,8 @@ class DataBindingIssueCheckerTest {
      """.trimIndent())
     Truth.assertThat(resultIssue.quickFixes).hasSize(2)
     Truth.assertThat(resultIssue.quickFixes[0]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
+    Truth.assertThat((resultIssue.quickFixes[0] as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath1)
     Truth.assertThat(resultIssue.quickFixes[1]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
+    Truth.assertThat((resultIssue.quickFixes[1] as OpenFileWithLocationQuickFix).myFilePosition.file.absolutePath).isEqualTo(expectedPath2)
   }
 }

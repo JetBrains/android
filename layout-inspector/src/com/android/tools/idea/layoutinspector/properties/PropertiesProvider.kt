@@ -21,10 +21,8 @@ import com.android.SdkConstants.ATTR_WIDTH
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection.DIMENSION
 import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
-import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertiesTable
-import com.google.common.collect.Table
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
 
@@ -64,14 +62,15 @@ object EmptyPropertiesProvider : PropertiesProvider {
 /**
  * Add a few fabricated internal attributes.
  */
-internal fun addInternalProperties(table: Table<String, String, InspectorPropertyItem>, view: ViewNode, lookup: ResourceLookup) {
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, null, view, lookup))
-  add(table, InspectorPropertyItem(NAMESPACE_INTERNAL, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, null, view, lookup))
+internal fun addInternalProperties(table: PropertiesTable<InspectorPropertyItem>, view: ViewNode, lookup: ViewNodeAndResourceLookup) {
+  add(table, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
+  add(table, ATTR_X, Type.DIMENSION, view.x.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_Y, Type.DIMENSION, view.y.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_WIDTH, Type.DIMENSION, view.width.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_HEIGHT, Type.DIMENSION, view.height.toString(), DIMENSION, view.drawId, lookup)
 }
 
-private fun add(table: Table<String, String, InspectorPropertyItem>, item: InspectorPropertyItem) {
-  table.put(item.namespace, item.name, item)
+private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: Type, value: String?, section: PropertySection, id: Long,
+                lookup: ViewNodeAndResourceLookup) {
+  table.put(InspectorPropertyItem(NAMESPACE_INTERNAL, name, type, value, section, null, id, lookup))
 }

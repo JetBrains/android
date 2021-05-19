@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.testing
 
-import com.intellij.openapi.application.PathManager
 import com.intellij.testFramework.UsefulTestCase
-import org.apache.log4j.LogManager
 import org.junit.Test
-import java.io.File
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
 class TestLoggerTest : UsefulTestCase() {
 
   @Test
   fun testLogger() {
-    val logXmlFile = File(PathManager.getHomePath(), "test-log.xml") // From TestLoggerFactory.
-    assertTrue("Could not find test-log.xml", logXmlFile.exists())
-    assertTrue("No log4j appenders found", LogManager.getRootLogger().allAppenders.hasMoreElements())
+    var err = System.err
+    try {
+      val bb = ByteArrayOutputStream();
+      System.setErr(PrintStream(bb));
+      LOG.warn("WARNING!");
+      assertTrue("Log not configured to output warning to stderr.", String(bb.toByteArray(), Charsets.UTF_8).contains("WARNING!"))
+    } finally {
+      System.setErr(err);
+    }
   }
 }

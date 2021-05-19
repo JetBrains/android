@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.gradle.project.sync.ModuleSetupContext.FORCE_CREATE_DIRS_KEY;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -35,15 +32,11 @@ import org.jetbrains.annotations.Nullable;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
-  @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
-
   @Nullable private final GradleSyncListener mySyncListener;
 
   ProjectSetUpTask(@NotNull Project project,
-                   @NotNull PostSyncProjectSetup.Request setupRequest,
                    @Nullable GradleSyncListener syncListener) {
     myProject = project;
-    mySetupRequest = setupRequest;
     mySyncListener = syncListener;
   }
 
@@ -52,19 +45,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    GradleSyncState.getInstance(myProject).setupStarted();
     doPopulateProject(projectInfo);
   }
 
   @WorkerThread
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    try {
-      IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-      task.populateProject(projectInfo, mySetupRequest, mySyncListener);
-    }
-    finally {
-      myProject.putUserData(FORCE_CREATE_DIRS_KEY, null);
-    }
+    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+    task.populateProject(projectInfo, mySyncListener);
   }
 
   @Override
@@ -85,6 +72,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     String exceptionMessage =
       (errorDetails == null || errorMessage.contains(errorDetails)) ? errorMessage : errorMessage + "\n" + errorDetails;
     String messageWithGuide = ExternalSystemBundle.message("error.resolve.with.reason", exceptionMessage);
-    GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null, mySyncListener);
+    if (mySyncListener != null) {
+      mySyncListener.syncFailed(myProject, messageWithGuide);
+    }
   }
 }

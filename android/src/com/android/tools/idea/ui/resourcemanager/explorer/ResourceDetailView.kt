@@ -90,7 +90,7 @@ class ResourceDetailView(
   private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
       templatePresentation.isEnabledAndVisible = true
-      ResourceManagerTracking.logDetailViewOpened(designAssetSet.assets.firstOrNull()?.type)
+      ResourceManagerTracking.logDetailViewOpened(viewModel.facet, designAssetSet.assets.firstOrNull()?.type)
     }
 
     override fun actionPerformed(e: AnActionEvent) = navigateBack()
@@ -247,7 +247,7 @@ class ResourceDetailView(
   }
 
   private fun openFile(asset: DesignAsset) {
-    ResourceManagerTracking.logAssetOpened(asset.type)
+    ResourceManagerTracking.logAssetOpened(viewModel.facet, asset.type)
     viewModel.doSelectAssetAction(asset)
   }
 

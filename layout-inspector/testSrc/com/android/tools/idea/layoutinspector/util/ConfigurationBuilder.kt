@@ -29,7 +29,7 @@ private const val defaultPackageName = "com.example"
 // TODO: Add tests that uses other configuration values
 class ConfigurationBuilder(private val strings: TestStringTable) {
 
-  fun makeDummyConfiguration(project: Project): LayoutInspectorProto.ResourceConfiguration {
+  fun makeSampleConfiguration(project: Project): LayoutInspectorProto.ResourceConfiguration {
     val packageName = runInEdtAndGet { getAppPackageName(project) }
     return LayoutInspectorProto.ResourceConfiguration.newBuilder().apply {
       appPackageName = strings.add(packageName)

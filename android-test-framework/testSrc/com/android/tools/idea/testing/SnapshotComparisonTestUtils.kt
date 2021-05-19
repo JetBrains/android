@@ -17,7 +17,9 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.util.AndroidTestPaths
+import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.android.AndroidTestBase
@@ -82,13 +84,16 @@ private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
   return fullSnapshotName to expectedText
 }
 
-private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> =
-  snapshotSuffixes
-    .map { AndroidTestPaths.adtSources()
+private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> {
+  val configuredWorkspace =
+    System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
+      ?.let { File(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
+    ?: AndroidTestPaths.adtSources()
       .resolve(snapshotDirectoryAdtIdeaRelativePath)
-      .resolve("${project.substringAfter("projects/")}$it.txt")
       .toFile()
-    }
+  return snapshotSuffixes
+    .map { File("$configuredWorkspace/${project.substringAfter("projects/")}$it.txt") }
+}
 
 private fun SnapshotComparisonTest.updateSnapshotFile(snapshotName: String, text: String) {
   getCandidateSnapshotFiles(snapshotName)
@@ -114,3 +119,9 @@ private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
         }
     }
 
+data class ProjectViewSettings(
+  val hideEmptyPackages: Boolean = true,
+  val flattenPackages: Boolean = false
+)
+
+fun Project.dumpAndroidProjectView(): String = dumpAndroidProjectView(initialState = Unit) { _, _ -> Unit }

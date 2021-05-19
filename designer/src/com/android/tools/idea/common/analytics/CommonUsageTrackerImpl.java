@@ -139,6 +139,9 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
           .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
           .setLayoutEditorEvent(builder.build());
 
+        // Add application id if available
+        CommonUsageTrackerKt.setApplicationId(studioEvent, myDesignSurfaceRef.get());
+
         myEventLogger.accept(studioEvent);
       });
     }
@@ -164,7 +167,6 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
   @Override
   public void logRenderResult(@Nullable LayoutEditorRenderResult.Trigger trigger,
                               @NotNull RenderResult result,
-                              long totalRenderTimeMs,
                               boolean wasInflated) {
     // Renders are a quite common event so we sample them
     if (!shouldLog(wasInflated ? LOG_INFLATE_PERCENT : LOG_RENDER_PERCENT)) {
@@ -176,7 +178,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
     logStudioEvent(eventType, (event) -> {
       LayoutEditorRenderResult.Builder builder = LayoutEditorRenderResult.newBuilder()
         .setResultCode(result.getRenderResult().getStatus().ordinal())
-        .setTotalRenderTimeMs(totalRenderTimeMs);
+        .setTotalRenderTimeMs(result.getRenderDuration());
 
       if (trigger != null) {
         builder.setTrigger(trigger);

@@ -76,6 +76,33 @@ public class JavaModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testReadJavaVersionsAssignmentInBlock() throws IOException {
+    isIrrelevantForKotlinScript("Assignment in block already tested");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_ASSIGNMENT_IN_BLOCK);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
+  public void testReadJavaVersionsApplicationInBlock() throws IOException {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_APPLICATION_IN_BLOCK);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
+  public void testReadJavaVersionsNoApplicationAtToplevel() throws IOException {
+    isIrrelevantForKotlinScript("No application statements in KotlinScript");
+    writeToBuildFile(TestFile.READ_JAVA_VERSIONS_NO_APPLICATION_AT_TOPLEVEL);
+    JavaModel java = getGradleBuildModel().java();
+    assertEquals(LanguageLevel.JDK_1_5, java.sourceCompatibility().toLanguageLevel());
+    assertEquals(LanguageLevel.JDK_1_6, java.targetCompatibility().toLanguageLevel());
+  }
+
+  @Test
   public void testReadJavaVersionLiteralFromExtProperty() throws IOException {
     isIrrelevantForKotlinScript("can't assign numbers to language level properties in KotlinScript");
     writeToBuildFile(TestFile.READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY);
@@ -147,8 +174,7 @@ public class JavaModelTest extends GradleFileModelTestCase {
     //   default value and position.
     //
     // I don't believe that the ordering of targetCompatibility and sourceCompatibility in the Dsl output is significant.  This doesn't
-    // test that anyway; the expected files do (and it is a bit weird that the new Groovy ends up before the existing one, but the
-    // opposite in KotlinScript; it is semantically irrelevant, though.
+    // test that anyway; the expected files do.
     PsiElement targetPsi = java.targetCompatibility().getPsiElement();
     PsiElement sourcePsi = java.sourceCompatibility().getPsiElement();
 
@@ -185,12 +211,26 @@ public class JavaModelTest extends GradleFileModelTestCase {
     assertMissingProperty(java.targetCompatibility());
   }
 
+  @Test
+  public void testAddAfterPlugins() throws IOException {
+    writeToBuildFile(TestFile.ADD_AFTER_PLUGINS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.java().sourceCompatibility().setLanguageLevel(LanguageLevel.JDK_1_8);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_AFTER_PLUGINS_EXPECTED);
+    assertEquals(LanguageLevel.JDK_1_8, buildModel.java().sourceCompatibility().toLanguageLevel());
+  }
+
   enum TestFile implements TestFileName {
     READ_JAVA_VERSIONS_AS_NUMBERS("readJavaVersionsAsNumbers"),
     READ_JAVA_VERSIONS_AS_SINGLE_QUOTE_STRINGS("readJavaVersionsAsSingleQuoteStrings"),
     READ_JAVA_VERSIONS_AS_DOUBLE_QUOTE_STRINGS("readJavaVersionsAsDoubleQuoteStrings"),
     READ_JAVA_VERSIONS_AS_REFERENCE_STRING("readJavaVersionsAsReferenceString"),
     READ_JAVA_VERSIONS_AS_QUALIFIED_REFERENCE_STRING("readJavaVersionsAsQualifiedReferenceString"),
+    READ_JAVA_VERSIONS_ASSIGNMENT_IN_BLOCK("readJavaVersionsAssignmentInBlock"),
+    READ_JAVA_VERSIONS_APPLICATION_IN_BLOCK("readJavaVersionsApplicationInBlock"),
+    READ_JAVA_VERSIONS_NO_APPLICATION_AT_TOPLEVEL("readJavaVersionsNoApplicationAtToplevel"),
     READ_JAVA_VERSION_LITERAL_FROM_EXT_PROPERTY("readJavaVersionLiteralFromExtProperty"),
     READ_JAVA_VERSION_REFERENCE_FROM_EXT_PROPERTY("readJavaVersionReferenceFromExtProperty"),
     SET_SOURCE_COMPATIBILITY("setSourceCompatibility"),
@@ -201,6 +241,8 @@ public class JavaModelTest extends GradleFileModelTestCase {
     ADD_NON_EXISTED_LANGUAGE_LEVEL("addNonExistedLanguageLevel"),
     ADD_NON_EXISTED_LANGUAGE_LEVEL_EXPECTED("addNonExistedLanguageLevelExpected"),
     DELETE_LANGUAGE_LEVEL("deleteLanguageLevel"),
+    ADD_AFTER_PLUGINS("addAfterPlugins"),
+    ADD_AFTER_PLUGINS_EXPECTED("addAfterPluginsExpected"),
     ;
     @NotNull private @SystemDependent String path;
     TestFile(@NotNull @SystemDependent String path) {

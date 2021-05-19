@@ -47,7 +47,7 @@ public final class ModuleWizardStepAdapterTest {
   public void setUp(){
     MockitoAnnotations.initMocks(this);
 
-    when(myToWrap.getName()).thenReturn("Dummy Step");
+    when(myToWrap.getName()).thenReturn("Sample Step");
     myStepAdapter = new ModuleWizardStepAdapter(myContext, myToWrap);
   }
 

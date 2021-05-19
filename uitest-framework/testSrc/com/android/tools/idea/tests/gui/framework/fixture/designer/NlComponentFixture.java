@@ -35,7 +35,6 @@ import javax.swing.JMenuItem;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.driver.ComponentDriver;
 import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -51,7 +50,6 @@ public class NlComponentFixture {
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
   private final ComponentDragAndDrop myDragAndDrop;
-  private final ComponentDriver<DesignSurface> myComponentDriver;
   private final SceneComponent mySceneComponent;
 
   public NlComponentFixture(@NotNull Robot robot,
@@ -62,7 +60,6 @@ public class NlComponentFixture {
     mySceneComponent = surface.getScene().getSceneComponent(myComponent);
     mySurface = surface;
     myDragAndDrop = new ComponentDragAndDrop(myRobot);
-    myComponentDriver = new ComponentDriver<>(myRobot);
   }
 
   @Nullable
@@ -190,13 +187,7 @@ public class NlComponentFixture {
 
   @NotNull
   public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
-    SceneView sceneView = mySurface.getFocusedSceneView();
-
-    // Find the position of the baseline target icon and click on it
-    SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
-    myComponentDriver.click(mySurface, new Point(sceneComponent.getCenterX(), sceneComponent.getCenterY()));
-    myComponentDriver.rightClick(mySurface);
-
+    getSceneComponent().rightClick();
     JPopupMenuFixture popupMenuFixture = new JPopupMenuFixture(myRobot, myRobot.findActivePopupMenu());
     popupMenuFixture.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
@@ -206,6 +197,7 @@ public class NlComponentFixture {
     }).click();
 
     Point sourceBaseline = getSceneComponent().getTopCenterPoint();
+    SceneView sceneView = mySurface.getFocusedSceneView();
     sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, NlComponentHelperKt.getBaseline(myComponent)));
     myDragAndDrop.drag(mySurface, sourceBaseline);
     Point destinationBaseline = destination.getSceneComponent().getTopCenterPoint();

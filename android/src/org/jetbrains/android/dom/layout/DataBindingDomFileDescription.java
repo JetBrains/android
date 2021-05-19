@@ -17,23 +17,18 @@ package org.jetbrains.android.dom.layout;
 
 import static com.android.SdkConstants.TAG_LAYOUT;
 
-import com.intellij.openapi.module.Module;
+import com.android.resources.ResourceFolderType;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.SingleRootResourceDomFileDescription;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Data binding root tag: {@code <layout>}
  */
-public class DataBindingDomFileDescription extends LayoutDomFileDescription<Layout> {
+public class DataBindingDomFileDescription extends SingleRootResourceDomFileDescription<Layout> {
   public DataBindingDomFileDescription() {
-    super(Layout.class, TAG_LAYOUT);
-  }
-
-  @Override
-  public boolean checkFile(@NotNull XmlFile file, @Nullable Module module) {
-    return hasDataBindingRootTag(file);
+    super(Layout.class, TAG_LAYOUT, ResourceFolderType.LAYOUT);
   }
 
   public static boolean hasDataBindingRootTag(@NotNull XmlFile file) {

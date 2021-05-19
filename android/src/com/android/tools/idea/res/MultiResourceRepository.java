@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -41,7 +42,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.SmartList;
-import com.intellij.util.containers.ObjectIntHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.AbstractCollection;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -56,7 +57,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Predicate;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -319,16 +319,18 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         // Delete all resources that belonged to unreconciledRepository.
         Predicate<ResourceItem> filter = item -> item.getRepository().equals(unreconciledRepository);
         Set<String> names = myResourceNames.get(unreconciledRepository, type);
-        PerConfigResourceMap perConfigMap = map instanceof PerConfigResourceMap ? (PerConfigResourceMap)map : null;
-        for (String name : names) {
-          if (perConfigMap != null) {
-            perConfigMap.removeIf(name, filter);
-          }
-          else {
-            List<ResourceItem> items = map.get(name);
-            items.removeIf(filter);
-            if (items.isEmpty()) {
-              map.removeAll(name);
+        if (names != null) {
+          PerConfigResourceMap perConfigMap = map instanceof PerConfigResourceMap ? (PerConfigResourceMap)map : null;
+          for (String name : names) {
+            if (perConfigMap != null) {
+              perConfigMap.removeIf(name, filter);
+            }
+            else {
+              List<ResourceItem> items = map.get(name);
+              items.removeIf(filter);
+              if (items.isEmpty()) {
+                map.removeAll(name);
+              }
             }
           }
         }
@@ -497,10 +499,10 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   private static class ResourcePriorityComparator implements Comparator<ResourceItem> {
-    private final ObjectIntHashMap<SingleNamespaceResourceRepository> repositoryOrdering;
+    private final Object2IntOpenHashMap<SingleNamespaceResourceRepository> repositoryOrdering;
 
     ResourcePriorityComparator(@NotNull Collection<SingleNamespaceResourceRepository> repositories) {
-      repositoryOrdering = new ObjectIntHashMap<>(repositories.size());
+      repositoryOrdering = new Object2IntOpenHashMap<>(repositories.size());
       int i = 0;
       for (SingleNamespaceResourceRepository repository : repositories) {
         repositoryOrdering.put(repository, i++);
@@ -513,7 +515,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     }
 
     private int getOrdering(@NotNull ResourceItem item) {
-      int ordering = repositoryOrdering.get(item.getRepository());
+      int ordering = repositoryOrdering.getInt(item.getRepository());
       assert ordering >= 0;
       return ordering;
     }
@@ -635,9 +637,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     public boolean put(@Nullable String key, @Nullable ResourceItem item) {
       List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
       int oldSize = list.size();
-      boolean added = list.add(item);
+      list.add(item);
       mySize += list.size() - oldSize;
-      return added;
+      return true;
     }
 
     @Override
@@ -691,9 +693,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
     /**
      * This class has a split personality. The class may store multiple resource items for the same
-     * folder configuration, but for callers of non-mutating methods ({@link #get(int),
-     * {@link #size(), {@link java.util.Iterator#next(), etc} it exposes at most one resource item
-     * per folder configuration. Which of the resource items with the same folder configuration is
+     * folder configuration, but for callers of non-mutating methods ({@link #get(int)},
+     * {@link #size()}, {@link Iterator#next()}, etc) it exposes at most one resource item per
+     * folder configuration. Which of the resource items with the same folder configuration is
      * visible to non-mutating methods is determined by {@link ResourcePriorityComparator}.
      */
     private class PerConfigResourceList extends AbstractList<ResourceItem> {
@@ -742,13 +744,14 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
         }
         else {
           List<ResourceItem> nested = myResourceItems.get(index);
-          for (int i = 0; i < nested.size(); i++) {
-            if (myComparator.myPriorityComparator.compare(item, nested.get(i)) <= 0) {
-              nested.add(i, item);
-              return index;
+          // Iterate backwards since it is likely to require less iterations.
+          int i = nested.size();
+          while (--i >= 0) {
+            if (myComparator.myPriorityComparator.compare(item, nested.get(i)) > 0) {
+              break;
             }
           }
-          nested.add(item);
+          nested.add(i + 1, item);
         }
         return index;
       }
@@ -883,7 +886,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       }
 
       private class ValuesIterator implements Iterator<ResourceItem> {
-        private Iterator<List<ResourceItem>> myOuterCursor = myMap.values().iterator();
+        private final Iterator<List<ResourceItem>> myOuterCursor = myMap.values().iterator();
         private List<ResourceItem> myCurrentList;
         private int myInnerCursor;
 

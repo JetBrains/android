@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.ddms.DevicePropertyUtil
 import com.android.tools.idea.layoutinspector.transport.InspectorProcessManager
+import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Common
 import com.android.utils.HashCodes
@@ -135,7 +136,8 @@ class LegacyProcessManager(
     when {
       timesAttempted > MAX_RETRY_COUNT -> return
       iDevice.state == IDevice.DeviceState.DISCONNECTED -> return
-      iDevice.arePropertiesSet() -> devices.getOrPut(iDevice.serialNumber) { DeviceSpec(iDevice) }
+      iDevice.arePropertiesSet() && (iDevice.avdName != null || !iDevice.isEmulator || timesAttempted == MAX_RETRY_COUNT) ->
+        devices.getOrPut(iDevice.serialNumber) { DeviceSpec(iDevice) }
       else -> scheduler.schedule({ addDeviceWhenPropertiesAreLoaded(iDevice, timesAttempted + 1) }, 50, TimeUnit.MILLISECONDS)
     }
   }
@@ -261,8 +263,8 @@ class LegacyProcessManager(
         codename = iDevice.version.codename ?: ""
         featureLevel = iDevice.version.featureLevel
         isEmulator = iDevice.isEmulator
-        manufacturer = DevicePropertyUtil.getManufacturer(iDevice, "")
-        model = iDevice.avdName ?: DevicePropertyUtil.getModel(iDevice, "")
+        manufacturer = TransportServiceProxy.getDeviceManufacturer(iDevice)
+        model = TransportServiceProxy.getDeviceModel(iDevice)
         serial = iDevice.serialNumber
         version = SdkVersionInfo.getVersionString(iDevice.version.apiLevel)
       }.build()

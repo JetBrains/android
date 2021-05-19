@@ -22,17 +22,14 @@ import com.android.tools.idea.concurrency.cancelOnDispose
 import com.android.tools.idea.concurrency.finallySync
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.concurrency.transformAsync
-import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.DatabaseInspectorAnalyticsTracker
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
-import com.android.tools.idea.sqlite.model.transform
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
 import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
@@ -93,6 +90,11 @@ class TableController(
   private var liveUpdatesEnabled = false
 
   fun setUp(): ListenableFuture<Unit> {
+    if (databaseId !is SqliteDatabaseId.LiveSqliteDatabaseId) {
+      view.setLiveUpdatesButtonState(false)
+      view.setRefreshButtonState(false)
+    }
+
     view.startTableLoading()
     return databaseRepository.runQuery(databaseId, sqliteStatement).transformAsync(edtExecutor) { newResultSet ->
       view.setEditable(isEditable())
@@ -244,31 +246,20 @@ class TableController(
     return future
   }
 
-  private fun isEditable() = tableSupplier() != null && !liveUpdatesEnabled && !(tableSupplier()?.isView ?: false)
+  private fun isEditable() =
+    tableSupplier() != null &&
+    !liveUpdatesEnabled &&
+    !(tableSupplier()?.isView ?: false) &&
+    databaseId is SqliteDatabaseId.LiveSqliteDatabaseId
 
   private inner class TableViewListenerImpl : TableView.Listener {
     override fun toggleOrderByColumnInvoked(viewColumn: ViewColumn) {
-      orderBy = orderBy.nextState(viewColumn)
-
-      val order = when(orderBy) {
-        is OrderBy.Asc -> "ASC"
-        is OrderBy.Desc -> "DESC"
-        is OrderBy.NotOrdered -> ""
-      }
-
-      // TODO (b/157633844) move sqlite code into repository
-      val selectOrderByStatement = when (orderBy) {
-        is OrderBy.Asc, is OrderBy.Desc -> sqliteStatement.transform(SqliteStatementType.SELECT) {
-          "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(viewColumn.name)} $order"
-        }
-        is OrderBy.NotOrdered -> sqliteStatement
-      }
+      orderBy = orderBy.nextState(viewColumn.name)
 
       Disposer.dispose(resultSet)
-
       view.startTableLoading()
-      databaseRepository
-        .runQuery(databaseId, selectOrderByStatement)
+
+      databaseRepository.selectOrdered(databaseId, sqliteStatement, orderBy)
         .transform(edtExecutor) { newResultSet ->
           if (Disposer.isDisposed(this@TableController)) {
             newResultSet.dispose()
@@ -286,22 +277,34 @@ class TableController(
     }
 
     override fun cancelRunningStatementInvoked() {
+      val connectivityState = when (databaseId) {
+        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+      }
+
       databaseInspectorAnalyticsTracker.trackStatementExecutionCanceled(
+        connectivityState,
         AppInspectionEvent.DatabaseInspectorEvent.StatementContext.UNKNOWN_STATEMENT_CONTEXT
       )
       // Closing a tab triggers its dispose method, which cancels the future, stopping the running query.
       closeTabInvoked()
     }
 
-    override fun rowCountChanged(rowCount: Int) {
-      if (rowCount < 0) {
-        view.reportError("Row count must be non-negative", null)
-        return
+    override fun rowCountChanged(rowCount: String) {
+      val errorMessage = "Row count must be a positive integer."
+      try {
+        val intRowCount = rowCount.toInt()
+        if (intRowCount <= 0) {
+          view.reportError(errorMessage, null)
+          return
+        }
+
+        rowBatchSize = intRowCount
+        updateDataAndButtonsWithLoadingScreens()
+
+      } catch (e: NumberFormatException) {
+        view.reportError(errorMessage, null)
       }
-
-      rowBatchSize = rowCount
-
-      updateDataAndButtonsWithLoadingScreens()
     }
 
     override fun loadPreviousRowsInvoked() {

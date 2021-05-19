@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
@@ -46,10 +47,14 @@ import com.android.tools.idea.naveditor.model.isSelfAction
 import com.android.tools.idea.naveditor.model.popUpTo
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory
+import com.android.tools.idea.naveditor.scene.hitproviders.NavRegularActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavActionSourceHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavDestinationHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavHorizontalActionHitProvider
+import com.android.tools.idea.naveditor.scene.hitproviders.NavSelfActionHitProvider
 import com.android.tools.idea.naveditor.scene.layout.ElkLayeredLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm
 import com.android.tools.idea.naveditor.scene.layout.NewDestinationLayoutAlgorithm
-import com.android.tools.idea.naveditor.scene.targets.NavActionTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
@@ -93,7 +98,7 @@ private val ACTION_HORIZONTAL_PADDING = scaledAndroidLength(8f)
 open class NavSceneManager(
   model: NlModel,
   surface: NavDesignSurface
-) : SceneManager(model, surface, false, NavSceneComponentHierarchyProvider()) {
+) : SceneManager(model, surface, false, NavSceneComponentHierarchyProvider(), null) {
 
   private val layoutAlgorithms = listOf(
     NewDestinationLayoutAlgorithm(),
@@ -109,7 +114,7 @@ open class NavSceneManager(
     createSceneView()
     updateHierarchy(getModel(), null)
     getModel().addListener(ModelChangeListener())
-    designSurface.selectionModel.addListener { _, _ -> scene.needsRebuildList() }
+    designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
   }
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface
@@ -292,7 +297,7 @@ open class NavSceneManager(
 
   override fun getDefaultProperties() = mapOf<Any, Map<ResourceReference, ResourceValue>>()
 
-  override fun getDefaultStyles() = mapOf<Any, String>()
+  override fun getDefaultStyles() = mapOf<Any, ResourceReference>()
 
   private inner class ModelChangeListener : ModelListener {
     override fun modelDerivedDataChanged(model: NlModel) {
@@ -313,21 +318,21 @@ open class NavSceneManager(
         scene.isAnimated = previous
       }
     }
-
-    override fun modelActivated(model: NlModel) {
-      updateHierarchy(model, model)
-      requestRender()
-    }
-
-    override fun modelDeactivated(model: NlModel) {
-    }
   }
 
   public override fun getHitProvider(component: NlComponent): HitProvider {
     return when {
       component.supportsActions -> NavActionSourceHitProvider
-      isHorizontalAction(component) -> NavHorizontalActionHitProvider
+      component.isAction -> getActionHitProvider(component)
       else -> NavDestinationHitProvider
+    }
+  }
+
+  private fun getActionHitProvider(component: NlComponent): HitProvider {
+    return when (component.getActionType(root)) {
+      ActionType.GLOBAL, ActionType.EXIT -> NavHorizontalActionHitProvider
+      ActionType.SELF -> NavSelfActionHitProvider
+      else -> NavRegularActionHitProvider
     }
   }
 
@@ -516,10 +521,13 @@ open class NavSceneManager(
           sceneComponent.setSize(x.toInt(), y.toInt())
         }
       }
-      else if (sceneComponent.nlComponent.isAction) {
-        sceneComponent.setTargetProvider(NavActionTargetProvider)
-        sceneComponent.updateTargets()
-      }
+    }
+  }
+
+  override fun activate(source: Any): Boolean = super.activate(source).also {
+    if (it) {
+      updateHierarchy(model, model)
+      requestRender()
     }
   }
 }

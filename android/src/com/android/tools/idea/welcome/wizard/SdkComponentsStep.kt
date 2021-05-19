@@ -18,14 +18,19 @@ package com.android.tools.idea.welcome.wizard
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.io.FileOpUtils
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.progress.StudioProgressRunner
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.ui.validation.validators.PathValidator
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.welcome.install.ComponentInstaller
 import com.android.tools.idea.welcome.install.ComponentTreeNode
+import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -52,7 +57,6 @@ import java.awt.event.KeyEvent
 import java.io.File
 import javax.accessibility.AccessibleContext
 import javax.swing.AbstractCellEditor
-import javax.swing.BorderFactory
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -67,8 +71,6 @@ import javax.swing.table.TableCellRenderer
 
 /**
  * Wizard page for selecting SDK components to download.
- *
- * FIXME(qumeric): currently far from ready. Probably I need to use Validator Panel here and maybe Validator<*> as well.
  */
 class SdkComponentsStep(
   model: FirstRunModel
@@ -81,18 +83,24 @@ class SdkComponentsStep(
       cellRenderer = SdkComponentRenderer()
       cellEditor = SdkComponentRenderer()
     }
-  }
-  private var userEditedPath = false
-  private var wasVisible = false
-  private var loading: Boolean = false
 
-  private val componentsSize: Long = 1 // FIXME
-    //get() = rootNode.childrenToInstall.map(InstallableComponent::downloadSize).sum()
+    selectionModel.addListSelectionListener {
+      componentDescription.text = "".takeIf { selectedRow < 0 } ?: tableModel.getComponentDescription(selectedRow)
+      updateDiskSizes()
+    }
+  }
+  private val componentsSize: Long
+    get() = model.componentTree.childrenToInstall.map(InstallableComponent::downloadSize).sum()
 
   private val instructionsLabel = JBLabel("Check the components you want to update/install. Click Next to continue.")
   private val contentPanel = JBLoadingPanel(BorderLayout(), this).apply {
     contentPanel!!.add(componentsTable, BorderLayout.CENTER)
   }
+
+  private var componentDescription = JTextPane().apply {
+    isEditable = false
+  }
+
   private var body = Splitter(false, 0.5f, 0.2f, 0.8f).apply {
     isShowDividerIcon = false
     isShowDividerControls = false
@@ -100,17 +108,11 @@ class SdkComponentsStep(
     secondComponent = ScrollPaneFactory.createScrollPane(componentDescription, false)
   }
 
-  private var componentDescription = JTextPane().apply {
-    font = UIUtil.getLabelFont()
-    isEditable = false
-    border = BorderFactory.createEmptyBorder()
-  }
-  // FIXME(qumeric) check if it should be BorderLayoutPanel() (was that in layout but custom-create=true)
+
   private val sdkLocationLabel = JBLabel("Android SDK Location:")
 
-  // TODO(qumeric): size shouldn't be hardcoded
-  private val neededSpace = JBLabel("5.1Gb")
-  private val availableSpace = JBLabel("23.0Gb")
+  private val neededSpace = JBLabel("Loading...")
+  private val availableSpace = JBLabel("Loading...")
   private val innerPanel = panel {
     row("Total download size: ") {
       neededSpace()
@@ -120,7 +122,7 @@ class SdkComponentsStep(
     }
   }
 
-  private val path = TextFieldWithBrowseButton().apply {
+  private val sdkPath = TextFieldWithBrowseButton().apply {
     text = model.sdkLocation.toString()
   }
   private val errorMessage = JBLabel("Label")
@@ -139,99 +141,82 @@ class SdkComponentsStep(
       sdkLocationLabel()
     }
     row {
-      path()
+      sdkPath()
     }
   }
 
-  val root = wrappedWithVScroll(outerPanel)
+  private val validatorPanel: ValidatorPanel = ValidatorPanel(this, outerPanel)
+  private val root = wrapWithVScroll(validatorPanel)
+
+  private fun updateDiskSizes() {
+    availableSpace.text = getDiskSpace(sdkPath.text)
+    neededSpace.text = getSizeLabel(componentsSize)
+  }
 
   init {
     // Since we create and initialize a new AndroidSdkHandler/RepoManager for every (partial)
     // path that's entered, disallow direct editing of the path.
-    path.isEditable = false
+    sdkPath.isEditable = false
 
-    path.addBrowseFolderListener(
+    sdkPath.addBrowseFolderListener(
       "Android SDK", "Select Android SDK install directory", null,
       FileChooserDescriptorFactory.createSingleFolderDescriptor())
     val smallLabelFont = JBUI.Fonts.smallFont()
     neededSpace.font = smallLabelFont
     availableSpace.font = smallLabelFont
     errorMessage.text = null
+
+    validatorPanel.apply {
+      registerValidator(TextProperty(sdkPath), SdkPathValidator())
+    }
+
+    updateDiskSizes()
   }
 
   override fun getComponent(): JComponent = root
 
-  // TODO replace with ValidatorPanel
-  fun validate(): Boolean {
-    //val path = sdkDownloadPath
+  inner class SdkPathValidator : Validator<String> {
+    override fun validate(value: String): Validator.Result {
+      val defaultValidatorResult = PathValidator.forAndroidSdkLocation().validate(File(value))
 
-    /*sdkDirectoryValidationResult = validateLocation(path, FIELD_SDK_LOCATION, false, WritableCheckMode.NOT_WRITABLE_IS_WARNING)
+      if (defaultValidatorResult.severity == Validator.Severity.ERROR) {
+        return defaultValidatorResult
+      }
 
-    val ok = sdkDirectoryValidationResult!!.isOk
-    var status = sdkDirectoryValidationResult!!.status
-    var message: String? = if (ok) null else sdkDirectoryValidationResult!!.formattedMessage
-
-    if (ok) {
+      val path = sdkPath.text
       val filesystem = getTargetFilesystem(path)
 
-      when {
-        !(filesystem == null || filesystem.freeSpace > componentsSize) -> {
-          status = Status.ERROR
-          message = "Target drive does not have enough free space."
-        }
+      if (!(filesystem == null || filesystem.freeSpace > componentsSize)) {
+        return Validator.Result(Validator.Severity.ERROR, "Target drive does not have enough free space.")
+      }
+
+      if (defaultValidatorResult.severity == Validator.Severity.WARNING) {
+        return defaultValidatorResult
+      }
+
+      return when {
         isNonEmptyNonSdk(path) -> {
-          status = Status.WARN
-          message = "Target folder is neither empty nor does it point to an existing SDK installation."
+          Validator.Result(Validator.Severity.WARNING, "Target folder is neither empty nor does it point to an existing SDK installation.")
         }
         isExistingSdk(path) -> {
-          status = Status.WARN
-          message = "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components."
+          Validator.Result(
+            Validator.Severity.WARNING,
+            "An existing Android SDK was detected. The setup wizard will only download missing or outdated SDK components."
+          )
         }
+        else -> Validator.Result.OK
       }
     }
-
-    errorMessage.icon = when (status) {
-      Status.WARN -> AllIcons.General.BalloonWarning
-      Status.ERROR -> AllIcons.General.BalloonError
-      else -> null
-    }*/
-
-    // TODO setErrorHtml(if (userEditedPath) message else null)
-
-    return true
   }
 
-  /*override fun deriveValues(modified: Set<ScopedStateStore.Key<*>>) {
-    super.deriveValues(modified)
-    if (modified.contains(sdkDownloadPathKey) || rootNode.componentStateChanged(modified)) {
-      availableSpace.text = getDiskSpace(sdkDownloadPath)
-      neededSpace.text = "Total download size: $componentsSize"
-    }
-  }*/
 
+  override fun getPreferredFocusComponent(): JComponent? = componentsTable
 
-  // TODO(qumeric): override fun getMessageLabel(): JLabel = errorMessage
-
-  // TODO(qumeric): override fun getPreferredFocusedComponent(): JComponent? = componentsTable
-
-  override fun shouldShow(): Boolean {
-    if (wasVisible) {
-      // If we showed it once (e.g. if we had a invalid path on the standard setup path) we want to be sure it shows again (e.g. if we
-      // fix the path and then go backward and forward). Otherwise the experience is confusing.
-      return true
-    }
-      /*else if (model.mode.hasValidSdkLocation()) {
-      return false
-    }*/
-
-    return true
-  }
-
-  // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid reduce freezes?
+  // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
   lateinit var componentInstaller: ComponentInstaller
 
- init {
-   val localHandler = model.localHandler
+  init {
+    val localHandler = model.localHandler
     //if (!model.sdkExists) {
     //  break // TODO(qumeric): is it correct?
     //}
@@ -253,11 +238,7 @@ class SdkComponentsStep(
   }
 
   private fun loadingError() {
-    // TODO
-  }
-
-  override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    return model.componentTree.steps
+    componentDescription.text = "There was an error while loading a list of components. Please try to restart Android Studio."
   }
 
   private inner class SdkComponentRenderer : AbstractCellEditor(), TableCellRenderer, TableCellEditor {
@@ -276,6 +257,7 @@ class SdkComponentsStep(
           // so we need to call "setValueAt" manually.
           tableModel.setValueAt(isSelected, row, 0)
         }
+        updateDiskSizes()
       }
     }
     private var emptyBorder: Border? = null
@@ -403,7 +385,8 @@ class SdkComponentsStep(
     }
 
     private fun traverse(
-      children: Collection<ComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<ComponentTreeNode, Int>>) {
+      children: Collection<ComponentTreeNode>, indent: Int, components: ImmutableList.Builder<Pair<ComponentTreeNode, Int>>
+    ) {
       for (child in children) {
         components.add(Pair.create(child, indent))
         traverse(child.immediateChildren, indent + 1, components)
@@ -434,8 +417,6 @@ class SdkComponentsStep(
 }
 
 
-const val FIELD_SDK_LOCATION = "SDK location"
-
 // TODO(qumeric): make private
 @Contract("null->null")
 fun getExistingParentFile(path: String?): File? {
@@ -452,10 +433,10 @@ fun getDiskSpace(path: String?): String {
   val available = getSizeLabel(file.freeSpace)
   return if (SystemInfo.isWindows) {
     val driveName = generateSequence(file, File::getParentFile).last().name
-    "Disk space available on drive $driveName: $available"
+    "$available (drive $driveName)"
   }
   else {
-    "Available disk space: $available"
+    available.toString()
   }
 }
 

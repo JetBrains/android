@@ -66,7 +66,7 @@ public class CpuThreadsTooltip extends AspectModel<CpuThreadsTooltip.Aspect> imp
 
     int threadStateIndex = Collections.binarySearch(
       series,
-      new SeriesData<ThreadState>((long)tooltipRange.getMin(), null), // Dummy object so we can compare.
+      new SeriesData<ThreadState>((long)tooltipRange.getMin(), null), // Sample object so we can compare.
       Comparator.comparingDouble(seriesData -> seriesData.x)
     );
     // Collections.binarySearch returns (-(insertion point)-1) if not found, in which case we want to find the largest value smaller than

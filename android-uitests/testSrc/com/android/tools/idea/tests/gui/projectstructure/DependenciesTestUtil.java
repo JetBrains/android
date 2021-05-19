@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
-import static com.intellij.psi.impl.DebugUtil.sleep;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewJavaClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
@@ -82,7 +80,7 @@ public class DependenciesTestUtil {
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .clickNextToJavaLibrary()
+      .clickNextToPureLibrary()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
   }
@@ -96,7 +94,7 @@ public class DependenciesTestUtil {
       .enterText("\n\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
       .moveBetween("public class " + CLASS_NAME_1 + " {", "")
       .enterText("\n" + CLASS_NAME_2 + " className2 = new " + CLASS_NAME_2 + "();");
-    GradleInvocationResult result = ideFrame.invokeProjectMake();
+    BuildStatus result = ideFrame.invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
 
     // Accessing both Library1 and Library2 classes in app module, and verify.

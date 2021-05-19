@@ -374,6 +374,7 @@ class LookupTest {
     field.text = "a17"
     lookup.showLookup(field.text)
     assertThat(ui.elements()).containsExactly("@string/app_name17")
+    assertThat(ui.visible).isTrue()
   }
 
   class TestUI : LookupUI {

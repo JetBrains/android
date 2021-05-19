@@ -18,7 +18,6 @@ package com.android.tools.idea.project;
 import static com.android.tools.idea.apk.debugging.ApkDebugging.isMarkedAsApkDebuggingProject;
 import static com.android.tools.idea.apk.debugging.ApkDebugging.markAsApkDebuggingProject;
 
-import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModel;
@@ -45,7 +44,7 @@ public class AndroidProjectInfo {
   /**
    * Returns all modules of a given type in the project
    *
-   * @param projectType the Project type as an integer given in {@link AndroidProject}
+   * @param projectType the Project type as an integer given in {@link IdeAndroidProject}
    * @return An array of all Modules in the project of that type
    */
   @NotNull
@@ -58,10 +57,10 @@ public class AndroidProjectInfo {
   }
 
   /**
-   * Indicates whether the given project has at least one module backed by an {@link AndroidProject}. To check if a project is a
+   * Indicates whether the given project has at least one module backed by an {@link IdeAndroidProject}. To check if a project is a
    * "Gradle project," please use the method {@link GradleProjectInfo#isBuildWithGradle()}.
    *
-   * @return {@code true} if the project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
+   * @return {@code true} if the project has one or more modules backed by an {@link IdeAndroidProject}; {@code false} otherwise.
    */
   public boolean requiresAndroidModel() {
     List<AndroidFacet> androidFacets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);

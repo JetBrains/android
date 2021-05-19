@@ -34,9 +34,6 @@
     <notificationGroup id="Database Inspector" displayType="BALLOON"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.tools.idea.explorer">
-    <fileHandler implementation="com.android.tools.idea.sqlite.fileType.SqliteFileHandler"/>
-  </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.lang">
     <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />
   </extensions>

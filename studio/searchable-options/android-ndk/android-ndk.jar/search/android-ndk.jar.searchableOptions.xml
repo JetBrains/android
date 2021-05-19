@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="editor.preferences.folding" configurable_name="Code Folding">
+    <option name="" hit=" JNI-mangled function name " />
+    <option name="function" hit=" JNI-mangled function name " />
+    <option name="jni-mangled" hit=" JNI-mangled function name " />
+    <option name="name" hit=" JNI-mangled function name " />
+  </configurable>
+</options>
+

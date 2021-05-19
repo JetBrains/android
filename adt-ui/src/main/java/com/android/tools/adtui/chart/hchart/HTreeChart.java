@@ -67,9 +67,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   private static final String ACTION_MOVE_LEFT = "move left";
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
-  private static final int PADDING = 1;
+  @VisibleForTesting
+  static final int PADDING = 1;
   private static final int INITIAL_Y_POSITION = 0;
-  private static final int HEIGHT_PADDING = 15;
+  @VisibleForTesting
+  static final int HEIGHT_PADDING = 15;
   private static final int MOUSE_WHEEL_SCROLL_FACTOR = 8;
 
   private final Orientation myOrientation;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.startup;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_COMPILE_PROJECT;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_MAKE_MODULE;
@@ -24,23 +23,26 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.run.deployment.ModifyDeviceSetAction;
-import com.android.tools.idea.run.deployment.MultipleDevicesAction;
+import com.android.tools.idea.progress.StudioProgressManagerAdapter;
 import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
+import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.junit.JUnitConfigurationProducer;
 import com.intellij.execution.junit.JUnitConfigurationType;
+import com.intellij.ide.ApplicationLoadListener;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
@@ -69,8 +71,6 @@ import java.util.Arrays;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
-import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer;
-import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
@@ -81,6 +81,16 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtensi
  * </p>
  */
 public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
+
+  public static class AndroidStudioLoadListener implements ApplicationLoadListener {
+
+    @Override
+    public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
+      AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
+      StudioProgressManagerAdapter.initialize();
+    }
+  }
+
   @Override
   public void customize(@NotNull ActionManager actionManager) {
     checkInstallation();
@@ -114,13 +124,8 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static void setUpDeviceComboBoxActions(@NotNull ActionManager manager) {
-    if (StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get()) {
-      Actions.hideAction(manager, MultipleDevicesAction.ID);
-      Actions.hideAction(manager, ModifyDeviceSetAction.ID);
-    }
-    else {
-      Actions.hideAction(manager, RunOnMultipleDevicesAction.ID);
-    }
+    String id = StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get() ? SelectMultipleDevicesAction.ID : RunOnMultipleDevicesAction.ID;
+    Actions.hideAction(manager, id);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
@@ -136,7 +141,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-//    UsageStatisticsPersistenceComponent.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a
@@ -149,7 +154,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       // NOTE: in this case the metrics logic will be left in the opted-out state
       // and no metrics are ever sent.
       if (!application.isUnitTestMode() && !application.isHeadlessEnvironment() &&
-        !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
+          !Boolean.getBoolean("disable.android.analytics.consent.dialog.for.test")) {
         ApplicationManager.getApplication().invokeLater(() -> AppUIUtil.showConsentsAgreementIfNeeded(getLog()));
       }
     }
@@ -165,11 +170,15 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static AndroidStudioEvent.IdeBrand getIdeBrand() {
+    if (IdeInfo.isGameTool()) {
+      return AndroidStudioEvent.IdeBrand.GAME_TOOLS;
+    }
     // The ASwB plugin name depends on the bundling scheme, in development builds it is "Android Studio with Blaze", but in release
-    // builds, it is just "Blaze"
-    return Arrays.stream(PluginManagerCore.getPlugins()).anyMatch(plugin -> plugin.isBundled() && plugin.getName().contains("Blaze"))
-      ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE
-      : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
+    // builds, it is just "G3Plugins"
+    boolean isAswb = Arrays.stream(PluginManagerCore.getPlugins())
+      .filter(plugin -> plugin.isBundled())
+      .anyMatch(plugin -> plugin.getName().contains("G3Plugins") || plugin.getName().contains("Blaze"));
+    return isAswb ? AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE : AndroidStudioEvent.IdeBrand.ANDROID_STUDIO;
   }
 
   private static void checkInstallation() {
@@ -265,7 +274,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
   }
 
   private static void disableKaptImportHandlers() {
-    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint(null);
+    ExtensionPoint<GradleProjectResolverExtension> resolverExtensionPoint = GradleProjectResolverExtension.EP_NAME.getPoint();
     resolverExtensionPoint.unregisterExtension(KaptProjectResolverExtension.class);
   }
 
@@ -275,10 +284,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint();
-    configurationProducerExtensionPoint.unregisterExtension(AllInPackageGradleConfigurationProducer.class);
-    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
-    configurationProducerExtensionPoint.unregisterExtension(TestClassGradleConfigurationProducer.class);
-
     //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer

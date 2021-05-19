@@ -47,7 +47,6 @@ import static com.android.xml.AndroidManifest.NODE_SERVICE;
 import static com.android.xml.AndroidManifest.NODE_USES_SDK;
 import static com.android.xml.AndroidManifest.VALUE_PARENT_ACTIVITY;
 
-import com.android.builder.model.AaptOptions;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -234,9 +233,9 @@ class MergedManifestSnapshotFactory {
         throw new MergedManifestException.MissingAttribute(TAG_MANIFEST, null, ATTRIBUTE_PACKAGE, mergedManifestInfo);
       }
 
-      AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
+      Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
       ResourceNamespace namespace =
-        namespacing == AaptOptions.Namespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
+        namespacing == Namespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
 
       String versionCodeStr = getAttributeValue(root, ANDROID_URI, ATTR_VERSION_CODE);
       Integer versionCode = null;

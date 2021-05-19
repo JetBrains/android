@@ -43,7 +43,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
-import com.intellij.testFramework.rules.TempDirectory
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
@@ -75,12 +74,11 @@ import kotlin.streams.toList
 @RunsInEdt
 class EmulatorViewTest {
   private val projectRule = AndroidProjectRule.inMemory()
-  private val tempDirectory = TempDirectory()
-  private val emulatorRule = FakeEmulatorRule(tempDirectory)
+  private val emulatorRule = FakeEmulatorRule()
   private var nullableEmulator: FakeEmulator? = null
   private val filesOpened = mutableListOf<VirtualFile>()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(tempDirectory).around(emulatorRule).around(EdtRule())
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
   private var emulator: FakeEmulator
     get() = nullableEmulator ?: throw IllegalStateException()
@@ -122,7 +120,7 @@ class EmulatorViewTest {
       dispatchAllInvocationEvents()
       frameNumber = view.frameNumber
     }
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 363 height: 547")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 363 height: 547")
     assertAppearance(ui, "image1")
     assertThat(call.completion.isCancelled).isFalse() // The call has not been cancelled.
     assertThat(call.completion.isDone).isFalse() // The call is still ongoing.
@@ -132,7 +130,7 @@ class EmulatorViewTest {
     container.size = Dimension(250, 200)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertAppearance(ui, "image2")
     assertThat(previousCall.completion.isCancelled).isTrue() // The previous call is cancelled.
     assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
@@ -149,7 +147,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.IN)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 423 height: 740")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 423 height: 740")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -158,7 +156,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.ACTUAL)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 1440 height: 2960")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 1440 height: 2960")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isFalse()
@@ -167,7 +165,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.OUT)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 720 height: 1481")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 720 height: 1481")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -176,7 +174,7 @@ class EmulatorViewTest {
     view.zoom(ZoomType.FIT)
     ui.layoutAndDispatchEvents()
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -188,7 +186,7 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 90.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 456 height: 363")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 456 height: 363")
     assertAppearance(ui, "image3")
 
     // Check mouse input in landscape orientation.
@@ -262,7 +260,7 @@ class EmulatorViewTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
     assertThat(shortDebugString(call.request)).isEqualTo("target: ROTATION value { data: 0.0 data: 0.0 data: 0.0 }")
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 454 height: 364")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 454 height: 364")
     assertAppearance(ui, "image2")
 
     // Check mouse input in portrait orientation.
@@ -279,10 +277,10 @@ class EmulatorViewTest {
     ui.mouse.press(50, 7)
     ui.mouse.release()
 
-    // Check device frame cropping.
-    view.cropFrame = true
+    // Check hiding the device frame.
+    view.deviceFrameVisible = false
     call = getStreamScreenshotCallAndWaitForFrame(view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGBA8888 width: 500 height: 400")
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 500 height: 400")
     assertAppearance(ui, "image4")
 
     // Check clipboard synchronization.
@@ -292,7 +290,7 @@ class EmulatorViewTest {
     for (listener in view.focusListeners) {
       listener.focusGained(event)
     }
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    call = emulator.getNextGrpcCall(3, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setClipboard")
     assertThat(shortDebugString(call.request)).isEqualTo("""text: "host clipboard"""")
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -300,7 +298,7 @@ class EmulatorViewTest {
     call.waitForResponse(2, TimeUnit.SECONDS)
     emulator.clipboard = "device clipboard"
     call.waitForResponse(2, TimeUnit.SECONDS)
-    waitForCondition(5, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
   }
 
   @Test
@@ -357,14 +355,14 @@ class EmulatorViewTest {
 
   private fun createEmulatorView(): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = tempDirectory.root.toPath()
+    val tempFolder = emulatorRule.root.toPath()
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), 8554)
     emulator.start()
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val view = EmulatorView(emulatorController, testRootDisposable, false)
-    waitForCondition(3, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    val view = EmulatorView(emulatorController, testRootDisposable, true)
+    waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     emulator.getNextGrpcCall(2, TimeUnit.SECONDS) // Skip the initial "getVmState" call.
     return view
   }

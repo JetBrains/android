@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.COMPOSE;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.ML_MODEL_BINDING;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildFeaturesModelImpl.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -39,6 +40,7 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<Pair<String,Integer>, ModelEffectDescription> ktsToModelNameMap = Stream.of(new Object[][]{
     {"compose", property, COMPOSE, VAR},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
+    {"viewBinding", property, VIEW_BINDING, VAR},
   }).collect(toModelMap());
 
   @NotNull
@@ -47,6 +49,8 @@ public final class BuildFeaturesDslElement extends GradleDslBlockElement {
     {"compose", exactly(1), COMPOSE, SET},
     {"mlModelBinding", property, ML_MODEL_BINDING, VAR},
     {"mlModelBinding", exactly(1), ML_MODEL_BINDING, SET},
+    {"viewBinding", property, VIEW_BINDING, VAR},
+    {"viewBinding", exactly(1), VIEW_BINDING, SET},
   }).collect(toModelMap());
   public static final PropertiesElementDescription<BuildFeaturesDslElement> BUILD_FEATURES =
     new PropertiesElementDescription<>("buildFeatures", BuildFeaturesDslElement.class, BuildFeaturesDslElement::new);

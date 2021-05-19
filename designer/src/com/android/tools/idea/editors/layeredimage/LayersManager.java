@@ -40,7 +40,7 @@ public final class LayersManager extends NlAbstractWindowManager {
 
   @NotNull
   public static LayersManager get(@NotNull Project project) {
-    return project.getComponent(LayersManager.class);
+    return project.getService(LayersManager.class);
   }
 
   @Override

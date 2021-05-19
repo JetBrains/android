@@ -46,8 +46,8 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
@@ -182,7 +182,8 @@ open class NelePropertiesModel(
     @Suppress("DEPRECATION")
     property.components.forEach { it.snapshot?.setAttribute(property.name, property.namespace, null, newValue) }
 
-    TransactionGuard.submitTransaction(this, Runnable {
+
+    ApplicationManager.getApplication().invokeLater(Runnable {
       NlWriteCommandActionUtil.run(property.components, "Set $componentName.${property.name} to $newValue") {
         property.components.forEach { it.setAttribute(property.namespace, property.name, newValue) }
         val compatibleAttribute = compatibleMarginAttribute(property)
@@ -207,7 +208,7 @@ open class NelePropertiesModel(
           }
         }
       }
-    })
+    }, Condition<Boolean> { Disposer.isDisposed(this) })
   }
 
   private fun compatibleMarginAttribute(property: NelePropertyItem): String? {

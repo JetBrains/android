@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.common.api.DragType;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
@@ -40,8 +41,8 @@ final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
 
   @Nullable
   @Override
-  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
-    String message = super.update(x, y, modifiers);
+  public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers, @NotNull SceneContext sceneContext) {
+    String message = super.update(x, y, modifiers, sceneContext);
 
     if (message != null) {
       return message;

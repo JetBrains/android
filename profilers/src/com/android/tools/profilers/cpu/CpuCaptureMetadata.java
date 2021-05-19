@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

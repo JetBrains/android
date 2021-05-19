@@ -9,5 +9,51 @@
       <option name="KOTLIN_COMMENT" value="false"/>
     </context>
   </template>
+  <template name="WR" description="Surround with Row"
+            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            toReformat="true" toShortenFQNames="true">
+    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Row&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
+  <template name="WC" description="Surround with Column"
+            value="$WIDGET$ {&#10;  $SELECTION$&#10;  $END$ }"
+            toReformat="true" toShortenFQNames="true">
+    <variable name="WIDGET" expression="" defaultValue="&quot;androidx.compose.foundation.layout.Column&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
+  <template name="comp"
+            value="@androidx.compose.Composable&#10;fun $NAME$() {&#10;$END$&#10;}"
+            description="Create @Composable function"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="NAME" expression="" defaultValue="" alwaysStopAt="true"/>
+    <context>
+      <option name="KOTLIN" value="true"/>
+      <option name="KOTLIN_COMMENT" value="false"/>
+    </context>
+  </template>
+
+  <!-- region Modifiers -->
+  <template name="paddp"
+            value="androidx.ui.core.Modifier.padding($DP$.dp)"
+            description="Add padding Modifier in dp"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="DP" expression="" defaultValue="" alwaysStopAt="true"/>
+  </template>
+  <template name="weight"
+            value="androidx.ui.core.Modifier.weight($WEIGHT$)"
+            description="Add weight Modifier"
+            toReformat="true"
+            toShortenFQNames="true">
+    <variable name="$WEIGHT$" expression="" defaultValue="" alwaysStopAt="true"/>
+  </template>
+  <!-- endregion -->
 </templateSet>
 

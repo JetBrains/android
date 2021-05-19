@@ -444,7 +444,7 @@ public class MotionSceneAttrs {
     LAYOUT_CONSTRAINT_GUIDE_PERCENT
   ));
 
-  final static String LAYOUT_CONSTRAINT_TAG = "layout_constraintTag";
+  public final static String LAYOUT_CONSTRAINT_TAG = "layout_constraintTag";
 
   public static final HashSet<String> ourPropertySet_tags = new HashSet<>(Arrays.asList(
     ATTR_ANDROID_ALPHA,

@@ -7,6 +7,15 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
+    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
+    <orderEntry type="library" name="studio-plugin-properties" level="project" />
+    <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
+    <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
@@ -18,10 +27,12 @@
     <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.platform.smRunner" />
+    <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="analytics-publisher" />
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.ui" />
     <orderEntry type="module" module-name="intellij.json" />
-    <orderEntry type="module" module-name="intellij.maven" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="library" name="StreamEx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.statistics" />
@@ -37,13 +48,14 @@
     <orderEntry type="module" module-name="intellij.platform.images" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
-    <orderEntry type="module" module-name="intellij.eclipse" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="module" module-name="intellij.groovy" />
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
     <orderEntry type="module" module-name="intellij.platform.bootstrap" />
     <orderEntry type="library" name="jcip" level="project" />
@@ -60,7 +72,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="library" name="jsr305" level="project" />
     <orderEntry type="module-library">
       <library name="okio" type="repository">
         <properties maven-id="com.squareup.okio:okio:1.14.0" />
@@ -149,17 +160,15 @@
     <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
-    <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="intellij.android.resources-base" />
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-native-jdk11:27.1.1.0" />
+      <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-native-jdk11/27.1.1.0/jb-layoutlib-native-jdk11-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -170,19 +179,28 @@
     <orderEntry type="module" module-name="intellij.terminal" />
     <orderEntry type="module" module-name="intellij.lint" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
-    <orderEntry type="library" name="jaxb-api" level="project" />
-    <orderEntry type="library" name="fastutil-min" level="project" />
+    <orderEntry type="module-library">
+      <library name="androidx-test-core-proto" type="repository">
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="xml-apis" level="project" />
     <orderEntry type="module" module-name="intellij.webp" />
-    <orderEntry type="library" scope="PROVIDED" name="bouncy-castle-provider" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="jaxb-runtime" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
-    <orderEntry type="library" name="javax.activation" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" />
-    <orderEntry type="module" module-name="intellij.properties.psi.impl" />
-    <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
-    <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
-    <orderEntry type="library" name="Trove4j" level="project" />
+    <orderEntry type="library" name="ini4j" level="project" />
+    <orderEntry type="module-library">
+      <library name="android-core-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/adt/idea/android/libandroid-core-proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.zipflinger" />
   </component>
 </module>

@@ -31,11 +31,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
 import java.awt.*;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -66,8 +69,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   private final Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
-  @NotNull
-  private final BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+  private final @NotNull BiFunction<Project, List<Device>, DialogWrapper> myNewSelectMultipleDevicesDialog;
 
   @NotNull
   private final Function<Project, RunManager> myGetRunManager;
@@ -86,8 +88,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     @Nullable
     private Function<Project, ExecutionTargetService> myExecutionTargetServiceGetInstance;
 
-    @Nullable
-    private BiFunction<Project, List<Device>, DialogWrapper> myNewModifyDeviceSetDialog;
+    private @Nullable BiFunction<Project, List<Device>, DialogWrapper> myNewSelectMultipleDevicesDialog;
 
     @Nullable
     private Function<Project, RunManager> myGetRunManager;
@@ -97,7 +98,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       myDevicesGetterGetter = project -> null;
       myDevicesSelectedServiceGetInstance = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
-      myNewModifyDeviceSetDialog = (project, devices) -> null;
+      myNewSelectMultipleDevicesDialog = (project, devices) -> null;
       myGetRunManager = project -> null;
     }
 
@@ -125,9 +126,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return this;
     }
 
-    @NotNull
-    Builder setNewModifyDeviceSetDialog(@NotNull BiFunction<Project, List<Device>, DialogWrapper> newModifyDeviceSetDialog) {
-      myNewModifyDeviceSetDialog = newModifyDeviceSetDialog;
+    @NotNull Builder setNewSelectMultipleDevicesDialog(
+      @NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
+      myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
       return this;
     }
 
@@ -150,7 +151,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
-           .setNewModifyDeviceSetDialog(ModifyDeviceSetDialog::new)
+           .setNewSelectMultipleDevicesDialog(SelectMultipleDevicesDialog::new)
            .setGetRunManager(RunManager::getInstance));
   }
 
@@ -168,8 +169,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert builder.myExecutionTargetServiceGetInstance != null;
     myExecutionTargetServiceGetInstance = builder.myExecutionTargetServiceGetInstance;
 
-    assert builder.myNewModifyDeviceSetDialog != null;
-    myNewModifyDeviceSetDialog = builder.myNewModifyDeviceSetDialog;
+    assert builder.myNewSelectMultipleDevicesDialog != null;
+    myNewSelectMultipleDevicesDialog = builder.myNewSelectMultipleDevicesDialog;
 
     assert builder.myGetRunManager != null;
     myGetRunManager = builder.myGetRunManager;
@@ -199,6 +200,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return optionalDevices;
   }
 
+  public boolean isMultipleTargetsSelectedInComboBox(@NotNull Project project) {
+    return myDevicesSelectedServiceGetInstance.apply(project).isMultipleDevicesSelectedInComboBox();
+  }
+
   @Nullable
   @VisibleForTesting
   Device getSelectedDevice(@NotNull Project project) {
@@ -208,42 +213,48 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
     myDevicesSelectedServiceGetInstance.apply(project).setDeviceSelectedWithComboBox(selectedDevice);
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice));
+    setActiveTarget(project, Collections.singleton(selectedDevice.getKey()));
   }
 
   @NotNull
   List<Device> getSelectedDevices(@NotNull Project project) {
-    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
+    Collection<Key> keys = getSelectedDeviceKeys(project, devices);
+
+    return ContainerUtil.filter(devices, device -> device.hasKeyContainedBy(keys));
+  }
+
+  @NotNull Set<@NotNull Key> getSelectedDeviceKeys(@NotNull Project project) {
+    return getSelectedDeviceKeys(project, getDevices(project).orElse(Collections.emptyList()));
+  }
+
+  private @NotNull Set<@NotNull Key> getSelectedDeviceKeys(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
-      return service.getDevicesSelectedWithDialog(devices);
+      return service.getDeviceKeysSelectedWithDialog();
     }
 
     Device device = service.getDeviceSelectedWithComboBox(devices);
 
     if (device == null) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
 
-    return Collections.singletonList(device);
+    return Collections.singleton(device.getKey());
   }
 
-  void setMultipleDevicesSelected(@NotNull Project project, boolean multipleDevicesSelected) {
-    myDevicesSelectedServiceGetInstance.apply(project).setMultipleDevicesSelectedInComboBox(multipleDevicesSelected);
-
-    List<Device> devices = getSelectedDevices(project);
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(devices));
-  }
-
-  void modifyDeviceSet(@NotNull Project project) {
+  void selectMultipleDevices(@NotNull Project project) {
     List<Device> devices = myDevicesGetterGetter.apply(project).get().orElseThrow(AssertionError::new);
 
-    if (!myNewModifyDeviceSetDialog.apply(project, devices).showAndGet()) {
+    if (!myNewSelectMultipleDevicesDialog.apply(project, devices).showAndGet()) {
       return;
     }
 
-    setMultipleDevicesSelected(project, !myDevicesSelectedServiceGetInstance.apply(project).isDialogSelectionEmpty());
+    DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
+    service.setMultipleDevicesSelectedInComboBox(!service.isDialogSelectionEmpty());
+
+    setActiveTarget(project, getSelectedDeviceKeys(project));
   }
 
   @NotNull
@@ -323,28 +334,33 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    Optional<List<Device>> devices = getDevices(project);
+    Optional<List<Device>> optionalDevices = getDevices(project);
 
-    if (!devices.isPresent()) {
+    if (!optionalDevices.isPresent()) {
       presentation.setEnabled(false);
       presentation.setText("Loading Devices...");
 
       return;
     }
 
+    List<Device> devices = optionalDevices.get();
+
     Updater updater = new Updater.Builder()
       .setProject(project)
       .setPresentation(presentation)
       .setPlace(event.getPlace())
       .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
-      .setDevices(devices.get())
+      .setDevices(devices)
       .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
       .setSnapshotsEnabled(mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get())
       .build();
 
     updater.update();
+    setActiveTarget(project, getSelectedDeviceKeys(project, devices));
+  }
 
-    List<Device> selectedDevices = getSelectedDevices(project);
-    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
+  private void setActiveTarget(@NotNull Project project, @NotNull Set<@NotNull Key> keys) {
+    AsyncDevicesGetter getter = myDevicesGetterGetter.apply(project);
+    myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(keys, getter));
   }
 }

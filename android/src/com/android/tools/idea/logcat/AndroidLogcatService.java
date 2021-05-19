@@ -281,7 +281,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
     synchronized (myLock) {
       if (!myExecutors.containsKey(device)) {
         ThreadFactory factory = new ThreadFactoryBuilder()
-          .setNameFormat("logcat-" + device.getName())
+          .setNameFormat("Android Logcat Service Thread %s for Device Serial Number " + device)
           .build();
 
         myExecutors.put(device, Executors.newSingleThreadExecutor(factory));

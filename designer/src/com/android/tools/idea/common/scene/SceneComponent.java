@@ -15,31 +15,31 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.common.scene.target.*;
+import com.android.tools.idea.common.scene.target.CommonDragTarget;
+import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Rectangle;
-import org.intellij.lang.annotations.JdkConstants;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.concurrent.GuardedBy;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A SceneComponent represents the bounds of a widget (backed by NlComponent).
@@ -68,6 +68,7 @@ public class SceneComponent {
 
   private boolean myIsToolLocked = false;
   private boolean myIsSelected = false;
+  private boolean myIsHighlighted = false;
   protected boolean myDragging = false;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
@@ -291,6 +292,13 @@ public class SceneComponent {
 
   public boolean isSelected() {
     return myIsSelected;
+  }
+
+  /**
+   * Returns true if the component is supposed to be highlighted.
+   */
+  public boolean isHighlighted() {
+    return myIsHighlighted;
   }
 
   public boolean canShowBaseline() {
@@ -523,6 +531,11 @@ public class SceneComponent {
     return Coordinates.pxToDp(getScene().getSceneManager(), NlComponentHelperKt.getBaseline(myNlComponent));
   }
 
+  public void setHighlighted(boolean highlighted) {
+    myIsHighlighted = highlighted;
+    setDrawState(DrawState.NORMAL);
+  }
+
   public void setSelected(boolean selected) {
     if (!selected || !myIsSelected) {
       myShowBaseline = false;
@@ -639,12 +652,12 @@ public class SceneComponent {
 
   /**
    * Returns true if the component intersects with the given rect
-   *
+   * @param sceneTransform
    * @param rectangle
    * @return true if intersecting with the rectangle
    */
-  public boolean intersects(@AndroidDpCoordinate Rectangle rectangle) {
-    return rectangle.intersects(fillRect(null));
+  public boolean intersects(@NotNull SceneContext sceneTransform, @AndroidDpCoordinate Rectangle rectangle) {
+    return myHitProvider.intersects(this, sceneTransform, rectangle);
   }
 
   //endregion

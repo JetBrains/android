@@ -26,7 +26,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.*
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemSyncManager
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.startup.StartupManager
@@ -40,7 +39,6 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private lateinit var gradleProjectInfo: GradleProjectInfo
   private lateinit var syncManager: ProjectSystemSyncManager
   private lateinit var gradleBuildState: GradleBuildState
-  private lateinit var gradleSyncState: GradleSyncState
   private lateinit var syncInvoker: GradleSyncInvoker
 
   private lateinit var syncTopicConnection: MessageBusConnection
@@ -59,36 +57,10 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
 
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)
-    gradleSyncState = GradleSyncState.getInstance(myProject)
 
     syncTopicConnection = project.messageBus.connect()
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
-  }
-
-  private fun emulateSync(syncSuccessful: Boolean, buildResult: BuildStatus?):
-      ListenableFuture<SyncResult> {
-
-    doAnswer { invocation ->
-      val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
-
-      ApplicationManager.getApplication().invokeAndWait {
-        gradleSyncState.syncStarted(request)
-
-        if (syncSuccessful) {
-          gradleSyncState.syncSucceeded()
-        }
-        else {
-          gradleSyncState.syncFailed("", null, null)
-        }
-      }
-    }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
-
-    val listenableFuture = syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
-    if (buildResult != null) {
-      ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(buildResult) }
-    }
-    return listenableFuture
   }
 
   fun testSyncProject_uninitializedProject() {
@@ -114,7 +86,13 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   }
 
   fun testGetLastSyncResult_sameAsSyncResult() {
-    emulateSync(true, BuildStatus.SUCCESS)
+    doAnswer { invocation ->
+      ApplicationManager.getApplication().invokeAndWait {
+        project.messageBus.syncPublisher(GradleSyncState.GRADLE_SYNC_TOPIC).syncSucceeded(project)
+      }
+    }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
+    syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
+    ApplicationManager.getApplication().invokeAndWait { gradleBuildState.buildFinished(BuildStatus.SUCCESS) }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     assertThat(syncManager.getLastSyncResult()).isSameAs(SyncResult.SUCCESS)
   }

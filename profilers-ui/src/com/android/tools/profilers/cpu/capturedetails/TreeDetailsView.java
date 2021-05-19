@@ -112,7 +112,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     myPanel.add(getNoDataForRange(), CARD_EMPTY_INFO);
 
     CodeNavigator navigator = profilersView.getStudioProfilers().getIdeServices().getCodeNavigator();
-    if (cpuCapture.getType() != Cpu.CpuTraceType.ATRACE) {
+    if (cpuCapture.getSystemTraceData() == null) {
       profilersView.getIdeProfilerComponents().createContextMenuInstaller()
         .installNavigationContextMenu(myTree, navigator, () -> getCodeLocation(myTree));
     }

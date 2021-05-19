@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.ui.MockUiData
+import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
@@ -26,17 +27,21 @@ import org.junit.Test
 
 class TasksNodePresentationTest {
 
+  val timeDistributionBuilder = TimeDistributionBuilder()
+
   @Test
   fun testTaskWithoutWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = true
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -45,14 +50,16 @@ class TasksNodePresentationTest {
   fun testTaskWithWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.UNGROUPED, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = true
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -63,14 +70,16 @@ class TasksNodePresentationTest {
     val task = mockUiData.mockTask(":app", "resources", "resources.plugin", 855)
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin)
+    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
       suffix = "",
       nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.9s 85.5%",
-      showChartKey = true
+      rightAlignedSuffix = "0.9s 85.5%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -82,14 +91,16 @@ class TasksNodePresentationTest {
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
     val plugin = mockUiData.createPluginData("resources.plugin", listOf(task))
 
-    val descriptor = PluginDetailsNodeDescriptor(plugin)
+    val descriptor = PluginDetailsNodeDescriptor(plugin, listOf(task), timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(plugin.criticalPathDuration.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "resources.plugin",
       suffix = "1 warning",
       nodeIconState = NodeIconState.NO_ICON,
-      rightAlignedSuffix = "0.8s  8.4%",
-      showChartKey = true
+      rightAlignedSuffix = "0.8s  8.4%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -97,14 +108,16 @@ class TasksNodePresentationTest {
   @Test
   fun testTaskUnderPluginWithoutWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.EMPTY_PLACEHOLDER,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = false
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }
@@ -113,14 +126,16 @@ class TasksNodePresentationTest {
   fun testTaskUnderPluginWithWarningPresentation() {
     val task = mockTask(":app", "resources", "resources.plugin", 1200, 10000)
     task.issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(task))
-    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN)
+    val descriptor = TaskDetailsNodeDescriptor(task, TasksDataPageModel.Grouping.BY_PLUGIN, timeDistributionBuilder)
+
+    timeDistributionBuilder.registerTimeEntry(task.executionTime.supplement().timeMs)
+    timeDistributionBuilder.seal()
 
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = ":app:resources",
       suffix = "",
       nodeIconState = NodeIconState.WARNING_ICON,
-      rightAlignedSuffix = "1.2s 12.0%",
-      showChartKey = false
+      rightAlignedSuffix = "1.2s 12.0%"
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)
   }

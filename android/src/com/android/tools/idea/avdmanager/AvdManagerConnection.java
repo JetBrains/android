@@ -15,13 +15,23 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.SdkConstants.ANDROID_HOME_ENV;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
+import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_AREAS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_COUNT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_DEFAULTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_TAG_ID;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
@@ -77,19 +87,19 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.net.HttpConfigurable;
 import java.awt.*;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +107,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -133,7 +142,7 @@ public class AvdManagerConnection {
     new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
   };
 
-  private static Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
+  private static final Map<File, AvdManagerConnection> ourCache = ContainerUtil.createWeakMap();
   private static long ourMemorySize = -1;
 
   private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
@@ -156,9 +165,7 @@ public class AvdManagerConnection {
     if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }
-    else {
-      return getAvdManagerConnection(handler);
-    }
+    return getAvdManagerConnection(handler);
   }
 
   @NotNull
@@ -185,11 +192,10 @@ public class AvdManagerConnection {
    * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
    */
   @VisibleForTesting
-  protected synchronized static void setConnectionFactory(Function<AndroidSdkHandler, AvdManagerConnection> factory) {
+  protected synchronized static void setConnectionFactory(@NotNull Function<AndroidSdkHandler, AvdManagerConnection> factory) {
     ourCache.clear();
     ourConnectionFactory = factory;
   }
-
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
@@ -214,11 +220,13 @@ public class AvdManagerConnection {
     return true;
   }
 
+  @Nullable
   public String getSdCardSizeFromHardwareProperties() {
     assert mySdkHandler != null;
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.SD_CARD_STORAGE_KEY, mySdkHandler);
   }
 
+  @Nullable
   public String getInternalStorageSizeFromHardwareProperties() {
     assert mySdkHandler != null;
     return AvdWizardUtils.getHardwarePropertyDefaultValue(AvdWizardUtils.INTERNAL_STORAGE_KEY, mySdkHandler);
@@ -373,7 +381,7 @@ public class AvdManagerConnection {
   }
 
 
-  public void stopAvd(@NotNull final AvdInfo info) {
+  public void stopAvd(@NotNull AvdInfo info) {
     myAvdManager.stopAvd(info);
   }
 
@@ -404,7 +412,7 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
 
-    final String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
+    String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
       File skinFile = new File(skinPath);
       File baseSkinFile = new File(skinFile.getName());
@@ -492,7 +500,7 @@ public class AvdManagerConnection {
     EmulatorRunner runner = new EmulatorRunner(commandLine, avd);
     addListeners(runner);
 
-    final ProcessHandler processHandler;
+    ProcessHandler processHandler;
     try {
       processHandler = runner.start();
     }
@@ -504,10 +512,10 @@ public class AvdManagerConnection {
     notifyIfLaunchedStandalone(project, avd);
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise show it.
-    final ProgressWindow p = hasQEMU2Installed()
-                             ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
-                                                                  "", "", false)
-                             : new ProgressWindow(false, true, project);
+    ProgressWindow p = hasQEMU2Installed()
+                       ? new BackgroundableProcessIndicator(project, "Launching Emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
+                                                            "", "", false)
+                       : new ProgressWindow(false, true, project);
     p.setIndeterminate(false);
     p.setDelayInMillis(0);
 
@@ -519,7 +527,6 @@ public class AvdManagerConnection {
         p.setText("Starting AVD...");
         for (double d = 0; d < 1; d += 1.0 / 80) {
           p.setFraction(d);
-          //noinspection BusyWait
           Thread.sleep(100);
           if (processHandler.isProcessTerminated()) {
             break;
@@ -650,8 +657,9 @@ public class AvdManagerConnection {
            !"android-automotive".equals(avd.getProperty(AVD_INI_TAG_ID));
   }
 
-  public static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
-    return EmulatorSettings.getInstance().getLaunchInToolWindow() && project != null && AndroidUtils.hasAndroidFacets(project);
+  private static boolean isEmulatorToolWindowAvailable(@Nullable Project project) {
+    return EmulatorSettings.getInstance().getLaunchInToolWindow() &&
+           project != null && ToolWindowManager.getInstance(project).getToolWindow("Android Emulator") != null;
   }
 
   public static boolean isFoldable(@NotNull AvdInfo avd) {
@@ -688,7 +696,7 @@ public class AvdManagerConnection {
     }
 
     // Extract the proxy information
-    List<String> proxyParameters = new ArrayList<String>();
+    List<String> proxyParameters = new ArrayList<>();
 
     List<Pair<String, String>> myPropList = httpInstance.getJvmProperties(false, null);
     for (Pair<String, String> kv : myPropList) {
@@ -716,7 +724,7 @@ public class AvdManagerConnection {
     }
   }
 
-  /** Create a directory under $ANDROID_HOME where we can write
+  /** Create a directory under $ANDROID_SDK_ROOT where we can write
    * temporary files.
    *
    * @return The directory file. This will be null if we
@@ -724,13 +732,14 @@ public class AvdManagerConnection {
    */
   @Nullable
   public static File tempFileDirectory() {
-    // Create a temporary file in /temp under $ANDROID_HOME.
-    String androidHomeValue = System.getenv(ANDROID_HOME_ENV);
-    if (androidHomeValue == null) {
+    // Create a temporary file in /temp under $ANDROID_SDK_ROOT.
+    String androidSdkRootValue = System.getenv(ANDROID_SDK_ROOT_ENV);
+    if (androidSdkRootValue == null) {
       // Fall back to the user's home directory
-      androidHomeValue = System.getProperty("user.home");
+      androidSdkRootValue = System.getProperty("user.home");
     }
-    File tempDir = new File(androidHomeValue, "temp");
+    File tempDir = new File(androidSdkRootValue, "temp");
+    //noinspection ResultOfMethodCallIgnored
     tempDir.mkdirs(); // Create if necessary
     if (!tempDir.exists()) {
       return null; // Give up
@@ -738,7 +747,8 @@ public class AvdManagerConnection {
     return tempDir;
   }
 
-  /** Create a temporary file and write some parameters into it.
+  /**
+   * Creates a temporary file and write some parameters into it.
    * This is how we pass parameters to the Emulator (other than
    * on the command line).
    * The file is marked to be deleted when Studio exits. This is
@@ -750,29 +760,27 @@ public class AvdManagerConnection {
    * if we could not create or write the file.
    */
   @Nullable
-  public static File writeTempFile(List<String> fileContents) {
+  public static File writeTempFile(@NotNull List<String> fileContents) {
     File tempFile = null;
     try {
       File tempDir = tempFileDirectory();
       if (tempDir == null) {
         return null; // Fail
       }
-      tempFile = File.createTempFile("emu", ".tmp", tempDir);
+      tempFile = FileUtil.createTempFile(tempDir, "emu", ".tmp", true);
       tempFile.deleteOnExit(); // File disappears when Studio exits
-      tempFile.setReadable(false, false); // Non-owner cannot read
-      tempFile.setReadable(true, true); // Owner can read
-
-      final FileWriter fileWriter = new FileWriter(tempFile);
-      try (BufferedWriter tempFileWriter = new BufferedWriter(fileWriter)) {
-        for (String fileLine : fileContents) {
-          tempFileWriter.write(fileLine);
-        }
+      if (!tempFile.setReadable(false, false) || // Non-owner cannot read
+          !tempFile.setReadable(true, true)) { // Owner can read
+        IJ_LOG.warn("Error setting permissions for " + tempFile.getAbsolutePath());
       }
+
+      Files.write(tempFile.toPath(), fileContents, WRITE);
     }
-    catch (IOException ex) {
+    catch (IOException e) {
       // Try to remove the temporary file
       if (tempFile != null) {
-        tempFile.delete(); // Ignore the return value
+        //noinspection ResultOfMethodCallIgnored
+        tempFile.delete();
         tempFile = null;
       }
     }
@@ -807,8 +815,8 @@ public class AvdManagerConnection {
         project,
         message,
         code.getSolution().getDescription(),
-        Messages.OK_BUTTON,
-        Messages.CANCEL_BUTTON,
+        Messages.getOkButton(),
+        Messages.getCancelButton(),
         AllIcons.General.WarningDialog);
     });
   }
@@ -941,7 +949,40 @@ public class AvdManagerConnection {
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
     }
-
+    if (device.getId().equals(("7.3in Foldable"))) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
+    }
+    if (device.getId().equals(("8in Foldable"))) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "180-360");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "1148-0-1-2480");
+      hardwareProperties.put(AVD_INI_FOLD_AT_POSTURE, "4");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "3, 4");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "180-330, 330-360");
+    }
+    if (device.getId().equals(("6.7in Foldable"))) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "0");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "0-1318-1080-1");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
+    }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       boolean success = myAvdManager.moveAvd(currentInfo, avdName, currentInfo.getDataFolderPath(), SDK_LOG);
       if (!success) {
@@ -1077,26 +1118,18 @@ public class AvdManagerConnection {
     return true;
   }
 
-  public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
-    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
-    if (displayName == null) {
-      displayName = avdInfo.getName().replaceAll("[_-]+", " ");
-    }
-    return displayName;
-  }
-
-  public String uniquifyDisplayName(String name) {
+  public String uniquifyDisplayName(@NotNull String name) {
     int suffix = 1;
     String result = name;
-    while (findAvdWithName(result)) {
+    while (findAvdWithDisplayName(result)) {
       result = String.format(Locale.US, "%1$s %2$d", name, ++suffix);
     }
     return result;
   }
 
-  public boolean findAvdWithName(String name) {
+  public boolean findAvdWithDisplayName(@NotNull String name) {
     for (AvdInfo avd : getAvds(false)) {
-      if (getAvdDisplayName(avd).equals(name)) {
+      if (avd.getDisplayName().equals(name)) {
         return true;
       }
     }
@@ -1138,7 +1171,7 @@ public class AvdManagerConnection {
     private final IdDisplay myTag;
     private final int myRequiredMajorRevision;
 
-    public SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
+    SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
       myFeatureLevel = featureLevel;
       myTag = tag;
       myRequiredMajorRevision = requiredMajorRevision;

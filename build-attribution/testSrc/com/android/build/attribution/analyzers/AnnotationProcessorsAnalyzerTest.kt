@@ -51,19 +51,8 @@ class AnnotationProcessorsAnalyzerTest {
 
     FileUtil.appendToFile(FileUtils.join(File(myProjectRule.project.basePath!!), "app", FN_BUILD_GRADLE), """
       dependencies {
-        implementation 'com.google.dagger:dagger-compiler:2.6'
-        annotationProcessor 'com.google.dagger:dagger-compiler:2.6'
-
         implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
         annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
-
-        implementation 'com.android.support:multidex:1.0.2'
-      }
-
-      android {
-        defaultConfig {
-          multiDexEnabled true
-        }
       }
     """.trimIndent())
   }
@@ -83,8 +72,7 @@ class AnnotationProcessorsAnalyzerTest {
         "com.google.auto.value.processor.AutoValueBuilderProcessor",
         "com.google.auto.value.processor.AutoOneOfProcessor",
         "com.google.auto.value.processor.AutoValueProcessor",
-        "com.google.auto.value.extension.memoized.processor.MemoizedValidator",
-        "dagger.internal.codegen.ComponentProcessor"
+        "com.google.auto.value.extension.memoized.processor.MemoizedValidator"
       )
     )
   }
@@ -94,7 +82,7 @@ class AnnotationProcessorsAnalyzerTest {
     setUpProject()
 
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
-      "dagger.internal.codegen.ComponentProcessor")
+      "com.google.auto.value.processor.AutoAnnotationProcessor")
     BuildAttributionWarningsFilter.getInstance(myProjectRule.project).suppressNonIncrementalAnnotationProcessorWarning(
       "com.google.auto.value.processor.AutoValueProcessor")
 
@@ -105,7 +93,6 @@ class AnnotationProcessorsAnalyzerTest {
     assertThat(
       buildAttributionManager.analyzersProxy.getNonIncrementalAnnotationProcessorsData().map { it.className }).containsExactlyElementsIn(
       setOf(
-        "com.google.auto.value.processor.AutoAnnotationProcessor",
         "com.google.auto.value.processor.AutoValueBuilderProcessor",
         "com.google.auto.value.processor.AutoOneOfProcessor",
         "com.google.auto.value.extension.memoized.processor.MemoizedValidator"

@@ -95,6 +95,8 @@ object LayoutBindingTypeUtil {
             return SdkConstants.CLASS_VIEWSTUB
           }
         }
+        // <fragment> tags are ignored by data binding / view binding compiler
+        SdkConstants.TAG_FRAGMENT == viewName -> return null
         else -> return SdkConstants.WIDGET_PKG_PREFIX + viewName
       }
     }

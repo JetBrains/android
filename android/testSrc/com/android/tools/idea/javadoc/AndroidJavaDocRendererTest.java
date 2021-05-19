@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.javadoc;
 
+import com.android.tools.lint.client.api.LintClient;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,6 +27,10 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidJavaDocRendererTest extends AndroidTestCase {
+  static {
+    LintClient.setClientName(LintClient.CLIENT_STUDIO);
+  }
+
   private static final String VERTICAL_ALIGN = "valign=\"top\"";
 
   public void checkStrings(String fileName, String targetPath, @Nullable String expectedDoc) {

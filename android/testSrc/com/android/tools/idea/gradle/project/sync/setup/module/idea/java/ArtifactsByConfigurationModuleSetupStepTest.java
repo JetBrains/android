@@ -21,8 +21,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
@@ -70,8 +69,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model = JavaModuleModel
-      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true);
+      .create(module.getName(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              artifactsByConfiguration,
+              null,
+              null,
+              null,
+              true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -95,8 +101,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     Module module = getModule();
 
     JavaModuleModel model = JavaModuleModel
-      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true);
+      .create(module.getName(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              Collections.emptyList(),
+              artifactsByConfiguration,
+              null,
+              null,
+              null,
+              true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -136,6 +149,6 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath.getName());
+    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath);
   }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="google" path="ActionManager" hit="Google Login" />
+    <option name="login" path="ActionManager" hit="Google Login" />
+  </configurable>
+</options>
+

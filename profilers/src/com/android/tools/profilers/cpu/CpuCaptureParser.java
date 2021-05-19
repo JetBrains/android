@@ -21,13 +21,14 @@ import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceParser;
-import com.android.tools.profilers.cpu.atrace.AtraceProducer;
-import com.android.tools.profilers.cpu.atrace.PerfettoProducer;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
+import com.android.tools.profilers.cpu.systemtrace.AtraceProducer;
+import com.android.tools.profilers.cpu.systemtrace.PerfettoProducer;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicates;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -336,7 +337,7 @@ public class CpuCaptureParser {
     private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER = () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
 
     // Specific file tests used in parseToCapture before attempting to parse the whole trace.
-    private static final Predicate<File> NO_OP_FILE_TESTER = Predicates.alwaysTrue();
+    private static final Predicate<File> NO_OP_FILE_TESTER = null;
     private static final Predicate<File> ATRACE_FILE_TESTER = (t) -> AtraceProducer.verifyFileHasAtraceHeader(t);
     private static final Predicate<File> PERFETTO_FILE_TESTER = (t) -> PerfettoProducer.verifyFileHasPerfettoTraceHeader(t);
 
@@ -421,15 +422,25 @@ public class CpuCaptureParser {
                                              @NotNull File traceFile,
                                              long traceId,
                                              boolean expectedToBeCorrectParser,
-                                             @NotNull Predicate<File> traceInputVerification,
+                                             @Nullable Predicate<File> traceInputVerification,
                                              @NotNull Supplier<TraceParser> parserSupplier) {
 
-      if (!traceInputVerification.test(traceFile)) {
-        if (expectedToBeCorrectParser) {
-          throw new ParsingFailureException(type + "trace failed to parse.");
+      if (traceInputVerification != null) {
+        boolean inputVerification = false;
+        try {
+          inputVerification = traceInputVerification.test(traceFile);
+        } catch (Throwable t) {
+          throw new ParsingFailureException(
+            "Trace " + traceFile.getAbsolutePath() + " expected to be of type " + type + " but failed input verification.", t);
         }
-        else {
-          return null;
+        if (!inputVerification) {
+          if (expectedToBeCorrectParser) {
+            throw new ParsingFailureException(
+              "Trace " + traceFile.getAbsolutePath() + " expected to be of type " + type + " but failed input verification.");
+          }
+          else {
+            return null;
+          }
         }
       }
 
@@ -441,9 +452,10 @@ public class CpuCaptureParser {
       catch (ProcessSelectorDialogAbortedException e) {
         throw new CancellationException("User aborted process choice dialog.");
       }
-      catch (Exception e) {
-        if (expectedToBeCorrectParser) {
-          throw new ParsingFailureException(type + " trace failed to parse.", e);
+      catch (Throwable t) {
+        // If we expected this to be the correct parser or we already checked that this parser can take this trace, then we need to throw
+        if (expectedToBeCorrectParser || traceInputVerification != null) {
+          throw new ParsingFailureException("Trace " + traceFile.getAbsolutePath() + " failed to be parsed as " + type, t);
         }
         else {
           return null;
@@ -475,7 +487,8 @@ public class CpuCaptureParser {
       updateParsingStateWhenDone();
 
       CpuCaptureMetadata metadata =
-        myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(new ProfilingConfiguration()));
+        myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(
+          new UnspecifiedConfiguration(ProfilingConfiguration.DEFAULT_CONFIGURATION_NAME)));
       metadata.setTraceFileSizeBytes((int)traceFile.length());
 
       if (capture != null) {

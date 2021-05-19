@@ -18,14 +18,14 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.ide.common.rendering.api.ResourceReference
 
 /**
- * Specifies an overriden property value.
+ * Specifies an overridden property value.
  *
  * These value are usually found in styles where the value
  * has been overridden by another style or a direct attribute
  * assignment of the xml tag.
  */
 class ResolutionStackItem(
-  val property: InspectorGroupPropertyItem,
+  property: InspectorGroupPropertyItem,
   reference: ResourceReference,
   value: String?
 ) : InspectorPropertyItem(
@@ -36,5 +36,5 @@ class ResolutionStackItem(
   value,
   property.group,
   reference,
-  property.view,
-  property.resourceLookup)
+  property.viewId,
+  property.lookup)

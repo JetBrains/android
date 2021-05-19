@@ -19,6 +19,7 @@ import static com.android.ide.common.util.AssetUtil.NO_EFFECTS;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.tools.idea.rendering.VectorDrawableTransformer.transform;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
@@ -37,7 +38,6 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,7 +200,7 @@ public final class TransformedImageAsset {
    */
   @NotNull
   public BufferedImage createErrorImage(@NotNull Dimension imageSize) {
-    return applyScaleShiftTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
+    return applyScaleShiftTintAndOpacity(imageSize, AssetStudioUtils.createPlaceholderImage());
   }
 
   @NotNull

@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.ThrowableComputable
+import junit.framework.TestCase
 import java.time.Instant
 import java.util.ArrayList
 import kotlin.math.pow
@@ -181,3 +183,8 @@ fun getRenderMetric(task: RenderTask,
 
 fun getRenderMetric(task: RenderTask, resultVerifier: (RenderResult) -> Unit): PerfgateRenderMetric =
   getRenderMetric(task, resultVerifier, resultVerifier)
+
+fun verifyValidatorResult(result: RenderResult) {
+  val validatorResult = result.validatorResult
+  TestCase.assertTrue(validatorResult is ValidatorResult)
+}

@@ -167,7 +167,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
       final AtomicReference<AbstractTreeStructure> treeStructureRef = new AtomicReference<>();
       Wait.seconds(1).expecting("AbstractTreeStructure to be built").until(() -> GuiQuery.getNonNull(() -> {
         try {
-          treeStructureRef.set(myPane.getTreeBuilder().getTreeStructure());
+          treeStructureRef.set(myPane.getTreeStructure());
           return true;
         }
         catch (NullPointerException e) {

@@ -19,7 +19,7 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.util.ui.JBUI
-import sun.awt.AWTPermissions
+import java.awt.AWTPermission
 import java.awt.Color
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -155,7 +155,7 @@ private fun canPickupColorFromDisplay(): Boolean {
   }
 
   return try {
-    System.getSecurityManager()?.checkPermission(AWTPermissions.READ_DISPLAY_PIXELS_PERMISSION)
+    System.getSecurityManager()?.checkPermission(AWTPermission("readDisplayPixels"))
     true
   }
   catch (e: SecurityException) {

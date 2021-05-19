@@ -55,6 +55,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    5.6, 1080 \u00d7 2220, 440dpi (Pixel 3a)\n" +
       "    5.7, 1440 \u00d7 2560, 560dpi (Nexus 6P)\n" +
       "    5.7, 1080 \u00d7 2280, 440dpi (Pixel 4)\n" +
+      "    5.8, 1080 \u00d7 2340, 440dpi (Pixel 4a)\n" +
       "    6.0, 1440 \u00d7 2560, 560dpi (Nexus 6)\n" +
       "    6.0, 1440 \u00d7 2880, 560dpi (Pixel 2 XL)\n" +
       "    6.0, 1080 \u00d7 2160, 400dpi (Pixel 3a XL)\n" +
@@ -79,7 +80,6 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    ------------------------------------------------------\n" +
       "    Automotive\n" +
       "    8.4, 1024 \u00d7 768, mdpi (Automotive 1024p landscape)\n" +
-      "    Polestar 2 (1152 \u00d7 1536, mdpi)\n" +
       "    ------------------------------------------------------\n" +
       "    Custom\n" +
       "    ------------------------------------------------------\n" +
@@ -97,9 +97,10 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "         4.7\" WXGA (1280 \u00d7 720, xhdpi)\n" +
       "         5.1\" WVGA (480 \u00d7 800, mdpi)\n" +
       "         5.4\" FWVGA (480 \u00d7 854, mdpi)\n" +
+      "         6.7\" Horizontal Fold-in (1080 \u00d7 2636, 420dpi)\n" +
       "         7.0\" WSVGA (Tablet) (1024 \u00d7 600, mdpi)\n" +
-      "         7.3\" Foldable (1536 \u00d7 2152, 420dpi)\n" +
-      "         8.0\" Foldable (2200 \u00d7 2480, 420dpi)\n" +
+      "         7.3\" Fold-in with outer display (1768 \u00d7 2208, xxhdpi)\n" +
+      "         8.0\" Fold-out (2200 \u00d7 2480, 420dpi)\n" +
       "        10.1\" WXGA (Tablet) (1280 \u00d7 800, mdpi)\n" +
       "        13.5\" Freeform (2560 \u00d7 1440, hdpi)\n" +
       "    Add Device Definition...\n";

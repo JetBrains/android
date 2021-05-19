@@ -57,6 +57,26 @@ class ProguardR8InspectionsTest : ProguardR8TestCase() {
     myFixture.checkHighlighting()
   }
 
+  fun testWildcards() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class ** {
+        long myBoolean;
+      }
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class com.android.** { *; }
+      """.trimIndent())
+
+    myFixture.checkHighlighting()
+  }
+
   fun testInnerClasses() {
     myFixture.addClass(
       //language=JAVA

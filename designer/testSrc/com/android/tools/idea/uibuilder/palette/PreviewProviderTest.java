@@ -66,7 +66,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getFocusedSceneView()).thenReturn(screenView);
     when(surface.getScale()).thenReturn(1.0);
-    when(surface.getScreenScalingFactor()).thenReturn(1.0f);
+    when(surface.getScreenScalingFactor()).thenReturn(1.0);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
     myPreviewProvider.myRenderTimeoutMillis = 10000L;
     myPreviewProvider.myRenderTaskTimeoutMillis = 10000L;

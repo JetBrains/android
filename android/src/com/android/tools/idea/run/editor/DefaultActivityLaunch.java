@@ -18,10 +18,10 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
+import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.*;
 import com.android.tools.idea.run.tasks.DefaultActivityLaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -37,11 +37,11 @@ public class DefaultActivityLaunch extends LaunchOption<DefaultActivityLaunch.St
   public static final class State extends LaunchOptionState {
     @Nullable
     @Override
-    public LaunchTask getLaunchTask(@NotNull String applicationId,
-                                    @NotNull AndroidFacet facet,
-                                    @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                    @NotNull ProfilerState profilerState,
-                                    @NotNull ApkProvider apkProvider) {
+    public AppLaunchTask getLaunchTask(@NotNull String applicationId,
+                                       @NotNull AndroidFacet facet,
+                                       @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
+                                       @NotNull ProfilerState profilerState,
+                                       @NotNull ApkProvider apkProvider) {
       return new DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(facet, apkProvider), startActivityFlagsProvider);
     }
 

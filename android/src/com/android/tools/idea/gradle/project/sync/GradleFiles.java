@@ -22,7 +22,7 @@ import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.expireProjectUpgradeNotifications;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -315,7 +315,7 @@ public class GradleFiles {
         }
         NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
         if (ndkModuleModel != null) {
-          for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
+          for (File externalBuildFile : ndkModuleModel.getBuildFiles()) {
             ProgressManager.checkCanceled();
             if (externalBuildFile.isFile()) {
               // TODO find a better way to find a VirtualFile without refreshing the file system. It is expensive.

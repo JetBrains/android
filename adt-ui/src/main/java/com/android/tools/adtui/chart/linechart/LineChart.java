@@ -41,7 +41,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 public class LineChart extends AnimatedComponent {
@@ -256,6 +255,14 @@ public class LineChart extends AnimatedComponent {
           double xdNext = (dataNext.x - xMin) / xLength;
           // If our next point is also offscreen then ignore this point and continue.
           if (xdNext < 0) {
+            if (data == dataNext) {
+              // The last point is still off screen, we should add a point at (0, y) to avoid drawing nothing.
+              //     |   |
+              // *-->*----
+              //     |   |
+              //     0   1
+              path.moveTo(0f, yd);
+            }
             continue;
           }
 

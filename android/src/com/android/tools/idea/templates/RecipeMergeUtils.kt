@@ -16,7 +16,10 @@
 @file:JvmName("RecipeMergeUtils")
 package com.android.tools.idea.templates
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_NAME
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.XMLNS_PREFIX
 import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.MergingReport
 import com.android.manifmerger.XmlDocument
@@ -32,7 +35,11 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.xml.*
+import com.intellij.psi.xml.XmlComment
+import com.intellij.psi.xml.XmlFile
+import com.intellij.psi.xml.XmlTag
+import com.intellij.psi.xml.XmlTagChild
+import com.intellij.psi.xml.XmlText
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.transport
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -43,9 +44,9 @@ interface InspectorClient {
   fun register(groupId: EventGroupIds, callback: (Any) -> Unit)
 
   /**
-   * Register a handler for when the current process ends.
+   * Register a handler for when the current process starts and ends.
    */
-  fun registerProcessChanged(callback: () -> Unit)
+  fun registerProcessChanged(callback: (InspectorClient) -> Unit)
 
   /**
    * Returns a sequence of the known devices seen from this client.
@@ -85,6 +86,11 @@ interface InspectorClient {
   }
 
   /**
+   * Refresh the content of the inspector.
+   */
+  fun refresh()
+
+  /**
    * Log events for Studio stats
    */
   fun logEvent(type: DynamicLayoutInspectorEventType)
@@ -118,11 +124,11 @@ interface InspectorClient {
 
   companion object {
     /**
-     * Prove a way for tests to generate a mock client.
+     * Provide a way for tests to generate a mock client.
      */
     @VisibleForTesting
     var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> List<InspectorClient> = { model, parentDisposable ->
-      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model.resourceLookup, parentDisposable))
+      listOf(DefaultInspectorClient(model, parentDisposable), LegacyClient(model, parentDisposable))
     }
 
     /**
@@ -136,17 +142,18 @@ object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
     override fun loadComponentTree(
       data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-    ): Pair<ViewNode, Any>? = null
+    ): Pair<AndroidWindow, Int>? = null
     override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Any>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
-  override fun registerProcessChanged(callback: () -> Unit) {}
+  override fun registerProcessChanged(callback: (InspectorClient) -> Unit) {}
   override fun getStreams(): Sequence<Common.Stream> = emptySequence()
   override fun getProcesses(stream: Common.Stream): Sequence<Common.Process> = emptySequence()
   override fun attachIfSupported(preferredProcess: LayoutInspectorPreferredProcess): Future<*>? = null
   override fun attach(stream: Common.Stream, process: Common.Process) {}
   override fun disconnect(): Future<Nothing> = CompletableFuture.completedFuture(null)
   override fun execute(command: LayoutInspectorCommand) {}
+  override fun refresh() {}
   override fun logEvent(type: DynamicLayoutInspectorEventType) {}
   override val isConnected = false
   override val selectedStream: Common.Stream = Common.Stream.getDefaultInstance()

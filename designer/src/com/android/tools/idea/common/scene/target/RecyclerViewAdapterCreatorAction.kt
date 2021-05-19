@@ -32,6 +32,7 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.currentRecyclerViewLayout
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.recyclerViewAdapterFragmentTemplate
 import com.android.tools.idea.wizard.template.impl.xml.recycleradapter.recyclerViewAdapterNoFragmentTemplate
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.GENERATE_RECYCLER
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -65,7 +66,7 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
 
     val renderModel = fromFacet(
       facet, initialPackageSuggestion, moduleTemplates[0], commandName,
-      projectSyncInvoker, true)
+      projectSyncInvoker, true, GENERATE_RECYCLER)
 
     // Remove ".xml" from the name.
     currentRecyclerViewLayout = component.model.file.name

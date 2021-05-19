@@ -134,7 +134,7 @@ public final class RunOnMultipleDevicesActionTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
-      .setKey(new Key("Pixel_4_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_4_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

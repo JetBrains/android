@@ -1,0 +1,4 @@
+rootProject.name='SamePackageModules'
+include ':app'
+include ':lib1'
+include ':lib2'

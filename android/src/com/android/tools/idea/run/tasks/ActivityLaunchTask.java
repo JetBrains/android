@@ -21,14 +21,13 @@ import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.activity.AndroidActivityLauncher;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.execution.Executor;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract class ActivityLaunchTask implements LaunchTask {
+public abstract class ActivityLaunchTask extends AppLaunchTask {
   @VisibleForTesting
   static final String ACTIVITY_DOES_NOT_EXIST = "ACTIVITY_DOES_NOT_EXIST";
   @VisibleForTesting
@@ -57,8 +56,11 @@ public abstract class ActivityLaunchTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(@NotNull Executor executor, @NotNull IDevice device,
-                          @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(@NotNull LaunchContext launchContext) {
+    LaunchStatus launchStatus = launchContext.getLaunchStatus();
+    ConsolePrinter printer = launchContext.getConsolePrinter();
+    IDevice device = launchContext.getDevice();
+
     String command = getStartActivityCommand(device, launchStatus, printer);
     if (command == null) {
       return LaunchResult.error(UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY, getDescription());

@@ -26,7 +26,6 @@ import com.intellij.ide.util.PropertiesComponent
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 class PropertyMapperTest {
   @get:Rule

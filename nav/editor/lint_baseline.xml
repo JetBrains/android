@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 4.1.0-dev">
+<issues format="5" by="lint 4.2.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -22,7 +22,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
-            line="34"/>
+            line="31"/>
     </issue>
 
     <issue
@@ -30,7 +30,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
-            line="36"/>
+            line="33"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
-            line="40"/>
+            line="37"/>
     </issue>
 
     <issue
@@ -46,7 +46,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
-            line="42"/>
+            line="39"/>
     </issue>
 
     <issue
@@ -54,7 +54,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="69"/>
+            line="75"/>
     </issue>
 
     <issue
@@ -62,7 +62,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="72"/>
+            line="78"/>
     </issue>
 
     <issue
@@ -70,7 +70,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="74"/>
+            line="80"/>
     </issue>
 
     <issue
@@ -78,7 +78,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="77"/>
+            line="83"/>
     </issue>
 
     <issue
@@ -86,7 +86,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="79"/>
+            line="85"/>
     </issue>
 
     <issue
@@ -150,23 +150,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="380"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/structure/BackPanel.kt"
-            line="114"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/structure/BackPanel.kt"
-            line="114"/>
+            line="383"/>
     </issue>
 
     <issue
@@ -182,7 +166,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="80"/>
+            line="79"/>
     </issue>
 
     <issue

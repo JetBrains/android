@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
-import com.android.flags.junit.SetFlagRule;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -34,14 +33,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.ComponentTree
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
-import org.fest.swing.driver.BasicJListCellReader;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +49,6 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class NavNlEditorTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final SetFlagRule<Boolean> flagRule = new SetFlagRule<>(StudioFlags.NAV_NEW_COMPONENT_TREE, false);
 
   @RunIn(TestGroup.UNRELIABLE) // b/152621347
   @Test
@@ -73,50 +69,9 @@ public class NavNlEditorTest {
     assertEquals("first_screen", selectedComponents.get(0).getId());
   }
 
-  @RunIn(TestGroup.UNRELIABLE)  // b/72238573
-  @Test
-  public void testCreateAndDelete() throws Exception {
-    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
-
-    NlEditorFixture layout = guiTest
-      .importProjectAndWaitForProjectSyncToFinish("Navigation")
-      .getEditor()
-      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor();
-
-    AddDestinationMenuFixture menuFixture = layout
-      .waitForRenderToFinish()
-      .getNavSurface()
-      .openAddDestinationMenu()
-      .waitForContents();
-
-    assertEquals(3, menuFixture.visibleItemCount());
-    guiTest.robot().enterText("fragment_my");
-    assertEquals(1, menuFixture.visibleItemCount());
-
-    menuFixture.selectDestination("fragment_my");
-
-    DestinationListFixture fixture = DestinationListFixture.create(guiTest.robot());
-    fixture.replaceCellReader(new BasicJListCellReader(c -> c.toString()));
-    fixture.selectItem("main_activity - Start");
-    assertEquals(1, layout.getSelection().size());
-    assertEquals("main_activity", layout.getSelection().get(0).getId());
-
-    guiTest.robot().type('\b');
-
-    ApplicationManager.getApplication().invokeAndWait(() -> UIUtil.dispatchAllInvocationEvents());
-
-    layout.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
-
-    List<NlComponent> selectedComponents = fixture.getSelectedComponents();
-    assertEquals(0, selectedComponents.size());
-  }
-
   @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCreateAndDeleteWithTree() throws Exception {
-    StudioFlags.NAV_NEW_COMPONENT_TREE.override(true);
-
     NlEditorFixture navEditor = guiTest
       .importProjectAndWaitForProjectSyncToFinish("Navigation")
       .getEditor()
@@ -181,7 +136,6 @@ public class NavNlEditorTest {
 
   @Test
   public void testCreateAndDeleteWithSingleVariantSync() throws Exception {
-    StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       IdeFrameFixture frame = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation");
@@ -222,7 +176,6 @@ public class NavNlEditorTest {
       guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
     }
     finally {
-      StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.clearOverride();
     }
   }
@@ -370,12 +323,7 @@ public class NavNlEditorTest {
   }
 
   private List<NlComponent> getPanelSelectedComponents(NlEditorFixture editor) {
-    if (StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
-      ComponentTreeFixture navComponentTreeFixture = editor.navComponentTree();
-      return navComponentTreeFixture.selectedComponents();
-    }
-
-    DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
-    return destinationListFixture.getSelectedComponents();
+    ComponentTreeFixture navComponentTreeFixture = editor.navComponentTree();
+    return navComponentTreeFixture.selectedComponents();
   }
 }

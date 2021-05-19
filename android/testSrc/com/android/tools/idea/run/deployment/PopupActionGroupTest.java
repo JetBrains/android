@@ -81,8 +81,7 @@ public final class PopupActionGroupTest {
 
     // Assert
     Object[] children = {
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -94,7 +93,7 @@ public final class PopupActionGroupTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -108,8 +107,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -121,7 +119,7 @@ public final class PopupActionGroupTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -136,8 +134,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.RUNNING_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(device, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 
@@ -149,14 +146,14 @@ public final class PopupActionGroupTest {
     // Arrange
     Device runningDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device availableDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
-      .setKey(new Key("Pixel_3_API_29"))
+      .setKey(new VirtualDeviceName("Pixel_3_API_29"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -173,8 +170,7 @@ public final class PopupActionGroupTest {
       myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID),
       SelectDeviceAction.newSelectDeviceAction(availableDevice, myComboBoxAction),
       Separator.getInstance(),
-      myActionManager.getAction(MultipleDevicesAction.ID),
-      myActionManager.getAction(ModifyDeviceSetAction.ID),
+      myActionManager.getAction(SelectMultipleDevicesAction.ID),
       myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
       myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
 

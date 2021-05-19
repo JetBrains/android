@@ -52,10 +52,8 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -73,16 +71,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import org.intellij.lang.annotations.JdkConstants;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
@@ -382,6 +377,7 @@ public class Scene implements SelectionListener, Disposable {
    */
   private static void markSelection(SceneComponent component, SelectionModel model) {
     component.setSelected(model.isSelected(component.getNlComponent()));
+    component.setHighlighted(model.isHighlighted(component.getNlComponent()));
 
     for (SceneComponent child : component.getChildren()) {
       markSelection(child, model);
@@ -741,7 +737,8 @@ public class Scene implements SelectionListener, Disposable {
   private void delegateMouseDragToSelection(@AndroidDpCoordinate int x,
                                             @AndroidDpCoordinate int y,
                                             @Nullable Target closestTarget,
-                                            @NotNull SceneComponent currentComponent) {
+                                            @NotNull SceneComponent currentComponent,
+                                            @NotNull SceneContext context) {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
@@ -755,7 +752,7 @@ public class Scene implements SelectionListener, Disposable {
             if (target instanceof MultiComponentTarget) {
               ArrayList<Target> list = new ArrayList<>();
               list.add(closestTarget);
-              target.mouseDrag(x, y, list);
+              target.mouseDrag(x, y, list, context);
             }
           }
         }
@@ -904,9 +901,9 @@ public class Scene implements SelectionListener, Disposable {
         myNewSelectedComponentsOnRelease.add(targetComponent);
         select(myNewSelectedComponentsOnRelease);
       }
-      myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
+      myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets, transform);
       if (myHitTarget instanceof MultiComponentTarget) {
-        delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(modifiersEx), myHitTarget.getComponent());
+        delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(modifiersEx), myHitTarget.getComponent(), transform);
       }
       myHitListener.setTargetFilter(null);
     }
@@ -1214,7 +1211,7 @@ public class Scene implements SelectionListener, Disposable {
         }
 
         XmlTag tag = neleComponent.getTagDeprecated();
-        return task.measureChild(tag, filter);
+        return task.measureChild(tag, filter).whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE);
       })
       .thenApply(viewInfo -> {
         if (viewInfo == null) {

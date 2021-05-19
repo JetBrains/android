@@ -20,6 +20,7 @@ import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.Rotation.SkinRotation.LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_LANDSCAPE
 import com.android.emulator.control.Rotation.SkinRotation.REVERSE_PORTRAIT
+import com.android.ide.common.util.PathString
 import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
@@ -216,8 +217,8 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
         if (part.maskFile != null) {
           readImage(part.maskFile)
         }
-        else if (part.backgroundFile?.file?.contains("_mask_") == true) {
-          // The AndroidWearRound/layout file doesn't specify a mask, but the background image is supposed to be used instead.
+        else if (part.backgroundFile?.file?.let { isCombinedMaskAndBackground(it) } == true) {
+          // Derive mask from the background image.
           background?.cropped(Rectangle(-frameRectangle.x, -frameRectangle.y, displaySize.width, displaySize.height))
         }
         else {
@@ -233,6 +234,16 @@ class SkinDefinition private constructor(val layout: SkinLayout) {
 
       val adjustedFrameRectangle = computeAdjustedFrameRectangle(backgroundImages, displaySize)
       return SkinLayout(displaySize, adjustedFrameRectangle, backgroundImages, maskImages)
+    }
+
+    /**
+     * Some round Wear OS devices specify a single file that is supposed to be used for both, background and mask.
+     * To distinguish such devices this method uses a heuristic based on the skin name.
+     */
+    @JvmStatic
+    private fun isCombinedMaskAndBackground(filename: String): Boolean {
+      val skinName = PathString(filename).parentFileName ?: return false
+      return skinName.startsWith("AndroidWearRound") || skinName.startsWith("wear_round")
     }
 
     /**

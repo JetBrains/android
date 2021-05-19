@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DemoExample
@@ -46,11 +47,9 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 
-@RunsInEdt
-class InspectorPropertyItemTest {
+abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   private var componentStack: ComponentStack? = null
-  private var model: InspectorModel? = null
-  private val projectRule = AndroidProjectRule.withSdk()
+  protected var model: InspectorModel? = null
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -59,9 +58,10 @@ class InspectorPropertyItemTest {
   fun setUp() {
     val project = projectRule.project
     model = model(project, DemoExample.setUpDemo(projectRule.fixture))
+    val fileManager = Mockito.mock(FileEditorManager::class.java)
+    Mockito.`when`(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     componentStack = ComponentStack(project)
-    componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
-    Mockito.`when`(FileEditorManager.getInstance(project).openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
+    componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager)
     val propertiesComponent = PropertiesComponentMock()
     projectRule.replaceService(PropertiesComponent::class.java, propertiesComponent)
     model!!.resourceLookup.dpi = 560
@@ -75,6 +75,60 @@ class InspectorPropertyItemTest {
     model = null
   }
 
+  protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, nodeId, model!!)
+  }
+
+  protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, nodeId, model!!)
+  }
+
+  protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = fakeComposeNode.drawId
+    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, nodeId, model!!)
+  }
+
+  protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, nodeId, model!!)
+  }
+
+  protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId,
+                                 model!!)
+  }
+
+  protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
+    val nodeId = model!!["title"]!!.drawId
+    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId, model!!)
+  }
+
+  private val fakeComposeNode: ComposeViewNode =
+    ComposeViewNode(-2L, "Text", null, 20, 20, 600, 200, null, "",
+                    0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17)
+
+  protected fun browseProperty(attrName: String,
+                             type: Type,
+                             source: ResourceReference?): OpenFileDescriptor {
+    val node = model!!["title"]!!
+    val property = InspectorPropertyItem(
+      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node.drawId, model!!)
+    val fileManager = FileEditorManager.getInstance(projectRule.project)
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+
+    property.helpSupport.browse()
+    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    return file.value
+  }
+}
+
+@RunsInEdt
+class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
   @Test
   fun testFormatDimensionInPixels() {
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
@@ -174,13 +228,112 @@ class InspectorPropertyItemTest {
   }
 
   @Test
+  fun testFormatDimensionDpInDp() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.DP
+    assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
+    assertThat(dimensionDpPropertyOf("1.75").value).isEqualTo("1.75dp")
+    assertThat(dimensionDpPropertyOf("1.74978").value).isEqualTo("1.75dp")
+    assertThat(dimensionDpPropertyOf("1.234567").value).isEqualTo("1.235dp")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
+    assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
+    assertThat(dimensionDpPropertyOf("0.499999999").value).isEqualTo("0.5dp")
+    assertThat(dimensionDpPropertyOf("0.1234567").value).isEqualTo("0.123dp")
+  }
+
+  @Test
+  fun testFormatDimensionDpInPixels() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+    assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0px")
+    assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("1.75px")
+    assertThat(dimensionDpPropertyOf("0.4999").value).isEqualTo("1.75px")
+    assertThat(dimensionDpPropertyOf("1.23456").value).isEqualTo("4.321px")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
+    assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
+    assertThat(dimensionDpPropertyOf("0.499999999").value).isEqualTo("0.5dp")
+    assertThat(dimensionDpPropertyOf("0.1234567").value).isEqualTo("0.123dp")
+  }
+
+  @Test
+  fun testFormatDimensionSpInDp() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.DP
+    assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
+  }
+
+  @Test
+  fun testFormatDimensionSpInPixels() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+    model!!.resourceLookup.fontScale = 1.0f
+    assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("49.0px")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("44.1px")
+    model!!.resourceLookup.fontScale = 1.3f
+    assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("63.7px")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("14.0sp")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("14.0sp")
+  }
+
+  @Test
+  fun testFormatDimensionEmInDp() {
+    PropertiesSettings.dimensionUnits = DimensionUnits.DP
+    assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+  }
+
+  @Test
+  fun testFormatDimensionEmInPixels() {
+    assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+
+    model!!.resourceLookup.dpi = -1
+    assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+    model!!.resourceLookup.fontScale = 0.9f
+    assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
+  }
+
+  @Test
   fun testBrowseBackgroundInLayout() {
     val descriptor = browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
     assertThat(descriptor.file.name).isEqualTo("demo.xml")
     assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
       .isEqualTo("framework:background=\"@drawable/battery\"")
   }
+}
 
+@RunsInEdt
+class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidProjectRule.withSdk()) {
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
@@ -188,39 +341,5 @@ class InspectorPropertyItemTest {
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
     assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset))
       .isEqualTo("<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
-  }
-
-  private fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun textSizePropertyOf(value: String?): InspectorPropertyItem {
-    val node = model!!["title"]!!
-    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, node,
-                                 model!!.resourceLookup)
-  }
-
-  private fun browseProperty(attrName: String,
-                             type: Type,
-                             source: ResourceReference?): OpenFileDescriptor {
-    val node = model!!["title"]!!
-    val property = InspectorPropertyItem(
-      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node, model!!.resourceLookup)
-    val fileManager = FileEditorManager.getInstance(projectRule.project)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
-      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
-
-    property.helpSupport.browse()
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    return file.value
   }
 }

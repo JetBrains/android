@@ -31,11 +31,10 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
 
     super.addFocusListener(object : FocusAdapter() {
       override fun focusGained(event: FocusEvent) {
-        // If this table gains focus from focus traversal,
-        // and there are editable cells: delegate to the next focus candidate.
         when (event.cause) {
           FocusEvent.Cause.TRAVERSAL_FORWARD -> transferFocusToFirstEditor()
           FocusEvent.Cause.TRAVERSAL_BACKWARD -> transferFocusToLastEditor()
+          else -> return  // avoid compilation warning
         }
       }
     })

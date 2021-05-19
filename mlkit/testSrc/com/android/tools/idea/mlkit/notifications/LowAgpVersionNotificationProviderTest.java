@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
+import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.facet.AndroidFacet;
+import com.intellij.testFramework.RunsInEdt;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,12 +34,12 @@ import org.mockito.MockitoAnnotations;
 /**
  * Unit tests for {@link LowAgpVersionNotificationProvider}.
  */
+@RunsInEdt
 public class LowAgpVersionNotificationProviderTest {
 
   @Rule
-  public AndroidProjectRule projectRule = AndroidProjectRule.inMemory();
+  public EdtAndroidProjectRule projectRule = onEdt(AndroidProjectRule.withAndroidModels());
 
-  @Mock private AndroidModuleModel myMockAndroidModuleModel;
   @Mock private VirtualFile myMockVirtualFile;
   @Mock private TfliteModelFileEditor myMockEditor;
   private Project myProject;
@@ -52,23 +49,23 @@ public class LowAgpVersionNotificationProviderTest {
   public void setUp() {
     MockitoAnnotations.initMocks(this);
 
-    AndroidFacet androidFacet = AndroidFacet.getInstance(projectRule.getModule());
-    when(myMockAndroidModuleModel.getAndroidProject()).thenReturn(mock(IdeAndroidProject.class));
-    AndroidModel.set(androidFacet, myMockAndroidModuleModel);
-
-    myProject = projectRule.getProject();
     myNotificationProvider = new LowAgpVersionNotificationProvider();
+  }
+
+  private void setupProject(String version) {
+    MlProjectTestUtil.setupTestMlProject(projectRule.getProject(), version, 28);
+    myProject = projectRule.getProject();
   }
 
   @Test
   public void lowAgpVersion_hasNotification() {
-    when(myMockAndroidModuleModel.getModelVersion()).thenReturn(GradleVersion.parse("4.0.0"));
+    setupProject("4.0.0");
     assertThat(myNotificationProvider.createNotificationPanel(myMockVirtualFile, myMockEditor, myProject)).isNotNull();
   }
 
   @Test
   public void qualifiedAgpVersion_noNotification() {
-    when(myMockAndroidModuleModel.getModelVersion()).thenReturn(GradleVersion.parse("4.2.0"));
+    setupProject("4.2.0");
     assertThat(myNotificationProvider.createNotificationPanel(myMockVirtualFile, myMockEditor, myProject)).isNull();
   }
 }

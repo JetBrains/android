@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.builder.model.SyncIssue;
+import com.android.ide.common.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
@@ -37,7 +37,7 @@ import java.util.List;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
+import static com.android.ide.common.gradle.model.IdeSyncIssue.TYPE_GRADLE_TOO_OLD;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink.createIfProjectUsesGradleWrapper;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
@@ -48,7 +48,7 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
   }
 
   @Override
-  void report(@NotNull SyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile,
+  void report(@NotNull IdeSyncIssue syncIssue, @NotNull Module module, @Nullable VirtualFile buildFile,
               @NotNull SyncIssueUsageReporter usageReporter) {
     String text = syncIssue.getMessage();
     MessageType type = getMessageType(syncIssue);

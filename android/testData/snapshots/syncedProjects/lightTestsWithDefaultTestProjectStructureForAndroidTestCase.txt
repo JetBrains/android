@@ -1,5 +1,5 @@
 PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
-    PROJECT_JDK         : 1.8
+    PROJECT_JDK         : <JAVA_VERSION>
         Version             : java version "<JDK_VERSION>"
     MODULE              : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
         LinkedProjectId     : testLightTestsWithDefaultTestProjectStructureForAndroidTestCase
@@ -50,6 +50,16 @@ PROJECT             : testLightTestsWithDefaultTestProjectStructureForAndroidTes
         CONENT_ENTRY        : file://<TEMP>
             JavaResource        : file://<TEMP>/res
             JavaSource          : file://<TEMP>/src
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/aidl [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/assets [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/c [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/cpp [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/java [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/ml [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/renderscript [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<TEMP>/src/debug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<TEMP>/src/debug/shaders [-]
         JDK                 : <NAME_CUT> Android SDK
         *isInherited        : false
             SdkType             : Android SDK

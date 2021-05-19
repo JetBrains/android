@@ -49,6 +49,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -58,7 +59,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
@@ -189,10 +189,11 @@ public class AndroidUtils extends CommonAndroidUtil {
                                                                           @NotNull XmlFile xmlFile,
                                                                           @NotNull Class<T> aClass) {
     getApplication().assertReadAccessAllowed();
+    ProgressManager.checkCanceled();
     DomManager domManager = DomManager.getDomManager(project);
+    ProgressManager.checkCanceled();
     DomFileElement<T> element = domManager.getFileElement(xmlFile, aClass);
-    if (element == null) return null;
-    return element.getRootElement();
+    return element == null ? null : element.getRootElement();
   }
 
   @Nullable
@@ -218,7 +219,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     final List<String> packages = new ArrayList<>();
     file = file.getParent();
 
-    while (file != null && !Comparing.equal(projectDir, file) && !sourceRoots.contains(file)) {
+    while (file != null && !Objects.equals(projectDir, file) && !sourceRoots.contains(file)) {
       packages.add(file.getName());
       file = file.getParent();
     }

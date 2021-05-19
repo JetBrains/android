@@ -17,12 +17,12 @@
 
 package com.android.tools.idea.gradle.project.model
 
-import com.android.builder.model.ApiVersion
-import com.android.builder.model.BaseArtifact
-import com.android.builder.model.BuildTypeContainer
-import com.android.builder.model.ProductFlavorContainer
-import com.android.builder.model.SourceProvider
-import com.android.builder.model.SourceProviderContainer
+import com.android.ide.common.gradle.model.IdeApiVersion
+import com.android.ide.common.gradle.model.IdeBaseArtifact
+import com.android.ide.common.gradle.model.IdeBuildTypeContainer
+import com.android.ide.common.gradle.model.IdeProductFlavorContainer
+import com.android.ide.common.gradle.model.IdeSourceProvider
+import com.android.ide.common.gradle.model.IdeSourceProviderContainer
 import com.android.ide.common.gradle.model.IdeVariant
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
@@ -42,16 +42,16 @@ import com.intellij.util.containers.addIfNotNull
  *   productFlavorContainer.selectProvider()
  * }
  */
-private enum class ArtifactSelector(val selector: IdeVariant.() -> BaseArtifact?, val artifactName: String) {
+private enum class ArtifactSelector(val selector: IdeVariant.() -> IdeBaseArtifact?, val artifactName: String) {
   MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
   UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
   ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST);
 
-  fun IdeVariant.selectArtifact(): BaseArtifact? = selector()
-  fun BuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
-  fun ProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun IdeVariant.selectArtifact(): IdeBaseArtifact? = selector()
+  fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
-  private fun <T> T.providerBy(main: T.() -> SourceProvider, extra: T.() -> Collection<SourceProviderContainer>) =
+  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider, extra: T.() -> Collection<IdeSourceProviderContainer>) =
     when (artifactName) {
       ARTIFACT_NAME_MAIN -> main()
       else -> extra().singleOrNull { it.artifactName == artifactName }?.sourceProvider
@@ -62,16 +62,16 @@ internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) 
 internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
 internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
 
-internal fun AndroidModuleModel.collectAllSourceProviders(): List<SourceProvider> = collectAllProvidersFor(MAIN)
-internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(UNIT_TEST)
-internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(ANDROID_TEST)
+internal fun AndroidModuleModel.collectAllSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(MAIN)
+internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(UNIT_TEST)
+internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(ANDROID_TEST)
 
-private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<SourceProvider> =
-  mutableListOf<SourceProvider>().apply {
+private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<IdeSourceProvider> =
+  mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
       val artifact = variant.selectArtifact()
-      // TODO(solodkyy): Reverse order as the correct application order is from the last dimenssion to the first.
+      // TODO(solodkyy): Reverse order as the correct application order is from the last dimension to the first.
       addAll(variant.productFlavors.mapNotNull { findProductFlavor(it)?.selectProvider() })
       addIfNotNull(artifact?.multiFlavorSourceProvider)
       addIfNotNull(findBuildType(variant.buildType)?.selectProvider())
@@ -79,9 +79,9 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
     }
   }
 
-private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<SourceProvider> {
-  val variants = androidProject.variants.filterIsInstance<IdeVariant>()
-  return mutableListOf<SourceProvider>().apply {
+private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
+  val variants = variants
+  return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
       addIfNotNull(androidProject.defaultConfig.selectProvider())
       addAll(androidProject.productFlavors.mapNotNull { it.selectProvider() })
@@ -93,7 +93,7 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
 }
 
 /**
-  * Convert an [ApiVersion] to an [AndroidVersion]. The chief problem here is that the [ApiVersion],
+  * Convert an [IdeApiVersion] to an [AndroidVersion]. The chief problem here is that the [IdeApiVersion],
   * when using a codename, will not encode the corresponding API level (it just reflects the string
   * entered by the user in the gradle file) so we perform a search here (since lint really wants
   * to know the actual numeric API level)
@@ -104,7 +104,7 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
   * @return the corresponding version
   */
 fun convertVersion(
-  api: ApiVersion,
+  api: IdeApiVersion,
   targets: Array<IAndroidTarget>?
 ): AndroidVersion {
   val codename = api.codename

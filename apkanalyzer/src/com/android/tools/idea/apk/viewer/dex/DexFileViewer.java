@@ -16,25 +16,41 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.adtui.util.HumanReadableUtil;
 import com.android.tools.apk.analyzer.FilteredTreeModel;
-import com.android.tools.apk.analyzer.dex.*;
+import com.android.tools.apk.analyzer.dex.DexFileStats;
+import com.android.tools.apk.analyzer.dex.DexFiles;
+import com.android.tools.apk.analyzer.dex.DexReferences;
+import com.android.tools.apk.analyzer.dex.DexViewFilters;
+import com.android.tools.apk.analyzer.dex.PackageTreeCreator;
+import com.android.tools.apk.analyzer.dex.ProguardMappings;
 import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
 import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
-import com.android.tools.idea.apk.viewer.ApkViewPanel;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.icons.AllIcons;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -47,32 +63,44 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.LoadingNode;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
+import java.awt.BorderLayout;
 import java.beans.PropertyChangeListener;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-
-import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
-import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorComponent, FileEditor {
   private final Disposable myDisposable;
@@ -564,7 +592,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
                                       boolean hasFocus) {
       if (value instanceof DexElementNode) {
         DexElementNode node = (DexElementNode)value;
-        append(ApkViewPanel.getHumanizedSize(node.getSize()));
+        append(HumanReadableUtil.getHumanizedSize(node.getSize()));
       }
     }
   }

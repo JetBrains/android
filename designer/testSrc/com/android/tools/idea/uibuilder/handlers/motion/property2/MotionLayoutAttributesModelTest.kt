@@ -211,11 +211,12 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[CONSTRAINT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
     property.value = "30dp"
-    assertThat(motionRule.sceneFileLines(37..45)).isEqualTo("<Constraint\n" +
+    assertThat(motionRule.sceneFileLines(37..46)).isEqualTo("<Constraint\n" +
                                                             "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
                                                             "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
                                                             "     android:layout_width=\"32dp\"\n" +
                                                             "     android:layout_height=\"30dp\"\n" +
+                                                            "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
                                                             "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
                                                             "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
                                                             "     motion:layout_editor_absoluteY=\"40dp\"\n" +
@@ -267,11 +268,12 @@ class MotionLayoutAttributesModelTest {
     assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
                                             "              motion:attributeName=\"text\"\n" +
                                             "              motion:customStringValue=\"Hello\" />")
-    assertThat(motionRule.sceneFileLines(37..49)).isEqualTo("<Constraint\n" +
+    assertThat(motionRule.sceneFileLines(37..51)).isEqualTo("<Constraint\n" +
                                                             "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
                                                             "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
                                                             "     android:layout_width=\"32dp\"\n" +
                                                             "     android:layout_height=\"10dp\"\n" +
+                                                            "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
                                                             "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
                                                             "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
                                                             "     motion:layout_editor_absoluteY=\"40dp\"\n" +

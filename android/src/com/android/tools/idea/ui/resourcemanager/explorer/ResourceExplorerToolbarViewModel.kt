@@ -260,7 +260,7 @@ class ResourceExplorerToolbarViewModel(
 
   inner class ImportResourceAction : AnAction("Import Drawables", "Import drawable files from disk", AllIcons.Actions.Upload), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-        ResourceManagerTracking.logAssetAddedViaButton()
+        ResourceManagerTracking.logAssetAddedViaButton(facet)
         ResourceImportDialog(
           ResourceImportDialogViewModel(facet, emptySequence(), importersProvider = importersProvider)).show()
     }

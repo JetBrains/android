@@ -36,6 +36,7 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
@@ -45,7 +46,7 @@ import org.jetbrains.plugins.groovy.GroovyLanguage
 class GradleUsageTypeProvider : UsageTypeProvider {
 
   override fun getUsageType(element: PsiElement): UsageType? {
-    if (element.language != GroovyLanguage) return null
+    if (element.language != GroovyLanguage && element?.language != KotlinLanguage.INSTANCE) return null
     return if (GradleFiles.getInstance(element.project).isGradleFile(element.containingFile)) GRADLE_USAGE_TYPE else null
   }
 

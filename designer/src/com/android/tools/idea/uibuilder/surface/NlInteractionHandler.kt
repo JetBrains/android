@@ -36,7 +36,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
   override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
-    if (view.scene.isResizeAvailable && isInResizeZone(view, mouseX, mouseY)) {
+    if (isInResizeZone(view, mouseX, mouseY)) {
       val configuration = view.sceneManager.model.configuration
       return CanvasResizeInteraction(surface as NlDesignSurface, screenView, configuration)
     }
@@ -84,7 +84,16 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     return interaction
   }
 
+  /**
+   * Returns whether the given [mouseX] and [mouseY] coordinates are within the resizing handle area.
+   * If resizing is disabled or the coordinates are outside of the resize handler area, this method returns false.
+   */
   private fun isInResizeZone(sceneView: SceneView, @SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Boolean {
+    if (!sceneView.isResizeable || !sceneView.scene.isResizeAvailable) {
+      // Resizing is disabled
+      return false
+    }
+
     val size = sceneView.scaledContentSize
     // Check if the mouse position is at the bottom-right corner of sceneView.
     val resizeZone = Rectangle(sceneView.x + size.width,
@@ -184,7 +193,8 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     val sceneView = surface.getSceneView(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
-    val sceneComponent = surface.scene?.findComponent(sceneView.context, androidX, androidY) ?: return
+
+    val sceneComponent = sceneView.scene.findComponent(sceneView.context, androidX, androidY) ?: return
 
     if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
                                                                        sceneComponent,
@@ -200,7 +210,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     val sceneView = surface.getSceneView(mouseX, mouseY)
     if (sceneView != null) {
       // Check if the mouse position is at the bottom-right corner of sceneView.
-      if (sceneView.isResizeable && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
+      if (isInResizeZone(sceneView, mouseX, mouseY)) {
         return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
       }
     }

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.SkiaParser
 import com.android.tools.idea.layoutinspector.SkiaParserService
 import com.android.tools.idea.layoutinspector.UnsupportedPictureVersionException
@@ -34,8 +35,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
-import com.intellij.util.ui.UIUtil
-import java.awt.Image
+import java.awt.Polygon
 import java.awt.Rectangle
 import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
@@ -50,17 +50,30 @@ private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 object ComponentTreeLoader : TreeLoader {
 
   override fun loadComponentTree(
-    data: Any?, resourceLookup: ResourceLookup, client: InspectorClient, project: Project
-  ): Pair<ViewNode, Long>? {
-    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)?.let { Pair(it, it.drawId) }
+    data: Any?,
+    resourceLookup: ResourceLookup,
+    client: InspectorClient,
+    project: Project
+  ): Pair<AndroidWindow?, Int>? {
+    return loadComponentTree(data, resourceLookup, client, SkiaParser, project)
   }
 
   @VisibleForTesting
   fun loadComponentTree(
-    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService, project: Project
-  ): ViewNode? {
+    maybeEvent: Any?, resourceLookup: ResourceLookup,
+    client: InspectorClient,
+    skiaParser: SkiaParserService,
+    project: Project
+  ): Pair<AndroidWindow?, Int>? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project)
+    val window: AndroidWindow? =
+      if (event.tree.hasRoot()) {
+        ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser, project) ?: return null
+      }
+      else {
+        null
+      }
+    return Pair(window, event.tree.generation)
   }
 
   override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
@@ -70,7 +83,8 @@ object ComponentTreeLoader : TreeLoader {
 }
 
 private class ComponentTreeLoaderImpl(
-  private val tree: LayoutInspectorProto.ComponentTreeEvent, private val resourceLookup: ResourceLookup?
+  private val tree: LayoutInspectorProto.ComponentTreeEvent,
+  private val resourceLookup: ResourceLookup?
 ) {
   private val loadStartTime = AtomicLong(-1)
   private val stringTable = StringTableImpl(tree.stringList)
@@ -83,8 +97,7 @@ private class ComponentTreeLoaderImpl(
       isInterrupted = true
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
 
-  @Slow
-  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): ViewNode? {
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService, project: Project): AndroidWindow? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -93,61 +106,90 @@ private class ComponentTreeLoaderImpl(
     }
     return try {
       val rootView = loadRootView() ?: return null
-      rootView.imageType = tree.payloadType
-      val bytes = defaultClient.getPayload(tree.payloadId)
-      if (bytes.isNotEmpty()) {
-        try {
-          when (tree.payloadType) {
-            PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, rootView, client)
-            SKP -> processSkp(bytes, skiaParser, project, client, rootView)
-            else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+      val window = AndroidWindow(rootView, rootView.drawId, tree.payloadType, tree.payloadId) @Slow { scale, window ->
+        val bytes = defaultClient.getPayload(window.payloadId)
+        if (bytes.isNotEmpty()) {
+          val root = window.root
+          try {
+            when (window.imageType) {
+              PNG_AS_REQUESTED, PNG_SKP_TOO_LARGE -> processPng(bytes, root, client)
+              SKP -> processSkp(bytes, skiaParser, project, client, root, scale)
+              else -> client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+            }
+          }
+          catch (ex: Exception) {
+            // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
+            Logger.getInstance(LayoutInspector::class.java).warn(ex)
           }
         }
-        catch (ex: Exception) {
-          Logger.getInstance(LayoutInspector::class.java).warn(ex)
-        }
       }
-      rootView
+      window
     }
     finally {
       loadStartTime.set(0)
     }
   }
 
-  private fun processSkp(bytes: ByteArray,
-                         skiaParser: SkiaParserService,
-                         project: Project,
-                         client: DefaultInspectorClient,
-                         rootView: ViewNode) {
-    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, skiaParser)
+  private fun processSkp(
+    bytes: ByteArray,
+    skiaParser: SkiaParserService,
+    project: Project,
+    client: DefaultInspectorClient,
+    rootView: ViewNode,
+    scale: Double
+  ) {
+    val allNodes = rootView.flatten().asSequence().filter { it.drawId != 0L }
+    val surfaceOriginX = rootView.x - tree.rootSurfaceOffsetX
+    val surfaceOriginY = rootView.y - tree.rootSurfaceOffsetY
+    val requestedNodeInfo = allNodes.mapNotNull {
+      val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+      if (bounds.isEmpty) null
+      else RequestedNodeInfo(it.drawId, bounds.width, bounds.height,
+                             bounds.x - surfaceOriginX, bounds.y - surfaceOriginY)
+    }.toList()
+    if (requestedNodeInfo.isEmpty()) {
+      return
+    }
+    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
       InspectorBannerService.getInstance(project).setNotification(errorMessage)
     }
-    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id.isEmpty()) {
+    if (rootViewFromSkiaImage == null || rootViewFromSkiaImage.id == 0L) {
       // We were unable to parse the skia image. Turn on screenshot mode on the device.
       client.requestScreenshotMode()
       // metrics will be logged when we come back with a bitmap
     }
     else {
       client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ComponentImageLoader(rootView, rootViewFromSkiaImage).loadImages()
+      ViewNode.writeDrawChildren { drawChildren ->
+        rootView.flatten().forEach { it.drawChildren().clear() }
+        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage).loadImages(drawChildren)
+      }
     }
   }
 
-  private fun processPng(bytes: ByteArray,
-                         rootView: ViewNode,
-                         client: InspectorClient) {
+  private fun processPng(bytes: ByteArray, rootView: ViewNode, client: InspectorClient) {
     ImageIO.read(ByteArrayInputStream(bytes))?.let {
-      rootView.imageBottom = it
+      ViewNode.writeDrawChildren { drawChildren ->
+        rootView.flatten().forEach { it.drawChildren().clear() }
+        rootView.drawChildren().add(DrawViewImage(it, rootView))
+        rootView.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+      }
     }
     client.logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
-  private fun getViewTree(bytes: ByteArray, skiaParser: SkiaParserService): Pair<InspectorView?, String?> {
+  private fun getViewTree(
+    bytes: ByteArray,
+    requestedNodes: Iterable<RequestedNodeInfo>,
+    skiaParser: SkiaParserService,
+    scale: Double
+  ): Pair<SkiaViewNode?, String?> {
     var errorMessage: String? = null
     val inspectorView = try {
-      val root = skiaParser.getViewTree(bytes) { isInterrupted }
+      val root = skiaParser.getViewTree(bytes, requestedNodes, scale) { isInterrupted }
+
       if (root == null) {
         // We were unable to parse the skia image. Allow the user to interact with the component tree.
         errorMessage = "Invalid picture data received from device. Rotation disabled."
@@ -160,6 +202,7 @@ private class ComponentTreeLoaderImpl(
     }
     catch (ex: Exception) {
       errorMessage = "Problem launching renderer. Rotation disabled."
+      Logger.getInstance(ComponentTreeLoaderImpl::class.java).warn(ex)
       null
     }
     return Pair(inspectorView, errorMessage)
@@ -168,11 +211,11 @@ private class ComponentTreeLoaderImpl(
   private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
     if (tree.hasRoot()) {
-      try {
-        return loadView(tree.root)
+      return try {
+        loadView(tree.root)
       }
       catch (interrupted: InterruptedException) {
-        return null
+        null
       }
     }
     return null
@@ -183,17 +226,25 @@ private class ComponentTreeLoaderImpl(
       throw InterruptedException()
     }
     val qualifiedName = packagePrefix(stringTable[view.packageName]) + stringTable[view.className]
-    val methodName = packagePrefix(stringTable[view.composePackage]) + stringTable[view.composeInvocation]
-    val composeFileName = stringTable[view.composeFilename]
     val viewId = stringTable[view.viewId]
     val textValue = stringTable[view.textValue]
     val layout = stringTable[view.layout]
-    val node = if (composeFileName.isEmpty()) {
-      ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags)
+    val transformedBounds =
+      if (view.hasTransformedBounds()) {
+        view.transformedBounds?.let {
+          Polygon(intArrayOf(it.topLeftX, it.topRightX, it.bottomRightX, it.bottomLeftX),
+                  intArrayOf(it.topLeftY, it.topRightY, it.bottomRightY, it.bottomLeftY), 4)
+        }
+      }
+      else null
+    val node = if (view.packageName != 0) {
+      ViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, transformedBounds, viewId, textValue,
+               view.layoutFlags)
     }
     else {
+      val composeFileName = stringTable[view.composeFilename]
       ComposeViewNode(view.drawId, qualifiedName, layout, view.x, view.y, view.width, view.height, viewId, textValue, view.layoutFlags,
-                      composeFileName, methodName, view.composeLineNumber)
+                      composeFileName, view.composePackageHash, view.composeOffset, view.composeLineNumber)
     }
     view.subViewList.map { loadView(it) }.forEach {
       node.children.add(it)
@@ -205,56 +256,31 @@ private class ComponentTreeLoaderImpl(
   private fun packagePrefix(packageName: String): String {
     return if (packageName.isEmpty()) "" else "$packageName."
   }
+}
 
-  private class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {
-    private val nodeMap = root.flatten().associateBy { it.drawId }
-    private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
-    private val offset = root.bounds.location
+@VisibleForTesting
+class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
+  private val nonImageSkiaNodes = skiaRoot.flatten().filter { it.image == null }.associateBy {  it.id }
 
-    init {
-      val rootView = viewMap[root.drawId]
-      offset.translate(-1 * (rootView?.x ?: 0), -1 * (rootView?.y ?: 0))
-    }
-
-    fun loadImages() {
+  fun loadImages(drawChildren: ViewNode.() -> MutableList<DrawViewNode>) {
       for ((drawId, node) in nodeMap) {
-        val view = viewMap[drawId] ?: continue
-        node.imageBottom = view.image
-        addChildNodeImages(node, view)
-      }
-    }
-
-    private fun addChildNodeImages(node: ViewNode, view: InspectorView) {
-      var beforeChildren = true
-      for (child in view.children.values) {
-        val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
-        when {
-          isChildNode -> beforeChildren = false
-          beforeChildren -> node.imageBottom = combine(node.imageBottom, child, node.bounds)
-          else -> node.imageTop = combine(node.imageTop, child, node.bounds)
+        val remainingChildren = LinkedHashSet(node.children)
+        val skiaNode = nonImageSkiaNodes[drawId]
+        if (skiaNode != null) {
+          for (childSkiaNode in skiaNode.children) {
+            val image = childSkiaNode.image
+            if (image != null) {
+              node.drawChildren().add(DrawViewImage(image, node))
+            }
+            else {
+              val viewForSkiaChild = nodeMap[childSkiaNode.id] ?: continue
+              val actualChild = viewForSkiaChild.parentSequence.find { remainingChildren.contains(it) } ?: continue
+              remainingChildren.remove(actualChild)
+              node.drawChildren().add(DrawViewChild(actualChild))
+            }
+          }
         }
-        if (!isChildNode) {
-          // Some Skia views are several levels deep:
-          addChildNodeImages(node, child)
-        }
+        remainingChildren.mapTo(node.drawChildren()) { DrawViewChild(it) }
       }
-    }
-
-    private fun combine(image: Image?,
-                        view: InspectorView,
-                        bounds: Rectangle): Image? {
-      if (view.image == null) {
-        return image
-      }
-      if (image == null) {
-        return view.image
-      }
-      @Suppress("UndesirableClassUsage")
-      // Combine the images...
-      val g = image.graphics
-      UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
-      g.dispose()
-      return image
-    }
   }
 }

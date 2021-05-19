@@ -18,11 +18,14 @@ package com.android.tools.idea.uibuilder.analytics
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.diagnostic.Logger
+
+private val LOG = Logger.getInstance(NlAnalyticsManager::class.java)
 
 /**
  * Handles analytics that are specific to the UI builder. Acts as an interface between [NlDesignSurface] and the usage tracker, being
@@ -33,14 +36,20 @@ class NlAnalyticsManager(surface: DesignSurface) : DesignerAnalyticsManager(surf
   private val nlSurface : NlDesignSurface = surface as NlDesignSurface
 
   override val surfaceType
-    get() = when (nlSurface.sceneMode) {
-      SceneMode.RENDER -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-      SceneMode.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
-      SceneMode.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
-      SceneMode.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+    get() = when (nlSurface.screenViewProvider) {
+      NlScreenViewProvider.RENDER -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      NlScreenViewProvider.BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+      NlScreenViewProvider.RENDER_AND_BLUEPRINT -> LayoutEditorState.Surfaces.BOTH
+      NlScreenViewProvider.COMPOSE -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      NlScreenViewProvider.COMPOSE_BLUEPRINT -> LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+      NlScreenViewProvider.RESIZABLE_PREVIEW -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      NlScreenViewProvider.VISUALIZATION -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      NlScreenViewProvider.COLOR_BLIND -> LayoutEditorState.Surfaces.SCREEN_SURFACE
+      else -> {
+        // TODO(b/160827330): Consider setting the surface type from the ScreenViewProvider class itself.
+        LOG.warn("The current ScreenViewProvider does not have a set Surface type")
+        LayoutEditorState.Surfaces.UNKNOWN_SURFACES
+      }
     }
 
   override

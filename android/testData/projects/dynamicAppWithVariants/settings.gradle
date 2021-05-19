@@ -1,0 +1,4 @@
+rootProject.name='simpleApplication'
+include ':app'
+include ':feature1'
+include ':dependsOnFeature1'

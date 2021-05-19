@@ -17,11 +17,13 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureCancellation
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteStatementType
 import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.util.concurrency.EdtExecutorService
@@ -128,5 +130,59 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
     // Assert
     assertEquals(9, rowCountBefore)
     assertEquals(10, rowCountAfter)
+  }
+
+  fun testDisposeCancelsGetColumns() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+    )
+    customConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
+    Disposer.dispose(customConnection!!)
+    pumpEventsAndWaitForFutureCancellation(resultSet.columns)
+  }
+
+  fun testDisposeCancelsGetRowCount() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+    )
+    customConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
+    Disposer.dispose(customConnection!!)
+    pumpEventsAndWaitForFutureCancellation(resultSet.totalRowCount)
+  }
+
+  fun testDisposeCancelsGetRowBatch() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
+      createStatement = "CREATE TABLE t1 (c1 INT)",
+      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+    )
+    customConnection = pumpEventsAndWaitForFuture(
+      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+    )
+    Disposer.dispose(customConnection!!)
+    pumpEventsAndWaitForFutureCancellation(resultSet.getRowBatch(0, 10))
   }
 }

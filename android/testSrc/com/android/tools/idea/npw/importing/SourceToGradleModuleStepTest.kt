@@ -43,8 +43,8 @@ class SourceToGradleModuleStepTest : AndroidGradleTestCase() {
   }
 
   fun testCheckPathEmptyPath() {
-    val path = ""
-    assertEquals(message("android.wizard.module.import.source.browse.no.location"), page.checkPath(path).message)
+    // Don't validate default empty input: jetbrains.github.io/ui/principles/validation_errors/#23
+    assertEquals(Validator.Severity.OK, page.updateStepStatus("").severity)
   }
 
   fun testCheckPathNotAProject() {

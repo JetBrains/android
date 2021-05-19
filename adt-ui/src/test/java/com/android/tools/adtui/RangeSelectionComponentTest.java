@@ -21,6 +21,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.android.tools.adtui.common.AdtUiCursorsProvider;
+import com.android.tools.adtui.common.AdtUiCursorsTestUtil;
+import com.android.tools.adtui.common.AdtUiCursorType;
+import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.adtui.model.DefaultConfigurableDurationData;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
@@ -30,7 +34,9 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.adtui.ui.AdtUiCursors;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.EmptyRunnable;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -39,12 +45,29 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class RangeSelectionComponentTest {
 
   private static final double DELTA = 1e-3;
+  private Disposable myRootDisposable;
+
+  @Before
+  public void setup() {
+    myRootDisposable = Disposer.newDisposable();
+    MockApplication app = MockApplication.setUp(myRootDisposable);
+    app.registerService(AdtUiCursorsProvider.class, new TestAdtUiCursorsProvider());
+    AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRAB, Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+    AdtUiCursorsTestUtil.replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+  }
+
+  @After
+  public void tearDown() {
+    Disposer.dispose(myRootDisposable);
+  }
 
   @Test
   public void clickingInViewRangeCreatesPointSelectionRange() {
@@ -218,12 +241,12 @@ public class RangeSelectionComponentTest {
     ui.mouse.press(45, 9);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(40);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(50);
-    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING));
     ui.mouse.dragDelta(40, 0);
     assertThat(model.getSelectionRange().getMin()).isWithin(DELTA).of(80);
     assertThat(model.getSelectionRange().getMax()).isWithin(DELTA).of(90);
     ui.mouse.release();
-    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRAB);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB));
   }
 
   @Test
@@ -348,7 +371,7 @@ public class RangeSelectionComponentTest {
 
     // Moving inside the range should change cursor to default cursor.
     ui.mouse.moveTo(15, 0);
-    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING));
     assertThat(component.getMode()).isEqualTo(RangeSelectionComponent.Mode.MOVE);
 
     // Moving inside the range should change cursor to default cursor.
@@ -451,7 +474,7 @@ public class RangeSelectionComponentTest {
     // State marked as clear, cursor should be up to the selection component
     isOccluded[0] = false;
     ui.mouse.moveTo(15, 0);
-    assertThat(component.getCursor()).isEqualTo(AdtUiCursors.GRABBING);
+    assertThat(component.getCursor()).isEqualTo(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING));
 
     // State marked as occluded again
     isOccluded[0] = true;

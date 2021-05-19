@@ -25,9 +25,11 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.surface.LayoutScannerConfiguration;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.Update;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -43,8 +45,17 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   private boolean myIgnoreRenderRequests;
 
   public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
-    super(model, model.getSurface(), EdtExecutorService.getInstance(), queue -> queue.setPassThrough(true),
-          new LayoutlibSceneManagerHierarchyProvider());
+    super(
+      model,
+      model.getSurface(),
+      EdtExecutorService.getInstance(),
+      d -> new RenderingQueue() {
+        @Override
+        public void queue(@NotNull Update update) { update.run(); }
+      },
+      new LayoutlibSceneManagerHierarchyProvider(),
+      null,
+      LayoutScannerConfiguration.getDISABLED());
     myDefaultProperties = new HashMap<>();
   }
 
@@ -124,6 +135,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   public void fireRenderCompleted() {
-    fireRenderListeners();
+    fireOnRenderComplete();
   }
 }

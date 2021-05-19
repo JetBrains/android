@@ -33,9 +33,8 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.awt.KeyboardFocusManager;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.*;
+import javax.swing.*;
 import org.mockito.Mock;
 
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
@@ -87,7 +86,6 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    registerProjectComponent(FileEditorManager.class, myEditorManager);
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
     when(myWorkBench1.getName()).thenReturn(WORKBENCH_NAME1);
     when(myWorkBench2.getName()).thenReturn(WORKBENCH_NAME2);
@@ -113,7 +111,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getAllEditors()).thenReturn(new FileEditor[0]);
     when(myEditorManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
-    //noinspection unchecked
+    registerProjectComponent(FileEditorManager.class, myEditorManager);
     when(myFileEditor1.getComponent()).thenReturn(new JPanel());
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);

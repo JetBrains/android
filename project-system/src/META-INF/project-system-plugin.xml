@@ -25,6 +25,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSystemService"/>
     <projectService serviceImplementation="com.android.tools.idea.projectsystem.ProjectSyncModificationTracker"/>
+    <postStartupActivity implementation="org.jetbrains.android.AndroidStartupManager"/>
   </extensions>
   <project-components>
     <component>

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
-public class SyncProjectAction extends AndroidStudioGradleAction {
+public class SyncProjectAction extends AndroidStudioGradleAction implements DumbAware {
   private final NotNullLazyValue<GradleSyncInvoker> mySyncInvoker;
 
   public SyncProjectAction() {

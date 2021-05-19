@@ -78,8 +78,8 @@ public class MlGradleProjectTest {
 
     JavaCodeInsightTestFixture fixture = ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
     GlobalSearchScope appScope = fixture.findClass("com.mlmodelbinding.MyActivity").getResolveScope();
-    GlobalSearchScope libOnScope = fixture.findClass("lib.withbinding.Dummy").getResolveScope();
-    GlobalSearchScope libOffScope = fixture.findClass("lib.nobinding.Dummy").getResolveScope();
+    GlobalSearchScope libOnScope = fixture.findClass("lib.withbinding.Sample").getResolveScope();
+    GlobalSearchScope libOffScope = fixture.findClass("lib.nobinding.Sample").getResolveScope();
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(project);
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
+import com.android.tools.idea.ui.wizard.WizardUtils.wrapWithVScroll
 import com.android.tools.idea.util.getFormFactorsImage
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.ui.DialogPanel
@@ -73,7 +73,7 @@ import an existing Android app into Android Studio or start a new Android projec
     }
   }
 
-  private val root  = wrappedWithVScroll(panel)
+  private val root  = wrapWithVScroll(panel)
 
   override fun getComponent() = root
   override fun getPreferredFocusComponent(): JComponent? = null

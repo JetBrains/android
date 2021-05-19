@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.ui
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.facet.ui.FacetDependentToolWindow
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
 private const val PREFERENCE_KEY = "live.layout.inspector.enabled"
 
@@ -31,7 +30,6 @@ private const val LAYOUT_INSPECTOR_FILE_TYPE_NAME = "Layout Inspector"
 
 // Should match LayoutInspectorToolWindowFactory.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 private const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
-
 
 var enableLiveLayoutInspector
   get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, true)
@@ -42,10 +40,12 @@ var enableLiveLayoutInspector
         for (windowEp in FacetDependentToolWindow.EXTENSION_POINT_NAME.extensionList) {
           if (windowEp.id == LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
             for (project in ProjectManager.getInstance().openProjects) {
-              val windowManager = ToolWindowManager.getInstance(project) as ToolWindowManagerEx
+              val windowManager = ToolWindowManager.getInstance(project)
               var window: ToolWindow? = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
               if (window == null) {
-                windowManager.initToolWindow(windowEp)
+                windowManager.registerToolWindow(
+                  RegisterToolWindowTask(LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
+                                         contentFactory = windowEp.getToolWindowFactory(windowEp.pluginDescriptor)))
               }
               window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
               window?.setAvailable(true, null)
@@ -65,7 +65,7 @@ var enableLiveLayoutInspector
       }
       else {
         for (project in ProjectManager.getInstance().openProjects) {
-          val windowManager = ToolWindowManager.getInstance(project) as ToolWindowManagerEx
+          val windowManager = ToolWindowManager.getInstance(project)
           val window = windowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
           window?.setAvailable(false, null)
           window?.hide(null)

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.google.common.base.CaseFormat
+import com.android.tools.idea.nav.safeargs.psi.java.toUpperCamelCase
+import com.intellij.util.containers.addIfNotNull
 
 /**
  * An argument parameter for a navigation destination.
@@ -32,6 +33,10 @@ interface NavArgumentData {
   val type: String?
   val defaultValue: String?
   val nullable: String?
+
+  fun isNonNull(): Boolean {
+    return nullable != "true" && defaultValue != "@null"
+  }
 }
 
 /**
@@ -39,15 +44,24 @@ interface NavArgumentData {
  * another.
  *
  * A destination may have zero or more actions.
+ *
+ * An action itself should point to a single target destination, which is usually set by `destination`,
+ * but could also just be set by `popUpTo` (which essentially means the user wants to navigate backwards
+ * to a destination that's in the back stack)
  */
 interface NavActionData {
   val id: String
-  val destination: String
+  val destination: String?
+  val popUpTo: String?
   val arguments: List<NavArgumentData>
+
+  fun resolveDestination(): String? {
+    return destination ?: popUpTo
+  }
 }
 
 /**
- * A useful abstraction across multiple destination types
+ * A useful abstraction across multiple destination types, e.g. <activity> and <fragment>
  */
 interface NavDestinationData {
   val id: String
@@ -56,21 +70,8 @@ interface NavDestinationData {
   val actions: List<NavActionData>
 }
 
-/**
- * An entry representing a fragment destination.
- */
-interface NavFragmentData {
-  val id: String
-  val name: String
-  val arguments: List<NavArgumentData>
-  val actions: List<NavActionData>
-
-  fun toDestination() = object : NavDestinationData {
-    override val id: String = this@NavFragmentData.id
-    override val name: String = this@NavFragmentData.name
-    override val arguments: List<NavArgumentData> = this@NavFragmentData.arguments
-    override val actions: List<NavActionData> = this@NavFragmentData.actions
-  }
+interface MaybeNavDestinationData {
+  fun toDestination(): NavDestinationData?
 }
 
 /**
@@ -78,39 +79,70 @@ interface NavFragmentData {
  *
  * Every navigation XML file has a root navigation tag.
  */
-interface NavNavigationData {
+interface NavNavigationData : MaybeNavDestinationData {
   val id: String?
   val startDestination: String
   val actions: List<NavActionData>
-  val fragments: List<NavFragmentData>
+  val arguments: List<NavArgumentData>
   val navigations: List<NavNavigationData>
 
-  fun toDestination(): NavDestinationData? {
+  /**
+   * We can't predict all possible tag types, because navigation allows custom tags. Instead, we
+   * catch all remaining tags and assume they are destinations, but even if they aren't, we will
+   * still successfully complete parsing (and callers can strip out invalid destinations later by
+   * checking if [MaybeNavDestinationData.toDestination] returns null.
+   */
+  val potentialDestinations: List<MaybeNavDestinationData>
+
+  override fun toDestination(): NavDestinationData? {
     val id = this.id ?: return null
     return object : NavDestinationData {
       override val id = id
-      override val name = ".${CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, id)}"
-      override val arguments = emptyList<NavArgumentData>()
+      override val name = ".${id.toUpperCamelCase()}" // The prefix '.' means this class should be scoped in the current module
+      override val arguments = this@NavNavigationData.arguments
       override val actions = this@NavNavigationData.actions
     }
   }
-
-  val allFragments: List<NavFragmentData>
-    get() = fragments + navigations.flatMap { nested -> nested.fragments }
-
-  val allNavigations: List<NavNavigationData>
-    get() {
-      val result = mutableListOf(this)
-      result.addAll(navigations.flatMap { nested -> nested.allNavigations })
-      return result
-    }
-
-  val allDestinations: List<NavDestinationData>
-    get() = allFragments.map { it.toDestination() } + allNavigations.mapNotNull { it.toDestination() }
 }
 
 /**
  * Data class for storing the indexed content nav XML files, useful for generating relevant
  * safe args classes.
  */
-data class NavXmlData(val root: NavNavigationData)
+data class NavXmlData(val root: NavNavigationData) {
+  /**
+   * Returns a list of all destinations with global actions updated.
+   * (https://developer.android.com/guide/navigation/navigation-global-action)
+   *
+   * Global actions are collected along the path while traversing, and duplicates are resolved like actions overrides.
+   */
+  val resolvedDestinations: List<NavDestinationData> by lazy {
+    root.traverse(emptyList(), mutableListOf())
+  }
+
+  private fun NavNavigationData.traverse(
+    globalActions: List<NavActionData>,
+    allDestinations: MutableList<NavDestinationData>
+  ): List<NavDestinationData> {
+    allDestinations.addIfNotNull(this.toDestination()?.withGlobalActions(globalActions))
+
+    val newGlobalActions = (this.actions + globalActions).distinctBy { it.id }
+    this.potentialDestinations
+      .mapNotNull { it.toDestination()?.withGlobalActions(newGlobalActions) }
+      .let { allDestinations.addAll(it) }
+
+    this.navigations.map {
+      it.traverse(newGlobalActions, allDestinations)
+    }
+
+    return allDestinations
+  }
+
+  private fun NavDestinationData.withGlobalActions(globalActions: List<NavActionData>): NavDestinationData {
+    if (globalActions.isEmpty()) return this
+
+    return object : NavDestinationData by this {
+      override val actions = (this@withGlobalActions.actions + globalActions).distinctBy { it.id }
+    }
+  }
+}

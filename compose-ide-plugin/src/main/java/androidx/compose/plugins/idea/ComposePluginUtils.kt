@@ -16,16 +16,7 @@
 
 package androidx.compose.plugins.idea
 
-import com.intellij.openapi.module.ModuleUtilCore
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
 
-fun isComposeEnabled(element: PsiElement): Boolean {
-    val module = ModuleUtilCore.findModuleForPsiElement(element) ?: return false
-    val kotlinFacet = org.jetbrains.kotlin.idea.facet.KotlinFacet.get(module) ?: return false
-    val commonArgs = kotlinFacet.configuration.settings.mergedCompilerArguments ?: return false
-    val modeOption = commonArgs.pluginOptions?.firstOrNull {
-        it.startsWith("plugin:androidx.compose.plugins.idea:enabled=")
-    } ?: return false
-    val value = modeOption.substring(modeOption.indexOf("=") + 1)
-    return value == "true"
-}
+fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false

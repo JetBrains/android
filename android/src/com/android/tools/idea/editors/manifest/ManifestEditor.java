@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -89,8 +88,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       psiChange(event);
     }
   };
-  private final BuildVariantView.BuildVariantSelectionChangeListener buildVariantListener = this::reload;
-
   ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     myFacet = facet;
     mySelectedFile = manifestFile;
@@ -225,14 +222,13 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       // Parts of the merged manifest come from the project's build model, so we want to know
       // if that changes so we can get the latest values.
       project.getMessageBus().connect(this).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
-        if (result == ProjectSystemSyncManager.SyncResult.FAILURE || result == ProjectSystemSyncManager.SyncResult.SUCCESS) {
+        if (result.isSuccessful()) {
           reload();
         }
       });
     }
 
     PsiManager.getInstance(project).addPsiTreeChangeListener(myPsiChangeListener);
-    BuildVariantUpdater.getInstance(project).addSelectionChangeListener(buildVariantListener);
     reload();
   }
 
@@ -241,7 +237,6 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     mySelected = false;
     final Project thisProject = myFacet.getModule().getProject();
     PsiManager.getInstance(thisProject).removePsiTreeChangeListener(myPsiChangeListener);
-    BuildVariantUpdater.getInstance(thisProject).removeSelectionChangeListener(buildVariantListener);
   }
 
   @Override

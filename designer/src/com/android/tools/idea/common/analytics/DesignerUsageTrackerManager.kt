@@ -21,7 +21,9 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.surface.DesignSurface
 import com.google.common.cache.CacheBuilder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingQueue
@@ -29,8 +31,11 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
-class DesignerUsageTrackerManager<T, K>(private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
+class DesignerUsageTrackerManager<T, K: Disposable>(private val factory: (Executor, K?, Consumer<AndroidStudioEvent.Builder>) -> T,
                                      private val nopTracker: T) {
+
+  constructor(factory: (Executor, Consumer<AndroidStudioEvent.Builder>) -> T, nopTracker: T)
+    : this({ executor, _, eventLogger -> factory(executor, eventLogger) }, nopTracker)
 
   private val sTrackersCache = CacheBuilder.newBuilder()
     .weakKeys()
@@ -43,13 +48,17 @@ class DesignerUsageTrackerManager<T, K>(private val factory: (Executor, K?, Cons
    */
   @VisibleForTesting
   fun getInstanceInner(key: K?, createIfNotExists: Boolean): T {
-    if (key == null) {
+    if (key == null || Disposer.isDisposed(key)) {
       return nopTracker
     }
 
     return sTrackersCache.get(key) {
       if (createIfNotExists) {
-        factory(ourExecutorService, key, Consumer { UsageTracker.log(it) })
+        val newTracker = factory(ourExecutorService, key, Consumer { UsageTracker.log(it) })
+        Disposer.register(key, Disposable {
+          sTrackersCache.invalidate(key)
+        })
+        newTracker
       }
       else {
         nopTracker

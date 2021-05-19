@@ -20,7 +20,6 @@ import org.jetbrains.android.AndroidTestCase
 class VisualizationToolSettingsTest: AndroidTestCase() {
 
   private var defaultVisible: Boolean = false
-  private var defaultScale: Double = 0.0
   private var defaultShowDecoration: Boolean = false
   private lateinit var defaultConfigurationSet: ConfigurationSet
   private lateinit var customConfigurationAttributes: List<CustomConfigurationAttribute>
@@ -29,20 +28,23 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     super.setUp()
     val settings = VisualizationToolSettings.getInstance()
     defaultVisible = settings.globalState.isVisible
-    defaultScale = settings.globalState.scale
     defaultShowDecoration = settings.globalState.showDecoration
     defaultConfigurationSet = settings.globalState.configurationSet
     customConfigurationAttributes = settings.globalState.customConfigurationAttributes
   }
 
   override fun tearDown() {
-    super.tearDown()
     val settings = VisualizationToolSettings.getInstance()
-    settings.globalState.isVisible = defaultVisible
-    settings.globalState.scale = defaultScale
-    settings.globalState.showDecoration = defaultShowDecoration
-    settings.globalState.configurationSet = defaultConfigurationSet
-    settings.globalState.customConfigurationAttributes = customConfigurationAttributes
+    try {
+      settings.globalState.isVisible = defaultVisible
+      settings.globalState.showDecoration = defaultShowDecoration
+      settings.globalState.configurationSet = defaultConfigurationSet
+      settings.globalState.customConfigurationAttributes = customConfigurationAttributes
+    } catch (t: Throwable) {
+      addSuppressedException(t)
+    } finally {
+      super.tearDown()
+    }
   }
 
   fun testShareGlobalState() {
@@ -62,7 +64,6 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     val customConfigurations = emptyList<CustomConfigurationAttribute>()
 
     settings.globalState.isVisible = visible
-    settings.globalState.scale = scale
     settings.globalState.showDecoration = showDecoration
     settings.globalState.configurationSet = configurationSet
     settings.globalState.customConfigurationAttributes = customConfigurations
@@ -70,7 +71,6 @@ class VisualizationToolSettingsTest: AndroidTestCase() {
     // Check the values are same after getting another instance.
     val anotherSettings = VisualizationToolSettings.getInstance()
     assertEquals(visible, anotherSettings.globalState.isVisible)
-    assertEquals(scale, anotherSettings.globalState.scale)
     assertEquals(showDecoration, anotherSettings.globalState.showDecoration)
     assertEquals(configurationSet, anotherSettings.globalState.configurationSet)
     assertEquals(customConfigurations, anotherSettings.globalState.customConfigurationAttributes)

@@ -47,7 +47,7 @@ public class UseJavaHomeAsJdkHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    ApplicationManager.getApplication().runWriteAction(() -> IdeSdks.getInstance().setJdkPath(Paths.get(myJavaHome)));
+    ApplicationManager.getApplication().runWriteAction(() -> {IdeSdks.getInstance().setJdkPath(Paths.get(myJavaHome));});
     GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_JDK_CHANGED_TO_CURRENT);
   }
 }

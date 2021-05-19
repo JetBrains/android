@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.ProjectTopics;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;

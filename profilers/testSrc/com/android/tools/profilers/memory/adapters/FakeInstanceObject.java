@@ -223,7 +223,7 @@ public final class FakeInstanceObject implements InstanceObject {
 
   public static class Builder {
     @NotNull private FakeCaptureObject myCaptureObject;
-    @NotNull private String myName = "DUMMY_INSTANCE";
+    @NotNull private String myName = "SAMPLE_INSTANCE";
     @NotNull private List<FakeFieldObject> myFields = new ArrayList<>();
     @NotNull private ThreadId myAllocationThreadId = ThreadId.INVALID_THREAD_ID;
     @Nullable private AllocationStack myAllocationStack = null;

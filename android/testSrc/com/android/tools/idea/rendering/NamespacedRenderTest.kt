@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.RenderTestUtil.checkRendering
-import com.android.tools.idea.rendering.RenderTestUtil.createRenderTask
+import com.android.tools.idea.rendering.RenderTestUtil.withRenderTask
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.testFramework.PlatformTestUtil
@@ -46,24 +46,22 @@ class NamespacedRenderTest : AndroidGradleTestCase() {
   }
 
   fun testAttrsFromLib() {
-    checkRendering(
-      createRenderTask(
-        myAndroidFacet,
-        PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
-        "@style/AttrsFromLib"
-      ),
-      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png"
-    )
+    withRenderTask(
+      myAndroidFacet,
+      PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/attrs_from_lib.xml")!!,
+      "@style/AttrsFromLib"
+    ) {
+      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/attrs_from_lib.png")
+    }
   }
 
   fun testParentFromLib() {
-    checkRendering(
-      createRenderTask(
-        myAndroidFacet,
-        PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
-        "@style/ParentFromLib"
-      ),
-      AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png"
-    )
+    withRenderTask(
+      myAndroidFacet,
+      PlatformTestUtil.getOrCreateProjectBaseDir(project).findFileByRelativePath("app/src/main/res/layout/parent_from_lib.xml")!!,
+      "@style/ParentFromLib"
+    ) {
+      checkRendering(it, AndroidTestBase.getTestDataPath() + "/layouts/namespaced/parent_from_lib.png")
+    }
   }
 }

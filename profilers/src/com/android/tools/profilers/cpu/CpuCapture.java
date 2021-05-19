@@ -17,16 +17,11 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.cpu.atrace.SystemTraceFrame;
-import com.android.tools.profilers.cpu.atrace.CpuThreadSliceInfo;
-import com.android.tools.profilers.cpu.atrace.SurfaceflingerEvent;
-import java.util.ArrayList;
+import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,83 +99,13 @@ public interface CpuCapture extends ConfigurableDurationData {
   @NotNull
   Collection<CaptureNode> getCaptureNodes();
 
-  // Extended Capture Information - CPU data
-  // These might not be available on all profiling technologies.
-
   /**
-   * Returns the thread state transitions for the given thread.
-   *
-   * @param threadId Thread Id of thread requesting states for. If thread id is not found an empty list is returned.
+   * Returns the container for all system trace data available in this capture
+   * or null if system trace data is not available on this capture.
    */
-  @NotNull
-  default List<SeriesData<ThreadState>> getThreadStatesForThread(int threadId) {
-    return new ArrayList<>();
-  }
-
-  /**
-   * Returns a series of {@link CpuThreadSliceInfo} information.
-   * @param cpu The cpu index to get {@link CpuThreadSliceInfo} series for.
-   */
-  @NotNull
-  default List<SeriesData<CpuThreadSliceInfo>> getCpuThreadSliceInfoStates(int cpu) {
-    return new ArrayList<>();
-  }
-
-  /**
-   * Returns multiple CPU Utilization data series, with one for each CPU core present on the traced device.
-   */
-  @NotNull
-  default List<SeriesData<Long>> getCpuUtilizationSeries() {
-    return new ArrayList<>();
-  }
-
-  /**
-   * The number of CPU cores represented in this capture.
-   */
-  default int getCpuCount() {
-    return getCpuUtilizationSeries().size();
-  }
-
-  /**
-   * Returns true if the capture is potentially missing data. For example, on a ATrace or Perfetto capture,
-   * due to the capture buffer being a ring buffer.
-   */
-  default boolean isMissingData() {
-    return false;
-  }
-
-  // Extended Capture Information - GPU/Frames data
-  // These might not be available on all profiling technologies.
-
-  /**
-   * Returns a data series with frame performance classes sorted by frame start time.
-   */
-  @NotNull
-  default List<SeriesData<SystemTraceFrame>> getFrames(SystemTraceFrame.FrameThread threadType) {
-    return new ArrayList<>();
-  }
-
-  /**
-   * @return a data series with Surfaceflinger events.
-   */
-  @NotNull
-  default List<SeriesData<SurfaceflingerEvent>> getSurfaceflingerEvents() {
-    return new ArrayList<>();
-  }
-
-  /**
-   * @return a data series with VSYNC-sf counter (0 or 1).
-   */
-  @NotNull
-  default List<SeriesData<Long>> getVsyncCounterValues() {
-    return new ArrayList<>();
-  }
-
-  /**
-   * Returns the thread id of thread matching name of the render thread.
-   */
-  default int getRenderThreadId() {
-    return Integer.MAX_VALUE;
+  @Nullable
+  default CpuSystemTraceData getSystemTraceData() {
+    return null;
   }
 
   // Default overrides of ConfigurableDurationData methods for convenience.

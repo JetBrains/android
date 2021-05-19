@@ -36,8 +36,7 @@ class UseProjectJdkAsGradleJvmListener(private val project: Project): Notificati
     val projectSettings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings (project)
     if (projectSettings != null) {
       changeGradleProjectSetting(projectSettings)
-      // Need to cherry pick ag/11822831 to use TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK
-      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_UNKNOWN)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_GRADLEJVM_TO_USE_PROJECT_JDK)
     }
     else {
       Messages.showErrorDialog(project, "Could not set project JDK as Gradle JVM", "Use project JDK as Gradle JVM")

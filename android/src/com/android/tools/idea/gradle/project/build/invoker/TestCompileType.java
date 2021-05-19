@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +34,10 @@ public abstract class TestCompileType {
     @NotNull
     @Override
     public Collection<IdeBaseArtifact> getArtifacts(@NotNull IdeVariant variant) {
-      return variant.getTestArtifacts();
+      ImmutableList.Builder<IdeBaseArtifact> builder = ImmutableList.builder();
+      if (variant.getUnitTestArtifact() != null) builder.add(variant.getUnitTestArtifact());
+      if (variant.getAndroidTestArtifact() != null) builder.add(variant.getAndroidTestArtifact());
+      return builder.build();
     }
   };
   public static final TestCompileType ANDROID_TESTS = new TestCompileType() {

@@ -181,7 +181,7 @@ class AndroidProcessHandlerTest {
     val nonAssociatedDevice = mock(IDevice::class.java)
     val associatedDevice = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
+    `when`(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
     `when`(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
 
     assertThat(handler.canKillProcess()).isTrue()
@@ -192,7 +192,7 @@ class AndroidProcessHandlerTest {
     val nonAssociatedDevice1 = mock(IDevice::class.java)
     val nonAssociatedDevice2 = mock(IDevice::class.java)
 
-    `when`(mockExecutionTarget.devices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
+    `when`(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
 
     assertThat(handler.canKillProcess()).isFalse()
   }

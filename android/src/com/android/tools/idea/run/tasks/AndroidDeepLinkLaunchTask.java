@@ -23,12 +23,11 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
-import com.intellij.execution.Executor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-public class AndroidDeepLinkLaunchTask implements LaunchTask {
+public class AndroidDeepLinkLaunchTask extends AppLaunchTask {
 
   private static final String ID = "LAUNCH_DEEP_LINK";
 
@@ -53,8 +52,11 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   }
 
   @Override
-  public LaunchResult run(
-    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(@NotNull LaunchContext launchContext) {
+    ConsolePrinter printer = launchContext.getConsolePrinter();
+    IDevice device = launchContext.getDevice();
+    LaunchStatus launchStatus = launchContext.getLaunchStatus();
+
     printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.APP_INDEXING)

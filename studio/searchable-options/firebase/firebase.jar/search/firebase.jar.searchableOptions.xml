@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="add" path="ActionManager" hit="Add Firebase to your app" />
+    <option name="app" path="ActionManager" hit="Add Firebase to your app" />
+    <option name="firebase" path="ActionManager" hit="Add Firebase to your app" />
+    <option name="to" path="ActionManager" hit="Add Firebase to your app" />
+    <option name="your" path="ActionManager" hit="Add Firebase to your app" />
+    <option name="firebase" path="ActionManager" hit="Firebase" />
+  </configurable>
+</options>
+

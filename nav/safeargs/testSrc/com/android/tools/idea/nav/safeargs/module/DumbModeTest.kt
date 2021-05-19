@@ -18,12 +18,13 @@ package com.android.tools.idea.nav.safeargs.module
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
-import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
+import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,6 +62,7 @@ class DumbModeTest {
         </navigation>
       """.trimIndent()
     val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
+    dispatchAllInvocationEvents()
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
     // 1 NavArgumentData
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
@@ -85,11 +87,7 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>): Int {
-    return args.sumBy {
-      it.fragment.arguments.size
-    }
-  }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumBy { it.destination.arguments.size }
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
@@ -120,6 +118,7 @@ class DumbModeTest {
           </fragment>
         </navigation>
       """.trimIndent())
+    dispatchAllInvocationEvents()
     val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
 
     val dumbScope = fragmentClass.resolveScope

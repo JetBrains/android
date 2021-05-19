@@ -57,8 +57,8 @@ class ClassifierSetHNode(private val callChartModel: MemoryVisualizationModel,
   private fun computeDuration(data: ClassifierSet): Long {
     return when (callChartModel.axisFilter) {
       XAxisFilter.TOTAL_COUNT -> data.totalObjectCount.toLong()
-      XAxisFilter.TOTAL_SIZE -> data.totalShallowSize / 1024 // Convert bytes to Kb
-      XAxisFilter.ALLOC_SIZE -> data.allocationSize / 1024 // Convert bytes to Kb
+      XAxisFilter.TOTAL_SIZE -> data.totalShallowSize
+      XAxisFilter.ALLOC_SIZE -> data.allocationSize
       XAxisFilter.ALLOC_COUNT -> data.deltaAllocationCount.toLong()
     }
   }

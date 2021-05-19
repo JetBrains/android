@@ -17,10 +17,9 @@ package com.android.tools.idea.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.Slow;
-import com.android.builder.model.AaptOptions;
-import com.android.builder.model.Variant;
-import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeLibrary;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.ResourceRepository;
@@ -32,6 +31,7 @@ import com.android.tools.idea.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
@@ -83,7 +83,7 @@ public final class ResourceRepositoryManager implements Disposable {
   private static final Object TEST_RESOURCES_LOCK = new Object();
 
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final AaptOptions.Namespacing myNamespacing;
+  @NotNull private final Namespacing myNamespacing;
 
   /**
    * If the module is namespaced, this is the shared {@link ResourceNamespace} instance corresponding to the package name from the manifest.
@@ -119,7 +119,7 @@ public final class ResourceRepositoryManager implements Disposable {
 
   @NotNull
   public static ResourceRepositoryManager getInstance(@NotNull AndroidFacet facet) {
-    AaptOptions.Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
+    Namespacing namespacing = AndroidProjectModelUtils.getNamespacing(facet);
     ResourceRepositoryManager instance = facet.getUserData(KEY);
 
     if (instance != null && instance.myNamespacing != namespacing) {
@@ -253,7 +253,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return getInstance(facet).getModuleResources();
   }
 
-  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull AaptOptions.Namespacing namespacing) {
+  private ResourceRepositoryManager(@NotNull AndroidFacet facet, @NotNull Namespacing namespacing) {
     myFacet = facet;
     myNamespacing = namespacing;
   }
@@ -271,8 +271,8 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   @NotNull
-  public static Collection<Library> findAarLibraries(@NotNull AndroidFacet facet) {
-    List<Library> libraries = new ArrayList<>();
+  public static Collection<IdeLibrary> findAarLibraries(@NotNull AndroidFacet facet) {
+    List<IdeLibrary> libraries = new ArrayList<>();
     if (AndroidModel.isRequired(facet)) {
       AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
       if (androidModel != null) {
@@ -289,7 +289,7 @@ public final class ResourceRepositoryManager implements Disposable {
     return libraries;
   }
 
-  private static void addGradleLibraries(@NotNull List<Library> list, @NotNull AndroidModuleModel androidModuleModel) {
+  private static void addGradleLibraries(@NotNull List<IdeLibrary> list, @NotNull AndroidModuleModel androidModuleModel) {
     list.addAll(androidModuleModel.getSelectedMainCompileLevel2Dependencies().getAndroidLibraries());
   }
 
@@ -546,7 +546,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @NotNull
   public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
     AppResourceRepository appRepository = (AppResourceRepository)getAppResources();
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ImmutableList.of(appRepository);
     }
     return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
@@ -635,31 +635,39 @@ public final class ResourceRepositoryManager implements Disposable {
   }
 
   void updateRootsAndLibraries() {
-    resetVisibility();
+    try {
+      resetVisibility();
 
-    ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
-    AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
-    if (projectResources != null) {
-      projectResources.updateRoots();
-    }
+      ProjectResourceRepository projectResources = (ProjectResourceRepository)getExistingProjectResources();
+      AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
+      if (projectResources != null) {
+        projectResources.updateRoots();
+      }
 
-    Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
-    synchronized (myLibraryLock) {
-      // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
-      oldLibraryResourceMap = myLibraryResourceMap;
-      myLibraryResourceMap = null;
-    }
-    if (appResources != null) {
-      appResources.updateRoots(getLibraryResources());
-    }
+      Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;
+      synchronized (myLibraryLock) {
+        // Preserve the old library resources during update to prevent them from being garbage collected prematurely.
+        oldLibraryResourceMap = myLibraryResourceMap;
+        myLibraryResourceMap = null;
+      }
+      if (appResources != null) {
+        appResources.updateRoots(getLibraryResources());
+      }
 
-    if (oldLibraryResourceMap != null) {
-      oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      if (oldLibraryResourceMap != null) {
+        oldLibraryResourceMap.size(); // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
+      }
+    }
+    catch (IllegalStateException e) {
+      if (!myFacet.isDisposed()) {
+        throw e;
+      }
+      // Ignore exceptions caused by the facet disposal (b/162211246).
     }
   }
 
   @NotNull
-  public AaptOptions.Namespacing getNamespacing() {
+  public Namespacing getNamespacing() {
     return myNamespacing;
   }
 
@@ -670,7 +678,7 @@ public final class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public ResourceNamespace getNamespace() {
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
@@ -693,7 +701,7 @@ public final class ResourceRepositoryManager implements Disposable {
    */
   @NotNull
   public ResourceNamespace getTestNamespace() {
-    if (myNamespacing == AaptOptions.Namespacing.DISABLED) {
+    if (myNamespacing == Namespacing.DISABLED) {
       return ResourceNamespace.RES_AUTO;
     }
 
@@ -730,7 +738,7 @@ public final class ResourceRepositoryManager implements Disposable {
       ResourceVisibilityLookup.Provider provider = getResourceVisibilityProvider();
       if (provider != null) {
         IdeAndroidProject androidProject = androidModel.getAndroidProject();
-        Variant variant = androidModel.getSelectedVariant();
+        IdeVariant variant = androidModel.getSelectedVariant();
         return provider.get(androidProject, variant);
       }
     }
@@ -789,7 +797,7 @@ public final class ResourceRepositoryManager implements Disposable {
     Collection<ExternalLibrary> libraries = AndroidProjectModelUtils.findDependenciesWithResources(myFacet.getModule(), true).values();
 
     AarResourceRepositoryCache aarResourceRepositoryCache = AarResourceRepositoryCache.getInstance();
-    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == AaptOptions.Namespacing.DISABLED ?
+    Function<ExternalLibrary, AarResourceRepository> factory = myNamespacing == Namespacing.DISABLED ?
                                                                aarResourceRepositoryCache::getSourceRepository :
                                                                aarResourceRepositoryCache::getProtoRepository;
 

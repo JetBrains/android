@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyp
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadAndroidStudioHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DownloadJdk8Hyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FileBugHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink
@@ -145,61 +146,63 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is UseJavaHomeAsJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_CURRENTLY_RUNNING_JDK_HYPERLINK
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
+      is EnableAndroidXHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.ENABLE_ANDROIDX_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 
 @Suppress("DEPRECATION")
 fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
     when (this) {
-      SyncIssue.TYPE_PLUGIN_OBSOLETE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_PLUGIN_OBSOLETE
-      SyncIssue.TYPE_UNRESOLVED_DEPENDENCY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY
-      SyncIssue.TYPE_DEPENDENCY_IS_APK -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_IS_APK
-      SyncIssue.TYPE_DEPENDENCY_IS_APKLIB -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_IS_APKLIB
-      SyncIssue.TYPE_NON_JAR_LOCAL_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_LOCAL_DEP
-      SyncIssue.TYPE_NON_JAR_PACKAGE_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_PACKAGE_DEP
-      SyncIssue.TYPE_NON_JAR_PROVIDED_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_PROVIDED_DEP
-      SyncIssue.TYPE_JAR_DEPEND_ON_AAR -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JAR_DEPEND_ON_AAR
-      SyncIssue.TYPE_MISMATCH_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISMATCH_DEP
-      SyncIssue.TYPE_OPTIONAL_LIB_NOT_FOUND -> AndroidStudioEvent.GradleSyncIssueType.TYPE_OPTIONAL_LIB_NOT_FOUND
-      SyncIssue.TYPE_JACK_IS_NOT_SUPPORTED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JACK_IS_NOT_SUPPORTED
-      SyncIssue.TYPE_GRADLE_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD
-      SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW -> AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW
-      SyncIssue.TYPE_DEPENDENCY_MAVEN_ANDROID -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_MAVEN_ANDROID
-      SyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_INTERNAL_CONFLICT
-      SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
-      SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION ->
+      IdeSyncIssue.TYPE_PLUGIN_OBSOLETE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_PLUGIN_OBSOLETE
+      IdeSyncIssue.TYPE_UNRESOLVED_DEPENDENCY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY
+      IdeSyncIssue.TYPE_DEPENDENCY_IS_APK -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_IS_APK
+      IdeSyncIssue.TYPE_DEPENDENCY_IS_APKLIB -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_IS_APKLIB
+      IdeSyncIssue.TYPE_NON_JAR_LOCAL_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_LOCAL_DEP
+      IdeSyncIssue.TYPE_NON_JAR_PACKAGE_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_PACKAGE_DEP
+      IdeSyncIssue.TYPE_NON_JAR_PROVIDED_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_NON_JAR_PROVIDED_DEP
+      IdeSyncIssue.TYPE_JAR_DEPEND_ON_AAR -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JAR_DEPEND_ON_AAR
+      IdeSyncIssue.TYPE_MISMATCH_DEP -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISMATCH_DEP
+      IdeSyncIssue.TYPE_OPTIONAL_LIB_NOT_FOUND -> AndroidStudioEvent.GradleSyncIssueType.TYPE_OPTIONAL_LIB_NOT_FOUND
+      IdeSyncIssue.TYPE_JACK_IS_NOT_SUPPORTED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JACK_IS_NOT_SUPPORTED
+      IdeSyncIssue.TYPE_GRADLE_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_GRADLE_TOO_OLD
+      IdeSyncIssue.TYPE_BUILD_TOOLS_TOO_LOW -> AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW
+      IdeSyncIssue.TYPE_DEPENDENCY_MAVEN_ANDROID -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_MAVEN_ANDROID
+      IdeSyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_INTERNAL_CONFLICT
+      IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION
+      IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION ->
         AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_PROCESS_EXCEPTION
-      SyncIssue.TYPE_JACK_REQUIRED_FOR_JAVA_8_LANGUAGE_FEATURES -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JACK_REQUIRED_FOR_JAVA_8_LANGUAGE_FEATURES
-      SyncIssue.TYPE_DEPENDENCY_WEAR_APK_TOO_MANY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_WEAR_APK_TOO_MANY
-      SyncIssue.TYPE_DEPENDENCY_WEAR_APK_WITH_UNBUNDLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_WEAR_APK_WITH_UNBUNDLED
-      SyncIssue.TYPE_JAR_DEPEND_ON_ATOM -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JAR_DEPEND_ON_ATOM
-      SyncIssue.TYPE_AAR_DEPEND_ON_ATOM -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AAR_DEPEND_ON_ATOM
-      SyncIssue.TYPE_ATOM_DEPENDENCY_PROVIDED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ATOM_DEPENDENCY_PROVIDED
-      SyncIssue.TYPE_MISSING_SDK_PACKAGE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_SDK_PACKAGE
-      SyncIssue.TYPE_STUDIO_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_STUDIO_TOO_OLD
-      SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNNAMED_FLAVOR_DIMENSION
-      SyncIssue.TYPE_INCOMPATIBLE_PLUGIN -> AndroidStudioEvent.GradleSyncIssueType.TYPE_INCOMPATIBLE_PLUGIN
-      SyncIssue.TYPE_DEPRECATED_DSL -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSL
-      SyncIssue.TYPE_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION
+      IdeSyncIssue.TYPE_JACK_REQUIRED_FOR_JAVA_8_LANGUAGE_FEATURES -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JACK_REQUIRED_FOR_JAVA_8_LANGUAGE_FEATURES
+      IdeSyncIssue.TYPE_DEPENDENCY_WEAR_APK_TOO_MANY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_WEAR_APK_TOO_MANY
+      IdeSyncIssue.TYPE_DEPENDENCY_WEAR_APK_WITH_UNBUNDLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPENDENCY_WEAR_APK_WITH_UNBUNDLED
+      IdeSyncIssue.TYPE_JAR_DEPEND_ON_ATOM -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JAR_DEPEND_ON_ATOM
+      IdeSyncIssue.TYPE_AAR_DEPEND_ON_ATOM -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AAR_DEPEND_ON_ATOM
+      IdeSyncIssue.TYPE_ATOM_DEPENDENCY_PROVIDED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ATOM_DEPENDENCY_PROVIDED
+      IdeSyncIssue.TYPE_MISSING_SDK_PACKAGE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_SDK_PACKAGE
+      IdeSyncIssue.TYPE_STUDIO_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_STUDIO_TOO_OLD
+      IdeSyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNNAMED_FLAVOR_DIMENSION
+      IdeSyncIssue.TYPE_INCOMPATIBLE_PLUGIN -> AndroidStudioEvent.GradleSyncIssueType.TYPE_INCOMPATIBLE_PLUGIN
+      IdeSyncIssue.TYPE_DEPRECATED_DSL -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSL
+      IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION
       // NOTE: SyncIssue.TYPE_DEPRECATED_DSL_VALUE is not handled since it has the same value as SyncIssue.TYPE_DEPRECATED_CONFIGURATION
       // (see http://issuetracker.google.com/138278313). Also because of this bug, from this statement forward, the actual values of the
       // types on the two sides do not exactly match.
       // SyncIssue.TYPE_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSLVALUE
-      SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MIN_SDK_VERSION_IN_MANIFEST
-      SyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_TARGET_SDK_VERSION_IN_MANIFEST
-      SyncIssue.TYPE_UNSUPPORTED_PROJECT_OPTION_USE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNSUPPORTED_PROJECT_OPTION_USE
-      SyncIssue.TYPE_MANIFEST_PARSED_DURING_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MANIFEST_PARSED_DURING_CONFIGURATION
-      SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
-      SyncIssue.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE
-      SyncIssue.TYPE_SDK_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET
-      SyncIssue.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT
-      SyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
-      SyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
-      SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
-      SyncIssue.TYPE_USING_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_CONFIGURATION
-      SyncIssue.TYPE_USING_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_DSL_VALUE
-      SyncIssue.TYPE_EDIT_LOCKED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EDIT_LOCKED_DSL_VALUE
-      SyncIssue.TYPE_MISSING_ANDROID_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_ANDROID_MANIFEST
+      IdeSyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MIN_SDK_VERSION_IN_MANIFEST
+      IdeSyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_TARGET_SDK_VERSION_IN_MANIFEST
+      IdeSyncIssue.TYPE_UNSUPPORTED_PROJECT_OPTION_USE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNSUPPORTED_PROJECT_OPTION_USE
+      IdeSyncIssue.TYPE_MANIFEST_PARSED_DURING_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MANIFEST_PARSED_DURING_CONFIGURATION
+      IdeSyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
+      IdeSyncIssue.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE
+      IdeSyncIssue.TYPE_SDK_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET
+      IdeSyncIssue.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT
+      IdeSyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
+      IdeSyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
+      IdeSyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
+      IdeSyncIssue.TYPE_USING_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_CONFIGURATION
+      IdeSyncIssue.TYPE_USING_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_DSL_VALUE
+      IdeSyncIssue.TYPE_EDIT_LOCKED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_EDIT_LOCKED_DSL_VALUE
+      IdeSyncIssue.TYPE_MISSING_ANDROID_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MISSING_ANDROID_MANIFEST
+      IdeSyncIssue.TYPE_JCENTER_IS_DEPRECATED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_JCENTER_IS_DEPRECATED
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
 

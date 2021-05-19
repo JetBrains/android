@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.model.meta
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.google.common.util.concurrent.Futures.immediateFuture
@@ -197,8 +198,8 @@ private fun <T : Any> ResolvedPropertyModel.changeMapEntryKey(
   val oldProperty = getMapValue(old)
   // TODO(b/73057388): Simplify to plain oldProperty.getRawValue(OBJECT_TYPE).
   val oldValue = when (oldProperty.valueType) {
-    GradlePropertyModel.ValueType.REFERENCE -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo(it) }
-    GradlePropertyModel.ValueType.UNKNOWN -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo(it) }
+    GradlePropertyModel.ValueType.REFERENCE -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo.createReferenceFromText(it, oldProperty) ?: RawText(it, it) }
+    GradlePropertyModel.ValueType.UNKNOWN -> oldProperty.getRawValue(STRING_TYPE)?.let { ReferenceTo.createReferenceFromText(it, oldProperty) ?: RawText(it, it) }
     else -> oldProperty.getRawValue(OBJECT_TYPE)
   }
 

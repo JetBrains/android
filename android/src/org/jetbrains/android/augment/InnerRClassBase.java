@@ -7,6 +7,7 @@ import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceVisibility;
 import com.google.common.base.Verify;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -19,11 +20,14 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import com.intellij.util.ArrayUtil;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,13 +59,15 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                                                   @NotNull BiPredicate<ResourceType, String> isPublic,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context) {
-    Collection<String> styleableFields = new ArrayList<>();
+    Collection<Pair<String, ResourceVisibility>> otherFields = new ArrayList<>();
+    Collection<Pair<String, ResourceVisibility>> styleableFields = new ArrayList<>();
     Collection<StyleableAttrFieldUrl> styleableAttrFields = new ArrayList<>();
-    Collection<String> otherFields = new ArrayList<>();
 
     if (resourceType == ResourceType.STYLEABLE) {
       ListMultimap<String, ResourceItem> map = repository.getResources(namespace, resourceType);
-      styleableFields.addAll(map.keySet());
+      styleableFields.addAll(
+        ContainerUtil.map(map.keySet(),
+                          it -> new Pair<>(it, isPublic.test(resourceType, it) ? ResourceVisibility.PUBLIC : ResourceVisibility.PRIVATE)));
 
       for (ResourceItem item : map.values()) {
         StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
@@ -80,15 +86,17 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
       }
     }
     else {
-      otherFields.addAll(repository.getResourceNames(namespace, resourceType));
+      otherFields.addAll(
+        ContainerUtil.map(repository.getResourceNames(namespace, resourceType),
+                          it -> new Pair<>(it, isPublic.test(resourceType, it) ? ResourceVisibility.PUBLIC : ResourceVisibility.PRIVATE)));
     }
 
     return buildResourceFields(otherFields, styleableFields, styleableAttrFields, resourceType, context, fieldModifier);
   }
 
   @NotNull
-  protected static PsiField[] buildResourceFields(@NotNull Collection<String> otherFields,
-                                                  @NotNull Collection<String> styleableFields,
+  protected static PsiField[] buildResourceFields(@NotNull Collection<Pair<String, ResourceVisibility>> otherFields,
+                                                  @NotNull Collection<Pair<String, ResourceVisibility>> styleableFields,
                                                   @NotNull Collection<StyleableAttrFieldUrl> styleableAttrFields,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context,
@@ -99,24 +107,26 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     int nextId = resourceType.ordinal() * 100000;
     int i = 0;
 
-    for (String fieldName : otherFields) {
+    for (Pair<String, ResourceVisibility> fieldPair : otherFields) {
       int fieldId = nextId++;
-      ResourceLightField field = new ResourceLightField(fieldName,
+      ResourceLightField field = new ResourceLightField(fieldPair.getFirst(),
                                                         context,
                                                         PsiType.INT,
                                                         fieldModifier,
-                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null,
+                                                        fieldPair.getSecond());
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
 
-    for (String fieldName : styleableFields) {
+    for (Pair<String, ResourceVisibility> fieldName : styleableFields) {
       int fieldId = nextId++;
-      ResourceLightField field = new ResourceLightField(fieldName,
+      ResourceLightField field = new ResourceLightField(fieldName.getFirst(),
                                                         context,
                                                         INT_ARRAY,
                                                         fieldModifier,
-                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null,
+                                                        fieldName.getSecond());
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
@@ -126,7 +136,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
       AndroidLightField field = new StyleableAttrLightField(fieldContents,
                                                             context,
                                                             fieldModifier,
-                                                                   fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+                                                            fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }

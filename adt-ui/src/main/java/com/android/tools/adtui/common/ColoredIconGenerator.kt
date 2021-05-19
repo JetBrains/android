@@ -30,7 +30,7 @@ val WHITE = JBColor(Color.white, Color.white)
  */
 object ColoredIconGenerator {
 
-  fun generateWhiteIcon(icon: Icon): Icon {
+  @JvmStatic fun generateWhiteIcon(icon: Icon): Icon {
     return generateColoredIcon(icon, WHITE)
   }
 

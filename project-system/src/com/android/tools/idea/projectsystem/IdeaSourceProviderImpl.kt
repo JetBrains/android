@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -27,18 +28,35 @@ import com.intellij.openapi.vfs.VirtualFileManager
 class NamedIdeaSourceProviderImpl(
   override val name: String,
   override val scopeType: ScopeType,
-  private val manifestFileUrl: String,
-  override val javaDirectoryUrls: Collection<String> = emptyList(),
-  override val resourcesDirectoryUrls: Collection<String> = emptyList(),
-  override val aidlDirectoryUrls: Collection<String> = emptyList(),
-  override val renderscriptDirectoryUrls: Collection<String> = emptyList(),
-  override val jniDirectoryUrls: Collection<String> = emptyList(),
-  override val jniLibsDirectoryUrls: Collection<String> = emptyList(),
-  override val resDirectoryUrls: Collection<String> = emptyList(),
-  override val assetsDirectoryUrls: Collection<String> = emptyList(),
-  override val shadersDirectoryUrls: Collection<String> = emptyList(),
-  override val mlModelsDirectoryUrls: Collection<String> = emptyList()
+  val core: Core
 ) : NamedIdeaSourceProvider {
+
+  interface Core {
+    val manifestFileUrl: String
+    val javaDirectoryUrls: Sequence<String>
+    val resourcesDirectoryUrls: Sequence<String>
+    val aidlDirectoryUrls: Sequence<String>
+    val renderscriptDirectoryUrls: Sequence<String>
+    val jniDirectoryUrls: Sequence<String>
+    val jniLibsDirectoryUrls: Sequence<String>
+    val resDirectoryUrls: Sequence<String>
+    val assetsDirectoryUrls: Sequence<String>
+    val shadersDirectoryUrls: Sequence<String>
+    val mlModelsDirectoryUrls: Sequence<String>
+  }
+
+  private val manifestFileUrl: String get() = core.manifestFileUrl
+  override val javaDirectoryUrls: Iterable<String> get() = core.javaDirectoryUrls.asIterable()
+  override val resourcesDirectoryUrls: Iterable<String> get() = core.resourcesDirectoryUrls.asIterable()
+  override val aidlDirectoryUrls: Iterable<String> get() = core.aidlDirectoryUrls.asIterable()
+  override val renderscriptDirectoryUrls: Iterable<String> get() = core.renderscriptDirectoryUrls.asIterable()
+  override val jniDirectoryUrls: Iterable<String> get() = core.jniDirectoryUrls.asIterable()
+  override val jniLibsDirectoryUrls: Iterable<String> get() = core.jniLibsDirectoryUrls.asIterable()
+  override val resDirectoryUrls: Iterable<String> get() = core.resDirectoryUrls.asIterable()
+  override val assetsDirectoryUrls: Iterable<String> get() = core.assetsDirectoryUrls.asIterable()
+  override val shadersDirectoryUrls: Iterable<String> get() = core.shadersDirectoryUrls.asIterable()
+  override val mlModelsDirectoryUrls: Iterable<String> get() = core.mlModelsDirectoryUrls.asIterable()
+
   @Volatile
   private var myManifestFile: VirtualFile? = null
 
@@ -68,33 +86,16 @@ class NamedIdeaSourceProviderImpl(
   override val manifestDirectories: Collection<VirtualFile>
     get() = listOfNotNull(manifestDirectory)
 
-
-  override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
-
-  override val resourcesDirectories: Collection<VirtualFile> get() = convertUrlSet(resourcesDirectoryUrls)
-
-  override val aidlDirectories: Collection<VirtualFile> get() = convertUrlSet(aidlDirectoryUrls)
-
-  override val renderscriptDirectories: Collection<VirtualFile> get() = convertUrlSet(renderscriptDirectoryUrls)
-
-  override val jniDirectories: Collection<VirtualFile> get() = convertUrlSet(jniDirectoryUrls)
-
-  override val jniLibsDirectories: Collection<VirtualFile> get() = convertUrlSet(jniLibsDirectoryUrls)
-
-  // TODO: Perform some caching; this method gets called a lot!
-  override val resDirectories: Collection<VirtualFile> get() = convertUrlSet(resDirectoryUrls)
-
-  override val assetsDirectories: Collection<VirtualFile> get() = convertUrlSet(assetsDirectoryUrls)
-
-  override val shadersDirectories: Collection<VirtualFile> get() = convertUrlSet(shadersDirectoryUrls)
-
-  override val mlModelsDirectories: Collection<VirtualFile> get() = convertUrlSet(mlModelsDirectoryUrls)
-
-  /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
-  private fun convertUrlSet(fileUrls: Collection<String>): Collection<VirtualFile> {
-    val fileManager = VirtualFileManager.getInstance()
-    return fileUrls.mapNotNull { fileManager.findFileByUrl(it) }
-  }
+  override val javaDirectories: Iterable<VirtualFile> get() = core.javaDirectoryUrls.toVirtualFiles()
+  override val resourcesDirectories: Iterable<VirtualFile> get() = core.resourcesDirectoryUrls.toVirtualFiles()
+  override val aidlDirectories: Iterable<VirtualFile> get() = core.aidlDirectoryUrls.toVirtualFiles()
+  override val renderscriptDirectories: Iterable<VirtualFile> get() = core.renderscriptDirectoryUrls.toVirtualFiles()
+  override val jniDirectories: Iterable<VirtualFile> get() = core.jniDirectoryUrls.toVirtualFiles()
+  override val jniLibsDirectories: Iterable<VirtualFile> get() = core.jniLibsDirectoryUrls.toVirtualFiles()
+  override val resDirectories: Iterable<VirtualFile> get() = core.resDirectoryUrls.toVirtualFiles()
+  override val assetsDirectories: Iterable<VirtualFile> get() = core.assetsDirectoryUrls.toVirtualFiles()
+  override val shadersDirectories: Iterable<VirtualFile> get() = core.shadersDirectoryUrls.toVirtualFiles()
+  override val mlModelsDirectories: Iterable<VirtualFile> get() = core.mlModelsDirectoryUrls.toVirtualFiles()
 
   override fun toString(): String = "$name($scopeType)"
 }
@@ -105,49 +106,49 @@ class NamedIdeaSourceProviderImpl(
  */
 class IdeaSourceProviderImpl(
   override val scopeType: ScopeType,
-  override val manifestFileUrls: Collection<String> = emptyList(),
-  override val manifestDirectoryUrls: Collection<String> = emptyList(),
-  override val javaDirectoryUrls: Collection<String> = emptyList(),
-  override val resourcesDirectoryUrls: Collection<String> = emptyList(),
-  override val aidlDirectoryUrls: Collection<String> = emptyList(),
-  override val renderscriptDirectoryUrls: Collection<String> = emptyList(),
-  override val jniDirectoryUrls: Collection<String> = emptyList(),
-  override val jniLibsDirectoryUrls: Collection<String> = emptyList(),
-  override val resDirectoryUrls: Collection<String> = emptyList(),
-  override val assetsDirectoryUrls: Collection<String> = emptyList(),
-  override val shadersDirectoryUrls: Collection<String> = emptyList(),
-  override val mlModelsDirectoryUrls: Collection<String> = emptyList()
+  val core: Core
 ) : IdeaSourceProvider {
-  override val manifestFiles: Collection<VirtualFile> get() = convertUrlSet(manifestFileUrls)
 
-  override val manifestDirectories: Collection<VirtualFile> get() = convertUrlSet(manifestDirectoryUrls)
-
-  override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
-
-  override val resourcesDirectories: Collection<VirtualFile> get() = convertUrlSet(resourcesDirectoryUrls)
-
-  override val aidlDirectories: Collection<VirtualFile> get() = convertUrlSet(aidlDirectoryUrls)
-
-  override val renderscriptDirectories: Collection<VirtualFile> get() = convertUrlSet(renderscriptDirectoryUrls)
-
-  override val jniDirectories: Collection<VirtualFile> get() = convertUrlSet(jniDirectoryUrls)
-
-  override val jniLibsDirectories: Collection<VirtualFile> get() = convertUrlSet(jniLibsDirectoryUrls)
-
-  // TODO: Perform some caching; this method gets called a lot!
-  override val resDirectories: Collection<VirtualFile> get() = convertUrlSet(resDirectoryUrls)
-
-  override val assetsDirectories: Collection<VirtualFile> get() = convertUrlSet(assetsDirectoryUrls)
-
-  override val shadersDirectories: Collection<VirtualFile> get() = convertUrlSet(shadersDirectoryUrls)
-
-  override val mlModelsDirectories: Collection<VirtualFile> get() = convertUrlSet(mlModelsDirectoryUrls)
-
-  /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
-  private fun convertUrlSet(fileUrls: Collection<String>): Collection<VirtualFile> {
-    val fileManager = VirtualFileManager.getInstance()
-    return fileUrls.mapNotNull { fileManager.findFileByUrl(it) }
+  interface Core {
+    val manifestFileUrls: Sequence<String>
+    val manifestDirectoryUrls: Sequence<String>
+    val javaDirectoryUrls: Sequence<String>
+    val resourcesDirectoryUrls: Sequence<String>
+    val aidlDirectoryUrls: Sequence<String>
+    val renderscriptDirectoryUrls: Sequence<String>
+    val jniDirectoryUrls: Sequence<String>
+    val jniLibsDirectoryUrls: Sequence<String>
+    val resDirectoryUrls: Sequence<String>
+    val assetsDirectoryUrls: Sequence<String>
+    val shadersDirectoryUrls: Sequence<String>
+    val mlModelsDirectoryUrls: Sequence<String>
   }
+
+  override val manifestFileUrls: Iterable<String> get() = core.manifestFileUrls.asIterable()
+  override val manifestDirectoryUrls: Iterable<String> get() = core.manifestDirectoryUrls.asIterable()
+  override val javaDirectoryUrls: Iterable<String> get() = core.javaDirectoryUrls.asIterable()
+  override val resourcesDirectoryUrls: Iterable<String> get() = core.resourcesDirectoryUrls.asIterable()
+  override val aidlDirectoryUrls: Iterable<String> get() = core.aidlDirectoryUrls.asIterable()
+  override val renderscriptDirectoryUrls: Iterable<String> get() = core.renderscriptDirectoryUrls.asIterable()
+  override val jniDirectoryUrls: Iterable<String> get() = core.jniDirectoryUrls.asIterable()
+  override val jniLibsDirectoryUrls: Iterable<String> get() = core.jniLibsDirectoryUrls.asIterable()
+  override val resDirectoryUrls: Iterable<String> get() = core.resDirectoryUrls.asIterable()
+  override val assetsDirectoryUrls: Iterable<String> get() = core.assetsDirectoryUrls.asIterable()
+  override val shadersDirectoryUrls: Iterable<String> get() = core.shadersDirectoryUrls.asIterable()
+  override val mlModelsDirectoryUrls: Iterable<String> get() = core.mlModelsDirectoryUrls.asIterable()
+
+  override val manifestFiles: Iterable<VirtualFile> get() = core.manifestFileUrls.toVirtualFiles()
+  override val manifestDirectories: Iterable<VirtualFile> get() = core.manifestDirectoryUrls.toVirtualFiles()
+  override val javaDirectories: Iterable<VirtualFile> get() = core.javaDirectoryUrls.toVirtualFiles()
+  override val resourcesDirectories: Iterable<VirtualFile> get() = core.resourcesDirectoryUrls.toVirtualFiles()
+  override val aidlDirectories: Iterable<VirtualFile> get() = core.aidlDirectoryUrls.toVirtualFiles()
+  override val renderscriptDirectories: Iterable<VirtualFile> get() = core.renderscriptDirectoryUrls.toVirtualFiles()
+  override val jniDirectories: Iterable<VirtualFile> get() = core.jniDirectoryUrls.toVirtualFiles()
+  override val jniLibsDirectories: Iterable<VirtualFile> get() = core.jniLibsDirectoryUrls.toVirtualFiles()
+  override val resDirectories: Iterable<VirtualFile> get() = core.resDirectoryUrls.toVirtualFiles()
+  override val assetsDirectories: Iterable<VirtualFile> get() = core.assetsDirectoryUrls.toVirtualFiles()
+  override val shadersDirectories: Iterable<VirtualFile> get() = core.shadersDirectoryUrls.toVirtualFiles()
+  override val mlModelsDirectories: Iterable<VirtualFile> get() = core.mlModelsDirectoryUrls.toVirtualFiles()
 }
 
 /**
@@ -190,45 +191,44 @@ interface NamedIdeaSourceProviderBuilder {
     val mlModelsDirectoryUrls: Collection<String> = emptyList()
   ) : NamedIdeaSourceProviderBuilder {
     override fun withName(name: String): NamedIdeaSourceProviderBuilder = copy(name = name)
-
     override fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder = copy(scopeType = scopeType)
-
     override fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder = copy(manifestFileUrl = url)
-
     override fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(javaDirectoryUrls = urls)
-
     override fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(resourcesDirectoryUrls = urls)
-
     override fun withAidlDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(aidlDirectoryUrls = urls)
-
     override fun withRenderscriptDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(renderscriptDirectoryUrls = urls)
-
     override fun withJniDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(jniDirectoryUrls = urls)
-
     override fun withJniLibsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(jniLibsDirectoryUrls = urls)
-
     override fun withResDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(resDirectoryUrls = urls)
-
     override fun withAssetsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(assetsDirectoryUrls = urls)
-
     override fun withShadersDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(shadersDirectoryUrls = urls)
-
     override fun withMlModelsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(mlModelsDirectoryUrls = urls)
 
     override fun build(): NamedIdeaSourceProvider = NamedIdeaSourceProviderImpl(
       name,
       scopeType,
-      manifestFileUrl,
-      javaDirectoryUrls,
-      resourcesDirectoryUrls,
-      aidlDirectoryUrls,
-      renderscriptDirectoryUrls,
-      jniDirectoryUrls,
-      jniLibsDirectoryUrls,
-      resDirectoryUrls,
-      assetsDirectoryUrls,
-      shadersDirectoryUrls,
-      mlModelsDirectoryUrls
+      object : NamedIdeaSourceProviderImpl.Core {
+        override val manifestFileUrl: String get() = this@Builder.manifestFileUrl
+        override val javaDirectoryUrls: Sequence<String> get() = this@Builder.javaDirectoryUrls.asSequence()
+        override val resourcesDirectoryUrls: Sequence<String> get() = this@Builder.resourcesDirectoryUrls.asSequence()
+        override val aidlDirectoryUrls: Sequence<String> get() = this@Builder.aidlDirectoryUrls.asSequence()
+        override val renderscriptDirectoryUrls: Sequence<String> get() = this@Builder.renderscriptDirectoryUrls.asSequence()
+        override val jniDirectoryUrls: Sequence<String> get() = this@Builder.jniDirectoryUrls.asSequence()
+        override val jniLibsDirectoryUrls: Sequence<String> get() = this@Builder.jniLibsDirectoryUrls.asSequence()
+        override val resDirectoryUrls: Sequence<String> get() = this@Builder.resDirectoryUrls.asSequence()
+        override val assetsDirectoryUrls: Sequence<String> get() = this@Builder.assetsDirectoryUrls.asSequence()
+        override val shadersDirectoryUrls: Sequence<String> get() = this@Builder.shadersDirectoryUrls.asSequence()
+        override val mlModelsDirectoryUrls: Sequence<String> get() = this@Builder.mlModelsDirectoryUrls.asSequence()
+      }
     )
   }
+}
+
+/** Convert a set of IDEA file urls into a set of equivalent virtual files  */
+private fun Sequence<String>.toVirtualFiles(): Iterable<VirtualFile> {
+  val fileManager = VirtualFileManager.getInstance()
+  return mapNotNull {
+    ProgressManager.checkCanceled()
+    fileManager.findFileByUrl(it)
+  }.asIterable()
 }

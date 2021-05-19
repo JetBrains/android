@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
+import com.android.tools.idea.common.actions.LayoutlibSceneManagerRefreshIconAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
@@ -62,11 +64,17 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       DefaultActionGroup(
         listOfNotNull(
           Separator(),
-          if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get())
-            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }
-          else
-            null,
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }
+          LayoutlibSceneManagerRefreshIconAction(sceneView.scene.sceneManager as LayoutlibSceneManager).visibleOnlyInComposeStaticPreview(),
+          StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.ifEnabled {
+            ComposePreviewElementPickerAction { sceneView.scene.sceneManager.model.dataContext }
+          },
+          StudioFlags.COMPOSE_ANIMATION_INSPECTOR.ifEnabled {
+            AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+          },
+          StudioFlags.COMPOSE_ANIMATED_PREVIEW.ifEnabled {
+            EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
+          },
+          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext }.visibleOnlyInComposeStaticPreview()
         )
       ),
       true,
@@ -75,6 +83,7 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface) :
       // Do not allocate space for the "see more" chevron if not needed
       setReservePlaceAutoPopupIcon(false)
       setShowSeparatorTitles(true)
+      setTargetComponent(sceneView.surface)
     }.component.apply {
       isOpaque = false
       border = JBUI.Borders.empty()

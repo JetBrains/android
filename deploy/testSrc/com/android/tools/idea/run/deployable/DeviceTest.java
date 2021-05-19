@@ -288,7 +288,7 @@ public class DeviceTest {
             appIdToPidsMap.entrySet().stream()
               .filter(entry -> args.contains(entry.getKey()))
               .map(entry -> entry.getValue())
-              .findFirst().orElse(null);
+              .findFirst().orElse(Collections.emptyList());
 
           try (PrintWriter pw = new PrintWriter(socket.getOutputStream())) {
             for (String value : pids) {

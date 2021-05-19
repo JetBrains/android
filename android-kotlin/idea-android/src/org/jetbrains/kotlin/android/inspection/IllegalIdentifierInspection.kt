@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.inspection
 
-import com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST
+import com.android.ide.common.gradle.model.IdeAndroidProject.Companion.ARTIFACT_UNIT_TEST
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.util.androidFacet

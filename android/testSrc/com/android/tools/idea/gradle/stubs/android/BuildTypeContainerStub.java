@@ -32,7 +32,7 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
   public BuildTypeContainerStub(@NotNull String name, @NotNull FileStructure fileStructure) {
     myName = name;
     myBuildType = new BuildTypeStub(name);
-    mySourceProvider = new SourceProviderStub(fileStructure);
+    mySourceProvider = new SourceProviderStub(fileStructure, "src/" + myName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
     setUpPaths();
   }
   
@@ -45,7 +45,6 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
     mySourceProvider.addRenderscriptDirectory("src/" + myName + "/renderscript");
     mySourceProvider.addResDirectory("src/" + myName + "/rs");
     mySourceProvider.addResourcesDirectory("src/" + myName + "/resources");
-    mySourceProvider.setManifestFile("src/" + myName + "/" + SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
   @NotNull

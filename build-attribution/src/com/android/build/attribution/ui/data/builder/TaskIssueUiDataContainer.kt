@@ -27,7 +27,7 @@ import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
-import com.android.build.attribution.ui.panels.wrapPathToSpans
+import com.android.build.attribution.ui.wrapPathToSpans
 import java.util.EnumMap
 
 
@@ -109,8 +109,10 @@ class TaskIssueUiDataContainer(
   ) : InterTaskIssueUiData {
     override val type = TaskIssueType.TASK_SETUP_ISSUE
     override val bugReportTitle = type.uiName
-    override val bugReportBriefDescription = "Task declares the same output directory as task ${connectedTask.name} from " +
-                                             "${if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName}."
+    override val bugReportBriefDescription =
+      "Task declares the same output directory as task ${connectedTask.name} from " +
+      (if (connectedTask.sourceType == PluginSourceType.BUILD_SRC) "build script" else connectedTask.pluginName) +
+      ": '${outputFolder}'."
     override val explanation = """
 This task declares the same output directory as task '${connectedTask.taskPath}': ${wrapPathToSpans(outputFolder)}
 As a result, these tasks are not able to take advantage of incremental build optimizations,
@@ -126,9 +128,11 @@ and might need to run with each subsequent build.
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
     override val bugReportTitle = "${type.uiName} No Output Declared"
     override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
-    override val explanation: String = "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
+    override val explanation: String =
+      "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
     override val helpLink = BuildAnalyzerBrowserLinks.NO_OUTPUTS_DECLARED_ISSUE
-    override val buildSrcRecommendation = "Annotate the task output fields with one of: OutputDirectory, OutputDirectories, OutputFile, OutputFiles"
+    override val buildSrcRecommendation =
+      "Annotate the task output fields with one of: OutputDirectory, OutputDirectories, OutputFile, OutputFiles"
   }
 
   class AlwaysRunUpToDateOverride(

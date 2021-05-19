@@ -24,7 +24,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -66,8 +65,7 @@ import org.jetbrains.annotations.Nullable;
  * <p>
  * The visualization tool use {@link NlDesignSurface} for rendering previews.
  */
-@Service
-public final class VisualizationManager implements Disposable {
+public class VisualizationManager implements Disposable {
   /**
    * The default width for first time open.
    */
@@ -305,6 +303,7 @@ public final class VisualizationManager implements Disposable {
   @Override
   public void dispose() {
     if (myToolWindowForm != null) {
+      Disposer.dispose(myToolWindowForm);
       myToolWindowForm = null;
       myToolWindow = null;
       myToolWindowDisposed = true;
@@ -357,8 +356,7 @@ public final class VisualizationManager implements Disposable {
     return myToolWindow;
   }
 
-  @NotNull
-  public static VisualizationManager getInstance(@NotNull Project project) {
+  public static VisualizationManager getInstance(Project project) {
     return project.getService(VisualizationManager.class);
   }
 

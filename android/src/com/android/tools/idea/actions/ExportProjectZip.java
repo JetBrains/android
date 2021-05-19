@@ -17,8 +17,6 @@ package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.google.common.annotations.VisibleForTesting;
@@ -121,15 +119,6 @@ public final class ExportProjectZip extends AnAction implements DumbAware {
       VirtualFile[] exclude = roots.getExcludeRoots();
       for (VirtualFile root : exclude) {
         excludes.add(VfsUtilCore.virtualToIoFile(root));
-      }
-
-      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-      if (androidModel != null) {
-        excludes.add(androidModel.getAndroidProject().getBuildFolder());
-      }
-      JavaModuleModel model = JavaModuleModel.get(module);
-      if (model != null) {
-        excludes.add(model.getBuildFolderPath());
       }
     }
 

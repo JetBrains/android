@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -103,5 +104,11 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
   @NotNull
   public PasswordPropertyModel keyPassword() {
     return getPasswordModelForProperty(KEY_PASSWORD);
+  }
+
+  @Override
+  @NotNull
+  public GradleDslElement getDslElement() {
+    return (GradleDslElement)myDslElement;
   }
 }

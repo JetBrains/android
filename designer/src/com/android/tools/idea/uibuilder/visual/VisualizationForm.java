@@ -34,7 +34,7 @@ import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.util.SyncUtil;
@@ -49,8 +49,10 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -118,6 +120,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
    */
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
+  @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
+
   public VisualizationForm(@NotNull Project project) {
     myProject = project;
     myCurrentConfigurationSet = VisualizationToolSettings.getInstance().getGlobalState().getConfigurationSet();
@@ -140,7 +144,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
-                                                     VERTICAL_SCREEN_DELTA))
+                                                     VERTICAL_SCREEN_DELTA,
+                                                     false))
       .setMinScale(0.10)
       .setMaxScale(4)
       .build();
@@ -163,10 +168,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private void updateScreenMode() {
     switch (myCurrentConfigurationSet) {
       case COLOR_BLIND_MODE:
-        mySurface.setScreenMode(SceneMode.COLOR_BLIND, false);
+        mySurface.setScreenViewProvider(NlScreenViewProvider.COLOR_BLIND, false);
         break;
       default:
-        mySurface.setScreenMode(SceneMode.VISUALIZATION, false);
+        mySurface.setScreenViewProvider(NlScreenViewProvider.VISUALIZATION, false);
         break;
     }
   }
@@ -314,7 +319,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   private void initNeleModel() {
-    myWorkBench.showLoading(RENDERING_MESSAGE);
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
@@ -346,7 +350,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     CompletableFuture
       .supplyAsync(() -> {
         // Hide the content while adding the models.
-        myWorkBench.hideContent();
         List<NlModel> models = myCurrentModelsProvider.createNlModels(this, file, facet);
         if (models.isEmpty()) {
           myWorkBench.showLoading("No Device Found");
@@ -357,12 +360,14 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         if (models == null || isRequestCancelled.get()) {
           return;
         }
+        myWorkBench.showContent();
 
         if (myCancelPreviousAddModelsRequestTask != null) {
           myCancelPreviousAddModelsRequestTask.run();
         }
 
         AtomicBoolean isAddingModelCanceled = new AtomicBoolean(false);
+        ApplicationManager.getApplication().invokeLater(() -> mySurface.registerIndicator(myProgressIndicator));
         // We want to add model sequentially so we can interrupt them if needed.
         // When adding a model the render request is triggered. Stop adding remaining models avoids unnecessary render requests.
         CompletableFuture<Void> addModelFuture = CompletableFuture.completedFuture(null);
@@ -380,15 +385,15 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         myCancelPreviousAddModelsRequestTask = () -> isAddingModelCanceled.set(true);
 
         addModelFuture.thenRunAsync(() -> {
+          ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(myProgressIndicator));
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            double lastScaling = VisualizationToolSettings.getInstance().getGlobalState().getScale();
+            double lastScaling = VisualizationToolProjectSettings.getInstance(myProject).getProjectState().getScale();
             if (!mySurface.setScale(lastScaling)) {
               // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
               // configuration set.
               mySurface.revalidateScrollArea();
             }
-            myWorkBench.showContent();
           }
           else {
             removeAndDisposeModels(models);
@@ -516,7 +521,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @Override
   public void zoomChanged() {
-    VisualizationToolSettings.getInstance().getGlobalState().setScale(mySurface.getScale());
+    VisualizationToolProjectSettings.getInstance(myProject).getProjectState().setScale(mySurface.getScale());
   }
 
   @Override
@@ -564,8 +569,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
       VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
-      myWorkBench.hideContent();
-      myWorkBench.showLoading(RENDERING_MESSAGE);
 
       mySurface.getModels().stream()
         .map(model -> mySurface.getSceneManager(model))
@@ -590,6 +593,13 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     @Override
     public Component getDefaultComponent(Container aContainer) {
       return mySurface.getLayeredPane();
+    }
+  }
+
+  private static class EmptyProgressIndicator extends AbstractProgressIndicatorBase {
+    @Override
+    public boolean isRunning() {
+      return true;
     }
   }
 }

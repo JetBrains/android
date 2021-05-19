@@ -167,7 +167,12 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     GlobalSearchScope scope = module != null
                               ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)
                               : context.getInvocationElement().getResolveScope();
-    return findClassFromString(nameValue, facade, scope, manifestPackage, myExtraBasePackages);
+    return findClassFromString(nameValue, facade, scope, manifestPackage, getExtraBasePackages(context));
+  }
+
+  @NotNull
+  protected String[] getExtraBasePackages(ConvertContext context) {
+    return myExtraBasePackages;
   }
 
   @Nullable
@@ -274,7 +279,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
         if (index > myPartStart) {
           final TextRange range = new TextRange(start + myPartStart, start + index);
           final MyReference reference =
-            new MyReference(element, range, manifestPackage, myExtraBasePackages, startsWithPoint, start, myIsPackage, module,
+            new MyReference(element, range, manifestPackage, getExtraBasePackages(context), startsWithPoint, start, myIsPackage, module,
                             extendClassesNames, completeLibraryClasses, isTestFile, includeDynamicFeatures);
           result.add(reference);
         }

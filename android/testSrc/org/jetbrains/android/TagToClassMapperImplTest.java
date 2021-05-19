@@ -93,9 +93,9 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
 
     @NotNull
     @Override
-    Map<String, SmartPsiElementPointer<PsiClass>> computeInitialClassMap(@NotNull String className) {
+    Map<String, SmartPsiElementPointer<PsiClass>> computeInitialClassMap(@NotNull String classMapKey) {
       fullRebuilds.increment();
-      return super.computeInitialClassMap(className);
+      return super.computeInitialClassMap(classMapKey);
     }
   }
 

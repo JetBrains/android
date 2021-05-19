@@ -149,11 +149,11 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     val buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(2)
-    val buildType1 = buildTypes[0]
+    assertThat(buildTypes).hasSize(4)
+    val buildType1 = buildTypes[2]
     assertEquals("name", "type1", buildType1.name())
     assertEquals("applicationIdSuffix", "typeSuffix-1", buildType1.applicationIdSuffix())
-    val buildType2 = buildTypes[1]
+    val buildType2 = buildTypes[3]
     assertEquals("name", "type2", buildType2.name())
     assertEquals("applicationIdSuffix", "typeSuffix-2", buildType2.applicationIdSuffix())
   }
@@ -203,6 +203,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val cmake = externalNativeBuild.cmake()
     checkForValidPsiElement(cmake, CMakeModelImpl::class.java)
     assertEquals("path", "foo/bar", cmake.path())
+    assertEquals("version", "1.2.3", cmake.version())
   }
 
   @Test
@@ -475,15 +476,15 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     assertNotNull(android)
 
-    assertThat(android.buildTypes()).isEmpty()
+    assertThat(android.buildTypes()).hasSize(2)
 
     android.addBuildType("type")
     val buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "type", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", "type", buildTypes[2].name())
 
     buildModel.resetState()
-    assertThat(android.buildTypes()).isEmpty()
+    assertThat(android.buildTypes()).hasSize(2)
   }
 
   @Test
@@ -512,20 +513,20 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(2)
-    assertEquals("buildTypes", "type1", buildTypes[0].name())
-    assertEquals("buildTypes", "type2", buildTypes[1].name())
+    assertThat(buildTypes).hasSize(4)
+    assertEquals("buildTypes", "type1", buildTypes[2].name())
+    assertEquals("buildTypes", "type2", buildTypes[3].name())
 
     android.removeBuildType("type1")
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "type2", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", "type2", buildTypes[2].name())
 
     buildModel.resetState()
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(2)
-    assertEquals("buildTypes", "type1", buildTypes[0].name())
-    assertEquals("buildTypes", "type2", buildTypes[1].name())
+    assertThat(buildTypes).hasSize(4)
+    assertEquals("buildTypes", "type1", buildTypes[2].name())
+    assertEquals("buildTypes", "type2", buildTypes[3].name())
   }
 
   @Test
@@ -611,17 +612,19 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addBuildType("type")
     val buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    buildTypes[0].applicationIdSuffix().setValue("suffix")
-    assertEquals("buildTypes", "type", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    buildTypes[2].applicationIdSuffix().setValue("suffix")
+    assertEquals("buildTypes", "type", buildTypes[2].name())
 
     applyChangesAndReparse(buildModel)
     assertThat(loadBuildFile()).contains("buildTypes")
 
     android = buildModel.android()
-    assertThat(android.buildTypes()).hasSize(1)
+    assertThat(android.buildTypes()).hasSize(3)
+    assertEquals("applicationIdSuffix", "suffix", buildTypes[2].applicationIdSuffix())
+
     android.removeBuildType("type")
-    assertThat(android.buildTypes()).isEmpty()
+    assertThat(android.buildTypes()).hasSize(2)
 
     applyChangesAndReparse(buildModel)
     assertThat(loadBuildFile()).doesNotContain("buildTypes")
@@ -661,8 +664,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addSigningConfig("config")
     val signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config", signingConfigs[1].name())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK_EXPECTED)
@@ -670,8 +673,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
-    assertThat(android.signingConfigs()).hasSize(1)
-    assertEquals("signingConfigs", "config", android.signingConfigs()[0].name())
+    assertThat(android.signingConfigs()).hasSize(2)
+    assertEquals("signingConfigs", "config", android.signingConfigs()[1].name())
   }
 
   @Test
@@ -728,13 +731,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     val buildTypes = android.buildTypes()
-    assertSize(6, buildTypes)
-    assertEquals("one", buildTypes[0].name())
-    assertEquals("two", buildTypes[1].name())
-    assertEquals("three", buildTypes[2].name())
-    assertEquals("four", buildTypes[3].name())
-    assertEquals("five", buildTypes[4].name())
-    assertEquals("six", buildTypes[5].name())
+    assertSize(8, buildTypes)
+    assertEquals("one", buildTypes[2].name())
+    assertEquals("two", buildTypes[3].name())
+    assertEquals("three", buildTypes[4].name())
+    assertEquals("four", buildTypes[5].name())
+    assertEquals("five", buildTypes[6].name())
+    assertEquals("six", buildTypes[7].name())
   }
 
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
@@ -743,17 +746,17 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val android = buildModel.android()
     android.addBuildType(name)
     var buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", name, buildTypes[0].name())
-    buildTypes[0].applicationIdSuffix().setValue("foo")
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", name, buildTypes[2].name())
+    buildTypes[2].applicationIdSuffix().setValue("foo")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, expected)
 
     buildTypes = gradleBuildModel.android().buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", name, buildTypes[0].name())
-    assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", name, buildTypes[2].name())
+    assertEquals("applicationIdSuffix", "foo", buildTypes[2].applicationIdSuffix())
   }
 
   @Test
@@ -800,13 +803,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addBuildType("type")
     var buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    var buildType = buildTypes[0]
+    assertThat(buildTypes).hasSize(3)
+    var buildType = buildTypes[2]
     buildType.applicationIdSuffix().setValue("mySuffix")
 
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    buildType = buildTypes[0]
+    assertThat(buildTypes).hasSize(3)
+    buildType = buildTypes[2]
     assertEquals("buildTypes", "type", buildType.name())
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix())
 
@@ -814,8 +817,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED)
 
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    buildType = buildTypes[0]
+    assertThat(buildTypes).hasSize(3)
+    buildType = buildTypes[2]
     assertEquals("buildTypes", "type", buildType.name())
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix())
 
@@ -824,8 +827,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    buildType = buildTypes[0]
+    assertThat(buildTypes).hasSize(3)
+    buildType = buildTypes[2]
     assertEquals("buildTypes", "type", buildType.name())
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix())
   }
@@ -878,13 +881,13 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     android.addSigningConfig("config")
     var signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    var signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    var signingConfig = signingConfigs[1]
     signingConfig.keyAlias().setValue("myKeyAlias")
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
 
@@ -892,8 +895,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
 
@@ -902,8 +905,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    signingConfig = signingConfigs[0]
+    assertThat(signingConfigs).hasSize(2)
+    signingConfig = signingConfigs[1]
     assertEquals("signingConfigs", "config", signingConfig.name())
     assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias())
   }
@@ -983,29 +986,29 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(2)
-    assertEquals("buildTypes", "type1", buildTypes[0].name())
-    assertEquals("buildTypes", "type2", buildTypes[1].name())
+    assertThat(buildTypes).hasSize(4)
+    assertEquals("buildTypes", "type1", buildTypes[2].name())
+    assertEquals("buildTypes", "type2", buildTypes[3].name())
 
     android.removeBuildType("type1")
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "type2", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", "type2", buildTypes[2].name())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED)
 
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "type2", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", "type2", buildTypes[2].name())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
     buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "type2", buildTypes[0].name())
+    assertThat(buildTypes).hasSize(3)
+    assertEquals("buildTypes", "type2", buildTypes[2].name())
   }
 
   @Test
@@ -1049,29 +1052,29 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(2)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
-    assertEquals("signingConfigs", "config2", signingConfigs[1].name())
+    assertThat(signingConfigs).hasSize(3)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
+    assertEquals("signingConfigs", "config2", signingConfigs[2].name())
 
     android.removeSigningConfig("config2")
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.REMOVE_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
     signingConfigs = android.signingConfigs()
-    assertThat(signingConfigs).hasSize(1)
-    assertEquals("signingConfigs", "config1", signingConfigs[0].name())
+    assertThat(signingConfigs).hasSize(2)
+    assertEquals("signingConfigs", "config1", signingConfigs[1].name())
   }
 
   @Test

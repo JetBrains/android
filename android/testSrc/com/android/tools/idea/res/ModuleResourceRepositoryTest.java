@@ -194,8 +194,9 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
-    assertTrue(resources.getModificationCount() > generation);
+    UIUtil.dispatchAllInvocationEvents();
 
+    assertTrue(resources.getModificationCount() > generation);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1"));
 
@@ -426,6 +427,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
         }
       }
     });
+    UIUtil.dispatchAllInvocationEvents();
 
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "bar_activity"));
     assertFalse(resources.hasResources(RES_AUTO, ResourceType.LAYOUT, "foo_activity"));

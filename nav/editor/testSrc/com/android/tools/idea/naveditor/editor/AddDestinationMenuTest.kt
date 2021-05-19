@@ -56,6 +56,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
+import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import junit.framework.TestCase
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -113,7 +114,6 @@ class AddDestinationMenuTest : NavTestCase() {
     surface.model = model
     _menu = AddDestinationMenu(surface)
     _panel = getMainMenuPanel()
-    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   @Bombed(year = 2020, month = Calendar.OCTOBER, day = 1, user = "Andrei.Kuznetsov",
@@ -167,6 +167,7 @@ class AddDestinationMenuTest : NavTestCase() {
       parent, "activity", null, findClass("mytest.navtest.activity3"), layoutFile = activity3XmlFile)
     val mainActivity = Destination.RegularDestination(
       parent, "activity", null, findClass("mytest.navtest.MainActivity"), layoutFile = xmlFile)
+    dispatchAllInvocationEvents();
 
     val expected = mutableListOf(placeHolder, blankFragment, dynamicFragment, fragment1, fragment2, fragment3, include1, include2, include3,
                                  includeNav, activity2, activity3, mainActivity)
@@ -211,7 +212,6 @@ class AddDestinationMenuTest : NavTestCase() {
   private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
 
   override fun tearDown() {
-    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     _model = null
     _menu = null
     _surface = null
@@ -486,7 +486,7 @@ class SettingsFragment : PreferenceFragmentCompat()
                                                    xmlns:app="http://schemas.android.com/apk/res-auto"
                                                    xmlns:android="http://schemas.android.com/apk/res/android"
                                                    tools:context=".$name">
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/navhost"
             android:name="androidx.navigation.fragment.NavHostFragment"
             app:defaultNavHost="true"
@@ -574,6 +574,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
 
     val blankFragment = Destination.RegularDestination(
       model.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
+    dispatchAllInvocationEvents();
 
     val menu = AddDestinationMenu(surface)
     assertEquals(blankFragment, menu.destinations[1])

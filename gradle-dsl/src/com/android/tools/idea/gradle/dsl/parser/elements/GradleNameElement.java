@@ -270,6 +270,7 @@ public final class GradleNameElement {
    */
   private void setUpFrom(@Nullable PsiElement element, GradleDslNameConverter converter) {
     myNameElement = element;
+    myFakeName = null;
     if (myNameElement instanceof PsiNamedElement) {
       myLocalName = GradleNameElementUtil.escape(((PsiNamedElement)myNameElement).getName());
     }

@@ -19,8 +19,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
-import com.android.tools.idea.res.ModuleRClass.Transitivity.NON_TRANSITIVE
-import com.android.tools.idea.res.ModuleRClass.Transitivity.TRANSITIVE
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
+import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.AndroidResolveScopeEnlarger.Companion.FILE_SOURCE_SET_KEY
@@ -45,7 +45,6 @@ class ModuleRClass(
 ) {
 
   enum class SourceSet { MAIN, TEST }
-  enum class Transitivity { TRANSITIVE, NON_TRANSITIVE }
 
   init {
     setModuleInfo(
@@ -70,7 +69,7 @@ class ModuleRClass(
   private class ModuleResourcesSource(
     val facet: AndroidFacet,
     val sourceSet: SourceSet,
-    val transitivity: Transitivity,
+    private val transitivity: Transitivity,
     val _fieldModifier: AndroidLightField.FieldModifier
   ) : ResourcesSource {
     override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
@@ -97,7 +96,11 @@ class ModuleRClass(
     }
 
     override fun isPublic(resourceType: ResourceType, resourceName: String): Boolean {
-      return ModuleResourceManagers.getInstance(facet).localResourceManager.isResourcePublic(resourceType.name, resourceName)
+      return !ResourceRepositoryManager.getInstance(facet).resourceVisibility.isPrivate(resourceType, resourceName)
+    }
+
+    override fun getTransitivity(): Transitivity {
+      return transitivity
     }
   }
 }
