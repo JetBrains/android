@@ -40,7 +40,6 @@ import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelp
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -232,7 +231,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       taskListener.onStart(id, gradleRootProjectPath);
       taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true);
 
-      BuildMode buildMode = BuildSettings.getInstance(myProject).getBuildMode();
+      BuildMode buildMode = myRequest.getMode();
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
 

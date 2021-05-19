@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
+import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
-import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link GradleBuildState}.
@@ -51,7 +51,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
       }
     });
 
-    invokeGradle(project, GradleBuildInvoker::generateSources);
+    invokeGradle(project, invoker -> invoker.generateSources(ModuleManager.getInstance(getProject()).getModules()));
 
     GradleBuildState buildState = GradleBuildState.getInstance(project);
     assertFalse(buildState.isBuildInProgress());

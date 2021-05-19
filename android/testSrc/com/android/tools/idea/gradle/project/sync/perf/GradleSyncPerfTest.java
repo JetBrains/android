@@ -35,6 +35,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -288,7 +289,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     runWriteCommandAction(getProject(), () -> {
       try {
         // Build the project, since sync times can be different for built/unbuilt projects
-        GradleBuildInvoker.getInstance(getProject()).generateSources();
+        GradleBuildInvoker.getInstance(getProject()).generateSources(ModuleManager.getInstance(getProject()).getModules());
 
         // Do a few syncs to warm up the JVM to get typical real-world runtimes
         requestSyncAndWait();

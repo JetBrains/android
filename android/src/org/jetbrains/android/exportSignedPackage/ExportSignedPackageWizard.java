@@ -278,13 +278,17 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                                                             modules,
                                                             "Generate Signed Bundle",
                                                             myBuildVariants, exportedKeyFile, myApkPath));
-
         }
         else {
           targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
           gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
-        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties, OutputBuildActionUtil.create(modules));
+        final File file = new File(rootProjectPath);
+        gradleBuildInvoker.executeTasks(
+          GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
+            .setCommandLineArguments(projectProperties)
+            .setBuildAction(OutputBuildActionUtil.create(modules))
+            .build());
         trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +

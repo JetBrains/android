@@ -30,6 +30,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,8 +67,17 @@ public interface GradleTaskRunner {
       assert !ApplicationManager.getApplication().isDispatchThread();
       GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(myProject);
 
-      ListenableFuture<GradleMultiInvocationResult> future =
-        gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments, myBuildAction);
+      List<GradleBuildInvoker.Request> requests = tasks.keySet().stream()
+        .map(path ->
+               GradleBuildInvoker.Request
+                 .builder(myProject, path.toFile(), tasks.get(path))
+                 .setMode(buildMode)
+                 .setCommandLineArguments(commandLineArguments)
+                 .setBuildAction(myBuildAction)
+                 .build())
+        .collect(Collectors.toList());
+
+      ListenableFuture<GradleMultiInvocationResult> future = gradleBuildInvoker.executeTasks(requests);
 
       try {
         future.get().getModels().stream()
