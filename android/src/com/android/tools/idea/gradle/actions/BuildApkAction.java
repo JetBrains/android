@@ -53,7 +53,7 @@ public class BuildApkAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, OutputBuildActionUtil.create(appModules));
+        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL);
       }
     }
   }

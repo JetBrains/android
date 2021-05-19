@@ -92,7 +92,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).bundle(eq(appModules), eq(null));
+    verify(myBuildInvoker).bundle(eq(appModules));
   }
 
   public void testUpdateGradlePluginNotification() {
