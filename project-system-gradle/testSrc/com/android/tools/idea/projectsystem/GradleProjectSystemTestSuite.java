@@ -33,7 +33,7 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
-    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.manifest");
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
   }
