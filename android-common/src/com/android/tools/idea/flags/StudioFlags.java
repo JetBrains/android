@@ -229,6 +229,11 @@ public final class StudioFlags {
     "Show the resource popup picker for picking drawable resources from the Editor's gutter icon.",
     true);
 
+  public static final Flag<Boolean> NELE_DRAWABLE_BACKGROUND_MENU = Flag.create(
+    NELE, "show.drawable.background.menu", "Enable background option menu in drawable preview panel.",
+    "Show the background option menu to switch the background when previewing drawable resources.",
+    true);
+
   public static final Flag<Boolean> NELE_WEAR_DEVICE_FIXED_ORIENTATION = Flag.create(
     NELE, "wear.fixed.orientation", "Fixes the orientation of wear os devices.",
     "For wear device, force using the portrait for square and round devices and landscape for chin devices.",
