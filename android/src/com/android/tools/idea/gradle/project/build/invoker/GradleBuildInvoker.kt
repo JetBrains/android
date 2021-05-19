@@ -34,16 +34,7 @@ interface GradleBuildInvoker {
   fun generateSources(modules: Array<Module>)
   fun compileJava(modules: Array<Module>, testCompileType: TestCompileType)
   fun assemble(modules: Array<Module>, testCompileType: TestCompileType)
-  fun assemble(
-    modules: Array<Module>,
-    testCompileType: TestCompileType,
-    buildAction: BuildAction<*>?
-  )
-
-  fun bundle(
-    modules: Array<Module>,
-    buildAction: BuildAction<*>?
-  )
+  fun bundle(modules: Array<Module>)
 
   fun rebuild()
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>)

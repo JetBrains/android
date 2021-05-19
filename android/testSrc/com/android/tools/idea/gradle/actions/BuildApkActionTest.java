@@ -69,7 +69,7 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(null));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL));
   }
 
   public void testActionPerformedForDynamicApp() {
@@ -92,6 +92,6 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     when(event.getProject()).thenReturn(getProject());
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(null));
+    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL));
   }
 }

@@ -241,8 +241,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
         gradleModule(myProject, ":app"),
         gradleModule(myProject, ":lib")
       ).toArray(new Module[0]),
-      TestCompileType.ALL,
-      null);
+      TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
@@ -264,8 +263,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
         gradleModule(myProject, ":app"),
         gradleModule(myProject, ":lib")
       ).toArray(new Module[0]),
-      TestCompileType.ALL,
-      null);
+      TestCompileType.ALL);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));

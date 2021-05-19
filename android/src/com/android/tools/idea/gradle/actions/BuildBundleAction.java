@@ -52,7 +52,7 @@ public class BuildBundleAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToBundleLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        gradleBuildInvoker.bundle(modulesToBuild, OutputBuildActionUtil.create(appModules));
+        gradleBuildInvoker.bundle(modulesToBuild);
       }
       else {
         DynamicAppUtils.promptUserForGradleUpdate(project);

@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
+import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -104,7 +105,6 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -287,35 +287,28 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    assemble(modules, testCompileType, null);
-  }
-
-  @Override
-  public void assemble(@NotNull Module[] modules,
-                       @NotNull TestCompileType testCompileType,
-                       @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
       executeTasks(
         Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
           .setMode(buildMode)
-          .setBuildAction(buildAction)
+          .setBuildAction(OutputBuildActionUtil.create(Arrays.asList(modules)))
           .build());
     }
   }
 
   @Override
-  public void bundle(@NotNull Module[] modules,
-                     @Nullable BuildAction<?> buildAction) {
+  public void bundle(@NotNull Module[] modules) {
     BuildMode buildMode = BUNDLE;
     ListMultimap<Path, String> tasks =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
+
     for (Path rootPath : tasks.keySet()) {
       executeTasks(
         Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
           .setMode(buildMode)
-          .setBuildAction(buildAction)
+          .setBuildAction(OutputBuildActionUtil.create(Arrays.asList(modules)))
           .build());
     }
   }
