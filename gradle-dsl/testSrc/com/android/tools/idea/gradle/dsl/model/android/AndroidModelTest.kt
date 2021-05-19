@@ -1370,33 +1370,27 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyIntegerLiteralElements() {
-    assumeTrue("can't assign an int to compileSdkVersion in KotlinScript", !isKotlinScript) // TODO(b/143196166), TODO(b/143196529)
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
     var android = buildModel.android()
     assertNotNull(android)
 
-    assertMissingProperty("buildToolsVersion", android.buildToolsVersion())
     assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
 
-    android.buildToolsVersion().setValue(22)
     android.compileSdkVersion().setValue(21)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
 
     applyChanges(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
 
     buildModel.reparse()
     android = buildModel.android()
     assertNotNull(android)
 
-    assertEquals("buildToolsVersion", "22", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "21", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", 21, android.compileSdkVersion())
   }
 
   @Test
