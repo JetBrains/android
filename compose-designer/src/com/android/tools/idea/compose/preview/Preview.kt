@@ -1016,11 +1016,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
-  private fun getSelectedLayoutManager(): String? {
-    val layoutSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher
-    return PREVIEW_LAYOUT_MANAGER_OPTIONS.find { layoutSwitcher.isLayoutManagerSelected(it.layoutManager) }?.displayName
-  }
-
   override fun getState(): PreviewRepresentationState {
     val selectedGroupName = previewElementProvider.groupNameFilter.name ?: ""
     val selectedLayoutName = PREVIEW_LAYOUT_MANAGER_OPTIONS.find {
