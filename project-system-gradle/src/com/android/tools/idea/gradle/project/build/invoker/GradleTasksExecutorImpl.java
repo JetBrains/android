@@ -86,7 +86,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
-import net.jcip.annotations.GuardedBy;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildCancelledException;
@@ -113,15 +112,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
   private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
   private static final String PASSWORD_KEY_SUFFIX = ".password=";
 
-  @NotNull private final Object myCompletionLock = new Object();
-
   @NotNull private final GradleBuildInvoker.Request myRequest;
   @NotNull private final BuildStopper myBuildStopper;
   @NotNull private final SettableFuture<GradleInvocationResult> myResultFuture;
-  @NotNull private ExternalSystemTaskNotificationListener myListener;
-
-  @GuardedBy("myCompletionLock")
-  private int myCompletionCounter;
+  @NotNull private final ExternalSystemTaskNotificationListener myListener;
 
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
@@ -228,8 +222,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       String executingTasksText = "Executing tasks: " + gradleTasks + " in project " + gradleRootProjectPath;
       addToEventLog(executingTasksText, INFO);
 
-      StringBuilder output = new StringBuilder();
-
       Throwable buildError = null;
       ExternalSystemTaskId id = myRequest.getTaskId();
       ExternalSystemTaskNotificationListener taskListener = myListener;
@@ -308,7 +300,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
           @Override
           public void onTaskOutput(@NotNull ExternalSystemTaskId id, @NotNull String text, boolean stdOut) {
-            output.append(text);
             if (myBuildStopper.contains(id)) {
               taskListener.onTaskOutput(id, text, stdOut);
             }
@@ -323,7 +314,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         if (isRunBuildAction) {
-          ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
+          ((BuildActionExecuter<?>)operation).forTasks(toStringArray(gradleTasks));
         }
         else {
           ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
@@ -332,7 +323,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         operation.withCancellationToken(cancellationTokenSource.token());
 
         if (isRunBuildAction) {
-          model.set(((BuildActionExecuter)operation).run());
+          model.set(((BuildActionExecuter<?>)operation).run());
         }
         else {
           ((BuildLauncher)operation).run();
@@ -530,15 +521,6 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
   private void attemptToStopBuild() {
     myBuildStopper.attemptToStopBuild(myRequest.getTaskId(), myProgressIndicator);
-  }
-
-  @Override
-  public void onFinished() {
-    super.onFinished();
-    synchronized (myCompletionLock) {
-      myCompletionCounter++;
-      myCompletionLock.notifyAll();
-    }
   }
 
   private class CloseListener implements ContentManagerListener, VetoableProjectManagerListener {
