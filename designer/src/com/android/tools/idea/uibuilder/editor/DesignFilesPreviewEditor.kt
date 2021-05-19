@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.editor
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.editor.DesignerEditor
 import com.android.tools.idea.common.editor.DesignerEditorPanel
-import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -26,12 +26,15 @@ import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.actions.DrawableScreenViewProvider
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.type.AdaptiveIconFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
-import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFile
+import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
+import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -66,7 +69,16 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       NlDesignSurface.builder(myProject, this)
         .build()
         .apply {
-          setScreenViewProvider(NlScreenViewProvider.RENDER, false)
+          val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
+            when (file?.toPsiFile(project)?.typeOf()) {
+              is AdaptiveIconFileType, is DrawableFileType -> DrawableScreenViewProvider()
+              else -> NlScreenViewProvider.RENDER
+            }
+          }
+          else {
+            NlScreenViewProvider.RENDER
+          }
+          setScreenViewProvider(screenViewProvider, false)
           // Make DesignSurface be focused when mouse clicked. This make the DataContext is provided from it while user clicks it.
           interactionPane.addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {

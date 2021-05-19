@@ -27,9 +27,9 @@ import java.awt.geom.AffineTransform;
 
 public class BorderLayer extends Layer {
 
-  private final ScreenViewBase myScreenView;
+  private final SceneView myScreenView;
 
-  public BorderLayer(@NotNull ScreenViewBase screenView) {
+  public BorderLayer(@NotNull SceneView screenView) {
     myScreenView = screenView;
   }
 
