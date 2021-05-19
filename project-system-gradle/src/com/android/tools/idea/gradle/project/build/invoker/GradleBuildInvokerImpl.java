@@ -25,12 +25,14 @@ import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.convert;
 import static com.intellij.openapi.ui.Messages.CANCEL;
 import static com.intellij.openapi.ui.Messages.NO;
 import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toList;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
@@ -386,14 +388,26 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   @Override
-  public void executeTasks(@NotNull ListMultimap<Path, String> tasks,
-                           @Nullable BuildMode buildMode,
-                           @NotNull List<String> commandLineArguments,
-                           @Nullable BuildAction<?> buildAction) {
+  @NotNull
+  public ListenableFuture<GradleMultiInvocationResult> executeTasks(@NotNull ListMultimap<Path, String> tasks,
+                                                                    @Nullable BuildMode buildMode,
+                                                                    @NotNull List<String> commandLineArguments,
+                                                                    @Nullable BuildAction<?> buildAction) {
     if (buildMode != null) {
       setProjectBuildMode(buildMode);
     }
-    tasks.keys().elementSet().forEach(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction));
+    List<ListenableFuture<GradleInvocationResult>> futures =
+      tasks.keySet().stream()
+        .map(path -> executeTasks(path.toFile(), tasks.get(path), commandLineArguments, buildAction))
+        .collect(toList());
+    Futures.FutureCombiner<GradleInvocationResult> result = Futures.whenAllComplete(futures);
+    return result.call(() -> {
+      List<GradleInvocationResult> results = new ArrayList<>();
+      for (ListenableFuture<GradleInvocationResult> future : futures) {
+        results.add(future.get());
+      }
+      return new GradleMultiInvocationResult(results);
+    }, directExecutor());
   }
 
   @Override
