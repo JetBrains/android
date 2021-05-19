@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentProvider
+import org.jetbrains.kotlin.descriptors.PackageFragmentProviderOptimized
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -56,7 +57,12 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
 
 class SafeArgsSyntheticPackageProvider(
   private val packageDescriptorProvider: Map<FqName, List<PackageFragmentDescriptor>>
-) : PackageFragmentProvider {
+) : PackageFragmentProviderOptimized {
+  override fun collectPackageFragments(fqName: FqName, packageFragments: MutableCollection<PackageFragmentDescriptor>) {
+    val descriptors = packageDescriptorProvider[fqName] ?: return
+    packageFragments.addAll(descriptors)
+  }
+
   override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
     return packageDescriptorProvider[fqName] ?: emptyList()
   }
