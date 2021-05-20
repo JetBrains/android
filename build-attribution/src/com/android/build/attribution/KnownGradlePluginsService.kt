@@ -87,3 +87,14 @@ class KnownGradlePluginsServiceImpl constructor(downloader: FileDownloader, cach
     }
   }
 }
+
+class LocalKnownGradlePluginsServiceImpl : KnownGradlePluginsService {
+  override val gradlePluginsData = try {
+    GradlePluginsData.loadFromJson(ResourceUtil.loadText(FALLBACK_URL))
+  }
+  catch (e: Throwable) {
+    GradlePluginsData.emptyData
+  }
+
+  override fun asyncRefresh() = Unit
+}

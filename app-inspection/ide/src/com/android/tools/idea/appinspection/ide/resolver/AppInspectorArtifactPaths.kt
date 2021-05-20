@@ -67,7 +67,8 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
   fun getInspectorArchive(inspector: ArtifactCoordinate): Path? {
     if (!jars.containsKey(inspector)) {
       val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
-      val jarPath = Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version, INSPECTOR_JAR)
+      val jarPath = Paths.get(cachePath.toString(), inspector.groupId, inspector.artifactId, inspector.version,
+                              inspector.inspectorJarFileName())
       if (jarPath.exists()) {
         jars[inspector] = jarPath
       }
@@ -83,7 +84,7 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
    *
    * The directory structure of the cache contains the coordinate information of the artifact
    * in question:
-   *   $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
+   *   $cache_dir/<group_id>/<artifact_id>/<version>/<group_id>-<artifact_id>-<version>-inspector.jar
    */
   @WorkerThread
   fun populateInspectorArchive(artifactCoordinate: ArtifactCoordinate, archive: Path) {
@@ -91,7 +92,7 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
       val destDir = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR).resolve(artifactCoordinate.groupId).resolve(
         artifactCoordinate.artifactId).resolve(artifactCoordinate.version)
       Files.createDirectories(destDir)
-      val destFile = destDir.resolve(archive.fileName)
+      val destFile = destDir.resolve(artifactCoordinate.inspectorJarFileName())
       FileUtils.copyFile(archive, destFile, StandardCopyOption.REPLACE_EXISTING)
       jars[artifactCoordinate] = destFile
     }
@@ -99,4 +100,6 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
       Logger.getInstance(AppInspectorArtifactPaths::class.java).error(e)
     }
   }
+
+  private fun ArtifactCoordinate.inspectorJarFileName() = "${groupId}-${artifactId}-${version}-inspector.jar"
 }

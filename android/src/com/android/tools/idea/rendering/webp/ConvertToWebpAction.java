@@ -49,7 +49,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.EdtReplacementThread;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -270,7 +270,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
           // Doesn't apply in lossless mode - nothing to preview, all conversions are exact.
           !mySettings.lossless &&
           !myConvertedFiles.isEmpty()) {
-        WebpPreviewDialog dialog = new WebpPreviewDialog(this, myProject, mySettings, myConvertedFiles);
+        WebpPreviewDialog dialog = new WebpPreviewDialog(myProject, mySettings, myConvertedFiles);
         if (!dialog.showAndGet()) {
           return;
         }
@@ -280,38 +280,78 @@ public class ConvertToWebpAction extends DumbAwareAction {
         skipAlreadyEncoded = false;
       }
 
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        encode(myConvertedFiles, skipAlreadyEncoded);
-        ApplicationManager.getApplication().invokeLater(() -> {
+      ProgressManager.getInstance().run(new Backgroundable(myProject, "Converting files") {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          encode(myConvertedFiles, skipAlreadyEncoded, indicator);
+        }
+
+        @Override
+        public void onSuccess() {
           writeImages(this, myProject, myConvertedFiles);
           refreshFolders(myParentFolders);
 
           if (myShowBalloon) {
             StringBuilder sb = new StringBuilder();
             if (myFiles.size() > 1 || myFileCount == 0) {
-              sb.append(myFileCount).append(" files were converted");
+              if (myFileCount == 1) {
+                sb.append("1 file was converted");
+              }
+              else {
+                sb.append(myFileCount).append(" files were converted");
+              }
             }
             if (mySaved > 0 || myTransparentCount == 0 && myNinePatchCount == 0 && mySkipped == 0) {
-              sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
+              if (mySaved > 0) {
+                sb.append("<br/>").append(formatSize(mySaved)).append(" saved");
+              }
+              else {
+                sb.append("<br/>").append("size increased by ").append(formatSize(-mySaved));
+              }
             }
             if (myNinePatchCount > 0) {
-              sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
+              if (myTransparentCount == 1) {
+                sb.append("<br>").append("1 9-patch file was skipped");
+              }
+              else {
+                sb.append("<br>").append(myNinePatchCount).append(" 9-patch files were skipped");
+              }
             }
             if (myLauncherIconCount > 0) {
-              sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
+              if (myTransparentCount == 1) {
+                sb.append("<br>").append("1 launcher icon was skipped");
+              }
+              else {
+                sb.append("<br>").append(myLauncherIconCount).append(" launcher icons were skipped");
+              }
             }
             if (myTransparentCount > 0) {
-              sb.append("<br>").append(myTransparentCount).append(" transparent images were skipped");
+              if (myTransparentCount == 1) {
+                sb.append("<br>").append("1 transparent image was skipped");
+              }
+              else {
+                sb.append("<br>").append(myTransparentCount).append(" transparent images were skipped");
+              }
             }
             if (mySkipped > 0) {
-              sb.append("<br>").append(mySkipped).append(" files were skipped because there was no net space savings");
+              if (mySkipped == 1) {
+                sb.append("<br>").append("1 file was skipped because there was no net space saving");
+              }
+              else {
+                sb.append("<br>").append(mySkipped).append(" files were skipped because there was no net space saving");
+              }
             }
             String message = sb.toString();
             NotificationGroup group = NotificationGroup.findRegisteredGroup("Convert to WebP");
             assert group != null;
             group.createNotification(message, NotificationType.INFORMATION).notify(myProject);
           }
-        });
+        }
+
+        @Override
+        public @NotNull EdtReplacementThread whereToRunCallbacks() {
+          return EdtReplacementThread.WT;
+        }
       });
     }
 
@@ -345,28 +385,30 @@ public class ConvertToWebpAction extends DumbAwareAction {
       myParentFolders = computeParentFolders(myConvertedFiles);
     }
 
-    void encode(@NotNull List<WebpConvertedFile> files, boolean skipAlreadyEncoded) {
+    void encode(@NotNull List<WebpConvertedFile> files, boolean skipAlreadyEncoded, @NotNull ProgressIndicator indicator) {
+      double fraction = 0;
+      double fileFraction = 1. / files.size();
+
       for (WebpConvertedFile file : files) {
+        ProgressManager.checkCanceled();
+
+        indicator.setText2("Converting " + file.sourceFile.getName());
+        indicator.setFraction(fraction);
+        fraction += fileFraction;
+
         if (skipAlreadyEncoded && file.encoded != null) {
           continue;
         }
 
         if (mySettings.skipNinePatches && isNinePatchFile(file.sourceFile)) {
-          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out
+          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out.
           assert false : file;
           continue;
         }
 
         if (!file.convert(mySettings)) {
-          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out
+          // Shouldn't have gotten here: isEligibleForConversion should have filtered it out.
           assert false : file;
-        } else {
-          if (mySettings.skipLargerImages && file.saved < 0) {
-            mySkipped++;
-          } else {
-            mySaved += file.saved;
-            myFileCount++;
-          }
         }
       }
     }

@@ -62,12 +62,15 @@ data class GradlePluginsData(
     val emptyData = GradlePluginsData(emptyList())
 
     fun loadFromJson(jsonString: String): GradlePluginsData {
-      val gradleVersionType = object : TypeToken<GradleVersion>() {}.type
       val gradleVersionDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
-        GradleVersion.parse(json.asString)
+        json.asString.takeIf { it != "N/A" }?.let { GradleVersion.parse(it) }
       } as JsonDeserializer<GradleVersion>
+      val dependencyCoordinatesDeserializer = JsonDeserializer { json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext? ->
+        json.asString.let{ DependencyCoordinates(it.substringBefore(":"), it.substringAfter(":"))}
+      } as JsonDeserializer<DependencyCoordinates>
       val gson = GsonBuilder()
-        .registerTypeAdapter(gradleVersionType, gradleVersionDeserializer)
+        .registerTypeAdapter(object : TypeToken<GradleVersion>() {}.type, gradleVersionDeserializer)
+        .registerTypeAdapter(object : TypeToken<DependencyCoordinates>() {}.type, dependencyCoordinatesDeserializer)
         .create()
       return try {
         gson.fromJson(jsonString, GradlePluginsData::class.java)

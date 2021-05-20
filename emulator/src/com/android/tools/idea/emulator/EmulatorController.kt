@@ -28,7 +28,6 @@ import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
-import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.SnapshotFilter
@@ -520,11 +519,10 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Shows the extended controls of the emulator.
    *
-   * @param paneIndex identifies the pane to open
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param pane identifies the window position and the pane to open
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
-  fun showExtendedControls(paneIndex: PaneIndex, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
-    val pane = PaneEntry.newBuilder().setIndex(paneIndex).build()
+  fun showExtendedControls(pane: PaneEntry, streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("showExtendedControls(${shortDebugString(pane)})")
     }
@@ -534,7 +532,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Closes the extended controls of the emulator.
    *
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
   fun closeExtendedControls(streamObserver: StreamObserver<ExtendedControlsStatus> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
@@ -548,7 +546,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    * Sets the UI style for the extended controls of the emulator.
    *
    * @param style the style to set
-   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case).
+   * @param streamObserver a stream observer to observe the response stream (which contains only 1 message in this case)
    */
   fun setUiTheme(style: ThemingStyle.Style, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     val themingStyle = ThemingStyle.newBuilder().setStyle(style).build()

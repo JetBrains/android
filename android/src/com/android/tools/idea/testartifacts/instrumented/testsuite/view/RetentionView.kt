@@ -504,7 +504,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
       text += "${snapshotFile.name.escapeHtml()}<br>"
       text += "size: ${snapshotFile.length() / 1024 / 1024} MB<br>"
       if (snapshotFile.parent != null) {
-        text += "<a href=\"file:///${snapshotFile.parent.escapeHtml()}\">View file</a><br>"
+        text += "<a href=\"file:///${snapshotFile.parent.replace(" ", "%20").escapeHtml()}\">View file</a><br>"
       }
       try {
         val attribs = Files.readAttributes(snapshotFile.toPath(), BasicFileAttributes::class.java)

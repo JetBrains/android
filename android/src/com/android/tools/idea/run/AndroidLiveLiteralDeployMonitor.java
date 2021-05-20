@@ -31,6 +31,9 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -40,6 +43,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,6 +68,9 @@ class AndroidLiveLiteralDeployMonitor {
   // The value mapped to each object contains a listing of an unique string identifier to each LL and the
   // timestamp which that literal was seen updated.
   private static final Map<Project, Map<String, Long>> ACTIVE_PROJECTS = new HashMap<>();
+
+  // Maps "Project featuring Composable" -> "Devices running that project" (with alive process).
+  private static final Multimap<Project, String> ACTIVE_DEVICES = ArrayListMultimap.create();
 
   /**
    * Returns a callback that, upon successful deployment of an Android application, can be invoked to
@@ -90,6 +97,7 @@ class AndroidLiveLiteralDeployMonitor {
           LiveLiteralsService.Companion.getInstance(project).addOnLiteralsChangedListener(
             (Disposable)() -> {
               ACTIVE_PROJECTS.remove(project);
+              ACTIVE_DEVICES.removeAll(project);
             },
             (changes) -> {
               long timestamp = System.nanoTime();
@@ -111,6 +119,8 @@ class AndroidLiveLiteralDeployMonitor {
         deviceType = LiveLiteralsMonitorHandler.DeviceType.PHYSICAL;
       }
 
+      ACTIVE_DEVICES.put(project, deviceId);
+
       // Event a listener has been installed, we always need to re-enable as certain action can disable the service (such as a rebuild).
       LiveLiteralsService.getInstance(project).liveLiteralsMonitorStarted(deviceId + "#" + packageName, deviceType);
     };
@@ -130,6 +140,9 @@ class AndroidLiveLiteralDeployMonitor {
         // List of all literals and the timestamps which they were last updated.
         Map<String, Long> lastUpdate = ACTIVE_PROJECTS.get(project);
 
+        // For error reporting, assume every client is missing until we successfully update everything.
+        HashSet<String> missingClients = Sets.newHashSet(ACTIVE_DEVICES.get(project));
+
         for (AndroidSessionInfo session : sessions) {
           @NotNull ExecutionTarget target = session.getExecutionTarget();
           if (!(target instanceof AndroidExecutionTarget)) {
@@ -142,6 +155,9 @@ class AndroidLiveLiteralDeployMonitor {
             if (!supportLiveLiteral(iDevice)) {
               continue;
             }
+
+            missingClients.remove(iDevice.getSerialNumber());
+
             AdbClient adb = new AdbClient(iDevice, LOGGER);
             MetricsRecorder metrics = new MetricsRecorder();
 
@@ -182,6 +198,11 @@ class AndroidLiveLiteralDeployMonitor {
                   e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
                 ).collect(Collectors.toList()));
           }
+        }
+
+        for (String missingId : missingClients) {
+          LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(missingId + "#" + packageName);
+          ACTIVE_DEVICES.get(project).remove(missingId); // Modification is safe here as we are still under the ACTIVE_PROJECT lock.
         }
       }
     });

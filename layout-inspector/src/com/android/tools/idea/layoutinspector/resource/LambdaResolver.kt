@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.resource
 
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
@@ -30,6 +31,8 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitor
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import java.lang.Integer.min
+import java.util.IdentityHashMap
 
 /**
  * Service to find the [SourceLocation] of a lambda found in Compose.
@@ -64,11 +67,10 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
 
     val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
     val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
-
-    val navigatable = lambda?.navigationElement as? Navigatable ?: return unknown(fileName, ktFile)
-    val startLineOffset = doc.getLineStartOffset(startLine)
-    val line = startLine + if (lambda.startOffset < startLineOffset) 0 else 1
-    return SourceLocation("${fileName}:$line", navigatable)
+    val checkedStartLine = min(startLine - 1, doc.lineCount)
+    val navigatable = lambda?.navigationElement as? Navigatable ?: OpenFileDescriptor(project, ktFile.virtualFile, checkedStartLine, 0)
+    val actualLine = 1 + if (lambda != null) doc.getLineNumber(lambda.startOffset) else checkedStartLine
+    return SourceLocation("${fileName}:$actualLine", navigatable)
   }
 
   private fun unknown(fileName: String, ktFile: KtFile? = null): SourceLocation =
@@ -76,25 +78,45 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
 
   /**
    * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely within the line range.
+   *
+   * If the line range contains multiple lines then return only the top most expression.
+   * If the line range contains a single line then return all lambdas found on this line which may contain different nesting levels.
+   *
+   * @return a map from a lambda or callable reference to the nesting level from a top element.
    */
-  private fun findPossibleLambdas(ktFile: KtFile, doc: Document, functionName: String, startLine: Int, endLine: Int): List<KtExpression> {
+  private fun findPossibleLambdas(
+    ktFile: KtFile,
+    doc: Document,
+    functionName: String,
+    startLine: Int,
+    endLine: Int
+  ): Map<KtExpression, Int> {
     val offsetRange = try {
       doc.getLineStartOffset(startLine - 1)..(doc.getLineEndOffset(endLine - 1))
     }
     catch (ex: IndexOutOfBoundsException) {
-      return emptyList()
+      return emptyMap()
     }
     if (offsetRange.isEmpty()) {
-      return emptyList()
+      return emptyMap()
     }
-    val possible = mutableListOf<KtExpression>()
-    visitor.forEachLambda(ktFile) { expr, recurse ->
-      if (typeMatch(expr, functionName) && expr.startOffset <= offsetRange.last && expr.endOffset >= offsetRange.first) {
-        possible.add(expr)
+    val findAll = startLine == endLine
+    val possible = IdentityHashMap<KtExpression, Int>()
+    visitor.forEachLambda(ktFile) { expr, nesting, recurse ->
+      if (findAll || possible.isEmpty()) {
+        if (typeMatch(expr, functionName) && withinRange(expr, offsetRange)) {
+          possible[expr] = nesting
+        }
+        recurse()
       }
-      recurse()
     }
     return possible
+  }
+
+  private fun withinRange(expr: KtExpression, range: IntRange): Boolean {
+    // Skip any preceding comments in the lambda body:
+    val startOffset = (expr as? KtLambdaExpression)?.bodyExpression?.children?.firstOrNull()?.startOffset ?: expr.startOffset
+    return range.first <= startOffset && expr.endOffset <= range.last
   }
 
   private fun typeMatch(expression: KtExpression, functionName: String): Boolean =
@@ -105,51 +127,52 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   /**
    * Select the most likely lambda from the [lambdas] found from line numbers, by using the synthetic name [lambdaName].
    */
-  private fun selectLambdaFromSynthesizedName(lambdas: List<KtExpression>, lambdaName: String): KtExpression? {
+  private fun selectLambdaFromSynthesizedName(lambdas: Map<KtExpression, Int>, lambdaName: String): KtExpression? {
     when (lambdas.size) {
       0 -> return null
-      1 -> return lambdas.single() // no need investigate the lambdaName
+      1 -> return lambdas.keys.single() // no need investigate the lambdaName
     }
-    val arbitrary = lambdas.first()
-    val topElement = findTopElement(arbitrary) ?: return arbitrary
-    val selector = findDesiredLambdaSelectorFromName(lambdaName)
-    if (selector.isEmpty()) {
-      return arbitrary
+    val wantedNestingLevel = lambdaName.count { it == '$' }
+    val candidates = lambdas.entries.filter { it.value == wantedNestingLevel }.map { it.key }
+    when (candidates.size) {
+      0 -> return null // the nesting level didn't match
+      1 -> return candidates.first() // only one match for the nesting level, return that match
     }
-    return findLambdaFromSelector(topElement, selector, lambdas) ?: return arbitrary
+    val arbitrary = candidates.first()
+    val topElement = findParentElement(arbitrary) ?: return null
+    val selector = findDesiredLambdaSelectorFromName(lambdaName) ?: return null
+    val index = selector - 1
+    val nestedUnderTopElement = mutableListOf<KtExpression>()
+    visitor.forEachLambda(topElement, excludeTopElements = true) { expression, _, _ -> nestedUnderTopElement.add(expression) }
+    val candidate = if (index in nestedUnderTopElement.indices) nestedUnderTopElement[index] else return null
+    return if (lambdas.contains(candidate)) candidate else null
   }
 
   /**
-   * Find the selector as a list of indices.
+   * Find the selector as indicated by the lambdaName
    *
-   * Each list element correspond to a nesting level among the lambdas found under a top element.
    * The indices generated by the compiler are 1 based.
    */
-  private fun findDesiredLambdaSelectorFromName(lambdaName: String): List<Int> {
-    val elements = lambdaName.split('$')
-    val index = elements.indexOfLast { !isPureDigits(it) } + 1
-    if (index > elements.size) {
-      return emptyList()
-    }
-    return elements.subList(index, elements.size).map { it.toInt() }
+  private fun findDesiredLambdaSelectorFromName(lambdaName: String): Int? {
+    val part = lambdaName.substringAfterLast('$')
+    return part.toIntOrNull()
   }
-
-  private fun isPureDigits(value: String): Boolean =
-    value.isNotEmpty() && value.all { it.isDigit() }
 
   /**
    * Find the closest parent element of interest that contains this [lambda].
    *
-   * The synthetic name will include class names, method names, and variable names.
-   * Find the closest parent to [lambda] which is one of those 3 elements.
+   * The last index in the synthetic name will be an index of a lambda inside
+   * the closest parent that is either a class, method, variable, or another lambda.
+   * Find the parent such that we can enumerate the lambdas inside this parent element.
    */
-  private fun findTopElement(lambda: KtExpression): KtElement? {
+  private fun findParentElement(lambda: KtExpression): KtElement? {
     var next = lambda.parent as? KtElement
     while (next != null) {
       when (next) {
         is KtClass,
         is KtNamedFunction,
-        is KtProperty -> return next
+        is KtProperty,
+        is KtLambdaExpression -> return next
 
         else -> next = next.parent as? KtElement
       }
@@ -158,86 +181,73 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   }
 
   /**
-   * Find the most likely lambda from the [top] element based on [selector].
-   *
-   * @param top the top element which is either a class, method, or variable.
-   * @param selector the indices for each nesting level as indicated by the synthetic class name of the lambda.
-   * @param lambdas the lambdas found in the line interval.
-   */
-  private fun findLambdaFromSelector(
-    top: KtElement,
-    selector: List<Int>,
-    lambdas: List<KtExpression>,
-  ): KtExpression? {
-    var nestingLevel = 0
-    val indices = IntArray(selector.size)
-    var stop = false
-    var bestLambda: KtExpression? = null
-
-    visitor.forEachLambda(top, excludeTopElements = true) forEach@{ expression, recurse ->
-      if (stop || (nestingLevel < selector.size && selector[nestingLevel] < ++indices[nestingLevel])) {
-        stop = true
-        return@forEach
-      }
-      if (nestingLevel >= selector.size || selector[nestingLevel] > indices[nestingLevel]) {
-        return@forEach
-      }
-      if (expression in lambdas) {
-        bestLambda = expression
-      }
-      nestingLevel++
-      recurse()
-      nestingLevel--
-    }
-    return bestLambda
-  }
-
-  /**
    * Visitor for finding lambda expressions and function references
    */
   private class LambdaVisitor : KtTreeVisitor<VisitorData>() {
+    private var nesting = 0
 
     /**
-     * For each lambda or function reference found in [startElement] call
-     * [callable] with the arguments: the lambda and a function to recurse into the lambda
+     * For each lambda or function reference found in [startElement] call [callable] with the arguments:
+     * - the lambda expression found
+     * - the nesting level starting at [startElement]
+     * - a function to recurse into the lambda
+     *
      * If [excludeTopElements] is true the visitor will NOT recurse into the top elements:
-     * class, method, or variable.
+     * - class, method, or variable.
      */
     fun forEachLambda(
       startElement: KtElement,
       excludeTopElements: Boolean = false,
-      callable: (KtExpression, () -> Unit) -> Unit
+      callable: (KtExpression, Int, () -> Unit) -> Unit
     ) {
+      nesting = 0
       startElement.acceptChildren(this, VisitorData(excludeTopElements, callable))
     }
 
     override fun visitLambdaExpression(expression: KtLambdaExpression, data: VisitorData): Void? {
-      data.callable(expression) { super.visitLambdaExpression(expression, data) }
+      data.callable(expression, nesting) {
+        nesting++
+        super.visitLambdaExpression(expression, data)
+        nesting--
+      }
       return null
     }
 
     override fun visitCallableReferenceExpression(expression: KtCallableReferenceExpression, data: VisitorData): Void? {
-      data.callable(expression) { super.visitCallableReferenceExpression(expression, data) }
+      data.callable(expression, nesting) {
+        nesting++
+        super.visitCallableReferenceExpression(expression, data)
+        nesting--
+      }
       return null
     }
 
     override fun visitClass(klass: KtClass, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
+        val nestingBefore = nesting
+        nesting = 0
         super.visitClass(klass, data)
+        nesting = nestingBefore
       }
       return null
     }
 
     override fun visitProperty(property: KtProperty, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
+        val nestingBefore = nesting
+        nesting = 0
         super.visitProperty(property, data)
+        nesting = nestingBefore
       }
       return null
     }
 
     override fun visitNamedFunction(function: KtNamedFunction, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
+        val nestingBefore = nesting
+        nesting = 0
         super.visitNamedFunction(function, data)
+        nesting = nestingBefore
       }
       return null
     }
@@ -245,6 +255,6 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
 
   private data class VisitorData(
     val excludeTopElements: Boolean,
-    val callable: (KtExpression, () -> Unit) -> Unit
+    val callable: (KtExpression, Int, () -> Unit) -> Unit
   )
 }

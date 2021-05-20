@@ -22,6 +22,6 @@
         serviceImplementation="com.android.build.attribution.ui.BuildAttributionUiManagerImpl"/>
     <projectService serviceImplementation="com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner"/>
     <applicationService serviceInterface="com.android.build.attribution.KnownGradlePluginsService"
-                        serviceImplementation="com.android.build.attribution.KnownGradlePluginsServiceImpl"/>
+                        serviceImplementation="com.android.build.attribution.LocalKnownGradlePluginsServiceImpl"/>
   </extensions>
 </idea-plugin>

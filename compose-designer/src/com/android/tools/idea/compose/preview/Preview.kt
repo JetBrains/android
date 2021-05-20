@@ -55,6 +55,7 @@ import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransfo
 import com.android.tools.idea.rendering.classloading.HasLiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.LiveLiteralsTransform
 import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
@@ -203,6 +204,11 @@ private const val SELECTED_GROUP_KEY = "selectedGroup"
  * Key for the persistent build on save state for the Compose Preview.
  */
 private const val BUILD_ON_SAVE_KEY = "buildOnSave"
+
+/**
+ * Key for persisting the selected layout manager.
+ */
+private const val LAYOUT_KEY = "previewLayout"
 
 /**
  * Frames per second limit for interactive preview
@@ -1010,16 +1016,26 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     }
   }
 
-  override fun getState(): PreviewRepresentationState? {
+  private fun getSelectedLayoutManager(): String? {
+    val layoutSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+    return PREVIEW_LAYOUT_MANAGER_OPTIONS.find { layoutSwitcher.isLayoutManagerSelected(it.layoutManager) }?.displayName
+  }
+
+  override fun getState(): PreviewRepresentationState {
     val selectedGroupName = previewElementProvider.groupNameFilter.name ?: ""
+    val selectedLayoutName = PREVIEW_LAYOUT_MANAGER_OPTIONS.find {
+      (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(it.layoutManager)
+    }?.displayName ?: ""
     return mapOf(
       SELECTED_GROUP_KEY to selectedGroupName,
-      BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString())
+      BUILD_ON_SAVE_KEY to isBuildOnSaveEnabled.toString(),
+      LAYOUT_KEY to selectedLayoutName)
   }
 
   override fun setState(state: PreviewRepresentationState) {
     val selectedGroupName = state[SELECTED_GROUP_KEY]
     val buildOnSave = state[BUILD_ON_SAVE_KEY]?.toBoolean()
+    val previewLayoutName = state[LAYOUT_KEY]
     onRestoreState = {
       if (!selectedGroupName.isNullOrEmpty()) {
         availableGroups.find { it.name == selectedGroupName }?.let {
@@ -1028,6 +1044,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       buildOnSave?.let { isBuildOnSaveEnabled = it }
+
+      PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }?.let {
+        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(it.layoutManager)
+      }
     }
   }
 

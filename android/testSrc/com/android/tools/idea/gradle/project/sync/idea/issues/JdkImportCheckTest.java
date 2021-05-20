@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -36,11 +39,13 @@ import org.jetbrains.annotations.Nullable;
 public class JdkImportCheckTest extends AndroidGradleTestCase {
   private IdeSdks myMockIdeSdks;
   private Jdks myMockJdks;
+  private Sdk myValidJdk;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
+    myValidJdk = IdeSdks.getInstance().getJdk();
     myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
     myMockJdks = new IdeComponents(getProject()).mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
@@ -104,6 +109,44 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
       "The Jdk installation is invalid.\n" +
       "Selected Jdk location is /path/to/jdk8."
     );
+  }
+
+  public void testDoCheckWithJdkValidRecreate() {
+    StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(true);
+    try {
+      runCheckWithValid();
+      verify(myMockIdeSdks).recreateOrAddJdkInTable(any());
+    }
+    finally {
+      StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
+    }
+  }
+
+  public void testDoCheckWithJdkValidNoRecreate() {
+    StudioFlags.GRADLE_SYNC_RECREATE_JDK.override(false);
+    try {
+      runCheckWithValid();
+      verify(myMockIdeSdks, never()).recreateOrAddJdkInTable(any());
+    }
+    finally {
+      StudioFlags.GRADLE_SYNC_RECREATE_JDK.clearOverride();
+    }
+  }
+
+  private void runCheckWithValid() {
+  String versionString = myValidJdk.getVersionString();
+    assertThat(versionString).isNotNull();
+    JavaSdkVersion javaVersion = JavaSdkVersion.fromVersionString(versionString);
+    assertThat(javaVersion).isNotNull();
+    when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(javaVersion);
+
+    String jdkPath = myValidJdk.getHomePath();
+    assertThat(jdkPath).isNotNull();
+    when(myMockJdks.findVersion(new File(jdkPath))).thenReturn(javaVersion);
+
+    String message = runCheckJdkErrorMessage(myValidJdk);
+
+    assertThat(message).isEmpty();
   }
 
   private static String runCheckJdkErrorMessage(@Nullable Sdk jdk) {

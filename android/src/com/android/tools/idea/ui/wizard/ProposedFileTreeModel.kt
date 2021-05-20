@@ -235,10 +235,6 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
         for (file in proposedFiles) {
           val icon = getIconForFile(file)
           val relativeFile = if (file.isAbsolute) file.relativeTo(root) else file.normalize()
-
-          if (relativeFile.startsWith("..")) {
-            throw IllegalArgumentException("$root is not an ancestor of $file")
-          }
           rootNode.addDescendant(relativeFile.invariantSeparatorsPath.split("/"), icon, conflictChecker)
         }
 
@@ -249,8 +245,8 @@ class ProposedFileTreeModel private constructor(private val rootNode: Node) : Tr
         var root = rootDir.toPath()
         outer@ while (true) {
           for (file in files) {
-            if (!file.toPath().startsWith(root)) {
-              root = root.parent ?: break
+            if (file.isAbsolute && !file.toPath().startsWith(root)) {
+              root = root.parent ?: throw IllegalArgumentException("$root is not an ancestor of $file")
               continue@outer
             }
           }
