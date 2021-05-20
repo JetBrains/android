@@ -25,13 +25,12 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiManager
 import kotlin.math.sqrt
 
 private const val PREVIEW_CONFIG_X_DIMENSION = 2000
@@ -45,7 +44,7 @@ private var deviceAndStateCached: Pair<Device, State>? = null
  * [Configuration]; a layout file may just use the [Configuration] provided by [ConfigurationManager.getConfiguration].
  */
 fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Configuration {
-  val psiFile = PsiManager.getInstance(configurationManager.project).findFile(this)
+  val psiFile = AndroidPsiUtils.getPsiFileSafely(configurationManager.project, this)
   return when (psiFile?.typeOf()) {
     is AdaptiveIconFileType, is DrawableFileType -> configurationManager.getPreviewConfig()
     else -> configurationManager.getConfiguration(this)
