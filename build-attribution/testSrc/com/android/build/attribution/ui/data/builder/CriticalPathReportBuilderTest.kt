@@ -97,6 +97,26 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
     assertThat(report.criticalPathPlugins.plugins[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
   }
 
+  @Test
+  fun testTaskWithNoPluginInfoBecauseOfConfiguratioCache() {
+    val plugin = PluginData(PluginData.PluginType.UNKNOWN, "")
+    val taskA = TaskData("taskA", ":app", plugin, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
+
+
+    val analyzerResults = object : MockResultsProvider() {
+      override fun getTotalBuildTimeMs(): Long = 1500
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(PluginBuildData(plugin, 1500))
+      override fun buildUsesConfigurationCache(): Boolean = true
+    }
+
+    val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
+
+    //Sorted by time descending
+    assertThat(report.criticalPathTasks.tasks[0].pluginUnknownBecauseOfCC).isTrue()
+  }
+
   private fun TaskUiData.verifyValues(project: String, name: String, plugin: PluginData, time: TimeWithPercentage) {
     assertThat(taskPath).isEqualTo("${project}:${name}")
     assertThat(module).isEqualTo(project)

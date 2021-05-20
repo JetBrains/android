@@ -46,8 +46,9 @@ fun mockTask(
   name: String,
   pluginName: String,
   executionTimeMs: Long,
-  criticalPathDurationMs: Long = defaultCriticalPathDurationMs
-) = TestTaskUiData(module, name, pluginName, TimeWithPercentage(executionTimeMs, criticalPathDurationMs))
+  criticalPathDurationMs: Long = defaultCriticalPathDurationMs,
+  pluginUnknownBecauseOfCC: Boolean = false
+) = TestTaskUiData(module, name, pluginName, TimeWithPercentage(executionTimeMs, criticalPathDurationMs), pluginUnknownBecauseOfCC)
 
 class MockUiData(
   val totalBuildDurationMs: Long = defaultTotalBuildDurationMs,
@@ -145,7 +146,8 @@ class TestTaskUiData(
   override val module: String,
   override val name: String,
   override var pluginName: String,
-  override val executionTime: TimeWithPercentage
+  override val executionTime: TimeWithPercentage,
+  override val pluginUnknownBecauseOfCC: Boolean = false
 ) : TaskUiData {
   override val taskPath: String = "$module:$name"
   override val taskType: String = "CompilationType"
