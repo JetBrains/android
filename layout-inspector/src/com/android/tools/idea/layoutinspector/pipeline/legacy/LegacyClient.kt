@@ -24,10 +24,12 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
+import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.application.invokeLater
+import java.nio.file.Path
 
 private const val MAX_CONNECTION_ATTEMPTS = 5
 
@@ -123,6 +125,10 @@ class LegacyClient(
 
   override fun refresh() {
     reloadAllWindows()
+  }
+
+  override fun saveSnapshot(path: Path) {
+    saveLegacySnapshot(path, latestData, latestScreenshots)
   }
 
   /**

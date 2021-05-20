@@ -73,10 +73,10 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
     contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
     contentPanel.add(workbench, BorderLayout.CENTER)
 
+    // TODO: error handling
+    val snapshotLoader = SnapshotLoader.createSnapshotLoader(file) ?: throw Exception()
     val model = InspectorModel(project)
-    // TODO: handle other snapshot types
-    val legacySnapshotLoader = LegacySnapshotLoader()
-    legacySnapshotLoader.loadFile(file, model)
+    snapshotLoader.loadFile(file, model)
 
     // TODO: persisted tree setting scoped to file
     val treeSettings = object: TreeSettings {
@@ -90,7 +90,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
     val stats = SessionStatistics(model, treeSettings)
     val client = object: InspectorClient by DisconnectedClient {
       override val provider: PropertiesProvider
-        get() = legacySnapshotLoader.propertiesProvider
+        get() = snapshotLoader.propertiesProvider
     }
     val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
     val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)

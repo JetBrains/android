@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
-import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -31,18 +30,20 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient?.isConnected ?: false
+    // TODO: tooltip
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
-    val legacyClient = inspector?.currentClient as? LegacyClient ?: return
+    val inspector = event.getData(LAYOUT_INSPECTOR_DATA_KEY) ?: return
     val outputDir = VfsUtil.getUserHomeDir()
 
     // Configure title, description and extension
-    val descriptor = FileSaverDescriptor("Save Layout Snapshot", "Save layout inspector snapshot", "li")
+    val descriptor = FileSaverDescriptor("Save Layout Snapshot", "Save layout inspector snapshot",
+                                         LayoutInspectorFileType.EXT_LAYOUT_INSPECTOR)
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
-    val saveFileDialog: FileSaverDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, inspector.layoutInspectorModel.project)
+    val saveFileDialog: FileSaverDialog =
+      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, inspector.layoutInspectorModel.project)
 
     // Append extension manually to file name on MacOS because FileSaverDialog does not do it automatically.
     // TODO: good file name
@@ -50,6 +51,6 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export) {
     val result = saveFileDialog.save(outputDir, fileName) ?: return
 
     val path = result.getVirtualFile(true)?.toNioPath() ?: return
-    saveLegacySnapshot(path, legacyClient.latestData, legacyClient.latestScreenshots)
+    inspector.currentClient.saveSnapshot(path)
   }
 }

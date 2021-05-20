@@ -22,8 +22,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.write
 import org.jetbrains.kotlin.idea.core.util.readString
@@ -36,10 +34,10 @@ import java.io.ObjectOutputStream
 import java.nio.file.Path
 import javax.imageio.ImageIO
 
-class LegacySnapshotLoader {
-  val propertiesProvider = LegacyPropertiesProvider()
+class LegacySnapshotLoader : SnapshotLoader {
+  override val propertiesProvider = LegacyPropertiesProvider()
 
-  fun loadFile(file: VirtualFile, model: InspectorModel) {
+  override fun loadFile(file: VirtualFile, model: InspectorModel) {
     val options = LayoutInspectorCaptureOptions()
 
     ObjectInputStream(file.inputStream).use { input ->
@@ -98,38 +96,4 @@ fun saveLegacySnapshot(path: Path, data: Map<String, ByteArray>, images: Map<Str
     }
   }
   path.write(baos.toByteArray())
-}
-
-// The below is copied for compatibility with legacy captures
-enum class ProtocolVersion(val value: String) {
-  Version1("1"),
-  Version2("2")
-}
-
-class LayoutInspectorCaptureOptions {
-
-  var version = ProtocolVersion.Version1
-  var title = ""
-
-  override fun toString(): String {
-    return serialize()
-  }
-
-  private fun serialize(): String {
-    val obj = JsonObject()
-    obj.addProperty(VERSION, version.value)
-    obj.addProperty(TITLE, title)
-    return obj.toString()
-  }
-
-  fun parse(json: String) {
-    val obj = JsonParser().parse(json).asJsonObject
-    version = ProtocolVersion.valueOf("Version${obj.get(VERSION).asString}")
-    title = obj.get(TITLE).asString
-  }
-
-  companion object {
-    private val VERSION = "version"
-    private val TITLE = "title"
-  }
 }

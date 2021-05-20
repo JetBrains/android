@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import java.nio.file.Path
 import java.util.EnumSet
 
 /**
@@ -57,7 +58,7 @@ interface InspectorClient {
     SUPPORTS_SYSTEM_NODES,
 
     /**
-     * Indicates that this client is able to send [Screenshot.Type.SKP] screenshots.
+     * Indicates that this client is able to send [AndroidWindow.ImageType.SKP] screenshots.
      */
     SUPPORTS_SKP,
 
@@ -154,6 +155,11 @@ interface InspectorClient {
   fun addDynamicCapabilities(dynamicCapabilities: Set<Capability>) {}
 
   /**
+   * Save a snapshot of the current view, including all data needed to reconstitute it (e.g. properties information) to the given [path].
+   */
+  fun saveSnapshot(path: Path)
+
+  /**
    * Report this client's capabilities so that external systems can check what functionality is
    * available before interacting with some of this client's methods.
    */
@@ -198,6 +204,7 @@ object DisconnectedClient : InspectorClient {
   override fun startFetching() = Unit
   override fun stopFetching() = Unit
   override fun refresh() {}
+  override fun saveSnapshot(path: Path) {}
 
   override val state = InspectorClient.State.DISCONNECTED
   override val process = object : ProcessDescriptor {
