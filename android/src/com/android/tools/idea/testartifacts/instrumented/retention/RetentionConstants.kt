@@ -26,7 +26,7 @@ import java.io.File
 
 @JvmField val EMULATOR_SNAPSHOT_FILE_KEY = DataKey.create<File>("EmulatorSnapshotFile")
 
-@JvmField val EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS = DataKey.create<File>("EmulatorSnapshotLaunchParameters")
+@JvmField val EMULATOR_SNAPSHOT_LAUNCH_PARAMETERS = DataKey.create<List<String>>("EmulatorSnapshotLaunchParameters")
 
 @JvmField val PACKAGE_NAME_KEY = DataKey.create<String>("PackageName")
 
