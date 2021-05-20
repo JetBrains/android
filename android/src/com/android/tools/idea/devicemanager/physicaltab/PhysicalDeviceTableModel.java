@@ -17,8 +17,13 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.devicemanager.Device;
+import com.google.common.annotations.VisibleForTesting;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.table.AbstractTableModel;
@@ -27,11 +32,17 @@ import org.jetbrains.annotations.NotNull;
 @UiThread
 final class PhysicalDeviceTableModel extends AbstractTableModel {
   static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  private static final int API_MODEL_COLUMN_INDEX = 1;
-  private static final int TYPE_MODEL_COLUMN_INDEX = 2;
+
+  @VisibleForTesting
+  static final int API_MODEL_COLUMN_INDEX = 1;
+
+  @VisibleForTesting
+  static final int TYPE_MODEL_COLUMN_INDEX = 2;
+
   private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
   private final @NotNull List<@NotNull PhysicalDevice> myDevices;
+  private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
 
   /**
    * Supplies a key for JTable.defaultRenderersByColumnClass and ActionsComponent
@@ -49,8 +60,10 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
-    devices.sort(null);
     myDevices = devices;
+    myCombinedDevices = Collections.emptyList();
+
+    combineDevices();
   }
 
   void addOrSet(@NotNull PhysicalDevice device) {
@@ -63,17 +76,73 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       myDevices.set(modelRowIndex, device);
     }
 
-    myDevices.sort(null);
+    combineDevices();
     fireTableDataChanged();
+  }
+
+  private void combineDevices() {
+    Collection<PhysicalDevice> domainNameDevices = filterDevicesBy(DomainName.class);
+    Collection<PhysicalDevice> serialNumberDevices = filterDevicesBy(SerialNumber.class);
+
+    List<PhysicalDevice> combinedDevices = new ArrayList<>(myDevices.size());
+
+    for (Iterator<PhysicalDevice> domainNameDeviceIterator = domainNameDevices.iterator(); domainNameDeviceIterator.hasNext(); ) {
+      PhysicalDevice domainNameDevice = domainNameDeviceIterator.next();
+      Object domainNameSerialNumber = domainNameDevice.getKey().getSerialNumber();
+
+      for (Iterator<PhysicalDevice> serialNumberDeviceIterator = serialNumberDevices.iterator(); serialNumberDeviceIterator.hasNext(); ) {
+        PhysicalDevice serialNumberDevice = serialNumberDeviceIterator.next();
+
+        if (domainNameSerialNumber.equals(serialNumberDevice.getKey())) {
+          combinedDevices.add(combine(domainNameDevice, serialNumberDevice));
+
+          domainNameDeviceIterator.remove();
+          serialNumberDeviceIterator.remove();
+
+          break;
+        }
+      }
+    }
+
+    combinedDevices.addAll(domainNameDevices);
+    combinedDevices.addAll(serialNumberDevices);
+    combinedDevices.sort(null);
+
+    myCombinedDevices = combinedDevices;
+  }
+
+  private @NotNull Collection<@NotNull PhysicalDevice> filterDevicesBy(@NotNull Class<@NotNull ? extends Key> keyClass) {
+    return myDevices.stream()
+      .filter(device -> keyClass.isInstance(device.getKey()))
+      .collect(Collectors.toCollection(() -> new ArrayList<>(myDevices.size())));
+  }
+
+  private static @NotNull PhysicalDevice combine(@NotNull PhysicalDevice domainNameDevice, @NotNull PhysicalDevice serialNumberDevice) {
+    Collection<Instant> times = Arrays.asList(domainNameDevice.getLastOnlineTime(), serialNumberDevice.getLastOnlineTime());
+
+    return new PhysicalDevice.Builder()
+      .setKey(serialNumberDevice.getKey())
+      .setLastOnlineTime(Collections.min(times, PhysicalDevice.LAST_ONLINE_TIME_COMPARATOR))
+      .setName(serialNumberDevice.getName())
+      .setTarget(serialNumberDevice.getTarget())
+      .setApi(serialNumberDevice.getApi())
+      .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
+      .addAllConnectionTypes(serialNumberDevice.getConnectionTypes())
+      .build();
   }
 
   @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
     return myDevices;
   }
 
+  @VisibleForTesting
+  @NotNull Collection<@NotNull PhysicalDevice> getCombinedDevices() {
+    return myCombinedDevices;
+  }
+
   @Override
   public int getRowCount() {
-    return myDevices.size();
+    return myCombinedDevices.size();
   }
 
   @Override
@@ -121,11 +190,11 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
       case DEVICE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex);
+        return myCombinedDevices.get(modelRowIndex);
       case API_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getApi();
+        return myCombinedDevices.get(modelRowIndex).getApi();
       case TYPE_MODEL_COLUMN_INDEX:
-        return myDevices.get(modelRowIndex).getConnectionTypes().stream()
+        return myCombinedDevices.get(modelRowIndex).getConnectionTypes().stream()
           .map(Object::toString)
           .collect(Collectors.joining(" "));
       case ACTIONS_MODEL_COLUMN_INDEX:

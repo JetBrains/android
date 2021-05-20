@@ -15,8 +15,23 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import org.jetbrains.annotations.NotNull;
+import static org.junit.Assert.assertEquals;
 
-abstract class Key {
-  abstract @NotNull SerialNumber getSerialNumber();
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+@RunWith(JUnit4.class)
+public final class DomainNameTest {
+  @Test
+  public void getSerialNumber() {
+    // Act
+    Key domainName = new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp");
+
+    // Arrange
+    Object serialNumber = domainName.getSerialNumber();
+
+    // Assert
+    assertEquals(new SerialNumber("86UX00F4R"), serialNumber);
+  }
 }

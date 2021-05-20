@@ -27,9 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class PhysicalDevice extends Device implements Comparable<@NotNull PhysicalDevice> {
-  private static final @NotNull Comparator<@NotNull PhysicalDevice> COMPARATOR =
+  static final @NotNull Comparator<@Nullable Instant> LAST_ONLINE_TIME_COMPARATOR = Comparator.nullsLast(Comparator.reverseOrder());
+
+  private static final @NotNull Comparator<@NotNull PhysicalDevice> PHYSICAL_DEVICE_COMPARATOR =
     Comparator.<PhysicalDevice, Boolean>comparing(Device::isOnline, Comparator.reverseOrder())
-      .thenComparing(PhysicalDevice::getLastOnlineTime, Comparator.nullsLast(Comparator.reverseOrder()));
+      .thenComparing(PhysicalDevice::getLastOnlineTime, LAST_ONLINE_TIME_COMPARATOR);
 
   private final @NotNull Key myKey;
   private final @Nullable Instant myLastOnlineTime;
@@ -164,6 +166,6 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   @Override
   public int compareTo(@NotNull PhysicalDevice device) {
-    return COMPARATOR.compare(this, device);
+    return PHYSICAL_DEVICE_COMPARATOR.compare(this, device);
   }
 }

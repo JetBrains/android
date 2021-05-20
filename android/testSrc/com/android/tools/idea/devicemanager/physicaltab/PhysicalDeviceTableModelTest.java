@@ -53,7 +53,7 @@ public final class PhysicalDeviceTableModelTest {
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
   }
 
   @Test
@@ -76,7 +76,7 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
@@ -101,8 +101,46 @@ public final class PhysicalDeviceTableModelTest {
     model.addOrSet(onlinePixel5);
 
     // Assert
-    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getDevices());
+    assertEquals(Arrays.asList(onlinePixel5, TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
     Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+  }
+
+  @Test
+  public void combineDevicesDomainNameSerialNumberEqualsSerialNumberDeviceKey() {
+    // Arrange
+    PhysicalDevice domainNameGooglePixel3 = new PhysicalDevice.Builder()
+      .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .build();
+
+    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3, domainNameGooglePixel3);
+
+    // Act
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+
+    // Assert
+    assertEquals(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3), model.getCombinedDevices());
+  }
+
+  @Test
+  public void combineDevices() {
+    // Arrange
+    PhysicalDevice domainNameGooglePixel3 = new PhysicalDevice.Builder()
+      .setKey(new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp"))
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .build();
+
+    List<PhysicalDevice> devices = Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, domainNameGooglePixel3);
+
+    // Act
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+
+    // Assert
+    assertEquals(Arrays.asList(domainNameGooglePixel3, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getCombinedDevices());
   }
 
   @Test
@@ -118,14 +156,38 @@ public final class PhysicalDeviceTableModelTest {
   }
 
   @Test
-  public void getValueAt() {
+  public void getValueAtDeviceModelColumnIndex() {
     // Arrange
     TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     // Act
-    Object value = model.getValueAt(0, 0);
+    Object value = model.getValueAt(0, PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
 
     // Assert
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3, value);
+  }
+
+  @Test
+  public void getValueAtApiModelColumnIndex() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+
+    // Act
+    Object value = model.getValueAt(0, PhysicalDeviceTableModel.API_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertEquals("S", value);
+  }
+
+  @Test
+  public void getValueAtTypeModelColumnIndex() {
+    // Arrange
+    TableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+
+    // Act
+    Object value = model.getValueAt(0, PhysicalDeviceTableModel.TYPE_MODEL_COLUMN_INDEX);
+
+    // Assert
+    assertEquals("", value);
   }
 }

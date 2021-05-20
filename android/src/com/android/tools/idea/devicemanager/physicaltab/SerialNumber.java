@@ -18,11 +18,16 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SerialNumber implements Key {
+public final class SerialNumber extends Key {
   private final @NotNull String myValue;
 
   public SerialNumber(@NotNull String value) {
     myValue = value;
+  }
+
+  @Override
+  @NotNull SerialNumber getSerialNumber() {
+    return this;
   }
 
   @Override
