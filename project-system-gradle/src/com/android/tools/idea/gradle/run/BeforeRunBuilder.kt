@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.run;
+package com.android.tools.idea.gradle.run
 
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-
-public interface BeforeRunBuilder {
-  boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> commandLineArguments);
+interface BeforeRunBuilder {
+  fun build(taskRunner: GradleTaskRunner, commandLineArguments: List<String>): Boolean
 }

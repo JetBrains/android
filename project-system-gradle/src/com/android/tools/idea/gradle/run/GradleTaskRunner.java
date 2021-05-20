@@ -23,6 +23,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public interface GradleTaskRunner {
-  boolean run(@NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments);
+  boolean run(@NotNull Module[] assembledModules, @NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments);
 
   @NotNull
   static DefaultGradleTaskRunner newRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
@@ -59,7 +60,8 @@ public interface GradleTaskRunner {
      */
     @Override
     @WorkerThread
-    public boolean run(@NotNull ListMultimap<Path, String> tasks,
+    public boolean run(@NotNull Module[] assembledModules,
+                       @NotNull ListMultimap<Path, String> tasks,
                        @Nullable BuildMode buildMode,
                        @NotNull List<String> commandLineArguments) {
       assert !ApplicationManager.getApplication().isDispatchThread();
