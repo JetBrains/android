@@ -52,6 +52,7 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.tools.tracer.Trace;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.SettableFuture;
@@ -283,8 +284,11 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
         getLogger().info(logMessage);
 
+        List<String> jvmArguments = new ArrayList<>(myRequest.getJvmArguments());
+        // Add trace arguments to jvmArguments.
+        Trace.addVmArgs(jvmArguments);
         executionSettings
-          .withVmOptions(myRequest.getJvmArguments())
+          .withVmOptions(jvmArguments)
           .withArguments(commandLineArguments)
           .withEnvironmentVariables(myRequest.getEnv())
           .passParentEnvs(myRequest.isPassParentEnvs());
