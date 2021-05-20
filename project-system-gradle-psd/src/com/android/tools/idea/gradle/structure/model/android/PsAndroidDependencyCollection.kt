@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
@@ -151,7 +151,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
       .mapValues { it.value.toSet() }
   }
 
-  private fun addLibrary(library: IdeLibrary, artifact: PsAndroidArtifact) {
+  private fun addLibrary(library: IdeArtifactLibrary, artifact: PsAndroidArtifact) {
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.dependencies
 

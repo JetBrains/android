@@ -25,6 +25,7 @@ import com.android.builder.model.Dependencies.ProjectIdentifier;
 import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Library;
 import com.android.builder.model.MavenCoordinates;
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.model.IdeModuleLibrary;
@@ -122,27 +123,25 @@ public class IdeLibraryTest {
 
         IdeModuleLibraryCore core1 = new IdeModuleLibraryCore(
           identifier1.getProjectPath(),
-          identifier1.getBuildId() + "@@" + identifier1.getProjectPath(),
           identifier1.getBuildId()
         );
         IdeModuleLibrary ideLibrary1 = new IdeModuleLibraryImpl(core1, false);
 
         IdeModuleLibraryCore core2 = new IdeModuleLibraryCore(
           identifier2.getProjectPath(),
-          identifier2.getBuildId() + "@@" + identifier1.getProjectPath(),
           identifier2.getBuildId()
         );
         IdeModuleLibrary ideLibrary2 = new IdeModuleLibraryImpl(core2, false);
 
         assertThat(
                         ImmutableList.of(ideJavaLibraryA, ideJavaLibraryB).stream()
-                                .map(IdeLibrary::getArtifactAddress)
+                                .map(IdeArtifactLibrary::getArtifactAddress)
                                 .collect(Collectors.toList()))
                 .containsExactly("com:java:A@jar", "com:java:B@jar");
 
         assertThat(
           ImmutableList.of(ideLibrary1, ideLibrary2).stream()
-                                .map(IdeLibrary::getArtifactAddress)
+                                .map(library -> library.getBuildId() + "@@" + library.getProjectPath())
                                 .collect(Collectors.toList()))
                 .containsExactly("/root/project1@@:", "/root/project2@@:");
     }
@@ -168,7 +167,7 @@ public class IdeLibraryTest {
 
         assertThat(
           ImmutableList.of(ideJavaLibraryD, ideJavaLibraryB, ideJavaLibraryC, ideJavaLibraryA).stream()
-                                .map(IdeLibrary::getArtifactAddress)
+                                .map(IdeArtifactLibrary::getArtifactAddress)
                                 .collect(Collectors.toList()))
                 .containsExactly(
                         "com:java:D@jar", "com:java:B@jar", "com:java:C@jar", "com:java:A@jar")

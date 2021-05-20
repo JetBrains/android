@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
@@ -210,7 +211,9 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
 }
 
 private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
-  prop("ArtifactAddress") { ideLibrary.artifactAddress.toPrintablePath() }
+  if (ideLibrary is IdeArtifactLibrary) {
+    prop("ArtifactAddress") { ideLibrary.artifactAddress.toPrintablePath() }
+  }
   prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
   prop("IsProvided") { ideLibrary.isProvided.toString() }
   if (ideLibrary !is IdeModuleLibrary) prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }

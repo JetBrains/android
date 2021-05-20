@@ -52,18 +52,19 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeLibrary;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -92,7 +93,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -585,7 +585,7 @@ public final class GradleUtil {
    * @return {@code true} if the dependencies include the given artifact (including transitively)
    */
   private static boolean dependsOnAndroidLibrary(@NonNull IdeDependencies dependencies, @NonNull String artifact) {
-    for (IdeLibrary library : dependencies.getAndroidLibraries()) {
+    for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {
       if (dependsOn(library, artifact)) {
         return true;
       }
@@ -601,11 +601,11 @@ public final class GradleUtil {
    * @param artifact the artifact
    * @return {@code true} if the project depends on the given artifact
    */
-  public static boolean dependsOn(@NonNull IdeLibrary library, @NonNull String artifact) {
+  public static boolean dependsOn(@NonNull IdeArtifactLibrary library, @NonNull String artifact) {
     return getDependencyVersion(library, artifact) != null;
   }
 
-  private static String getDependencyVersion(@NonNull IdeLibrary library, @NonNull String artifact) {
+  private static String getDependencyVersion(@NonNull IdeArtifactLibrary library, @NonNull String artifact) {
     GradleCoordinate resolvedCoordinates = GradleCoordinate.parseCoordinateString(library.getArtifactAddress());
     if (resolvedCoordinates != null) {
       if (artifact.equals(resolvedCoordinates.getGroupId() + ':' + resolvedCoordinates.getArtifactId())) {
@@ -643,7 +643,7 @@ public final class GradleUtil {
    * @return the Library matches contains given bundleDir
    */
   @Nullable
-  public static IdeLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
+  public static IdeAndroidLibrary findLibrary(@NotNull File bundleDir, @NotNull IdeVariant variant) {
     IdeAndroidArtifact artifact = variant.getMainArtifact();
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
     for (IdeAndroidLibrary library : dependencies.getAndroidLibraries()) {

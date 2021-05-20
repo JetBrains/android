@@ -817,26 +817,22 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -1424,31 +1420,26 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -2034,31 +2025,26 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -2848,19 +2834,16 @@ MODULE                        : TestCompositeLib1.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -3421,26 +3404,22 @@ MODULE                        : TestCompositeLib1.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -4003,26 +3982,22 @@ MODULE                        : TestCompositeLib1.lib
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -4846,14 +4821,12 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -5441,19 +5414,16 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -6039,19 +6009,16 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -6820,7 +6787,6 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -7360,14 +7326,12 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -7909,14 +7873,12 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
@@ -8742,33 +8704,28 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
@@ -9356,38 +9313,32 @@ MODULE                        : project.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
@@ -9973,38 +9924,32 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib1:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib3:lib::debug [-]
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib4@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/TestCompositeLib2@@: [-]
                             IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
@@ -11349,7 +11294,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
@@ -11914,7 +11858,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib

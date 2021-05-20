@@ -309,9 +309,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
             !androidLibrary.bundle.path.startsWith(buildFolderPath.path))
   }
 
-  fun createIdeModuleLibrary(library: AndroidLibrary, artifactAddress: String, projectPath: String): IdeLibrary {
+  fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): IdeLibrary {
     val core = IdeModuleLibraryCore(
-      artifactAddress = artifactAddress,
       buildId = copyNewProperty(library::getBuildId),
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
@@ -321,9 +320,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided)
   }
 
-  fun createIdeModuleLibrary(library: JavaLibrary, artifactAddress: String, projectPath: String): IdeLibrary {
+  fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): IdeLibrary {
     val core = IdeModuleLibraryCore(
-      artifactAddress = artifactAddress,
       buildId = copyNewProperty(library::getBuildId),
       projectPath = projectPath,
       variant = null,
@@ -437,7 +435,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // If the aar bundle is inside of build directory of sub-module, then it's regular library module dependency, otherwise it's a wrapped aar module.
     val projectPath = androidLibrary.project
     return if (projectPath != null && !isLocalAarModule(androidLibrary)) {
-      createIdeModuleLibrary(androidLibrary, computeAddress(androidLibrary), projectPath)
+      createIdeModuleLibrary(androidLibrary, projectPath)
     }
     else {
       val core = IdeAndroidLibraryCore.create(
@@ -473,7 +471,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     val project = copyNewProperty(javaLibrary::getProject)
     return if (project != null) {
       // Java modules don't have variant.
-      createIdeModuleLibrary(javaLibrary, computeAddress(javaLibrary), project)
+      createIdeModuleLibrary(javaLibrary, project)
     }
     else {
       val core = IdeJavaLibraryCore(
@@ -485,8 +483,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     }
   }
 
-  fun libraryFrom(projectPath: String, artifactAddress: String, buildId: String?): IdeLibrary {
-    val core = IdeModuleLibraryCore(projectPath, artifactAddress, buildId)
+  fun libraryFrom(projectPath: String, buildId: String?): IdeLibrary {
+    val core = IdeModuleLibraryCore(projectPath, buildId)
     return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided = false)
   }
 
@@ -506,7 +504,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     ) {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
-        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, artifactAddress, buildId) }
+        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildId) }
       }
     }
 

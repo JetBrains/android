@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
@@ -117,7 +118,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-private fun Collection<IdeLibrary>.findVersion(artifact: String): GradleVersion? {
+private fun Collection<IdeArtifactLibrary>.findVersion(artifact: String): GradleVersion? {
   val library = firstOrNull { library -> library.artifactAddress.startsWith(artifact) } ?: return null
   return GradleCoordinate.parseCoordinateString(library.artifactAddress)?.version
 }

@@ -257,7 +257,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library::debug [-]
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library
@@ -291,14 +290,12 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library::debug [-]
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -328,14 +325,12 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library::debug [-]
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -610,7 +605,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library::debug [-]
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library
@@ -642,7 +636,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library::debug [-]
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library
@@ -919,7 +912,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library-remote::debug [-]
                             LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library-remote
@@ -951,7 +943,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:library-remote::debug [-]
                             LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :library-remote

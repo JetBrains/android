@@ -681,7 +681,6 @@ MODULE                        : MainActivity.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -845,7 +844,6 @@ MODULE                        : MainActivity.app
                             Artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -2180,7 +2178,6 @@ MODULE                        : MainActivity.lib
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
@@ -2741,7 +2738,6 @@ MODULE                        : MainActivity.lib
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib

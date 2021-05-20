@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.sync.ModelCache
 import com.android.utils.FileUtils
 import java.io.File
@@ -175,7 +176,7 @@ class LintModelFactory : LintModelModuleLoader {
 
     private fun IdeModuleLibrary.getArtifactName(): String = "artifacts:$projectPath"
 
-    private fun IdeLibrary.getMavenName(): LintModelMavenName = getMavenName(artifactAddress)
+    private fun IdeArtifactLibrary.getMavenName(): LintModelMavenName = getMavenName(artifactAddress)
 
     private fun IdeAndroidLibrary.getMavenArtifactAddress(): String = artifactAddress.substringBefore("@")
 
@@ -229,12 +230,10 @@ class LintModelFactory : LintModelModuleLoader {
         }
 
         for (dependency in dependencies.moduleDependencies) {
-            if (dependency.isValid()) {
-                val lintModelDependency = getGraphItem(dependency.getArtifactName(), dependency.getMavenArtifactAddress()) { getLibrary(dependency) }
-                compileItems.add(lintModelDependency)
-                if (!dependency.isProvided) {
-                    packagedItems.add(lintModelDependency)
-                }
+            val lintModelDependency = getGraphItem(dependency.getArtifactName(), dependency.getMavenArtifactAddress()) { getLibrary(dependency) }
+            compileItems.add(lintModelDependency)
+            if (!dependency.isProvided) {
+                packagedItems.add(lintModelDependency)
             }
         }
 
@@ -248,7 +247,7 @@ class LintModelFactory : LintModelModuleLoader {
         )
     }
 
-    private fun IdeLibrary.isValid(): Boolean {
+    private fun IdeArtifactLibrary.isValid(): Boolean {
         return artifactAddress.isNotEmpty()
     }
 
