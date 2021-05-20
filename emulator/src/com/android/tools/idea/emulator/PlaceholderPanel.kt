@@ -21,7 +21,6 @@ import com.android.repository.Revision
 import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
-import com.android.tools.adtui.common.linkForeground
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.executeOnPooledThread
@@ -124,7 +123,7 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
   }
 
   private fun createContent() {
-    val linkColorString = (linkForeground.rgb and 0xFFFFFF).toString(16)
+    val linkColorString = (JBUI.CurrentTheme.Link.linkColor().rgb and 0xFFFFFF).toString(16)
     val html = if (emulatorLaunchesInToolWindow) {
       if (emulatorVersionIsSufficient) {
         """
