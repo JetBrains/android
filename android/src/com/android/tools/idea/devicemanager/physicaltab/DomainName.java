@@ -15,14 +15,29 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DomainName implements Key {
+final class DomainName extends Key {
+  private static final @NotNull Pattern PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?");
   private final @NotNull String myValue;
 
   DomainName(@NotNull String value) {
+    assert PATTERN.matcher(value).matches();
     myValue = value;
+  }
+
+  @Override
+  @NotNull SerialNumber getSerialNumber() {
+    Matcher matcher = PATTERN.matcher(myValue);
+
+    if (!matcher.matches()) {
+      throw new AssertionError(myValue);
+    }
+
+    return new SerialNumber(matcher.group(1));
   }
 
   @Override
