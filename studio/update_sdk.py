@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 # A list of files not included in the SDK because they are made by files in the root lib directory
 # This should be sorted out at a different level, but for now removing them here
 HIDDEN = [
+    "/plugins/Kotlin/lib/kotlin-reflect.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib.jar",
     "/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar",
