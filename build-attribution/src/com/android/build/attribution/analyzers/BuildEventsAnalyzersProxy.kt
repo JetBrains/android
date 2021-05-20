@@ -73,6 +73,7 @@ interface BuildEventsAnalysisResult {
   fun getTotalGarbageCollectionTimeMs(): Long
   fun getJavaVersion(): Int?
   fun isGCSettingSet(): Boolean?
+  fun buildUsesConfigurationCache(): Boolean
 }
 
 /**
@@ -183,6 +184,10 @@ class BuildEventsAnalyzersProxy(
 
   override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult {
     return configurationCachingCompatibilityAnalyzer.result
+  }
+
+  override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzer.result.let {
+    it == ConfigurationCachingTurnedOn || it == ConfigurationCacheCompatibilityTestFlow
   }
 
   override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> {

@@ -36,6 +36,7 @@ class TaskUiDataContainer(
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
   private val tasksDeterminingBuildDuration: Set<TaskData> = buildAnalysisResult.getTasksDeterminingBuildDuration().toHashSet()
   private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
+  private val configurationCacheUsed: Boolean = buildAnalysisResult.buildUsesConfigurationCache()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
     object : TaskUiData {
@@ -49,6 +50,9 @@ class TaskUiDataContainer(
         task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SRC
         else -> PluginSourceType.THIRD_PARTY
       }
+      override val pluginUnknownBecauseOfCC: Boolean = task.originPlugin.pluginType == PluginData.PluginType.UNKNOWN &&
+                                                       configurationCacheUsed
+
       override val module: String = task.projectPath
       override val name: String = task.taskName
       override val taskPath: String = task.getTaskPath()
