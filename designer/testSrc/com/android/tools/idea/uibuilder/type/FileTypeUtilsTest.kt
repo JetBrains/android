@@ -30,7 +30,6 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.debugger.readAction
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -72,12 +71,12 @@ class FileTypeUtilsTest {
     // The content doesn't matter
     val file = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val config = projectRule.readAction { file.virtualFile.getConfiguration(manager) }
+    val config = file.virtualFile.getConfiguration(manager)
     val device = createTestDevice()
     // We keep the state here. If we get the config from same file again, it should have the same device state.
     config.setDevice(device, true)
 
-    val config2 = projectRule.readAction { file.virtualFile.getConfiguration(manager) }
+    val config2 = file.virtualFile.getConfiguration(manager)
 
     assertEquals(config, config2)
     assertEquals(config.deviceState, config2.deviceState)
@@ -93,11 +92,11 @@ class FileTypeUtilsTest {
     val type = file.typeOf()
     assertTrue(type is DrawableFileType) // The type must be DrawableFileType otherwise this testing is meaningless.
 
-    val config = projectRule.readAction { file.virtualFile.getConfiguration(manager) }
+    val config = file.virtualFile.getConfiguration(manager)
     val configDevice = config.device
     config.setDevice(createTestDevice(), true)
 
-    val config2 = projectRule.readAction { file.virtualFile.getConfiguration(manager) }
+    val config2 = file.virtualFile.getConfiguration(manager)
     // Even changing the device, next time will still use the specific device when creating configuration.
     assertEquals(configDevice, config2.device)
   }
@@ -114,8 +113,7 @@ class FileTypeUtilsTest {
     val file2 = projectRule.fixture.addFileToProject("res/drawable/my_drawable2.xml", TEST_ROOT_TAG)
     assertTrue(file2.typeOf() is DrawableFileType) // The type must be DrawableFileType otherwise this testing is meaningless.
 
-    assertEquals(projectRule.readAction { file1.virtualFile.getConfiguration(manager) }.device,
-                 projectRule.readAction { file2.virtualFile.getConfiguration(manager) }.device)
+    assertEquals(file1.virtualFile.getConfiguration(manager).device, file2.virtualFile.getConfiguration(manager).device)
   }
 
   private fun createTestDevice(): Device {
