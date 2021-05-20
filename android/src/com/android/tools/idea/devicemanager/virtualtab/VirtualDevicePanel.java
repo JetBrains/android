@@ -15,60 +15,137 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.tools.adtui.stdui.CommonButton;
+import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBDimension;
+import java.awt.Dimension;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
 import javax.swing.GroupLayout.SequentialGroup;
-import javax.swing.JComponent;
+import javax.swing.JButton;
+import javax.swing.JSeparator;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
+  private final @NotNull JButton myCreateButton;
+  private final @NotNull JSeparator mySeparator;
+  private @Nullable JButton myRefreshButton;
+  private final @NotNull JButton myHelpButton;
+  private @Nullable SearchTextField mySearchTextField;
+
   private final @NotNull VirtualDisplayList myAvdDisplayList;
   private final @NotNull PreconfiguredDisplayList myPreconfiguredDisplayList;
-  private final @NotNull DocumentListener mySearchDocumentListener;
 
   VirtualDevicePanel(@NotNull Project project) {
     myAvdDisplayList = new VirtualDisplayList(project);
     myPreconfiguredDisplayList = new PreconfiguredDisplayList(project, myAvdDisplayList);
-    mySearchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
+    DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
 
-    setLayout();
+    myCreateButton = new JButton("Create device");
+    myCreateButton.addActionListener(new CreateAvdAction(myAvdDisplayList));
+
+    Dimension separatorSize = new JBDimension(3, 20);
+    mySeparator = new JSeparator(SwingConstants.VERTICAL);
+    mySeparator.setPreferredSize(separatorSize);
+    mySeparator.setMaximumSize(separatorSize);
+
+    if (enableHalfBakedFeatures()) {
+      myRefreshButton = new CommonButton(AllIcons.Actions.Refresh);
+      myRefreshButton.addActionListener(event -> myAvdDisplayList.refreshAvds());
+    }
+
+    myHelpButton = new CommonButton(AllIcons.Actions.Help);
+    myHelpButton.addActionListener(event -> BrowserUtil.browse("http://developer.android.com/r/studio-ui/virtualdeviceconfig.html"));
+
+    if (enableHalfBakedFeatures()) {
+      mySearchTextField = new SearchTextField(true);
+      mySearchTextField.setToolTipText("Search virtual devices by name");
+      mySearchTextField.addDocumentListener(searchDocumentListener);
+    }
+
+    setLayout(createGroupLayout());
   }
 
-  private void setLayout() {
-    JComponent toolbar = new VirtualToolbar(myAvdDisplayList, myAvdDisplayList, mySearchDocumentListener).getPanel();
-
+  private @NotNull GroupLayout createGroupLayout() {
     GroupLayout groupLayout = new GroupLayout(this);
+
+    Group toolbarHorizontalGroup = createToolbarHorizontalGroup(groupLayout);
+    Group toolbarVerticalGroup = createToolbarVerticalGroup(groupLayout);
+
     Group horizontalGroup = groupLayout.createParallelGroup(Alignment.LEADING);
-    horizontalGroup.addComponent(toolbar);
+    horizontalGroup.addGroup(toolbarHorizontalGroup);
     horizontalGroup.addComponent(myAvdDisplayList);
-    if (showPreconfiguredList()) {
+    if (enableHalfBakedFeatures()) {
       horizontalGroup.addComponent(myPreconfiguredDisplayList);
     }
 
     SequentialGroup verticalGroup = groupLayout.createSequentialGroup();
-    verticalGroup.addContainerGap();
-    verticalGroup.addComponent(toolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+    verticalGroup.addGroup(toolbarVerticalGroup);
     verticalGroup.addComponent(myAvdDisplayList);
-    if (showPreconfiguredList()) {
+    if (enableHalfBakedFeatures()) {
       verticalGroup.addPreferredGap(ComponentPlacement.UNRELATED);
       verticalGroup.addComponent(myPreconfiguredDisplayList);
     }
 
     groupLayout.setHorizontalGroup(horizontalGroup);
     groupLayout.setVerticalGroup(verticalGroup);
-    setLayout(groupLayout);
+    return groupLayout;
   }
 
-  private static boolean showPreconfiguredList() {
+  private @NotNull Group createToolbarHorizontalGroup(@NotNull GroupLayout groupLayout) {
+    Group toolbarHorizontalGroup = groupLayout.createSequentialGroup();
+    toolbarHorizontalGroup.addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addComponent(mySeparator, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+
+    if (myRefreshButton != null) {
+      toolbarHorizontalGroup
+        .addComponent(myRefreshButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+    }
+
+    toolbarHorizontalGroup.addComponent(myHelpButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+
+    if (mySearchTextField != null) {
+      toolbarHorizontalGroup
+        .addComponent(mySearchTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE);
+    }
+
+    return toolbarHorizontalGroup;
+  }
+
+  private @NotNull Group createToolbarVerticalGroup(@NotNull GroupLayout groupLayout) {
+    Group toolbarVerticalGroup = groupLayout.createParallelGroup(Alignment.CENTER);
+    toolbarVerticalGroup.addComponent(myCreateButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+      .addComponent(mySeparator, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+
+    if (myRefreshButton != null) {
+      toolbarVerticalGroup.addComponent(myRefreshButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+    }
+
+    toolbarVerticalGroup.addComponent(myHelpButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+
+    if (mySearchTextField != null) {
+      toolbarVerticalGroup
+        .addComponent(mySearchTextField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+    }
+
+    return toolbarVerticalGroup;
+  }
+
+  private static boolean enableHalfBakedFeatures() {
     return StudioFlags.ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES.get();
   }
 
