@@ -30,7 +30,10 @@ import static com.intellij.openapi.ui.Messages.CANCEL;
 import static com.intellij.openapi.ui.Messages.NO;
 import static com.intellij.openapi.ui.Messages.YES;
 import static com.intellij.openapi.ui.Messages.YesNoCancelResult;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import com.android.builder.model.AndroidProject;
@@ -76,6 +79,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemEventDispatcher;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -101,10 +105,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -245,6 +251,24 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     return isBuildInProgress(getProject());
   }
 
+  @NotNull
+  @Override
+  public ListenableFuture<AssembleInvocationResult> executeAssembleTasks(@NotNull Module[] assembledModules,
+                                                                         @NotNull List<Request> request) {
+    Map<String, List<Module>> modulesByRootProject = Arrays.stream(assembledModules)
+      .map(it -> Pair.create(it, ExternalSystemApiUtil.getExternalRootProjectPath(it)))
+      .filter(it -> it.second != null)
+      .collect(groupingBy(it -> it.second, mapping(it -> it.first, toList())));
+    ListenableFuture<GradleMultiInvocationResult> resultFuture = executeTasks(
+      request.stream()
+        .map(it -> Pair
+          .<Request, BuildAction<?>>create(it, OutputBuildActionUtil
+            .create(modulesByRootProject.get(toSystemIndependentName(it.getRootProjectPath().getPath())))))
+        .collect(toList())
+    );
+    return Futures.transform(resultFuture, AssembleInvocationResult::new, directExecutor());
+  }
+
   private static boolean isBuildInProgress(@NotNull Project project) {
     IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
     StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
@@ -286,31 +310,36 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   }
 
   @Override
-  public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
+  @NotNull
+  public ListenableFuture<AssembleInvocationResult> assemble(Module @NotNull [] modules, @NotNull TestCompileType testCompileType) {
     BuildMode buildMode = ASSEMBLE;
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(
-        Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
-          .setMode(buildMode)
-          .setBuildAction(OutputBuildActionUtil.create(Arrays.asList(modules)))
-          .build());
-    }
+    return executeAssembleTasks(
+      modules,
+      tasks.keySet().stream()
+        .map(rootPath ->
+               Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
+                 .setMode(buildMode)
+                 .build()
+        )
+        .collect(toList()));
   }
 
   @Override
-  public void bundle(@NotNull Module[] modules) {
+  @NotNull
+  public ListenableFuture<AssembleInvocationResult> bundle(Module @NotNull [] modules) {
     BuildMode buildMode = BUNDLE;
     ListMultimap<Path, String> tasks =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
-
-    for (Path rootPath : tasks.keySet()) {
-      executeTasks(
-        Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
-          .setMode(buildMode)
-          .setBuildAction(OutputBuildActionUtil.create(Arrays.asList(modules)))
-          .build());
-    }
+    return executeAssembleTasks(
+      modules,
+      tasks.keySet().stream()
+        .map(rootPath ->
+               Request.builder(myProject, rootPath.toFile(), tasks.get(rootPath))
+                 .setMode(buildMode)
+                 .build()
+        )
+        .collect(toList()));
   }
 
   @Override
@@ -360,12 +389,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     executeTasks(buildMode, rootProjectPath, gradleTasks, myOneTimeGradleOptions);
   }
 
-  @Override
   @NotNull
-  public ListenableFuture<GradleMultiInvocationResult> executeTasks(@NotNull List<Request> requests) {
+  public ListenableFuture<GradleMultiInvocationResult> executeTasks(@NotNull List<Pair<Request, BuildAction<?>>> requests) {
     List<ListenableFuture<GradleInvocationResult>> futures =
       requests.stream()
-        .map(this::executeTasks)
+        .map(it -> executeTasks(it.first, it.second))
         .collect(toList());
     Futures.FutureCombiner<GradleInvocationResult> result = Futures.whenAllComplete(futures);
     return result.call(() -> {
@@ -387,7 +415,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       Request.builder(myProject, rootProjectPath, gradleTasks)
         .setMode(buildMode)
         .setCommandLineArguments(commandLineArguments)
-        .setBuildAction(null)
         .build());
   }
 
@@ -422,6 +449,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @Override
   @NotNull
   public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull Request request) {
+    return executeTasks(request, null);
+  }
+
+  @VisibleForTesting
+  public ListenableFuture<GradleInvocationResult> executeTasks(@NotNull Request request, @Nullable BuildAction<?> buildAction) {
     BuildSettings.getInstance(myProject).setBuildMode(request.getMode());
 
     String rootProjectPath = request.getRootProjectPath().getPath();
@@ -436,13 +468,14 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     }
     String executionName = getExecutionName(request);
     ExternalSystemTaskNotificationListener buildTaskListener = createBuildTaskListener(request, executionName, request.getListener());
-    return internalExecuteTasks(request, buildTaskListener);
+    return internalExecuteTasks(request, buildAction, buildTaskListener);
   }
 
   private ListenableFuture<GradleInvocationResult> internalExecuteTasks(@NotNull Request request,
+                                                                        @Nullable BuildAction<?> buildAction,
                                                                         @NotNull ExternalSystemTaskNotificationListener buildTaskListener) {
     SettableFuture<GradleInvocationResult> resultFuture = SettableFuture.create();
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper, buildTaskListener, resultFuture);
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, buildAction, myBuildStopper, buildTaskListener, resultFuture);
 
     ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
     executor.queue();
@@ -643,7 +676,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
         myBuildEventDispatcher.close();
         myBuildEventDispatcher = new ExternalSystemEventDispatcher(myRequest.getTaskId(), myBuildViewManager);
 
-        internalExecuteTasks(myRequest, MyListener.this);
+        internalExecuteTasks(myRequest, null, MyListener.this);
       }
     }
   }

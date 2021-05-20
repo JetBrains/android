@@ -45,3 +45,7 @@ class GradleMultiInvocationResult(
 
   val models: List<Any> get() =  invocations.mapNotNull { it.model }
 }
+
+class AssembleInvocationResult(
+  val invocationResult: GradleMultiInvocationResult
+)

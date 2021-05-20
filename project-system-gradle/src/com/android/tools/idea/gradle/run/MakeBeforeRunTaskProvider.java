@@ -59,7 +59,6 @@ import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.PreferGradleMake;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.RunStats;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -85,7 +84,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -365,9 +363,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       return false;
     }
     AndroidVersion targetDeviceVersion = targetDeviceSpec != null ? targetDeviceSpec.getCommonVersion() : null;
+    GradleTaskRunner.DefaultGradleTaskRunner runner = GradleTaskRunner.newRunner(myTaskRunnerFactory.myProject);
     BeforeRunBuilder builder = createBuilder(modules, configuration, targetDeviceVersion, task.getGoal());
 
-    GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
     boolean success = builder.build(runner, cmdLineArgs);
 
@@ -625,28 +623,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     GradleTaskRunnerFactory(@NotNull Project project) {
       myProject = project;
-    }
-
-    @NotNull
-    GradleTaskRunner.DefaultGradleTaskRunner createTaskRunner(@NotNull RunConfiguration configuration) {
-      if (configuration instanceof AndroidRunConfigurationBase) {
-        List<Module> modules = new ArrayList<>();
-        Module selectedModule = ((AndroidRunConfigurationBase)configuration).getConfigurationModule().getModule();
-        if (selectedModule != null) {
-          modules.add(selectedModule);
-          // Instrumented test support for Dynamic features: base-app module should be included explicitly,
-          // then corresponding post build models are generated. And in this case, dynamic feature module
-          // retrieved earlier is for test Apk.
-          if (configuration instanceof AndroidTestRunConfiguration) {
-            Module baseModule = DynamicAppUtils.getBaseFeature(selectedModule);
-            if (baseModule != null) {
-              modules.add(baseModule);
-            }
-          }
-        }
-        return GradleTaskRunner.newRunner(myProject, OutputBuildActionUtil.create(modules));
-      }
-      return GradleTaskRunner.newRunner(myProject, null);
     }
   }
 }

@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -31,28 +31,23 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 public interface GradleTaskRunner {
   boolean run(@NotNull Module[] assembledModules, @NotNull ListMultimap<Path, String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments);
 
   @NotNull
-  static DefaultGradleTaskRunner newRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
-    return new DefaultGradleTaskRunner(project, buildAction);
+  static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
+    return new DefaultGradleTaskRunner(project);
   }
 
   class DefaultGradleTaskRunner implements GradleTaskRunner {
     @NotNull private final Project myProject;
     @NotNull private final AtomicReference<Object> model = new AtomicReference<>();
 
-    @Nullable final BuildAction<?> myBuildAction;
-
-    DefaultGradleTaskRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
+    DefaultGradleTaskRunner(@NotNull Project project) {
       myProject = project;
-      myBuildAction = buildAction;
     }
 
     /**
@@ -73,14 +68,13 @@ public interface GradleTaskRunner {
                  .builder(myProject, path.toFile(), tasks.get(path))
                  .setMode(buildMode)
                  .setCommandLineArguments(commandLineArguments)
-                 .setBuildAction(myBuildAction)
                  .build())
         .collect(Collectors.toList());
 
-      ListenableFuture<GradleMultiInvocationResult> future = gradleBuildInvoker.executeTasks(requests);
+      ListenableFuture<AssembleInvocationResult> future = gradleBuildInvoker.executeAssembleTasks(assembledModules, requests);
 
       try {
-        future.get().getModels().stream()
+        future.get().getInvocationResult().getModels().stream()
           // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
           // `PostBuildModel`s were not designed to handle this.
           .findFirst()
@@ -99,12 +93,6 @@ public interface GradleTaskRunner {
     @Nullable
     public Object getModel() {
       return model.get();
-    }
-
-    @TestOnly
-    @Nullable
-    BuildAction<?> getBuildAction() {
-      return myBuildAction;
     }
   }
 }

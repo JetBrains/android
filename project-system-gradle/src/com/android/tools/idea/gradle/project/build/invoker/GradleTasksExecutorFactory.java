@@ -18,15 +18,18 @@ package com.android.tools.idea.gradle.project.build.invoker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
+import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleTasksExecutorFactory {
   @NotNull
   public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
+                                    @Nullable BuildAction<?> buildAction,
                                     @NotNull BuildStopper buildStopper,
                                     @NotNull ExternalSystemTaskNotificationListener listener,
                                     @NotNull SettableFuture<GradleInvocationResult> resultFuture) {
-    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildStopper, listener, resultFuture);
+    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildAction, buildStopper, listener, resultFuture);
     GradleBuildState.getInstance(request.getProject()).buildExecutorCreated(request);
     return executor;
   }
