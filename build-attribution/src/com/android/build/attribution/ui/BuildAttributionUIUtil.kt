@@ -59,12 +59,14 @@ fun warningIcon(): Icon = AllIcons.General.BalloonWarning
 fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(false, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
