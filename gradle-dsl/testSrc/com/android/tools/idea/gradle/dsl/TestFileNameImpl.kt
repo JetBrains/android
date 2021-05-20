@@ -375,6 +375,7 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXT_MODEL_EXT_FLAT_AND_BLOCK("extModel/extFlatAndBlock"),
   EXT_MODEL_EXT_FLAT_AND_BLOCK_EXPECTED("extModel/extFlatAndBlockExpected"),
   EXT_MODEL_PROPERTY_NAMES("extModel/propertyNames"),
+  EXT_MODEL_REPLACE_CIRCULAR_REFERENCE("extModel/replaceCircularReference"),
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY("extModel/resolveMultiModuleExtProperty"),
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_SUB("extModel/resolveMultiModuleExtProperty_sub"),
   EXT_MODEL_RESOLVE_VARIABLE_IN_SUBMODULE_BUILD_FILE("extModel/resolveVariableInSubModuleBuildFile"),
