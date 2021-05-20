@@ -57,7 +57,7 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Memory.Memor
     if (symbols.exists()) {
       try {
         FileUtil.copy(new FileInputStream(symbols), outputStream);
-      } catch (IOException _) {
+      } catch (IOException ignored) {
         //  Failed to append symbols to end of export file.
       }
     }
