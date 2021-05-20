@@ -69,6 +69,7 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.FAKE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.PROPERTIES_FILE;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -76,6 +77,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -534,5 +536,22 @@ public class ExtModelTest extends GradleFileModelTestCase {
     verifyPropertyModel(ext.findProperty("foo"), STRING_TYPE, "isDebuggable", REFERENCE, REGULAR, 1);
     verifyPropertyModel(ext.findProperty("foo").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
     verifyPropertyModel(ext.findProperty("debuggable"), BOOLEAN_TYPE, null, NONE, REGULAR, 0);
+  }
+
+  @Test
+  public void testReplaceCircularReference() throws IOException {
+    writeToBuildFile(TestFileNameImpl.EXT_MODEL_REPLACE_CIRCULAR_REFERENCE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    ExtModel ext = buildModel.ext();
+
+    // It's not clear what this should actually do, as it's basically ill-defined, but setting up a circular reference
+    // this way should not cause a stack overflow in the Dsl model.  This test is basically a white-box test, engineering
+    // the particular circumstances which cause a circular dependency to be expressed in the Dsl model; it is possible that
+    // changes in the model implementation could mean that this no longer exposes the particular path that caused a stack
+    // overflow.
+    GradlePropertyModel foo = ext.findProperty("foo");
+    foo.setValue(new ReferenceTo(foo)); // set up the circularity in the model
+    foo.setValue(3); // the trigger for potential infinite updating
   }
 }

@@ -33,7 +33,6 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -511,8 +510,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public void modify() {
+    HashSet<GradleDslElement> visited = new HashSet<>();
+    modify(visited);
+  }
+
+  protected void modify(Set<GradleDslElement> visited) {
     myModificationCount++;
-    myDependents.forEach(e -> e.getOriginElement().modify());
+    visited.add(this);
+    myDependents.forEach(e -> { if (!visited.contains(e.getOriginElement())) e.getOriginElement().modify(visited); });
   }
 
   public void commit() {
