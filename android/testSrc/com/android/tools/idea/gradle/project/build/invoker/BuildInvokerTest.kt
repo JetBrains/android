@@ -90,7 +90,7 @@ class BuildInvokerTest : AndroidGradleTestCase() {
       }
     })
 
-    val invoker = GradleBuildInvoker.getInstance(project)
+    val invoker = GradleBuildInvoker.getInstance(project) as GradleBuildInvokerImpl
     // Add a post build task.
     invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
       override fun execute(result: GradleInvocationResult) {
@@ -106,8 +106,8 @@ class BuildInvokerTest : AndroidGradleTestCase() {
         gradleTasks = listOf("assembleDebug")
       )
         .setMode(BuildMode.ASSEMBLE)
-        .setBuildAction(SlowTestBuildAction())
-        .build()
+        .build(),
+      SlowTestBuildAction()
     )
     lock.withLock {
       buildFinishedEventReceived.await(1, TimeUnit.SECONDS)

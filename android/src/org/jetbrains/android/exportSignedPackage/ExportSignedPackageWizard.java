@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModel;
@@ -284,11 +283,13 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
         final File file = new File(rootProjectPath);
-        gradleBuildInvoker.executeTasks(
-          GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
-            .setCommandLineArguments(projectProperties)
-            .setBuildAction(OutputBuildActionUtil.create(modules))
-            .build());
+        gradleBuildInvoker.executeAssembleTasks(
+          modules.toArray(new Module[0]),
+          ImmutableList.of(
+            GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
+              .setCommandLineArguments(projectProperties)
+              .build())
+        );
         trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +

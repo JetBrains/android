@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.run
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
 
@@ -39,11 +40,21 @@ private fun getModuleGradlePaths(modules: List<Module>): Set<String> {
   val gradlePaths = mutableSetOf<String>()
   modules.mapNotNullTo(gradlePaths) { GradleUtil.getGradlePath(it) }
   modules
-    .mapNotNull { AndroidModuleModel.get(it) }
-    .forEach { androidModel ->
+    .mapNotNull { it to (AndroidModuleModel.get(it) ?: return@mapNotNull null) }
+    .forEach { (androidModule, androidModel) ->
       val androidProject = androidModel.androidProject
-      if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-        gradlePaths.addAll(androidModel.selectedVariant.testedTargetVariants.map { it.targetProjectPath })
+      when (androidProject.projectType) {
+        IdeAndroidProjectType.PROJECT_TYPE_TEST -> {
+          gradlePaths.addAll(androidModel.selectedVariant.testedTargetVariants.map { it.targetProjectPath })
+        }
+        IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE,
+        IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> {
+          val baseModule = DynamicAppUtils.getBaseFeature(androidModule)
+          if (baseModule != null) {
+            GradleUtil.getGradlePath(baseModule)?.let { gradlePaths.add(it) }
+          }
+        }
+        else -> Unit
       }
       gradlePaths.addAll(androidProject.dynamicFeatures)
     }

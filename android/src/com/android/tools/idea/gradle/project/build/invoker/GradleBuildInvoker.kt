@@ -24,8 +24,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.gradle.tooling.BuildAction
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 
 interface GradleBuildInvoker {
@@ -33,8 +31,8 @@ interface GradleBuildInvoker {
 
   fun generateSources(modules: Array<Module>)
   fun compileJava(modules: Array<Module>, testCompileType: TestCompileType)
-  fun assemble(modules: Array<Module>, testCompileType: TestCompileType)
-  fun bundle(modules: Array<Module>)
+  fun assemble(modules: Array<Module>, testCompileType: TestCompileType): ListenableFuture<AssembleInvocationResult>
+  fun bundle(modules: Array<Module>): ListenableFuture<AssembleInvocationResult>
 
   fun rebuild()
   fun rebuildWithTempOptions(rootProjectPath: File, options: List<String>)
@@ -43,7 +41,8 @@ interface GradleBuildInvoker {
    * Executes Gradle tasks requested for each root in separate Gradle invocations. The results (including failed sub-builds) are reported as
    * GradleInvocationResult, however, any unexpected failures are returned as a failed future.
    */
-  fun executeTasks(request: List<Request>): ListenableFuture<GradleMultiInvocationResult>
+  fun executeAssembleTasks(assembledModules: Array<Module>, request: List<Request>): ListenableFuture<AssembleInvocationResult>
+
   fun executeTasks(request: Request): ListenableFuture<GradleInvocationResult>
 
   fun stopBuild(id: ExternalSystemTaskId): Boolean
@@ -65,7 +64,6 @@ interface GradleBuildInvoker {
     val commandLineArguments: List<String> = emptyList(),
     val env: Map<String, String> = emptyMap(),
     val isPassParentEnvs: Boolean = true,
-    val buildAction: BuildAction<*>? = null,
     val isWaitForCompletion: Boolean = false,
 
     /**
@@ -120,11 +118,6 @@ interface GradleBuildInvoker {
 
       fun setCommandLineArguments(value: List<String>): Builder {
         request = request.copy(commandLineArguments = value.toList())
-        return this
-      }
-
-      fun setBuildAction(value: BuildAction<*>?): Builder {
-        request = request.copy(buildAction = value)
         return this
       }
 

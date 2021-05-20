@@ -32,7 +32,7 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
     Ref<String> model = new Ref<>("");
     CountDownLatch latch = new CountDownLatch(1);
 
-    GradleBuildInvoker invoker = GradleBuildInvoker.getInstance(getProject());
+    GradleBuildInvokerImpl invoker = (GradleBuildInvokerImpl)GradleBuildInvoker.getInstance(getProject());
     invoker.add(result -> {
       Object resultModel = result.getModel();
       if (resultModel instanceof String) {
@@ -48,8 +48,8 @@ public class BuildActionInvokerTest extends AndroidGradleTestCase {
         ImmutableList.of("assembleDebug")
       )
         .setMode(BuildMode.ASSEMBLE)
-        .setBuildAction(new TestBuildAction())
-        .build()
+        .build(),
+      new TestBuildAction()
     );
 
     latch.await();
