@@ -109,7 +109,7 @@ open class ContextualCallPathBrowser(
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
 
-  override fun createTrees(typeToTreeMap: MutableMap<String, JTree>) {
+  override fun createTrees(typeToTreeMap: MutableMap<in String, in JTree>) {
     val group = ActionManager.getInstance().getAction(IdeActions.GROUP_CALL_HIERARCHY_POPUP) as ActionGroup
     val baseOnThisMethodAction = BaseOnThisMethodAction()
     val kinds = arrayOf(
