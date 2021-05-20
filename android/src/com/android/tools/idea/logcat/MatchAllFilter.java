@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 
 final class MatchAllFilter implements AndroidLogcatFilter {
@@ -31,11 +31,8 @@ final class MatchAllFilter implements AndroidLogcatFilter {
     return myName;
   }
 
-  /**
-   * @param p the process
-   */
   @Override
-  public boolean isApplicable(@NotNull String message, @NotNull String tag, @NotNull String p, int processId, @NotNull LogLevel priority) {
+  public boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
     return true;
   }
 }

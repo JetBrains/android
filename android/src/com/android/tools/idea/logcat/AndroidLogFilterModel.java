@@ -159,9 +159,7 @@ final class AndroidLogFilterModel extends LogFilterModel {
     if (myConfiguredFilter == null) {
       return true;
     }
-    LogCatHeader header = logCatMessage.getHeader();
-    return myConfiguredFilter
-      .isApplicable(logCatMessage.getMessage(), header.getTag(), header.getAppName(), header.getPid(), header.getLogLevel());
+    return myConfiguredFilter.isApplicable(logCatMessage);
   }
 
   @Override

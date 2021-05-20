@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.Log.LogLevel;
+import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectedProcessFilter implements AndroidLogcatFilter {
@@ -31,11 +31,8 @@ final class SelectedProcessFilter implements AndroidLogcatFilter {
     return AndroidLogcatView.getSelectedAppFilter();
   }
 
-  /**
-   * @param p the process
-   */
   @Override
-  public boolean isApplicable(@NotNull String message, @NotNull String tag, @NotNull String p, int processId, @NotNull LogLevel priority) {
-    return myProcessId == processId;
+  public boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
+    return myProcessId == logCatMessage.getHeader().getPid();
   }
 }

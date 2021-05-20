@@ -16,6 +16,8 @@
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.Log;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,26 +100,29 @@ public final class DefaultAndroidLogcatFilter implements AndroidLogcatFilter {
   }
 
   @Override
-  public boolean isApplicable(@NotNull String message, @NotNull String tag, @NotNull String pkg, int pid, @NotNull Log.LogLevel logLevel) {
-    if (myLogLevel != null && (logLevel.getPriority() < myLogLevel.getPriority())) {
+  public boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
+    LogCatHeader header = logCatMessage.getHeader();
+    if (myLogLevel != null) {
+      if (header.getLogLevel().getPriority() < myLogLevel.getPriority()) {
+        return false;
+      }
+    }
+
+    if (myMessagePattern != null && !myMessagePattern.matcher(logCatMessage.getMessage()).find()) {
       return false;
     }
 
-    if (myMessagePattern != null && !myMessagePattern.matcher(message).find()) {
+    if (myTagPattern != null && !myTagPattern.matcher(header.getTag()).find()) {
       return false;
     }
 
-    if (myTagPattern != null && !myTagPattern.matcher(tag).find()) {
-      return false;
-    }
-
-    if (myPkgNamePattern != null && !myPkgNamePattern.matcher(pkg).find()) {
+    if (myPkgNamePattern != null && !myPkgNamePattern.matcher(header.getAppName()).find()) {
       return false;
     }
 
     // TODO: If we're always checking against an int pid anyway, why let myPid be a string?
     //noinspection RedundantIfStatement
-    if ((myPid != null && !myPid.isEmpty()) && !myPid.equals(Integer.toString(pid))) {
+    if ((myPid != null && !myPid.isEmpty()) && !myPid.equals(Integer.toString(header.getPid()))) {
       return false;
     }
 
@@ -147,5 +152,4 @@ public final class DefaultAndroidLogcatFilter implements AndroidLogcatFilter {
 
     return new DefaultAndroidLogcatFilter(name, logMessagePattern, logTagPattern, pkgNamePattern, pid, logLevel);
   }
-
 }
