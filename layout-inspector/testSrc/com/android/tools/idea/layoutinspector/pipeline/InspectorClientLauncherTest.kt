@@ -32,6 +32,7 @@ import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
+import java.nio.file.Path
 
 class InspectorClientLauncherTest {
   @get:Rule
@@ -48,6 +49,7 @@ class InspectorClientLauncherTest {
     override fun startFetching() = throw NotImplementedError()
     override fun stopFetching() = throw NotImplementedError()
     override fun refresh() = throw NotImplementedError()
+    override fun saveSnapshot(path: Path) = throw NotImplementedError()
 
     override fun doConnect(): ListenableFuture<Nothing> = Futures.immediateFuture(null)
     override fun doDisconnect(): ListenableFuture<Nothing> = Futures.immediateFuture(null)

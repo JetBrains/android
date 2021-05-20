@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
@@ -45,6 +47,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
+import java.nio.file.Path
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
 private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
@@ -65,6 +68,7 @@ private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
  */
 class ViewLayoutInspectorClient(
   model: InspectorModel,
+  private val processDescriptor: ProcessDescriptor,
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
@@ -102,7 +106,7 @@ class ViewLayoutInspectorClient(
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent)
+      return ViewLayoutInspectorClient(model, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent)
     }
   }
 
@@ -119,10 +123,13 @@ class ViewLayoutInspectorClient(
       field = value
       propertiesCache.allowFetching = value
       composeInspector?.parametersCache?.allowFetching = value
+      lastData.clear()
     }
 
   private var generation = 0 // Update the generation each time we get a new LayoutEvent
   private val currRoots = mutableListOf<Long>()
+
+  var lastData: MutableMap<Long, Data> = mutableMapOf()
 
   init {
     scope.launch {
@@ -215,11 +222,16 @@ class ViewLayoutInspectorClient(
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
     val composablesResponse = composeInspector?.getComposeables(layoutEvent.rootView.id, generation)
-    fireTreeEvent(Data(
+
+    val data = Data(
       generation,
       currRoots,
       layoutEvent,
-      composablesResponse))
+      composablesResponse)
+    if (!isFetchingContinuously) {
+      lastData[layoutEvent.rootView.id] = data
+    }
+    fireTreeEvent(data)
   }
 
   private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {
@@ -227,6 +239,24 @@ class ViewLayoutInspectorClient(
 
     composeInspector?.let {
       it.parametersCache.setAllFrom(it.getAllParameters(propertiesEvent.rootId))
+    }
+  }
+
+  fun saveSnapshot(path: Path) {
+    if (isFetchingContinuously) {
+      scope.launch {
+        messenger.sendCommand {
+          captureSnapshotCommand = LayoutInspectorViewProtocol.CaptureSnapshotCommand.newBuilder().apply {
+            // TODO: support bitmap
+            screenshotType = Screenshot.Type.SKP
+          }.build()
+        }.captureSnapshotResponse?.let {
+          saveAppInspectorSnapshot(path, it, processDescriptor)
+        } ?: throw Exception() // TODO: error handling
+      }
+    }
+    else {
+      saveAppInspectorSnapshot(path, lastData, propertiesCache)
     }
   }
 }
