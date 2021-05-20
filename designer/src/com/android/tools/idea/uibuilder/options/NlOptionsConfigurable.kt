@@ -1,6 +1,8 @@
 package com.android.tools.idea.uibuilder.options
 
 import com.android.tools.idea.IdeInfo
+import com.intellij.ide.ui.search.SearchableOptionContributor
+import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -11,6 +13,8 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.VisibleForTesting
+import java.awt.GraphicsEnvironment
 import java.util.Hashtable
 import javax.swing.DefaultBoundedRangeModel
 import javax.swing.JComboBox
@@ -18,6 +22,14 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
+
+private const val CONFIGURABLE_ID = "nele.options"
+private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else "Android Design Tools"
+
+@VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
+@VisibleForTesting const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
+
+private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
 
 class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
 
@@ -66,10 +78,14 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
 
   private val state = AndroidEditorSettings.getInstance().globalState
 
-  override fun getId() = "nele.options"
+  override fun getId() = CONFIGURABLE_ID
 
   override fun createComponent(): JComponent {
-    val hasTrackPad = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
+    // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the created option list with a static xml file,
+    // which doesn't include the options added at runtime.
+    // We disable magnify support in headless environment to make this bazel test passes on all platform. In thee meanwhile, we use the unit
+    // tests in NlOptionConfigurableSearchableOptionContributorTest to cover the magnify options created at runtime.
+    val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
       row { showLint() }
@@ -79,10 +95,10 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
         row("Compose files:") { preferredComposableEditorMode() }
         row("Other Kotlin files:") { preferredKotlinEditorMode() }
       }
-      if (hasTrackPad) {
+      if (showMagnify) {
         val percentageValue = doubleToPercentageValue(state.magnifySensitivity)
-        titledRow("Track Pad") {
-          row("Magnify zooming (pinch) sensitivity") { magnifySensitivity.apply { magnifySensitivity.value = percentageValue }() }
+        titledRow(LABEL_TRACK_PAD) {
+          row(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) { magnifySensitivity.apply { magnifySensitivity.value = percentageValue }() }
         }
       }
     }
@@ -134,7 +150,7 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
   }
 
   @Nls
-  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else "Android Design Tools"
+  override fun getDisplayName() = DISPLAY_NAME
 }
 
 /**
@@ -145,3 +161,18 @@ private fun percentageValueToDouble(percentage: Int): Double = percentage * 0.01
  * Helper function to convert a double value to percentage value. For example, when [double] is 0.44, the return value is 44.
  */
 private fun doubleToPercentageValue(double: Double): Int = (double * 100).toInt()
+
+/**
+ * The magnify configurations is added conditionally, we cannot use the static xml files to define the options.
+ * Thus, we add the corresponding options at runtime here.
+ */
+class NlOptionConfigurableSearchableOptionContributor : SearchableOptionContributor() {
+
+  override fun processOptions(processor: SearchableOptionProcessor) {
+    if (MAGNIFY_SUPPORTED) {
+      processor.addOptions("track pad", null, LABEL_TRACK_PAD, CONFIGURABLE_ID, DISPLAY_NAME, false)
+      processor.addOptions("magnify pinch zooming sensitivity", null,
+                           LABEL_MAGNIFY_ZOOMING_SENSITIVITY, CONFIGURABLE_ID, DISPLAY_NAME, false)
+    }
+  }
+}
