@@ -61,6 +61,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getTotalGarbageCollectionTimeMs(): Long = 0
     override fun getJavaVersion(): Int? = null
     override fun isGCSettingSet(): Boolean? = null
+    override fun buildUsesConfigurationCache(): Boolean = false
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

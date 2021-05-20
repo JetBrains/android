@@ -130,6 +130,19 @@ class TaskViewDetailPagesFactoryTest {
   }
 
   @Test
+  fun testTaskWhenNoPluginInfoBecauseOfConfigCache() {
+    val taskData = mockTask(":module1", "task1", "Unknown plugin", 100, pluginUnknownBecauseOfCC = true)
+    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+
+    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
+    val expectedHelpText = "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
+    Truth.assertThat(clearHtml(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()[1].text))
+      .contains("Plugin: N/A <icon alt=\"$expectedHelpText\" src=\"AllIcons.General.ContextHelp\"><br>")
+  }
+
+  @Test
   fun testCreatePluginPageWithoutWarnings() {
     val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100)))
     val model = TasksDataPageModelImpl(data)
