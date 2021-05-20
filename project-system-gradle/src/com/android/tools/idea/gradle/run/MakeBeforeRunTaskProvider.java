@@ -547,7 +547,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
         .distinct()
         .map(path -> Paths.get(path))
         .forEach(path -> tasks.put(path, userGoal));
-      return new DefaultGradleBuilder(tasks, null);
+      return new DefaultGradleBuilder(modules, tasks, null);
     }
 
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
@@ -555,7 +555,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     TestCompileType testCompileType = TestCompileType.get(configuration.getType().getId());
     if (testCompileType == TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
-      return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
+      return new DefaultGradleBuilder(modules, gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
 
     // Use the "select apks from bundle" task if using a "AndroidRunConfigurationBase".
@@ -566,10 +566,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     //       AndroidRunConfigurationBase.
     if (configuration instanceof AndroidRunConfigurationBase
         && useSelectApksFromBundleBuilder(modules, (AndroidRunConfigurationBase)configuration, targetDeviceVersion)) {
-      return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
+      return new DefaultGradleBuilder(modules, gradleTasksProvider.getTasksFor(BuildMode.APK_FROM_BUNDLE, testCompileType),
                                       BuildMode.APK_FROM_BUNDLE);
     }
-    return new DefaultGradleBuilder(gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
+    return new DefaultGradleBuilder(modules, gradleTasksProvider.getTasksFor(BuildMode.ASSEMBLE, testCompileType), BuildMode.ASSEMBLE);
   }
 
   private static boolean useSelectApksFromBundleBuilder(@NotNull Module[] modules,
