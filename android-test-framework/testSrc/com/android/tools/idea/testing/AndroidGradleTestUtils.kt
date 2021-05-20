@@ -72,7 +72,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
-import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -555,7 +554,6 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     projects = androidModuleDependencies.map {
       IdeModuleLibraryImpl(
         projectPath = it.moduleGradlePath,
-        artifactAddress = "artifacts:${it.moduleGradlePath}:unspecified@jar",
         buildId = this.buildId,
         variant = it.variant
       )

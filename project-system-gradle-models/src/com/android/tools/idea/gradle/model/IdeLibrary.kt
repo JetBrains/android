@@ -21,14 +21,6 @@ import java.io.File
  * Represent a variant/module/artifact dependency.
  */
 interface IdeLibrary {
-  /**
-   * Returns the artifact address in a unique way.
-   *
-   *
-   * This is either a module path for sub-modules (with optional variant name), or a maven
-   * coordinate for external dependencies.
-   */
-  val artifactAddress: String
 
   /** Returns the artifact location.  */
   val artifact: File
@@ -47,7 +39,18 @@ interface IdeLibrary {
   val isProvided: Boolean
 }
 
-interface IdeAndroidLibrary: IdeLibrary {
+interface IdeArtifactLibrary: IdeLibrary {
+  /**
+   * Returns the artifact address in a unique way.
+   *
+   *
+   * This is either a module path for sub-modules (with optional variant name), or a maven
+   * coordinate for external dependencies.
+   */
+  val artifactAddress: String
+}
+
+interface IdeAndroidLibrary: IdeArtifactLibrary {
   /**
    * Returns the location of the unzipped bundle folder.
    */
@@ -124,8 +127,7 @@ interface IdeAndroidLibrary: IdeLibrary {
   val symbolFile: String
 }
 
-interface IdeJavaLibrary: IdeLibrary {
-}
+interface IdeJavaLibrary: IdeArtifactLibrary
 
 interface IdeModuleLibrary: IdeLibrary {
   /**

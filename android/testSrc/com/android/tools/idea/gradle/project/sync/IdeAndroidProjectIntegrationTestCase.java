@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
 import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -56,7 +56,7 @@ public abstract class IdeAndroidProjectIntegrationTestCase extends AndroidGradle
       IdeDependencies level2Dependencies = variant.getMainArtifact().getLevel2Dependencies();
       assertThat(level2Dependencies).isNotNull();
       assertThat(level2Dependencies.getModuleDependencies()).isEmpty();
-      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), IdeLibrary::getArtifactAddress);
+      List<String> androidLibraries = ContainerUtil.map(level2Dependencies.getAndroidLibraries(), IdeArtifactLibrary::getArtifactAddress);
       assertThat(level2Dependencies.getAndroidLibraries()).isNotEmpty();
       assertThat(androidLibraries).contains(expectedLibraryName);
     });

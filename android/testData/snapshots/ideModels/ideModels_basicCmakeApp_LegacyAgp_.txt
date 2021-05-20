@@ -269,7 +269,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -300,7 +299,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>

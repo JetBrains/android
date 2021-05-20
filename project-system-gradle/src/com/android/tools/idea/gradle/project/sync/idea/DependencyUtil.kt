@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
@@ -193,7 +194,7 @@ private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String) 
 /**
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
-private fun convertToLibraryName(library: IdeLibrary, projectBasePath: String): String {
+private fun convertToLibraryName(library: IdeArtifactLibrary, projectBasePath: String): String {
   if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:"))  {
     return adjustLocalLibraryName(library.artifact, projectBasePath)
   }
@@ -226,7 +227,7 @@ private fun stripExtensionAndClassifier(libraryName: String) : String {
   return "${parts[0]}:${parts[1]}:${parts[2]}"
 }
 
-private fun IdeLibrary.isModuleLevel(modulePath: String) = try {
+private fun IdeArtifactLibrary.isModuleLevel(modulePath: String) = try {
   FileUtil.isAncestor(modulePath, artifactAddress, false)
 } catch (e: UnsupportedMethodException) {
   false
@@ -291,7 +292,7 @@ private class AndroidDependenciesSetupContext(
     }
   }
 
-  private abstract inner class LibraryWorkItem<T : IdeLibrary>(protected val library: T) : WorkItem<T>() {
+  private abstract inner class LibraryWorkItem<T : IdeArtifactLibrary>(protected val library: T) : WorkItem<T>() {
     protected val libraryName = convertToLibraryName(library, projectDataNode.data.linkedExternalProjectPath)
     protected val libraryData: LibraryData = LibraryData(GradleConstants.SYSTEM_ID, libraryName, false)
 

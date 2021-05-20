@@ -30,13 +30,11 @@ data class IdeModuleLibraryImpl(
   @VisibleForTesting
   constructor(
     projectPath: String,
-    artifactAddress: String,
     buildId: String?,
     variant: String? = null
   ) : this(
       IdeModuleLibraryCore(
           projectPath = projectPath,
-          artifactAddress = artifactAddress,
           buildId = buildId,
           variant = variant,
           lintJar = null
@@ -46,7 +44,6 @@ data class IdeModuleLibraryImpl(
 }
 
 data class IdeModuleLibraryCore(
-  override val artifactAddress: String,
   override val buildId: String?,
   override val projectPath: String,
   override val variant: String?,
@@ -56,7 +53,6 @@ data class IdeModuleLibraryCore(
 
   // Used for serialization by the IDE.
   constructor() : this(
-    artifactAddress = "",
     buildId = null,
     projectPath = "",
     variant = null,
@@ -65,10 +61,8 @@ data class IdeModuleLibraryCore(
 
   constructor(
     projectPath: String,
-    artifactAddress: String,
     buildId: String?
   ) : this(
-    artifactAddress = artifactAddress,
     buildId = buildId,
     projectPath = projectPath,
     variant = null,

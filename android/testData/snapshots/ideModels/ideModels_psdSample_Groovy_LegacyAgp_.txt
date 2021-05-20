@@ -1191,7 +1191,6 @@ MODULE                        : project.app
                             Artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
@@ -1910,14 +1909,12 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -2523,14 +2520,12 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
@@ -2783,7 +2778,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:dyn_feature [-]
                             IsProvided                    : false
                             ProjectPath                   : :dyn_feature
                             BuildId                       : <ROOT>
@@ -2812,7 +2806,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:dyn_feature [-]
                             IsProvided                    : false
                             ProjectPath                   : :dyn_feature
                             BuildId                       : <ROOT>
@@ -3562,7 +3555,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:jav [-]
                             IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
@@ -4103,14 +4095,12 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:jav [-]
                             IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
@@ -4652,14 +4642,12 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:lib::debug [-]
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>@@:jav [-]
                             IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
@@ -4909,7 +4897,6 @@ MODULE                        : project.nested1
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested1::debug [-]
                             LintJars                      : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested1
@@ -4941,7 +4928,6 @@ MODULE                        : project.nested1
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested1::debug [-]
                             LintJars                      : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested1
@@ -5198,7 +5184,6 @@ MODULE                        : project.nested1.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested1:deep::debug [-]
                             LintJars                      : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested1:deep
@@ -5230,7 +5215,6 @@ MODULE                        : project.nested1.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested1:deep::debug [-]
                             LintJars                      : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested1:deep
@@ -5603,7 +5587,6 @@ MODULE                        : project.nested2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2::basicDebug [-]
                             LintJars                      : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2
@@ -5646,7 +5629,6 @@ MODULE                        : project.nested2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2::basicDebug [-]
                             LintJars                      : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2
@@ -5898,7 +5880,6 @@ MODULE                        : project.nested2.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2:deep::debug [-]
                             LintJars                      : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2:deep
@@ -5930,7 +5911,6 @@ MODULE                        : project.nested2.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2:deep::debug [-]
                             LintJars                      : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2:deep
@@ -6183,7 +6163,6 @@ MODULE                        : project.nested2.trans.deep2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2:trans:deep2::debug [-]
                             LintJars                      : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2
@@ -6215,7 +6194,6 @@ MODULE                        : project.nested2.trans.deep2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>:nested2:trans:deep2::debug [-]
                             LintJars                      : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2

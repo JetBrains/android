@@ -18,20 +18,19 @@ package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
-import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeJavaLibrary;
-import com.android.tools.idea.gradle.model.IdeLibrary;
-import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleFinder;
 import com.android.tools.idea.io.FilePaths;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import java.io.File;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -102,7 +101,7 @@ public class DependenciesExtractor {
    * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
    */
   @NotNull
-  public static String getDependencyDisplayName(@NotNull IdeLibrary library) {
+  public static String getDependencyDisplayName(@NotNull IdeArtifactLibrary library) {
     String artifactAddress = library.getArtifactAddress();
     GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
     if (coordinates != null) {

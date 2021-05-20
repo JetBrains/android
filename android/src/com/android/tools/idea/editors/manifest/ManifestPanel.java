@@ -23,7 +23,6 @@ import com.android.SdkConstants;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
-import com.android.tools.idea.gradle.model.IdeLibrary;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.GradleVersions;
@@ -1126,7 +1126,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     String source = null;
     AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
-      IdeLibrary library =
+      IdeAndroidLibrary library =
         GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant());
       if (library != null) {
         source = getDependencyDisplayName(library);

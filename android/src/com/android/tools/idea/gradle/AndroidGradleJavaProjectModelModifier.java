@@ -29,10 +29,6 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.tools.idea.gradle.model.IdeBaseArtifact;
-import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeLibrary;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.io.FileOpUtils;
@@ -43,6 +39,10 @@ import com.android.tools.idea.gradle.dsl.api.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeDependencies;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -365,7 +365,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   private static ArtifactDependencySpec findMatchedLibrary(@NotNull Library library, @NotNull IdeBaseArtifact artifact) {
     IdeDependencies dependencies = artifact.getLevel2Dependencies();
-    for (IdeLibrary gradleLibrary : dependencies.getJavaLibraries()) {
+    for (IdeJavaLibrary gradleLibrary : dependencies.getJavaLibraries()) {
       String libraryName = getNameWithoutExtension(gradleLibrary.getArtifact());
       if (libraryName.equals(library.getName())) {
         return ArtifactDependencySpec.create(gradleLibrary.getArtifactAddress());

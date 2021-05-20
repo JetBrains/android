@@ -799,7 +799,6 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
@@ -1389,14 +1388,12 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             IsProvided                    : true
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/firstapp
@@ -1990,14 +1987,12 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp@@:app [-]
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/firstapp
@@ -3325,7 +3320,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
@@ -3898,7 +3892,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            ArtifactAddress               : <ROOT>/firstapp:app:mysharedlibrary::debug [-]
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
