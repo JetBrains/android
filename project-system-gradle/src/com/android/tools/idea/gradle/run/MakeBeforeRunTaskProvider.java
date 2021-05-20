@@ -369,50 +369,39 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     GradleTaskRunner.DefaultGradleTaskRunner runner = myTaskRunnerFactory.createTaskRunner(configuration);
     BuildSettings.getInstance(myProject).setRunConfigurationTypeId(configuration.getType().getId());
-    try {
-      boolean success = builder.build(runner, cmdLineArgs);
+    boolean success = builder.build(runner, cmdLineArgs);
 
-      if (androidRunConfiguration != null) {
-        Object model = runner.getModel();
-        if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-          androidRunConfiguration.putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
-        }
-        else {
-          getLog().info("Couldn't get post build models.");
-        }
+    if (androidRunConfiguration != null) {
+      Object model = runner.getModel();
+      if (model instanceof OutputBuildAction.PostBuildProjectModels) {
+        androidRunConfiguration.putUserData(POST_BUILD_MODEL, new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model));
       }
-
-      getLog().info("Gradle invocation complete, success = " + success);
-
-      // If the model needs a sync, we need to sync "synchronously" before running.
-      Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
-      SyncNeeded syncNeeded = isSyncNeeded(targetAbis);
-
-      if (syncNeeded != SyncNeeded.NOT_NEEDED) {
-        String errorMsg = runSync(syncNeeded, targetAbis);
-        if (errorMsg != null) {
-          // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
-          // including the path of the APK.
-          getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
-          return false;
-        }
+      else {
+        getLog().info("Couldn't get post build models.");
       }
+    }
 
-      if (myProject.isDisposed()) {
+    getLog().info("Gradle invocation complete, success = " + success);
+
+    // If the model needs a sync, we need to sync "synchronously" before running.
+    Set<String> targetAbis = new HashSet<>(targetDeviceSpec != null ? targetDeviceSpec.getAbis() : emptyList());
+    SyncNeeded syncNeeded = isSyncNeeded(targetAbis);
+
+    if (syncNeeded != SyncNeeded.NOT_NEEDED) {
+      String errorMsg = runSync(syncNeeded, targetAbis);
+      if (errorMsg != null) {
+        // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
+        // including the path of the APK.
+        getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
         return false;
       }
+    }
 
-      return success;
-    }
-    catch (InvocationTargetException e) {
-      getLog().info("Unexpected error while launching gradle before run tasks", e);
+    if (myProject.isDisposed()) {
       return false;
     }
-    catch (InterruptedException e) {
-      getLog().info("Interrupted while launching gradle before run tasks");
-      Thread.currentThread().interrupt();
-      return false;
-    }
+
+    return success;
   }
 
   @NotNull

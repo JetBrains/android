@@ -35,8 +35,7 @@ public class DefaultGradleBuilder implements BeforeRunBuilder {
   }
 
   @Override
-  public boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> cmdLineArguments) throws InterruptedException,
-                                                                                                            InvocationTargetException {
+  public boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> cmdLineArguments) {
     if (myTasks.isEmpty()) {
       // This shouldn't happen, but if it does, then GradleInvoker with an empty list of tasks seems to hang forever, so we error out.
       Logger.getInstance(DefaultGradleBuilder.class).error("Unable to determine gradle tasks to execute");

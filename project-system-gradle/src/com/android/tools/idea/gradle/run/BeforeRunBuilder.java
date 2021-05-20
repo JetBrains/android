@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-
 public interface BeforeRunBuilder {
-  boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> commandLineArguments) throws InterruptedException,
-                                                                                                         InvocationTargetException;
+  boolean build(@NotNull GradleTaskRunner taskRunner, @NotNull List<String> commandLineArguments);
 }
