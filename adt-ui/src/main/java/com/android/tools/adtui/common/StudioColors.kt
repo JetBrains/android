@@ -88,11 +88,11 @@ val canvasTooltipBackground = JBColor.namedColor("Canvas.Tooltip.background", JB
 val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(0xffffff, 0x2b2b2b))
 
 /**
- * Color for textual content that are clickable
+ * Color for textual content that is clickable.
  *
  * Example: text color of "Leak" button
  */
-val linkForeground = JBColor.namedColor("Link.foreground", JBColor(0x195FC4, 0x9CCEFE))
+val linkForeground = JBUI.CurrentTheme.Link.linkColor()
 
 /**
  * Background color for selected content.
