@@ -19,7 +19,12 @@
 package com.android.tools.idea.npw.project
 
 import com.android.SdkConstants
+import com.android.annotations.concurrency.Slow
 import com.android.builder.model.SourceProvider
+import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.wizard.template.Parameter
 import com.intellij.openapi.module.Module
@@ -67,4 +72,21 @@ fun setGradleWrapperExecutable(projectRoot: File) {
     throw IOException("Could not find gradle wrapper. Command line builds may not work properly.")
   }
   FileUtil.setExecutable(gradlewFile)
+}
+
+/** Find the most appropriated Gradle Plugin version for the specified project. */
+@Slow
+fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): GradleVersion {
+  val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  if (isNewProject) {
+    return defaultGradleVersion
+  }
+
+  val versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project)
+  if (versionInUse != null) {
+    return versionInUse
+  }
+  // Use slow method
+  val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
+  return androidPluginInfo?.pluginVersion ?: defaultGradleVersion
 }

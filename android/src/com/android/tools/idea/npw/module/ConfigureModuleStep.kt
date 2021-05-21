@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.util.FormScalingUtil
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.adtui.validation.Validator.Result.Companion.OK
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.adtui.validation.createValidator
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
+import com.android.tools.idea.npw.project.determineGradlePluginVersion
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
 import com.android.tools.idea.npw.validator.ApiVersionValidator
 import com.android.tools.idea.npw.validator.ModuleValidator
@@ -35,6 +41,7 @@ import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.expressions.Expression
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
@@ -50,14 +57,20 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTextField
 
-abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
+private const val KTS_AGP_MIN_VERSION = "7.0.0"
+
+abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   model: ModuleModelKind,
   val formFactor: FormFactor,
   private val minSdkLevel: Int = SdkVersionInfo.LOWEST_ACTIVE_API,
@@ -66,10 +79,12 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
+  protected val gradleVersion: OptionalValueProperty<GradleVersion> = OptionalValueProperty()
 
   private val androidVersionsInfo = AndroidVersionsInfo()
   private var installRequests: List<UpdatablePackage> = listOf()
   private var installLicenseRequests: List<RemotePackage> = listOf()
+  private var runningJob: Job? = null
 
   protected val moduleName: JTextField = JBTextField()
   protected val packageName: JTextField = JBTextField()
@@ -81,6 +96,18 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
       registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
+
+      val minKtsAgpVersion = GradleVersion.parse(KTS_AGP_MIN_VERSION)
+      registerValidator(gradleVersion, createValidator { version ->
+        if (model.useGradleKts.get() && version.isPresent && version.get().compareIgnoringQualifiers(minKtsAgpVersion) < 0)
+          Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
+        else
+          OK
+      }, model.useGradleKts)
+
+      runningJob = GlobalScope.launch(ioThread) {
+        gradleVersion.value = determineGradlePluginVersion(model.project, false)
+      }
       FormScalingUtil.scaleComponentTree(this@ConfigureModuleStep.javaClass, this)
     }
   }
@@ -148,5 +175,6 @@ abstract class ConfigureModuleStep<ModuleModelKind: ModuleModel>(
   override fun dispose() {
     bindings.releaseAll()
     listeners.releaseAll()
+    runningJob?.cancel()
   }
 }
