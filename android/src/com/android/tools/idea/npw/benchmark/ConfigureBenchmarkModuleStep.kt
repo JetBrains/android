@@ -18,15 +18,15 @@ package com.android.tools.idea.npw.benchmark
 import com.android.AndroidProjectTypes
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor.MOBILE
+import com.android.tools.adtui.validation.Validator
+import com.android.tools.adtui.validation.Validator.Result.Companion.OK
+import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MACROBENCHMARK
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType.MICROBENCHMARK
-import com.android.tools.adtui.validation.Validator
-import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.npw.labelFor
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.npw.verticalGap
@@ -35,19 +35,12 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.ContextHelpLabel
-import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
-import java.awt.Component
-import java.util.Optional
 import javax.swing.JComboBox
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JRadioButton
-import javax.swing.JTextArea
-import javax.swing.SwingConstants
 
 class ConfigureBenchmarkModuleStep(
   model: NewBenchmarkModuleModel
@@ -84,40 +77,28 @@ class ConfigureBenchmarkModuleStep(
       targetModuleCombo.isVisible = isMacrobenchmark
     }
 
-    // Only allow min SDK > 29 for macrobenchmarks.
-    validatorPanel.registerValidator(model.androidSdkInfo, object : Validator<Optional<AndroidVersionsInfo.VersionItem>> {
-      override fun validate(value: Optional<AndroidVersionsInfo.VersionItem>): Validator.Result {
-        return when (model.benchmarkModuleType.get()) {
-          MACROBENCHMARK -> if (value.isPresent && value.get().minApiLevel < 29) {
-            Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK > 29")
-          } else {
-            Validator.Result.OK
-          }
-          MICROBENCHMARK -> Validator.Result.OK
-        }
-      }
+    // Only allow min SDK >= 29 for macrobenchmarks.
+    validatorPanel.registerValidator(model.androidSdkInfo, createValidator { value ->
+      if (model.benchmarkModuleType.get() == MACROBENCHMARK && value.isPresent && value.get().minApiLevel < 29)
+        Validator.Result.fromNullableMessage("Macrobenchmark requires minimum SDK >= 29")
+      else
+        OK
     }, model.benchmarkModuleType)
 
     // Only validate target app module for macrobenchmarks
     bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
     val targetModuleValidator = ModuleSelectedValidator()
-    validatorPanel.registerValidator(model.targetModule, object : Validator<Optional<Module>> {
-      override fun validate(value: Optional<Module>): Validator.Result {
-        return if (model.benchmarkModuleType.get() == MACROBENCHMARK) {
-          targetModuleValidator.validate(value)
-        } else {
-          Validator.Result.OK
-        }
-      }
+    validatorPanel.registerValidator(model.targetModule, createValidator { value ->
+      if (model.benchmarkModuleType.get() == MACROBENCHMARK) targetModuleValidator.validate(value) else OK
     }, model.benchmarkModuleType)
   }
 
   override fun createMainPanel(): DialogPanel = panel {
     row {
       labelFor("Benchmark module type", microbenchmarkRadioButton, message("android.wizard.module.help.benchmark.module.type"))
-        buttonGroup {
-          macrobenchmarkRadioButton(pushX)
-          microbenchmarkRadioButton(pushX)
+      buttonGroup {
+        macrobenchmarkRadioButton(pushX)
+        microbenchmarkRadioButton(pushX)
       }
     }
 
