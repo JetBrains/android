@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.debuggers.coroutine
 
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration
@@ -31,36 +35,49 @@ import com.intellij.xdebugger.XDebuggerManagerListener
 import org.jetbrains.kotlin.idea.debugger.coroutine.DebuggerConnection
 
 /**
- * ProjectListener that registers a [XDebuggerManagerListener] every time a project is open.
- * The [XDebuggerManagerListener] instantiates the Coroutine Debugger panel each time a debugger session starts.
+ * Class responsible for setting up to coroutine debugger [DebuggerConnection]
  */
 class CoroutineDebuggerProjectListener : ProjectManagerListener {
   private var connection: MessageBusConnection? = null
+  private var executionListener = CoroutineDebuggerExecutionListener()
 
   override fun projectOpened(project: Project) {
     if (!FlagController.isCoroutineDebuggerEnabled) {
       return
     }
 
-    val connection = project.messageBus.connect()
-    connection.subscribe(XDebuggerManager.TOPIC, CoroutineDebuggerListener(project))
+    // multiple projects can be opened, which causes multiple ProjectManagerListeners to be created.
+    // ProjectManagerListeners#projectOpened is called on every listener every time a project is opened.
+    // by checking this flag we prevent the same listener to register the execution listener multiple times.
+    if (executionListener.registered) {
+      return
+    }
+
+    connection = project.messageBus.connect(project)
+
+    // Using an ExecutionListener to hook into the launch of an android app instead of an AndroidLaunchTaskContributor
+    // has the advantage that we need to set this up only once, when the project is opened, instead of every time an app is
+    // launched.
+    connection!!.subscribe(ExecutionManager.EXECUTION_TOPIC, executionListener)
+    executionListener.registered = true
   }
 
   override fun projectClosed(project: Project) {
     connection?.disconnect()
   }
 
-  private class CoroutineDebuggerListener(private val project: Project) : XDebuggerManagerListener {
-    override fun processStarted(debugProcess: XDebugProcess) {
-      if (!FlagController.isCoroutineDebuggerEnabled) {
-        return
-      }
+  private class CoroutineDebuggerExecutionListener : ExecutionListener {
+    var registered = false
 
-      // forward the "processStarted" call to the Kotlin plugin DebuggerConnection component,
-      // which is responsible for creating the Coroutines Debugger panel
-      val fakeConfiguration = FakeExternalSystemRunConfiguration(project)
-      val debuggerConnection = DebuggerConnection(project, fakeConfiguration, null, false)
-      debuggerConnection.processStarted(debugProcess)
+    override fun processStarting(executorId: String, env: ExecutionEnvironment) {
+      // Checking for AndroidRunConfigurationBase makes sure that the code is executed only for Android apps, not regular JVM or
+      // kotlin. It also works for hybrid debugging on Android (native + jvm).
+      if (executorId == DefaultDebugExecutor.EXECUTOR_ID && env.runProfile is AndroidRunConfigurationBase) {
+        val fakeConfiguration = FakeExternalSystemRunConfiguration(env.project)
+        // The creation of DebuggerConnection registers an event listener to DebuggerManager.
+        // When a debug process is started, it triggers a callback that creates the coroutine debugger panel UI.
+        DebuggerConnection(env.project, fakeConfiguration, null, false)
+      }
     }
   }
 
