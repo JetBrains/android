@@ -16,10 +16,9 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
 package com.android.tools.idea.diagnostics.hprof.util
 
-import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.SystemInfoRt
+import com.intellij.util.lang.JavaVersion
 import sun.misc.Unsafe
 import sun.nio.ch.DirectBuffer
 import java.nio.ByteBuffer
@@ -43,11 +42,26 @@ class HProfReadBufferSlidingWindow(private val channel: FileChannel, parser: HPr
   }
 
   override fun close() {
+    invokeCleaner(buffer)
+  }
+
+  private fun invokeCleaner(byteBuffer: ByteBuffer) {
     try {
-      (buffer as? DirectBuffer)?.cleaner()?.clean()
-    }
-    catch (ex: Exception) {
-      // ignore
+      if (JavaVersion.current().feature >= 9) {
+        val unsafeClass = Unsafe::class.java
+        val invokeCleanerMethod = unsafeClass.getMethod("invokeCleaner", ByteBuffer::class.java)
+        val theUnsafeField = unsafeClass.declaredFields.find { f -> f.name == "theUnsafe" }
+        theUnsafeField?.let {
+          it.isAccessible = true
+          val unsafe = it.get(unsafeClass) as Unsafe
+          invokeCleanerMethod.invoke(unsafe, byteBuffer)
+        }
+      }
+      else {
+        (byteBuffer as? DirectBuffer)?.cleaner()?.clean()
+      }
+    } catch (t: Throwable) {
+      LOG.error(t)
     }
   }
 
