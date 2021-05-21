@@ -36,7 +36,7 @@ import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.analytics.AndroidStudioAnalytics;
+//import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.execution.configurations.ConfigurationType;
@@ -86,7 +86,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
 
     @Override
     public void beforeApplicationLoaded(@NotNull Application application, @NotNull String configPath) {
-      AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
+      //AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
       StudioProgressManagerAdapter.initialize();
     }
   }
@@ -141,7 +141,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
    * sets up collection of Android Studio specific analytics.
    */
   private static void setupAnalytics() {
-    AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
+    //AndroidStudioAnalytics.getInstance().initializeAndroidStudioUsageTrackerAndPublisher();
 
     // If the user hasn't opted in, we will ask IJ to check if the user has
     // provided a decision on the statistics consent. If the user hasn't made a

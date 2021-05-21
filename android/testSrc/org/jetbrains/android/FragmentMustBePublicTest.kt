@@ -19,8 +19,8 @@ import com.android.SdkConstants.DOT_JAVA
 import com.android.testutils.TestUtils
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
-import com.intellij.analytics.AndroidStudioAnalytics
-import com.intellij.analytics.NullAndroidStudioAnalytics
+//import com.intellij.analytics.AndroidStudioAnalytics // modified platform
+//import com.intellij.analytics.NullAndroidStudioAnalytics // modified platform
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection
 import com.intellij.openapi.util.io.FileUtil
@@ -48,7 +48,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
     TestUtils.getWorkspaceRoot()
     VfsRootAccess.allowRootAccess(testRootDisposable,
                                   FileUtil.toCanonicalPath(AndroidTestBase.getAndroidPluginHome()))
-    AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics())
+    //AndroidStudioAnalytics.initialize(NullAndroidStudioAnalytics()) // modified platform
     val analyticsSettings = AnalyticsSettingsData()
     analyticsSettings.optedIn = false
     AnalyticsSettings.setInstanceForTest(analyticsSettings)
