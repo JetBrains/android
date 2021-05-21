@@ -64,10 +64,9 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
   private lateinit var ex: Executor
   private lateinit var env: ExecutionEnvironment
   private lateinit var androidFacet: AndroidFacet
-  private lateinit var appIdProvider: ApplicationIdProvider
 
-  private lateinit var apkProvider: ApkProvider
-
+  private val Project.apkProvider: ApkProvider get() = getProjectSystem().getApkProvider(configuration)!!
+  private val Project.applicationIdProvider: ApplicationIdProvider get() = getProjectSystem().getApplicationIdProvider(configuration)!!
   private lateinit var launchOptionsBuilder: LaunchOptions.Builder
 
   private lateinit var device: IDevice
@@ -100,9 +99,6 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       ex = DefaultDebugExecutor.getDebugExecutorInstance()
       env = ExecutionEnvironment(ex, runner, configSettings, project)
 
-      appIdProvider = project.getProjectSystem().getApplicationIdProvider(configuration)!!
-      apkProvider = project.getProjectSystem().getApkProvider(configuration)!!
-
       launchOptionsBuilder = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
         .setSkipNoopApkInstallations(true)
@@ -131,8 +127,8 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       configuration,
       env,
       androidFacet,
-      appIdProvider,
-      apkProvider,
+      project.applicationIdProvider,
+      project.apkProvider,
       launchOptionsBuilder.build()
     )
 
@@ -164,8 +160,8 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       configuration,
       env,
       androidFacet,
-      appIdProvider,
-      apkProvider,
+      project.applicationIdProvider,
+      project.apkProvider,
       launchOptionsBuilder.build()
     )
 
@@ -192,8 +188,8 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       configuration,
       env,
       androidFacet,
-      appIdProvider,
-      apkProvider,
+      project.applicationIdProvider,
+      project.apkProvider,
       launchOptionsBuilder.build()
     )
 
