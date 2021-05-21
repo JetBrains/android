@@ -176,6 +176,13 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
+        "gradle.project.upgrade": {
+            "data": [
+                "//tools/base/build-system:gradle-distrib-6.1.1",
+                "//tools/base/build-system:gradle-distrib-6.5",
+            ],
+            "test_filter": "com.android.tools.idea.gradle.project.upgrade",
+        },
         "avd": {
             "test_filter": "com.android.tools.idea.avdmanager",
         },
@@ -283,8 +290,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
-        "//tools/base/build-system:gradle-distrib-6.1.1",  # b/141628806
-        "//tools/base/build-system:gradle-distrib-6.5",  # b/141628806
         "//tools/base/build-system:studio_repo",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
