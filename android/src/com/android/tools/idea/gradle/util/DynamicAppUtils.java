@@ -34,7 +34,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.android.utils.HtmlBuilder;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
@@ -245,14 +244,24 @@ public class DynamicAppUtils {
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull AndroidRunConfigurationBase configuration,
                                                        @Nullable AndroidVersion minTargetDeviceVersion) {
+    boolean alwaysDeployApkFromBundle = false;
+    boolean deployForTests = configuration instanceof AndroidTestRunConfiguration;
+
     if (configuration instanceof AndroidRunConfiguration) {
       AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
-      if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
-        Preconditions.checkArgument(androidConfiguration.DEPLOY);
-        return true;
-      }
+      alwaysDeployApkFromBundle = AndroidRunConfiguration.shouldDeployApkFromBundle(androidConfiguration);
     }
 
+    return useSelectApksFromBundleBuilder(module, alwaysDeployApkFromBundle, deployForTests, minTargetDeviceVersion);
+  }
+
+  public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
+                                                       boolean alwaysDeployApkFromBundle,
+                                                       boolean deployForTests,
+                                                       @Nullable AndroidVersion minTargetDeviceVersion) {
+    if (alwaysDeployApkFromBundle) {
+      return true;
+    }
     // If any device is pre-L *and* module has a dynamic feature, we need to use the bundle tool
     if (minTargetDeviceVersion != null && minTargetDeviceVersion.getFeatureLevel() < AndroidVersion.VersionCodes.LOLLIPOP &&
         !getDependentFeatureModulesForBase(module).isEmpty()) {
@@ -260,7 +269,7 @@ public class DynamicAppUtils {
     }
 
     // Instrumented test support for Dynamic Features
-    if (configuration instanceof AndroidTestRunConfiguration) {
+    if (deployForTests) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(module);
       if (androidModuleModel != null) {
         if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {

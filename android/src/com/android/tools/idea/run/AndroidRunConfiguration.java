@@ -35,6 +35,7 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.stats.RunStats;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.intellij.execution.ExecutionException;
@@ -413,5 +414,13 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   public void updateExtraRunStats(RunStats runStats) {
     runStats.setDeployedAsInstant(DEPLOY_AS_INSTANT);
     runStats.setDeployedFromBundle(DEPLOY_APK_FROM_BUNDLE);
+  }
+
+  public static boolean shouldDeployApkFromBundle(AndroidRunConfiguration configuration) {
+    if (configuration.DEPLOY_APK_FROM_BUNDLE) {
+      Preconditions.checkArgument(configuration.DEPLOY);
+      return true;
+    }
+    return false;
   }
 }
