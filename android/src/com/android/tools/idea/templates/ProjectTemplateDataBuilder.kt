@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.npw.project.determineGradlePluginVersion
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.wizard.template.FormFactor
@@ -121,15 +120,10 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   }
 
   /** Find the most appropriated Gradle Plugin version for the specified project. */
-  private fun determineGradlePluginVersion(project: Project?): GradleVersion {
-    val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    if (project == null || isNewProject) {
-      return defaultGradleVersion
-    }
-
-    val versionInUse = GradleUtil.getAndroidGradleModelVersionInUse(project)
-    val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
-    return versionInUse ?: androidPluginInfo?.pluginVersion ?: defaultGradleVersion
+  @Slow
+  private fun determineGradlePluginVersion(project: Project): GradleVersion {
+    // Could be expensive to calculate, so return any cached value.
+    return gradlePluginVersion ?: determineGradlePluginVersion(project, isNewProject)
   }
 
   fun build() = ProjectTemplateData(

@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.benchmark
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.adtui.validation.Validator
@@ -41,6 +42,8 @@ import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JLabel
 import javax.swing.JRadioButton
+
+private const val MACRO_AGP_MIN_VERSION = "7.0.0"
 
 class ConfigureBenchmarkModuleStep(
   model: NewBenchmarkModuleModel
@@ -90,6 +93,15 @@ class ConfigureBenchmarkModuleStep(
     val targetModuleValidator = ModuleSelectedValidator()
     validatorPanel.registerValidator(model.targetModule, createValidator { value ->
       if (model.benchmarkModuleType.get() == MACROBENCHMARK) targetModuleValidator.validate(value) else OK
+    }, model.benchmarkModuleType)
+
+    val minAgpVersion = GradleVersion.parse(MACRO_AGP_MIN_VERSION)
+    validatorPanel.registerValidator(gradleVersion, createValidator { version ->
+      if (model.benchmarkModuleType.get() == MACROBENCHMARK &&
+          version.isPresent && version.get().compareIgnoringQualifiers(minAgpVersion) < 0)
+        Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.macro.benchmark", MACRO_AGP_MIN_VERSION))
+      else
+        OK
     }, model.benchmarkModuleType)
   }
 
