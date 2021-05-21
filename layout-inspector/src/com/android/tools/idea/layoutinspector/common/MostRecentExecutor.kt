@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.Executor
 
 /**
@@ -43,12 +44,20 @@ class MostRecentExecutor(private val wrapped: Executor) : Executor {
       if (!state.isExecuting) {
         state.isExecuting = true
         wrapped.execute {
-          command.run()
-          synchronized(state) {
-            state.isExecuting = false
-            val nextCommand = state.nextCommand
-            state.nextCommand = null
-            nextCommand?.let { execute(it) }
+          try {
+            command.run()
+          }
+          catch (e: Exception) {
+            Logger.getInstance(MostRecentExecutor::class.java).warn(e)
+            throw e
+          }
+          finally {
+            synchronized(state) {
+              state.isExecuting = false
+              val nextCommand = state.nextCommand
+              state.nextCommand = null
+              nextCommand?.let { execute(it) }
+            }
           }
         }
       }
