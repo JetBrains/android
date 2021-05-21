@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
-import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFileOrFolderFromListingFile
 import com.android.tools.idea.log.LogWrapper
@@ -130,24 +128,12 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     val isTestConfiguration = runConfiguration.isTestConfiguration
     val alwaysDeployApkFromBundle = (runConfiguration as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
 
-    fun outputKind(targetDevicesMinVersion: AndroidVersion?): GradleApkProvider.OutputKind {
-      return when (DynamicAppUtils.useSelectApksFromBundleBuilder(
-        facet.module,
-        alwaysDeployApkFromBundle,
-        isTestConfiguration,
-        targetDevicesMinVersion
-      )) {
-        true -> GradleApkProvider.OutputKind.AppBundleOutputModel
-        false -> GradleApkProvider.OutputKind.Default
-      }
-    }
-
     return GradleApkProvider(
       facet,
       getApplicationIdProvider(runConfiguration) ?: return null,
       { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       isTestConfiguration,
-      { outputKind(it) }
+      alwaysDeployApkFromBundle
     )
   }
 

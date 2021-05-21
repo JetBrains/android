@@ -99,8 +99,8 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
   @NotNull private final BestOutputFinder myBestOutputFinder;
   private final boolean myTest;
-  private final Function<AndroidVersion, OutputKind> myOutputKindProvider;
 
+  private final boolean myAlwaysDeployApkFromBundle;
   public static final Key<PostBuildModel> POST_BUILD_MODEL = Key.create("com.android.tools.idea.post_build_model");
 
   private static final String VARIANT_DISPLAY_NAME_STUB = "<VARIANT_DISPLAY_NAME>";
@@ -123,8 +123,8 @@ public class GradleApkProvider implements ApkProvider {
                            @NotNull GradleApplicationIdProvider applicationIdProvider,
                            @NotNull PostBuildModelProvider outputModelProvider,
                            boolean test,
-                           @NotNull Function<AndroidVersion, OutputKind> outputKindProvider) {
-    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, outputKindProvider);
+                           boolean alwaysDeployApkFromBundle) {
+    this(facet, applicationIdProvider, outputModelProvider, new BestOutputFinder(), test, alwaysDeployApkFromBundle);
   }
 
   @VisibleForTesting
@@ -133,17 +133,29 @@ public class GradleApkProvider implements ApkProvider {
                     @NotNull PostBuildModelProvider outputModelProvider,
                     @NotNull BestOutputFinder bestOutputFinder,
                     boolean test,
-                    Function<AndroidVersion, OutputKind> outputKindProvider) {
+                    boolean alwaysDeployApkFromBundle) {
     myFacet = facet;
     myApplicationIdProvider = applicationIdProvider;
     myOutputModelProvider = outputModelProvider;
     myBestOutputFinder = bestOutputFinder;
     myTest = test;
-    myOutputKindProvider = outputKindProvider;
+    myAlwaysDeployApkFromBundle = alwaysDeployApkFromBundle;
   }
 
   @VisibleForTesting
-  OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) { return myOutputKindProvider.apply(targetDevicesMinVersion); }
+  OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) {
+    if (DynamicAppUtils.useSelectApksFromBundleBuilder(
+      myFacet.getModule(),
+      myAlwaysDeployApkFromBundle,
+      isTest(),
+      targetDevicesMinVersion
+    )) {
+      return GradleApkProvider.OutputKind.AppBundleOutputModel;
+    }
+    else {
+      return GradleApkProvider.OutputKind.Default;
+    }
+  }
 
   @TestOnly
   boolean isTest() { return myTest; }
