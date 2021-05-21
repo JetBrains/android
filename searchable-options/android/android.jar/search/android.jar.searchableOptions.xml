@@ -833,6 +833,8 @@
     <option name="parallel" hit="Enable test runs across multiple devices in parallel." />
     <option name="runs" hit="Enable test runs across multiple devices in parallel." />
     <option name="test" hit="Enable test runs across multiple devices in parallel." />
+    <option name="learn" hit="Learn more" />
+    <option name="more" hit="Learn more" />
     <option name="android" hit="Run Android Instrumented Tests using Gradle." />
     <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
     <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />

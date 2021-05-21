@@ -91,7 +91,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/imgscalr-lib-4.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/ini4j-0.5.5-2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.575.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-deps-fastutil-8.4.1-5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-deps-fastutil-8.5.2-6.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-dvcs.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-test-discovery-agent-1.0.575.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/intellij-xml.jar!/" />
@@ -111,12 +111,12 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jaxb-runtime-2.3.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jaxen-1.2.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jb-jdi-2.4.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jcef-84.3.8-gc8a556f-chromium-84.0.4147.105-api-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jcef-87.1.13-g481a82a-chromium-87.0.4280.141-api-1.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jcip-annotations-1.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jcodings-1.0.55.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jdkAnnotations.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jdom.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jediterm-pty-2.37.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jediterm-pty-2.38.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jetCheck-0.2.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jing-20030619.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/jna-platform.jar!/" />
@@ -161,7 +161,6 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/miglayout-swing-5.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/minlog-1.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/nanoxml-2.2.3.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/nekohtml-1.9.22.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/netty-buffer-4.1.56.Final.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/netty-codec-4.1.56.Final.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/netty-codec-http-4.1.56.Final.jar!/" />
@@ -193,7 +192,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/proto-google-common-protos-1.12.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/protobuf-java-3.11.4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/protobuf-java-3.13.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/proxy-vole-1.0.5-jb.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/proxy-vole-1.0.10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/pty4j-0.11.4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/purejavacomm-0.0.11.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/qdox-2.0.0.jar!/" />
@@ -202,7 +201,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/rd-swing-0.211.195.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/resources.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/resources_en.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/rhino-1.7.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/rhino-runtime-1.7.13.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/rngom-20051226-patched.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/serviceMessages-2019.1.4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/lib/shims-0.9.5.jar!/" />
@@ -257,6 +256,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/maven-resolver-connector-basic-1.3.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/maven-resolver-transport-file-1.3.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/maven-resolver-transport-http-1.3.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/nekohtml-1.9.22.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/resources.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/resources_en.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-211/$SDK_PLATFORM$/plugins/java/lib/sa-jdwp-1.15.jar!/" />
