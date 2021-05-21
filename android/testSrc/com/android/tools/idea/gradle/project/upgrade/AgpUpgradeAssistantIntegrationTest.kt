@@ -25,7 +25,7 @@ import com.intellij.openapi.module.ModuleManager
 import java.io.File
 
 class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
-  fun testUpgradeBasic40() {
+  fun testUpgradeBasic40to41() {
     loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72")
 
     val appModule = ModuleManager.getInstance(project).modules.first { it.name == "Basic40.app" }
@@ -47,7 +47,7 @@ class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
     assertThat(projectBuildFileLines).contains("ext.kotlin_version = \"1.3.72\"")
 
     val appBuildFile = File(File(project.basePath, "app"), "build.gradle")
-    assertThat(appBuildFile.readText()).isEqualTo(File(File(project.basePath, "app"), "build.gradle.expected").readText())
+    assertThat(appBuildFile.readText()).isEqualTo(File(File(project.basePath, "app"), "build.gradle.expected.to41").readText())
 
     val gradleWrapperFile = File(File(File(project.basePath, "gradle"), "wrapper"), "gradle-wrapper.properties")
     val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
