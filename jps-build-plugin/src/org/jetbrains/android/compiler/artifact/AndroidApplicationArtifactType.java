@@ -6,23 +6,23 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.artifacts.sourceItems.LibrarySourceItem;
 import com.intellij.openapi.roots.ui.configuration.artifacts.sourceItems.ModuleOutputSourceItem;
-import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.artifacts.ArtifactTemplate;
 import com.intellij.packaging.artifacts.ArtifactType;
+import com.intellij.packaging.artifacts.ModifiableArtifact;
 import com.intellij.packaging.elements.CompositePackagingElement;
 import com.intellij.packaging.elements.PackagingElementFactory;
 import com.intellij.packaging.elements.PackagingElementOutputKind;
 import com.intellij.packaging.elements.PackagingElementResolvingContext;
 import com.intellij.packaging.impl.artifacts.ArtifactUtil;
 import com.intellij.packaging.ui.PackagingSourceItem;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.*;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidApplicationArtifactType extends ArtifactType {
   public AndroidApplicationArtifactType() {
@@ -109,7 +109,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
     }
 
     @Override
-    public void setUpArtifact(@NotNull Artifact artifact, @NotNull NewArtifactConfiguration configuration) {
+    public void setUpArtifact(@NotNull ModifiableArtifact artifact, @NotNull NewArtifactConfiguration configuration) {
       final AndroidFacet facet = AndroidArtifactUtil.getPackagedFacet(myProject, artifact);
 
       if (facet != null) {
@@ -118,6 +118,8 @@ public class AndroidApplicationArtifactType extends ArtifactType {
         if (properties instanceof AndroidApplicationArtifactProperties) {
           final AndroidApplicationArtifactProperties p = (AndroidApplicationArtifactProperties)properties;
           p.setProGuardCfgFiles(facet.getProperties().myProGuardCfgFiles);
+          // Properties should be set again in the new project model
+          artifact.setProperties(AndroidArtifactPropertiesProvider.getInstance(), properties);
         }
       }
     }
