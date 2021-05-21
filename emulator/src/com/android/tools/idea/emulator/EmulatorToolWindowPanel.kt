@@ -134,8 +134,6 @@ class EmulatorToolWindowPanel(
 
     addToCenter(centerPanel)
     addToolbar()
-
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
   }
 
   private fun addToolbar() {
@@ -188,6 +186,7 @@ class EmulatorToolWindowPanel(
       primaryEmulatorView = emulatorView
       mainToolbar.setTargetComponent(emulatorView)
       installFileDropHandler(this, emulatorView, project)
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
       emulatorView.addDisplayConfigurationListener(displayConfigurator)
       emulator.addConnectionStateListener(this)
 
@@ -257,6 +256,7 @@ class EmulatorToolWindowPanel(
       })
     }
 
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusOwnerListener)
     emulator.removeConnectionStateListener(this)
     contentDisposable?.let { Disposer.dispose(it) }
     contentDisposable = null
