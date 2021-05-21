@@ -131,22 +131,6 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
 
     // Assert columns.
-    assertThat(table.getModelForTesting().columnInfos).hasLength(3)
-    assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
-    assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
-    assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("Status")
-
-    // Assert rows.
-    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
-  }
-
-  @Test
-  fun hideStatusColumn() {
-    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger).apply {
-      showTestStatusColumn = false
-    }
-
-    // Assert columns.
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
     assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
     assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
@@ -432,13 +416,40 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
+    val device3 = device("deviceId3", "deviceName3")
 
     table.addDevice(device1)
     table.addDevice(device2)
+    table.addDevice(device3)
 
     val view = table.getTableViewForTesting()
     val model = table.getModelForTesting()
 
+    assertThat(view.columnCount).isEqualTo(6)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("Status")
+    assertThat(model.columns[3].name).isEqualTo("deviceName1")
+    assertThat(model.columns[4].name).isEqualTo("deviceName2")
+    assertThat(model.columns[5].name).isEqualTo("deviceName3")
+
+    // Apply column filter.
+    table.setColumnFilter { device ->
+      device.id == "deviceId2"
+    }
+
+    // Status column is not displayed because only a single device is selected.
+    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("deviceName2")
+
+    // Apply column filter.
+    table.setColumnFilter { device ->
+      device.id == "deviceId1" || device.id == "deviceId2"
+    }
+
+    // Status column is displayed because multiple devices are selected.
     assertThat(view.columnCount).isEqualTo(5)
     assertThat(model.columns[0].name).isEqualTo("Tests")
     assertThat(model.columns[1].name).isEqualTo("Duration")
@@ -447,15 +458,12 @@ class AndroidTestResultsTableViewTest {
     assertThat(model.columns[4].name).isEqualTo("deviceName2")
 
     // Apply column filter.
-    table.setColumnFilter { device ->
-      device.id == "deviceId2"
-    }
+    table.setColumnFilter { device -> false }
 
-    assertThat(view.columnCount).isEqualTo(4)
+    // Status column is not displayed when zero devices are selected.
+    assertThat(view.columnCount).isEqualTo(2)
     assertThat(model.columns[0].name).isEqualTo("Tests")
     assertThat(model.columns[1].name).isEqualTo("Duration")
-    assertThat(model.columns[2].name).isEqualTo("Status")
-    assertThat(model.columns[3].name).isEqualTo("deviceName2")
   }
 
   @Test

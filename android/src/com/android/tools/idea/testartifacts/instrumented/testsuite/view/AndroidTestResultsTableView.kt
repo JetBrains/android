@@ -190,18 +190,6 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
   }
 
   /**
-   * Shows or hides a test status column in the table.
-   */
-  @get:UiThread
-  @set:UiThread
-  var showTestStatusColumn: Boolean
-    get() = myModel.showTestStatusColumn
-    set(value) {
-      myModel.showTestStatusColumn = value
-      refreshTable()
-    }
-
-  /**
    * Refreshes and redraws the table.
    */
   @UiThread
@@ -711,8 +699,6 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   private val myDeviceColumns: MutableList<AndroidTestResultsColumn> = mutableListOf()
   private lateinit var myFilteredColumns: Array<ColumnInfo<Any, Any>>
 
-  var showTestStatusColumn: Boolean = true
-
   /**
    * A filter to show and hide columns.
    */
@@ -780,14 +766,15 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   private fun updateFilteredColumns() {
     val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(
       TestNameColumn, TestDurationColumn as ColumnInfo<Any, Any>)
-    if (showTestStatusColumn) {
-      filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
-    }
-    myDeviceColumns.filter {
+    val filteredDeviceColumns = myDeviceColumns.filter {
       myColumnFilter?.invoke(it.device) ?: true
     }.map {
       it as ColumnInfo<Any, Any>
-    }.toCollection(filteredColumns)
+    }
+    if (filteredDeviceColumns.size > 1) {
+      filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
+    }
+    filteredDeviceColumns.toCollection(filteredColumns)
     myFilteredColumns = filteredColumns.toTypedArray()
   }
 
