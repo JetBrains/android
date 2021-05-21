@@ -24,8 +24,8 @@ public class PlaceholderNodeImpl extends GraphNodeImpl implements PlaceholderNod
 
   public PlaceholderNodeImpl(BlockGraph parentGraph) {
     this.mBlockGraph = parentGraph;
-    this.mInNodes = new HashSet<GraphNode>();
-    this.mOutNodes = new HashSet<GraphNode>();
+    this.mInNodes = new HashSet<>();
+    this.mOutNodes = new HashSet<>();
     this.mStmtList = null;
   }
 

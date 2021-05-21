@@ -52,9 +52,6 @@ public final class TabularLayoutTest {
     }
     catch (Exception ignored) {
     }
-    //handle Kotlin 1.4 behavior
-    catch (NullPointerException ignored) {
-    }
   }
 
 

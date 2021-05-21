@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropert
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
@@ -916,7 +917,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       }
     }
 
-    List<String> referenceTextSegments = GradleNameElement.split(referenceText);
+    List<String> referenceTextSegments = GradleNameElementUtil.split(referenceText);
     int index = 0;
     int segmentCount = referenceTextSegments.size();
     for (; index < segmentCount; index++) {

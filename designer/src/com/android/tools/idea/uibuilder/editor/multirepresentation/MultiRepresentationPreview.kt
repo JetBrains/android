@@ -72,7 +72,7 @@ data class MultiRepresentationPreviewFileEditorState(
   var selectedRepresentationName: RepresentationName = "",
   @Tag("representations")
   var representations: Collection<Representation> = mutableListOf()) : FileEditorState {
-  override fun canBeMergedWith(otherState: FileEditorState?, level: FileEditorStateLevel?): Boolean =
+  override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is MultiRepresentationPreviewFileEditorState && this == otherState
 
   companion object {

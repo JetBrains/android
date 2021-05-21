@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.model.PsModelDescriptor
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.concurrency.AsyncPromise
@@ -61,7 +62,8 @@ fun <R> waitForFuture(future: ListenableFuture<R>, timeout: Long, timeUnit: Time
         null -> asyncPromise.setError("Undefined error. See logs for details")
         else -> asyncPromise.setError(it)
       }
-    }
+    },
+    executor = MoreExecutors.directExecutor()
   )
   return invokeAndWaitIfNeeded {
     PlatformTestUtil.waitForPromise(asyncPromise, timeUnit.toMillis(timeout))

@@ -35,7 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
-import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -268,7 +267,7 @@ public class AndroidRootUtil {
             VirtualFile classDir = extension.getCompilerOutputPath();
 
             if (libraryProject) {
-              VirtualFile tmpArtifactsDir = AndroidMavenUtil.getOutputDirectoryForDex(depModule, classDir);
+              VirtualFile tmpArtifactsDir = getOutputDirectoryForDex(depModule);
 
               if (tmpArtifactsDir != null) {
                 VirtualFile packedClassesJar = tmpArtifactsDir.findChild(CLASSES_JAR_FILE_NAME);
@@ -288,6 +287,10 @@ public class AndroidRootUtil {
         }
       }
     });
+  }
+
+  private static VirtualFile getOutputDirectoryForDex(@NotNull Module module) {
+    return CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
   }
 
   @NotNull

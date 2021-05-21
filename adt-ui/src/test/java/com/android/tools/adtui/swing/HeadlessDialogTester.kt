@@ -454,8 +454,7 @@ private class HeadlessDialogWrapperPeer : DialogWrapperPeer {
     modalityChangeCondition.signalAll()
     modalityChangeLock.unlock()
 
-    val eventQueue = IdeEventQueue.getInstance()
-    while (latch.count > 0 && PlatformTestUtil.dispatchNextEventIfAny(eventQueue) != null) {
+    while (latch.count > 0 && PlatformTestUtil.dispatchNextEventIfAny() != null) {
       latch.await(10, TimeUnit.MILLISECONDS)
     }
 

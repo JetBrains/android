@@ -19,7 +19,6 @@ import com.android.SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_MINIMUM_VERSION
 import com.android.ide.common.repository.GradleVersion
-import com.android.ide.common.repository.GradleVersion.max
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.flags.StudioFlags
@@ -38,19 +37,33 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.dsl.api.repositories.addGoogleMavenRepository
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
-import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.*
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_4_10_1
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_4_4
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_4_6
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_5_1_1
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_5_4_1
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_5_6_4
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_6_1_1
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_6_5
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_FOR_DEV
+import com.android.tools.idea.gradle.project.upgrade.AgpGradleVersionRefactoringProcessor.Companion.CompatibleGradleVersion.VERSION_MIN
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
 import com.android.tools.idea.gradle.util.BuildFileProcessor
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
@@ -89,9 +102,7 @@ import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.NavigationItem
 import com.intellij.navigation.PsiElementNavigationItem
 import com.intellij.notification.NotificationListener
-import com.intellij.openapi.actionSystem.TypeSafeDataProvider
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -140,15 +151,13 @@ import com.intellij.usages.rules.UsageGroupingRuleProvider
 import com.intellij.util.Processor
 import com.intellij.util.ThreeState.NO
 import com.intellij.util.ThreeState.YES
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.toArray
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
-import java.util.Arrays
-import java.util.HashSet
-import java.util.UUID
+import java.util.*
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.Icon
@@ -323,7 +332,7 @@ class AgpUpgradeRefactoringProcessor(
       return CommonRefactoringUtil.checkReadOnlyStatus(project, *psiElements)
     }
 
-    val elements: MutableSet<PsiElement> = ContainerUtil.newIdentityTroveSet() // protect against poorly implemented equality
+    val elements: MutableSet<PsiElement> = ReferenceOpenHashSet() // protect against poorly implemented equality
 
     for (usage in usages) {
       assert(usage != null) { "Found null element in usages array" }
@@ -383,16 +392,8 @@ class AgpUpgradeRefactoringProcessor(
     }
     presentation.setDynamicUsagesString("Dynamic " + StringUtil.decapitalize(
       descriptor.getCodeReferencesText(dynamicUsagesCount, dynamicUsagesCodeFiles.size)))
-    val generatedCodeString: String
-    generatedCodeString = if (codeReferencesText.contains("in code")) {
-      StringUtil.replace(codeReferencesText, "in code", "in generated code")
-    }
-    else {
-      "$codeReferencesText in generated code"
-    }
-    presentation.usagesInGeneratedCodeString = generatedCodeString
-    return presentation
 
+    return presentation
   }
 
   private fun showUsageView(viewDescriptor: UsageViewDescriptor, factory: Factory<UsageSearcher>, usageInfos: Array<out UsageInfo>) {
@@ -1964,7 +1965,6 @@ class WrappedPsiElement(
 private class WrappedUsageTarget(
   private val usageTarget: PsiElement2UsageTargetAdapter
 ): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
    PsiElementNavigationItem by usageTarget,
    ItemPresentation by usageTarget,
    UsageTarget by usageTarget {
@@ -1989,7 +1989,6 @@ private class WrappedConfigurableUsageTarget(
   private val usageTarget: PsiElement2UsageTargetAdapter,
   private val showSettingsAction: Action
 ): PsiElementUsageTarget by usageTarget,
-   TypeSafeDataProvider by usageTarget,
    PsiElementNavigationItem by usageTarget,
    ItemPresentation by usageTarget,
    ConfigurableUsageTarget by usageTarget {
@@ -2019,7 +2018,7 @@ private class WrappedConfigurableUsageTarget(
  * a high-level description of the effect the refactoring will have on this usage.
  */
 class AgpComponentUsageTypeProvider : UsageTypeProvider {
-  override fun getUsageType(element: PsiElement?): UsageType? =
+  override fun getUsageType(element: PsiElement): UsageType? =
     if (StudioFlags.AGP_UPGRADE_ASSISTANT.get()) (element as? WrappedPsiElement)?.usageType else null
 }
 

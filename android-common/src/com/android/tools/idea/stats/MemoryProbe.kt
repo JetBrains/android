@@ -92,7 +92,7 @@ open class MemoryProbe(
   }
 
   @Suppress("UNUSED_PARAMETER") // Keep ref for debugging
-  private fun add(obj: Any, ref: DebugReflectionUtil.BackLink): Boolean {
+  private fun add(obj: Any, ref: DebugReflectionUtil.BackLink<*>): Boolean {
     val fields = fields(obj.javaClass)
     val arraySize = arraySize(obj)
     size += ESTIMATED_OBJECT_OVERHEAD + fields * REFERENCE_SIZE + arraySize

@@ -45,7 +45,7 @@ data class SourceCodeEditorWithMultiRepresentationPreviewState(
   val parentState: FileEditorState = FileEditorState.INSTANCE,
   val editorState: FileEditorState = FileEditorState.INSTANCE,
   val previewState: MultiRepresentationPreviewFileEditorState = MultiRepresentationPreviewFileEditorState.INSTANCE) : FileEditorState {
-  override fun canBeMergedWith(otherState: FileEditorState?, level: FileEditorStateLevel?): Boolean =
+  override fun canBeMergedWith(otherState: FileEditorState, level: FileEditorStateLevel): Boolean =
     otherState is SourceCodeEditorWithMultiRepresentationPreviewState &&
     otherState.editorState.canBeMergedWith(editorState, level) &&
     otherState.previewState.canBeMergedWith(previewState, level) &&

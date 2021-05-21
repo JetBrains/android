@@ -78,7 +78,7 @@ object AndroidDispatchers {
   val ioThread: CoroutineDispatcher get() = AndroidExecutors.getInstance().ioThreadExecutor.asCoroutineDispatcher()
 }
 
-private val LOG: Logger get() = Logger.getInstance("CoroutinesUtils.kt")
+private val LOG: Logger get() = Logger.getInstance("com.android.tools.idea.concurrency.CoroutinesUtils.kt")
 
 /**
  * Exception handler similar to IDEA's default behavior (see [com.intellij.idea.StartupUtil.installExceptionHandler]) that additionally
@@ -88,10 +88,10 @@ val androidCoroutineExceptionHandler = CoroutineExceptionHandler { ctx, throwabl
   if (throwable !is ProcessCanceledException) {
     val coroutineName = ctx[CoroutineName]?.name
     if (coroutineName != null) {
-      L.LOG.error(coroutineName, throwable)
+      LOG.error(coroutineName, throwable)
     }
     else {
-      L.LOG.error(throwable)
+      LOG.error(throwable)
     }
   }
 }

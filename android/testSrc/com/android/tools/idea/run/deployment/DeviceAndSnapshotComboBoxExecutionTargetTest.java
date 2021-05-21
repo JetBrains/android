@@ -112,7 +112,8 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
   @Test
   public void deviceTargetNotSuggestedForNonAndroidRunConfigurations() {
-    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.emptyList());
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(Collections.emptyList()));
+    ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.emptySet(), myGetter);
 
     AndroidRunConfiguration android = Mockito.mock(AndroidRunConfiguration.class);
     AndroidTestRunConfiguration androidTest = Mockito.mock(AndroidTestRunConfiguration.class);

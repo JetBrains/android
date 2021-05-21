@@ -213,12 +213,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   public void testProjectWithCustomBuildScriptDeps() throws Exception {
     // https://youtrack.jetbrains.com/issue/IDEA-228545
     loadProject(CUSTOM_BUILD_SCRIPT_DEPS);
-
-    Module appModule = TestModuleUtil.findAppModule(getProject());
-    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
-    assertNotNull(androidModel);
-    Collection<SyncIssue> issues = androidModel.getSyncIssues();
-    assertThat(issues).isEmpty();
+    requestSyncAndWait();
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {

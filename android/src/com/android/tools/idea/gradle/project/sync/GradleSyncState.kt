@@ -403,7 +403,12 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
   }
 
   class DataImportListener(val project: Project) : ProjectDataImportListener {
-    override fun onImportFinished(projectPath: String) {
+    override fun onImportFinished(projectPath: String?) {
+      if (projectPath == null){
+        LOG.warn("onImportFinished with `projectPath = null`")
+        return
+      }
+
       LOG.info("onImportFinished($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath)) {

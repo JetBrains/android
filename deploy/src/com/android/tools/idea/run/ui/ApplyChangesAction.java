@@ -96,12 +96,12 @@ public class ApplyChangesAction extends BaseAction {
       return new RunningApplicationUpdater() {
         @Override
         public String getDescription() {
-          return NAME;
+          return DISPLAY_NAME;
         }
 
         @Override
         public String getShortName() {
-          return NAME;
+          return DISPLAY_NAME;
         }
 
         @Override

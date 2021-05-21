@@ -28,7 +28,6 @@ import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
-import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessHandler
@@ -72,9 +71,7 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
 
   try {
     val runProfile = ImportAndroidTestMatrixRunProfile(xmlFile, project)
-    val executor = runProfile.properties?.executor
-                   ?: ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID)
-                   ?: return false
+    val executor = DefaultRunExecutor.getRunExecutorInstance();
     val builder = ExecutionEnvironmentBuilder.create(project, executor, runProfile)
     runProfile.target?.let { builder.target(it) }
     runProfile.initialConfiguration?.let {

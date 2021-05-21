@@ -66,7 +66,7 @@ public class UnresolvedDependenciesReporterIntegrationTest extends AndroidGradle
     mySyncIssue = mock(IdeSyncIssue.class);
     // getMessage() is NotNull but message is unused for dependencies.
     when(mySyncIssue.getMessage()).thenReturn("");
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnresolvedDependenciesReporter();
     myUsageReporter = new TestSyncIssueUsageReporter();
     when(mySyncIssue.getType()).thenReturn(TYPE_UNRESOLVED_DEPENDENCY);

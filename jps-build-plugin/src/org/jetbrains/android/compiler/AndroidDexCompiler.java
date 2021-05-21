@@ -174,7 +174,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
         AndroidFacet facet = FacetManager.getInstance(module).getFacetByType(AndroidFacet.ID);
         if (facet != null && facet.getConfiguration().isAppProject()) {
 
-          final VirtualFile dexOutputDir = AndroidMavenUtil.getOutputDirectoryForDex(module, CompilerModuleExtension.getInstance(module).getCompilerOutputPath());
+          final VirtualFile dexOutputDir = CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
 
           Collection<VirtualFile> files;
 

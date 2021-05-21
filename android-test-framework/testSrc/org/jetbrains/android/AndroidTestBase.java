@@ -139,10 +139,11 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (DisposerExplorer.getParent(firstLeak.get()) == null) {
         throw new RuntimeException(
           baseMsg + ", registered as a root disposable (see cause for creation trace)",
-          DisposerExplorer.getTrace(disposable));
+          DisposerExplorer.getTrace(firstLeak.get()));
       } else {
         throw new RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.getClass().getName() + "'");
       }
+    }
   }
 
   public static void refreshProjectFiles() {

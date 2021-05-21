@@ -74,7 +74,7 @@ class ImportUtilsTest {
   private fun importXmlFile(fileName: String): AndroidTestSuiteView {
     lateinit var xmlFile: VirtualFile
     runWriteAction {
-      val inputDir = temporaryDirectoryRule.newVirtualDirectory("inputDir")
+      val inputDir = temporaryDirectoryRule.createVirtualDir("inputDir")
       xmlFile = inputDir.createChildData(this, "${fileName}.xml")
       xmlFile.setBinaryContent(
         Resources.toString(

@@ -44,7 +44,7 @@ import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 
 
-private val LOG: Logger get() = logger("#org.jetbrains.android.augment.ManifestClasses")
+private val LOG: Logger get() = Logger.getInstance(ManifestClass::class.java)
 
 /**
  * Manifest class for a given module.

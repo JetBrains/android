@@ -309,7 +309,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @NotNull File targetPath) throws IOException {
-    return prepareProjectForImport(relativePath, targetPath, null, null);
+    return prepareProjectForImport(relativePath, targetPath, null, null, null);
   }
 
   @NotNull
@@ -326,9 +326,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion) throws IOException {
+                                         @Nullable String gradlePluginVersion, @Nullable String kotlinVersion) throws IOException {
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
-    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion);
+    return prepareProjectForImport(relativePath, projectRoot, gradleVersion, gradlePluginVersion, kotlinVersion);
   }
 
   @NotNull

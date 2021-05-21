@@ -63,11 +63,6 @@ public class GradleSyncWithJpsPluginIntegrationTest extends GradleSyncIntegratio
     }
   }
 
-  @Override
-  protected boolean useSingleVariantSyncInfrastructure() {
-    return false;
-  }
-
   public void testLegacySourceGenerationIsDisabled() throws Exception {
     loadSimpleApplication();
 

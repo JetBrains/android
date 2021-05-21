@@ -107,7 +107,7 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
   private class AndroidNativeLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val name: String = message("android.wizard.module.new.native.library")
     override val description: String = message("android.wizard.module.new.native.library.description")
-    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.NATIVE else AndroidIcons.Wizards.AndroidNativeModule
+    override val icon: Icon = if (StudioFlags.NPW_NEW_MODULE_WITH_SIDE_BAR.get()) StudioIcons.Wizards.Modules.NATIVE else AndroidIcons.Wizards.CppConfigure
 
     override fun createStep(project: Project,
                             moduleParent: String,

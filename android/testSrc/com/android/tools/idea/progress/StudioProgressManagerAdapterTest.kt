@@ -69,7 +69,7 @@ class StudioProgressManagerAdapterTest {
 
     val writeActionCompleted = CountDownLatch(1)
     // Start a write action asynchronously.
-    ProgressRunner<Unit, ProgressIndicator>(writeActionCompleted::countDown).submit()
+    ProgressRunner<Unit>(writeActionCompleted::countDown).submit()
 
     // Allow one I/O operation every 100 milliseconds.
     for (i in 1..100) {

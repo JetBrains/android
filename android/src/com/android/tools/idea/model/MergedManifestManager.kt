@@ -124,16 +124,16 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) : AsyncSup
   )
   fun getOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
     ApplicationManager.getApplication().assertReadAccessAllowed()
-    val manifestSnapshot = RecursionManager.doPreventingRecursion(module, true, ::doGetOrCreateSnapshotInCallingThread)
+    val manifestSnapshot = RecursionManager.doPreventingRecursion(facet.module, true, ::doGetOrCreateSnapshotInCallingThread)
     if (manifestSnapshot != null) {
       return manifestSnapshot
     }
 
     Logger.getLogger(this.javaClass.name).warning(
-      """Infinite recursion detected when computing merged manifest for module ${module.name}
+      """Infinite recursion detected when computing merged manifest for module ${facet.module.name}
          ${TraceUtils.getCurrentStack()}
       """.trimMargin())
-    return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
+    return MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
   }
 
   private fun doGetOrCreateSnapshotInCallingThread(): MergedManifestSnapshot {
@@ -271,15 +271,6 @@ class MergedManifestManager(facet: AndroidFacet) {
 
     @JvmStatic
     fun getInstance(module: Module) = getInstance(module.androidFacet ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}"))
-
-    /**
-     * Registers a [callback] to be executed whenever the [module]'s merged manifest has been recomputed.
-     */
-    @JvmStatic
-    @TestOnly
-    fun setUpdateCallback(module: Module, callback: Runnable?) {
-      getInstance(module).supplier.updateCallback = callback
-    }
 
     /**
      * Convenience function for requesting a fresh [MergedManifestSnapshot] which, if necessary, will be calculated

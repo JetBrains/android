@@ -80,7 +80,7 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
         return null;
       }
       if (Arrays.equals(firstBytes.subSequence(0, magic.length).toBytes(), magic)) {
-        return myInstance;
+        return INSTANCE;
       }
       return null;
     }
