@@ -117,7 +117,7 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
     };
 
     myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
-                                          finder, true, it -> GradleApkProvider.OutputKind.Default);
+                                          finder, true, false);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
 
