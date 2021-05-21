@@ -38,6 +38,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.USE_VARIANTS_FROM_PREVIOUS_GRADLE_SYNCS;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.getModuleIdForModule;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
@@ -134,6 +135,7 @@ import com.intellij.util.PathsList;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -308,7 +310,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
                                                @NotNull IdeaModule gradleModule,
                                                @Nullable IdeAndroidModels androidModels) {
     String moduleName = moduleNode.getData().getInternalName();
-    File rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+    Path rootModulePath = toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
     @NotNull CachedVariants cachedVariants = findCachedVariants(gradleModule);
 
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
@@ -323,9 +325,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     Collection<SyncIssueData> issueData = null;
 
     if (androidModels != null) {
-      androidModel = createAndroidModuleModel(moduleName, rootModulePath, androidModels, cachedVariants);
+      androidModel = createAndroidModuleModel(moduleName, rootModulePath.toFile(), androidModels, cachedVariants);
       issueData = androidModels.getSyncIssues();
-      ndkModuleModel = maybeCreateNdkModuleModel(moduleName, rootModulePath, androidModels, cachedVariants);
+      ndkModuleModel = maybeCreateNdkModuleModel(moduleName, rootModulePath.toFile(), androidModels, cachedVariants);
 
       // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
       // Then we require all Java modules to export their dependencies.
@@ -333,7 +335,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     }
 
     Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
-    File gradleSettingsFile = findGradleSettingsFile(rootModulePath);
+    File gradleSettingsFile = findGradleSettingsFile(rootModulePath.toFile());
     boolean hasArtifactsOrNoRootSettingsFile = !(gradleSettingsFile.isFile() && !hasArtifacts(externalProject));
 
     if (hasArtifactsOrNoRootSettingsFile || androidModel != null) {

@@ -31,7 +31,9 @@ import com.intellij.openapi.projectRoots.JavaSdkVersionUtil;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +78,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    */
   public void testJavaHomeJdk() {
     boolean studio = myIdeSdks.isAndroidStudio();
-    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
+    ApplicationManager.getApplication().runWriteAction((Runnable)() -> myIdeSdks.setJdkPath(myJavaHomePath.toPath()));
     assertEquals("isUsingJavaHomeJdk returns true for AndroidStudio (setJdkPath:=myJavaHomePath), and false for IJ (hardcoded)",
                  studio, myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
     assertEquals(myEmbeddedIsJavaHome && studio, myIdeSdks.isUsingEmbeddedJdk());
@@ -149,14 +151,14 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Verify that the embedded JDK8 can be used in setJdk
    */
   public void testSetJdk8() throws IOException {
-    File jdkPath = new File(getEmbeddedJdk8Path());
+    Path jdkPath = Paths.get(getEmbeddedJdk8Path());
     AtomicReference<Sdk> createdJdkRef = new AtomicReference<>(null);
     ApplicationManager.getApplication().runWriteAction(() -> {createdJdkRef.set(myIdeSdks.setJdkPath(jdkPath));});
     Sdk createdJdk = createdJdkRef.get();
     assertThat(createdJdk).isNotNull();
     JavaSdkVersion createdVersion = JavaSdkVersionUtil.getJavaSdkVersion(createdJdk);
     assertThat(createdVersion).isEqualTo(JavaSdkVersion.JDK_1_8);
-    assertThat(FileUtils.isSameFile(jdkPath, new File(createdJdk.getHomePath()))).isTrue();
+    assertThat(Files.isSameFile(jdkPath, Paths.get(createdJdk.getHomePath()))).isTrue();
     assertThat(myIdeSdks.getJdk()).isEqualTo(createdJdk);
   }
 
@@ -165,14 +167,14 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    */
   public void testIsJdkCompatibleJdk8() throws IOException {
     @Nullable Sdk jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path());
-    assertThat(IdeSdks.isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
+    assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
   }
 
   /**
    * Confirm that isJdkCompatible returns true with embedded JDK
    */
   public void testIsJdkCompatibleEmbedded() throws IOException {
-    @Nullable Sdk jdk = Jdks.getInstance().createJdk(myIdeSdks.getEmbeddedJdkPath().getCanonicalPath());
-    assertThat(IdeSdks.isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
+    @Nullable Sdk jdk = Jdks.getInstance().createJdk(myIdeSdks.getEmbeddedJdkPath().toString());
+    assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
   }
 }

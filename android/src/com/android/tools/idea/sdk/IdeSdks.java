@@ -22,6 +22,7 @@ import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 
@@ -1021,22 +1022,22 @@ public class IdeSdks {
     else {
       showValidateDetails(file);
       if (SystemInfo.isMac) {
-        showValidateDetails(new File(file, MAC_JDK_CONTENT_PATH));
+        showValidateDetails(file.resolve(MAC_JDK_CONTENT_PATH));
       }
     }
     return null;
   }
 
-  private static void showValidateDetails(@NotNull File homePath) {
+  private static void showValidateDetails(@NotNull Path homePath) {
     LOG.warn("Could not validate JDK at " + homePath + ":");
-    LOG.warn("  File exists: " + homePath.exists());
-    LOG.warn("  Javac: " + (new File(homePath, "bin/javac").isFile() || new File(homePath, "bin/javac.exe").isFile()));
-    LOG.warn("  JDK: " + new File(homePath, "jre/lib/rt.jar").exists());
-    LOG.warn("  JRE: " + new File(homePath, "lib/rt.jar").exists());
+    LOG.warn("  File exists: " + Files.exists(homePath));
+    LOG.warn("  Javac: " + (Files.isRegularFile(homePath.resolve("bin/javac")) || Files.isRegularFile(homePath.resolve("bin/javac.exe"))));
+    LOG.warn("  JDK: " + Files.exists(homePath.resolve("jre/lib/rt.jar")));
+    LOG.warn("  JRE: " + Files.exists(homePath.resolve("lib/rt.jar")));
     LOG.warn("  Jigsaw JDK/JRE: " + isModularRuntime(homePath));
-    LOG.warn("  Apple JDK: " + new File(homePath, "../Classes/classes.jar").exists());
-    LOG.warn("  IBM JDK: " + new File(homePath, "jre/lib/vm.jar").exists());
-    LOG.warn("  Custom build: " + new File(homePath, "classes").isDirectory());
+    LOG.warn("  Apple JDK: " + Files.exists(homePath.resolve("../Classes/classes.jar")));
+    LOG.warn("  IBM JDK: " + Files.exists(homePath.resolve("jre/lib/vm.jar")));
+    LOG.warn("  Custom build: " + Files.isDirectory(homePath.resolve("classes")));
   }
 
   /**
@@ -1076,7 +1077,7 @@ public class IdeSdks {
   private class EnvVariableSettings {
     private Sdk mySdk;
     private String myVariableValue;
-    private File myJdkFile;
+    private Path myJdkFile;
     private boolean myUseJdkEnvVariable;
     private boolean myInitialized;
     private final Object myInitializationLock = new Object();
@@ -1107,7 +1108,7 @@ public class IdeSdks {
     private void initialize(@Nullable String value) {
       // Read env variable only once and initialize the settings accordingly. myInitialized == false means that this function has not been
       // called yet.
-      File envVariableJdkFile;
+      Path envVariableJdkFile;
       synchronized (myInitializationLock) {
         if (myInitialized) {
           return;
@@ -1116,7 +1117,7 @@ public class IdeSdks {
           setInitializationAsNotDefined();
           return;
         }
-        envVariableJdkFile = validateJdkPath(new File(toSystemDependentName(value)));
+        envVariableJdkFile = validateJdkPath(Paths.get(toSystemDependentName(value)));
         if (envVariableJdkFile == null) {
           setInitializationAsDefinedButInvalid(value);
           LOG.warn("The provided JDK path is invalid: " + value);
@@ -1124,7 +1125,7 @@ public class IdeSdks {
         }
       }
       // Environment variable is defined and valid, make sure it is safe to use EDT to prevent a deadlock (b/174675513)
-      File finalEnvVariableJdkFile = envVariableJdkFile;
+      Path finalEnvVariableJdkFile = envVariableJdkFile;
       Runnable createJdkTask = () -> {
         synchronized (myInitializationLock) {
           // Check initialization again (another thread could have called this already when waiting for EDT)
@@ -1168,7 +1169,7 @@ public class IdeSdks {
       setInitialization(envVariableValue, /* file */ null, /* sdk */null);
     }
 
-    private void setInitialization(@Nullable String variableValue, @Nullable File jdkFile, @Nullable Sdk sdk) {
+    private void setInitialization(@Nullable String variableValue, @Nullable Path jdkFile, @Nullable Sdk sdk) {
       myVariableValue = variableValue;
       myJdkFile = jdkFile;
       mySdk = sdk;
@@ -1191,7 +1192,7 @@ public class IdeSdks {
       return mySdk != null;
     }
 
-    public File getJdkFile() {
+    public Path getJdkFile() {
       initialize();
       return myJdkFile;
     }

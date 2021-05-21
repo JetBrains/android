@@ -33,7 +33,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
-import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -46,7 +45,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -187,13 +185,7 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     String relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar");
-    try {
-      return List.of(SdkUtils.fileToUrl(new File(layoutlibDistributionPath, relativeCoroutineLibPath)));
-    }
-    catch (MalformedURLException e) {
-      LOG.error("Failed to find layoutlib-extensions library", e);
-      return Collections.emptyList();
-    }
+    return List.of(new File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath());
   }
 
   /**

@@ -237,7 +237,7 @@ public class GradleProjectImporter {
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(gradleSettings);
-    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, new File(externalProjectPath).toPath());
+    GradleProjectImportUtil.setupGradleProjectSettings(projectSettings, newProject, Paths.get(externalProjectPath));
     GradleJvmResolutionUtil.setupGradleJvm(newProject, projectSettings, projectSettings.resolveGradleVersion());
     // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio
     projectSettings.setGradleJvm(USE_PROJECT_JDK);

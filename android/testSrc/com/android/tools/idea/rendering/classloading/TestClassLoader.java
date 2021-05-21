@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.classloading;
 
 import static org.junit.Assert.assertNotNull;
 
-import java.net.URL;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ class TestClassLoader extends RenderClassLoader {
   }
 
   @Override
-  protected List<URL> getExternalJars() {
+  protected List<Path> getExternalJars() {
     return Collections.emptyList();
   }
 

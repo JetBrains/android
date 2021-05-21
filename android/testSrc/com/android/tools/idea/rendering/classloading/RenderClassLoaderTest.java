@@ -35,9 +35,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -136,13 +136,11 @@ public class RenderClassLoaderTest {
 
   @Test
   public void testThreadLocalsRemapper_threadLocalAncestor() throws Exception {
-    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
-
-    URL testJarFileUrl = jarSource.toURI().toURL();
+    Path testJarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
     RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
       @Override
-      protected List<URL> getExternalJars() {
-        return ImmutableList.of(testJarFileUrl);
+      protected List<Path> getExternalJars() {
+        return ImmutableList.of(testJarPath);
       }
     };
 
@@ -158,13 +156,11 @@ public class RenderClassLoaderTest {
 
   @Test
   public void testThreadLocalsRemapper_threadLocalContainer() throws Exception {
-    File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
-
-    URL testJarFileUrl = jarSource.toURI().toURL();
+    Path testJarPath = Paths.get(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/mythreadlocals.jar");
     RenderClassLoader loader = new RenderClassLoader(this.getClass().getClassLoader(), cv -> new ThreadLocalRenameTransform(cv)) {
       @Override
-      protected List<URL> getExternalJars() {
-        return ImmutableList.of(testJarFileUrl);
+      protected List<Path> getExternalJars() {
+        return ImmutableList.of(testJarPath);
       }
     };
 
