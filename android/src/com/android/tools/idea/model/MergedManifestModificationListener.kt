@@ -24,6 +24,7 @@ import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.AppTopics
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -121,16 +122,15 @@ class MergedManifestModificationListener(
     override fun runActivity(project: Project) = project.getService(SubscriptionService::class.java).onProjectOpened()
   }
 
-  private class SubscriptionService(private val project: Project) {
-    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project),
-                                                                                             project) {
+  private class SubscriptionService(private val project: Project): Disposable {
+    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project)) {
       override fun subscribe() {
         // To receive all changes happening in the VFS. File modifications may
         // not be picked up immediately if such changes are not saved on the disk yet
-        VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
+        VirtualFileManager.getInstance().addVirtualFileListener(listener, this@SubscriptionService)
 
         // To receive all changes to documents that are open in an editor
-        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this@SubscriptionService)
 
         // To receive notifications when any Documents are saved or reloaded from disk
         project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
@@ -144,6 +144,9 @@ class MergedManifestModificationListener(
     }
 
     fun ensureSubscribed() = subscriber.ensureSubscribed()
+
+    override fun dispose() {
+    }
   }
 
   companion object {
