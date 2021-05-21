@@ -75,6 +75,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
   private fun compute(appliedPlugins: List<PluginData>): ConfigurationCachingCompatibilityProjectResult {
     if (runningConfigurationCacheTestFlow == true) return ConfigurationCacheCompatibilityTestFlow
     if (configurationCacheInBuildState == true) return ConfigurationCachingTurnedOn
+    if (configurationCachingGradlePropertiesFlagState != null) return ConfigurationCachingTurnedOff
     if (buildscriptClasspath.isEmpty()) {
       // Possible that we are using an old AGP. Need to check the known version from sync.
       currentAgpVersion?.let {
@@ -159,6 +160,9 @@ data class IncompatiblePluginWarning(
 
 /** Analyzer result when build is running with configuration caching enabled. */
 object ConfigurationCachingTurnedOn : ConfigurationCachingCompatibilityProjectResult()
+
+/** Analyzer result when build is running with configuration caching disabled explicitly. */
+object ConfigurationCachingTurnedOff : ConfigurationCachingCompatibilityProjectResult()
 
 /** Analyzer result for test CC builds started from Build Analyzer. */
 object ConfigurationCacheCompatibilityTestFlow : ConfigurationCachingCompatibilityProjectResult()
