@@ -93,7 +93,7 @@ class MakeBeforeRunTaskProviderIntegrationTest : GradleIntegrationTest {
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
+  override fun getTestDataDirectoryAdtIdeaRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
   override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 

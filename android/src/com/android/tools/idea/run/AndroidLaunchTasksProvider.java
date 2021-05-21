@@ -176,6 +176,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     for (ApkInfo apkInfo : myApkProvider.getApks(device)) {
       packages.put(apkInfo.getApplicationId(), getFilteredFeatures(apkInfo, disabledFeatures));
     }
+    Computable<String> installPathProvider = () -> EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller();
     switch (getDeployType()) {
       case RUN_INSTANT_APP:
         AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
@@ -188,14 +189,16 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myProject,
           packages.build(),
           isApplyChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
           myProject,
           packages.build(),
           isApplyCodeChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         break;
       case DEPLOY:
         tasks.add(new DeployTask(
@@ -203,7 +206,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages.build(),
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myLaunchOptions.getAlwaysInstallWithPm(),
+          installPathProvider));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }

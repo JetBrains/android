@@ -17,7 +17,6 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.util.AndroidTestPaths
-import com.android.tools.idea.util.AndroidTestPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
@@ -87,7 +86,7 @@ private fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): List<File> {
   val configuredWorkspace =
     System.getProperty(updateSnapshotsJvmProperty)?.takeUnless { it.isEmpty() }
-      ?.let { File(it).resolve(snapshotDirectoryWorkspaceRelativePath) }
+      ?.let { File(it).resolve(snapshotDirectoryAdtIdeaRelativePath) }
     ?: AndroidTestPaths.adtSources()
       .resolve(snapshotDirectoryAdtIdeaRelativePath)
       .toFile()

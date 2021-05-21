@@ -114,7 +114,7 @@ public class EmbeddedDistributionPaths {
       assert IdeInfo.getInstance().isAndroidStudio(): "Bazel paths exist only in AndroidStudio development mode";
       return new File(StudioPathManager.getSourcesRoot(),"bazel-bin/tools/base/profiler/transform/profilers-transform.jar");
     } else {
-      file  = getOptionalIjPath(path);
+      @Nullable File file = getOptionalIjPath("plugins/android/resources/profilers-transform.jar");
       if (file != null && file.exists()) {
         return file;
       }
@@ -229,8 +229,8 @@ public class EmbeddedDistributionPaths {
     if (StudioPathManager.isRunningFromSources()) {
       // If AndroidStudio runs from IntelliJ IDEA sources
       if (System.getProperty("android.test.embedded.jdk") != null) {
-        File jdkDir = new File(System.getProperty("android.test.embedded.jdk"));
-        assert jdkDir.exists();
+        Path jdkDir = Paths.get(System.getProperty("android.test.embedded.jdk"));
+        assert Files.exists(jdkDir);
         return jdkDir;
       }
 
@@ -238,24 +238,24 @@ public class EmbeddedDistributionPaths {
       String sourcesRoot = StudioPathManager.getSourcesRoot();
       String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
       String relativePath = toSystemDependentName(jdkDevPath);
-      File jdkRootPath = new File(toCanonicalPath(relativePath));
+      Path jdkRootPath = Paths.get(toCanonicalPath(relativePath));
       if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
-        jdkRootPath = new File(jdkRootPath, "jdk11");
+        jdkRootPath = jdkRootPath.resolve("jdk11");
       }
       if (SystemInfo.isWindows) {
-        jdkRootPath = new File(jdkRootPath, "win");
+        jdkRootPath = jdkRootPath.resolve("win");
       }
       else if (SystemInfo.isLinux) {
-        jdkRootPath = new File(jdkRootPath, "linux");
+        jdkRootPath = jdkRootPath.resolve("linux");
       }
       else if (SystemInfo.isMac) {
-        jdkRootPath = new File(jdkRootPath, "mac");
+        jdkRootPath = jdkRootPath.resolve("mac");
       }
       return getSystemSpecificJdkPath(jdkRootPath);
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
-      File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
+      Path jdkRootPath = Paths.get(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
   }

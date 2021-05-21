@@ -114,9 +114,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
       FileUtil.join(homePath, "plugins/android/lib/layoutlib/"), // Bundled path.
       StudioPathManager.isRunningFromSources() //Dev path.
       ? FileUtil.join(StudioPathManager.getSourcesRoot(), "prebuilts/studio/layoutlib/")
-      : null,
-      FileUtil.join(homePath, "community/android/tools-base/layoutlib/"), // IDEA path.
-      FileUtil.join(homePath, "android/tools-base/layoutlib/"), // IDEA community path.
+      : null
     };
 
     StringBuilder notFoundPaths = new StringBuilder();
@@ -137,7 +135,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     }
 
     AndroidLayoutlibDownloader.getInstance().makeSureComponentIsInPlace();
-    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir(LAYOUTLIB_BUNDLED_PATH);
+    File dir = AndroidLayoutlibDownloader.getInstance().getHostDir("plugins/android/lib/layoutlib/");
     if (dir.exists()) {
       return dir.getAbsolutePath() + File.separator;
     }

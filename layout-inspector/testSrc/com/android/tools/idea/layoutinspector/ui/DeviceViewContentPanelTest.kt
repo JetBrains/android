@@ -429,13 +429,13 @@ class DeviceViewContentPanelTest {
     panel.setSize(1200, 1400)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintWithImagesBetweenChildren.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
     panel.model.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_rotated.png"),
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintWithImagesBetweenChildren_rotated.png"),
                                      generatedImage, DIFF_THRESHOLD)
 
     model.selection = model[ROOT]
@@ -443,7 +443,7 @@ class DeviceViewContentPanelTest {
     graphics.font = Font("Droid Sans", Font.PLAIN, 12)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintWithImagesBetweenChildren_root.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -511,7 +511,7 @@ class DeviceViewContentPanelTest {
     panel.setSize(400, 600)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintTransformed.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
     model.selection = model[VIEW1]
@@ -519,28 +519,28 @@ class DeviceViewContentPanelTest {
     graphics.font = ImageDiffUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_view1.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintTransformed_view1.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawLabel = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawUntransformedBounds = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
 
     settings.drawBorders = false
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintTransformed_onlyUntransformed.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -570,7 +570,7 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 200)
 
     panel.paint(graphics)
-    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformedOutsideRoot.png"), generatedImage,
+    ImageDiffUtil.assertImageSimilar(File(TEST_DATA_PATH, "testPaintTransformedOutsideRoot.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
     model.selection = model[VIEW1]
@@ -578,6 +578,6 @@ class DeviceViewContentPanelTest {
     graphics.font = ImageDiffUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
+      File(TEST_DATA_PATH, "testPaintTransformedOutsideRoot_view1.png"), generatedImage, DIFF_THRESHOLD)
   }
 }

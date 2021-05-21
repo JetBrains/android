@@ -129,7 +129,7 @@ class DeployTaskTest {
     Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.BASE))
 
-    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    val deployTask = DeployTask(project, mapOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, "", listOf())
     verify(device, never()).forceStop(any())
   }
@@ -139,7 +139,7 @@ class DeployTaskTest {
     Mockito.`when`(device.supportsFeature(IDevice.HardwareFeature.EMBEDDED)).thenReturn(false)
     Mockito.`when`(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.N))
 
-    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    val deployTask = DeployTask(project, mapOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, "", listOf())
     verify(device, times(1)).forceStop(any())
   }
@@ -155,7 +155,7 @@ class DeployTaskTest {
       .setDontKill()
       .build()
 
-    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    val deployTask = DeployTask(project, mapOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, "androidx.test.services", listOf())
 
     verify(deployer).install(eq("androidx.test.services"), any(), eq(expectedOptions), any())
@@ -171,7 +171,7 @@ class DeployTaskTest {
       .setDontKill()
       .build()
 
-    val deployTask = DeployTask(project, mapOf(), null, true, false)
+    val deployTask = DeployTask(project, mapOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, "androidx.test.services", listOf())
 
     verify(deployer).install(eq("androidx.test.services"), any(), eq(expectedOptions), any())
