@@ -54,7 +54,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     dependencies: String = "",
     pluginsApply: String = "",
     pluginsSectionInRoot: String = "",
-    useNewPluginsDsl: Boolean = false
+    useNewPluginsDsl: Boolean = false,
+    entryInGradleProperties: Boolean? = null
   ) {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION) { projectRoot ->
       // Add plugins application to `app/build.gradle`.
@@ -73,6 +74,13 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
           .replace(oldValue = "allprojects {", newValue = "$pluginsSectionInRoot\n\nallprojects {")
 
         FileUtil.writeToFile(rootBuildFile, newContent)
+      }
+      if (entryInGradleProperties != null) {
+        val propertiesFile = FileUtils.join(projectRoot, SdkConstants.FN_GRADLE_PROPERTIES)
+        propertiesFile.readText().let { content ->
+          val newContent = "$content\norg.gradle.unsafe.configuration-cache=$entryInGradleProperties"
+          FileUtil.writeToFile(propertiesFile, newContent)
+        }
       }
     }
   }
@@ -205,6 +213,24 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
         pluginInfo = kotlinPluginInfo()
       )))
     }
+  }
+
+  @Test
+  fun testSimpleProjectWithCCTurnedOn() {
+    projectSetup("", "", entryInGradleProperties = true)
+
+    val result = runBuildAndGetAnalyzerResult()
+
+    assertThat(result).isInstanceOf(ConfigurationCachingTurnedOn::class.java)
+  }
+
+  @Test
+  fun testSimpleProjectWithCCTurnedOff() {
+    projectSetup("", "", entryInGradleProperties = false)
+
+    val result = runBuildAndGetAnalyzerResult()
+
+    assertThat(result).isInstanceOf(ConfigurationCachingTurnedOff::class.java)
   }
 
   private fun runBuildAndGetAnalyzerResult(): ConfigurationCachingCompatibilityProjectResult {

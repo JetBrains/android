@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.model
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
+import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOff
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
@@ -230,7 +231,7 @@ private class WarningsTreeStructure(
       treeStats.totalWarningsCount += reportData.annotationProcessors.issueCount
 
       // Add configuration caching issues
-      if (filter.showConfigurationCacheWarnings && reportData.confCachingData != ConfigurationCachingTurnedOn) {
+      if (filter.showConfigurationCacheWarnings && reportData.confCachingData.shouldShowWarning()) {
         val configurationDuration = reportData.buildSummary.configurationDuration
         val configurationCacheData = reportData.confCachingData
         rootNode.add(treeNode(ConfigurationCachingRootNodeDescriptor(configurationCacheData, configurationDuration)).apply {
@@ -432,6 +433,7 @@ class ConfigurationCachingRootNodeDescriptor(
         is NoIncompatiblePlugins -> ""
         ConfigurationCachingTurnedOn -> ""
         ConfigurationCacheCompatibilityTestFlow -> ""
+        ConfigurationCachingTurnedOff -> ""
       },
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(projectConfigurationTime.timeMs)
     )
@@ -457,7 +459,10 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
   is NoIncompatiblePlugins -> 1
   ConfigurationCacheCompatibilityTestFlow -> 1
   ConfigurationCachingTurnedOn -> 0
+  ConfigurationCachingTurnedOff -> 0
 }
+
+fun ConfigurationCachingCompatibilityProjectResult.shouldShowWarning(): Boolean = warningsCount() != 0
 
 private fun rightAlignedNodeDurationTextFromMs(timeMs: Long) =
   if (timeMs >= 100) "%.1fs".format(timeMs.toDouble() / 1000) else "<0.1s"
