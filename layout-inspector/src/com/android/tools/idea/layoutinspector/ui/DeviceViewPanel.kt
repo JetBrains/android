@@ -108,7 +108,8 @@ class DeviceViewPanel(
   private var lastPanMouseLocation: Point? = null
 
   private val contentPanel = DeviceViewContentPanel(
-    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings, disposableParent
+    layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
+    { layoutInspector.currentClient }, disposableParent
   )
 
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
@@ -327,8 +328,8 @@ class DeviceViewPanel(
     }
     var prevZoom = viewSettings.scalePercent
     viewSettings.modificationListeners.add {
-      val client = LayoutInspector.get(this@DeviceViewPanel)?.currentClient
-      if (client?.isCapturing == true) {
+      val client = layoutInspector.currentClient
+      if (client.isCapturing) {
         client.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
       }
       if (prevZoom != viewSettings.scalePercent) {
