@@ -375,12 +375,8 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
       if (myScheduledDevices.add(device)) {
         myDeviceAndApiLevelFilterComboBoxAction.addDevice(device)
-        if (myScheduledDevices.size == 1) {
-          myResultsTableView.showTestStatusColumn = false
-        }
-        else {
+        if (myScheduledDevices.size > 1) {
           myDetailsView.isDeviceSelectorListVisible = true
-          myResultsTableView.showTestStatusColumn = true
         }
         myResultsTableView.addDevice(device)
         myDetailsView.addDevice(device)
