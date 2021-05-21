@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -74,6 +73,7 @@ class DeviceViewContentPanel(
   val stats: SessionStatistics,
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
+  val currentClient: () -> InspectorClient?,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
 
@@ -83,7 +83,7 @@ class DeviceViewContentPanel(
   @VisibleForTesting
   var showEmptyText = true
 
-  val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings) { LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient }
+  val model = DeviceViewPanelModel(inspectorModel, stats, treeSettings, currentClient)
 
   val rootLocation: Point?
     get() {
@@ -136,8 +136,7 @@ class DeviceViewContentPanel(
 
       override fun mouseDragged(e: MouseEvent) {
         if (e.isConsumed) return
-        val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
-        if (model.overlay != null || client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
+        if (model.overlay != null || currentClient()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
           // can't rotate
           return
         }
@@ -193,16 +192,16 @@ class DeviceViewContentPanel(
     inspectorModel.modificationListeners.add { _, _, _ ->
       // SKP is needed if the view is rotated or if anything is hidden. We have to check on each update, since previously-hidden nodes
       // may have been removed.
-      val client = LayoutInspector.get(this@DeviceViewContentPanel)?.currentClient
+      val currentClient = currentClient()
       if ((inspectorModel.pictureType == AndroidWindow.ImageType.SKP ||
            inspectorModel.pictureType == AndroidWindow.ImageType.SKP_PENDING) &&
-          client?.isCapturing == true &&
+          currentClient?.isCapturing == true &&
           !model.isRotated && !inspectorModel.hasHiddenNodes()) {
         // We know for sure there's not a hidden descendant now, so update the field in case it was out of date.
         if (toResetCount++ > FRAMES_BEFORE_RESET_TO_BITMAP) {
           toResetCount = 0
           // Be sure to reset the scale as well, since if we were previously paused the scale will be set to 1.
-          client.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, viewSettings.scaleFraction.toFloat())
+          currentClient.updateScreenshotType(AndroidWindow.ImageType.BITMAP_AS_REQUESTED, viewSettings.scaleFraction.toFloat())
         }
       }
       else {
