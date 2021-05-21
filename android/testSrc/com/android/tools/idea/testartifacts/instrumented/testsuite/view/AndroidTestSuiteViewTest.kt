@@ -335,11 +335,10 @@ class AndroidTestSuiteViewTest {
 
     val tableView = view.myResultsTableView.getTableViewForTesting()
     val tableViewModel = view.myResultsTableView.getModelForTesting()
-    assertThat(tableView.columnCount).isEqualTo(4)
+    assertThat(tableView.columnCount).isEqualTo(3)
     assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
     assertThat(tableViewModel.columns[1].name).isEqualTo("Duration")
-    assertThat(tableViewModel.columns[2].name).isEqualTo("Status")
-    assertThat(tableViewModel.columns[3].name).isEqualTo("deviceName2")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName2")
   }
 
   @Test
@@ -387,11 +386,10 @@ class AndroidTestSuiteViewTest {
 
     val tableView = view.myResultsTableView.getTableViewForTesting()
     val tableViewModel = view.myResultsTableView.getModelForTesting()
-    assertThat(tableView.columnCount).isEqualTo(4)
+    assertThat(tableView.columnCount).isEqualTo(3)
     assertThat(tableViewModel.columns[0].name).isEqualTo("Tests")
     assertThat(tableViewModel.columns[1].name).isEqualTo("Duration")
-    assertThat(tableViewModel.columns[2].name).isEqualTo("Status")
-    assertThat(tableViewModel.columns[3].name).isEqualTo("deviceName1")
+    assertThat(tableViewModel.columns[2].name).isEqualTo("deviceName1")
   }
 
   private fun ActionGroup.flattenedActions(): Sequence<AnAction> = sequence {
@@ -565,24 +563,22 @@ class AndroidTestSuiteViewTest {
   }
 
   @Test
-  fun deviceSelectorAndTestStatusColumnAreHiddenWhenSingleDevice() {
+  fun deviceSelectorIsHiddenWhenSingleDevice() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
 
     assertThat(view.myDetailsView.isDeviceSelectorListVisible).isFalse()
-    assertThat(view.myResultsTableView.showTestStatusColumn).isFalse()
   }
 
   @Test
-  fun deviceSelectorAndTestStatusColumnAreVisibleWhenMultiDevices() {
+  fun deviceSelectorIsVisibleWhenMultiDevices() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null, myClock=mockClock)
 
     view.onTestSuiteScheduled(device("deviceId1", "deviceName1"))
     view.onTestSuiteScheduled(device("deviceId2", "deviceName2"))
 
     assertThat(view.myDetailsView.isDeviceSelectorListVisible).isTrue()
-    assertThat(view.myResultsTableView.showTestStatusColumn).isTrue()
   }
 
   @Test
