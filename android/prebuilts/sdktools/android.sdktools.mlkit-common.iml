@@ -4,21 +4,12 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module-library">
       <library name="flatbuffers-java" type="repository">
         <properties maven-id="com.google.flatbuffers:flatbuffers-java:1.12.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/google/flatbuffers/flatbuffers-java/1.12.0/flatbuffers-java-1.12.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="tensorflow-lite-metadata" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.tensorflow:tensorflow-lite-metadata:0.1.0-rc1" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc1/tensorflow-lite-metadata-0.1.0-rc1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -31,20 +22,18 @@
     <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-mlkit-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.mlkit-common:27.1.1.0" />
+      <library name="precompiled-mlkit-common-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.mlkit-common/27.1.1.0/studio.android.sdktools.mlkit-common-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/mlkit-common/studio.android.sdktools.mlkit-common.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-mlkit-common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.mlkit-common_test:27.1.1.0" />
+      <library name="precompiled-mlkit-common-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.mlkit-common_test/27.1.1.0/studio.android.sdktools.mlkit-common_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/mlkit-common/studio.android.sdktools.mlkit-common_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

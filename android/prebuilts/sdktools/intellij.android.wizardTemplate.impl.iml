@@ -4,23 +4,22 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-wizardTemplate.impl" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.impl:27.1.1.0" />
+      <library name="precompiled-impl-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.impl/27.1.1.0/studio.intellij.android.wizardTemplate.impl-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/wizard/template-impl/studio.intellij.android.wizardTemplate.impl.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-wizardTemplate.impl-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.impl_test:27.1.1.0" />
+      <library name="precompiled-impl-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.impl_test/27.1.1.0/studio.intellij.android.wizardTemplate.impl_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/wizard/template-impl/studio.intellij.android.wizardTemplate.impl_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

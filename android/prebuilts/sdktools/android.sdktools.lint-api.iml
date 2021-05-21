@@ -4,6 +4,8 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" exported="" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="library" exported="" name="Guava" level="project" />
@@ -19,22 +21,20 @@
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="module" module-name="intellij.platform.uast" exported="" />
     <orderEntry type="module" module-name="intellij.java.uast" exported="" />
-    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" exported="" scope="PROVIDED" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-plugin" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api:27.1.1.0" />
+      <library name="precompiled-lint-api-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-api/27.1.1.0/studio.android.sdktools.lint-api-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-api.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint-api-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api_test:27.1.1.0" />
+      <library name="precompiled-lint-api-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-api_test/27.1.1.0/studio.android.sdktools.lint-api_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-api_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

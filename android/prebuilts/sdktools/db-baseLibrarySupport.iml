@@ -4,21 +4,20 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-db-baseLibrarySupport" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport:27.1.1.0" />
+      <library name="precompiled-db-baseLibrarySupport-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport/27.1.1.0/studio.baseLibrarySupport-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.baseLibrarySupport.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-db-baseLibrarySupport-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.baseLibrarySupport_test:27.1.1.0" />
+      <library name="precompiled-db-baseLibrarySupport-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.baseLibrarySupport_test/27.1.1.0/studio.baseLibrarySupport_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.baseLibrarySupport_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

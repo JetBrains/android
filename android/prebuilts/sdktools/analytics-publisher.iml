@@ -12,22 +12,23 @@
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analytics-tracker-prod">
+      <library name="precompiled-analytics-publisher-prod">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/tracker/analytics-tracker.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/publisher/analytics-publisher.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-analytics-tracker-test">
+      <library name="precompiled-analytics-publisher-test">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/tracker/analytics-tracker_test.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/publisher/analytics-publisher_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

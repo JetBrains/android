@@ -4,6 +4,17 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="antlr4-runtime" type="repository">
+        <properties maven-id="org.antlr:antlr4-runtime:4.5.3" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.5.3/antlr4-runtime-4.5.3.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="db-baseLibrary" exported="" />
     <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
@@ -18,16 +29,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module-library">
-      <library name="antlr4-runtime" type="repository">
-        <properties maven-id="org.antlr:antlr4-runtime:4.5.3" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.5.3/antlr4-runtime-4.5.3.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
@@ -43,7 +44,7 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jetifier-core" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09" />
+        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-beta09" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar!/" />
         </CLASSES>
@@ -55,21 +56,20 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="jaxb-runtime" level="project" />
+    <orderEntry type="library" name="javax.activation" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-db-compilerCommon" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon:27.1.1.0" />
+      <library name="precompiled-db-compilerCommon-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon/27.1.1.0/studio.compilerCommon-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compilerCommon.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-db-compilerCommon-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compilerCommon_test:27.1.1.0" />
+      <library name="precompiled-db-compilerCommon-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compilerCommon_test/27.1.1.0/studio.compilerCommon_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/data-binding/studio.compilerCommon_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

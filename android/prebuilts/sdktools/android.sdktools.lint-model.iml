@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
@@ -11,20 +12,18 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint-model" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-model:27.1.1.0" />
+      <library name="precompiled-lint-model-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-model/27.1.1.0/studio.android.sdktools.lint-model-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-model.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint-model-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-model_test:27.1.1.0" />
+      <library name="precompiled-lint-model-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-model_test/27.1.1.0/studio.android.sdktools.lint-model_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-model_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

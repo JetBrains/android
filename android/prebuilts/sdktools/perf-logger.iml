@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="gson" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
@@ -12,20 +13,18 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-perf-logger" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.perf-logger:27.1.1.0" />
+      <library name="precompiled-perf-logger-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.perf-logger/27.1.1.0/studio.perf-logger-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/perf-logger/studio.perf-logger.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-perf-logger-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.perf-logger_test:27.1.1.0" />
+      <library name="precompiled-perf-logger-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.perf-logger_test/27.1.1.0/studio.perf-logger_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/perf-logger/studio.perf-logger_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

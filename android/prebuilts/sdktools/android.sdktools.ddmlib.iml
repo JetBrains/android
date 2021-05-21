@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" exported="" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="easymock" level="project" />
@@ -17,20 +18,18 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="libam-instrumentation-data-proto" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-ddmlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib:27.1.1.0" />
+      <library name="precompiled-ddmlib-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/27.1.1.0/studio.android.sdktools.ddmlib-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/ddmlib/studio.android.sdktools.ddmlib.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-ddmlib-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib_test:27.1.1.0" />
+      <library name="precompiled-ddmlib-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/27.1.1.0/studio.android.sdktools.ddmlib_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/ddmlib/studio.android.sdktools.ddmlib_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

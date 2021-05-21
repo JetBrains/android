@@ -4,26 +4,25 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-layoutinspector" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutinspector:27.1.1.0" />
+      <library name="precompiled-layoutinspector-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutinspector/27.1.1.0/studio.android.sdktools.layoutinspector-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/layoutinspector/studio.android.sdktools.layoutinspector.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-layoutinspector-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutinspector_test:27.1.1.0" />
+      <library name="precompiled-layoutinspector-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutinspector_test/27.1.1.0/studio.android.sdktools.layoutinspector_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/layoutinspector/studio.android.sdktools.layoutinspector_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

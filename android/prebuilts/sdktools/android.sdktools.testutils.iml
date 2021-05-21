@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -12,23 +13,20 @@
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
     <orderEntry type="library" scope="TEST" name="javax.annotation-api" level="project" />
-    <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-testutils" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:27.1.1.0" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-testutils-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/27.1.1.0/studio.android.sdktools.testutils-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/testutils/studio.android.sdktools.testutils.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-testutils-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:27.1.1.0" />
+      <library name="precompiled-testutils-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/27.1.1.0/studio.android.sdktools.testutils_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/testutils/studio.android.sdktools.testutils_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

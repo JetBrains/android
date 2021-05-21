@@ -4,23 +4,24 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
+    <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint-checks" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks:27.1.1.0" />
+      <library name="precompiled-lint-checks-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks/27.1.1.0/studio.android.sdktools.lint-checks-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-checks.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint-checks-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-checks_test:27.1.1.0" />
+      <library name="precompiled-lint-checks-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint-checks_test/27.1.1.0/studio.android.sdktools.lint-checks_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/lint/studio.android.sdktools.lint-checks_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

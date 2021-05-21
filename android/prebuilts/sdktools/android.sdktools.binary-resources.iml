@@ -4,27 +4,26 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="jsr305" level="project" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-binary-resources" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources:27.1.1.0" />
+      <library name="precompiled-binary-resources-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/27.1.1.0/studio.android.sdktools.binary-resources-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-binary-resources-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.binary-resources_test:27.1.1.0" />
+      <library name="precompiled-binary-resources-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/27.1.1.0/studio.android.sdktools.binary-resources_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/apkparser/studio.android.sdktools.binary-resources_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

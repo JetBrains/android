@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" exported="" />
@@ -15,21 +16,21 @@
     <orderEntry type="module" module-name="android.sdktools.repository" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="jaxb-api" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="javax.activation" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-sdklib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdklib:27.1.1.0" />
+      <library name="precompiled-sdklib-prod">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdklib/27.1.1.0/studio.android.sdktools.sdklib-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/sdklib/studio.android.sdktools.sdklib.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-sdklib-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdklib_test:27.1.1.0" />
+      <library name="precompiled-sdklib-test">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdklib_test/27.1.1.0/studio.android.sdktools.sdklib_test-27.1.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/sdklib/studio.android.sdktools.sdklib_test.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
