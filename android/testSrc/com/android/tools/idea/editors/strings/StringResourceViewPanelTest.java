@@ -24,8 +24,6 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Arrays;
@@ -38,10 +36,11 @@ import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
+/**
+ * Tests for {@link StringResourceViewPanel}.
+ */
 public final class StringResourceViewPanelTest extends AndroidTestCase {
-  private Disposable myParentDisposable;
   private StringResourceViewPanel myPanel;
   private StringResourceTable myTable;
   private LocalResourceRepository myRepository;
@@ -50,25 +49,12 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    myParentDisposable = Mockito.mock(Disposable.class);
-    myPanel = new StringResourceViewPanel(myFacet, myParentDisposable);
+    myPanel = new StringResourceViewPanel(myFacet, getTestRootDisposable());
     myTable = myPanel.getTable();
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
     myRepository = ResourcesTestsUtil.createTestModuleRepository(myFacet, Collections.singletonList(resourceDirectory));
     myPanel.getTable().setModel(new StringResourceTableModel(Utils.createStringRepository(myRepository), myFacet.getModule().getProject()));
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      myTable = null;
-      myPanel = null;
-      Disposer.dispose(myParentDisposable);
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   public void testSetShowingOnlyKeysNeedingTranslations() {
