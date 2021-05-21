@@ -142,7 +142,7 @@ public class GradleApkProvider implements ApkProvider {
     myOutputKindProvider = outputKindProvider;
   }
 
-  @TestOnly
+  @VisibleForTesting
   OutputKind getOutputKind(@Nullable AndroidVersion targetDevicesMinVersion) { return myOutputKindProvider.apply(targetDevicesMinVersion); }
 
   @TestOnly
@@ -179,7 +179,7 @@ public class GradleApkProvider implements ApkProvider {
           return Collections.emptyList();
         }
 
-        switch (myOutputKindProvider.apply(deviceVersion)) {
+        switch (getOutputKind(deviceVersion)) {
           case Default:
             // Collect the base (or single) APK file, then collect the dependent dynamic features for dynamic
             // apps (assuming the androidModel is the base split).
@@ -521,7 +521,7 @@ public class GradleApkProvider implements ApkProvider {
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
-        myOutputKindProvider.apply(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
+        getOutputKind(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
         isArtifactSigned(androidModuleModel)) {
       return result.build();
     }
