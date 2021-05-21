@@ -25,6 +25,7 @@ import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -72,7 +73,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Java)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
@@ -123,7 +124,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
@@ -179,13 +180,13 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)
       .setSourceLanguage(Java)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
 
     guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
-      assertThat(this).containsMatch("<queries>\\s*<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
+      assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
       assertThat(this).containsMatch(
         "<uses-permission\\s+android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"\\s+tools:ignore=\"ScopedStorage\"\\s*/>"
       )
@@ -237,7 +238,7 @@ class AddBenchmarkModuleTest {
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.Q)
       .setSourceLanguage(Kotlin)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
       .projectView
       .selectAndroidPane()
       .clickPath("benchmark")
