@@ -16,6 +16,7 @@
 package com.android.tools.adtui.validation
 
 import com.intellij.icons.AllIcons
+import java.util.function.Function
 import javax.swing.Icon
 
 /**
@@ -65,4 +66,11 @@ interface Validator<T> {
         fromNullableMessage(throwable.message ?: "Error (${throwable.javaClass.simpleName})")
     }
   }
+}
+
+/**
+ * Kotlin friendly helper function
+ */
+fun <T> createValidator(function: Function<T, Validator.Result>): Validator<T> = object : Validator<T> {
+  override fun validate(value: T): Validator.Result = function.apply(value)
 }
