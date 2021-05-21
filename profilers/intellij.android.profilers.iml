@@ -35,7 +35,7 @@
     <orderEntry type="module-library">
       <library name="traceprocessor-proto">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/bazel-bin/tools/base/profiler/native/trace_processor_daemon/traceprocessor_protos.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

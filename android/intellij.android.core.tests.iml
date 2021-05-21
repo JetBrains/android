@@ -20,8 +20,6 @@
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="library" name="StreamEx" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
@@ -124,15 +122,24 @@
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" />
+    <orderEntry type="module-library">
+      <library name="androidx-test-core-proto" type="repository">
+        <properties maven-id="com.google.testing.platform:core-proto:0.0.8-alpha01" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="ini4j" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.tests" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="TEST" />
   </component>
 </module>
