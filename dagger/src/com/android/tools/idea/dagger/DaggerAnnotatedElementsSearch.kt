@@ -38,7 +38,7 @@ import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.descendantsOfType
+import com.intellij.psi.util.collectDescendantsOfType
 import org.jetbrains.kotlin.asJava.ImpreciseResolveResult
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -238,7 +238,7 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
       return KotlinAnnotationsIndex.getInstance().get(name, annClass.project, scope)
     }
 
-    return (useScope as LocalSearchScope).scope.flatMap { it.descendantsOfType<KtAnnotationEntry>().toList() }
+    return (useScope as LocalSearchScope).scope.flatMap { it.collectDescendantsOfType<KtAnnotationEntry>() }
   }
 }
 
