@@ -342,8 +342,8 @@ class EmulatorToolWindowPanel(
           val display = displayDescriptors[layoutNode.rectangleIndex]
           val displayId = display.displayId
           displayPanels.computeIfAbsent(displayId, IntFunction {
-            assert(displayId != PRIMARY_DISPLAY_ID)
-            EmulatorDisplayPanel(contentDisposable!!, emulator, displayId, display.size, zoomToolbarVisible)
+            assert(it != PRIMARY_DISPLAY_ID)
+            EmulatorDisplayPanel(contentDisposable!!, emulator, it, display.size, zoomToolbarVisible)
           })
         }
         is SplitNode -> {
@@ -367,8 +367,8 @@ class EmulatorToolWindowPanel(
         val displayId = state.displayId ?: throw IllegalArgumentException()
         val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
         displayPanels.computeIfAbsent(displayId, IntFunction {
-          assert(displayId != PRIMARY_DISPLAY_ID)
-          EmulatorDisplayPanel(contentDisposable!!, emulator, displayId, display.size, zoomToolbarVisible)
+          assert(it != PRIMARY_DISPLAY_ID)
+          EmulatorDisplayPanel(contentDisposable!!, emulator, it, display.size, zoomToolbarVisible)
         })
       }
     }
