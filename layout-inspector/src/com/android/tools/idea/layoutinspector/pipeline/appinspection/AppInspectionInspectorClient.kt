@@ -114,7 +114,7 @@ class AppInspectionInspectorClient(
       }
 
       viewInspector = ViewLayoutInspectorClient.launch(apiServices, process, model, scope, composeInspector, ::fireError, ::fireTreeEvent)
-      propertiesProvider = AppInspectionPropertiesProvider(viewInspector, composeInspector, model)
+      propertiesProvider = AppInspectionPropertiesProvider(viewInspector.propertiesCache, composeInspector?.parametersCache, model)
 
       metrics.logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 

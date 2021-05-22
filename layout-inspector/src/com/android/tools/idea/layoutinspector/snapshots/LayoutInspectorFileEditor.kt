@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -33,6 +34,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.intellij.ide.DataManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -43,10 +45,12 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserDataHolderBase(), FileEditor {
   private val _file = file
@@ -67,38 +71,48 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
     modificationCount = file.modificationCount
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, this)
-    val viewSettings = DeviceViewSettings()
+    try {
+      val viewSettings = DeviceViewSettings()
 
-    val contentPanel = JPanel(BorderLayout())
-    contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
-    contentPanel.add(workbench, BorderLayout.CENTER)
+      val contentPanel = JPanel(BorderLayout())
+      contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
+      contentPanel.add(workbench, BorderLayout.CENTER)
 
-    // TODO: error handling
-    val snapshotLoader = SnapshotLoader.createSnapshotLoader(file) ?: throw Exception()
-    val model = InspectorModel(project)
-    snapshotLoader.loadFile(file, model)
+      // TODO: error handling
+      val snapshotLoader = SnapshotLoader.createSnapshotLoader(file) ?: throw Exception()
+      val model = InspectorModel(project)
+      snapshotLoader.loadFile(file, model)
 
-    // TODO: persisted tree setting scoped to file
-    val treeSettings = object: TreeSettings {
-      override var hideSystemNodes = false
-      override var composeAsCallstack = false
-      override var mergedSemanticsTree = false
-      override var unmergedSemanticsTree = false
-      override var supportLines = true
+      // TODO: persisted tree setting scoped to file
+      val treeSettings = object : TreeSettings {
+        override var hideSystemNodes = false
+        override var composeAsCallstack = false
+        override var mergedSemanticsTree = false
+        override var unmergedSemanticsTree = false
+        override var supportLines = true
+      }
+      // TODO: indicate this is a snapshot session in the stats
+      val stats = SessionStatistics(model, treeSettings)
+      val client = object : InspectorClient by DisconnectedClient {
+        override val provider: PropertiesProvider
+          get() = snapshotLoader.propertiesProvider
+
+        override val capabilities: Set<InspectorClient.Capability>
+          get() = if (model.pictureType == AndroidWindow.ImageType.SKP) setOf(InspectorClient.Capability.SUPPORTS_SKP) else setOf()
+      }
+      val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
+      val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
+      DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
+      workbench.init(deviceViewPanel, layoutInspector, listOf(
+        LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
+
+      model.updateConnection(client)
     }
-    // TODO: indicate this is a snapshot session in the stats
-    val stats = SessionStatistics(model, treeSettings)
-    val client = object: InspectorClient by DisconnectedClient {
-      override val provider: PropertiesProvider
-        get() = snapshotLoader.propertiesProvider
+    catch (exception: Exception) {
+      // TODO: better error panel
+      Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
+      return JBLabel("Error loading snapshot", SwingConstants.CENTER)
     }
-    val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
-    val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)
-    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))
-    workbench.init(deviceViewPanel, layoutInspector, listOf(
-      LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
-
-    model.updateConnection(client)
     this.workbench = workbench
     return workbench
   }

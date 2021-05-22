@@ -21,9 +21,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersData
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewPropertiesData
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -40,8 +40,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 class AppInspectionPropertiesProvider(
-  private val viewClient: ViewLayoutInspectorClient,
-  private val composeClient: ComposeLayoutInspectorClient?,
+  private val propertiesCache: ViewPropertiesCache,
+  private val parametersCache: ComposeParametersCache?,
   private val model: InspectorModel)
   : PropertiesProvider {
 
@@ -54,14 +54,14 @@ class AppInspectionPropertiesProvider(
     CoroutineScope(Dispatchers.Unconfined).launch {
       var propertiesTable: PropertiesTable<InspectorPropertyItem>? = null
       if (view !is ComposeViewNode) {
-        val viewData = viewClient.propertiesCache.getDataFor(view)
+        val viewData = propertiesCache.getDataFor(view)
         if (viewData != null) {
           completeProperties(view, viewData)
           propertiesTable = viewData.properties
         }
       }
       else {
-        val composeData = composeClient?.parametersCache?.getDataFor(view)
+        val composeData = parametersCache?.getDataFor(view)
         if (composeData != null) {
           completeParameters(view, composeData)
           propertiesTable = composeData.parameters
