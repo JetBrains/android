@@ -110,7 +110,7 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  val propertiesCache = ViewPropertiesCache(this, model)
+  val propertiesCache = LiveViewPropertiesCache(this, model)
 
   /**
    * Whether this client is continuously receiving layout events or not.

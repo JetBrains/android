@@ -24,7 +24,21 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertiesEve
 /**
  * Cache of view properties, to avoid expensive refetches when possible.
  */
-class ViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewNodeCache<ViewPropertiesData>(model) {
+sealed class ViewPropertiesCache(model: InspectorModel) : ViewNodeCache<ViewPropertiesData>(model) {
+  fun setAllFrom(event: PropertiesEvent) {
+    val stringTable = StringTableImpl(event.stringsList)
+    for (propertyGroup in event.propertyGroupsList) {
+      setDataFor(event.rootId, propertyGroup.viewId, ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate())
+    }
+  }
+}
+
+class DisconnectedViewPropertiesCache(model: InspectorModel) : ViewPropertiesCache(model) {
+  // We're not connected to anything, no way to fetch new data
+  override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? = null
+}
+
+class LiveViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: InspectorModel) : ViewPropertiesCache(model) {
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ViewPropertiesData? {
     val response = client.getProperties(root.drawId, node.drawId)
     return if (response != GetPropertiesResponse.getDefaultInstance()) {
@@ -32,13 +46,6 @@ class ViewPropertiesCache(private val client: ViewLayoutInspectorClient, model: 
     }
     else {
       null
-    }
-  }
-
-  fun setAllFrom(event: PropertiesEvent) {
-    val stringTable = StringTableImpl(event.stringsList)
-    for (propertyGroup in event.propertyGroupsList) {
-      setDataFor(event.rootId, propertyGroup.viewId, ViewPropertiesDataGenerator(stringTable, propertyGroup, model).generate())
     }
   }
 }
