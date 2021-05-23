@@ -17,9 +17,6 @@ package com.android.tools.idea.rendering.classloading;
 
 import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.testutils.ignore.IgnoreTestRule;
-import com.android.testutils.ignore.IgnoreWithCondition;
-import com.android.testutils.ignore.OnWindows;
 import com.google.common.collect.ImmutableList;
 import com.google.common.truth.ThrowableSubject;
 import com.intellij.openapi.diagnostic.DefaultLogger;
@@ -43,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -69,8 +65,6 @@ import static org.mockito.Mockito.when;
 public class RenderClassLoaderTest {
   private static Logger ourLoggerInstance;
   private Logger.Factory myOriginalFactory;
-
-  @Rule public final IgnoreTestRule ignoreTests = new IgnoreTestRule();
 
   @AfterClass
   public static void afterClass() {
@@ -104,7 +98,6 @@ public class RenderClassLoaderTest {
     NELE_WARN_NEW_THREADS.clearOverride();
   }
 
-  @IgnoreWithCondition(reason = "b/188105356", condition = OnWindows.class)
   @Test
   public void testRemovingJarFile() throws IOException, ClassNotFoundException {
 
@@ -182,7 +175,6 @@ public class RenderClassLoaderTest {
     trackedThreadLocals.forEach(tl -> tl.remove());
   }
 
-  @IgnoreWithCondition(reason = "b/188105356", condition = OnWindows.class)
   @Test
   public void testBinaryCache_loadWithoutLibrary() throws IOException, ClassNotFoundException {
     File jarSource = new File(AndroidTestBase.getTestDataPath(), "rendering/renderClassLoader/lib.jar");
