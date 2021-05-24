@@ -46,6 +46,8 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
     @NonNull private final String myModelVersion;
     @NonNull private final String myName;
     @Nullable private final String myGroupId;
+    @NonNull private final String myNamespace;
+    @Nullable private final String myAndroidTestNamespace;
     @NonNull private final ProductFlavorContainer myDefaultConfig;
     @NonNull private final Collection<BuildTypeContainer> myBuildTypes;
     @NonNull private final Collection<ProductFlavorContainer> myProductFlavors;
@@ -81,6 +83,8 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
                 modelVersion,
                 "name",
                 null,
+                "com.example.myapp",
+                "com.example.myapp.test",
                 new ProductFlavorContainerStub(),
                 Lists.newArrayList(new BuildTypeContainerStub()),
                 Lists.newArrayList(new ProductFlavorContainerStub()),
@@ -116,6 +120,8 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
             @NonNull String modelVersion,
             @NonNull String name,
             @Nullable String groupId,
+            @NonNull String namespace,
+            @Nullable String androidTestNamespace,
             @NonNull ProductFlavorContainer defaultConfig,
             @NonNull Collection<BuildTypeContainer> buildTypes,
             @NonNull Collection<ProductFlavorContainer> productFlavors,
@@ -148,6 +154,8 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
         myModelVersion = modelVersion;
         myName = name;
         myGroupId = groupId;
+        myNamespace = namespace;
+        myAndroidTestNamespace = androidTestNamespace;
         myDefaultConfig = defaultConfig;
         myBuildTypes = buildTypes;
         myProductFlavors = productFlavors;
@@ -197,7 +205,19 @@ public class AndroidProjectStub extends BaseStub implements AndroidProject {
         return myGroupId;
     }
 
-    @Override
+  @NonNull
+  @Override
+  public String getNamespace() {
+    return myNamespace;
+  }
+
+  @NonNull
+  @Override
+  public String getAndroidTestNamespace() {
+    return myAndroidTestNamespace;
+  }
+
+  @Override
     @NonNull
     public ProductFlavorContainer getDefaultConfig() {
         return myDefaultConfig;

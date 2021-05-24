@@ -122,6 +122,19 @@ public class AndroidProjectStub implements AndroidProject {
   public String getGroupId() {
     return null;
   }
+
+  @NotNull
+  @Override
+  public String getNamespace() {
+    return "com.example.myapp";
+  }
+
+  @Nullable
+  @Override
+  public String getAndroidTestNamespace() {
+    return "com.example.myapp.test";
+  }
+
   @Override
   public boolean isLibrary() {
     return myProjectType == AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
