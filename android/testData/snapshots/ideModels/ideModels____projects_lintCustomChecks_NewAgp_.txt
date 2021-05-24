@@ -305,8 +305,6 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -550,14 +548,10 @@ MODULE                        : project.library
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -585,8 +579,6 @@ MODULE                        : project.library
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -616,8 +608,6 @@ MODULE                        : project.library
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/library/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/library/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -857,14 +847,10 @@ MODULE                        : project.library-remote
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -892,8 +878,6 @@ MODULE                        : project.library-remote
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/library-remote/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/library-remote/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -923,8 +907,6 @@ MODULE                        : project.library-remote
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/library-remote/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/library-remote/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/library-remote/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions

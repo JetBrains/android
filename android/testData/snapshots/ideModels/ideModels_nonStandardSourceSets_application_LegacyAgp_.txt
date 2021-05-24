@@ -1463,8 +1463,6 @@ MODULE                        : application.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/application/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/application/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
