@@ -92,7 +92,7 @@ android {
     }
 
     targetProjectPath = "$targetModuleGradlePath"
-    properties["android.experimental.self-instrumenting"] = true
+    experimentalProperties["android.experimental.self-instrumenting"] = true
 }
 
 dependencies {
