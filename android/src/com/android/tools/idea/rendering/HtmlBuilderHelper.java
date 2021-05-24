@@ -50,27 +50,27 @@ public class HtmlBuilderHelper {
 
   @Nullable
   public static String getCloseIconPath() {
-    return getIconPath("/actions/closeNew.png");
+    return getIconPath("actions/closeNew.png");
   }
 
   @Nullable
   public static String getTipIconPath() {
-    return getIconPath("/actions/createFromUsage.png");
+    return getIconPath("actions/createFromUsage.png");
   }
 
   @Nullable
   public static String getWarningIconPath() {
-    return getIconPath("/general/warningDialog.png");
+    return getIconPath("general/warningDialog.png");
   }
 
   @Nullable
   public static String getErrorIconPath() {
-    return getIconPath("/general/error.png");
+    return getIconPath("general/error.png");
   }
 
   @Nullable
   public static String getRefreshIconPath() {
-    return getIconPath("/actions/refresh.png");
+    return getIconPath("actions/refresh.png");
   }
 
   public static String getHeaderFontColor() {
