@@ -114,7 +114,6 @@ class CustomViewPreviewRepresentation(
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
-  private var configurationListener = ConfigurationListener { true }
 
   private val uniqueTaskLauncher = UniqueTaskCoroutineLauncher(this, "Custom view preview update thread")
 
@@ -322,15 +321,6 @@ class CustomViewPreviewRepresentation(
     updateModel()
   }
 
-  private fun createConfigurationListener(configuration: Configuration, className: String) = ConfigurationListener { flags ->
-    if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
-      val screen = configuration.device!!.defaultHardware.screen
-      persistenceManager.setValues(
-        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
-    }
-    true
-  }
-
   private fun updateModel() {
     launch(uiThread) {
       uniqueTaskLauncher.launch(::updateModelSync)
@@ -368,7 +358,6 @@ class CustomViewPreviewRepresentation(
         surface.deactivate()
         surface.models.first().let { model ->
           (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
-          model.configuration.removeListener(configurationListener)
           model.updateFileContentBlocking(fileContent)
         }
       }
@@ -389,10 +378,21 @@ class CustomViewPreviewRepresentation(
         surface.zoomToFit()
       }
       surface.activate()
-      configurationListener = createConfigurationListener(configuration, className)
-      configuration.addListener(configurationListener)
 
       stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
+    }
+  }
+
+  override fun onDeactivate() {
+    super.onDeactivate()
+
+    // Persist the current dimensions
+    surface.models.firstOrNull()?.configuration?.let { configuration ->
+      val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
+      val className = fqcn2name(selectedClass)
+      val screen = configuration.device!!.defaultHardware.screen
+      persistenceManager.setValues(
+        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
     }
   }
 
