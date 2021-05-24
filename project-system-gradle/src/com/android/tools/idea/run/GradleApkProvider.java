@@ -81,7 +81,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -575,7 +574,9 @@ public class GradleApkProvider implements ApkProvider {
     File apkFolder = androidModel.getFeatures().isBuildOutputFileSupported()
                      ? getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
                                                             OutputType.ApkFromBundle)
-                     : collectApkFolderFromPostBuildModel(module, outputModelProvider, androidModel);
+                     : collectApkFolderFromPostBuildModel(outputModelProvider,
+                                                          GradleUtil.getGradlePath(module),
+                                                          androidModel.getSelectedVariant().getName());
 
     if (apkFolder == null) {
       getLogger().warn("Could not find apk folder.");
@@ -600,22 +601,22 @@ public class GradleApkProvider implements ApkProvider {
    * the folder from post build model. This method should be used for AGP prior to 4.0.
    */
   @Nullable
-  private static File collectApkFolderFromPostBuildModel(@NotNull Module module,
-                                                         @NotNull PostBuildModelProvider outputModelProvider,
-                                                         @NotNull AndroidModuleModel androidModel) {
+  private static File collectApkFolderFromPostBuildModel(@NotNull PostBuildModelProvider outputModelProvider,
+                                                         @Nullable String gradlePath,
+                                                         @Nullable String variantName) {
     PostBuildModel model = outputModelProvider.getPostBuildModel();
     if (model == null) {
       getLogger().warn("Post build model is null. Build might have failed.");
       return null;
     }
-    AppBundleProjectBuildOutput output = model.findAppBundleProjectBuildOutput(GradleUtil.getGradlePath(module));
+    AppBundleProjectBuildOutput output = model.findAppBundleProjectBuildOutput(gradlePath);
     if (output == null) {
       getLogger().warn("Project output is null. Build may have failed.");
       return null;
     }
 
     for (AppBundleVariantBuildOutput variantBuildOutput : output.getAppBundleVariantsBuildOutput()) {
-      if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+      if (variantBuildOutput.getName().equals(variantName)) {
         return variantBuildOutput.getApkFolder();
       }
     }
