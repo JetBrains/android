@@ -18,13 +18,98 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.util.GradleUtil
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
+import org.jetbrains.kotlin.idea.inspections.gradle.findAll
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+
 object ModuleUtil {
   @JvmStatic
-  fun getModuleName(artifact: IdeBaseArtifact): String {
-    return when (artifact.name) {
+  fun getModuleName(artifact: IdeBaseArtifact): String = getModuleName(artifact.name)
+
+  @JvmStatic
+  fun getModuleName(artifactName: IdeArtifactName): String {
+    return when (artifactName) {
       IdeArtifactName.MAIN -> "main"
       IdeArtifactName.UNIT_TEST -> "unitTest"
       IdeArtifactName.ANDROID_TEST -> "androidTest"
     }
   }
+
+  @JvmStatic
+  fun Project.isModulePerSourceSetEnabled(): Boolean = GradleUtil.getGradleProjectSettings(this)?.isResolveModulePerSourceSet ?: false
+
+  /**
+   * This method is used to link all modules that come from the same Gradle project.
+   * It uses user data under the [LINKED_ANDROID_MODULE_GROUP] key to store an instance of [LinkedAndroidModuleGroup] on each module.
+   *
+   * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
+   */
+  @JvmStatic
+  fun DataNode<ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
+    val holderModule = dataToModuleMap(data) ?: return
+    if (!holderModule.project.isModulePerSourceSetEnabled()) return
+    var unitTestModule : Module? = null
+    var androidTestModule : Module? = null
+    var mainModule : Module? = null
+    findAll(GradleSourceSetData.KEY).forEach {
+      when(val sourceSetName = it.data.externalName.substringAfterLast(":")) {
+        getModuleName(IdeArtifactName.MAIN) -> mainModule = dataToModuleMap(it.data)
+        getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
+        getModuleName(IdeArtifactName.ANDROID_TEST) -> androidTestModule = dataToModuleMap(it.data)
+        else -> logger<ModuleUtil>().warn("Unknown artifact name: $sourceSetName")
+      }
+    }
+    if (mainModule == null) {
+      logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
+      return
+    }
+    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule)
+    androidModuleGroup.getModules().forEach { module ->
+      module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
+    }
+  }
+
+  @JvmStatic
+  fun DataNode<ModuleData>.linkAndroidModuleGroup(ideModelProvider: IdeModifiableModelsProvider) =
+    linkAndroidModuleGroup { ideModelProvider.findIdeModule(it) }
+
+  @JvmStatic
+  fun Module.getAllLinkedModules() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
+
+  @JvmStatic
+  fun Module.getMainModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.main ?: this
+
+  @JvmStatic
+  fun Module.getUnitTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.unitTest ?: this
+
+  @JvmStatic
+  fun Module.getAndroidTestModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.androidTest ?: this
+
+  @JvmStatic
+  fun Module.getHolderModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+}
+
+val LINKED_ANDROID_MODULE_GROUP : Key<LinkedAndroidModuleGroup> = Key("linked.android.module.group")
+
+fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
+    val moduleName = getModuleName(artifactName)
+    val suffix = ":$moduleName"
+    if (this.endsWith(suffix)) {
+      this.removeSuffix(suffix)
+    } else {
+      null
+    }
+  } ?: this
+
+data class LinkedAndroidModuleGroup(val holder: Module, val main: Module, val unitTest: Module?, val androidTest: Module?) {
+  fun getModules() = listOf(holder, main, unitTest, androidTest)
 }
