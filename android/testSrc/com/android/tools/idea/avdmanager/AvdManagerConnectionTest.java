@@ -36,6 +36,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -228,11 +230,11 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     mFileOp.recordExistingFile("/sdk/emulator/" + binaryName);
     mFileOp.recordExistingFile("/sdk/tools/" + binaryName);
 
-    File emulatorFile = mAvdManagerConnection.getEmulatorBinary();
+    Path emulatorFile = mAvdManagerConnection.getEmulatorBinary();
     assertNotNull("Could not find Emulator", emulatorFile);
-    File emulatorDirectory = emulatorFile.getParentFile();
-    assertTrue("Found invalid Emulator", mFileOp.isDirectory(emulatorDirectory));
-    String emulatorDirectoryPath = mFileOp.getPlatformSpecificPath(emulatorDirectory);
+    Path emulatorDirectory = emulatorFile.getParent();
+    assertTrue("Found invalid Emulator", Files.isDirectory(emulatorDirectory));
+    String emulatorDirectoryPath = mFileOp.getPlatformSpecificPath(emulatorDirectory.toString());
     assertEquals("Found wrong emulator", mFileOp.getPlatformSpecificPath("/sdk/emulator"), emulatorDirectoryPath);
 
     // Remove the emulator package
@@ -245,11 +247,11 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     AvdManagerConnection managerConnection =
       new AvdManagerConnection(androidSdkHandler, mAvdFolder.toPath(), MoreExecutors.newDirectExecutorService());
 
-    File bogusEmulatorFile = managerConnection.getEmulatorBinary();
+    Path bogusEmulatorFile = managerConnection.getEmulatorBinary();
     if (bogusEmulatorFile != null) {
       // An emulator binary was found. It should not be anything that
       // we created (especially not anything in /sdk/tools/).
-      String bogusEmulatorPath = bogusEmulatorFile.getAbsolutePath();
+      String bogusEmulatorPath = bogusEmulatorFile.toString();
       assertFalse("Should not have found Emulator", bogusEmulatorPath.startsWith(mFileOp.getPlatformSpecificPath("/sdk")));
     }
   }
