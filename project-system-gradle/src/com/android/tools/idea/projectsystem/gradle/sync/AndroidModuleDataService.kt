@@ -21,11 +21,14 @@ import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
@@ -108,10 +111,12 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val androidModel = nodeToImport.data
       androidModel.setModule(mainIdeModule)
 
+      mainModuleDataNode.linkAndroidModuleGroup(modelsProvider)
+
       var mainArtifactModule : Module? = null
       val modules = listOf(mainIdeModule) + findAll(mainModuleDataNode, GradleSourceSetData.KEY).mapNotNull { dataNode ->
         modelsProvider.findIdeModule(dataNode.data).also { module ->
-          if (dataNode.data.externalName.substringAfterLast(":") == "main") {
+          if (dataNode.data.externalName.substringAfterLast(":") == getModuleName(IdeArtifactName.MAIN)) {
             mainArtifactModule = module
           }
         }

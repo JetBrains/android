@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -25,6 +26,12 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.idea.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.gradle.project.sync.idea.LinkedAndroidModuleGroup
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL
@@ -44,6 +51,7 @@ import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -65,9 +73,11 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
+import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
@@ -235,7 +245,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       }
       .toMap()
 
-  val moduleToModelPairs: Collection<Pair<Module, DataNode<ModuleData>>> =
+  val holderModuleToDataNodePairs: Collection<Pair<Module, DataNode<ModuleData>>> =
     projectDataNodes.flatMap { projectData ->
       projectData
         .modules()
@@ -246,7 +256,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         }
     }
 
-  val attachModelActions = moduleToModelPairs.flatMap { (module, moduleDataNode) ->
+  val attachModelActions = holderModuleToDataNodePairs.flatMap { (module, moduleDataNode) ->
 
     fun AndroidModuleModel.validate() =
     // the use of `project' here might look dubious (since we're in startup) but the operation of shouldForcePluginUpgrade does not
@@ -275,6 +285,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       facets.remove(facet)
       model.configure(module)
       return { facet.attach(model) }
+    }
+
+    if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
+      moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
     }
 
     listOf(
@@ -312,4 +326,3 @@ private fun removeGradleProducersFromIgnoredList(project: Project) {
   producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
   producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
 }
-
