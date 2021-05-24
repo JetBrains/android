@@ -683,9 +683,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   fun androidArtifactFrom(
     artifact: AndroidArtifact,
     agpVersion: GradleVersion?,
-    mlModelBindingEnabled: Boolean
+    mlModelBindingEnabled: Boolean,
+    projectType: IdeAndroidProjectType
   ): IdeAndroidArtifactImpl {
     fun sourceProviderFrom(provider: SourceProvider) = sourceProviderFrom(provider, mlModelBindingEnabled)
+    val isAppMainArtifact = artifact.name == AndroidProject.ARTIFACT_MAIN && projectType == IdeAndroidProjectType.PROJECT_TYPE_APP
 
     return IdeAndroidArtifactImpl(
       name = convertArtifactName(artifact.name),
@@ -714,9 +716,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         assembleTaskName = artifact.assembleTaskName.deduplicate(),
         assembleTaskOutputListingFile =
         copyNewModel(artifact::getAssembleTaskOutputListingFile, ::deduplicateString)?.takeUnless { it.isEmpty() },
-        bundleTaskName = copyNewModel(artifact::getBundleTaskName, ::deduplicateString),
+        // BundleTaskName is only applicable for the main artifact of an APPLICATION project.
+        bundleTaskName = if (isAppMainArtifact) copyNewModel(artifact::getBundleTaskName, ::deduplicateString) else null,
         bundleTaskOutputListingFile = copyNewModel(artifact::getBundleTaskOutputListingFile, ::deduplicateString),
-        apkFromBundleTaskName = copyNewModel(artifact::getApkFromBundleTaskName, ::deduplicateString),
+        // apkFromBundleTaskName is only applicable for the main artifact of an APPLICATION project.
+        apkFromBundleTaskName = if (isAppMainArtifact) copyNewModel(artifact::getApkFromBundleTaskName, ::deduplicateString) else null,
         apkFromBundleTaskOutputListingFile = copyNewModel(artifact::getApkFromBundleTaskOutputListingFile, ::deduplicateString),
       ),
       codeShrinker = convertCodeShrinker(copyNewProperty(artifact::getCodeShrinker)),
@@ -779,10 +783,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     return IdeVariantImpl(
       name = variant.name,
       displayName = variant.displayName,
-      mainArtifact = copyModel(variant.mainArtifact) { androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled) },
+      mainArtifact = copyModel(variant.mainArtifact) {
+        androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType) },
       androidTestArtifact =
       copy(variant::getExtraAndroidArtifacts) {
-        androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled)
+        androidArtifactFrom(it, modelVersion, androidProject.agpFlags.mlModelBindingEnabled, androidProject.projectType)
       }.firstOrNull { it.isTestArtifact },
       unitTestArtifact = copy(variant::getExtraJavaArtifacts) {
         javaArtifactFrom(it, androidProject.agpFlags.mlModelBindingEnabled)
@@ -972,14 +977,14 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun ideVariantBuildInformationFrom(model: VariantBuildInformation): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
+  fun ideVariantBuildInformationFrom(model: VariantBuildInformation, projectType: Int): IdeVariantBuildInformation = IdeVariantBuildInformationImpl(
     variantName = model.variantName,
     buildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = model.assembleTaskName,
       assembleTaskOutputListingFile = model.assembleTaskOutputListingFile,
-      bundleTaskName = model.bundleTaskName,
+      bundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.bundleTaskName else null,
       bundleTaskOutputListingFile = model.bundleTaskOutputListingFile,
-      apkFromBundleTaskName = model.apkFromBundleTaskName,
+      apkFromBundleTaskName = if (projectType == AndroidProjectTypes.PROJECT_TYPE_APP) model.apkFromBundleTaskName else null,
       apkFromBundleTaskOutputListingFile = model.apkFromBundleTaskOutputListingFile
     )
   )
@@ -990,7 +995,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
   ): Collection<IdeVariantBuildInformation> {
     return if (agpVersion != null && agpVersion.compareIgnoringQualifiers("4.1.0") >= 0) {
       // make deep copy of VariantBuildInformation.
-      project.variantsBuildInformation.map(::ideVariantBuildInformationFrom)
+      project.variantsBuildInformation.map{
+        variantBuildInformation ->  ideVariantBuildInformationFrom(variantBuildInformation, project.projectType) }
     }
     else emptyList()
     // VariantBuildInformation is not available.

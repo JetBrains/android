@@ -1924,8 +1924,6 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicBarDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/outputs/apk/androidTest/basicBar/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleBasicBarDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForBasicBarDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/basicBar/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
                 TestOptions
@@ -2723,15 +2721,11 @@ MODULE                        : project.dyn_feature
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
                 AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
                 AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/release/output-metadata.json [-]
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2758,8 +2752,6 @@ MODULE                        : project.dyn_feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                     AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -2786,8 +2778,6 @@ MODULE                        : project.dyn_feature
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -3010,14 +3000,10 @@ MODULE                        : project.lib
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -3563,8 +3549,6 @@ MODULE                        : project.lib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -4110,8 +4094,6 @@ MODULE                        : project.lib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/lib/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -4843,14 +4825,10 @@ MODULE                        : project.nested1
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -4877,8 +4855,6 @@ MODULE                        : project.nested1
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -4908,8 +4884,6 @@ MODULE                        : project.nested1
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested1/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -5128,14 +5102,10 @@ MODULE                        : project.nested1.deep
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -5164,8 +5134,6 @@ MODULE                        : project.nested1.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -5195,8 +5163,6 @@ MODULE                        : project.nested1.deep
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -5498,26 +5464,18 @@ MODULE                        : project.nested2
             VariantName                   : basicDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicDebug
-                BundleTaskName                : bundleBasicDebug
-                ApkFromBundleTaskName         : extractApksForBasicDebug
         VariantBuildInformation
             VariantName                   : paidDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidDebug
-                BundleTaskName                : bundlePaidDebug
-                ApkFromBundleTaskName         : extractApksForPaidDebug
         VariantBuildInformation
             VariantName                   : basicRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicRelease
-                BundleTaskName                : bundleBasicRelease
-                ApkFromBundleTaskName         : extractApksForBasicRelease
         VariantBuildInformation
             VariantName                   : paidRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidRelease
-                BundleTaskName                : bundlePaidRelease
-                ApkFromBundleTaskName         : extractApksForPaidRelease
     IdeVariants
         IdeVariant
             Name                          : basicDebug
@@ -5556,8 +5514,6 @@ MODULE                        : project.nested2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicDebug
-                    BundleTaskName                : bundleBasicDebug
-                    ApkFromBundleTaskName         : extractApksForBasicDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/basic/debug [-]
             AndroidTestArtifact
@@ -5598,8 +5554,6 @@ MODULE                        : project.nested2
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/build/outputs/apk/androidTest/basic/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleBasicDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForBasicDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/rs/androidTest/basic/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
                 TestOptions
@@ -5826,14 +5780,10 @@ MODULE                        : project.nested2.deep
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -5860,8 +5810,6 @@ MODULE                        : project.nested2.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -5891,8 +5839,6 @@ MODULE                        : project.nested2.deep
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -6109,14 +6055,10 @@ MODULE                        : project.nested2.trans.deep2
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -6143,8 +6085,6 @@ MODULE                        : project.nested2.trans.deep2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -6174,8 +6114,6 @@ MODULE                        : project.nested2.trans.deep2
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions

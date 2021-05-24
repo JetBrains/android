@@ -1403,8 +1403,6 @@ MODULE                        : My_First_App.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/firstapp/app/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
@@ -2197,14 +2195,10 @@ MODULE                        : My_First_App.app.mysharedlibrary
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                BundleTaskName                : bundleDebug
-                ApkFromBundleTaskName         : extractApksForDebug
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                BundleTaskName                : bundleRelease
-                ApkFromBundleTaskName         : extractApksForRelease
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2767,8 +2761,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    BundleTaskName                : bundleDebug
-                    ApkFromBundleTaskName         : extractApksForDebug
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/debug [-]
             AndroidTestArtifact
@@ -3331,8 +3323,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/shared/mysharedlibrary/build/outputs/apk/androidTest/debug/output-metadata.json [-]
-                    BundleTaskName                : bundleDebugAndroidTest
-                    ApkFromBundleTaskName         : extractApksForDebugAndroidTest
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
                 TestOptions
