@@ -38,13 +38,12 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A generic system information monitor object.
@@ -188,7 +187,7 @@ public class SystemInfoStatsMonitor {
   }
 
   @Nullable
-  private static File getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
+  private static Path getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
     return AvdManagerConnection.getAvdManagerConnection(handler).getEmulatorCheckBinary();
   }
 
@@ -207,11 +206,11 @@ public class SystemInfoStatsMonitor {
       return null;
     }
 
-    File checkBinary = getEmulatorCheckBinary(handler);
+    Path checkBinary = getEmulatorCheckBinary(handler);
     if (checkBinary == null) {
       throw new ExecutionException("No emulator-check binary in the SDK emulator package");
     }
-    GeneralCommandLine commandLine = new GeneralCommandLine(checkBinary.getPath(), argument);
+    GeneralCommandLine commandLine = new GeneralCommandLine(checkBinary.toString(), argument);
     CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
     ProcessOutput output = process.runProcess();
     int exitCode = output.getExitCode();

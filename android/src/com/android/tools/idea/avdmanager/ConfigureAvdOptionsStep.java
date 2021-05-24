@@ -850,12 +850,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      * @return true on success, false on failure
      */
     private boolean launchEmulatorForSnapshotControl(@NotNull File paramFileForEmulator) {
-      File emulatorBinary = connection.getEmulatorBinary();
+      Path emulatorBinary = connection.getEmulatorBinary();
       if (emulatorBinary == null) {
         return false;
       }
       GeneralCommandLine commandLine = new GeneralCommandLine();
-      commandLine.setExePath(emulatorBinary.getPath());
+      commandLine.setExePath(emulatorBinary.toString());
       commandLine.addParameter("@" + myAvdId.getText());
       commandLine.addParameters("-ui-only", "snapshot-control");
       commandLine.addParameters("-studio-params", paramFileForEmulator.getAbsolutePath());

@@ -29,7 +29,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -161,7 +160,7 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
 
   @Override
   protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
-                                                           @NotNull File emulator,
+                                                           @NotNull Path emulator,
                                                            @NotNull AvdInfo avd,
                                                            @NotNull EmulatorCommandBuilderFactory factory) {
     GeneralCommandLine command = super.newEmulatorCommand(project, emulator, avd, factory);

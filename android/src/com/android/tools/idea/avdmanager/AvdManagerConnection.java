@@ -293,7 +293,7 @@ public class AvdManagerConnection {
   }
 
   @Nullable
-  private File getBinaryLocation(String filename) {
+  private Path getBinaryLocation(@NotNull String filename) {
     assert mySdkHandler != null;
     LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
     if (sdkPackage == null) {
@@ -303,16 +303,16 @@ public class AvdManagerConnection {
     if (CancellableFileIo.notExists(binaryFile)) {
       return null;
     }
-    return FileOpUtils.toFile(binaryFile);
+    return binaryFile;
   }
 
   @Nullable
-  public File getEmulatorBinary() {
+  public Path getEmulatorBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR);
   }
 
   @Nullable
-  public File getEmulatorCheckBinary() {
+  public Path getEmulatorCheckBinary() {
     return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
   }
 
@@ -527,7 +527,7 @@ public class AvdManagerConnection {
   private @NotNull ListenableFuture<IDevice> continueToStartAvd(@Nullable Project project,
                                                                 @NotNull AvdInfo avd,
                                                                 @NotNull EmulatorCommandBuilderFactory factory) {
-    File emulatorBinary = getEmulatorBinary();
+    Path emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new RuntimeException("No emulator binary found"));
@@ -609,14 +609,14 @@ public class AvdManagerConnection {
   }
 
   protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
-                                                           @NotNull File emulator,
+                                                           @NotNull Path emulator,
                                                            @NotNull AvdInfo avd,
                                                            @NotNull EmulatorCommandBuilderFactory factory) {
     ProgressIndicator indicator = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
     ILogger logger = new LogWrapper(Logger.getInstance(AvdManagerConnection.class));
     Optional<Collection<String>> params = Optional.ofNullable(System.getenv("studio.emu.params")).map(Splitter.on(',')::splitToList);
 
-    return factory.newEmulatorCommandBuilder(emulator.toPath(), avd)
+    return factory.newEmulatorCommandBuilder(emulator, avd)
       .setAvdHome(myAvdManager.getBaseAvdFolder().toPath())
       .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
       .setStudioParams(writeParameterFile().orElse(null))
@@ -818,7 +818,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
-    File emulatorBinary = getEmulatorBinary();
+    Path emulatorBinary = getEmulatorBinary();
     if (emulatorBinary == null) {
       return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
     }
@@ -830,13 +830,13 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    File checkBinary = getEmulatorCheckBinary();
+    Path checkBinary = getEmulatorCheckBinary();
     if (checkBinary != null) {
-      commandLine.setExePath(checkBinary.getPath());
+      commandLine.setExePath(checkBinary.toString());
       commandLine.addParameter("accel");
     }
     else {
-      commandLine.setExePath(emulatorBinary.getPath());
+      commandLine.setExePath(emulatorBinary.toString());
       commandLine.addParameter("-accel-check");
     }
     int exitValue;
