@@ -24,7 +24,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu.CpuTraceType.ATRACE
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeProfilerService
-import com.android.tools.profilers.ReferenceWalker
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
@@ -37,6 +36,7 @@ import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
+import com.android.tools.tests.memory.ReferenceWalker
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
