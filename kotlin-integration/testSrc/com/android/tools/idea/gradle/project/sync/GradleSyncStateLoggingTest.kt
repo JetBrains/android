@@ -39,7 +39,7 @@ class GradleSyncStateLoggingTest : AndroidGradleTestCase() {
       .last { it.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED }
       .kotlinSupport
 
-    assertEquals(TestUtils.getKotlinVersionForTests(), proto.kotlinSupportVersion)
+    assertEquals(TestUtils.KOTLIN_VERSION_FOR_TESTS, proto.kotlinSupportVersion)
     assertFalse(proto.hasAndroidKtxVersion())
     // TODO(b/71803185): test for KTX once we have in prebuilts and can sync a project that uses it.
   }

@@ -132,7 +132,7 @@ open class TemplateTest : AndroidGradleTestCase() {
   private val withKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
     projectData.language = Language.Kotlin
     // Use the Kotlin version for tests
-    projectData.kotlinVersion = TestUtils.getKotlinVersionForTests()
+    projectData.kotlinVersion = TestUtils.KOTLIN_VERSION_FOR_TESTS
   }
 
   private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(

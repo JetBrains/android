@@ -104,7 +104,7 @@ iml_module(
         "//tools/adt/idea/sync-perf-tests/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
-        "//tools/base/third_party/kotlin:kotlin-m2repository",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
     test_tags = [

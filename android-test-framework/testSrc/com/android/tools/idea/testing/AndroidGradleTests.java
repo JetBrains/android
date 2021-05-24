@@ -23,7 +23,7 @@ import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.testutils.TestUtils.getKotlinVersionForTests;
+import static com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
@@ -195,7 +195,7 @@ public class AndroidGradleTests {
                                    pluginVersion);
 
       if (kotlinVersion == null) {
-        kotlinVersion = getKotlinVersionForTests();
+        kotlinVersion = KOTLIN_VERSION_FOR_TESTS;
       }
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
@@ -228,7 +228,7 @@ public class AndroidGradleTests {
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
       if (kotlinVersion == null) {
-        kotlinVersion = getKotlinVersionForTests();
+        kotlinVersion = KOTLIN_VERSION_FOR_TESTS;
       }
 
       String pluginVersion = gradlePluginVersion != null ? gradlePluginVersion : buildEnvironment.getGradlePluginVersion();

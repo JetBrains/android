@@ -76,21 +76,21 @@ PROJECT                       : testSyncWithKotlinDsl
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
-            Platform                      : JVM (JVM_1_6)
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
@@ -538,21 +538,21 @@ PROJECT                       : testSyncWithKotlinDsl
             GradlePath                    : :lib
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
             CompilerSettings
                 additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
-            Platform                      : JVM (JVM_1_6)
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/lib
