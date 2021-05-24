@@ -26,7 +26,7 @@ class ComposeTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
-      linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest")
+      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
     }
   }
 }

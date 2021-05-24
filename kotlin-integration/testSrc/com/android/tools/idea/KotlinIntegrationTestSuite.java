@@ -28,6 +28,7 @@ public class KotlinIntegrationTestSuite extends IdeaTestSuiteBase {
 
   static {
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     linkIntoOfflineMavenRepo("tools/adt/idea/kotlin-integration/test_deps.manifest");
   }
 }

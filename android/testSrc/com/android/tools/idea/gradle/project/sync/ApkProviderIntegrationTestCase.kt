@@ -224,10 +224,11 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
     val variant: Pair<String, String>? = null,
     val agpVersion: String? = null,
     val gradleVersion: String? = null,
+    val kotlinVersion: String? = null,
     val executeMakeBeforeRun: Boolean = true,
     val targetRunConfiguration: TargetRunConfiguration = TargetRunConfiguration.AppTargetRunConfiguration,
     val expectApks: String = "",
-    val expectValidate: String = ""
+    val expectValidate: String = "",
   ) {
     override fun toString(): String = name
   }
@@ -239,7 +240,9 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   @Test
   fun testApkProvider() {
     with(testDefinition!!) {
-      prepareGradleProject(testProject, "project", gradleVersion = gradleVersion, gradlePluginVersion = agpVersion)
+      prepareGradleProject(
+        testProject, "project", gradleVersion = gradleVersion, gradlePluginVersion = agpVersion, kotlinVersion = kotlinVersion
+      )
 
       openPreparedProject("project") { project ->
         if (variant != null) {

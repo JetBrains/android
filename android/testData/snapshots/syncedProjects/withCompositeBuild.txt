@@ -76,10 +76,10 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -98,10 +98,10 @@ PROJECT                       : testWithCompositeBuild
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -114,7 +114,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (JVM_1_6)
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/app
@@ -579,10 +579,10 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :lib
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -601,10 +601,10 @@ PROJECT                       : testWithCompositeBuild
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -617,7 +617,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (JVM_1_6)
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib1/lib
@@ -1085,10 +1085,10 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1107,10 +1107,10 @@ PROJECT                       : testWithCompositeBuild
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1123,7 +1123,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (JVM_1_6)
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/app
@@ -2070,10 +2070,10 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :app
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2092,10 +2092,10 @@ PROJECT                       : testWithCompositeBuild
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2108,7 +2108,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (JVM_1_6)
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
@@ -2574,10 +2574,10 @@ PROJECT                       : testWithCompositeBuild
             GradlePath                    : :lib
         FACET                         : Kotlin
             TypeId                        : kotlin-language
-            ApiLevel                      : 1.4
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2596,10 +2596,10 @@ PROJECT                       : testWithCompositeBuild
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.4
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.4
-                languageVersion               : 1.4
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -2612,7 +2612,7 @@ PROJECT                       : testWithCompositeBuild
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (JVM_1_6)
+            Platform                      : JVM (JVM_1_8)
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/lib

@@ -33,7 +33,7 @@ class ApkProviderOldAgpIntegrationTest : ApkProviderIntegrationTestCase() {
       return tests.map { listOf(it).toTypedArray() }
     }
 
-    private val baseDefinition = TestDefinition(gradleVersion = "5.5", agpVersion = "3.5.0")
+    private val baseDefinition = TestDefinition(gradleVersion = "5.5", agpVersion = "3.5.0", kotlinVersion = "1.4.32")
 
     private val tests = listOf(
       baseDefinition.copy(

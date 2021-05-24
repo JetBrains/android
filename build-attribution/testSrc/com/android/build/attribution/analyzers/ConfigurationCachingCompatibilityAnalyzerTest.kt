@@ -21,7 +21,7 @@ import com.android.build.attribution.KnownGradlePluginsService
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
 import com.android.ide.common.repository.GradleVersion
-import com.android.testutils.TestUtils.getKotlinVersionForTests
+import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -107,9 +107,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
 
   @Test
   fun testNewKotlinNotDetected() {
-    val kotlinVersion = getKotlinVersionForTests()
     projectSetup(
-      dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion\"",
+      dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION_FOR_TESTS\"",
       pluginsApply = "apply plugin: 'kotlin-android'"
     )
 
