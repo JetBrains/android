@@ -176,13 +176,6 @@ iml_module(
             # TODO(b/167611852) remove after reducing its run time.
             "timeout": "eternal",
         },
-        "gradle.project.upgrade": {
-            "data": [
-                "//tools/base/build-system:gradle-distrib-6.1.1",
-                "//tools/base/build-system:gradle-distrib-6.5",
-            ],
-            "test_filter": "com.android.tools.idea.gradle.project.upgrade",
-        },
         "avd": {
             "test_filter": "com.android.tools.idea.avdmanager",
         },
