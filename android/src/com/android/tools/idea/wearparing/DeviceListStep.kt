@@ -49,7 +49,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -265,7 +264,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
             item.addActionListener {
               val process = Runnable {
-                val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
+                val cloudSyncIsEnabled = runBlocking(context = ioThread) {
                   withTimeoutOrNull(5_000) {
                     WearPairingManager.checkCloudSyncIsEnabled(pairedPhone)
                   }
