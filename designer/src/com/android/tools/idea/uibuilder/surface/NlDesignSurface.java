@@ -71,6 +71,7 @@ import com.android.utils.ImmutableCollectors;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
@@ -110,6 +111,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * See {@link Builder#setDelegateDataProvider(DataProvider)}
    */
   @Nullable private final DataProvider myDelegateDataProvider;
+
+  private final DataContext myDataContext = DataManager.getInstance().getDataContext(this);
 
   public static class Builder {
     private final Project myProject;
@@ -860,8 +863,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
             renderIssueProviders = results.entrySet().stream()
               .map(entry -> {
                 RenderErrorModel errorModel = RenderErrorModelFactory
-                  .createErrorModel(NlDesignSurface.this, entry.getValue(),
-                                    DataManager.getInstance().getDataContext(NlDesignSurface.this));
+                  .createErrorModel(NlDesignSurface.this, entry.getValue(), myDataContext);
                 return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
               })
               .collect(ImmutableList.toImmutableList());
