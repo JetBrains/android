@@ -18,6 +18,7 @@ package com.android.build.attribution.data
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -42,10 +43,11 @@ data class StudioProvidedInfo(
 
     fun turnOnConfigurationCacheInProperties(project: Project) {
       project.getProjectProperties(createIfNotExists = true)?.apply {
-        WriteCommandAction.writeCommandAction(project, this.containingFile).run<Throwable> {
-          findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.setValue("true") ?: addProperty(CONFIGURATION_CACHE_PROPERTY_NAME, "true")
+        val property = WriteCommandAction.writeCommandAction(project, this.containingFile).compute<IProperty, Throwable> {
+          findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.apply { setValue("true") }
+          ?: addProperty(CONFIGURATION_CACHE_PROPERTY_NAME, "true")
         }
-        val propertyOffset = findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.psiElement?.textOffset ?: -1
+        val propertyOffset = property?.psiElement?.textOffset ?: -1
         OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
       }
     }
