@@ -99,6 +99,10 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "name", nameAttribute = "")
     private @Nullable String name;
 
+    @OptionTag(tag = "nameOverride", nameAttribute = "")
+    @SuppressWarnings({"CanBeFinal", "FieldMayBeFinal"})
+    private @NotNull String nameOverride;
+
     @OptionTag(tag = "target", nameAttribute = "")
     private @Nullable String target;
 
@@ -107,12 +111,14 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
+      nameOverride = "";
     }
 
     private PhysicalDeviceState(@NotNull PhysicalDevice device) {
       key = new KeyState(device.getKey());
       lastOnlineTime = device.getLastOnlineTime();
       name = device.getName();
+      nameOverride = "";
       target = device.getTarget();
       api = device.getApi();
     }
@@ -134,6 +140,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         .setKey(key)
         .setLastOnlineTime(lastOnlineTime)
         .setName(name)
+        .setNameOverride(nameOverride)
         .setTarget(target)
         .setApi(api)
         .build();
@@ -145,6 +152,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
 
       hashCode = 31 * hashCode + Objects.hashCode(lastOnlineTime);
       hashCode = 31 * hashCode + Objects.hashCode(name);
+      hashCode = 31 * hashCode + nameOverride.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
 
@@ -162,6 +170,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       return Objects.equals(key, device.key) &&
              Objects.equals(lastOnlineTime, device.lastOnlineTime) &&
              Objects.equals(name, device.name) &&
+             nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&
              Objects.equals(api, device.api);
     }
