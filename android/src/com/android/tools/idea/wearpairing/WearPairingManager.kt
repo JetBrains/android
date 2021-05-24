@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearparing
+package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
@@ -32,8 +32,8 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.wearparing.ConnectionState.OFFLINE
-import com.android.tools.idea.wearparing.ConnectionState.ONLINE
+import com.android.tools.idea.wearpairing.ConnectionState.OFFLINE
+import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager

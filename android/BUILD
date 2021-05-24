@@ -247,7 +247,7 @@ iml_module(
             "shard_count": 2,
         },
         "wear.pairing.assistant": {
-            "test_filter": "com.android.tools.idea.wearparing",
+            "test_filter": "com.android.tools.idea.wearpairing",
         },
         "other": {
             "shard_count": 10,
