@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearparing
+package com.android.tools.idea.wearpairing
 
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
-import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
-import com.android.tools.idea.wearparing.ConnectionState.ONLINE
+import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
+import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -241,7 +241,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
       return phoneList.getToolTipText(mouseEvent)
     }
 
-    assertThat(getListItemTooltip(0)).contains("Wear paring requires API level >= 30")
+    assertThat(getListItemTooltip(0)).contains("Wear pairing requires API level >= 30")
     assertThat(getListItemTooltip(1)).contains("Wear pairing requires Google Play")
     assertThat(getListItemTooltip(2)).isNull() // Non emulators are always OK
   }
