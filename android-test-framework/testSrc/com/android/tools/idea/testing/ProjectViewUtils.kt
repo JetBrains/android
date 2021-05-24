@@ -16,6 +16,7 @@
 @file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE") // TODO: remove usage of sun.swing.ImageIconUIResource.
 package com.android.tools.idea.testing
 
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.ide.projectView.PresentationData
@@ -27,6 +28,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.DeferredIcon
+import com.intellij.ui.DeferredIconImpl
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
@@ -59,7 +61,9 @@ fun <T : Any> Project.dumpAndroidProjectView(
     val icon = getIcon(false)
 
     fun Icon.toText(): String? = when {
-      this is DeferredIcon -> evaluate().toText()
+      // After commit 2c486969f4 evaluate will throw an assertion failed exception if run under read action in NativeIconProvider
+      // Most over uses require a read action, only the implementation class DeferredIconImpl knows this
+      this is DeferredIconImpl<*> -> (if (!isNeedReadAction) executeOnPooledThread { evaluate() }.get() else evaluate()).toText()
       this is RetrievableIcon -> retrieveIcon().toText()
       this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
       this is IconLoader.CachedImageIcon -> originalPath

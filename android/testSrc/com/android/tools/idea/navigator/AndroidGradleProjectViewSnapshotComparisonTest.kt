@@ -76,10 +76,8 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
   }
 
   fun testWithMlModels() {
-/* b/188940520
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS)
     assertIsEqualToSnapshot(text)
-b/188940520 */
   }
 
   fun testMultiFlavor() {
@@ -117,10 +115,8 @@ b/188940520 */
   }
 
   fun testNavigatorPackageViewSimple() {
-/* b/188940520
     val text = importSyncAndDumpProject(TestProjectToSnapshotPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE)
     assertIsEqualToSnapshot(text)
-b/188940520 */
   }
 
   fun testCompositeBuild() {
