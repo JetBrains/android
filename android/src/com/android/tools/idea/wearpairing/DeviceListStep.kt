@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearparing
+package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.HtmlLabel
@@ -22,7 +22,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.wearparing.ConnectionState.DISCONNECTED
+import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
