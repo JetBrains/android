@@ -212,7 +212,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       Truth.assertThat(pageHtml).contains("Test builds with Configuration cache finished successfully")
       // We  should not show the time saving line as data for this build does not make any value.
       Truth.assertThat(pageHtml).doesNotContain("You could save about")
-      Truth.assertThat(pageHtml).contains("With <a href=\"CONFIGURATION_CACHING\">Configuration cache</a><icon src=\"ide/external_link_arrow.svg\">,")
+      Truth.assertThat(pageHtml).contains("With <a href=\"CONFIGURATION_CACHING\">Configuration cache</a><icon src=\"AllIcons.Ide.External_link_arrow\">,")
       Truth.assertThat(pageHtml).contains("Gradle can skip the configuration phase")
       Truth.assertThat(pageHtml).contains("Gradle successfully serialized the task graph and reused it with Configuration cache on.")
     }

@@ -74,5 +74,5 @@ fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
 fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</span>")}</p>"
 fun String.insertBRTags(): String = replace("\n", "<br/>\n")
 fun externalLink(text: String, link: BuildAnalyzerBrowserLinks) =
-  "<a href='${link.name}'>$text</a><icon src='ide/external_link_arrow.svg'>"
+  "<a href='${link.name}'>$text</a><icon src='AllIcons.Ide.External_link_arrow'>"
 fun helpIcon(text: String): String = "<icon alt='$text' src='AllIcons.General.ContextHelp'>"
