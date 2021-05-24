@@ -58,7 +58,7 @@ interface BuildEventsAnalysisResult {
   fun getAppliedPlugins(): Map<String, List<PluginData>>
 
   /**
-   * TODO documentation
+   * Result of configuration cache compatibility analysis, describes the state and incompatible plugins if any.
    */
   fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult
 
