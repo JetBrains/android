@@ -35,12 +35,14 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
   private final @NotNull Key myKey;
   private final @Nullable Instant myLastOnlineTime;
+  private final @NotNull String myNameOverride;
   private final @NotNull String myApi;
   private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes;
 
   public static final class Builder extends Device.Builder {
     private @Nullable Key myKey;
     private @Nullable Instant myLastOnlineTime;
+    private @NotNull String myNameOverride = "";
     private @Nullable String myApi;
     private final @NotNull Collection<@NotNull ConnectionType> myConnectionTypes = EnumSet.noneOf(ConnectionType.class);
 
@@ -56,6 +58,11 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     public @NotNull Builder setName(@NotNull String name) {
       myName = name;
+      return this;
+    }
+
+    @NotNull Builder setNameOverride(@NotNull String nameOverride) {
+      myNameOverride = nameOverride;
       return this;
     }
 
@@ -102,6 +109,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     myKey = builder.myKey;
 
     myLastOnlineTime = builder.myLastOnlineTime;
+    myNameOverride = builder.myNameOverride;
 
     assert builder.myApi != null;
     myApi = builder.myApi;
@@ -140,6 +148,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     int hashCode = myKey.hashCode();
 
     hashCode = 31 * hashCode + Objects.hashCode(myLastOnlineTime);
+    hashCode = 31 * hashCode + myNameOverride.hashCode();
     hashCode = 31 * hashCode + myName.hashCode();
     hashCode = 31 * hashCode + myTarget.hashCode();
     hashCode = 31 * hashCode + myApi.hashCode();
@@ -158,6 +167,7 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
 
     return myKey.equals(device.myKey) &&
            Objects.equals(myLastOnlineTime, device.myLastOnlineTime) &&
+           myNameOverride.equals(device.myNameOverride) &&
            myName.equals(device.myName) &&
            myTarget.equals(device.myTarget) &&
            myApi.equals(device.myApi) &&
