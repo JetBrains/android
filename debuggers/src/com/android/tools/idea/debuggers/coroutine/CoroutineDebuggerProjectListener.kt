@@ -73,48 +73,10 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
       // Checking for AndroidRunConfigurationBase makes sure that the code is executed only for Android apps, not regular JVM or
       // kotlin. It also works for hybrid debugging on Android (native + jvm).
       if (executorId == DefaultDebugExecutor.EXECUTOR_ID && env.runProfile is AndroidRunConfigurationBase) {
-        val fakeConfiguration = FakeExternalSystemRunConfiguration(env.project)
         // The creation of DebuggerConnection registers an event listener to DebuggerManager.
         // When a debug process is started, it triggers a callback that creates the coroutine debugger panel UI.
-        DebuggerConnection(env.project, fakeConfiguration, null, false)
+        DebuggerConnection(env.project, null, null, false, alwaysShowPanel = true)
       }
     }
-  }
-
-  /**
-   * Currently [DebuggerConnection]'s constructor requires a ExternalSystemRunConfiguration.
-   * This fake configuration is a temporary workaround to enable us to create [DebuggerConnection].
-   * It will be removed once we merge intellij-kotlin 1.5 or manually path the kotlin plugin to make the
-   * ExternalSystemRunConfiguration optional.
-   */
-  // TODO(b/182023182) remove these fake classes, once we update to intellij-kotlin 1.5,
-  //  or by manually patching the kotlin plugin, if we want to flip the flag before the update happens.
-  private class FakeExternalSystemRunConfiguration(
-    project: Project,
-    projectSystemId: ProjectSystemId = ProjectSystemId("fake"),
-    configurationFactory: ConfigurationFactory = FakeFactory(FakeConfigType())
-  ) : ExternalSystemRunConfiguration(projectSystemId, project, configurationFactory, null)
-
-  private class FakeFactory(configType: ConfigurationType) : ConfigurationFactory(configType) {
-    override fun createTemplateConfiguration(project: Project): RunConfiguration {
-      return object : RunConfiguration {
-        override fun getState(executor: Executor, environment: ExecutionEnvironment) = TODO("Not yet implemented")
-        override fun getName() = ""
-        override fun getIcon() = TODO("Not yet implemented")
-        override fun clone() = this
-        override fun getFactory() = TODO("Not yet implemented")
-        override fun setName(name: String?) { }
-        override fun getConfigurationEditor() = TODO("Not yet implemented")
-        override fun getProject() = project
-      }
-    }
-  }
-
-  private class FakeConfigType : ConfigurationType {
-    override fun getDisplayName() = ""
-    override fun getConfigurationTypeDescription() = ""
-    override fun getIcon() = TODO("Not yet implemented")
-    override fun getId() = ""
-    override fun getConfigurationFactories() = TODO("Not yet implemented")
   }
 }
