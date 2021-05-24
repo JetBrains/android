@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.wearparing
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -45,7 +45,7 @@ class WearDevicePairingModel : WizardModel() {
 
   override fun dispose() {
     if (removePairingOnCancel.get()) {
-      GlobalScope.launch(Dispatchers.IO) {
+      GlobalScope.launch(ioThread) {
         WearPairingManager.removePairedDevices()
       }
     }

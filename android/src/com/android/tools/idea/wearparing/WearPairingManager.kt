@@ -25,6 +25,7 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
@@ -40,7 +41,6 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -71,7 +71,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
-    runningJob = GlobalScope.launch(Dispatchers.IO) {
+    runningJob = GlobalScope.launch(ioThread) {
       for (operation in updateDevicesChannel) {
         try {
           updateListAndForwardState()
@@ -233,20 +233,19 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 suspend fun IDevice.executeShellCommand(cmd: String) {
-  withContext(Dispatchers.IO) {
+  withContext(ioThread) {
     runCatching {
       executeShellCommand(cmd, NullOutputReceiver())
     }
   }
 }
 
-suspend fun IDevice.runShellCommand(cmd: String): String = withContext(Dispatchers.IO) {
+suspend fun IDevice.runShellCommand(cmd: String): String = withContext(ioThread) {
   val outputReceiver = CollectingOutputReceiver()
   runCatching {
     executeShellCommand(cmd, outputReceiver)
   }
-  outputReceiver.output.trim().apply {
-  }
+  outputReceiver.output.trim()
 }
 
 suspend fun IDevice.loadNodeID(): String {
