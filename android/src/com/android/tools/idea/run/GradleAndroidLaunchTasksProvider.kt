@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.editor.AndroidDebuggerState
-import com.android.tools.idea.run.tasks.DebugConnectorTask
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.LaunchStatus
@@ -135,7 +135,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
     return launchTasks
   }
 
-  override fun getConnectDebuggerTask(launchStatus: LaunchStatus, version: AndroidVersion?): DebugConnectorTask? {
+  override fun getConnectDebuggerTask(launchStatus: LaunchStatus, version: AndroidVersion?): ConnectDebuggerTask? {
     if (!myLaunchOptions.isDebug) {
       return null
     }

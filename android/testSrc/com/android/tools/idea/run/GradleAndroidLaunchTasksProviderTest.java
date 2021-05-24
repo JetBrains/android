@@ -24,7 +24,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.editor.AndroidJavaDebugger;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -105,7 +105,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
-    DebugConnectorTask debugConnectorTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
+    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
 
     launchTasks.forEach(task ->  {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
@@ -113,7 +113,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       assertThat(task.getDescription()).isEqualTo("Launching a connectedAndroidTest for selected devices");
       assertThat(task.getDuration()).isEqualTo(LaunchTaskDurations.LAUNCH_ACTIVITY);
     });
-    assertThat(debugConnectorTask).isNotNull();
+    assertThat(connectDebuggerTask).isNotNull();
   }
 
   public void testLaunchTaskProvidedForAllInPackageTest() throws Exception {
@@ -148,13 +148,13 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       new RetentionConfiguration());
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
-    DebugConnectorTask debugConnectorTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
+    ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
 
     launchTasks.forEach(task ->  {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
       assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
     });
-    assertThat(debugConnectorTask).isNull();
+    assertThat(connectDebuggerTask).isNull();
   }
 
   public void testLaunchTaskProvidedForClassTest() throws Exception {

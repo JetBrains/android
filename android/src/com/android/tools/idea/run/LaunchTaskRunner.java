@@ -17,7 +17,7 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.LaunchContext;
 import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -117,7 +117,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       AndroidVersion androidVersion = myDeviceFutures.getDevices().size() == 1
                                       ? myDeviceFutures.getDevices().get(0).getVersion()
                                       : null;
-      DebugConnectorTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
+      ConnectDebuggerTask debugSessionTask = isSwap() ? null : myLaunchTasksProvider.getConnectDebuggerTask(launchStatus, androidVersion);
 
       if (debugSessionTask != null) {
         if (listenableDeviceFutures.size() != 1) {
@@ -391,7 +391,7 @@ public class LaunchTaskRunner extends Task.Backgroundable {
     return true;
   }
 
-  private static int getTotalDuration(@NotNull List<LaunchTask> launchTasks, @Nullable DebugConnectorTask debugSessionTask) {
+  private static int getTotalDuration(@NotNull List<LaunchTask> launchTasks, @Nullable ConnectDebuggerTask debugSessionTask) {
     int total = 0;
 
     for (LaunchTask task : launchTasks) {

@@ -32,7 +32,7 @@ public interface LaunchTasksProvider {
     throws ExecutionException;
 
   @Nullable
-  DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
+  ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version);
 
   default void fillStats(RunStats stats) {}
 

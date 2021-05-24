@@ -64,7 +64,7 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 
-public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
+public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
 
   public ConnectJavaDebuggerTask(@NotNull ApplicationIdProvider applicationIdProvider, //Set<String> applicationIds,
                                  @NotNull AndroidDebugger debugger,

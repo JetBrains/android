@@ -30,15 +30,15 @@ import com.intellij.openapi.util.Disposer
 
 
 /**
- * A wrapper for [ConnectDebuggerTask] that need to keep reattaching the debugger.
+ * A wrapper for [ConnectDebuggerTaskBase] that need to keep reattaching the debugger.
  *
  * <p>Wires up adb listeners to automatically reconnect the debugger for each test. This is necessary when
  * using instrumentation runners that kill the instrumentation process between each test, disconnecting
  * the debugger. We listen for the start of a new test, waiting for a debugger, and reconnect.
  */
-class ReattachingDebugConnectorTask(private val base: ConnectDebuggerTask,
-                                    private val listener: ReattachingDebugConnectorTaskListener?) : DebugConnectorTask by base,
-                                                                                                    ReattachingDebugConnectorController {
+class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
+                                     private val listener: ReattachingConnectDebuggerTaskListener?) : ConnectDebuggerTask by base,
+                                                                                                      ReattachingConnectDebuggerController {
   companion object {
     /**
      * Changes to [Client] instances that mean a new debugger should be connected.
@@ -106,7 +106,7 @@ class ReattachingDebugConnectorTask(private val base: ConnectDebuggerTask,
 /**
  * An interface to control the reattaching debug connector.
  */
-interface ReattachingDebugConnectorController {
+interface ReattachingConnectDebuggerController {
   /**
    * Stops monitoring processes running on device and stop reattaching debugger to
    * the target process.
@@ -117,12 +117,12 @@ interface ReattachingDebugConnectorController {
 /**
  * An interface to listen event from the reattaching debug connector.
  */
-interface ReattachingDebugConnectorTaskListener {
+interface ReattachingConnectDebuggerTaskListener {
   /**
    * This method is invoked when the reattaching debug connector starts monitoring
    * processes on device and reattaching to the target process.
    */
   fun onStart(launchInfo: LaunchInfo,
               device: IDevice,
-              controller: ReattachingDebugConnectorController)
+              controller: ReattachingConnectDebuggerController)
 }
