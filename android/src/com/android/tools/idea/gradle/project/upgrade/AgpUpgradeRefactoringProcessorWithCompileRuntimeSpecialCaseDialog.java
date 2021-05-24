@@ -143,7 +143,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
 
   private class PreviewRefactoringAction extends DialogWrapperAction {
     protected PreviewRefactoringAction() {
-      super("Preview");
+      super("Show Usages");
     }
 
     @Override

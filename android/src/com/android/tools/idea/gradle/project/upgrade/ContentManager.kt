@@ -495,7 +495,7 @@ class ContentManager(val project: Project) {
       }
       myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
     }
-    val previewButton = JButton("Run with preview").apply {
+    val previewButton = JButton("Show Usages").apply {
       addActionListener { this@View.model.runUpgrade(true) }
       myListeners.listen(this@View.model.runTooltip) { toolTipText = this@View.model.runTooltip.get() }
     }
