@@ -43,7 +43,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ConnectDebuggerTaskTest extends AndroidTestCase {
+public class ConnectDebuggerTaskBaseTest extends AndroidTestCase {
 
   @Override
   protected boolean shouldRunTest() {
@@ -250,7 +250,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
   }
 
   /* Derived class used to exercise ConnectDebuggerTask's waitForClient method */
-  private class TestConnectDebuggerTask extends ConnectDebuggerTask {
+  private class TestConnectDebuggerTask extends ConnectDebuggerTaskBase {
     private boolean myReadyToDebug = true;
     private int myTickCount = 0;
     @NotNull private final Tickable myOnTick;

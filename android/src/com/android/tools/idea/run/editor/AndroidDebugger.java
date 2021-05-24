@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -103,12 +103,12 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
    * @return a task which starts a debugger and attach to target processes
    */
   @NotNull
-  DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                            @Nullable AndroidVersion version,
-                                            @NotNull ApplicationIdProvider applicationIdProvider,
-                                            @NotNull AndroidFacet facet,
-                                            @NotNull S state,
-                                            @NotNull String runConfigTypeId);
+  ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                             @Nullable AndroidVersion version,
+                                             @NotNull ApplicationIdProvider applicationIdProvider,
+                                             @NotNull AndroidFacet facet,
+                                             @NotNull S state,
+                                             @NotNull String runConfigTypeId);
 
   /**
    * Returns true if this debugger supports a given {@code project}.

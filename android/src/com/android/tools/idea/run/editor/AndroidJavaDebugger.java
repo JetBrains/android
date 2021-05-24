@@ -24,7 +24,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionException;
@@ -88,12 +88,12 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @NotNull
   @Override
-  public DebugConnectorTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
-                                                   @Nullable AndroidVersion version,
-                                                   @NotNull ApplicationIdProvider applicationIdProvider,
-                                                   @NotNull AndroidFacet facet,
-                                                   @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId) {
+  public ConnectDebuggerTask getConnectDebuggerTask(@NotNull ExecutionEnvironment env,
+                                                    @Nullable AndroidVersion version,
+                                                    @NotNull ApplicationIdProvider applicationIdProvider,
+                                                    @NotNull AndroidFacet facet,
+                                                    @NotNull AndroidDebuggerState state,
+                                                    @NotNull String runConfigTypeId) {
     ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
       applicationIdProvider, this, env.getProject(),
       facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
@@ -103,7 +103,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     switch (executionType) {
       case ANDROID_TEST_ORCHESTRATOR:
       case ANDROIDX_TEST_ORCHESTRATOR:
-        return OrchestratorUtilsKt.createReattachingDebugConnectorTask(baseConnector, executionType);
+        return OrchestratorUtilsKt.createReattachingConnectDebuggerTask(baseConnector, executionType);
       default:
         return baseConnector;
     }

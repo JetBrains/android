@@ -31,7 +31,7 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
-import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.DismissKeyguardTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
@@ -242,7 +242,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public DebugConnectorTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
+  public ConnectDebuggerTask getConnectDebuggerTask(@NotNull LaunchStatus launchStatus, @Nullable AndroidVersion version) {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }

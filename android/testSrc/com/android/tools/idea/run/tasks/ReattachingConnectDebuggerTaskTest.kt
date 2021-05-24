@@ -41,9 +41,9 @@ import org.mockito.MockitoAnnotations
 private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
 
 /**
- * Unit tests for [ReattachingDebugConnectorTask].
+ * Unit tests for [ReattachingConnectDebuggerTask].
  */
-class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
+class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
 
   @Mock
   lateinit var mockLaunchInfo: LaunchInfo
@@ -95,7 +95,7 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
   @Test
   fun testPerform() {
     val listener = TestListener()
-    val debugger = ReattachingDebugConnectorTask(baseConnector, listener)
+    val debugger = ReattachingConnectDebuggerTask(baseConnector, listener)
 
     // Verify that the base connector is not launched yet.
     assertThat(baseConnector.launchInvocations).isEqualTo(0)
@@ -124,10 +124,10 @@ class ReattachingDebugConnectorTaskTest : AndroidTestCase() {
 }
 
 class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
-  : ConnectDebuggerTask(applicationIdProvider,
-                        mock(AndroidDebugger::class.java),
-                        mock(Project::class.java),
-                        false) {
+  : ConnectDebuggerTaskBase(applicationIdProvider,
+                                                                                mock(AndroidDebugger::class.java),
+                                                                                mock(Project::class.java),
+                                                                                false) {
   var launchInvocations = 0
 
   override fun launchDebugger(currentLaunchInfo: LaunchInfo,
@@ -140,15 +140,15 @@ class TestConnectDebuggerTask(applicationIdProvider: ApplicationIdProvider)
 }
 
 /**
- * A [ReattachingDebugConnectorTaskListener] implementation for testing.
+ * A [ReattachingConnectDebuggerTaskListener] implementation for testing.
  */
-class TestListener : ReattachingDebugConnectorTaskListener {
+class TestListener : ReattachingConnectDebuggerTaskListener {
   var isStarted = false
   lateinit var launchInfo: LaunchInfo
   lateinit var device: IDevice
-  lateinit var controller: ReattachingDebugConnectorController
+  lateinit var controller: ReattachingConnectDebuggerController
 
-  override fun onStart(launchInfo: LaunchInfo, device: IDevice, controller: ReattachingDebugConnectorController) {
+  override fun onStart(launchInfo: LaunchInfo, device: IDevice, controller: ReattachingConnectDebuggerController) {
     isStarted = true
     this.launchInfo = launchInfo
     this.device = device

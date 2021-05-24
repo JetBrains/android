@@ -151,7 +151,7 @@ of indirection and allows for first examining the build outputs, and then constr
 
 ### Connecting the debugger
 
-There is one special task outside of the `LaunchTask` interface, and that is the [DebugConnectorTask](tasks/DebugConnectorTask.java).
+There is one special task outside of the `LaunchTask` interface, and that is the [ConnectDebuggerTask](tasks/ConnectDebuggerTask.java).
 This task is only present when using the debug executor, and in such a case, the launch is specific to a single device. When present,
 this is always the last task executed as part of the launch flow. Launching the debugger itself is fairly straightforward: it first
 waits for the application to start, and then launches the appropriate debugger (Java or native). The reason why this task falls

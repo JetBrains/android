@@ -23,20 +23,20 @@ import com.intellij.execution.process.ProcessEvent
 
 
 /**
- * Creates [ReattachingDebugConnectorTask] based on the given [baseConnector] bound with the given [masterAndroidProcessName].
+ * Creates [ReattachingConnectDebuggerTask] based on the given [baseConnector] bound with the given [masterAndroidProcessName].
  *
  * The returned reattaching connector keeps trying to reattach the debugger to the target processes even after those processes
  * are terminated as long as the master process is alive. This setup is useful for some cases such as AndroidTestOrchestrator
  * spawns a test process per test case sequentially.
  */
-fun createReattachingDebugConnectorTaskWithMasterAndroidProcessName(baseConnector: ConnectDebuggerTask,
-                                                                    masterAndroidProcessName: String): ReattachingDebugConnectorTask {
-  return ReattachingDebugConnectorTask(
+fun createReattachingConnectDebuggerTaskWithMasterAndroidProcessName(baseConnector: ConnectDebuggerTaskBase,
+                                                                     masterAndroidProcessName: String): ReattachingConnectDebuggerTask {
+  return ReattachingConnectDebuggerTask(
     baseConnector,
-    object : ReattachingDebugConnectorTaskListener {
+    object : ReattachingConnectDebuggerTaskListener {
       override fun onStart(launchInfo: LaunchInfo,
                            device: IDevice,
-                           controller: ReattachingDebugConnectorController) {
+                           controller: ReattachingConnectDebuggerController) {
         val masterProcessHandler = AndroidProcessHandler(launchInfo.env.project, masterAndroidProcessName)
         masterProcessHandler.addTargetDevice(device)
         masterProcessHandler.addProcessListener(object : ProcessAdapter() {
