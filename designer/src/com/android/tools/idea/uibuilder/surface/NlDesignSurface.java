@@ -796,7 +796,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
               .map(entry -> {
                 RenderErrorModel errorModel = RenderErrorModelFactory
                   .createErrorModel(NlDesignSurface.this, entry.getValue(),
-                                    DataManager.getInstance().getDataContext(getIssuePanel()));
+                                    null);
                 return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
               })
               .collect(ImmutableList.toImmutableList());
