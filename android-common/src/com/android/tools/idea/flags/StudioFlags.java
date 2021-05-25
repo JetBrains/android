@@ -454,6 +454,11 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
+  public static final Flag<Boolean> NEW_EXECUTION_FLOW_ENABLED = Flag.create(
+    RUNDEBUG, "android.new.execution.flow.enabled", "Enable new Execution flow",
+    "If enabled, AS executes Run Configuration via new.AndroidRunProfileState",
+    false);
+
     /**
      * The level of APK change that will be supported by the deployment pipeline's optimistic
      * "deploy-without-installing" path. Deploying changes that exceed the level of support
