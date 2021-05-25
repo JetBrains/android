@@ -141,10 +141,6 @@ class SqliteEvaluatorController(
     listeners.remove(listener)
   }
 
-  fun removeListeners() {
-    listeners.clear()
-  }
-
   fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
       return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
