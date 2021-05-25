@@ -356,7 +356,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(stageView.getCaptureElapsedTimeLabel().getText()).isEmpty();
   }
 
-  @Ignore("b/158253502")
   @Test
   public void testLoadingTooltipViewWithStrongReference() throws Exception {
     MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
