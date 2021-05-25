@@ -39,7 +39,6 @@ import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.tests.memory.ReferenceWalker
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -90,7 +89,6 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
     captureView = CpuCaptureView(stageView)
   }
 
-  @Ignore("b/158253502")
   @Test
   fun whenSelectingCallChartThereShouldBeInstanceOfTreeChartView() {
     val stage = cpuProfiler.stage
@@ -115,7 +113,6 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
   }
 
-  @Ignore("b/158253502")
   @Test
   fun whenRecordingThereShouldBeInstanceOfRecordingPane() {
     cpuProfiler.apply {
@@ -151,7 +148,6 @@ class CpuCaptureViewTest(newPipeline: Boolean) {
     assertThat(technologyLabel).isNotNull()
   }
 
-  @Ignore("b/158253502")
   @Test
   fun testTraceEventTitleForATrace() {
     cpuProfiler.apply {
