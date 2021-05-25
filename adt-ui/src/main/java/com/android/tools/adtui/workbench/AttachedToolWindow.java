@@ -85,7 +85,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final SideModel<T> myModel;
   private final JPanel myPanel;
   private final AbstractButton myMinimizedButton;
-  private final MySearchField mySearchField;
+  private MySearchField mySearchField;
   private ButtonDragListener<T> myDragListener;
   private ActionToolbar myActionToolbar;
   private ActionButton mySearchActionButton;
@@ -109,7 +109,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myPanel = new JPanel(new BorderLayout());
     myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
     myMinimizedButton = new MinimizedButton<>(definition.getTitle(), definition.getIcon(), this);
-    mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + workBench.getName() + ".TEXT_SEARCH_HISTORY");
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
@@ -285,6 +284,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @VisibleForTesting
+  @Nullable
   public SearchTextField getSearchField() {
     return mySearchField;
   }
@@ -335,14 +335,14 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     mySearchActionButton = findSearchActionButton(content, myActionToolbar);
 
     JPanel header = new JPanel(new BorderLayout());
-    header.add(createTitlePanel(myDefinition.getTitle(), content.supportsFiltering(), mySearchField), BorderLayout.CENTER);
+    header.add(createTitlePanel(myDefinition.getTitle(), content.supportsFiltering()), BorderLayout.CENTER);
     header.add(myActionToolbar.getComponent(), BorderLayout.EAST);
     header.setBorder(new SideBorder(JBColor.border(), SideBorder.BOTTOM));
     return header;
   }
 
   @NotNull
-  private static JPanel createTitlePanel(@NotNull String title, boolean includeSearchField, @NotNull SearchTextField searchField) {
+  private JPanel createTitlePanel(@NotNull String title, boolean includeSearchField) {
     CardLayout layout = new CardLayout();
     JPanel titlePanel = new JPanel(layout);
     JLabel titleLabel = new JBLabel(title) {
@@ -355,16 +355,18 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     titleLabel.setBorder(JBUI.Borders.empty(2, 5, 2, 10));
     titlePanel.add(titleLabel, LABEL_HEADER);
     if (includeSearchField) {
+      mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + myWorkBench.getName() + ".TEXT_SEARCH_HISTORY");
+
       // Override the preferred height of the search field in order to align all tool window headers
-      searchField.setPreferredSize(new Dimension(searchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
-      titlePanel.add(searchField, SEARCH_HEADER);
+      mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      titlePanel.add(mySearchField, SEARCH_HEADER);
     }
     layout.show(titlePanel, LABEL_HEADER);
     return titlePanel;
   }
 
   private void showSearchField(boolean show) {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     Container parent = mySearchField.getParent();
@@ -382,7 +384,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   @Override
   public void startFiltering(@NotNull String initialSearchString) {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     mySearchField.setText(initialSearchString);
@@ -391,7 +393,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   @Override
   public void stopFiltering() {
-    if (myContent == null || !myContent.supportsFiltering()) {
+    if (myContent == null || mySearchField == null) {
       return;
     }
     mySearchField.setText("");
