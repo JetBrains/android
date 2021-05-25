@@ -22,18 +22,20 @@
     <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-mlkit-common-prod">
+      <library name="precompiled-mlkit-common-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.mlkit-common:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/mlkit-common/studio.android.sdktools.mlkit-common.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.mlkit-common/27.2.0.0/studio.android.sdktools.mlkit-common-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-mlkit-common-test">
+      <library name="precompiled-mlkit-common-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.mlkit-common_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/mlkit-common/studio.android.sdktools.mlkit-common_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.mlkit-common_test/27.2.0.0/studio.android.sdktools.mlkit-common_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

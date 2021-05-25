@@ -13,18 +13,20 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-perf-logger-prod">
+      <library name="precompiled-perf-logger-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.perf-logger:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/perf-logger/studio.perf-logger.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.perf-logger/27.2.0.0/studio.perf-logger-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-perf-logger-test">
+      <library name="precompiled-perf-logger-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.perf-logger_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/perf-logger/studio.perf-logger_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.perf-logger_test/27.2.0.0/studio.perf-logger_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -8,18 +8,20 @@
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-dvlib-prod">
+      <library name="precompiled-dvlib-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.dvlib:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/device_validator/studio.android.sdktools.dvlib.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.dvlib/27.2.0.0/studio.android.sdktools.dvlib-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-dvlib-test">
+      <library name="precompiled-dvlib-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.dvlib_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/device_validator/studio.android.sdktools.dvlib_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.dvlib_test/27.2.0.0/studio.android.sdktools.dvlib_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -11,18 +11,20 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-flags-prod">
+      <library name="precompiled-flags-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/flags/studio.android.sdktools.flags.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags/27.2.0.0/studio.android.sdktools.flags-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-flags-test">
+      <library name="precompiled-flags-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/flags/studio.android.sdktools.flags_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags_test/27.2.0.0/studio.android.sdktools.flags_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

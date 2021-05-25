@@ -16,9 +16,10 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library name="layoutlib_native">
+      <library name="layoutlib_native" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib_native:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../studio-master-dev/prebuilts/studio/layoutlib/data/layoutlib_native.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib_native/27.2.0.0/layoutlib_native-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

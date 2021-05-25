@@ -15,18 +15,20 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analytics-crash-prod">
+      <library name="precompiled-analytics-crash-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-crash:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/crash/analytics-crash.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-crash/27.2.0.0/analytics-crash-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-analytics-crash-test">
+      <library name="precompiled-analytics-crash-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-crash_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/analytics-library/crash/analytics-crash_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-crash_test/27.2.0.0/analytics-crash_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

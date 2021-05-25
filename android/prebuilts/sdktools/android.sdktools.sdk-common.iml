@@ -31,22 +31,25 @@
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="aia-proto" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="Xerces" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-sdk-common-prod">
+      <library name="precompiled-sdk-common-prod" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdk-common:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/sdk-common/studio.android.sdktools.sdk-common.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdk-common/27.2.0.0/studio.android.sdktools.sdk-common-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-sdk-common-test">
+      <library name="precompiled-sdk-common-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdk-common_test:27.2.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../studio-master-dev/bazel-bin/tools/base/sdk-common/studio.android.sdktools.sdk-common_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdk-common_test/27.2.0.0/studio.android.sdktools.sdk-common_test-27.2.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
