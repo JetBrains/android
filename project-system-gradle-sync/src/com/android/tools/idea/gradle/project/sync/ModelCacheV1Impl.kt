@@ -926,14 +926,14 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       options.baselineFile
     else
       null,
-    lintConfig = copyNewProperty(options::getLintConfig),
+    lintConfig = copyNewProperty(options::lintConfig),
     severityOverrides = options.severityOverrides?.let { ImmutableMap.copyOf(it) },
     isCheckTestSources = modelVersion != null &&
                          modelVersion.isAtLeast(2, 4, 0) &&
                          options.isCheckTestSources,
     isCheckDependencies = copyNewProperty({ options.isCheckDependencies }, false),
-    disable = copy(options::getDisable, ::deduplicateString),
-    enable = copy(options::getEnable, ::deduplicateString),
+    disable = copy(options::disable, ::deduplicateString),
+    enable = copy(options::enable, ::deduplicateString),
     check = options.check?.let { ImmutableSet.copyOf(it) },
     isAbortOnError = copyNewProperty({ options.isAbortOnError }, true),
     isAbsolutePaths = copyNewProperty({ options.isAbsolutePaths }, true),
@@ -947,11 +947,11 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     isExplainIssues = copyNewProperty({ options.isExplainIssues }, true),
     isShowAll = copyNewProperty({ options.isShowAll }, false),
     textReport = copyNewProperty({ options.textReport }, false),
-    textOutput = copyNewProperty(options::getTextOutput),
+    textOutput = copyNewProperty(options::textOutput),
     htmlReport = copyNewProperty({ options.htmlReport }, true),
-    htmlOutput = copyNewProperty(options::getHtmlOutput),
+    htmlOutput = copyNewProperty(options::htmlOutput),
     xmlReport = copyNewProperty({ options.xmlReport }, true),
-    xmlOutput = copyNewProperty(options::getXmlOutput),
+    xmlOutput = copyNewProperty(options::xmlOutput),
     isCheckReleaseBuilds = copyNewProperty({ options.isCheckReleaseBuilds }, true)
   )
 
