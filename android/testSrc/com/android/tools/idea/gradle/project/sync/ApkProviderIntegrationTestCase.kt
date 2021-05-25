@@ -32,8 +32,11 @@ import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.openapi.util.io.FileUtil
+import org.hamcrest.Matchers.nullValue
 import org.jetbrains.annotations.Contract
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.junit.Assume.assumeThat
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -54,8 +57,28 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
       fun testProjects(): Collection<*> {
         return tests.map { listOf(it).toTypedArray() }
       }
+    }
+  }
 
-      private val tests = listOf(
+  @RunWith(Parameterized::class)
+  @Ignore
+  class Agp41 : ApkProviderIntegrationTestCase() {
+    companion object {
+      @Suppress("unused")
+      @Contract(pure = true)
+      @JvmStatic
+      @Parameterized.Parameters(name = "{0}")
+      fun testProjects(): Collection<*> {
+        return tests
+          .map { it.copy(agpVersion = "4.1.0") }
+          .map { listOf(it).toTypedArray() }
+      }
+    }
+  }
+
+  companion object {
+    private val tests =
+      listOf(
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX before build",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
@@ -125,6 +148,19 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           """
         ),
         TestDefinition(
+          IGNORE = { TODO("b/189190337") },
+          name = "DYNAMIC_APP run configuration pre L device",
+          device = 19,
+          testProject = TestProjectPaths.DYNAMIC_APP,
+          expectApks = """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
+            Files:
+              standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
+            RequiredInstallationOptions: []
+          """
+        ),
+        TestDefinition(
           name = "DYNAMIC_APP test run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
           targetRunConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
@@ -135,6 +171,26 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
               simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
               simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+            RequiredInstallationOptions: []
+
+            ApplicationId: google.simpleapplication.test
+            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            Files:
+               -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            RequiredInstallationOptions: []
+          """
+        ),
+        TestDefinition(
+          IGNORE = { TODO("b/189190337") },
+          name = "DYNAMIC_APP test run configuration pre L device",
+          device = 19,
+          testProject = TestProjectPaths.DYNAMIC_APP,
+          targetRunConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
+          expectApks = """
+            ApplicationId: google.simpleapplication
+            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
+            Files:
+              standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
@@ -202,7 +258,6 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           """
         ),
       )
-    }
   }
 
   @get:Rule
@@ -211,15 +266,15 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   @get:Rule
   var testName = TestName()
 
-  private val device = mockDeviceFor(30, listOf(Abi.X86_64, Abi.X86))
-
   sealed class TargetRunConfiguration {
     object AppTargetRunConfiguration : TargetRunConfiguration()
     data class TestTargetRunConfiguration(val testClassFqn: String) : TargetRunConfiguration()
   }
 
   data class TestDefinition(
+    val IGNORE: () -> Nothing? = { null },
     val name: String = "",
+    val device: Int = 30,
     val testProject: String = "",
     val variant: Pair<String, String>? = null,
     val agpVersion: String? = null,
@@ -240,6 +295,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   @Test
   fun testApkProvider() {
     with(testDefinition!!) {
+      assumeThat(runCatching { IGNORE() }.exceptionOrNull(), nullValue())
       prepareGradleProject(
         testProject, "project", gradleVersion = gradleVersion, gradlePluginVersion = agpVersion, kotlinVersion = kotlinVersion
       )
@@ -256,6 +312,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
               createAndroidTestConfigurationFromClass(project, targetRunConfiguration.testClassFqn)!!
           }
         }
+        val device = mockDeviceFor(device, listOf(Abi.X86, Abi.X86_64), density = 160)
         if (executeMakeBeforeRun) {
           runConfiguration.executeMakeBeforeRunStepInTest(device)
         }
