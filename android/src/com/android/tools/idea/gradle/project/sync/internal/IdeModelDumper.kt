@@ -212,7 +212,12 @@ private fun ProjectDumper.dump(androidLibrary: IdeAndroidLibrary) {
 
 private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
   if (ideLibrary is IdeArtifactLibrary) {
-    prop("ArtifactAddress") { ideLibrary.artifactAddress.toPrintablePath() }
+    prop("ArtifactAddress") {
+      ideLibrary.artifactAddress
+        .toPrintablePath()
+        .let { if (it.endsWith(" [-]")) it.substring(0, it.indexOf(" [-]")) else it }
+        .replaceKnownPatterns()
+    }
   }
   prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
   prop("IsProvided") { ideLibrary.isProvided.toString() }

@@ -262,7 +262,7 @@ MODULE                        : My_First_App.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -281,7 +281,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -300,7 +300,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -319,7 +319,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -338,7 +338,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -357,7 +357,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -376,7 +376,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -395,7 +395,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -414,7 +414,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -433,7 +433,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -452,7 +452,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -471,7 +471,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -490,7 +490,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -509,7 +509,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -528,7 +528,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -547,7 +547,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -566,7 +566,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -585,7 +585,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -604,7 +604,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -623,7 +623,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -642,7 +642,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -661,7 +661,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -680,7 +680,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -699,7 +699,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -718,7 +718,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -737,7 +737,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -756,7 +756,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout/1.1.3/constraintlayout-1.1.3.aar
@@ -776,43 +776,43 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
@@ -851,7 +851,7 @@ MODULE                        : My_First_App.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -870,7 +870,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout/1.1.3/constraintlayout-1.1.3.aar
@@ -889,7 +889,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -908,7 +908,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -927,7 +927,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -946,7 +946,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -965,7 +965,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -984,7 +984,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -1003,7 +1003,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -1022,7 +1022,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -1041,7 +1041,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -1060,7 +1060,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -1079,7 +1079,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -1098,7 +1098,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -1117,7 +1117,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -1136,7 +1136,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -1155,7 +1155,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -1174,7 +1174,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -1193,7 +1193,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -1212,7 +1212,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -1231,7 +1231,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -1250,7 +1250,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -1269,7 +1269,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -1288,7 +1288,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -1307,7 +1307,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -1326,7 +1326,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -1345,7 +1345,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -1365,43 +1365,43 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : true
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
@@ -1440,7 +1440,7 @@ MODULE                        : My_First_App.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -1459,7 +1459,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -1478,7 +1478,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -1497,7 +1497,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -1516,7 +1516,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -1535,7 +1535,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -1554,7 +1554,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -1573,7 +1573,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -1592,7 +1592,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -1611,7 +1611,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -1630,7 +1630,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -1649,7 +1649,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -1668,7 +1668,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -1687,7 +1687,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -1706,7 +1706,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -1725,7 +1725,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -1744,7 +1744,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -1763,7 +1763,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -1782,7 +1782,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -1801,7 +1801,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -1820,7 +1820,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -1839,7 +1839,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -1858,7 +1858,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -1877,7 +1877,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -1896,7 +1896,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -1915,7 +1915,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -1934,7 +1934,7 @@ MODULE                        : My_First_App.app
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout/1.1.3/constraintlayout-1.1.3.aar
@@ -1954,51 +1954,51 @@ MODULE                        : My_First_App.app
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : junit:junit:4.12@jar [-]
+                            ArtifactAddress               : junit:junit:4.12@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
                         JavaLibrary
-                            ArtifactAddress               : org.hamcrest:hamcrest-core:1.3@jar [-]
+                            ArtifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [-]
+                            ArtifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
@@ -2262,7 +2262,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -2281,7 +2281,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -2300,7 +2300,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -2319,7 +2319,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -2338,7 +2338,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -2357,7 +2357,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -2376,7 +2376,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -2395,7 +2395,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -2414,7 +2414,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -2433,7 +2433,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -2452,7 +2452,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -2471,7 +2471,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -2490,7 +2490,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -2509,7 +2509,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -2528,7 +2528,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -2547,7 +2547,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -2566,7 +2566,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -2585,7 +2585,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -2604,7 +2604,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -2623,7 +2623,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -2642,7 +2642,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -2661,7 +2661,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -2680,7 +2680,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -2699,7 +2699,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -2718,7 +2718,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -2737,7 +2737,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -2757,39 +2757,39 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                 IsSigned                      : false
@@ -2815,7 +2815,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -2834,7 +2834,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -2853,7 +2853,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -2872,7 +2872,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -2891,7 +2891,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -2910,7 +2910,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -2929,7 +2929,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -2948,7 +2948,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -2967,7 +2967,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -2986,7 +2986,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -3005,7 +3005,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -3024,7 +3024,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -3043,7 +3043,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -3062,7 +3062,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -3081,7 +3081,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -3100,7 +3100,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -3119,7 +3119,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -3138,7 +3138,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -3157,7 +3157,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -3176,7 +3176,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -3195,7 +3195,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -3214,7 +3214,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -3233,7 +3233,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -3252,7 +3252,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -3271,7 +3271,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -3290,7 +3290,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -3310,39 +3310,39 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
@@ -3377,7 +3377,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary
-                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar [-]
+                            ArtifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/appcompat/appcompat/1.0.2/appcompat-1.0.2.aar
@@ -3396,7 +3396,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.fragment:fragment:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/fragment/fragment/1.0.0/fragment-1.0.0.aar
@@ -3415,7 +3415,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.0.0/vectordrawable-animated-1.0.0.aar
@@ -3434,7 +3434,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-ui/1.0.0/legacy-support-core-ui-1.0.0.aar
@@ -3453,7 +3453,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/legacy/legacy-support-core-utils/1.0.0/legacy-support-core-utils-1.0.0.aar
@@ -3472,7 +3472,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.0.1/vectordrawable-1.0.1.aar
@@ -3491,7 +3491,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.loader:loader:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
@@ -3510,7 +3510,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
@@ -3529,7 +3529,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/coordinatorlayout/coordinatorlayout/1.0.0/coordinatorlayout-1.0.0.aar
@@ -3548,7 +3548,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
@@ -3567,7 +3567,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/slidingpanelayout/slidingpanelayout/1.0.0/slidingpanelayout-1.0.0.aar
@@ -3586,7 +3586,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.customview:customview:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
@@ -3605,7 +3605,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0/swiperefreshlayout-1.0.0.aar
@@ -3624,7 +3624,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0/asynclayoutinflater-1.0.0.aar
@@ -3643,7 +3643,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.core:core:1.0.1@aar [-]
+                            ArtifactAddress               : androidx.core:core:1.0.1@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/core/core/1.0.1/core-1.0.1.aar
@@ -3662,7 +3662,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/public.txt
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.0.0/versionedparcelable-1.0.0.aar
@@ -3681,7 +3681,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
@@ -3700,7 +3700,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.0.0/lifecycle-runtime-2.0.0.aar
@@ -3719,7 +3719,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/documentfile/documentfile/1.0.0/documentfile-1.0.0.aar
@@ -3738,7 +3738,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0/localbroadcastmanager-1.0.0.aar
@@ -3757,7 +3757,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.print:print:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.print:print:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/print/print/1.0.0/print-1.0.0.aar
@@ -3776,7 +3776,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.0.0/lifecycle-viewmodel-2.0.0.aar
@@ -3795,7 +3795,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
@@ -3814,7 +3814,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.0.0/lifecycle-livedata-core-2.0.0.aar
@@ -3833,7 +3833,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar [-]
+                            ArtifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
@@ -3852,7 +3852,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             PublicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
                         AndroidLibrary
-                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar [-]
+                            ArtifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -3872,47 +3872,47 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             SymbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
                     JavaLibraries
                         JavaLibrary
-                            ArtifactAddress               : junit:junit:4.12@jar [-]
+                            ArtifactAddress               : junit:junit:4.12@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
                         JavaLibrary
-                            ArtifactAddress               : org.hamcrest:hamcrest-core:1.3@jar [-]
+                            ArtifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar [-]
+                            ArtifactAddress               : org.jetbrains:annotations:13.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         JavaLibrary
-                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:1.5.0@jar [-]
+                            ArtifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.collection:collection:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar [-]
+                            ArtifactAddress               : androidx.arch.core:core-common:2.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
                         JavaLibrary
-                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar [-]
+                            ArtifactAddress               : androidx.annotation:annotation:1.0.0@jar
                             IsProvided                    : false
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
