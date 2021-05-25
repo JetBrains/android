@@ -22,7 +22,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
-import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.execution.runners.ExecutionUtil
@@ -219,7 +218,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
         val listDevice = uiList.model.getElementAt(index)
         if (listDevice != device) {
           (uiList.model as CollectionListModel).setElementAt(device, index)
-          if (device.isPaired && device.state != DISCONNECTED && uiList.selectedIndex < 0) {
+          if (device.isPaired && device.state != ConnectionState.DISCONNECTED && uiList.selectedIndex < 0) {
             uiList.selectedIndex = index
           }
         }
@@ -229,7 +228,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
       uiList.model = CollectionListModel(deviceList)
     }
 
-    if (uiList.selectedValue?.state == DISCONNECTED) {
+    if (uiList.selectedValue?.state == ConnectionState.DISCONNECTED) {
       uiList.clearSelection()
     }
 
@@ -333,7 +332,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
 }
 
 private fun PairingDevice.isDisabled(): Boolean {
-  return state == DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
+  return state == ConnectionState.DISCONNECTED || isEmulator && !isWearDevice && (apiLevel < 30 || !hasPlayStore)
 }
 
 private fun PairingDevice.getTooltip(): String? = when {
