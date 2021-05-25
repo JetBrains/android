@@ -35,7 +35,7 @@ data class StudioProvidedInfo(
     fun fromProject(project: Project) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
       configurationCachingGradlePropertyState = runReadAction {
-        project.getProjectProperties(createIfNotExists = true)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+        project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
       },
       isInConfigurationCacheTestFlow = ConfigurationCacheTestBuildFlowRunner.getInstance(project).runningTestConfigurationCacheBuild
     )
