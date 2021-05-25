@@ -82,8 +82,25 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
   }
 }
 
-fun saveAppInspectorSnapshot(path: Path, data: MutableMap<Long, ViewLayoutInspectorClient.Data>, propertiesCache: ViewPropertiesCache) {
-  // TODO snapshot from non-live mode
+fun saveAppInspectorSnapshot(
+  path: Path,
+  data: Map<Long, ViewLayoutInspectorClient.Data>,
+  properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
+  processDescriptor: ProcessDescriptor
+) {
+  val response = LayoutInspectorViewProtocol.CaptureSnapshotResponse.newBuilder().apply {
+    val allRootIds = data.values.firstOrNull()?.rootIds
+    addAllWindowSnapshots(allRootIds?.map { rootId ->
+      LayoutInspectorViewProtocol.CaptureSnapshotResponse.WindowSnapshot.newBuilder().apply {
+        layout = data[rootId]?.viewEvent
+        this.properties = properties[rootId]
+      }.build()
+    })
+    windowRoots = LayoutInspectorViewProtocol.WindowRootsEvent.newBuilder().apply {
+      addAllIds(allRootIds)
+    }.build()
+  }.build()
+  saveAppInspectorSnapshot(path, response, processDescriptor)
 }
 
 fun saveAppInspectorSnapshot(path: Path, data: LayoutInspectorViewProtocol.CaptureSnapshotResponse, processDescriptor: ProcessDescriptor) {
