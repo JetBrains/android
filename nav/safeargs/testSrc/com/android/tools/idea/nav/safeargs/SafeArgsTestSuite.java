@@ -32,5 +32,6 @@ public final class SafeArgsTestSuite extends IdeaTestSuiteBase {
     unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
     linkIntoOfflineMavenRepo("tools/adt/idea/nav/safeargs/testdeps_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
+    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
   }
 }
