@@ -272,15 +272,16 @@ be a dashed line in the timeline.
 **(This test is expected to work only on Android O+, API >= 26)**
 
 1. In the "Android Profiler" Toolbar, make sure you are on the memory profiler.
+1. Choose "Record Java/Kotlin allocations" and press "Record".
 1. In the QA App, select the "JNI References Allocation" scenario.
 1. Press the "run" button
 1. You should see **7 trash cans appearing on the memory graph**
 1. Select a region of the memory graph containing all of those 7 trash cans
 1. Select **JNI heap** from the drop-down above the class list
-1. Find and click **MemoryTaskCategory$AllocationTestObject** row in the class list
+1. Find and click **MemoryTaskCategory$AllocationTestObjectOfSize** row in the class list
 1. You should see 5000 in the *Allocations* and *Deallocations* columns
 1. Click any **JNI Global reference** in the Instance View
-1. In the *Allocation Call Stack* section below you should see lines *newRef3*, *newRef2*, *newRef3*
+1. In the *Allocation Call Stack* section below you should see lines *newRef3*, *newRef2*, *newRef1*
    and *native_memory.cpp* next to them.
 
 ![Memory - Object Allocation][memory-jni-app]
