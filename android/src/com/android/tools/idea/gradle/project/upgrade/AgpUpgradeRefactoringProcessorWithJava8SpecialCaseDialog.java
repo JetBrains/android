@@ -226,7 +226,7 @@ public class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog extends Di
 
   private class PreviewRefactoringAction extends DialogWrapperAction {
     protected PreviewRefactoringAction() {
-      super("Preview");
+      super("Show Usages");
     }
 
     @Override
