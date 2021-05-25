@@ -904,9 +904,10 @@ public class IdeSdks {
     if (!JavaSdk.getInstance().isOfVersionOrHigher(jdk, JDK_1_8)) {
       return false;
     }
-    if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
-      return true;
-    }
+    // FIXME-ank5
+    //if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
+    //  return true;
+    //}
     JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
     if (jdkVersion == null) {
       return false;

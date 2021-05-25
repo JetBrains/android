@@ -36,8 +36,10 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import java.awt.EventQueue
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
+import kotlin.test.assertTrue
 
 
 class ImporterTest {
@@ -50,6 +52,7 @@ class ImporterTest {
     // Since the ApplicationManager does not restore 'null' application on Dispose
     // make sure IdeEventQueue is initialized before we setApplication to a not-null value to
     // prevent later attempts to initialize it accessing the already disposed MockApplication.
+    assertTrue(EventQueue.isDispatchThread(), Thread.currentThread().toString()) // FIXME-ank5
     IdeEventQueue.getInstance()
     disposable = Disposer.newDisposable()
     ApplicationManager.setApplication(MockApplication(disposable), disposable)

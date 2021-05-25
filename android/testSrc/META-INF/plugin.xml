@@ -22,7 +22,7 @@
   -->
   <name>Android Tests</name>
   <id>org.jetbrains.android</id>
-  <version>10.4.1</version>
+  <version>10.4.2</version>
 
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-lang.xml" xpointer="xpointer(/idea-plugin/*)"/>

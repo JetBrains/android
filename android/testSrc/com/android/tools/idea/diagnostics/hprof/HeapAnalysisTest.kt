@@ -27,7 +27,6 @@ import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.UByteList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
-import com.android.tools.idea.util.AndroidTestPaths
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
 import org.junit.After
 import org.junit.Assert
@@ -76,13 +75,13 @@ class HeapAnalysisTest {
     val extension = if (file.extension != "") "." + file.extension else ""
 
     val javaSpecSpecificFileName = File(file.parent, "$name.$javaSpecString$extension").toString()
-    val javaSpecSpecificFile = File(TestUtils.getWorkspaceRoot(), javaSpecSpecificFileName)
+    val javaSpecSpecificFile = TestUtils.getWorkspaceFile(javaSpecSpecificFileName)
 
     if (javaSpecSpecificFile.exists()) {
       return javaSpecSpecificFile.toPath()
     }
 
-    return AndroidTestPaths.adtSources().resolve(filenameWithPath)
+    return TestUtils.getWorkspaceFile(filenameWithPath).toPath()
   }
 
   class MemoryBackedIntList(size: Int) : IntList {
