@@ -17,7 +17,6 @@ package com.android.tools.idea.customview.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -31,7 +30,6 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.setupChangeListener
@@ -180,7 +178,6 @@ class CustomViewPreviewRepresentation(
       "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
-    .setOnConfigurationChangedZoom(ZoomType.FIT)
     .setSceneManagerProvider { surface, model ->
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         setShrinkRendering(true)
@@ -374,9 +371,6 @@ class CustomViewPreviewRepresentation(
         surface.addAndRenderModel(model)
       }
       addModelFuture.await()
-      withContext(uiThread) {
-        surface.zoomToFit()
-      }
       surface.activate()
 
       stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
