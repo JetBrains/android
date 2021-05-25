@@ -463,7 +463,7 @@ Android Studio Preview.app/Contents/lib/ant/lib/ant.pom
 Android Studio Preview.app/Contents/lib/ant/lib/libraries.properties
 Android Studio Preview.app/Contents/lib/ant/src.zip
 Android Studio Preview.app/Contents/lib/ap-validation-0.0.4.jar
-Android Studio Preview.app/Contents/lib/asm-all-9.0.jar
+Android Studio Preview.app/Contents/lib/asm-all-9.1.jar
 Android Studio Preview.app/Contents/lib/automaton-1.12-1.jar
 Android Studio Preview.app/Contents/lib/batik-anim-1.14.0-24.jar
 Android Studio Preview.app/Contents/lib/batik-awt-util-1.14.0-24.jar
@@ -546,10 +546,10 @@ Android Studio Preview.app/Contents/lib/imageio-metadata-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imageio-tiff-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imgscalr-lib-4.2.jar
 Android Studio Preview.app/Contents/lib/ini4j-0.5.5-2.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.575.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.577.jar
 Android Studio Preview.app/Contents/lib/intellij-deps-fastutil-8.5.2-6.jar
 Android Studio Preview.app/Contents/lib/intellij-dvcs.jar
-Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.575.jar
+Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.577.jar
 Android Studio Preview.app/Contents/lib/intellij-xml.jar
 Android Studio Preview.app/Contents/lib/ion-java-1.6.2-3.jar
 Android Studio Preview.app/Contents/lib/isorelax-20030108.jar
@@ -572,7 +572,7 @@ Android Studio Preview.app/Contents/lib/jcip-annotations-1.0.jar
 Android Studio Preview.app/Contents/lib/jcodings-1.0.55.jar
 Android Studio Preview.app/Contents/lib/jdkAnnotations.jar
 Android Studio Preview.app/Contents/lib/jdom.jar
-Android Studio Preview.app/Contents/lib/jediterm-pty-2.38.jar
+Android Studio Preview.app/Contents/lib/jediterm-pty-2.40.jar
 Android Studio Preview.app/Contents/lib/jetCheck-0.2.2.jar
 Android Studio Preview.app/Contents/lib/jing-20030619.jar
 Android Studio Preview.app/Contents/lib/jna-platform.jar
@@ -676,7 +676,7 @@ Android Studio Preview.app/Contents/lib/testFramework-java.jar
 Android Studio Preview.app/Contents/lib/testFramework.core.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
 Android Studio Preview.app/Contents/lib/tests_bootstrap.jar
-Android Studio Preview.app/Contents/lib/tips-intellij-idea-community-211.18.jar
+Android Studio Preview.app/Contents/lib/tips-intellij-idea-community-211.20.jar
 Android Studio Preview.app/Contents/lib/trang-core.jar
 Android Studio Preview.app/Contents/lib/trove4j.jar
 Android Studio Preview.app/Contents/lib/txw2-2.3.1.jar
