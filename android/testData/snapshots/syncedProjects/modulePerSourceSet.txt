@@ -1,6 +1,6 @@
 PROJECT                       : testModulePerSourceSet
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
+        Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : testModulePerSourceSet
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -46,7 +46,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.app.androidTest
         ExternalModuleType            : sourceSet
@@ -136,7 +136,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar
             LibraryLevel                  : project
@@ -659,7 +659,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar
             LibraryLevel                  : project
@@ -1052,7 +1052,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./app/libs/lib1-1.0.aar
             LibraryLevel                  : project
@@ -1373,7 +1373,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.dyn_feature.androidTest
         ExternalModuleType            : sourceSet
@@ -1427,7 +1427,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.dyn_feature.main
     MODULE                        : testModulePerSourceSet.dyn_feature.main
@@ -1519,7 +1519,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.dyn_feature.unitTest
         ExternalModuleType            : sourceSet
@@ -1558,7 +1558,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.dyn_feature.main
     MODULE                        : testModulePerSourceSet.jav
@@ -1648,7 +1648,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.lib.androidTest
         ExternalModuleType            : sourceSet
@@ -1702,7 +1702,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel                  : project
@@ -2064,7 +2064,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel                  : project
@@ -2373,7 +2373,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel                  : project
@@ -2669,7 +2669,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.androidTest
         ExternalModuleType            : sourceSet
@@ -2723,7 +2723,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.main
     MODULE                        : testModulePerSourceSet.nested1.deep
@@ -2749,7 +2749,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.deep.androidTest
         ExternalModuleType            : sourceSet
@@ -2803,7 +2803,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.deep.main
     MODULE                        : testModulePerSourceSet.nested1.deep.main
@@ -2895,7 +2895,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.deep.unitTest
         ExternalModuleType            : sourceSet
@@ -2934,7 +2934,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.deep.main
     MODULE                        : testModulePerSourceSet.nested1.main
@@ -3026,7 +3026,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.unitTest
         ExternalModuleType            : sourceSet
@@ -3065,7 +3065,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.main
     MODULE                        : testModulePerSourceSet.nested2
@@ -3091,7 +3091,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.androidTest
         ExternalModuleType            : sourceSet
@@ -3163,7 +3163,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
     MODULE                        : testModulePerSourceSet.nested2.deep
@@ -3189,7 +3189,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.deep.androidTest
         ExternalModuleType            : sourceSet
@@ -3243,7 +3243,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.deep.main
     MODULE                        : testModulePerSourceSet.nested2.deep.main
@@ -3335,7 +3335,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.deep.unitTest
         ExternalModuleType            : sourceSet
@@ -3374,7 +3374,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.deep.main
     MODULE                        : testModulePerSourceSet.nested2.main
@@ -3488,7 +3488,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans
         ExternalModuleGroup           : testModulePerSourceSet.nested2
@@ -3538,7 +3538,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.androidTest
         ExternalModuleType            : sourceSet
@@ -3592,7 +3592,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.trans.deep2.main
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.main
@@ -3684,7 +3684,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.unitTest
         ExternalModuleType            : sourceSet
@@ -3723,7 +3723,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.trans.deep2.main
     MODULE                        : testModulePerSourceSet.nested2.unitTest
@@ -3781,7 +3781,7 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
     RUN_CONFIGURATION             : app.main

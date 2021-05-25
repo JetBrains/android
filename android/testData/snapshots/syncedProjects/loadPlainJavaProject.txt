@@ -1,6 +1,6 @@
 PROJECT                       : testLoadPlainJavaProject
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
+        Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : testLoadPlainJavaProject
         ExternalModuleGroup           :
         ExternalModuleVersion         : 1.0

@@ -1,6 +1,6 @@
 PROJECT                       : testTransitiveDependencies
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
+        Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : testTransitiveDependencies
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -155,7 +155,7 @@ PROJECT                       : testTransitiveDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./library2/libs/fakelib.jar
             LibraryLevel                  : project
@@ -714,7 +714,7 @@ PROJECT                       : testTransitiveDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel                  : project
@@ -1218,7 +1218,7 @@ PROJECT                       : testTransitiveDependencies
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: ./library2/libs/fakelib.jar
             LibraryLevel                  : project

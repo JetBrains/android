@@ -1,6 +1,6 @@
 PROJECT                       : MainActivity
-    PROJECT_JDK                   : <JAVA_VERSION>
-        Version                       : version <JDK_VERSION>
+    PROJECT_JDK                   : jbr-<JAVA_VERSION>
+        Version                       : JetBrains Runtime version <JDK_VERSION>
     MODULE                        : MainActivity
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -173,7 +173,7 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel                  : project
@@ -494,7 +494,7 @@ PROJECT                       : MainActivity
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : version <JDK_VERSION>
+            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel                  : project
