@@ -281,7 +281,7 @@ class ContentManagerTest {
     assertThat(view.okButton.isEnabled).isTrue()
     assertThat(view.okButton.text).isEqualTo("Run selected steps")
     assertThat(view.previewButton.isEnabled).isTrue()
-    assertThat(view.previewButton.text).isEqualTo("Run with preview")
+    assertThat(view.previewButton.text).isEqualTo("Show Usages")
     assertThat(view.refreshButton.isEnabled).isTrue()
     assertThat(view.refreshButton.text).isEqualTo("Refresh")
   }
@@ -295,7 +295,7 @@ class ContentManagerTest {
     assertThat(view.okButton.isEnabled).isFalse()
     assertThat(view.okButton.text).isEqualTo("Run selected steps")
     assertThat(view.previewButton.isEnabled).isFalse()
-    assertThat(view.previewButton.text).isEqualTo("Run with preview")
+    assertThat(view.previewButton.text).isEqualTo("Show Usages")
     assertThat(view.refreshButton.isEnabled).isTrue()
     assertThat(view.refreshButton.text).isEqualTo("Refresh")
   }

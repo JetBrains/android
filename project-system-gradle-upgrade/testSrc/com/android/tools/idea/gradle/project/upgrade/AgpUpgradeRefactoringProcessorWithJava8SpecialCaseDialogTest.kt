@@ -266,7 +266,7 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val java8DefaultProcessor = processor.componentRefactoringProcessors.firstIsInstance<Java8DefaultRefactoringProcessor>()
     assertEquals(INSERT_OLD_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
     val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8DefaultProcessor, false)
-    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Preview" }
+    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Show Usages" }
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertEquals(ACCEPT_NEW_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)
@@ -283,7 +283,7 @@ class AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialogTest : HeavyPlatfo
     val dialog = AgpUpgradeRefactoringProcessorWithJava8SpecialCaseDialog(processor, java8DefaultProcessor, false)
     val comboBox = UIUtil.findComponentOfType(dialog.createCenterPanel(), ComboBox::class.java)!!
     comboBox.selectedItem = INSERT_OLD_DEFAULT
-    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Preview" }
+    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Show Usages" }
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertEquals(INSERT_OLD_DEFAULT, java8DefaultProcessor.noLanguageLevelAction)

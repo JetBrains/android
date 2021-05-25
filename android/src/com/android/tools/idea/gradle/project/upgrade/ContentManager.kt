@@ -528,7 +528,7 @@ class ContentManager(val project: Project) {
         isEnabled = uiState.runEnabled
       }
     }
-    val previewButton = JButton("Run with preview").apply {
+    val previewButton = JButton("Show Usages").apply {
       addActionListener { this@View.model.runUpgrade(true) }
       this@View.model.uiState.get().let { uiState ->
         toolTipText = uiState.runTooltip
