@@ -38,36 +38,53 @@ import com.android.tools.profiler.proto.Commands.Command.CommandType.ATTACH_AGEN
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.Event.Kind.AGENT
 import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONSE
+import com.android.tools.profiler.proto.Common.Event.Kind.PROCESS
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 
 /**
- * Sends ATTACH command to the transport daemon, that makes sure an agent is running and is ready
- * to receive app-inspection-specific commands.
+ * Attaches the transport agent if it is not already.
+ *
+ * An agent is attached if the latest PROCESS event has is_ended set to false, and the
+ * latest AGENT event has status ATTACHED and has a timestamp greater than the PROCESS event.
+ *
+ * After the agent is attached, inspectors can start sending commands and receiving responses.
  */
 internal suspend fun attachAppInspectionTarget(
   transport: AppInspectionTransport,
   jarCopier: AppInspectionJarCopier,
   parentScope: CoroutineScope
 ): AppInspectionTarget {
-
-  // It is possible for a user to cause app inspection to attach, detach, and reattach again later. However, below, when we query the event
-  // stream, if the previous attach event isn't excluded from the results, we'll get that result, which will cause us to report successful
-  // attachment too early. Therefore, before that query, we need to fetch a timestamp that will exclude prior results.
-  val startTimeNs = run {
-    val response = transport.client.transportStub.getEventGroups(
+  var lastAgentAttachedEventTimestampNs = Long.MIN_VALUE
+  val processEvents = transport.client.transportStub.getEventGroups(
+    Transport.GetEventGroupsRequest.newBuilder()
+      .setStreamId(transport.process.streamId)
+      .setPid(transport.process.pid)
+      .setKind(PROCESS)
+      .build()
+  )
+  val lastProcessEvent = processEvents.groupsList.flatMap { it.eventsList }.lastOrNull()
+  if (lastProcessEvent?.isEnded == false) {
+    val agentEvents = transport.client.transportStub.getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
         .setStreamId(transport.process.streamId)
         .setPid(transport.process.pid)
         .setKind(AGENT)
+        .setFromTimestamp(lastProcessEvent.timestamp + 1)
         .build()
     )
-    response.groupsList.flatMap { it.eventsList }.lastOrNull()?.timestamp?.plus(1) ?: Long.MIN_VALUE
+    agentEvents.groupsList.flatMap { it.eventsList }.lastOrNull()?.let { event ->
+      lastAgentAttachedEventTimestampNs = event.timestamp + 1
+      if (event.timestamp >= lastProcessEvent.timestamp && event.agentData.status == ATTACHED) {
+        // Agent is already attached and connected, so there is no need to attach.
+        return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
+      }
+    }
   }
 
-  // The device daemon takes care of the case if and when the agent is previously attached already.
+  // Attach transport agent command.
   val attachCommand = Command.newBuilder()
     .setStreamId(transport.process.streamId)
     .setPid(transport.process.pid)
@@ -81,10 +98,11 @@ internal suspend fun attachAppInspectionTarget(
 
   val streamEventQuery = transport.createStreamEventQuery(
     eventKind = AGENT,
-    startTimeNs = { startTimeNs },
-    filter = { it.agentData.status == ATTACHED }
+    startTimeNs = { lastAgentAttachedEventTimestampNs },
+    filter = { it.agentData.status == ATTACHED && it.timestamp >= lastAgentAttachedEventTimestampNs }
   )
   transport.executeCommand(attachCommand.toExecuteRequest(), streamEventQuery)
+
   return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
 }
 

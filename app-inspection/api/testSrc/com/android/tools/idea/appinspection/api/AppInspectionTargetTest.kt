@@ -54,6 +54,39 @@ class AppInspectionTargetTest {
   val ruleChain = RuleChain.outerRule(gRpcServerRule).around(appInspectionRule)!!
 
   @Test
+  fun attachNewAgent() = runBlocking<Unit> {
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    appInspectionRule.launchTarget(createFakeProcessDescriptor())
+  }
+
+  @Test
+  fun attachExistingAgent() = runBlocking<Unit> {
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+
+    transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, object : CommandHandler(timer) {
+      override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+        throw RuntimeException("App Inspection shouldn't send an ATTACH_AGENT command. Agent is already connected.")
+      }
+    })
+
+    transportService.addEventToStream(
+      FakeTransportService.FAKE_DEVICE_ID,
+      Common.Event.newBuilder()
+        .setCommandId(123)
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setKind(Common.Event.Kind.AGENT)
+        .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
+        .setTimestamp(timer.currentTimeNs + 1)
+        .build()
+    )
+
+    appInspectionRule.launchTarget(createFakeProcessDescriptor())
+  }
+
+  @Test
   fun launchInspector() = runBlocking<Unit> {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor())
     target.launchInspector(createFakeLaunchParameters())
