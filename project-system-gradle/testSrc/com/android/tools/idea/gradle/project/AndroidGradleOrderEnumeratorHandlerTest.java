@@ -54,9 +54,6 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
-    if (model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder() != null) {
-      assertContainsElements(result, pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
-    }
     assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
 
@@ -71,16 +68,10 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
       Assert.assertTrue(intersectionMainAndUnitTest.size() == 1);
       Assert.assertTrue(intersectionMainAndUnitTest.iterator().next().endsWith("R.jar!/"));
     }
-    if (model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder() != null) {
-      assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
-    }
 
     assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
     assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
-    if (model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder() != null) {
-      assertDoesntContain(result, pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
-    }
     assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
   }
@@ -140,17 +131,11 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
 
     expected.addAll(Collections2.transform(model.getSelectedVariant().getUnitTestArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
-    if (model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder() != null) {
-      expected.add(pathToIdeaUrl(model.getSelectedVariant().getUnitTestArtifact().getJavaResourcesFolder()));
-    }
 
     // Android Test
     expected.add(pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder()));
     expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
-    if (model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder() != null) {
-      expected.add(pathToIdeaUrl(model.getSelectedVariant().getAndroidTestArtifact().getJavaResourcesFolder()));
-    }
     expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
 
@@ -158,9 +143,6 @@ public class AndroidGradleOrderEnumeratorHandlerTest extends AndroidGradleTestCa
     expected.add(pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getClassesFolder()));
     expected.addAll(Collections2.transform(model.getSelectedVariant().getMainArtifact().getAdditionalClassesFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
-    if (model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder() != null) {
-      expected.add(pathToIdeaUrl(model.getSelectedVariant().getMainArtifact().getJavaResourcesFolder()));
-    }
     expected.addAll(Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                           (input) -> input == null ? null : pathToIdeaUrl(input)));
 

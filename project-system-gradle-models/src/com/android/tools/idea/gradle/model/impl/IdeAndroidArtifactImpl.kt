@@ -33,7 +33,6 @@ data class IdeAndroidArtifactImpl(
   override val assembleTaskName: String,
   override val classesFolder: File,
   override val additionalClassesFolders: Collection<File>,
-  override val javaResourcesFolder: File?,
   override val variantSourceProvider: IdeSourceProvider?,
   override val multiFlavorSourceProvider: IdeSourceProvider?,
   override val ideSetupTaskNames: Collection<String>,

@@ -96,7 +96,7 @@ public class ExcludedRoots {
       GradleAndroidModel androidModuleModel = GradleAndroidModel.get(module);
       if (androidModuleModel != null) {
         IdeAndroidArtifact artifact = androidModuleModel.getMainArtifact();
-        myExcludedRoots.addAll(getAdditionalClasspathFolders(artifact));
+        myExcludedRoots.addAll(artifact.getAdditionalClassesFolders());
       }
     }
   }
@@ -157,18 +157,6 @@ public class ExcludedRoots {
         action.accept(file);
       }
     }
-  }
-
-  /**
-   * Returns folders which are used for unit testing and stored in the model, but not represented in the IntelliJ project structure.
-   */
-  public static List<File> getAdditionalClasspathFolders(@NotNull IdeBaseArtifact artifact) {
-    ImmutableList.Builder<File> builder = ImmutableList.<File>builder()
-      .addAll(artifact.getAdditionalClassesFolders());
-    if (artifact.getJavaResourcesFolder() != null) {
-      builder.add(artifact.getJavaResourcesFolder());
-    }
-    return builder.build();
   }
 
   private void addLibraryPaths(@NotNull DependencySet dependencies) {

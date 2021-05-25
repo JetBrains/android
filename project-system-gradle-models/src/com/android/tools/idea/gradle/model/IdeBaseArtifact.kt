@@ -47,12 +47,6 @@ interface IdeBaseArtifact : Serializable {
   val additionalClassesFolders: Collection<File>
 
   /**
-   * Returns the folder containing resource files that classes form this artifact expect to find
-   * on the classpath.
-   */
-  val javaResourcesFolder: File?
-
-  /**
    * A SourceProvider specific to the variant. This can be null if there is no flavors as the
    * "variant" is equal to the build type.
    *

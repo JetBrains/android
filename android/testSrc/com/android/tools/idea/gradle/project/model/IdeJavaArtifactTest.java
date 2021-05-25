@@ -40,7 +40,6 @@ public class IdeJavaArtifactTest {
           original.getAssembleTaskName(),
           original.getClassesFolder(),
           original.getAdditionalClassesFolders(),
-          original.getJavaResourcesFolder(),
           null,
           null,
           original.getIdeSetupTaskNames(),
