@@ -48,6 +48,7 @@ iml_module(
         "//tools/adt/idea/nav/safeargs/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",

@@ -17,7 +17,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/base/third_party/kotlin:kotlin-m2repository",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_shard_count = 10,
     test_srcs = ["testSrc"],

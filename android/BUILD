@@ -284,6 +284,7 @@ iml_module(
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
         "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/resource-repository/test/resources",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
