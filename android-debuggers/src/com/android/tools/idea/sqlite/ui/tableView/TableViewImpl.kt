@@ -430,7 +430,7 @@ class TableViewImpl : TableView {
       table
     )
 
-    PopupHandler.installPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), "SqliteTablePopup")
+    PopupHandler.installPopupMenu(table, DefaultActionGroup(copyToClipboardAction, setNullAction), "SqliteTablePopup")
   }
 
   private inner class MyTableHeaderRenderer : TableCellRenderer {
