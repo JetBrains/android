@@ -458,7 +458,7 @@ android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/ap-validation-0.0.4.jar
 android-studio/lib/asm-7.1.jar
-android-studio/lib/asm-all-9.0.jar
+android-studio/lib/asm-all-9.1.jar
 android-studio/lib/asm-analysis-7.1.jar
 android-studio/lib/asm-commons-7.1.jar
 android-studio/lib/asm-tree-7.1.jar
@@ -546,10 +546,10 @@ android-studio/lib/imageio-metadata-3.6.1.jar
 android-studio/lib/imageio-tiff-3.6.1.jar
 android-studio/lib/imgscalr-lib-4.2.jar
 android-studio/lib/ini4j-0.5.5-2.jar
-android-studio/lib/intellij-coverage-agent-1.0.575.jar
+android-studio/lib/intellij-coverage-agent-1.0.577.jar
 android-studio/lib/intellij-deps-fastutil-8.5.2-6.jar
 android-studio/lib/intellij-dvcs.jar
-android-studio/lib/intellij-test-discovery-agent-1.0.575.jar
+android-studio/lib/intellij-test-discovery-agent-1.0.577.jar
 android-studio/lib/intellij-xml.jar
 android-studio/lib/ion-java-1.6.2-3.jar
 android-studio/lib/isorelax-20030108.jar
@@ -573,7 +573,7 @@ android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jdom.jar
-android-studio/lib/jediterm-pty-2.38.jar
+android-studio/lib/jediterm-pty-2.40.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jffi-1.2.19-native.jar
 android-studio/lib/jffi-1.2.19.jar
@@ -690,7 +690,7 @@ android-studio/lib/testFramework-java.jar
 android-studio/lib/testFramework.core.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/tests_bootstrap.jar
-android-studio/lib/tips-intellij-idea-community-211.18.jar
+android-studio/lib/tips-intellij-idea-community-211.20.jar
 android-studio/lib/trang-core.jar
 android-studio/lib/trove4j.jar
 android-studio/lib/txw2-2.3.1.jar
