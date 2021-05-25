@@ -15,33 +15,6 @@
  */
 package com.android.layoutlib;
 
-import com.intellij.ide.plugins.PluginManagerCore;
-//import com.intellij.internal.statistic.analytics.StudioCrashDetails; FIXME-ank2: missing intellij.platform.bootstrap
-//import com.intellij.internal.statistic.analytics.StudioCrashDetection;  FIXME-ank2: missing intellij.platform.bootstrap
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.BaseComponent;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
-
-public class NativeCrashHandling implements BaseComponent {
-
-  @Override
-  public void initComponent() {
-    // If the previous run of Studio ended on a JVM crash, disable layoutlib native.
-    // FIXME-ank2: use layoutlib-standard by default.
-    //List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-    //for (StudioCrashDetails crash : crashes) {
-    //  if (isCrashCausedByLayoutlib(crash)) {
-    //    PluginManagerCore.disablePlugin("com.android.layoutlib.native");
-    //    PluginManagerCore.enablePlugin("com.android.layoutlib.standard");
-    //    ApplicationManager.getApplication().restart();
-    //  }
-    //}
-  }
-
-  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
-    //return crash.isJvmCrash() &&
-    //       (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
-    return false;
-  }
+public class NativeCrashHandling {
+    // FIXME-ank: depends on modified intellij platform (does not compile with the canonical intellij)
 }

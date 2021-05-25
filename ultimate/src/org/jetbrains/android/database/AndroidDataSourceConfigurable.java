@@ -4,6 +4,7 @@ import com.android.builder.model.Variant;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
@@ -350,13 +351,12 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
       AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
       if (androidModuleModel != null) {
-        IdeAndroidProject androidProject = androidModuleModel.getAndroidProject();
-
-        for (Variant variant : androidProject.getVariants()) {
+        for (IdeVariant variant : androidModuleModel.getVariants()) {
           mainPackages.add(variant.getMainArtifact().getApplicationId());
-          if (variant.getExtraAndroidArtifacts() != null) {
-            variant.getExtraAndroidArtifacts().forEach(artifact -> extraPackages.add(artifact.getApplicationId()));
-          }
+        // FIXME-ank5: use VariantBuildInformation
+        //  if (variant.getExtraAndroidArtifacts() != null) {
+        //    variant.getExtraAndroidArtifacts().forEach(artifact -> extraPackages.add(artifact.getApplicationId()));
+        //  }
         }
       }
       else {

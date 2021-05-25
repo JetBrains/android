@@ -20,11 +20,13 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import java.util.Collection;
 import java.util.Collections;
 import javax.swing.Icon;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +44,11 @@ public class AndroidProgramRunnerTest {
     @Override
     public @NotNull String getRunnerId() {
       return "Fake Runner";
+    }
+
+    @Override
+    public void execute(@NotNull ExecutionEnvironment environment) throws ExecutionException {
+      throw new UnsupportedOperationException("Not implemented yet");
     }
   };
   private final RunConfiguration runConfiguration = Mockito.mock(RunConfiguration.class);

@@ -60,6 +60,10 @@ fun AndroidRunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: Device
 
   val programRunner = object: AndroidProgramRunner() {
     override fun getRunnerId(): String = "runner_id"
+    override fun execute(environment: ExecutionEnvironment) {
+      TODO("Not yet implemented")
+    }
+
     override fun canRunWithMultipleDevices(executorId: String): Boolean = false
   }
 
