@@ -135,6 +135,22 @@ class ProjectDumper(
     }
   }
 
+  fun String.replaceKnownPatterns(): String =
+    this
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+        }
+        else it
+      }
+      .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .let {
+        kotlinVersionPattern.find(it)?.let { match ->
+          it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
+        } ?: it
+      }
+      .removeAndroidVersionsFromPath()
+
   fun String.replaceKnownPaths(): String =
     this
       .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
