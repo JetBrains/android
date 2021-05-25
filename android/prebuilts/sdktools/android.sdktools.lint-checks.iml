@@ -4,8 +4,6 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" exported="" />
     <orderEntry type="library" name="Trove4j" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />

@@ -14,7 +14,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" exported="" />
     <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
