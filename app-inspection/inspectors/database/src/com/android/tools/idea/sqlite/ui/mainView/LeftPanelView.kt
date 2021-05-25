@@ -32,7 +32,6 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -308,7 +307,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     }
 
     PopupHandler.installFollowingSelectionTreePopup(
-      tree, DefaultActionGroup(exportAction), ActionPlaces.UNKNOWN, ActionManager.getInstance()
+      tree, DefaultActionGroup(exportAction), ActionPlaces.UNKNOWN
     )
   }
 

@@ -109,14 +109,13 @@ open class ContextualCallPathBrowser(
   }
 
   override fun createTrees(typeToTreeMap: MutableMap<in String, in JTree>) {
-    val group = ActionManager.getInstance().getAction(IdeActions.GROUP_CALL_HIERARCHY_POPUP) as ActionGroup
     val baseOnThisMethodAction = BaseOnThisMethodAction()
     val kinds = arrayOf(
         CallHierarchyBrowserBase.CALLEE_TYPE,
         CallHierarchyBrowserBase.CALLER_TYPE)
     for (kind in kinds) {
       val tree = createTree(false)
-      PopupHandler.installPopupHandler(tree, group, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP, ActionManager.getInstance())
+      PopupHandler.installPopupMenu(tree, IdeActions.GROUP_CALL_HIERARCHY_POPUP, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP)
       baseOnThisMethodAction
           .registerCustomShortcutSet(ActionManager.getInstance().getAction(IdeActions.ACTION_CALL_HIERARCHY).shortcutSet, tree)
       typeToTreeMap[kind] = tree

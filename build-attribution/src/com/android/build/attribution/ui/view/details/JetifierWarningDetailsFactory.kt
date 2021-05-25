@@ -31,7 +31,6 @@ import com.intellij.find.FindModel
 import com.intellij.find.findInProject.FindInProjectManager
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DefaultTreeExpander
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -113,7 +112,7 @@ class JetifierWarningDetailsFactory(
       group.addSeparator()
       group.add(CommonActionsManager.getInstance().createExpandAllAction(treeExpander, this))
       group.add(CommonActionsManager.getInstance().createCollapseAllAction(treeExpander, this))
-      PopupHandler.installPopupHandler(tree, group, ActionPlaces.POPUP, ActionManager.getInstance())
+      PopupHandler.installPopupMenu(tree, group, ActionPlaces.POPUP)
     }
     add(htmlTextLabelWithFixedLines(contentHtml))
     add(JButton("Refresh").apply { addActionListener { actionHandlers.runCheckJetifierTask() } })

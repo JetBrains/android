@@ -216,8 +216,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     ActionGroup group = createPopupActionGroup(myTree);
-    PopupHandler
-      .installPopupHandler(myTree, group, ActionPlaces.UNKNOWN, ActionManager.getInstance());
+    PopupHandler.installPopupMenu(myTree, group, ActionPlaces.UNKNOWN);
 
     initDex();
   }

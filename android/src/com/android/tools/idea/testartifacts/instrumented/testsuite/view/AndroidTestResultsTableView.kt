@@ -464,7 +464,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     }
 
     TreeUtil.installActions(tree)
-    PopupHandler.installPopupHandler(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
+    PopupHandler.installPopupMenu(this, IdeActions.GROUP_TESTTREE_POPUP, ActionPlaces.ANDROID_TEST_SUITE_TABLE)
     addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(e: MouseEvent?) {
         logger.reportClickInteraction(ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_VIEW_TABLE_ROW)
