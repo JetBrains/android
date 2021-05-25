@@ -362,6 +362,7 @@ object AndroidStudioUsageTracker {
                                device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
                                else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
                              })
+      .addAllCharacteristics(device.hardwareCharacteristics)
       .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
   }
 
@@ -396,7 +397,7 @@ object AndroidStudioUsageTracker {
    * containing api level only.
    */
   @JvmStatic
-  fun deviceToDeviceInfoApilLevelOnly(device: IDevice): DeviceInfo {
+  fun deviceToDeviceInfoApiLevelOnly(device: IDevice): DeviceInfo {
     return DeviceInfo.newBuilder()
       .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
       .build()

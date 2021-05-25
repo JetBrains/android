@@ -26,7 +26,7 @@ import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly
+import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.FeatureSurveys.featureSurveyInvoked
 import com.android.tools.idea.stats.FeatureSurveys.shouldInvokeFeatureSurvey
@@ -55,10 +55,11 @@ class AndroidStudioUsageTrackerTest : TestCase() {
     assertEquals(info.manufacturer, "Samsung")
     assertTrue(info.deviceType == DeviceInfo.DeviceType.LOCAL_PHYSICAL)
     assertEquals(info.model, "pixel")
+    assertEquals(info.characteristicsList, listOf("emulator", "watch"))
   }
 
-  fun testDeviceToDeviceInfoApilLevelOnly() {
-    val info = deviceToDeviceInfoApilLevelOnly(createMockDevice())
+  fun testDeviceToDeviceInfoApiLevelOnly() {
+    val info = deviceToDeviceInfoApiLevelOnly(createMockDevice())
     // Test only Api Level is set
     assertEquals(info.buildApiLevelFull, "24")
     assertEquals(info.anonymizedSerialNumber, "")
@@ -270,6 +271,7 @@ class AndroidStudioUsageTrackerTest : TestCase() {
       EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)).andStubReturn("Samsung")
       EasyMock.expect(mockDevice.isEmulator).andStubReturn(java.lang.Boolean.FALSE)
       EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MODEL)).andStubReturn("pixel")
+      EasyMock.expect(mockDevice.getHardwareCharacteristics()).andStubReturn(setOf("emulator", "watch"))
       EasyMock.replay(mockDevice)
       return mockDevice
     }
