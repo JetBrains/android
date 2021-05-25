@@ -125,10 +125,12 @@ private fun injectBuildOutputDumpingBuildViewManager(
   )
 }
 
-fun mockDeviceFor(androidVersion: Int, abis: List<Abi>): IDevice {
+@JvmOverloads
+fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): IDevice {
   val device = MockitoKt.mock<IDevice>()
   Mockito.`when`(device.abis).thenReturn(abis.map { it.toString() })
   Mockito.`when`(device.version).thenReturn(AndroidVersion(androidVersion))
+  density?.let { Mockito.`when`(device.density).thenReturn(density) }
   return device
 }
 
