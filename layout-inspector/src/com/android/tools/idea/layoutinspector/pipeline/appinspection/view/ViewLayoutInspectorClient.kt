@@ -130,6 +130,7 @@ class ViewLayoutInspectorClient(
   private val currRoots = mutableListOf<Long>()
 
   var lastData: MutableMap<Long, Data> = mutableMapOf()
+  var lastProperties: MutableMap<Long, PropertiesEvent> = mutableMapOf()
 
   init {
     scope.launch {
@@ -235,6 +236,9 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun handlePropertiesEvent(propertiesEvent: PropertiesEvent) {
+    if (!isFetchingContinuously) {
+      lastProperties[propertiesEvent.rootId] = propertiesEvent
+    }
     propertiesCache.setAllFrom(propertiesEvent)
 
     composeInspector?.let {
@@ -256,7 +260,7 @@ class ViewLayoutInspectorClient(
       }
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, propertiesCache)
+      saveAppInspectorSnapshot(path, lastData, lastProperties, processDescriptor)
     }
   }
 }
