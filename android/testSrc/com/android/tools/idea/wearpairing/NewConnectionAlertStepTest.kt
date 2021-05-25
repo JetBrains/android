@@ -19,7 +19,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
-import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
@@ -35,11 +34,11 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   private val model = WearDevicePairingModel()
   private val phoneDevice = PairingDevice(
     deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ONLINE, isPaired = false
+    state = ConnectionState.ONLINE, isPaired = false
   )
   private val wearDevice = PairingDevice(
     deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ONLINE, isPaired = false
+    state = ConnectionState.ONLINE, isPaired = false
   )
 
   override fun setUp() {

@@ -32,8 +32,6 @@ import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.wearpairing.ConnectionState.OFFLINE
-import com.android.tools.idea.wearpairing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
@@ -314,7 +312,7 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
     apiLevel = avdDevice?.apiLevel ?: version.featureLevel,
     isEmulator = isEmulator,
     isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(HardwareFeature.WATCH),
-    state = if (isOnline) ONLINE else OFFLINE,
+    state = if (isOnline) ConnectionState.ONLINE else ConnectionState.OFFLINE,
     hasPlayStore = avdDevice?.hasPlayStore ?: false,
     isPaired = isPared
   ).apply {
@@ -329,7 +327,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
     isWearDevice = SystemImage.WEAR_TAG == tag,
-    state = OFFLINE,
+    state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
     isPaired = isPared
   ).apply {
