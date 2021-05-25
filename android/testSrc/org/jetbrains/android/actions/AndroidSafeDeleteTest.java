@@ -32,16 +32,21 @@ public class AndroidSafeDeleteTest extends AndroidTestCase {
     return true;
   }
 
-  // TODO(b/110489091): surprisingly, the presence of the Kotlin plugin makes this test fail.
-  public void /*test*/DeleteComponent() {
+  public void testDeleteComponent() {
     myFixture.copyFileToProject(TEST_FOLDER + "f1.xml", "AndroidManifest.xml");
     final VirtualFile activityFile = myFixture.copyFileToProject(TEST_FOLDER + "MyActivity.java", "src/p1/p2/MyActivity.java");
     myFixture.configureFromExistingVirtualFile(activityFile);
     final PsiFile psiActivityFile = PsiManager.getInstance(getProject()).findFile(activityFile);
     final PsiClass activityClass = ((PsiJavaFile)psiActivityFile).getClasses()[0];
     final DataContext context = DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent());
-    new SafeDeleteHandler().invoke(getProject(), new PsiElement[]{activityClass}, context);
-    myFixture.checkResultByFile("AndroidManifest.xml", TEST_FOLDER + "f1_after.xml", true);
+
+    try {
+      SafeDeleteHandler.invoke(getProject(), new PsiElement[]{activityClass}, myModule, true, null);
+      fail("class p1.p2.MyActivity is not safe to delete");
+    }
+    catch (BaseRefactoringProcessor.ConflictsInTestsException e) {
+      assertEquals("class <b><code>p1.p2.MyActivity</code></b> has 1 usage that is not safe to delete.", e.getMessage());
+    }
   }
 
   public void testDeleteResourceFile() throws Exception {
@@ -52,6 +57,7 @@ public class AndroidSafeDeleteTest extends AndroidTestCase {
     final PsiFile resFile = PsiManager.getInstance(getProject()).findFile(resVFile);
     try {
       SafeDeleteHandler.invoke(getProject(), new PsiElement[]{resFile}, myModule, true, null);
+      fail("field drawable.my_resource_file is not safe to delete");
     }
     catch (BaseRefactoringProcessor.ConflictsInTestsException e) {
       assertEquals("field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.", e.getMessage());
