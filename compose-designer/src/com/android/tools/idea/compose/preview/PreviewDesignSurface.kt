@@ -116,7 +116,6 @@ internal fun createPreviewDesignSurface(
     .setDelegateDataProvider(dataProvider)
     .setSelectionModel(NopSelectionModel)
     .setZoomControlsPolicy(zoomControlsPolicy)
-    .disableZoomOnConfigurationChange() // Do not zoom to fit when the configurations change
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .build()
     .apply {
