@@ -51,7 +51,8 @@ class RssMemoryTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
       "mem.rss" to "Total",
       "mem.rss.anon" to "Allocated",
       "mem.rss.file" to "File Mappings",
-      "mem.rss.shmem" to "Shared"
+      "mem.rss.shmem" to "Shared",
+      "mem.swap" to "Swapped-Out",
     )
   }
 }

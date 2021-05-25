@@ -86,7 +86,7 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)
     var stateHit = false
-    stage.aspect.addDependency(aspect).onChange(CpuCaptureStage.Aspect.STATE, Runnable { stateHit = true })
+    stage.aspect.addDependency(aspect).onChange(CpuCaptureStage.Aspect.STATE) { stateHit = true }
     profilers.stage = stage
     assertThat(profilers.stage).isInstanceOf(CpuCaptureStage::class.java)
     assertThat(stage.state).isEqualTo(CpuCaptureStage.State.ANALYZING)
@@ -150,7 +150,7 @@ class CpuCaptureStageTest {
   fun trackGroupModelsAreSetForPerfetto() {
     services.setListBoxOptionsMatcher { option -> option.contains("system_server") }
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
-                                       CpuProfilerTestUtils.getTraceFile("perfetto.trace"), SESSION_ID)
+                                       CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage.trace"), SESSION_ID)
     profilers.stage = stage
 
     assertThat(stage.trackGroupModels.size).isEqualTo(4)
@@ -171,10 +171,16 @@ class CpuCaptureStageTest {
 
     val rssMemoryTrackGroup = stage.trackGroupModels[2]
     assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
+    assertThat(rssMemoryTrackGroup.size).isEqualTo(5)
+    assertThat(rssMemoryTrackGroup[0].title).isEqualTo("Total")
+    assertThat(rssMemoryTrackGroup[1].title).isEqualTo("Allocated")
+    assertThat(rssMemoryTrackGroup[2].title).isEqualTo("File Mappings")
+    assertThat(rssMemoryTrackGroup[3].title).isEqualTo("Shared")
+    assertThat(rssMemoryTrackGroup[4].title).isEqualTo("Swapped-Out")
 
     val threadsTrackGroup = stage.trackGroupModels[3]
-    assertThat(threadsTrackGroup.title).isEqualTo("Threads (17)")
-    assertThat(threadsTrackGroup.size).isEqualTo(17)
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (148)")
+    assertThat(threadsTrackGroup.size).isEqualTo(148)
   }
 
   @Test
