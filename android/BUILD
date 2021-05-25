@@ -975,6 +975,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/dagger/dagger-compiler/2.6:jar",
         "//prebuilts/tools/common/m2/repository/com/google/dagger/dagger-producers/2.6:jar",
         "//prebuilts/tools/common/m2/repository/com/google/dagger/dagger/2.6:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/errorprone/error_prone_annotations/2.0.18:jar",
         "//prebuilts/tools/common/m2/repository/com/google/errorprone/error_prone_annotations/2.1.3:jar",
         "//prebuilts/tools/common/m2/repository/com/google/errorprone/error_prone_annotations/2.3.2:jar",
         "//prebuilts/tools/common/m2/repository/com/google/firebase/firebase-common-license/12.0.1:aar",
