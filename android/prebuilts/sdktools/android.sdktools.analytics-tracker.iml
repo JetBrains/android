@@ -9,7 +9,7 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="library" name="protobuf" level="project" />

@@ -10,7 +10,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.model" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.view" />

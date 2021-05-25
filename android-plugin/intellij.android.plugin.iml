@@ -22,10 +22,10 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="android-layout-inspector" />
-    <orderEntry type="module" module-name="assistant" />
-    <orderEntry type="module" module-name="connection-assistant" />
-    <orderEntry type="module" module-name="whats-new-assistant" />
+    <orderEntry type="module" module-name="intellij.android.android-layout-inspector" />
+    <orderEntry type="module" module-name="intellij.android.assistant" />
+    <orderEntry type="module" module-name="intellij.android.connection-assistant" />
+    <orderEntry type="module" module-name="intellij.android.whats-new-assistant" />
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.mlkit" />
@@ -34,9 +34,9 @@
     <orderEntry type="module" module-name="intellij.android.compose-designer" />
     <orderEntry type="module" module-name="intellij.android.designer.customview" />
     <orderEntry type="module" module-name="intellij.android.room" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" />
     <orderEntry type="module" module-name="intellij.android.build-attribution" />
-    <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs" />
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />

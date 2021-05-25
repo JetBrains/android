@@ -25,7 +25,7 @@
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions.common" exported="" />
-    <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />

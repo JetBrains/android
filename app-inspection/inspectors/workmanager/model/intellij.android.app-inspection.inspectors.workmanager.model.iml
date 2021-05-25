@@ -10,7 +10,7 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.inspector" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="library" name="studio-grpc" level="project" />

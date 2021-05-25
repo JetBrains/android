@@ -27,11 +27,11 @@
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.mlkit-common" scope="TEST" />

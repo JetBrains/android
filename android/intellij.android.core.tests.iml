@@ -57,16 +57,16 @@
     <orderEntry type="module" module-name="intellij.junit" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
@@ -93,7 +93,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="analytics-crash" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" scope="TEST" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library" scope="TEST">
@@ -113,15 +113,15 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.lint" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="android.sdktools.builder-model" />

@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:fake_device_proto:27.2.0.0" />

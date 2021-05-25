@@ -5,7 +5,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-impl-prod" type="repository">

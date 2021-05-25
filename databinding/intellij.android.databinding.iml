@@ -23,7 +23,7 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.xml.impl" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
     <orderEntry type="library" name="NanoXML" level="project" />
