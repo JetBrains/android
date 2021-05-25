@@ -50,8 +50,9 @@ class InspectorMemoryProbe(private val model: InspectorModel) {
     "sun.awt.image."
   )
 
-  private val excludedClasses = listOf(
-    sun.awt.image.SurfaceManager::class.java // avoid counting cached data from awt SurfaceManager
+  private val excludedClasses: List<Class<*>> = listOf(
+    //FIXME-ank5
+    //sun.awt.image.SurfaceManager::class.java // avoid counting cached data from awt SurfaceManager
   )
 
   init {

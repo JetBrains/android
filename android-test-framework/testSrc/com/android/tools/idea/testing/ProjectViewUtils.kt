@@ -29,7 +29,6 @@ import com.intellij.ui.DeferredIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon
 import com.intellij.ui.RowIcon
-import sun.swing.ImageIconUIResource
 import java.io.File
 import javax.swing.Icon
 
@@ -62,7 +61,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
       this is RetrievableIcon -> retrieveIcon().toText()
       this is RowIcon && allIcons.size == 1 -> getIcon(0)?.toText()
       this is IconLoader.CachedImageIcon -> originalPath
-      this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)"
+      //this is ImageIconUIResource -> description ?: "ImageIconUIResource(?)" // FIXME-ank5: sun.swing is not exported from java.desktop
       this is LayeredIcon && allLayers.size == 1 ->  getIcon(0)?.toText()
       this is LayeredIcon -> "[${allLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
       else -> "$this (${javaClass.simpleName})"

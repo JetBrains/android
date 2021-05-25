@@ -70,7 +70,6 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
-import sun.swing.DefaultLookup
 import java.awt.Color
 import java.awt.Component
 import java.awt.KeyboardFocusManager
@@ -91,6 +90,7 @@ import javax.swing.JTree
 import javax.swing.ListSelectionModel
 import javax.swing.SortOrder
 import javax.swing.SwingConstants
+import javax.swing.UIManager
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableModelEvent
 import javax.swing.table.DefaultTableCellRenderer
@@ -601,9 +601,9 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           }
           component.icon = if (column == mySortKeyColumn) {
             when(mySortOrder) {
-              SortOrder.ASCENDING -> DefaultLookup.getIcon(component, ui, "Table.ascendingSortIcon")
-              SortOrder.DESCENDING -> DefaultLookup.getIcon(component, ui, "Table.descendingSortIcon")
-              else -> DefaultLookup.getIcon(component, ui, "Table.naturalSortIcon")
+              SortOrder.ASCENDING -> UIManager.getIcon("Table.ascendingSortIcon")
+              SortOrder.DESCENDING -> UIManager.getIcon("Table.descendingSortIcon")
+              else -> UIManager.getIcon("Table.naturalSortIcon")
             }
           } else {
             null
