@@ -81,9 +81,11 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
 
   if (language == Language.Kotlin) {
     save(exampleMacrobenchmarkKt(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.kt"))
+    open(srcOut.resolve("ExampleStartupBenchmark.kt"))
   }
   else {
     save(exampleMacrobenchmarkJava(packageName, targetPackageName), srcOut.resolve("ExampleStartupBenchmark.java"))
+    open(srcOut.resolve("ExampleStartupBenchmark.java"))
   }
 
   addKotlinIfNeeded(projectData, noKtx = true)

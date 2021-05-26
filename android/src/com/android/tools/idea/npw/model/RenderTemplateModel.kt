@@ -219,7 +219,9 @@ class RenderTemplateModel private constructor(
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
 
       return newTemplate.render(context, executor, metrics).also {
-        createdFiles.addAll(context.filesToOpen)
+        if (!dryRun) {
+          createdFiles.addAll(context.filesToOpen)
+        }
       }
     }
   }

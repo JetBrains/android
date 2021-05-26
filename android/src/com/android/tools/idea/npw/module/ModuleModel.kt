@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.ModuleModelData
@@ -32,6 +33,7 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
+import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -44,6 +46,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.T
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.DumbService
 import java.io.File
 
 private val log: Logger get() = logger<ModuleModel>()
@@ -86,6 +89,9 @@ abstract class ModuleModel(
      */
     protected abstract val recipe: Recipe
 
+    private var success = false
+    private val createdFiles: MutableList<File> = arrayListOf()
+
     @WorkerThread
     override fun init() {
       moduleTemplateDataBuilder.apply {
@@ -108,12 +114,19 @@ abstract class ModuleModel(
 
     @WorkerThread
     override fun render() {
-      val success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
+      success = WriteCommandAction.writeCommandAction(project).withName(commandName).compute<Boolean, Exception> {
         renderTemplate(false)
       }
 
       if (!success) {
         log.warn("A problem occurred while creating a new Module. Please check the log file for possible errors.")
+      }
+    }
+
+    @UiThread
+    override fun finish() {
+      if (success) {
+        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
       }
     }
 
@@ -145,7 +158,11 @@ abstract class ModuleModel(
       } else null
 
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
-      return recipe.render(context, executor, loggingEvent, metrics)
+      return recipe.render(context, executor, loggingEvent, metrics).also {
+        if (!dryRun) {
+          createdFiles.addAll(context.filesToOpen)
+        }
+      }
     }
   }
 }
