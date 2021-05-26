@@ -27,8 +27,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
             "timeout": "long",
             "tags": [
-                # b/189237836
-                "manual",
                 "no_test_mac",
                 "no_test_windows",
             ],
@@ -38,8 +36,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinSmokeTest",
             "timeout": "long",
             "tags": [
-                # b/189237836
-                "manual",
                 "no_test_mac",
                 "no_test_windows",
             ],
