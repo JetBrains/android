@@ -122,9 +122,11 @@ class AndroidTestSuiteDetailsViewTest {
       override val packageName: String = packageName
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = testCaseResult
       override fun getTestResultSummary(): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
-      override fun getTestResultSummaryText(): String = ""
+      override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = testCaseResult ?: AndroidTestCaseResult.SCHEDULED
+      override fun getTestResultSummaryText(devices: List<AndroidDevice>): String = ""
       override fun getResultStats() = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice) = AndroidTestResultStats()
+      override fun getResultStats(devices: List<AndroidDevice>) = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getStartTime(device: AndroidDevice): Long? = null
       override fun getDuration(device: AndroidDevice): Duration = Duration.ZERO

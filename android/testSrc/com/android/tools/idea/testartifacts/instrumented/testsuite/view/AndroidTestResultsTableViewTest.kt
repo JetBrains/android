@@ -101,9 +101,11 @@ class AndroidTestResultsTableViewTest {
       override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
-      override fun getTestResultSummaryText(): String = ""
+      override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+      override fun getTestResultSummaryText(devices: List<AndroidDevice>): String = ""
       override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
+      override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getStartTime(device: AndroidDevice): Long? = null
       override fun getDuration(device: AndroidDevice): Duration? = null
@@ -816,5 +818,31 @@ class AndroidTestResultsTableViewTest {
 
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.CANCELLED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.CANCELLED)
+  }
+
+  @Test
+  fun setTestResultStatsForListOfDevices() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+
+    val testCase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+
+    table.addTestCase(device1, testCase1)
+    table.addTestCase(device2, testCase1)
+    testCase1.result = AndroidTestCaseResult.PASSED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1))).isEqualTo("1/1")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device2))).isEqualTo("1/1")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1, device2))).isEqualTo("2/2")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device2))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1, device2))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1)).passed).isEqualTo(1)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device2)).passed).isEqualTo(1)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1, device2)).passed).isEqualTo(2)
   }
 }

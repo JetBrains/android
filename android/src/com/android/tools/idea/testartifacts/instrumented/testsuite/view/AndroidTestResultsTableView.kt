@@ -685,7 +685,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(AggregationRow(), arrayOf()) {
   /**
    * A map of test results rows. The key is [AndroidTestCase.id] and the value is [AndroidTestResultsRow].
-   * Note that [AndroidTestResultsRow] has test results for every devices.
+   * Note that [AndroidTestResultsRow] has test results for every device.
    */
   val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
@@ -764,17 +764,26 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   }
 
   private fun updateFilteredColumns() {
-    val filteredColumns = mutableListOf<ColumnInfo<Any, Any>>(
-      TestNameColumn, TestDurationColumn as ColumnInfo<Any, Any>)
+    // We always display test name and test duration columns.
+    val filteredColumns = mutableListOf(
+      TestNameColumn,
+      TestDurationColumn as ColumnInfo<Any, Any>)
+
+    // Show test status and device columns.
+    // We should hide test status column if there is only one device
+    // because the information displayed in test status and device column
+    // would be the same and redundant.
     val filteredDeviceColumns = myDeviceColumns.filter {
       myColumnFilter?.invoke(it.device) ?: true
-    }.map {
-      it as ColumnInfo<Any, Any>
     }
     if (filteredDeviceColumns.size > 1) {
-      filteredColumns.add(TestStatusColumn as ColumnInfo<Any, Any>)
+      val filteredDevices = filteredDeviceColumns.map {
+        it.device
+      }.toList()
+      filteredColumns.add(TestStatusColumn(filteredDevices) as ColumnInfo<Any, Any>)
     }
-    filteredDeviceColumns.toCollection(filteredColumns)
+    filteredColumns.addAll(filteredDeviceColumns as List<ColumnInfo<Any, Any>>)
+
     myFilteredColumns = filteredColumns.toTypedArray()
   }
 
@@ -899,20 +908,21 @@ private object TestDurationColumnCellRenderer : DefaultTableCellRenderer() {
 /**
  * A column for displaying an aggregated test result grouped by a test case ID.
  */
-private object TestStatusColumn : ColumnInfo<AndroidTestResults, AndroidTestResults>("Status") {
+private class TestStatusColumn(val devices: List<AndroidDevice>) : ColumnInfo<AndroidTestResults, AndroidTestResults>("Status") {
   private val myComparator = Comparator<AndroidTestResults> { lhs, rhs ->
-    compareValues(lhs.getTestResultSummary(), rhs.getTestResultSummary())
+    compareValues(lhs.getTestResultSummary(devices), rhs.getTestResultSummary(devices))
   }
+  private val renderer: TableCellRenderer = TestStatusColumnCellRenderer(devices)
   override fun valueOf(item: AndroidTestResults): AndroidTestResults = item
   override fun getComparator(): Comparator<AndroidTestResults> = myComparator
   override fun getWidth(table: JTable): Int = 80
-  override fun getRenderer(item: AndroidTestResults?): TableCellRenderer = TestStatusColumnCellRenderer
+  override fun getRenderer(item: AndroidTestResults?): TableCellRenderer = renderer
   override fun getCustomizedRenderer(o: AndroidTestResults?, renderer: TableCellRenderer?): TableCellRenderer {
-    return TestStatusColumnCellRenderer
+    return this.renderer
   }
 }
 
-private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
+private class TestStatusColumnCellRenderer(val devices: List<AndroidDevice>) : DefaultTableCellRenderer() {
   override fun getTableCellRendererComponent(table: JTable,
                                              value: Any?,
                                              isSelected: Boolean,
@@ -920,14 +930,14 @@ private object TestStatusColumnCellRenderer : DefaultTableCellRenderer() {
                                              row: Int,
                                              column: Int): Component {
     val results = value as? AndroidTestResults ?: return this
-    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(), isSelected, hasFocus, row, column)
+    super.getTableCellRendererComponent(table, results.getTestResultSummaryText(devices), isSelected, hasFocus, row, column)
     icon = null
     horizontalTextPosition = CENTER
     horizontalAlignment = CENTER
     foreground = if(isSelected && table.hasFocus()) {
       UIUtil.getTreeSelectionForeground(true)
     } else {
-      getColorFor(results.getTestResultSummary())
+      getColorFor(results.getTestResultSummary(devices))
     }
     background = UIUtil.getTableBackground(isSelected, table.hasFocus())
     return this
@@ -1079,10 +1089,15 @@ private class AndroidTestResultsRow(override val methodName: String,
   override fun getTestResultSummary(): AndroidTestCaseResult = getResultStats().getSummaryResult()
 
   /**
-   * Returns a one liner test result summary string.
+   * Returns an aggregated test result for the given devices.
    */
-  override fun getTestResultSummaryText(): String {
-    val stats = getResultStats()
+  override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = getResultStats(devices).getSummaryResult()
+
+  /**
+   * Returns a one liner test result summary string for the given devices.
+   */
+  override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
+    val stats = getResultStats(devices)
     return when {
       stats.failed == 1 -> "Fail"
       stats.failed > 0 -> "Fail (${stats.failed})"
@@ -1095,31 +1110,20 @@ private class AndroidTestResultsRow(override val methodName: String,
   }
 
   override fun getResultStats(): AndroidTestResultStats {
-    val stats = AndroidTestResultStats()
-    myTestCases.values.forEach {
-      when(it.result) {
-        AndroidTestCaseResult.PASSED -> stats.passed++
-        AndroidTestCaseResult.FAILED -> stats.failed++
-        AndroidTestCaseResult.SKIPPED -> stats.skipped++
-        AndroidTestCaseResult.IN_PROGRESS -> stats.running++
-        AndroidTestCaseResult.CANCELLED -> stats.cancelled++
-        else -> {}
-      }
+    return myTestCases.values.fold(AndroidTestResultStats()) { acc, androidTestCase ->
+      acc.addTestCaseResult(androidTestCase.result)
     }
-    return stats
   }
 
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     val stats = AndroidTestResultStats()
-    when(getTestCaseResult(device)) {
-      AndroidTestCaseResult.PASSED -> stats.passed++
-      AndroidTestCaseResult.FAILED -> stats.failed++
-      AndroidTestCaseResult.SKIPPED -> stats.skipped++
-      AndroidTestCaseResult.IN_PROGRESS -> stats.running++
-      AndroidTestCaseResult.CANCELLED -> stats.cancelled++
-      else -> {}
+    return stats.addTestCaseResult(getTestCaseResult(device))
+  }
+
+  override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats {
+    return devices.fold(AndroidTestResultStats()) { acc, device ->
+      acc.addTestCaseResult(getTestCaseResult(device))
     }
-    return stats
   }
 }
 
@@ -1203,8 +1207,23 @@ private class AggregationRow(override val packageName: String = "",
     }
   }
 
-  override fun getTestResultSummaryText(): String {
-    val stats = getResultStats()
+  override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult {
+    return when {
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.FAILED } -> {
+        AndroidTestCaseResult.FAILED
+      }
+      myTestSuiteResult.values.any { it == AndroidTestSuiteResult.CANCELLED ||
+                                     it == AndroidTestSuiteResult.ABORTED } -> {
+        AndroidTestCaseResult.CANCELLED
+      }
+      else -> {
+        getResultStats(devices).getSummaryResult()
+      }
+    }
+  }
+
+  override fun getTestResultSummaryText(devices: List<AndroidDevice>): String {
+    val stats = getResultStats(devices)
     return "${stats.passed + stats.skipped}/${stats.total}"
   }
 
@@ -1217,6 +1236,12 @@ private class AggregationRow(override val packageName: String = "",
   override fun getResultStats(device: AndroidDevice): AndroidTestResultStats {
     return allChildren.fold(AndroidTestResultStats()) { acc, result ->
       (result as? AndroidTestResults)?.getResultStats(device)?.plus(acc) ?: acc
+    }
+  }
+
+  override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats {
+    return allChildren.fold(AndroidTestResultStats()) { acc, result ->
+      (result as? AndroidTestResults)?.getResultStats(devices)?.plus(acc) ?: acc
     }
   }
 
