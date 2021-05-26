@@ -24,6 +24,11 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
     return res;
   }
 
+  @Override
+  protected @NotNull String getVersion() {
+    return "27.2.0.1";
+  }
+
   @NotNull
   @Override
   protected String getArtifactName() {
