@@ -231,6 +231,43 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
   }
 
+  fun testAllTabsAreClosedOnDisposed() {
+    // Prepare
+    // open evaluator tab
+    databaseInspectorView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // open query tab
+    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
+    runDispatching {
+      databaseInspectorController.addSqliteDatabase(databaseId1)
+    }
+
+    databaseInspectorView.viewListeners.single().tableNodeActionInvoked(databaseId1, testSqliteTable)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    verify(databaseInspectorView).openTab(
+      TabId.AdHocQueryTab(1),
+      "New Query [1]",
+      StudioIcons.DatabaseInspector.TABLE,
+      viewsFactory.sqliteEvaluatorView.component
+    )
+    verify(databaseInspectorView).openTab(
+      TabId.TableTab(databaseId1, testSqliteTable.name),
+      testSqliteTable.name,
+      StudioIcons.DatabaseInspector.TABLE,
+      viewsFactory.tableView.component
+    )
+
+    // Act
+    Disposer.dispose(databaseInspectorController)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Assert
+    verify(databaseInspectorView).closeTab(TabId.AdHocQueryTab(1))
+    verify(databaseInspectorView).closeTab(TabId.TableTab(databaseId1, testSqliteTable.name))
+  }
+
   fun testAddSqliteDatabase() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
