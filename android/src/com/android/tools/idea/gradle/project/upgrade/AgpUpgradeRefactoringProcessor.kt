@@ -267,6 +267,7 @@ class AgpUpgradeRefactoringProcessor(
   val componentRefactoringProcessors = listOf(
     GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
+    GradlePluginsRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),

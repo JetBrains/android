@@ -272,6 +272,41 @@ class ContentManagerTest {
   }
 
   @Test
+  fun testToolWindowViewWithGradleAndPluginUpgrades() {
+    projectRule.fixture.addFileToProject(
+      "build.gradle",
+      """
+        buildscript {
+          dependencies {
+            classpath 'com.android.tools.build:gradle:4.1.0'
+            classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.20'
+          }
+        }
+      """.trimIndent()
+    )
+    projectRule.fixture.addFileToProject(
+      "gradle/wrapper/gradle-wrapper.properties",
+      """
+        distributionBase=GRADLE_USER_HOME
+        distributionPath=wrapper/dists
+        zipStoreBase=GRADLE_USER_HOME
+        zipStorePath=wrapper/dists
+        distributionUrl=https\://services.gradle.org/distributions/gradle-6.1.1-bin.zip
+      """.trimIndent()
+    )
+    val contentManager = ContentManager(project)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
+    val model = ToolWindowModel(project, currentAgpVersion)
+    val view = ContentManager.View(model, toolWindow.contentManager)
+    assertThat(view.tree.rowCount).isEqualTo(4)
+    fun rowText(n: Int) =
+      ((view.tree.getPathForRow(n).lastPathComponent as CheckedTreeNode).userObject as ToolWindowModel.DefaultStepPresentation).treeText
+    assertThat(rowText(1)).contains("Upgrade Gradle version")
+    assertThat(rowText(2)).contains("Upgrade Gradle plugins")
+    assertThat(rowText(3)).contains("Upgrade AGP dependency")
+  }
+
+  @Test
   fun testToolWindowViewHasEnabledButtons() {
     addMinimalBuildGradleToProject()
     val contentManager = ContentManager(project)
