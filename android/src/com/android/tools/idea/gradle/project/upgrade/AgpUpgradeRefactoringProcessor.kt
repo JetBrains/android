@@ -144,7 +144,6 @@ import com.intellij.util.containers.toArray
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-import org.jetbrains.kotlin.utils.ifEmpty
 import java.awt.event.ActionEvent
 import java.io.File
 import java.util.UUID
@@ -280,7 +279,7 @@ class AgpUpgradeRefactoringProcessor(
   val classpathRefactoringProcessor = AgpClasspathDependencyRefactoringProcessor(this)
   val componentRefactoringProcessors = listOf(
     GMavenRepositoryRefactoringProcessor(this),
-    AgpGradleVersionRefactoringProcessor(this),
+    GradleVersionRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
@@ -953,10 +952,10 @@ class AgpVersionUsageInfo(
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
-    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new).version
+    this.gradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(new).version
   }
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    this.gradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(processor.new).version
+    this.gradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(processor.new).version
   }
 
   var gradleVersion: GradleVersion
@@ -1026,7 +1025,7 @@ class RepositoriesNoGMavenUsageInfo(
   }
 }
 
-class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
+class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
     this.compatibleGradleVersion = getCompatibleGradleVersion(new)
@@ -1109,7 +1108,7 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
     builder.setKind(GRADLE_VERSION)
 
-  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.agpGradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version)
+  override fun getCommandName(): String = AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.commandName", compatibleGradleVersion.version)
 
   override fun getShortDescription(): String =
     """
@@ -1125,14 +1124,14 @@ class AgpGradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProce
         return PsiElement.EMPTY_ARRAY
       }
 
-      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.agpGradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version)
+      override fun getProcessedElementsHeader() = AndroidBundle.message("project.upgrade.gradleVersionRefactoringProcessor.usageView.header", compatibleGradleVersion.version)
     }
   }
 
   @Suppress("FunctionName")
   companion object {
-    val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.gradleUrlUsageType"))
-    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.agpGradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
+    val GRADLE_URL_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.gradleUrlUsageType"))
+    val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
     fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
       val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
@@ -1732,7 +1731,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
           // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
           //  probably little overlap in fabric upgrades with such old projects.
-          val compatibleGradleVersion = AgpGradleVersionRefactoringProcessor.getCompatibleGradleVersion(new)
+          val compatibleGradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
           val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories, compatibleGradleVersion.version)
           usages.add(usageInfo)
