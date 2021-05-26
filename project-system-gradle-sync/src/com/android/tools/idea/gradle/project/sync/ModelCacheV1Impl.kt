@@ -1086,6 +1086,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     val buildToolsVersionCopy = copyNewProperty(project::getBuildToolsVersion)
     val ndkVersionCopy = copyNewProperty(project::getNdkVersion)
     val groupId = if (parsedModelVersion != null && parsedModelVersion.isAtLeast(3, 6, 0, "alpha", 5, false)) project.groupId else null
+    val namespace = copyNewProperty(project::getNamespace)
+    val testNamespace = copyNewProperty(project::getAndroidTestNamespace)
     val lintRuleJarsCopy: List<File>? = copy(project::getLintRuleJars, ::deduplicateFile)
 
     // AndroidProject#isBaseSplit is always non null.
@@ -1120,6 +1122,8 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       ndkVersion = ndkVersionCopy,
       resourcePrefix = project.resourcePrefix,
       groupId = groupId,
+      namespace = namespace,
+      testNamespace = testNamespace,
       projectType = getProjectType(project, parsedModelVersion),
       isBaseSplit = isBaseSplit,
       agpFlags = agpFlags)

@@ -91,6 +91,8 @@ private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   prop("NdkVersion") { ideAndroidModel.ndkVersion }
   prop("IsBaseSplit") { ideAndroidModel.isBaseSplit.toString() }
   prop("GroupId") { ideAndroidModel.groupId }
+  prop("Namespace") { ideAndroidModel.namespace }
+  prop("TestNamespace") { ideAndroidModel.testNamespace }
   dump(ideAndroidModel.aaptOptions)
   dump(ideAndroidModel.lintOptions)
   dump(ideAndroidModel.javaCompileOptions)

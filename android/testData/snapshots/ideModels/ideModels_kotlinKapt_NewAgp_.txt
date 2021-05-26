@@ -7,6 +7,8 @@ MODULE                        : MainActivity.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : MainActivity
+    Namespace                     : com.example.mainactivity
+    TestNamespace                 : com.example.mainactivity.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -854,6 +856,8 @@ MODULE                        : MainActivity.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : MainActivity
+    Namespace                     : com.example.lib
+    TestNamespace                 : com.example.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

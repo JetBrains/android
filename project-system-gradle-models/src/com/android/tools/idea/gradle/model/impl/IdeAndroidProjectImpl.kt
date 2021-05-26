@@ -54,7 +54,9 @@ data class IdeAndroidProjectImpl(
   override val viewBindingOptions: IdeViewBindingOptions?,
   override val dependenciesInfo: IdeDependenciesInfo?,
   override val groupId: String?,
+  override val namespace: String?,
   override val agpFlags: IdeAndroidGradlePluginProjectFlags,
   override val variantsBuildInformation: Collection<IdeVariantBuildInformation>,
-  override val lintRuleJars: List<File>?
+  override val lintRuleJars: List<File>?,
+  override val testNamespace: String?,
 ) : IdeAndroidProject, Serializable

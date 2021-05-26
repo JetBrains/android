@@ -725,6 +725,8 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     viewBindingOptions = viewBindingOptions,
     dependenciesInfo = dependenciesInfo,
     groupId = null,
+    namespace = null,
+    testNamespace = null,
     agpFlags = agpProjectFlags,
     variantsBuildInformation = variants.map {
       IdeVariantBuildInformationImpl(variantName = it.name, buildInformation = it.mainArtifact.buildInformation)

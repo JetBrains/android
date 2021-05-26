@@ -7,6 +7,8 @@ MODULE                        : My_First_App.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : My First App
+    Namespace                     : com.example.firstapp
+    TestNamespace                 : com.example.firstapp.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2021,6 +2023,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : My First App.app
+    Namespace                     : com.example.mysharedlibrary
+    TestNamespace                 : com.example.mysharedlibrary.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
