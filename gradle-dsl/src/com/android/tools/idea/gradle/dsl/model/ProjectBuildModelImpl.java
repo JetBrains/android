@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
-
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -25,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
@@ -151,7 +150,7 @@ public final class ProjectBuildModelImpl implements ProjectBuildModel {
 
     // TODO(b/166739137): buildSrc is actually more like an included build; buildSrc could in principle have sub-projects, libraries, etc.,
     //  all themselves configured and built by the top-level Gradle build file in the buildSrc directory.
-    File buildSrc = new File(getBaseDirPath(myBuildModelContext.getProject()), "buildSrc");
+    File buildSrc = new File(FileUtil.toCanonicalPath(myBuildModelContext.getProject().getBasePath()), "buildSrc");
     VirtualFile buildSrcVirtualFile = myBuildModelContext.getGradleBuildFile(buildSrc);
     if (buildSrcVirtualFile != null) {
       allModels.add(getModuleBuildModel(buildSrcVirtualFile));
