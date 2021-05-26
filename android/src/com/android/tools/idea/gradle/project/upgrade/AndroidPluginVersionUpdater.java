@@ -25,7 +25,6 @@ import static com.intellij.util.ThreeState.YES;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -165,8 +164,8 @@ public class AndroidPluginVersionUpdater {
     }
 
     if (result.isPluginVersionUpdated() && gradleVersion != null) {
-      AgpGradleVersionRefactoringProcessor rp3 =
-        new AgpGradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
+      GradleVersionRefactoringProcessor rp3 =
+        new GradleVersionRefactoringProcessor(myProject, oldPluginVersion, pluginVersion);
       try {
         rp3.run();
         result.gradleVersionUpdated();

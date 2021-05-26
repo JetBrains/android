@@ -79,7 +79,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     myFixture.addFileToProject("gradle/wrapper/gradle-wrapper.properties", """
       distributionUrl=https\://services.gradle.org/distributions/gradle-6.4-bin.zip
     """.trimIndent())
-    val processor = AgpGradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
+    val processor = GradleVersionRefactoringProcessor(myFixture.project, GradleVersion.parse("3.6.0"), GradleVersion.parse("4.1.0"))
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
