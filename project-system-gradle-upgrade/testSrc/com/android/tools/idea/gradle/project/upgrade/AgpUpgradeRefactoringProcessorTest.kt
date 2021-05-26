@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -155,6 +156,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
     writeToBuildFile(TestFileName("MigrateToBuildFeatures/ViewBindingEnabledLiteral"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.6.0"), GradleVersion.parse("7.0.0"))
+    assumeTrue(processor.componentRefactoringProcessors.any { it.isMigrateBuildFeaturesRefactoringProcessor() }) // b/175097233
     processor.classpathRefactoringProcessor.isEnabled = false
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateBuildFeaturesRefactoringProcessor() }
     processor.run()
