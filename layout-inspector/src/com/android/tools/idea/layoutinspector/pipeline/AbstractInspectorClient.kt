@@ -89,14 +89,12 @@ abstract class AbstractInspectorClient(final override val process: ProcessDescri
     assert(state == InspectorClient.State.CONNECTED)
     state = InspectorClient.State.DISCONNECTING
 
-    val future = doDisconnect()
-    errorCallbacks.clear()
-    treeEventCallbacks.clear()
-
-    future.addListener(
+    doDisconnect().addListener(
       {
         state = InspectorClient.State.DISCONNECTED
+        treeEventCallbacks.clear()
         stateCallbacks.clear()
+        errorCallbacks.clear()
       }, MoreExecutors.directExecutor())
   }
 
