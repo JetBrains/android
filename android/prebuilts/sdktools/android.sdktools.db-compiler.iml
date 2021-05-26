@@ -70,7 +70,7 @@
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="javax.activation" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-db-compiler-prod" type="repository">
+      <library name="precompiled-db-compiler" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/27.2.0.0/studio.compiler-27.2.0.0.jar!/" />

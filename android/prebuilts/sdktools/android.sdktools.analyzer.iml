@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="android.sdktools.lint-checks" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analyzer-prod" type="repository">
+      <library name="precompiled-analyzer" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/27.2.0.0/studio.android.sdktools.analyzer-27.2.0.0.jar!/" />

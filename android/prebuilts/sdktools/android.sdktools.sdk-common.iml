@@ -35,7 +35,7 @@
     <orderEntry type="library" name="jaxb-api" level="project" />
     <orderEntry type="library" name="Xerces" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-sdk-common-prod" type="repository">
+      <library name="precompiled-sdk-common" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.sdk-common:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.sdk-common/27.2.0.0/studio.android.sdktools.sdk-common-27.2.0.0.jar!/" />

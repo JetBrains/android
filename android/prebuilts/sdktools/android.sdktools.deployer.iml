@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module-library" exported="">
-      <library type="repository">
+      <library name="deploy_java_proto" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/27.2.0.0/deploy_java_proto-27.2.0.0.jar!/" />
@@ -22,7 +22,7 @@
     </orderEntry>
     <orderEntry type="library" exported="" name="protobuf" level="project" />
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="r8" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:r8:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/r8/27.2.0.0/r8-27.2.0.0.jar!/" />
@@ -32,7 +32,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library type="repository">
+      <library name="libjava_version" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/27.2.0.0/libjava_version-27.2.0.0.jar!/" />
@@ -62,7 +62,7 @@
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
     <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-deployer-prod" type="repository">
+      <library name="precompiled-deployer" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer/27.2.0.0/studio.android.sdktools.deployer-27.2.0.0.jar!/" />

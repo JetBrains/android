@@ -14,7 +14,7 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analytics-crash-prod" type="repository">
+      <library name="precompiled-analytics-crash" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-crash:27.2.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-crash/27.2.0.0/analytics-crash-27.2.0.0.jar!/" />
