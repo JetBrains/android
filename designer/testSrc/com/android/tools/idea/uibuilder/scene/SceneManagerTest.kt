@@ -30,6 +30,7 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestDesignSurface
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.getRoot
@@ -40,6 +41,11 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import java.util.concurrent.CompletableFuture
 
 class TestSceneManager(model: NlModel,
@@ -65,7 +71,7 @@ class TestSceneManager(model: NlModel,
   override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 
-class ScenerManagerTest {
+class SceneManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
@@ -113,6 +119,33 @@ class ScenerManagerTest {
     assertEquals(20, sceneManager.scene.root!!.drawY)
     assertEquals(60, sceneManager.scene.root!!.drawWidth)
     assertEquals(70, sceneManager.scene.root!!.drawHeight)
+    Disposer.dispose(sceneManager)
+    Disposer.dispose(model)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testDoNotRegisterDuplicatedListenerToResourceNotificationManager() {
+    val mockedManager = projectRule.mockProjectService(ResourceNotificationManager::class.java)
+
+    val model = model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT)).build()
+    val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
+    surface.addModelWithoutRender(model)
+    val sceneManager = TestSceneManager(model, surface)
+    sceneManager.updateSceneView()
+    sceneManager.update()
+
+    val source = Object()
+
+    sceneManager.deactivate(source)
+    verify(mockedManager, times(0)).removeListener(any(), any(), any(), any())
+
+    sceneManager.activate(source)
+    sceneManager.activate(source)
+    sceneManager.deactivate(source)
+    verify(mockedManager, times(1)).addListener(any(), any(), any(), any())
+    verify(mockedManager, times(1)).removeListener(any(), any(), any(), any())
+
     Disposer.dispose(sceneManager)
     Disposer.dispose(model)
   }

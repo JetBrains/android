@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -89,6 +90,11 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
   @NotNull private final SceneComponentHierarchyProvider mySceneComponentProvider;
   @NotNull private final SceneManager.SceneUpdateListener mySceneUpdateListener;
+
+  @NotNull private final Object myActivationLock = new Object();
+  @GuardedBy("myActivationLock")
+  private boolean myIsActivated = false;
+
 
   /**
    * Creates a new {@link SceneManager}.
@@ -322,11 +328,17 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * @returns true if the {@link SceneManager} was not active before and was activated.
    */
   public boolean activate(@NotNull Object source) {
-    AndroidFacet facet = myModel.getFacet();
-    VirtualFile file = myModel.getVirtualFile();
-    Configuration config = myModel.getConfiguration();
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
-    manager.addListener(this, facet, file, config);
+    synchronized (myActivationLock) {
+      if (!myIsActivated) {
+        AndroidFacet facet = myModel.getFacet();
+        VirtualFile file = myModel.getVirtualFile();
+        Configuration config = myModel.getConfiguration();
+        ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+        manager.addListener(this, facet, file, config);
+        myIsActivated = true;
+      }
+    }
+    // NlModel handles the double activation/deactivation itself.
     return getModel().activate(source);
   }
 
@@ -339,11 +351,17 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * @returns true if the {@link SceneManager} was active before and was deactivated.
    */
   public boolean deactivate(@NotNull Object source) {
-    AndroidFacet facet = myModel.getFacet();
-    VirtualFile file = myModel.getVirtualFile();
-    Configuration config = myModel.getConfiguration();
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
-    manager.removeListener(this, facet, file, config);
+    synchronized (myActivationLock) {
+      if (myIsActivated) {
+        AndroidFacet facet = myModel.getFacet();
+        VirtualFile file = myModel.getVirtualFile();
+        Configuration config = myModel.getConfiguration();
+        ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myModel.getProject());
+        manager.removeListener(this, facet, file, config);
+        myIsActivated = false;
+      }
+    }
+    // NlModel handles the double activation/deactivation itself.
     return getModel().deactivate(source);
   }
 
