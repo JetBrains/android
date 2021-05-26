@@ -161,6 +161,13 @@ interface IdeAndroidProject : Serializable {
    */
   val groupId: String?
 
+  /**
+   * Returns the namespace of the main artifact.
+   *
+   * When this is not null, it overrides the value from the Android manifest.
+   */
+  val namespace: String?
+
   /** Various flags from AGP  */
   val agpFlags: IdeAndroidGradlePluginProjectFlags
 
@@ -180,4 +187,9 @@ interface IdeAndroidProject : Serializable {
    * alternative ways to get the information should be used.
    */
   val lintRuleJars: List<File>?
+
+  /**
+   * Returns the testNamespace of the main artifact.
+   */
+  val testNamespace: String?
 }

@@ -7,6 +7,8 @@ MODULE                        : TestCompositeLib1.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : com.test.composite1
+    Namespace                     : com.test.composite1
+    TestNamespace                 : com.test.composite1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2055,6 +2057,8 @@ MODULE                        : TestCompositeLib1.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite1
+    Namespace                     : com.test.composite1
+    TestNamespace                 : com.test.composite1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4001,6 +4005,8 @@ MODULE                        : TestCompositeLib3.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : TestCompositeLib3
+    Namespace                     : com.test.composite3
+    TestNamespace                 : com.test.composite3.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -6019,6 +6025,8 @@ MODULE                        : TestCompositeLib3.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite3
+    Namespace                     : com.test.composite3
+    TestNamespace                 : com.test.composite3.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -7874,6 +7882,8 @@ MODULE                        : project.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.test.compositeapp
+    TestNamespace                 : com.test.compositeapp.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -9940,6 +9950,8 @@ MODULE                        : project.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.test.composite
+    Namespace                     : com.test.composite0
+    TestNamespace                 : com.test.composite0.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

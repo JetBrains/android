@@ -7,6 +7,8 @@ MODULE                        : project.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.app
+    TestNamespace                 : com.example.app.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -341,6 +343,8 @@ MODULE                        : project.library
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.library
+    TestNamespace                 : com.example.library.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -640,6 +644,8 @@ MODULE                        : project.library-remote
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : com.example.google
+    Namespace                     : com.example.library
+    TestNamespace                 : com.example.library.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
