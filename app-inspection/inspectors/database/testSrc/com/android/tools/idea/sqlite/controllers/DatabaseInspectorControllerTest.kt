@@ -68,7 +68,6 @@ import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initProjectSystemService
 import com.android.tools.idea.sqlite.utils.toViewColumns
 import com.android.tools.idea.testing.runDispatching
-import com.android.tools.tests.memory.ReferenceWalker
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.Futures.immediateFailedFuture
@@ -230,33 +229,6 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       tempDirTestFixture.tearDown()
       super.tearDown()
     }
-  }
-
-  fun testAllTabControllersAreRemovedOnDisposed() {
-    // Prepare
-    // open evaluator tab
-    databaseInspectorView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // open query tab
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    `when`(mockDatabaseConnection.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab")))
-      .thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
-    runDispatching {
-      databaseInspectorController.addSqliteDatabase(databaseId1)
-      databaseInspectorController.runSqlStatement(databaseId1, SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM tab"))
-    }
-
-    ReferenceWalker(databaseInspectorController).assertReachable(SqliteEvaluatorController::class.java)
-    ReferenceWalker(databaseInspectorController).assertReachable(TableController::class.java)
-
-    // Act
-    Disposer.dispose(databaseInspectorController)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    ReferenceWalker(databaseInspectorController).assertNotReachable(SqliteEvaluatorController::class.java)
-    ReferenceWalker(databaseInspectorController).assertNotReachable(TableController::class.java)
   }
 
   fun testAddSqliteDatabase() {
