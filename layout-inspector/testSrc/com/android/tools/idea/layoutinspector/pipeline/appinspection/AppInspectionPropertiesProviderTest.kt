@@ -58,7 +58,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /** Timeout used in this test. While debugging, you may want extend the timeout */
-private const val TIMEOUT = 1L
+private const val TIMEOUT = 3L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 private val PARAM_NS = parameterNamespaceOf(PropertySection.PARAMETERS)
