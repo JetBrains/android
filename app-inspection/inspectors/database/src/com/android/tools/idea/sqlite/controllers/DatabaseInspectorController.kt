@@ -329,9 +329,6 @@ class DatabaseInspectorControllerImpl(
     view.removeListener(sqliteViewListener)
     model.removeListener(modelListener)
     projectScope.launch { databaseRepository.clear() }
-
-    // create a new list to avoid concurrent modification from `closeTab`
-    resultSetControllers.keys.toList().forEach { closeTab(it) }
   }
 
   private suspend fun readDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
