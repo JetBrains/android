@@ -1642,6 +1642,9 @@ Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/LICENSE.txt
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/antlr4-runtime-4.1.jar
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/resources_en.jar
+Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/antlr4-runtime-4.1.jar
+Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
+Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/resources_en.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-dart-0.0.1.jar
