@@ -8,8 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit3" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />

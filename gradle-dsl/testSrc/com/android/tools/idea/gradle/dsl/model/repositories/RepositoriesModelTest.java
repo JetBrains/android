@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralR
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -31,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositor
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModelExtensionKt;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -730,7 +732,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
 
-    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    RepositoriesModelExtensionKt.addGoogleMavenRepository(buildModel.repositories(), GradleVersion.tryParse("4.10.1"));
     applyChangesAndReparse(buildModel);
 
     verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_WITH_WITH);

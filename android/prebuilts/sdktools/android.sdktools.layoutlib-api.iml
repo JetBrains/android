@@ -30,6 +30,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" exported="" scope="PROVIDED" />
   </component>
 </module>

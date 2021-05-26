@@ -19,8 +19,6 @@
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.platform.smRunner" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="analytics" />
-    <orderEntry type="module" module-name="analytics-publisher" />
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.java.ui" />
     <orderEntry type="module" module-name="intellij.json" />
@@ -182,7 +180,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="xml-apis" level="project" />
     <orderEntry type="module" module-name="intellij.webp" />
     <orderEntry type="library" name="ini4j" level="project" />
     <orderEntry type="module-library">

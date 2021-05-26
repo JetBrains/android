@@ -19,7 +19,7 @@
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="module" module-name="intellij.platform.uast" exported="" />
     <orderEntry type="module" module-name="intellij.java.uast" exported="" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="kotlin-plugin" level="project" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin.community.main" exported="" scope="PROVIDED" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-lint-api-prod" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint-api:27.2.0.0" />

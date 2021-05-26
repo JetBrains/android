@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_RE
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL3DOT5;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_URL4DOT0;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
