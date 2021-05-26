@@ -26,7 +26,6 @@ import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
 import com.android.tools.idea.avdmanager.AvdDisplayList
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider
-import com.android.tools.idea.avdmanager.CreateAvdAction
 import com.android.tools.idea.avdmanager.DeleteAvdAction
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.EditAvdAction
@@ -45,7 +44,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.layout.panel
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.containers.toArray
 import com.intellij.util.ui.ColumnInfo
@@ -56,7 +54,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.BorderLayout
-import java.awt.CardLayout
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionEvent
@@ -80,7 +77,6 @@ import javax.swing.table.TableCellRenderer
  * A UI component which lists the existing AVDs
  */
 class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
-  private val centerCardPanel: JPanel
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
   }
@@ -97,33 +93,9 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
 
   init {
     layout = BorderLayout()
-    table = VirtualTableView(model)
-    val nonemptyPanel = JPanel(BorderLayout()).apply {
-      add(ScrollPaneFactory.createScrollPane(table), BorderLayout.CENTER)
-      add(notificationPanel, BorderLayout.NORTH)
-    }
-
-    /**
-     * If no AVDs are present on the system, the AvdListDialog will display this panel.
-     * It contains instructional messages about AVDs and a link to create a new AVD.
-     */
-    val emptyAvdListPanel = panel {
-      row {
-        label("No virtual devices added. Create a virtual device to test applications without owning a physical device.")
-      }
-      row {
-        link("Create virtual device") {
-          CreateAvdAction(this@VirtualDisplayList).actionPerformed(null)
-        }
-      }
-    }
-
-    centerCardPanel = JPanel(CardLayout()).apply {
-      add(nonemptyPanel, NONEMPTY)
-      add(emptyAvdListPanel, EMPTY)
-    }
-
-    add(centerCardPanel, BorderLayout.CENTER)
+    table = VirtualTableView(model, this)
+    add(notificationPanel, BorderLayout.NORTH)
+    add(ScrollPaneFactory.createScrollPane(table), BorderLayout.CENTER)
 
     table.apply {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -206,9 +178,7 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
     GlobalScope.launch(ioThread) {
       avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
       withContext(uiThread) {
-        val status = if (avds.isEmpty()) EMPTY else NONEMPTY
         updateSearchResults(null)
-        (centerCardPanel.layout as CardLayout).show(centerCardPanel, status)
         refreshErrorCheck()
         table.setWidths()
       }
@@ -382,8 +352,6 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
   }
 
   companion object {
-    const val NONEMPTY = "nonempty"
-    const val EMPTY = "empty"
     private const val MOBILE_TAG_STRING = "mobile-device"
     private val deviceClassIcons = hashMapOf<String, HighlightableIconPair>()
     val deviceManager: DeviceManagerConnection get() = DeviceManagerConnection.getDefaultDeviceManagerConnection()
