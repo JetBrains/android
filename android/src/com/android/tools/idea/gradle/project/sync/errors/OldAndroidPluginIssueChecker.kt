@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersionsQuickFix
-import com.android.tools.idea.gradle.project.upgrade.GradleVersionRefactoringProcessor.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
