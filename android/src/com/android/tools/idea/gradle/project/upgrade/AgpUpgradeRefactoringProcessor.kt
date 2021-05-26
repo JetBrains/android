@@ -48,6 +48,7 @@ import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessit
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginDependency
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater.isUpdatablePluginRelatedDependency
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.Companion.INSERT_OLD_USAGE_TYPE
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
@@ -938,10 +939,10 @@ class AgpVersionUsageInfo(
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
-    this.gradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(new).version
+    this.gradleVersion = getCompatibleGradleVersion(new).version
   }
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    this.gradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(processor.new).version
+    this.gradleVersion = getCompatibleGradleVersion(processor.new).version
   }
 
   var gradleVersion: GradleVersion
@@ -1432,7 +1433,7 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
           // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
           //  probably little overlap in fabric upgrades with such old projects.
-          val compatibleGradleVersion = GradleVersionRefactoringProcessor.getCompatibleGradleVersion(new)
+          val compatibleGradleVersion = getCompatibleGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
           val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories, compatibleGradleVersion.version)
           usages.add(usageInfo)

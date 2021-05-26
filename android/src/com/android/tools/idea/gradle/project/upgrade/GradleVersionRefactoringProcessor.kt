@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.*
+import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.BuildFileProcessor
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.utils.FileUtils
@@ -155,26 +156,6 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     val WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE =
       UsageType(AndroidBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.wellKnownGradlePluginUsageType"))
 
-    fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
-      val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
-      val compatibleGradleVersion = when {
-        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4
-        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6
-        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1
-        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1
-        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1
-        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4
-        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1
-        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
-        GradleVersion.parse("4.2") >= agpVersionMajorMinor -> VERSION_6_7_1
-        else -> VERSION_FOR_DEV
-      }
-      return when {
-        compatibleGradleVersion.version < VERSION_MIN.version -> VERSION_MIN
-        else -> compatibleGradleVersion
-      }
-    }
-
     fun `kotlin-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): GradleVersion =
       when (compatibleGradleVersion) {
         VERSION_4_4 -> GradleVersion.parse("1.1.3")
@@ -273,7 +254,31 @@ enum class CompatibleGradleVersion(val version: GradleVersion) {
   VERSION_6_1_1(GradleVersion.parse("6.1.1")),
   VERSION_6_5(GradleVersion.parse("6.5")),
   VERSION_6_7_1(GradleVersion.parse("6.7.1")),
-  VERSION_FOR_DEV(GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION))
+  VERSION_FOR_DEV(GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)),
+
+  ;
+
+  companion object {
+    fun getCompatibleGradleVersion(agpVersion: GradleVersion): CompatibleGradleVersion {
+      val agpVersionMajorMinor = GradleVersion(agpVersion.major, agpVersion.minor)
+      val compatibleGradleVersion = when {
+        GradleVersion.parse("3.1") >= agpVersionMajorMinor -> VERSION_4_4
+        GradleVersion.parse("3.2") >= agpVersionMajorMinor -> VERSION_4_6
+        GradleVersion.parse("3.3") >= agpVersionMajorMinor -> VERSION_4_10_1
+        GradleVersion.parse("3.4") >= agpVersionMajorMinor -> VERSION_5_1_1
+        GradleVersion.parse("3.5") >= agpVersionMajorMinor -> VERSION_5_4_1
+        GradleVersion.parse("3.6") >= agpVersionMajorMinor -> VERSION_5_6_4
+        GradleVersion.parse("4.0") >= agpVersionMajorMinor -> VERSION_6_1_1
+        GradleVersion.parse("4.1") >= agpVersionMajorMinor -> VERSION_6_5
+        GradleVersion.parse("4.2") >= agpVersionMajorMinor -> VERSION_6_7_1
+        else -> VERSION_FOR_DEV
+      }
+      return when {
+        compatibleGradleVersion.version < VERSION_MIN.version -> VERSION_MIN
+        else -> compatibleGradleVersion
+      }
+    }
+  }
 }
 
 class GradleVersionUsageInfo(
