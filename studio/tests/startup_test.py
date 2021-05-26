@@ -106,6 +106,7 @@ class StartUpTest(unittest.TestCase):
                   "App Links Assistant",
                   "C/C++ Language Support",
                   "CIDR Base",
+                  "CIDR Debugger",
                   "ChangeReminder",
                   "Clangd support",
                   "Code Coverage for Java",
