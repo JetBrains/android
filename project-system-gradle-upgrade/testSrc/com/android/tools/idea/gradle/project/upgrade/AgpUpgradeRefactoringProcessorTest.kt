@@ -212,11 +212,11 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testEnabledEffectOnGradlePlugins() {
-    writeToBuildFile(TestFileName("GradleVersion/KotlinPluginVersionInLiteral"))
+    writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInLiteral"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
     processor.classpathRefactoringProcessor.isEnabled = false
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GradleVersionRefactoringProcessor }
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GradlePluginsRefactoringProcessor }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("GradleVersion/KotlinPluginVersionInLiteralExpected"))
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginVersionInLiteralExpected"))
   }
 }
