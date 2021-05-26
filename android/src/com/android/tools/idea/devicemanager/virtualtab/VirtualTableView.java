@@ -16,6 +16,9 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
+import com.android.tools.idea.avdmanager.CreateAvdAction;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
@@ -29,8 +32,15 @@ import org.jetbrains.annotations.NotNull;
  * TableView that adjusts column widths automatically to not cut off table cell content
  */
 final class VirtualTableView extends TableView<AvdInfo> {
-  VirtualTableView(@NotNull ListTableModel<@NotNull AvdInfo> model) {
+  VirtualTableView(@NotNull ListTableModel<@NotNull AvdInfo> model, @NotNull AvdInfoProvider avdInfoProvider) {
     super(model);
+    getTableHeader().setResizingAllowed(false);
+
+    //noinspection DialogTitleCapitalization
+    getEmptyText()
+      .appendLine("No virtual devices added. Create a virtual device to test")
+      .appendLine("applications without owning a physical device.")
+      .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, new CreateAvdAction(avdInfoProvider));
   }
 
   void setWidths() {
