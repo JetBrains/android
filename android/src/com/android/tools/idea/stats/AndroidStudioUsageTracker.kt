@@ -99,6 +99,9 @@ object AndroidStudioUsageTracker {
   private const val DAYS_IN_NON_LEAP_YEAR = 365
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
 
+  // Broadcast channel for Android Studio events being logged
+  val channel = BroadcastChannel<AndroidStudioEvent.Builder>(BUFFERED)
+
   @JvmStatic
   val productDetails: ProductDetails
     get() {
@@ -415,7 +418,6 @@ object AndroidStudioUsageTracker {
   fun setupFeatureSurveys() {
     // Create a coroutine scope tied to a disposable application service
     val scope = AndroidCoroutineScope(MavenClassRegistryManager.getInstance())
-    val channel = BroadcastChannel<AndroidStudioEvent.Builder>(BUFFERED)
     UsageTracker.listener = { event ->
       scope.launch {
         channel.send(event)

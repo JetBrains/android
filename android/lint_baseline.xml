@@ -386,30 +386,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/stats/StatisticsViewer.java"
-            line="68"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/stats/StatisticsViewer.java"
-            line="70"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/stats/StatisticsViewer.java"
-            line="171"/>
-    </issue>
-
-    <issue
         id="UseValueOf"
         message="Use `Double.valueOf(COLUMN_COUNT)` instead">
         <location
