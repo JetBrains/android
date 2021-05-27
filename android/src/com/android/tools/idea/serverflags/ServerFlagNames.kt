@@ -18,4 +18,4 @@ package com.android.tools.idea.serverflags
 const val SATISFACTION_SURVEY = "analytics/surveys/satisfaction"
 const val FOLLOWUP_SURVEY = "analytics/surveys/followup"
 const val FEATURE_SURVEY_CONFIG = "analytics/surveys/featureSurveyConfig"
-const val FEATURE_SURVEY_ROOT = "analytcs/surveys/feature/"
+const val FEATURE_SURVEY_ROOT = "analytics/surveys/feature/"
