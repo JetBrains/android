@@ -47,6 +47,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:studio_repo",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
