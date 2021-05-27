@@ -1,6 +1,6 @@
 MODULE                        : project
 MODULE                        : project.app
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build
