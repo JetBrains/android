@@ -2048,6 +2048,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/kotlinx-coroutines-guava
 Android Studio Preview.app/Contents/plugins/android/lib/kxml2-2.3.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_compose_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_skia_java_proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_snapshot_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layout_inspector_view_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layoutlib-api.jar
 Android Studio Preview.app/Contents/plugins/android/lib/layoutlib-loader.jar

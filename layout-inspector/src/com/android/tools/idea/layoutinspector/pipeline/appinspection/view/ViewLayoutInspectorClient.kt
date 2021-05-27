@@ -33,8 +33,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
-import layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
@@ -124,6 +125,8 @@ class ViewLayoutInspectorClient(
       propertiesCache.allowFetching = value
       composeInspector?.parametersCache?.allowFetching = value
       lastData.clear()
+      lastProperties.clear()
+      lastComposeParameters.clear()
     }
 
   private var generation = 0 // Update the generation each time we get a new LayoutEvent
@@ -131,6 +134,7 @@ class ViewLayoutInspectorClient(
 
   var lastData: MutableMap<Long, Data> = mutableMapOf()
   var lastProperties: MutableMap<Long, PropertiesEvent> = mutableMapOf()
+  var lastComposeParameters: MutableMap<Long, GetAllParametersResponse> = mutableMapOf()
 
   init {
     scope.launch {
@@ -215,6 +219,9 @@ class ViewLayoutInspectorClient(
 
     propertiesCache.retain(currRoots)
     composeInspector?.parametersCache?.retain(currRoots)
+    lastData.keys.retainAll(currRoots)
+    lastComposeParameters.keys.retainAll(currRoots)
+    lastProperties.keys.retainAll(currRoots)
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
@@ -242,7 +249,11 @@ class ViewLayoutInspectorClient(
     propertiesCache.setAllFrom(propertiesEvent)
 
     composeInspector?.let {
-      it.parametersCache.setAllFrom(it.getAllParameters(propertiesEvent.rootId))
+      val composeParameters = it.getAllParameters(propertiesEvent.rootId)
+      if (!isFetchingContinuously) {
+        lastComposeParameters[propertiesEvent.rootId] = composeParameters
+      }
+      it.parametersCache.setAllFrom(composeParameters)
     }
   }
 
@@ -250,17 +261,25 @@ class ViewLayoutInspectorClient(
     if (isFetchingContinuously) {
       scope.launch {
         messenger.sendCommand {
-          captureSnapshotCommand = LayoutInspectorViewProtocol.CaptureSnapshotCommand.newBuilder().apply {
+          captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().apply {
             // TODO: support bitmap
             screenshotType = Screenshot.Type.SKP
           }.build()
-        }.captureSnapshotResponse?.let {
-          saveAppInspectorSnapshot(path, it, processDescriptor)
+        }.captureSnapshotResponse?.let { snapshotResponse ->
+          val composeInfo = composeInspector?.let { composeInspector ->
+            generation++
+            snapshotResponse.windowRoots.idsList.associateWith { id ->
+              Pair(composeInspector.getComposeables(id, generation),
+                   composeInspector.getAllParameters(id))
+            }
+          } ?: mapOf()
+
+          saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, processDescriptor)
         } ?: throw Exception() // TODO: error handling
       }
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, lastProperties, processDescriptor)
+      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, processDescriptor)
     }
   }
 }

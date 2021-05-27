@@ -2053,6 +2053,7 @@ android-studio/plugins/android/lib/kotlinx-coroutines-guava-1.3.9.jar
 android-studio/plugins/android/lib/kxml2-2.3.0.jar
 android-studio/plugins/android/lib/layout_inspector_compose_java_proto.jar
 android-studio/plugins/android/lib/layout_inspector_skia_java_proto.jar
+android-studio/plugins/android/lib/layout_inspector_snapshot_java_proto.jar
 android-studio/plugins/android/lib/layout_inspector_view_java_proto.jar
 android-studio/plugins/android/lib/layoutlib-api.jar
 android-studio/plugins/android/lib/layoutlib-loader.jar

@@ -39,12 +39,12 @@ const val MAX_INITIAL_ITERABLE_SIZE = 5
  * Cache of compose parameters, to avoid expensive refetches when possible.
  */
 class ComposeParametersCache(
-  private val client: ComposeLayoutInspectorClient,
+  private val client: ComposeLayoutInspectorClient?,
   model: InspectorModel
 ) : ViewNodeCache<ComposeParametersData>(model), ViewNodeAndResourceLookup by model {
 
   override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): ComposeParametersData? {
-    val response = client.getParameters(root.drawId, node.drawId)
+    val response = client?.getParameters(root.drawId, node.drawId) ?: return null
     return if (response != GetParametersResponse.getDefaultInstance()) {
       ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this).generate(root.drawId, response.parameterGroup)
     }
@@ -59,7 +59,7 @@ class ComposeParametersCache(
     startIndex: Int,
     maxElements: Int
   ): ParameterGroupItem? {
-    val response = client.getParameterDetails(rootId, reference, startIndex, maxElements)
+    val response = client?.getParameterDetails(rootId, reference, startIndex, maxElements) ?: return null
     return if (response != GetParameterDetailsResponse.getDefaultInstance()) {
       ComposeParametersDataGenerator(StringTableImpl(response.stringsList), this)
         .generate(rootId, reference.nodeId, reference.kind, response.parameter)
