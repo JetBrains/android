@@ -188,12 +188,6 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   @NotNull
-  public Icon getIconForAddAction() {
-    return getIcon();
-  }
-
-  @Override
-  @NotNull
   public String getDefaultDocumentationUrl(@NotNull Sdk sdk) {
     return DEFAULT_EXTERNAL_DOCUMENTATION_URL;
   }
