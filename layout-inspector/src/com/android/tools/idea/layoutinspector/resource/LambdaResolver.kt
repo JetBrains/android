@@ -20,6 +20,10 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.impl.source.tree.LeafElement
+import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -79,8 +83,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
   /**
    * Return all the lambda/callable reference expressions from [ktFile] that are contained entirely within the line range.
    *
-   * If the line range contains multiple lines then return only the top most expression.
-   * If the line range contains a single line then return all lambdas found on this line which may contain different nesting levels.
+   * If the line range contains multiple lines then make sure all internal lines are fully covered by the returned lambdas.
    *
    * @return a map from a lambda or callable reference to the nesting level from a top element.
    */
@@ -100,23 +103,70 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     if (offsetRange.isEmpty()) {
       return emptyMap()
     }
-    val findAll = startLine == endLine
+    val internalRange = if (endLine <= startLine) IntRange.EMPTY else try {
+      doc.getLineEndOffset(startLine - 1)..(doc.getLineStartOffset(endLine - 1))
+    }
+    catch (ex: IndexOutOfBoundsException) {
+      IntRange.EMPTY
+    }
     val possible = IdentityHashMap<KtExpression, Int>()
     visitor.forEachLambda(ktFile) { expr, nesting, recurse ->
-      if (findAll || possible.isEmpty()) {
-        if (typeMatch(expr, functionName) && withinRange(expr, offsetRange)) {
-          possible[expr] = nesting
-        }
-        recurse()
+      val range = IntRange(expr.startOffset, expr.endOffset)
+      val codeRange = codeRangeOf(expr)
+      if (typeMatch(expr, functionName) && offsetRange.contains(codeRange) && range.contains(internalRange)) {
+        possible[expr] = nesting
       }
+      recurse()
     }
     return possible
   }
 
-  private fun withinRange(expr: KtExpression, range: IntRange): Boolean {
-    // Skip any preceding comments in the lambda body:
-    val startOffset = (expr as? KtLambdaExpression)?.bodyExpression?.children?.firstOrNull()?.startOffset ?: expr.startOffset
-    return range.first <= startOffset && expr.endOffset <= range.last
+  private fun codeRangeOf(expr: KtExpression): IntRange {
+    var startOffset = expr.startOffset
+    var endOffset = expr.endOffset
+    if (expr is KtLambdaExpression) {
+      // Skip any preceding comments in the lambda body:
+      startOffset = expr.bodyExpression?.children?.firstOrNull()?.startOffset ?: startOffset
+      // Skip trailing non code elements in the lambda body:
+      endOffset = lastCodeElement(expr)?.endOffset ?: endOffset
+    }
+    return IntRange(startOffset, endOffset)
+  }
+
+  private fun IntRange.contains(range: IntRange): Boolean =
+    range.isEmpty() || (contains(range.first) && contains(range.last))
+
+  /**
+   * Attempt to go back from the right curly brace in a lambda to the first expression part
+   * that is a code element as described in [isCodeElement].
+   */
+  private fun lastCodeElement(lambda: KtLambdaExpression): PsiElement? {
+    var expr = lambda.rightCurlyBrace as? PsiElement ?: return null
+    while (!isCodeElement(expr)) {
+      while (expr.prevSibling == null) {
+        expr = expr.parent ?: return null
+        if (expr == lambda) {
+          return null
+        }
+      }
+      expr = expr.prevSibling ?: return null
+      while (expr.lastChild != null) {
+        expr = expr.lastChild
+      }
+    }
+    return expr
+  }
+
+  /**
+   * Non code elements are: whitespace, an end parenthesis ")", or an end bracket "}"
+   */
+  private fun isCodeElement(expr: PsiElement): Boolean {
+    if (expr is PsiWhiteSpace) {
+      return false
+    }
+    val leafElement = expr as? LeafElement ?: return true
+    val token = leafElement.elementType as? KtSingleValueToken ?: return true
+    return token.value != ")" && token.value != "}"
   }
 
   private fun typeMatch(expression: KtExpression, functionName: String): Boolean =

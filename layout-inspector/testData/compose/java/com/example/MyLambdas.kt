@@ -41,3 +41,14 @@ fun f3(a1: Int): Int = a1 + 1
 fun f4(a1: Int): Int = a1 + 1
 fun f5(a1: Int): Int = a1 + 1
 fun f6(a1: Int): Int = a1 + 1
+fun f7(a1: () -> IntArray): Int =
+  a1().sum()
+
+fun f8(): Int = f7 {
+  intArrayOf(
+    1,
+    2,
+    3,
+    4
+  )
+}

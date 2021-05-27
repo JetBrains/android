@@ -56,14 +56,24 @@ class LambdaResolverTest {
     checkLambda("3$2", 24, 24, 24, "{ 4 }")
     checkLambda("9$2", 26, 26, 26, "{ 2 }")
     checkLambda("1", 3, 3, 3, "{ it }")
-    checkLambda("1", 6, 7, 4, """
+    checkLambda("1", 6, 6, 4, """
        { number ->
          // The line numbers from JVMTI of this lambda, starts AFTER this comment...
          number * number
        }
        """.trimIndent())
+    checkLambda("1", 48, 52, 47, """
+          {
+            intArrayOf(
+              1,
+              2,
+              3,
+              4
+            )
+          }
+      """.trimIndent())
     checkLambda("1", 8, 8, 8, null) // A function reference should not be found as a lambda expr
-    checkLambda("1", 100, 120, 45, null) // Lambda of inline function (lines are out of range)
+    checkLambda("1", 100, 120, 56, null) // Lambda of inline function (lines are out of range)
   }
 
   @Test
