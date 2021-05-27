@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.ide.AppInspectionToolWindowService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -26,6 +27,7 @@ import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
@@ -45,6 +47,7 @@ import javax.swing.event.HyperlinkEvent
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   companion object {
+    @JvmStatic
     fun show(project: Project, callback: Runnable? = null) =
       ToolWindowManagerEx.getInstanceEx(project).getToolWindow(APP_INSPECTION_ID)?.show(callback)
   }
@@ -119,6 +122,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
     Disposer.register(this, appInspectionView)
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
                                                AppInspectionToolWindowManagerListener(project, ideServices, toolWindow, appInspectionView))
+    project.service<AppInspectionToolWindowService>().appInspectionToolWindowControl = appInspectionView
   }
 
   override fun dispose() {

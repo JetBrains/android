@@ -43,10 +43,13 @@ import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationKt;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
@@ -76,6 +79,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
+  private static final String BTI_INSPECTOR = "Background Task Inspector";
+
   @NotNull private final JPanel myEventsPanel;
   @NotNull private final EnergyDetailsView myDetailsView;
 
@@ -104,8 +109,31 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     selectionTimeLabel.setBorder(new JBEmptyBorder(0, 0, 0, 8));
     myEventsPanel.add(selectionTimeLabel, new TabularLayout.Constraint(0, 3));
 
-    JComponent eventsView = new EnergyEventsView(this).getComponent();
-    myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 4));
+    // TODO(b/188695273): to be removed after migration is complete.
+    AppInspectionMigrationServices migrationServices = getStage().getStudioProfilers().getIdeServices()
+      .getAppInspectionMigrationServices();
+    if (migrationServices.isSystemEventsMigrationDialogEnabled()) {
+      JPanel migrationPanel = new JPanel(new BorderLayout());
+      migrationPanel.setOpaque(true);
+      migrationPanel.setBorder(ProfilerLayout.MONITOR_BORDER);
+      migrationPanel.setMinimumSize(new Dimension(0, JBUI.scale(50)));
+      migrationPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+      AppInspectionMigrationKt.addMigrationPanel(
+        migrationPanel, "System Events has moved.", "system events", BTI_INSPECTOR,
+        () -> migrationServices.openAppInspectionToolWindow(BTI_INSPECTOR),
+        () -> {
+          migrationServices.setSystemEventsMigrationDialogEnabled(false);
+          myEventsPanel.setVisible(false);
+        },
+        null
+      );
+      myEventsPanel.add(migrationPanel, new TabularLayout.Constraint(1, 0, 1, 4));
+    }
+    else {
+      JComponent eventsView = new EnergyEventsView(this).getComponent();
+      myEventsPanel.add(new JBScrollPane(eventsView), new TabularLayout.Constraint(1, 0, 1, 4));
+    }
+
     myEventsPanel.setVisible(false);
     verticalSplitter.setSecondComponent(myEventsPanel);
 
@@ -120,20 +148,50 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
     getComponent().add(splitter, BorderLayout.CENTER);
 
-    getStage().getAspect().addDependency(this)
-      .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
+    if (!migrationServices.isMigrationEnabled()) {
+      getStage().getAspect().addDependency(this)
+        .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
+    }
   }
 
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     StreamingTimeline timeline = getStage().getTimeline();
-    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel());
-    selection.setCursorSetter(AdtUiUtils::setTooltipCursor);
-    RangeTooltipComponent tooltip = new RangeTooltipComponent(timeline,
-                                                              getTooltipPanel(),
-                                                              getProfilersView().getComponent(),
-                                                              () -> selection.shouldShowSeekComponent());
+    // TODO(b/188695273): to be cleaned up after migration is complete.
+    RangeTooltipComponent tooltip;
+    RangeSelectionComponent selection = null;
+    AppInspectionMigrationServices migrationServices = getStage().getStudioProfilers().getIdeServices()
+      .getAppInspectionMigrationServices();
+    if (migrationServices.isMigrationEnabled() && !migrationServices.isSystemEventsMigrationDialogEnabled()) {
+      tooltip = new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(),
+                                          getProfilersView().getComponent(), () -> true);
+    }
+    else {
+      selection = new RangeSelectionComponent(getStage().getRangeSelectionModel());
+      selection.setCursorSetter(AdtUiUtils::setTooltipCursor);
+      // Clears the selected duration when the new selection range does not overlap with it.
+      selection.addSelectionUpdatedListener(selectionRange -> {
+        if (getStage().getSelectedDuration() != null) {
+          EnergyDuration selectedDuration = getStage().getSelectedDuration();
+          long detailsStartUs = TimeUnit.NANOSECONDS.toMicros(selectedDuration.getEventList().get(0).getTimestamp());
+          long detailsEndUs = detailsStartUs;
+          if (detailsEndUs < selectionRange.getMin()) {
+            // Updates the end timestamp when last event is not terminal at the details select time. When a new selection range happened,
+            // the previous opened details could have terminated and the end time is not Long.MAX_VALUE.
+            selectedDuration = getStage().updateDuration(selectedDuration);
+            Common.Event lastEvent = selectedDuration.getEventList().get(selectedDuration.getEventList().size() - 1);
+            detailsEndUs = lastEvent.getIsEnded() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
+          }
+          if (selectionRange.getMax() < detailsStartUs || selectionRange.getMin() > detailsEndUs) {
+            getStage().setSelectedDuration(null);
+          }
+        }
+      });
+      tooltip = new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(),
+                                          getProfilersView().getComponent(), selection::shouldShowSeekComponent);
+    }
+
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
@@ -216,7 +274,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     getStage().getRangeSelectionModel().addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
-        myEventsPanel.setVisible(true);
+        // TODO(b/188695273): to be cleaned up after migration is complete.
+        if (!migrationServices.isMigrationEnabled() || migrationServices.isSystemEventsMigrationDialogEnabled()) {
+          myEventsPanel.setVisible(true);
+        }
       }
 
       @Override
@@ -229,36 +290,14 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
         myEventsPanel.setVisible(false);
       }
     });
-    // Clears the selected duration when the new selection range does not overlap with it.
-    selection.addSelectionUpdatedListener(selectionRange -> {
-      if (getStage().getSelectedDuration() != null) {
-        EnergyDuration selectedDuration = getStage().getSelectedDuration();
-        long detailsStartUs = TimeUnit.NANOSECONDS.toMicros(selectedDuration.getEventList().get(0).getTimestamp());
-        long detailsEndUs = detailsStartUs;
-        if (detailsEndUs < selectionRange.getMin()) {
-          // Updates the end timestamp when last event is not terminal at the details select time. When a new selection range happened,
-          // the previous opened details could have terminated and the end time is not Long.MAX_VALUE.
-          selectedDuration = getStage().updateDuration(selectedDuration);
-          Common.Event lastEvent = selectedDuration.getEventList().get(selectedDuration.getEventList().size() - 1);
-          detailsEndUs = lastEvent.getIsEnded() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
-        }
-        if (selectionRange.getMax() < detailsStartUs || selectionRange.getMin() > detailsEndUs) {
-          getStage().setSelectedDuration(null);
-        }
-      }
-    });
 
     JComponent minibar = new EnergyEventMinibar(this).getComponent();
 
-    selection.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyStageTooltip(getStage())));
-    tooltip.registerListenersOn(selection);
     eventsView.registerTooltip(tooltip, getStage());
 
-    if (!getStage().hasUserUsedEnergySelection()) {
+    if (!migrationServices.isMigrationEnabled() && !getStage().hasUserUsedEnergySelection()) {
       installProfilingInstructions(monitorPanel);
     }
-
-    getProfilersView().installCommonMenuItems(selection);
 
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
@@ -270,10 +309,23 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     layout.setRowSizing(1, "*");
     stagePanel.setBackground(null);
 
-    panel.add(selection, new TabularLayout.Constraint(1, 0));
+    // TODO(b/188695273): to be cleaned up after migration.
+    if (selection == null) {
+      installListeners(stagePanel, tooltip);
+    }
+    else {
+      installListeners(selection, tooltip);
+      panel.add(selection, new TabularLayout.Constraint(1, 0));
+    }
     panel.add(stagePanel, new TabularLayout.Constraint(1, 0));
 
     return panel;
+  }
+
+  private void installListeners(@NotNull JComponent component, @NotNull RangeTooltipComponent tooltip) {
+    getProfilersView().installCommonMenuItems(component);
+    tooltip.registerListenersOn(component);
+    component.addMouseListener(new ProfilerTooltipMouseAdapter(getStage(), () -> new EnergyStageTooltip(getStage())));
   }
 
   @Override

@@ -150,12 +150,17 @@ public final class StudioFlags {
     "Show profileable processes on S and later",
     false);
 
+  public static final Flag<Boolean> PROFILER_MIGRATION_TO_APPINSPECTION = Flag.create(
+    PROFILER, "profiler.migration.to.appinspection", "Enable migration support for network and system events profiling.",
+    "Show migration messaging to guide users to the App Inspection tool window",
+    false);
+
   // PROFILEABLE_IN_QR is an extension of PROFILEABLE. When it's true, it assumes PROFILEABLE is also true.
   public static final Flag<Boolean> PROFILEABLE_IN_QR = Flag.create(
     PROFILER, "profileable.qr", "Support profileable processes on Q & R",
     "Show profileable processes on Q and R",
     PROFILEABLE.get() && false);
-    //endregion
+  //endregion
 
   //region ML
   private static final FlagGroup ML = new FlagGroup(FLAGS, "ml", "ML");

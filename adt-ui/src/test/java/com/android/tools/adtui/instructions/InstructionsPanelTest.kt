@@ -138,4 +138,28 @@ class InstructionsPanelTest {
     fakeUi.mouse.click(20, yHyperlink)
     assertThat(actionPerformed).isTrue()
   }
+
+  @Test
+  fun instructionPanelSetsCursor() {
+    val panel = JPanel(TabularLayout("Fit-"))
+    val metrics = UIUtilities.getFontMetrics(panel, AdtUiUtils.DEFAULT_FONT)
+
+    val action = Runnable { }
+
+    val instructions = InstructionsPanel.Builder(HyperlinkInstruction(metrics.font, "Hyperlink", action))
+      .setPaddings(0, 0)
+      .setCursorSetter { _, cursor -> panel.cursor = cursor; panel }
+      .build()
+    panel.add(instructions, TabularLayout.Constraint(0, 0))
+
+    val fakeUi = FakeUi(panel)
+    panel.size = panel.minimumSize // Force size just to make the test work
+    val rowHeight = instructions.renderer.rowHeight
+    val yHyperlink = (rowHeight * 0.5f).roundToInt()
+
+    assertThat(fakeUi.mouse.focus).isNull()
+
+    fakeUi.mouse.moveTo(20, yHyperlink)
+    assertThat(panel.cursor).isEqualTo(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+  }
 }

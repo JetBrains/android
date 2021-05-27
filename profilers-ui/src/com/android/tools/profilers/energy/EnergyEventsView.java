@@ -126,8 +126,11 @@ public final class EnergyEventsView {
     myTableModel.addTableModelListener(e -> updateTableSelection());
     myEventsTable = TimelineTable.create(myTableModel, myStage.getTimeline(), Column.TIMELINE.ordinal());
     buildEventsTable(stageView);
-    myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
-           .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
+    // TODO(b/188695273): to be removed.
+    if (!stageView.getStage().getStudioProfilers().getIdeServices().getAppInspectionMigrationServices().isMigrationEnabled()) {
+      myStage.getAspect().addDependency(myAspectObserver).onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateTableSelection)
+        .onChange(EnergyProfilerAspect.SELECTED_ORIGIN_FILTER, myTableModel::updateTableByOrigin);
+    }
   }
 
   private void buildEventsTable(@NotNull StageView stageView) {
@@ -157,7 +160,7 @@ public final class EnergyEventsView {
         for (int i = 0; i < Column.values().length; ++i) {
           Column column = Column.values()[i];
           myEventsTable.getColumnModel().getColumn(i)
-                       .setPreferredWidth((int)(myEventsTable.getWidth() * column.getWidthPercentage()));
+            .setPreferredWidth((int)(myEventsTable.getWidth() * column.getWidthPercentage()));
         }
       }
     });

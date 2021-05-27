@@ -26,6 +26,8 @@ import com.intellij.util.ui.JBUI;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -36,6 +38,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +134,26 @@ public class InstructionsPanel extends JPanel {
     @Nullable private EaseOutModel myEaseOutModel;
     @NotNull private final InstructionsRenderer myRenderer;
 
+
+    /**
+     * Allows for custom setting of cursor on the appropriate container.
+     * <p>
+     * Having a custom cursor setter is useful for situations where the component that causes
+     * desirable cursor change is NOT the one in front (z-order). For example, desiring the
+     * cursor to change to a pointed hand when hovering over a hyperlink label when there is
+     * a transparent component painted in front of it. Swing would not naturally know to
+     * change the cursor. That's where this cursor setter come in handy. You can use it to
+     * manually set the cursor of the transparent component (or the parent component) when
+     * you detect mouse move event over the hyperlink label.
+     */
+    @Nullable private final BiFunction<Container, Cursor, Container> myCursorSetter;
+
+    /**
+     * Caches the result of calling myCursorSetter so that it doesn't need to be computed every
+     * time the cursor is set.
+     */
+    @Nullable private Container myCachedCursorContainer = null;
+
     /**
      * This will be set to the most recent instruction found under the mouse cursor, or null if
      * the mouse cursor isn't over any of them.
@@ -149,6 +172,7 @@ public class InstructionsPanel extends JPanel {
       myArcHeight = builder.myArcHeight;
       myRenderer = new InstructionsRenderer(builder.myInstructions, builder.myAlignment);
       myAlpha = 1f;
+      myCursorSetter = builder.myCursorSetter;
 
       if (myEaseOutModel != null) {
         myEaseOutModel.addDependency(myAspectObserver).onChange(EaseOutModel.Aspect.EASING, this::modelChanged);
@@ -190,6 +214,19 @@ public class InstructionsPanel extends JPanel {
           }
         }
       });
+    }
+
+    @Override
+    public void setCursor(Cursor cursor) {
+      if (myCachedCursorContainer != null) {
+        myCachedCursorContainer.setCursor(cursor);
+      }
+      else if (myCursorSetter != null) {
+        myCachedCursorContainer = myCursorSetter.apply(this, cursor);
+      }
+      else {
+        super.setCursor(cursor);
+      }
     }
 
     @VisibleForTesting
@@ -313,6 +350,8 @@ public class InstructionsPanel extends JPanel {
 
     @NotNull private final List<RenderInstruction> myInstructions;
 
+    @Nullable private BiFunction<Container, Cursor, Container> myCursorSetter;
+
     public Builder(@NotNull RenderInstruction... instructions) {
       myInstructions = Arrays.asList(instructions);
     }
@@ -372,6 +411,12 @@ public class InstructionsPanel extends JPanel {
     public Builder setEaseOut(@NotNull EaseOutModel easeOutModel, @Nullable Consumer<InstructionsPanel> easeOutCompletionCallback) {
       myEaseOutModel = easeOutModel;
       myEaseOutCompletionCallback = easeOutCompletionCallback;
+      return this;
+    }
+
+    @NotNull
+    public Builder setCursorSetter(@NotNull BiFunction<Container, Cursor, Container> cursorSetter) {
+      myCursorSetter = cursorSetter;
       return this;
     }
 

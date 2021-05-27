@@ -17,13 +17,10 @@ package com.android.tools.adtui.stdui;
 
 import com.android.tools.adtui.TooltipComponent;
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.Rectangle;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is meant to be used as a Swing wrapper for the contents of a tool window.
@@ -38,24 +35,6 @@ public class TooltipLayeredPane extends JLayeredPane {
    */
   public TooltipLayeredPane(@NotNull JComponent content) {
     add(content, JLayeredPane.DEFAULT_LAYER);
-  }
-
-  /**
-   * Traverses up to the TooltipLayeredPane and sets the cursor on it.
-   *
-   * @param container where traversal starts.
-   * @param cursor    the cursor to set on the ProfilerLayeredPane.
-   * @return the TooltipLayeredPane if found. Null otherwise.
-   */
-  @Nullable
-  public static Container setCursor(Container container, Cursor cursor) {
-    for (Container p = container; p != null; p = p.getParent()) {
-      if (p instanceof TooltipLayeredPane) {
-        p.setCursor(cursor);
-        return p;
-      }
-    }
-    return null;
   }
 
   @Override
