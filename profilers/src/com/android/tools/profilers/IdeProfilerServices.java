@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -180,4 +181,9 @@ public interface IdeProfilerServices {
    * parse and query Perfetto traces.
    */
   @NotNull TraceProcessorService getTraceProcessorService();
+
+  /**
+   * Returns the API for app inspection migration preferences.
+   */
+  @NotNull AppInspectionMigrationServices getAppInspectionMigrationServices();
 }

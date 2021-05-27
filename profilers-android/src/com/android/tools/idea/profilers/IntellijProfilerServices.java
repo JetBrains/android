@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
+import com.android.tools.idea.profilers.appinspection.AppInspectionIntellijMigrationServices;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigService;
@@ -36,6 +37,7 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.Notification;
 import com.android.tools.profilers.ProfilerPreferences;
 import com.android.tools.profilers.analytics.FeatureTracker;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
@@ -93,6 +95,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @NotNull private final Project myProject;
   @NotNull private final IntellijProfilerPreferences myPersistentPreferences;
   @NotNull private final TemporaryProfilerPreferences myTemporaryPreferences;
+  @NotNull private final AppInspectionMigrationServices myMigrationServices;
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
@@ -103,6 +106,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     myCodeNavigator = new ProfilerCodeNavigator(project, nativeSymbolizer, myFeatureTracker);
     myPersistentPreferences = new IntellijProfilerPreferences();
     myTemporaryPreferences = new TemporaryProfilerPreferences();
+    myMigrationServices = new AppInspectionIntellijMigrationServices(myPersistentPreferences, project);
   }
 
   @Override
@@ -362,6 +366,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public TraceProcessorService getTraceProcessorService() {
     return TraceProcessorServiceImpl.getInstance();
+  }
+
+  @Override
+  public @NotNull AppInspectionMigrationServices getAppInspectionMigrationServices() {
+    return myMigrationServices;
   }
 
   /**

@@ -22,6 +22,8 @@ import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationKt;
+import com.android.tools.profilers.appinspection.AppInspectionMigrationServices;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -48,7 +50,11 @@ import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltip;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -69,6 +75,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
+
+  private static final String NETWORK_INSPECTOR = "Network Inspector";
 
   public StudioMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull StudioMonitorStage stage) {
     super(profilersView, stage);
@@ -121,9 +129,42 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       getTooltipBinder().bind(CustomEventMonitorTooltip.class, CustomEventMonitorTooltipView::new);
     }
 
+    AppInspectionMigrationServices migrationServices = stage.getStudioProfilers().getIdeServices().getAppInspectionMigrationServices();
+
     myViews = new ArrayList<>(stage.getMonitors().size());
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
+      // TODO(b/188695273): to be removed.
+      if (monitor instanceof NetworkMonitor && migrationServices.isMigrationEnabled()) {
+        if (!migrationServices.isNetworkProfilerMigrationDialogEnabled()) {
+          continue;
+        }
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBorder(ProfilerLayout.MONITOR_BORDER);
+        panel.setMinimumSize(new Dimension(0, JBUI.scale(50)));
+        panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+        layout.setRowSizing(rowIndex, "100*");
+        monitors.add(panel, new TabularLayout.Constraint(rowIndex, 0));
+        rowIndex++;
+
+        AppInspectionMigrationKt.addMigrationPanel(
+          panel, "Network Profiler has moved.", "network activity", NETWORK_INSPECTOR,
+          () -> migrationServices.openAppInspectionToolWindow(NETWORK_INSPECTOR),
+          () -> {
+            migrationServices.setNetworkProfilerMigrationDialogEnabled(false);
+            relayoutMonitors(monitors);
+            // Reset the cursor on the profiler component. Otherwise cursor stays a pointed hand.
+            getProfilersView().getComponent().setCursor(null);
+          },
+          (Container container, Cursor cursor) -> {
+            Container cursorContainer = getProfilersView().getComponent();
+            cursorContainer.setCursor(cursor);
+            return cursorContainer;
+          }
+        );
+        continue;
+      }
       ProfilerMonitorView view = binder.build(profilersView, monitor);
       view.registerTooltip(tooltipComponent, stage);
       JComponent component = view.getComponent();
@@ -166,8 +207,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
       contextMenuInstaller.installGenericContextMenu(component, ContextMenuItem.SEPARATOR);
       profilersView.installCommonMenuItems(component);
 
-      int weight = (int)(view.getVerticalWeight() * 100f);
-      layout.setRowSizing(rowIndex, (weight > 0) ? weight + "*" : "Fit-");
+      layout.setRowSizing(rowIndex, rowSizeString(view));
       monitors.add(component, new TabularLayout.Constraint(rowIndex, 0));
       rowIndex++;
       myViews.add(view);
@@ -181,6 +221,24 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     topPanel.add(timeAxis, new TabularLayout.Constraint(1, 0));
 
     getComponent().add(topPanel, BorderLayout.CENTER);
+  }
+
+  private void relayoutMonitors(@NotNull JPanel monitors) {
+    TabularLayout layout = new TabularLayout("*");
+    monitors.setLayout(layout);
+    monitors.removeAll();
+    int index = 0;
+    for (ProfilerMonitorView view : myViews) {
+      layout.setRowSizing(index, rowSizeString(view));
+      monitors.add(view.getComponent(), new TabularLayout.Constraint(index, 0));
+      index++;
+    }
+    monitors.revalidate();
+  }
+
+  private String rowSizeString(@NotNull ProfilerMonitorView<ProfilerMonitor> view) {
+    int weight = (int)(view.getVerticalWeight() * 100f);
+    return (weight > 0) ? weight + "*" : "Fit-";
   }
 
   private void expandMonitor(ProfilerMonitor monitor) {

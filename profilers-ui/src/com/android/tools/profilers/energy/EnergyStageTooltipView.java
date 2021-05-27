@@ -31,10 +31,12 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 class EnergyStageTooltipView extends TooltipView {
+  @NotNull private final StageView myStageView;
   @NotNull private final EnergyStageTooltip myTooltip;
 
   public EnergyStageTooltipView(@NotNull StageView stageView, @NotNull EnergyStageTooltip tooltip) {
     super(stageView.getStage().getTimeline());
+    myStageView = stageView;
     myTooltip = tooltip;
   }
 
@@ -86,12 +88,14 @@ class EnergyStageTooltipView extends TooltipView {
 
     legendPanel.add(AdtUiUtils.createHorizontalSeparator(), new TabularLayout.Constraint(5, 0));
 
-    JLabel callToActionLabel = new JLabel("Select range to inspect");
-    callToActionLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
-    callToActionLabel.setFont(ProfilerFonts.STANDARD_FONT);
-    callToActionLabel.setForeground(eventLabel.getForeground());
-    legendPanel.add(callToActionLabel, new TabularLayout.Constraint(6, 0));
-
+    // TODO(b/188695273): to be removed after migration.
+    if (!myStageView.getStage().getStudioProfilers().getIdeServices().getAppInspectionMigrationServices().isMigrationEnabled()) {
+      JLabel callToActionLabel = new JLabel("Select range to inspect");
+      callToActionLabel.setForeground(ProfilerColors.TOOLTIP_TEXT);
+      callToActionLabel.setFont(ProfilerFonts.STANDARD_FONT);
+      callToActionLabel.setForeground(eventLabel.getForeground());
+      legendPanel.add(callToActionLabel, new TabularLayout.Constraint(6, 0));
+    }
 
     return legendPanel;
   }
