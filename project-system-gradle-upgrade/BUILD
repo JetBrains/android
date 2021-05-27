@@ -14,6 +14,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-6.1.1",
         "//tools/base/build-system:gradle-distrib-6.5",
         "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "long",
