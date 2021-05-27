@@ -73,7 +73,6 @@ private fun taskDetailsPanel(
       Plugin: ${pluginNameHtml(taskData)}<br/>
       Type: ${taskData.taskType}<br/>
       <br/>
-      <b>Warnings</b><br/>
     """.trimIndent())
 
   val reasonsList = htmlTextLabelWithLinesWrap("""
@@ -85,9 +84,13 @@ private fun taskDetailsPanel(
   var row = 0
   infoPanel.add(taskInfo, TabularLayout.Constraint(row++, 0))
   if (taskData.issues.isEmpty()) {
-    infoPanel.add(JLabel("No warnings found"), TabularLayout.Constraint(row++, 0))
+    htmlTextLabelWithFixedLines("""
+      <b>Warnings</b><br/>
+      No warnings found
+    """.trimIndent()).let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
   }
   else {
+    htmlTextLabelWithFixedLines("<b>Warnings</b>").let { infoPanel.add(it, TabularLayout.Constraint(row++, 0)) }
     if (taskData.sourceType != PluginSourceType.BUILD_SRC) {
       infoPanel.add(generateReportLinkLabel(taskData, generateReportClickedListener), TabularLayout.Constraint(row++, 0))
     }
