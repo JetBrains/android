@@ -2,6 +2,7 @@
 # codesigned. The paths here indicate the paths in the built Android Studio
 # macOS app bundle.
 %prefix%Contents/lib/grpc-netty-shaded-1.21.1.jar
+%prefix%Contents/lib/pty4j-0.11.4.jar
 %prefix%Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 %prefix%Contents/plugins/gradle/lib/gradle-api-6.8.jar
 %prefix%Contents/plugins/java/lib/debugger-memory-agent-1.0.30.jar
@@ -10,4 +11,3 @@
 %prefix%Contents/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
 %prefix%Contents/plugins/Kotlin/lib/kotlin-plugin.jar
 %prefix%Contents/plugins/svn4idea/lib/sqlite-jdbc-3.34.0.jar
-%prefix%Contents/lib/pty4j-0.11.4.jar
