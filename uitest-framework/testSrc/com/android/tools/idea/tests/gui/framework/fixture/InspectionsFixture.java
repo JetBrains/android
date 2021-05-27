@@ -18,9 +18,9 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView;
 import com.intellij.codeInspection.ui.InspectionTree;
 import com.intellij.codeInspection.ui.InspectionTreeNode;
-import com.intellij.openapi.wm.ToolWindowId;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ public class InspectionsFixture extends ToolWindowFixture {
   private final InspectionTree myTree;
 
   private InspectionsFixture(IdeFrameFixture ideFrameFixture, InspectionTree tree) {
-    super(ToolWindowId.INSPECTION, ideFrameFixture.getProject(), ideFrameFixture.robot());
+    super(ProblemsView.ID, ideFrameFixture.getProject(), ideFrameFixture.robot());
     myTree = tree;
   }
 
