@@ -18,9 +18,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -31,7 +28,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Component;
@@ -41,8 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -62,7 +56,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   private @Nullable AbstractButton myPairUsingWiFiButton;
   private @Nullable Component mySeparator;
   private @Nullable AbstractButton myHelpButton;
-  private @Nullable JBTable myTable;
+  private final @NotNull PhysicalDeviceTable myTable;
 
   @VisibleForTesting
   static final class SetTableModel implements FutureCallback<List<PhysicalDevice>> {
@@ -111,14 +105,13 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     initPairUsingWiFiButton();
     initSeparator();
     initHelpButton();
-    initTable();
+    myTable = new PhysicalDeviceTable(project);
     setLayout();
 
     FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetTableModel.apply(this));
   }
 
   private void initPairUsingWiFiButton() {
-    // TODO(http://b/187102682) Does pairing using Wi-Fi need to work from the Welcome to Android Studio window?
     if (myProject == null) {
       return;
     }
@@ -148,19 +141,6 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   private void initHelpButton() {
     myHelpButton = new CommonButton(AllIcons.Actions.Help);
     myHelpButton.addActionListener(event -> BrowserUtil.browse("https://d.android.com/r/studio-ui/device-manager/physical"));
-  }
-
-  private void initTable() {
-    myTable = new JBTable(new PhysicalDeviceTableModel());
-
-    if (myProject != null) {
-      myTable.setDefaultEditor(Actions.class, new ActionsTableCellEditor(myProject));
-    }
-
-    myTable.setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
-    myTable.setDefaultRenderer(Actions.class, new ActionsTableCellRenderer());
-
-    myTable.getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
 
   private void setLayout() {
@@ -219,8 +199,6 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
 
     Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
-
-    assert myTable != null;
     myTable.setModel(model);
   }
 
@@ -229,25 +207,12 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   }
 
   @VisibleForTesting
-  @NotNull Object getData() {
-    assert myTable != null;
-
-    return IntStream.range(0, myTable.getRowCount())
-      .mapToObj(this::getRowAt)
-      .collect(Collectors.toList());
-  }
-
-  @VisibleForTesting
-  private @NotNull Object getRowAt(int viewRowIndex) {
-    assert myTable != null;
-
-    return IntStream.range(0, myTable.getColumnCount())
-      .mapToObj(viewColumnIndex -> myTable.getValueAt(viewRowIndex, viewColumnIndex))
-      .collect(Collectors.toList());
-  }
-
-  @VisibleForTesting
   @Nullable AbstractButton getPairUsingWiFiButton() {
     return myPairUsingWiFiButton;
+  }
+
+  @VisibleForTesting
+  @NotNull PhysicalDeviceTable getTable() {
+    return myTable;
   }
 }

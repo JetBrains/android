@@ -108,7 +108,7 @@ public final class PhysicalDevicePanelTest {
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
-    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", "USB", Actions.INSTANCE)), myPanel.getData());
+    assertEquals(Collections.singletonList(Arrays.asList(myOnlinePixel3, "S", "USB", Actions.INSTANCE)), myPanel.getTable().getData());
   }
 
   @Test
@@ -133,7 +133,7 @@ public final class PhysicalDevicePanelTest {
       Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_5, "30", "",    Actions.INSTANCE));
     // @formatter:on
 
-    assertEquals(data, myPanel.getData());
+    assertEquals(data, myPanel.getTable().getData());
   }
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetTableModel(@NotNull PhysicalDevicePanel panel) {
