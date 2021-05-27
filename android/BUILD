@@ -429,6 +429,7 @@ filegroup(
     name = "layout-inspector-artifacts",
     srcs = [
         "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto",
+        "//tools/adt/idea/layout-inspector/src/proto:layout_inspector_snapshot_java_proto",
         "//tools/base/dynamic-layout-inspector/agent/appinspection:agent",
         "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto",
         "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto",
