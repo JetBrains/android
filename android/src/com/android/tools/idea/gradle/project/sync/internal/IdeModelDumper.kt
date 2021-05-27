@@ -82,7 +82,7 @@ fun ProjectDumper.dumpAndroidIdeModel(project: Project) {
 }
 
 private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
-  prop("ModelVersion") { ideAndroidModel.modelVersion }
+  prop("ModelVersion") { ideAndroidModel.modelVersion.replaceKnownPatterns() }
   prop("ProjectType") { ideAndroidModel.projectType.toString() }
   prop("CompileTarget") { ideAndroidModel.compileTarget }
   prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }

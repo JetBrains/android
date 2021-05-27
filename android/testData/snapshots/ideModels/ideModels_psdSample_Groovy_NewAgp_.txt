@@ -1,6 +1,6 @@
 MODULE                        : project
 MODULE                        : project.app
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2590,7 +2590,7 @@ MODULE                        : project.app
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.dyn_feature
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/dyn_feature/build [-]
@@ -2880,7 +2880,7 @@ MODULE                        : project.dyn_feature
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.jav
 MODULE                        : project.lib
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -4730,7 +4730,7 @@ MODULE                        : project.lib
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/build [-]
@@ -5021,7 +5021,7 @@ MODULE                        : project.nested1
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1.deep
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested1/deep/build [-]
@@ -5317,7 +5317,7 @@ MODULE                        : project.nested1.deep
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/build [-]
@@ -5754,7 +5754,7 @@ MODULE                        : project.nested2
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.deep
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/deep/build [-]
@@ -6046,7 +6046,7 @@ MODULE                        : project.nested2.deep
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
-    ModelVersion                  : 7.0.0-dev
+    ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/nested2/trans/deep2/build [-]
