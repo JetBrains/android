@@ -41,7 +41,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
 
   private static final int ACTIONS_MODEL_COLUMN_INDEX = 3;
 
-  private final @NotNull List<@NotNull PhysicalDevice> myDevices;
+  private @NotNull List<@NotNull PhysicalDevice> myDevices;
   private @NotNull List<@NotNull PhysicalDevice> myCombinedDevices;
 
   /**
@@ -59,11 +59,23 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     this(Collections.emptyList());
   }
 
+  @VisibleForTesting
   PhysicalDeviceTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
     myDevices = devices;
     myCombinedDevices = Collections.emptyList();
 
     combineDevices();
+  }
+
+  @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
+    return myDevices;
+  }
+
+  void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
+    myDevices = devices;
+
+    combineDevices();
+    fireTableDataChanged();
   }
 
   void addOrSet(@NotNull PhysicalDevice device) {
@@ -129,10 +141,6 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
       .addAllConnectionTypes(serialNumberDevice.getConnectionTypes())
       .build();
-  }
-
-  @NotNull Collection<@NotNull PhysicalDevice> getDevices() {
-    return myDevices;
   }
 
   @VisibleForTesting

@@ -59,18 +59,18 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
   private final @NotNull PhysicalDeviceTable myTable;
 
   @VisibleForTesting
-  static final class SetTableModel implements FutureCallback<List<PhysicalDevice>> {
+  static final class SetDevices implements FutureCallback<List<PhysicalDevice>> {
     private final @NotNull PhysicalDevicePanel myPanel;
 
     @VisibleForTesting
-    SetTableModel(@NotNull PhysicalDevicePanel panel) {
+    SetDevices(@NotNull PhysicalDevicePanel panel) {
       myPanel = panel;
     }
 
     @Override
     public void onSuccess(@Nullable List<@NotNull PhysicalDevice> devices) {
       assert devices != null;
-      myPanel.setTableModel(myPanel.addOfflineDevices(devices));
+      myPanel.setDevices(myPanel.addOfflineDevices(devices));
     }
 
     @Override
@@ -84,8 +84,9 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
          PairDevicesUsingWiFiService::getInstance,
          PhysicalTabPersistentStateComponent::getInstance,
          PhysicalDeviceChangeListener::new,
+         PhysicalDeviceTable::new,
          new PhysicalDeviceAsyncSupplier(project),
-         SetTableModel::new);
+         SetDevices::new);
   }
 
   @VisibleForTesting
@@ -93,8 +94,9 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
                       @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> pairDevicesUsingWiFiServiceGetInstance,
                       @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> physicalTabPersistentStateComponentGetInstance,
                       @NotNull Function<@NotNull PhysicalDeviceTableModel, @NotNull Disposable> newPhysicalDeviceChangeListener,
+                      @NotNull Function<@Nullable Project, @NotNull PhysicalDeviceTable> newPhysicalDeviceTable,
                       @NotNull PhysicalDeviceAsyncSupplier supplier,
-                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetTableModel) {
+                      @NotNull Function<@NotNull PhysicalDevicePanel, @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>>> newSetDevices) {
     super(null);
 
     myProject = project;
@@ -105,10 +107,10 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     initPairUsingWiFiButton();
     initSeparator();
     initHelpButton();
-    myTable = new PhysicalDeviceTable(project);
+    myTable = newPhysicalDeviceTable.apply(project);
     setLayout();
 
-    FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetTableModel.apply(this));
+    FutureUtils.addCallback(supplier.get(), EdtExecutorService.getInstance(), newSetDevices.apply(this));
   }
 
   private void initPairUsingWiFiButton() {
@@ -194,12 +196,13 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     return devices;
   }
 
-  private void setTableModel(@NotNull List<@NotNull PhysicalDevice> devices) {
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(devices);
+  private void setDevices(@NotNull List<@NotNull PhysicalDevice> devices) {
+    PhysicalDeviceTableModel model = myTable.getModel();
+
     model.addTableModelListener(event -> myPhysicalTabPersistentStateComponentGetInstance.get().set(model.getDevices()));
+    model.setDevices(devices);
 
     Disposer.register(this, myNewPhysicalDeviceChangeListener.apply(model));
-    myTable.setModel(model);
   }
 
   @Override
