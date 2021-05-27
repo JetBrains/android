@@ -65,9 +65,11 @@ class TaskViewDetailPagesFactoryTest {
         Plugin: myPlugin<br>
         Type: CompilationType<br>
         <br>
-        <b>Warnings</b><br>
       """.trimIndent())
-      Truth.assertThat(clearHtml((textElements[2] as JLabel).text)).isEqualTo("No warnings found")
+      Truth.assertThat(clearHtml((textElements[2] as JEditorPane).text)).isEqualTo("""
+        <b>Warnings</b><br>
+        No warnings found
+      """.trimIndent())
     }
   }
 
