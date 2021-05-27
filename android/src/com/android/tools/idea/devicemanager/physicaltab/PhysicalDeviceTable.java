@@ -21,21 +21,30 @@ import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceTable extends JBTable {
   PhysicalDeviceTable(@Nullable Project project) {
+    this(project, () -> new DeviceTableCellRenderer<>(Device.class), ActionsTableCellRenderer::new);
+  }
+
+  @VisibleForTesting
+  PhysicalDeviceTable(@Nullable Project project,
+                      @NotNull Supplier<@NotNull TableCellRenderer> newDeviceTableCellRenderer,
+                      @NotNull Supplier<@NotNull TableCellRenderer> newActionsTableCellRenderer) {
     super(new PhysicalDeviceTableModel());
 
     if (project != null) {
       setDefaultEditor(Actions.class, new ActionsTableCellEditor(project));
     }
 
-    setDefaultRenderer(Device.class, new DeviceTableCellRenderer<>(Device.class));
-    setDefaultRenderer(Actions.class, new ActionsTableCellRenderer());
+    setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
+    setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
 
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
@@ -52,5 +61,10 @@ final class PhysicalDeviceTable extends JBTable {
     return IntStream.range(0, getColumnCount())
       .mapToObj(viewColumnIndex -> getValueAt(viewRowIndex, viewColumnIndex))
       .collect(Collectors.toList());
+  }
+
+  @Override
+  public @NotNull PhysicalDeviceTableModel getModel() {
+    return (PhysicalDeviceTableModel)dataModel;
   }
 }

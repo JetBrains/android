@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetTableModel;
+import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel.SetDevices;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.AbstractButton;
+import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
@@ -103,8 +104,9 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDevicePanelTest::newPhysicalDeviceTable,
                                       mySupplier,
-                                      this::newSetTableModel);
+                                      this::newSetDevices);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -121,8 +123,9 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       () -> myComponent,
                                       model -> myListener,
+                                      PhysicalDevicePanelTest::newPhysicalDeviceTable,
                                       mySupplier,
-                                      this::newSetTableModel);
+                                      this::newSetDevices);
 
     // Assert
     CountDownLatchAssert.await(myLatch, Duration.ofMillis(128));
@@ -136,8 +139,12 @@ public final class PhysicalDevicePanelTest {
     assertEquals(data, myPanel.getTable().getData());
   }
 
-  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetTableModel(@NotNull PhysicalDevicePanel panel) {
-    return new CountDownLatchFutureCallback<>(new SetTableModel(panel), myLatch);
+  private static @NotNull PhysicalDeviceTable newPhysicalDeviceTable(@Nullable Project project) {
+    return new PhysicalDeviceTable(project, () -> Mockito.mock(TableCellRenderer.class), () -> Mockito.mock(TableCellRenderer.class));
+  }
+
+  private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
+    return new CountDownLatchFutureCallback<>(new SetDevices(panel), myLatch);
   }
 
   @Test
@@ -146,7 +153,13 @@ public final class PhysicalDevicePanelTest {
     Project project = Mockito.mock(Project.class);
 
     // Act
-    myPanel = new PhysicalDevicePanel(project, p -> myService, () -> myComponent, model -> myListener, mySupplier, SetTableModel::new);
+    myPanel = new PhysicalDevicePanel(project,
+                                      p -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      PhysicalDeviceTable::new,
+                                      mySupplier,
+                                      SetDevices::new);
 
     // Assert
     assertNull(myPanel.getPairUsingWiFiButton());
@@ -163,7 +176,13 @@ public final class PhysicalDevicePanelTest {
     Mockito.when(myService.createPairingDialogController()).thenReturn(controller);
 
     // Act
-    myPanel = new PhysicalDevicePanel(project, p -> myService, () -> myComponent, model -> myListener, mySupplier, SetTableModel::new);
+    myPanel = new PhysicalDevicePanel(project,
+                                      p -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      PhysicalDeviceTable::new,
+                                      mySupplier,
+                                      SetDevices::new);
 
     AbstractButton button = myPanel.getPairUsingWiFiButton();
     assert button != null;
