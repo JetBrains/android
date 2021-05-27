@@ -25,6 +25,7 @@ class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
       unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+      linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/kgp1.3.72.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest")
       linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
     }
