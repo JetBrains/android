@@ -23,7 +23,10 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -33,10 +36,22 @@ import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTreeVisitor
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
 import java.lang.Integer.min
 import java.util.IdentityHashMap
+
+/**
+ * Compose lambda name prefix.
+ *
+ * The kotlin plugin for Compose will create a custom mangled name for @Composable
+ * lambdas that have no captured scope (i.e. has no referenced to variables that were passed in).
+ */
+private const val LAMBDA_PREFIX = "lambda-"
+private const val COMPOSABLE_ANNOTATION = "androidx.compose.runtime.Composable"
+private val COMPOSABLE_ANNOTATION_FQNAME = FqName(COMPOSABLE_ANNOTATION)
 
 /**
  * Service to find the [SourceLocation] of a lambda found in Compose.
@@ -110,11 +125,13 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       IntRange.EMPTY
     }
     val possible = IdentityHashMap<KtExpression, Int>()
-    visitor.forEachLambda(ktFile) { expr, nesting, recurse ->
+    visitor.forEachLambda(ktFile) { expr, nesting, hasComposableSibling, recurse ->
       val range = IntRange(expr.startOffset, expr.endOffset)
       val codeRange = codeRangeOf(expr)
       if (typeMatch(expr, functionName) && offsetRange.contains(codeRange) && range.contains(internalRange)) {
-        possible[expr] = nesting
+        // If an argument has a @Composable sibling argument we can no longer trust the nesting level.
+        // Because it may be mangled by the compose kotlin plugin instead of the kotlin compiler itself.
+        possible[expr] = if (hasComposableSibling) -1 else nesting
       }
       recurse()
     }
@@ -182,8 +199,20 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       0 -> return null
       1 -> return lambdas.keys.single() // no need investigate the lambdaName
     }
-    val wantedNestingLevel = lambdaName.count { it == '$' }
-    val candidates = lambdas.entries.filter { it.value == wantedNestingLevel }.map { it.key }
+    val candidates = if (lambdaName.startsWith(LAMBDA_PREFIX)) {
+      // This lambda was inside a lambda with a mangled name created by the compose kotlin plugin. We cannot trust the nesting level.
+      // If all the lambdas found in the line range has the same nesting level we can still select the correct one from the name.
+      val nesting = lambdas.values.toSet().singleOrNull() ?: return null
+      if (nesting == -1) {
+        // A nesting value of -1 means all of the lambdas may have a separate custom mangled name i.e. it is impossible to choose.
+        return null
+      }
+      lambdas.keys
+    } else {
+      // There are no lambda names created by the compose kotlin plugin, so we can select lambdas with the correct nesting level:
+      val wantedNestingLevel = lambdaName.count { it == '$' }
+      lambdas.entries.filter { it.value == wantedNestingLevel }.map { it.key }
+    }
     when (candidates.size) {
       0 -> return null // the nesting level didn't match
       1 -> return candidates.first() // only one match for the nesting level, return that match
@@ -193,7 +222,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     val selector = findDesiredLambdaSelectorFromName(lambdaName) ?: return null
     val index = selector - 1
     val nestedUnderTopElement = mutableListOf<KtExpression>()
-    visitor.forEachLambda(topElement, excludeTopElements = true) { expression, _, _ -> nestedUnderTopElement.add(expression) }
+    visitor.forEachLambda(topElement, excludeTopElements = true) { expression, _, _, _ -> nestedUnderTopElement.add(expression) }
     val candidate = if (index in nestedUnderTopElement.indices) nestedUnderTopElement[index] else return null
     return if (lambdas.contains(candidate)) candidate else null
   }
@@ -235,11 +264,13 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    */
   private class LambdaVisitor : KtTreeVisitor<VisitorData>() {
     private var nesting = 0
+    private var foundComposableSibling = false
 
     /**
      * For each lambda or function reference found in [startElement] call [callable] with the arguments:
      * - the lambda expression found
      * - the nesting level starting at [startElement]
+     * - true if a previous sibling lambda was annotated as @Composable
      * - a function to recurse into the lambda
      *
      * If [excludeTopElements] is true the visitor will NOT recurse into the top elements:
@@ -248,63 +279,81 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     fun forEachLambda(
       startElement: KtElement,
       excludeTopElements: Boolean = false,
-      callable: (KtExpression, Int, () -> Unit) -> Unit
+      callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
     ) {
       nesting = 0
+      foundComposableSibling = false
       startElement.acceptChildren(this, VisitorData(excludeTopElements, callable))
     }
 
     override fun visitLambdaExpression(expression: KtLambdaExpression, data: VisitorData): Void? {
-      data.callable(expression, nesting) {
-        nesting++
-        super.visitLambdaExpression(expression, data)
-        nesting--
+      foundComposableSibling = foundComposableSibling || hasComposableAnnotation(expression)
+      data.callable(expression, nesting, foundComposableSibling) {
+        nestedOperation(nesting + 1) {
+          super.visitLambdaExpression(expression, data)
+        }
       }
       return null
     }
 
     override fun visitCallableReferenceExpression(expression: KtCallableReferenceExpression, data: VisitorData): Void? {
-      data.callable(expression, nesting) {
-        nesting++
-        super.visitCallableReferenceExpression(expression, data)
-        nesting--
+      data.callable(expression, nesting, foundComposableSibling) {
+        nestedOperation(nesting + 1) {
+          super.visitCallableReferenceExpression(expression, data)
+        }
       }
       return null
     }
 
     override fun visitClass(klass: KtClass, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        val nestingBefore = nesting
-        nesting = 0
-        super.visitClass(klass, data)
-        nesting = nestingBefore
+        nestedOperation(0) {
+          super.visitClass(klass, data)
+        }
       }
       return null
     }
 
     override fun visitProperty(property: KtProperty, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        val nestingBefore = nesting
-        nesting = 0
-        super.visitProperty(property, data)
-        nesting = nestingBefore
+        nestedOperation(0) {
+          super.visitProperty(property, data)
+        }
       }
       return null
     }
 
     override fun visitNamedFunction(function: KtNamedFunction, data: VisitorData): Void? {
       if (!data.excludeTopElements) {
-        val nestingBefore = nesting
-        nesting = 0
-        super.visitNamedFunction(function, data)
-        nesting = nestingBefore
+        nestedOperation(0) {
+          super.visitNamedFunction(function, data)
+        }
       }
       return null
+    }
+
+    private fun nestedOperation(newNesting: Int, operation: () -> Unit) {
+      val nestingBefore = nesting
+      val foundComposableSiblingBefore = foundComposableSibling
+      nesting = newNesting
+      foundComposableSibling = false
+      operation()
+      nesting = nestingBefore
+      foundComposableSibling = foundComposableSiblingBefore
+    }
+
+    private fun hasComposableAnnotation(expression: KtLambdaExpression): Boolean {
+      val argument = expression.parent as? KtValueArgument ?: return false
+      val argumentParent = argument.parent
+      val call = argumentParent as? KtCallExpression ?: argumentParent.parent as? KtCallExpression ?: return false
+      val resolvedCall = call.resolveToCall() ?: return false
+      val parameter = resolvedCall.getParameterForArgument(argument) ?: return false
+      return parameter.type.annotations.hasAnnotation(COMPOSABLE_ANNOTATION_FQNAME)
     }
   }
 
   private data class VisitorData(
     val excludeTopElements: Boolean,
-    val callable: (KtExpression, Int, () -> Unit) -> Unit
+    val callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
   )
 }

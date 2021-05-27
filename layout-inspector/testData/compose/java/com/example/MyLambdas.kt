@@ -1,5 +1,7 @@
 package com.example
 
+import androidx.compose.runtime.Composable
+
 val l1: (Int) -> Int = { it }
 val l2: (Int) -> Int = { number ->
   // The line numbers from JVMTI of this lambda, starts AFTER this comment...
@@ -51,4 +53,35 @@ fun f8(): Int = f7 {
     3,
     4
   )
+}
+
+@Composable
+fun Element(
+  l1: (Int) -> Int = { it },
+  l2: @Composable () -> Unit = {},
+  l3: (Int) -> Int = { it },
+  l4: @Composable () -> Unit = {}
+) {
+  l4()
+}
+
+@Composable
+fun MyPart(
+  l1: (Int) -> Int = { it },
+  l2: (Int) -> Int = { it },
+  l3: @Composable () -> Unit = {},
+) {
+  l3()
+}
+
+@Composable
+fun MyApp() {
+  MyPart({ it - 1 }) {
+    Element(l1 = { it + 1 }, l2 = { Element() }, l3 = { it + 2 }) {
+      Element(l1 = { it + 3 }, l3 = { it + 4 }) {
+        Element()
+        Element(l1 = { 1 })
+      }
+    }
+  }
 }
