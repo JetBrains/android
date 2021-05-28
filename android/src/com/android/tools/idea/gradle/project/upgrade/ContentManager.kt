@@ -451,6 +451,14 @@ class ContentManager(val project: Project) {
       addTreeSelectionListener { e -> refreshDetailsPanel() }
       background = primaryContentBackground
       isOpaque = true
+      isEnabled = !this@View.model.uiState.get().showLoadingState
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        isEnabled = !uiState.showLoadingState
+        if (uiState.showLoadingState) {
+          selectionModel.clearSelection()
+          refreshDetailsPanel()
+        }
+      }
     }
 
     val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
