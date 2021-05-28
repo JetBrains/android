@@ -546,10 +546,10 @@ Android Studio Preview.app/Contents/lib/imageio-metadata-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imageio-tiff-3.6.1.jar
 Android Studio Preview.app/Contents/lib/imgscalr-lib-4.2.jar
 Android Studio Preview.app/Contents/lib/ini4j-0.5.5-2.jar
-Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.577.jar
+Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.579.jar
 Android Studio Preview.app/Contents/lib/intellij-deps-fastutil-8.5.2-6.jar
 Android Studio Preview.app/Contents/lib/intellij-dvcs.jar
-Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.577.jar
+Android Studio Preview.app/Contents/lib/intellij-test-discovery-agent-1.0.579.jar
 Android Studio Preview.app/Contents/lib/intellij-xml.jar
 Android Studio Preview.app/Contents/lib/ion-java-1.6.2-3.jar
 Android Studio Preview.app/Contents/lib/isorelax-20030108.jar
@@ -2652,9 +2652,9 @@ Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/comple
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-php-0.2.3.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-python-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.2.1.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.1.1.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.0.1.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-typescript-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/resources_en.jar
