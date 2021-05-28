@@ -481,7 +481,7 @@ android-studio/lib/ant/lib/ant.jar
 android-studio/lib/ant/lib/ant.pom
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
-android-studio/lib/ap-validation-0.0.4.jar
+android-studio/lib/ap-validation-0.0.5.jar
 android-studio/lib/asm-all-9.1.jar
 android-studio/lib/automaton-1.12-1.jar
 android-studio/lib/batik-anim-1.14.0-24.jar
@@ -676,9 +676,9 @@ android-studio/lib/pty4j-native/win/x86/winpty-agent.exe
 android-studio/lib/pty4j-native/win/x86/winpty.dll
 android-studio/lib/purejavacomm-0.0.11.1.jar
 android-studio/lib/qdox-2.0.0.jar
-android-studio/lib/rd-core-0.211.214.jar
-android-studio/lib/rd-framework-0.211.214.jar
-android-studio/lib/rd-swing-0.211.214.jar
+android-studio/lib/rd-core-0.211.234.jar
+android-studio/lib/rd-framework-0.211.234.jar
+android-studio/lib/rd-swing-0.211.234.jar
 android-studio/lib/resources.jar
 android-studio/lib/resources_en.jar
 android-studio/lib/rhino-runtime-1.7.13.jar

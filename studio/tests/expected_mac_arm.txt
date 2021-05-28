@@ -486,7 +486,7 @@ Android Studio Preview.app/Contents/lib/ant/lib/ant.jar
 Android Studio Preview.app/Contents/lib/ant/lib/ant.pom
 Android Studio Preview.app/Contents/lib/ant/lib/libraries.properties
 Android Studio Preview.app/Contents/lib/ant/src.zip
-Android Studio Preview.app/Contents/lib/ap-validation-0.0.4.jar
+Android Studio Preview.app/Contents/lib/ap-validation-0.0.5.jar
 Android Studio Preview.app/Contents/lib/asm-all-9.1.jar
 Android Studio Preview.app/Contents/lib/automaton-1.12-1.jar
 Android Studio Preview.app/Contents/lib/batik-anim-1.14.0-24.jar
@@ -677,9 +677,9 @@ Android Studio Preview.app/Contents/lib/pty4j-0.11.4.jar
 Android Studio Preview.app/Contents/lib/pty4j-native/darwin/libpty.dylib
 Android Studio Preview.app/Contents/lib/purejavacomm-0.0.11.1.jar
 Android Studio Preview.app/Contents/lib/qdox-2.0.0.jar
-Android Studio Preview.app/Contents/lib/rd-core-0.211.214.jar
-Android Studio Preview.app/Contents/lib/rd-framework-0.211.214.jar
-Android Studio Preview.app/Contents/lib/rd-swing-0.211.214.jar
+Android Studio Preview.app/Contents/lib/rd-core-0.211.234.jar
+Android Studio Preview.app/Contents/lib/rd-framework-0.211.234.jar
+Android Studio Preview.app/Contents/lib/rd-swing-0.211.234.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/resources_en.jar
 Android Studio Preview.app/Contents/lib/rhino-runtime-1.7.13.jar
