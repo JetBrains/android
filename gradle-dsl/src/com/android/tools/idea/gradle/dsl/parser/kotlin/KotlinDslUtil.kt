@@ -93,7 +93,7 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 
 internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
   val zeroOrOneClosures = lambdaArguments.size < 2
-  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
+  val argumentsList = valueArgumentList?.arguments
   val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
   val zeroArguments = argumentsList == null || argumentsList.size == 0
   val knownBlockForParent = zeroArguments &&
@@ -279,7 +279,7 @@ internal fun isValidBlockName(blockName : String?) =
 internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
   var psiElement = psiElement
   while (psiElement != this) {
-    psiElement = psiElement?.parent ?: return false
+    psiElement = psiElement.parent ?: return false
   }
   return true
 }
@@ -395,7 +395,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       else {
         valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
       }
-      return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(valueText)
     }
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
@@ -608,7 +608,7 @@ internal fun deleteIfEmpty(psiElement: PsiElement?, containingDslElement: Gradle
   var psiParent = psiElement?.parent ?: return
   val dslParent = getNextValidParent(containingDslElement)
 
-  if (!psiElement.isValid()) {
+  if (!psiElement.isValid) {
     // SKip deletion.
   }
   else {
