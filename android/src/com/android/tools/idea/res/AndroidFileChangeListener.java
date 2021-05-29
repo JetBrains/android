@@ -121,9 +121,7 @@ public class AndroidFileChangeListener implements Disposable {
     myResourceNotificationManager = ResourceNotificationManager.getInstance(myProject);
     myRegistry = ResourceFolderRegistry.getInstance(myProject);
     myEditorNotifications = EditorNotifications.getInstance(myProject);
-  }
 
-  private void subscribe() {
     PsiManager.getInstance(myProject).addPsiTreeChangeListener(new MyPsiListener(), this);
     EditorFactory.getInstance().getEventMulticaster().addDocumentListener(new MyDocumentListener(myProject, myRegistry), this);
 
