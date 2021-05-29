@@ -156,42 +156,10 @@ public class TestUtils {
    */
   @NonNull
   public static synchronized File getWorkspaceRoot() {
-    // The logic below depends on the current working directory, so we save the results and hope the first call
-    // is early enough for the user.dir property to be unchanged.
     if (workspaceRoot == null) {
-      // If we are using Bazel (which defines the following env vars), simply use the sandboxed
-      // root they provide us.
-      String workspace = System.getenv("TEST_WORKSPACE");
-      String workspaceParent = System.getenv("TEST_SRCDIR");
-      if (workspace != null && workspaceParent != null) {
-        workspaceRoot = new File(workspaceParent, workspace);
-        return workspaceRoot;
-      }
-
-      File currDir = new File("");
-      File initialDir = currDir;
-
-      // If we're using a non-Bazel build system. At this point, assume our working
-      // directory is located underneath our codebase's root folder, so keep navigating up until
-      // we find it. If we're using Bazel, we should still look to see if there's a larger
-      // outermost workspace since we might be within a nested workspace.
-      while (currDir != null) {
-        currDir = currDir.getAbsoluteFile();
-        if (new File(currDir, "WORKSPACE").exists()) {
-          workspaceRoot = currDir;
-        }
-        currDir = currDir.getParentFile();
-      }
-
-      if (workspaceRoot == null) {
-        throw new IllegalStateException(
-          "Could not find WORKSPACE root. Is the original working directory a "
-          + "subdirectory of the Android Studio codebase?\n\n"
-          + "pwd = "
-          + initialDir.getAbsolutePath());
-      }
+      workspaceRoot = new File(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk");
     }
-
+    assert workspaceRoot.exists(): "Please invoke 'cd community/build/dependencies && ./gradlew setupAndroidSdk'";
     return workspaceRoot;
   }
 
