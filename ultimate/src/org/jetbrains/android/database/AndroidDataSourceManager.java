@@ -11,6 +11,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -75,6 +76,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
   public AnAction getCreateDataSourceAction(@NotNull Consumer<? super AndroidDataSource> consumer) {
     if (!ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)) return null;
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
+      @Override
+      public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setEnabledAndVisible(e.getData(LangDataKeys.IDE_VIEW) == null);
+      }
+
       @Override
       public void actionPerformed(AnActionEvent e) {
         AndroidDataSource result = new AndroidDataSource();

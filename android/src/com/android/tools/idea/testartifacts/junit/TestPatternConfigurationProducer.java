@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.testartifacts.junit;
 
+import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
+
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.actions.ConfigurationFromContext;
-import com.intellij.execution.junit.*;
+import com.intellij.execution.junit.JUnitConfiguration;
+import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation;
 import com.intellij.execution.testframework.AbstractPatternBasedConfigurationProducer;
 import com.intellij.openapi.module.Module;
@@ -26,12 +29,9 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
-
-import static com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurations.shouldUseAndroidJUnitConfigurations;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Android implementation of {@link AbstractPatternBasedConfigurationProducer} so some behaviors can be overridden.
@@ -97,13 +97,11 @@ public class TestPatternConfigurationProducer extends AbstractPatternBasedConfig
 
   @Override
   public boolean isPreferredConfiguration(ConfigurationFromContext self, ConfigurationFromContext other) {
-    return !other.isProducedBy(TestMethodConfigurationProducer.class)
-           && shouldUseAndroidJUnitConfigurations(self, other);
+    return shouldUseAndroidJUnitConfigurations(self, other);
   }
 
   @Override
   public boolean shouldReplace(@NotNull ConfigurationFromContext self, @NotNull ConfigurationFromContext other) {
-    return !other.isProducedBy(TestMethodConfigurationProducer.class)
-           && shouldUseAndroidJUnitConfigurations(self, other);
+    return shouldUseAndroidJUnitConfigurations(self, other);
   }
 }

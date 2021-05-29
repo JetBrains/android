@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
+ * Copyright 2010-2021 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,27 @@
 
 package org.jetbrains.kotlin.android.intention
 
+import com.android.tools.idea.kotlin.insideBody
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canRemoveParcelable
-import com.android.tools.idea.kotlin.insideBody
 import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.android.removeParcelableImplementation
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 
 
-class RemoveParcelableAction :
-        SelfTargetingIntention<KtClass>(KtClass::class.java, AndroidBundle.message("remove.parcelable.intention.text")),
-        HighPriorityAction {
+class RemoveParcelableAction : SelfTargetingIntention<KtClass>(
+    KtClass::class.java,
+    { AndroidBundle.message("remove.parcelable.intention.text") },
+), HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
-            AndroidFacet.getInstance(element) != null &&
-            !element.insideBody(caretOffset) &&
-            !element.isParcelize() &&
-            element.canRemoveParcelable()
+        AndroidFacet.getInstance(element) != null &&
+        !element.insideBody(caretOffset) &&
+        !element.isParcelize() &&
+        element.canRemoveParcelable()
 
     override fun applyTo(element: KtClass, editor: Editor?) {
         element.removeParcelableImplementation()

@@ -8,16 +8,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
 
 public class AndroidStudioGradleInstallationManager extends GradleInstallationManager {
-  @Nullable
-  @Override
-  public Sdk getGradleJdk(@Nullable Project project, @NotNull String linkedProjectPath) {
-    return IdeSdks.getInstance().getJdk();
-  }
 
   @Nullable
   @Override
   public String getGradleJvmPath(@NotNull Project project, @NotNull String linkedProjectPath) {
-    @Nullable Sdk jdk = getGradleJdk(project, linkedProjectPath);
+    @Nullable Sdk jdk = IdeSdks.getInstance().getJdk();
     if (jdk == null) {
       return null;
     }

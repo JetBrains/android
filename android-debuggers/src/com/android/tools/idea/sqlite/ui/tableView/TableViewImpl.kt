@@ -24,7 +24,6 @@ import com.android.tools.idea.sqlite.ui.notifyError
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.HelpTooltip
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
@@ -465,7 +464,7 @@ class TableViewImpl : TableView {
       table
     )
 
-    PopupHandler.installUnknownPopupHandler(table, DefaultActionGroup(copyToClipboardAction, setNullAction), ActionManager.getInstance())
+    PopupHandler.installPopupMenu(table, DefaultActionGroup(copyToClipboardAction, setNullAction), "SqliteTablePopup")
   }
 
   private inner class MyTableHeaderRenderer : TableCellRenderer {

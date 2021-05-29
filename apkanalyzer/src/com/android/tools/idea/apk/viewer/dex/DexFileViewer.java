@@ -75,7 +75,7 @@ import com.intellij.util.PlatformIcons;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,11 +88,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.SortOrder;
-import javax.swing.SwingConstants;
+import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
@@ -215,8 +211,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     ActionGroup group = createPopupActionGroup(myTree);
-    PopupHandler
-      .installPopupHandler(myTree, group, ActionPlaces.UNKNOWN, ActionManager.getInstance());
+    PopupHandler.installPopupMenu(myTree, group, ActionPlaces.UNKNOWN);
 
     initDex();
   }

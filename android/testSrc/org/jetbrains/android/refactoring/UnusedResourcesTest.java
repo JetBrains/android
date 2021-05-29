@@ -58,7 +58,7 @@ public class UnusedResourcesTest extends AndroidTestCase {
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(Arrays.asList(processor.findUsages())))
       .isEqualTo("<root> (2)\n" +
-                 " Found usages (2)\n" +
+                 " Usages in (2)\n" +
                  "  Android resource file (2)\n" +
                  "   app (2)\n" +
                  "    res" + File.separatorChar +  "drawable-hdpi (1)\n" +

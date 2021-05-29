@@ -70,7 +70,7 @@ public class FeatureEntryPoint extends JPanel implements Accessible {
 
     myArrow = new JLabel();
     addHandlers(myArrow, summaryMouseHandler, keyboardhandler);
-    myArrow.setIcon(AllIcons.Nodes.TreeRightArrow);
+    myArrow.setIcon(AllIcons.General.ArrowRight);
     myArrow.setFocusable(true);
     myArrow.setBorder(BorderFactory.createEmptyBorder(9, 5, 0, 10));
     myArrow.setAlignmentY(Component.TOP_ALIGNMENT);
@@ -143,7 +143,7 @@ public class FeatureEntryPoint extends JPanel implements Accessible {
     }
     // Update the related icon to show whether the feature summary is in an
     // expanded state.
-    myArrow.setIcon(myExpanded ? AllIcons.Nodes.TreeDownArrow : AllIcons.Nodes.TreeRightArrow);
+    myArrow.setIcon(myExpanded ? AllIcons.General.ArrowDown : AllIcons.General.ArrowRight);
     myTutorialsList.setVisible(myExpanded);
   }
 
@@ -206,7 +206,7 @@ public class FeatureEntryPoint extends JPanel implements Accessible {
 
     @Override
     public AccessibleIcon[] getAccessibleIcon() {
-      Icon icon = AllIcons.Nodes.TreeRightArrow;
+      Icon icon = AllIcons.General.ArrowRight;
       if (icon instanceof Accessible) {
         AccessibleContext context = ((Accessible)icon).getAccessibleContext();
         if (context != null && context instanceof AccessibleIcon) {

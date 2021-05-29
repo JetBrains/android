@@ -1,7 +1,6 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
-import com.intellij.application.options.XmlCodeStyleSettingsProvider;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notification.NotificationDisplayType;
@@ -91,7 +90,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
         @Override
         public void run() {
           ShowSettingsUtilImpl.showSettingsDialog(
-            project, "preferences.sourceCode." + XmlCodeStyleSettingsProvider.getConfigurableDisplayNameText(), "");
+            project, "preferences.sourceCode.XML", "");
           EditorNotifications.getInstance(project).updateAllNotifications();
         }
       });

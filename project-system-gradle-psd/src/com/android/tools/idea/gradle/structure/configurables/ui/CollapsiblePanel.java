@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui;
 
-import com.intellij.icons.AllIcons;
-import com.intellij.ui.SimpleColoredComponent;
-import com.intellij.ui.components.JBLabel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES;
 import static javax.swing.BorderFactory.createEmptyBorder;
+
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.SimpleColoredComponent;
+import com.intellij.ui.components.JBLabel;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 public class CollapsiblePanel extends JPanel {
   @NotNull private final JPanel myPanel;
@@ -49,8 +48,8 @@ public class CollapsiblePanel extends JPanel {
     myExpandButton.setFocusable(false);
     myExpandButton.addMouseListener(new CollapseListener());
 
-    myExpandedIcon = AllIcons.Nodes.TreeDownArrow;
-    myCollapsedIcon = AllIcons.Nodes.TreeRightArrow;
+    myExpandedIcon = AllIcons.General.ArrowDown;
+    myCollapsedIcon = AllIcons.General.ArrowRight;
 
     myTitleComponent = new SimpleColoredComponent();
     myTitleComponent.append(title, REGULAR_BOLD_ATTRIBUTES);
