@@ -338,7 +338,7 @@ public class TestUtils {
 
   @NonNull
   public static File getMockJdk() {
-    return new File(PathManager.getCommunityHomePath(), "java/mockJDK-17");
+    return new File(PathManager.getCommunityHomePath(), "java/mockJDK-11");
   }
 
   /**
