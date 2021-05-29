@@ -109,7 +109,7 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         // failed, and we definitely don't want any exceptions to leak to our users here, to be safe
         // we just catch and log all possible problems.
         catch (e: Throwable) {
-          getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\"", e)
+          getLog().infoWithDebug("Skipping over \"${inputData.file.path}\"", e)
           return null
         }
       }
