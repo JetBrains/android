@@ -16,6 +16,7 @@
 
 package com.android.testutils;
 
+import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
@@ -24,14 +25,13 @@ import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
+import com.intellij.openapi.application.PathManager;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import com.intellij.openapi.application.PathManager;
 import junit.framework.TestCase;
 
 /**
@@ -75,29 +74,11 @@ public class TestUtils {
    */
   @NonNull
   public static String getKotlinVersionForTests() {
-    try {
-      String version = Files.readLines(getKotlinVersionFile(), Charsets.UTF_8).get(0);
-      if (version.contains("-release-")) {
-        version = version.substring(0, version.indexOf("-release-"));
-      }
-      return version;
-    } catch (IOException ex) {
-      throw new IllegalStateException("Could not determine Kotlin plugin version", ex);
+    String version = bundledRuntimeVersion();
+    if (version.contains("-release-")) {
+      version = version.substring(0, version.indexOf("-release-"));
     }
-  }
-
-  @NonNull
-  private static File getKotlinVersionFile() {
-    if (System.getProperty("idea.gui.test.running.on.release") != null) {
-      File homePath =
-        new File(System.getProperty("idea.gui.test.remote.ide.path"))
-          .getParentFile()
-          .getParentFile();
-      return new File(homePath, "plugins/Kotlin/kotlinc/build.txt");
-    } else {
-      return getWorkspaceFile(
-        "prebuilts/tools/common/kotlin-plugin/Kotlin/kotlinc/build.txt");
-    }
+    return version;
   }
 
   /**
