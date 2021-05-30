@@ -291,8 +291,9 @@ class ExportToFileController(
       "a system property $SQLITE3_PATH_PROPERTY pointing to the file."
     )
     val commandResponse = SqliteCliClientImpl(sqlite3, taskDispatcher).runSqliteCliCommand(args)
-    if (commandResponse.exitCode != 0) {
-      throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.")
+    if (commandResponse.exitCode != 0 || commandResponse.errOutput.isNotBlank()) {
+      val errorSuffix = if (commandResponse.errOutput.isNotBlank()) " Error: ${commandResponse.errOutput}." else ""
+      throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.$errorSuffix")
     }
   }
 

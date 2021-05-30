@@ -47,6 +47,7 @@ interface SqliteCliClient {
 
 data class SqliteCliArg(val rawArg: String)
 
+/** Note in some cases [exitCode] can be `0` despite an error - inspecting [errOutput] can be used to detect such scenarios. */
 data class SqliteCliResponse(val exitCode: Int, val stdOutput: String, val errOutput: String)
 
 class SqliteCliArgs private constructor() {
