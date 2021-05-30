@@ -36,7 +36,6 @@ import org.hamcrest.Matchers.nullValue
 import org.jetbrains.annotations.Contract
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Assume.assumeThat
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -60,24 +59,8 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
     }
   }
 
-  @RunWith(Parameterized::class)
-  @Ignore
-  class Agp41 : ApkProviderIntegrationTestCase() {
-    companion object {
-      @Suppress("unused")
-      @Contract(pure = true)
-      @JvmStatic
-      @Parameterized.Parameters(name = "{0}")
-      fun testProjects(): Collection<*> {
-        return tests
-          .map { it.copy(agpVersion = "4.1.0") }
-          .map { listOf(it).toTypedArray() }
-      }
-    }
-  }
-
   companion object {
-    private val tests =
+    val tests =
       listOf(
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX before build",
@@ -201,6 +184,8 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           """
         ),
         TestDefinition(
+          // Do not run with the current version of the AGP.
+          IGNORE = { if (agpVersion == null) TODO("b/189202602") },
           name = "DYNAMIC_APP feature test run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
           targetRunConfiguration = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
@@ -210,6 +195,10 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
             Files:
               base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
               base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+              dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
+              dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
+              feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
+              feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.example.feature1.test
@@ -272,7 +261,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   }
 
   data class TestDefinition(
-    val IGNORE: () -> Nothing? = { null },
+    val IGNORE: TestDefinition.() -> Unit = { },
     val name: String = "",
     val device: Int = 30,
     val testProject: String = "",

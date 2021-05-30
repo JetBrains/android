@@ -188,3 +188,19 @@ class ApkProviderOldAgpIntegrationTest : ApkProviderIntegrationTestCase() {
     )
   }
 }
+
+@RunWith(Parameterized::class)
+class ApkProviderAgp41IntegrationTest : ApkProviderIntegrationTestCase() {
+  companion object {
+    @Suppress("unused")
+    @Contract(pure = true)
+    @JvmStatic
+    @Parameterized.Parameters(name = "{0}")
+    fun testProjects(): Collection<*> {
+      return tests
+        .map { it.copy(agpVersion = "4.1.0") }
+        .map { listOf(it).toTypedArray() }
+    }
+  }
+}
+
