@@ -90,6 +90,11 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
+import com.intellij.util.io.delete
+import com.intellij.util.io.exists
+import com.intellij.util.io.isDirectory
+import com.intellij.util.io.isFile
+import com.intellij.util.io.size
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -145,8 +150,10 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val testConfigurations = listOf(
-      TestConfig(DatabaseType.File),
-      TestConfig(DatabaseType.Live)
+      TestConfig(DatabaseType.File, targetFileAlreadyExists = true),
+      TestConfig(DatabaseType.File, targetFileAlreadyExists = false),
+      TestConfig(DatabaseType.Live, targetFileAlreadyExists = true),
+      TestConfig(DatabaseType.Live, targetFileAlreadyExists = false)
     )
   }
 
@@ -333,6 +340,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   ) {
     // then: compare output file(s) with expected output
     val stopwatch = Stopwatch.createStarted()
+    requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
     submitExportRequest(exportRequest)
     verify(exportInProgressListener).invoke(controller.lastExportJob!!)
     awaitExportComplete(5000L)
@@ -444,8 +452,9 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     runDispatching { databaseRepository.addDatabaseConnection(databaseId, connection) }
 
     // submit export request
-    val exportRequest = ExportTableRequest(databaseId, "ignored", CSV(SEMICOLON), Paths.get("/dst/path"))
+    val exportRequest = ExportTableRequest(databaseId, "ignored", CSV(SEMICOLON), tempDirTestFixture.toNioPath().resolve(outputFileName))
     val stopwatch = Stopwatch.createStarted()
+    requireEmptyFileAtDestination(exportRequest.dstPath, testConfig.targetFileAlreadyExists)
     submitExportRequest(exportRequest)
 
     // verify that in-progress-listener (responsible for the progress bar) got called
@@ -573,6 +582,32 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun submitExportRequest(exportRequest: ExportRequest) =
     runDispatching { view.listeners.forEach { it.exportRequestSubmitted(exportRequest) } }
 
+  /**
+   * By enforcing an empty file at destination (if [shouldExist]) we prevent files from previous test runs from causing a false positive
+   * test outcome.
+   */
+  private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
+    // Directory case is unusual, and better to fail than accidentally delete too much data.
+    assertWithMessage("Export target ($path) is an existing directory. Expecting a file or a new path.").that(path.isDirectory()).isFalse()
+
+    when {
+      path.exists() -> when {
+        !shouldExist -> path.delete()
+        shouldExist && path.size() > 0 -> {
+          path.delete()
+          path.createFile()
+        }
+      }
+      shouldExist -> path.createFile()
+    }
+
+    assertThat(path.exists()).isEqualTo(shouldExist)
+    if (shouldExist) {
+      assertThat(path.isFile()).isTrue()
+      assertThat(path.size()).isEqualTo(0)
+    }
+  }
+
   @Suppress("SameParameterValue")
   private fun awaitExportComplete(timeoutMs: Long) = runDispatching {
     withTimeout(timeoutMs) { controller.lastExportJob!!.join() }
@@ -641,7 +676,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
   enum class DatabaseType { Live, File }
 
-  data class TestConfig(val databaseType: DatabaseType)
+  data class TestConfig(val databaseType: DatabaseType, val targetFileAlreadyExists: Boolean)
 }
 
 private fun SqliteCliResponse.checkSuccess(): SqliteCliResponse = apply {
