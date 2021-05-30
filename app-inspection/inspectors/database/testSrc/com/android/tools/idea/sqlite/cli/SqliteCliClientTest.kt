@@ -125,7 +125,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .database(databaseFile)
         .apply { values.forEach { raw("insert into '$table1' values ($it);") } }
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // query the database and verify output
     run {
@@ -160,7 +163,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .database(databaseFile)
         .raw("create table '$table1' ('$column1' int, '$column2' text, '$column3' int);")
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // populate table
     client.runSqliteCliCommand(
@@ -171,7 +177,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .raw("insert into '$table1' values (4,5,6);")
         .raw("insert into '$table1' values (7,8,9);")
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // export to csv file - no headers, separator=|
     val outputFile1 = tempDirTestFixture.createFile(outputFile1).toNioPath().also { it.delete() }
@@ -184,7 +193,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .separator('|')
         .queryTableContents(table1)
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // export to csv file - with headers, separator=;
     val outputFile2 = tempDirTestFixture.createFile(outputFile2).toNioPath().also { it.delete() }
@@ -198,7 +210,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .separator(';')
         .queryTableContents(table1)
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // verify content no headers, separator=|
     assertThat(outputFile1.toLines().toList()).isEqualTo(listOf(
@@ -236,7 +251,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .raw("create table '$table2' ('$column11' int, '$column22' text, '$column33' blob);")
         .raw("create view '$view1' as select * from '$table1';")
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // populate tables
     client.runSqliteCliCommand(
@@ -248,7 +266,10 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .raw("insert into '$table2' values (11,22,33);")
         .raw("insert into '$table2' values (44,55,66);")
         .build())
-      .also { assertThat(it.exitCode).isEqualTo(0) }
+      .also {
+        assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
+      }
 
     // query table list
     client.runSqliteCliCommand(
@@ -259,6 +280,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
         assertThat(it.stdOutput).isEqualTo(table1 + lineSeparator() + table2)
       }
 
@@ -271,6 +293,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
         assertThat(it.stdOutput).isEqualTo(view1)
       }
 
@@ -283,6 +306,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
         assertThat(it.stdOutput).ignoringCase().isEqualTo(
           "PRAGMA foreign_keys=OFF;" + lineSeparator() +
           "BEGIN TRANSACTION;" + lineSeparator() +
@@ -302,6 +326,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
         assertThat(it.stdOutput).ignoringCase().isEqualTo(
           "PRAGMA foreign_keys=OFF;" + lineSeparator() +
           "BEGIN TRANSACTION;" + lineSeparator() +
@@ -327,6 +352,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
+        assertThat(it.errOutput).isEmpty()
       }
 
     // check if clone the same as original
@@ -339,9 +365,28 @@ class SqliteCliClientTest : LightPlatformTestCase() {
           .build())
         .let {
           assertThat(it.exitCode).isEqualTo(0)
+          assertThat(it.errOutput).isEmpty()
           it.stdOutput
         }
     }
     assertThat(dump1).isEqualTo(dump2)
+  }
+
+  /**
+   * Captures a scenario in which [SqliteCliResponse.exitCode] is `0` despite the command failing.
+   * The error can still be detected by inspecting [SqliteCliResponse.errOutput].
+   */
+  fun testErrorMessageAndExitCodeSuccess() = runBlocking {
+    val dstPath = tempDirTestFixture.createFile(outputFile1).toNioPath()
+
+    val response = client.runSqliteCliCommand(
+      SqliteCliArgs
+        .builder()
+        .database(databaseFile)
+        .clone(dstPath)
+        .build())
+
+    assertThat(response.exitCode).isEqualTo(0)
+    assertThat(response.errOutput).contains(dstPath.toString())
   }
 }
