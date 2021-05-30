@@ -56,6 +56,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.delete
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import kotlinx.coroutines.CancellationException
@@ -268,6 +269,11 @@ class ExportToFileController(
     }
 
   private suspend fun cloneDatabase(srcPath: Path, dstPath: Path) = withContext(taskDispatcher) {
+    when {
+      dstPath.isDirectory() -> throw IllegalArgumentException("Destination path ($dstPath) points to an existing directory.")
+      dstPath.exists() -> dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
+    }
+
     runSqliteCliCommand(
       SqliteCliArgs
         .builder()
