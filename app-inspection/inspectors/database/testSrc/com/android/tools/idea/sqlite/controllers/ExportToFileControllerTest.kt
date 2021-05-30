@@ -63,6 +63,7 @@ import com.android.tools.idea.sqlite.utils.getJdbcDatabaseConnection
 import com.android.tools.idea.sqlite.utils.initAdbFileProvider
 import com.android.tools.idea.sqlite.utils.toLines
 import com.android.tools.idea.sqlite.utils.unzipTo
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
@@ -74,11 +75,14 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.SourceFormat
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.IdeaTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
@@ -86,6 +90,7 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
+import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -95,6 +100,13 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.ide.PooledThreadExecutor
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
@@ -123,12 +135,31 @@ private const val databaseFileName = "db$nonAsciiSuffix.db"
 private const val outputFileName = "output$nonAsciiSuffix.out"
 private const val downloadFolderName = "downloaded$nonAsciiSuffix"
 
-/** Keeps connection ids unique */
-private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
-
 // TODO(161081452): add in-memory database test coverage
 @Suppress("IncorrectParentDisposable")
-class ExportToFileControllerTest : LightPlatformTestCase() {
+@RunsInEdt
+@RunWith(Parameterized::class)
+class ExportToFileControllerTest(private val testConfig: TestConfig) {
+  companion object {
+    @Suppress("unused") // Used by JUnit via reflection
+    @JvmStatic
+    @get:Parameterized.Parameters(name = "{0}")
+    val testConfigurations = listOf(
+      TestConfig(DatabaseType.File),
+      TestConfig(DatabaseType.Live)
+    )
+  }
+
+  private val projectRule = AndroidProjectRule.onDisk()
+
+  // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
+  // initialized on the EDT.
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  /** Keeps connection ids unique */
+  private val nextConnectionId: () -> Int = run { var next = 1; { next++ } }
+
   private lateinit var exportInProgressListener: (Job) -> Unit
   private lateinit var exportProcessedListener: ExportProcessedListener
 
@@ -146,8 +177,12 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   private lateinit var view: FakeExportToFileDialogView
   private lateinit var controller: ExportToFileController
 
-  override fun setUp() {
-    super.setUp()
+  private lateinit var project: Project
+  private lateinit var testRootDisposable: Disposable
+
+  @Before fun setUp() {
+    project = projectRule.project
+    testRootDisposable = projectRule.fixture.testRootDisposable
 
     exportInProgressListener = mock()
     exportProcessedListener = ExportProcessedListener()
@@ -192,20 +227,15 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     Disposer.register(testRootDisposable, controller)
   }
 
-  override fun tearDown() {
+  @After fun tearDown() {
     databaseDownloadTestFixture.tearDown()
     runDispatching { databaseRepository.clear() }
     tempDirTestFixture.tearDown()
     databaseLockingTestFixture.tearDown()
-    super.tearDown()
   }
 
-  fun testExportQueryToCsvFileDb() = testExportQueryToCsv(DatabaseType.File)
-
-  fun testExportQueryToCsvLiveDb() = testExportQueryToCsv(DatabaseType.Live)
-
-  private fun testExportQueryToCsv(databaseType: DatabaseType) {
-    val database = createEmptyDatabase(databaseType)
+  @Test fun testExportQueryToCsv() {
+    val database = createEmptyDatabase(testConfig.databaseType)
     val values = populateDatabase(database, listOf(table1), listOf(view1)).single().content
 
     val statement = createSqliteStatement("select * from '$table1' where cast(\"$column1\" as text) > cast(5 as text)")
@@ -218,12 +248,8 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     }
   }
 
-  fun testExportTableToCsvFileDb() = testExportTableToCsv(DatabaseType.File)
-
-  fun testExportTableToCsvLiveDb() = testExportTableToCsv(DatabaseType.Live)
-
-  private fun testExportTableToCsv(databaseType: DatabaseType) {
-    val database = createEmptyDatabase(databaseType)
+  @Test fun testExportTableToCsv() {
+    val database = createEmptyDatabase(testConfig.databaseType)
     val values = populateDatabase(database, listOf(table1), listOf(view1)).single().content
 
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
@@ -232,14 +258,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExport(exportRequest, expectedValues = values.toCsvOutputLines(exportRequest.delimiter))
   }
 
-  fun testExportTableToSqlFileDb() = testExportTableToSql(DatabaseType.File)
-
-  fun testExportTableToSqlLiveDb() = testExportTableToSql(DatabaseType.Live)
-
-  private fun testExportTableToSql(databaseType: DatabaseType) {
+  @Test fun testExportTableToSql() {
     val targetTable = table1
     testExportToSql(
-      databaseType = databaseType,
+      databaseType = testConfig.databaseType,
       databaseTables = listOf(table1, table2, table3),
       exportRequestCreator = { database, dstPath -> ExportTableRequest(database, targetTable, SQL, dstPath) },
       expectedTableNames = listOf(targetTable),
@@ -247,14 +269,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     )
   }
 
-  fun testExportDatabaseToSqlFileDb() = testExportDatabaseToSql(DatabaseType.File)
-
-  fun testExportDatabaseToSqlLiveDb() = testExportDatabaseToSql(DatabaseType.Live)
-
-  private fun testExportDatabaseToSql(databaseType: DatabaseType) {
+  @Test fun testExportDatabaseToSql() {
     val databaseTables = listOf(table1, table2, table3)
     testExportToSql(
-      databaseType = databaseType,
+      databaseType = testConfig.databaseType,
       databaseTables = databaseTables,
       exportRequestCreator = { database, dstPath -> ExportDatabaseRequest(database, SQL, dstPath) },
       expectedTableNames = databaseTables,
@@ -410,7 +428,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
   }
 
   @Suppress("BlockingMethodInNonBlockingContext") // [CountDownLatch#await]
-  fun testExportCancelledByTheUser() {
+  @Test fun testExportCancelledByTheUser() {
     // set up a database
     val connection: DatabaseConnection = mock()
 
@@ -449,13 +467,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     assertAnalyticsTrackerCall(analyticsTracker, exportRequest, stopwatch.elapsed(MILLISECONDS), Outcome.CANCELLED_BY_USER_OUTCOME)
   }
 
-  fun testExportDatabaseToCsvFileDb() = testExportDatabaseToCsv(DatabaseType.File)
-
-  fun testExportDatabaseToCsvLiveDb() = testExportDatabaseToCsv(DatabaseType.Live)
-
-  private fun testExportDatabaseToCsv(databaseType: DatabaseType) {
+  @Test fun testExportDatabaseToCsv() {
     // given: a database with a number of tables
-    val database = createEmptyDatabase(databaseType)
+    val database = createEmptyDatabase(testConfig.databaseType)
     val tableValuePairs = populateDatabase(database, listOf(table1, table2, table3), listOf(view1, view2))
 
     val dstPath = tempDirTestFixture.toNioPath().resolve("$outputFileName.zip")
@@ -470,13 +484,9 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     testExport(exportRequest, decompress, expectedOutput)
   }
 
-  fun testExportDatabaseToDbLiveDb() = testExportDatabaseToDb(DatabaseType.Live)
-
-  fun testExportDatabaseToDbFileDb() = testExportDatabaseToDb(DatabaseType.File)
-
-  private fun testExportDatabaseToDb(databaseType: DatabaseType) {
+  @Test fun testExportDatabaseToDb() {
     // given: a database
-    val database = createEmptyDatabase(databaseType)
+    val database = createEmptyDatabase(testConfig.databaseType)
     val expectedTables = listOf(table1, table2, table3)
     val expectedViews = listOf(view1, view2)
     populateDatabase(database, expectedTables, expectedViews)
@@ -524,14 +534,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       is LiveSqliteDatabaseId -> Paths.get(path) // we use the fact that in the test setup, live db is backed by a local file
     }
 
-  fun testInvalidRequestFileDb() = testInvalidRequest(DatabaseType.File)
-
-  fun testInvalidRequestLiveDb() = testInvalidRequest(DatabaseType.Live)
-
-  private fun testInvalidRequest(databaseType: DatabaseType) {
+  @Test fun testInvalidRequest() {
     // given: an invalid request
     val exportRequest = ExportTableRequest(
-      createEmptyDatabase(databaseType),
+      createEmptyDatabase(testConfig.databaseType),
       "non-existing-table", // this will cause an exception (we are a database without any tables)
       CSV(TAB),
       tempDirTestFixture.createFile("ignored-output-file").toNioPath()
@@ -559,7 +565,7 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
     )
   }
 
-  fun testNextConnectionId() {
+  @Test fun testNextConnectionId() {
     assertThat((1..5).map { nextConnectionId() }).isEqualTo((1..5).toList())
     assertThat((1..5).map { nextConnectionId() }).isEqualTo((6..10).toList())
   }
@@ -632,6 +638,10 @@ class ExportToFileControllerTest : LightPlatformTestCase() {
       sqliteCliClient.runSqliteCliCommand(args)
     }
   }
+
+  enum class DatabaseType { Live, File }
+
+  data class TestConfig(val databaseType: DatabaseType)
 }
 
 private fun SqliteCliResponse.checkSuccess(): SqliteCliResponse = apply {
@@ -641,8 +651,6 @@ private fun SqliteCliResponse.checkSuccess(): SqliteCliResponse = apply {
 private fun TempDirTestFixture.toNioPath() = File(tempDirPath).toPath()
 
 private val ExportRequest.delimiter get(): Char = (format as CSV).delimiter.delimiter
-
-private enum class DatabaseType { Live, File }
 
 private sealed class DumpCommand(open val setOnBuilder: (SqliteCliArgs.Builder) -> Unit) {
   object DumpDatabase : DumpCommand({ it.dump() })
