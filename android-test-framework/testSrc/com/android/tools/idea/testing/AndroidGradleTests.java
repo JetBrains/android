@@ -668,7 +668,7 @@ public class AndroidGradleTests {
   }
 
   public static void overrideJdkTo8() throws IOException {
-    String jdk8Path = getEmbeddedJdk8Path();
+    String jdk8Path = TestUtils.getEmbeddedJdk8Path();
     @NotNull IdeSdks ideSdks = IdeSdks.getInstance();
     LOG.info("Using JDK from " + jdk8Path);
     ideSdks.overrideJdkEnvVariable(jdk8Path);
@@ -677,24 +677,5 @@ public class AndroidGradleTests {
 
   public static void restoreJdk() {
     IdeSdks.getInstance().cleanJdkEnvVariableInitialization();
-  }
-
-  public static String getEmbeddedJdk8Path() throws IOException {
-    String sourcesRoot = getSourcesRoot();
-    String jdkDevPath = System.getProperty("studio.dev.jdk", Paths.get(sourcesRoot, "prebuilts/studio/jdk").toString());
-    String relativePath = toSystemDependentName(jdkDevPath);
-    File jdkRootPath = new File(toCanonicalPath(relativePath));
-    if (SystemInfo.isWindows) {
-      // For JDK8 we have 32 and 64 bits versions on Windows
-      jdkRootPath = new File(jdkRootPath, "win64");
-    }
-    else if (SystemInfo.isLinux) {
-      jdkRootPath = new File(jdkRootPath, "linux");
-    }
-    else if (SystemInfo.isMac) {
-      jdkRootPath = new File(jdkRootPath, "mac");
-      jdkRootPath = new File(jdkRootPath, MAC_JDK_CONTENT_PATH);
-    }
-    return jdkRootPath.getCanonicalPath();
   }
 }

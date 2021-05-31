@@ -16,6 +16,8 @@
 
 package com.android.testutils;
 
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -41,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import com.intellij.openapi.util.SystemInfo;
 import junit.framework.TestCase;
 
 /**
@@ -288,6 +292,12 @@ public class TestUtils {
   @NonNull
   public static File getMockJdk() {
     return new File(PathManager.getCommunityHomePath(), "java/mockJDK-11");
+  }
+
+  public static String getEmbeddedJdk8Path() throws IOException {
+    String jdkDevPath = System.getProperty("android.test.embedded.jdk");
+    assert jdkDevPath != null: "Please specify env variable 'android.test.embedded.jdk' pointing to JDK 1.8";
+    return jdkDevPath;
   }
 
   /**
