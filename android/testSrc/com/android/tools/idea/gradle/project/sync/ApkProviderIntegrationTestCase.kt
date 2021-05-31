@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.AGP_35
+import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.AGP_40
+import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.CURRENT
 import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.TargetRunConfiguration.TestTargetRunConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -66,9 +69,17 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "APPLICATION_ID_SUFFIX before build",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
           executeMakeBeforeRun = false,
-          expectApks = """
-            ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
-          """
+          expectApks = mapOf(
+            CURRENT to """
+              ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/outputs/apk/debug/output-metadata.json
+            """,
+            AGP_40 to """
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+            """,
+            AGP_35 to """
+              ApkProvisionException*> Couldn't get post build model. Module: Application_ID_Suffix_Test_App.app Variant: debug
+            """
+          )
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX run configuration",
@@ -147,21 +158,38 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "DYNAMIC_APP test run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
           targetRunConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
-          expectApks = """
-            ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
-            Files:
-              simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
-              simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
-              simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
-            RequiredInstallationOptions: []
+          expectApks = mapOf(
+            CURRENT to """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
+                simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
+                simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+              RequiredInstallationOptions: []
 
-            ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            Files:
-               -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            RequiredInstallationOptions: []
-          """
+              ApplicationId: google.simpleapplication.test
+              File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+              Files:
+                 -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """,
+            AGP_35 to """
+                ApplicationId: google.simpleapplication
+                File: *>java.lang.IllegalArgumentException
+                Files:
+                  simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
+                  simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
+                  simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
+                RequiredInstallationOptions: []
+
+                ApplicationId: google.simpleapplication.test
+                File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+                Files:
+                   -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+                RequiredInstallationOptions: []
+            """
+          )
         ),
         TestDefinition(
           IGNORE = { TODO("b/189190337") },
@@ -185,28 +213,66 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         ),
         TestDefinition(
           // Do not run with the current version of the AGP.
-          IGNORE = { if (agpVersion == null) TODO("b/189202602") },
+          IGNORE = { if (agpVersion == CURRENT) TODO("b/189202602") },
           name = "DYNAMIC_APP feature test run configuration",
           testProject = TestProjectPaths.DYNAMIC_APP,
           targetRunConfiguration = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
-          expectApks = """
-            ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
-            Files:
-              base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
-              base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
-              dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
-              dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
-              feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
-              feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
-            RequiredInstallationOptions: []
+          expectApks = mapOf(
+            CURRENT to """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
+              RequiredInstallationOptions: []
 
-            ApplicationId: com.example.feature1.test
-            File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-            Files:
-               -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-            RequiredInstallationOptions: []
-          """
+              ApplicationId: com.example.feature1.test
+              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """,
+            AGP_40 to """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/out/dependsOnFeature1-master.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/out/dependsOnFeature1-mdpi.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/out/feature1-master.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/out/feature1-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """,
+            AGP_35 to """
+              ApplicationId: google.simpleapplication
+              File: *>java.lang.IllegalArgumentException
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/dependsOnFeature1-master.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/dependsOnFeature1-mdpi.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/feature1-master.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/feature1-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """
+          )
         ),
         TestDefinition(
           name = "BUDDY_APKS test run configuration",
@@ -236,15 +302,26 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "SIMPLE_APPLICATION validate release",
           testProject = TestProjectPaths.SIMPLE_APPLICATION,
           variant = ":app" to "release",
-          expectValidate = "The apk for your currently selected variant (app-release-unsigned.apk) is not signed." +
-                           " Please specify a signing configuration for this variant (release).",
-          expectApks = """
-            ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/apk/release/app-release-unsigned.apk
-            Files:
-              project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
-            RequiredInstallationOptions: []
-          """
+          expectValidate = mapOf(
+            CURRENT to "The apk for your currently selected variant (app-release-unsigned.apk) is not signed." +
+              " Please specify a signing configuration for this variant (release).",
+            AGP_40 to "The apk for your currently selected variant (Unknown output) is not signed. " +
+              "Please specify a signing configuration for this variant (release).",
+            AGP_35 to "The apk for your currently selected variant (app-release.apk) is not signed. " +
+              "Please specify a signing configuration for this variant (release)."
+          ),
+          expectApks = mapOf(
+            CURRENT to """
+              ApplicationId: google.simpleapplication
+              File: project/app/build/outputs/apk/release/app-release-unsigned.apk
+              Files:
+                project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
+              RequiredInstallationOptions: []
+            """,
+            AGP_40 to """
+              ApkProvisionException*> Couldn't get post build model. Module: project.app Variant: release
+            """
+          )
         ),
       )
   }
@@ -260,20 +337,55 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
     data class TestTargetRunConfiguration(val testClassFqn: String) : TargetRunConfiguration()
   }
 
+  enum class AgpVersion(val forGradle: String?) {
+    CURRENT(null),
+    AGP_35("3.5.0"),
+    AGP_40("4.0.0"),
+    AGP_41("4.1.0")
+  }
+
   data class TestDefinition(
     val IGNORE: TestDefinition.() -> Unit = { },
     val name: String = "",
     val device: Int = 30,
     val testProject: String = "",
     val variant: Pair<String, String>? = null,
-    val agpVersion: String? = null,
+    val agpVersion: AgpVersion = CURRENT,
     val gradleVersion: String? = null,
     val kotlinVersion: String? = null,
     val executeMakeBeforeRun: Boolean = true,
     val targetRunConfiguration: TargetRunConfiguration = TargetRunConfiguration.AppTargetRunConfiguration,
-    val expectApks: String = "",
-    val expectValidate: String = "",
+    val expectApks: Map<AgpVersion, String> = mapOf(),
+    val expectValidate: Map<AgpVersion, String> = mapOf(),
   ) {
+    constructor (
+      IGNORE: TestDefinition.() -> Unit = { },
+      name: String = "",
+      device: Int = 30,
+      testProject: String = "",
+      variant: Pair<String, String>? = null,
+      agpVersion: AgpVersion = CURRENT,
+      gradleVersion: String? = null,
+      kotlinVersion: String? = null,
+      executeMakeBeforeRun: Boolean = true,
+      targetRunConfiguration: TargetRunConfiguration = TargetRunConfiguration.AppTargetRunConfiguration,
+      expectApks: String,
+      expectValidate: String? = null
+    ) : this(
+      IGNORE = IGNORE,
+      name = name,
+      device = device,
+      testProject = testProject,
+      variant = variant,
+      agpVersion = agpVersion,
+      gradleVersion = gradleVersion,
+      kotlinVersion = kotlinVersion,
+      executeMakeBeforeRun = executeMakeBeforeRun,
+      targetRunConfiguration = targetRunConfiguration,
+      expectApks = mapOf(CURRENT to expectApks),
+      expectValidate = expectValidate?.let { mapOf(CURRENT to expectValidate) } ?: emptyMap()
+    )
+
     override fun toString(): String = name
   }
 
@@ -285,8 +397,15 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   fun testApkProvider() {
     with(testDefinition!!) {
       assumeThat(runCatching { IGNORE() }.exceptionOrNull(), nullValue())
+
+      fun Map<AgpVersion, String>.forVersion() = (this[agpVersion] ?: this[CURRENT])?.trimIndent().orEmpty()
+
       prepareGradleProject(
-        testProject, "project", gradleVersion = gradleVersion, gradlePluginVersion = agpVersion, kotlinVersion = kotlinVersion
+        testProject,
+        "project",
+        gradleVersion = gradleVersion,
+        gradlePluginVersion = agpVersion.forGradle,
+        kotlinVersion = kotlinVersion
       )
 
       openPreparedProject("project") { project ->
@@ -307,10 +426,10 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         }
         val apkProvider = project.getProjectSystem().getApkProvider(runConfiguration)!!
 
-        assertThat(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.trimIndent())
+        assertThat(apkProvider.validate().joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
         val apks = runCatching { apkProvider.getApks(device) }
-        assertThat(apks.toTestString()).isEqualTo(expectApks.trimIndent())
+        assertThat(apks.toTestString()).isEqualTo(expectApks.forVersion())
       }
     }
   }
