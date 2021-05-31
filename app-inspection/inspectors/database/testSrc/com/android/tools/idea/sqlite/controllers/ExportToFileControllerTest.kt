@@ -235,6 +235,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       exportProcessedListener::onExportError
     )
     controller.setUp()
+    controller.queryRowBatchSize = 3 // simulates scenarios where a query returns more rows than we allow in a result batch
     Disposer.register(testRootDisposable, controller)
   }
 
