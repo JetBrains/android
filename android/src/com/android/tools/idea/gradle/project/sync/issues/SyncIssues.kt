@@ -31,15 +31,6 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findProjec
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.Serializable
-
-data class SyncIssueData(
-  val message: String,
-  val data: String?,
-  val multiLineMessage: List<String>?,
-  val severity: Int,
-  val type: Int
-): Serializable
 
 class SyncIssues(private val issues: List<SyncIssueData>) : List<SyncIssueData> by issues {
   companion object {

@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
   </component>
 </module>
