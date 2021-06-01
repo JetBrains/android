@@ -51,7 +51,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-skia-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="layoutinspector-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
@@ -63,6 +63,5 @@
     <orderEntry type="module" module-name="studio" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-view-proto" level="project" />
   </component>
 </module>

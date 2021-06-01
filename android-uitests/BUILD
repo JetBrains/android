@@ -83,7 +83,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
         "//tools/adt/idea/.idea/libraries:transport-proto[test]",
-        "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto[test]",
+        "//tools/adt/idea/.idea/libraries:layoutinspector-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
@@ -95,7 +95,6 @@ iml_module(
         "//tools/adt/idea/studio[module, test]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
     ],
 )
 

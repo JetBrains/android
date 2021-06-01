@@ -22,7 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
+    <orderEntry type="library" name="layoutinspector-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="analytics-tracker" />
@@ -31,8 +31,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
-    <orderEntry type="library" name="layoutinspector-view-proto" level="project" />
-    <orderEntry type="library" name="layoutinspector-compose-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android-layout-inspector" />
   </component>
