@@ -207,7 +207,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     val ideSupport = LintIdeSupport.get()
     for (problemData in lintResult.problems) {
       val issue = problemData.issue
-      val message = problemData.message
+      val rawMessage = problemData.message
       val range = problemData.textRange
       val quickfixData = problemData.quickfixData
       if (range.startOffset == range.endOffset) {
@@ -244,6 +244,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         } else {
           HighlightInfo.convertSeverityToProblemHighlight(severity)
         }
+
+      // Long warning messages can freeze the IDE due to text layout overhead in Swing.
+      // See https://issuetracker.google.com/178779561 for an example (should be a very rare case).
+      val message = if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
 
       // This description link is not displayed. It is parsed by IDEA to
       // populate the "Show Inspection Description" action.
