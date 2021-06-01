@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.updater.configure
 
-import com.android.repository.Revision
 import com.android.repository.api.UpdatablePackage
-import com.android.repository.testframework.FakePackage
-import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.mock
 
@@ -53,20 +50,4 @@ class ToolComponentsPanelTest {
       Node("bar"),
       Node("foo"))), panel.myToolsDetailsRootNode)
   }
-
-  data class Node(val nodeName: String, val children: List<Node>? = null)
-
-  private fun verifyNodes(expected: Node, actual: UpdaterTreeNode) {
-    val renderer = UpdaterTreeNode.Renderer()
-    actual.customizeRenderer(renderer, null, false, false, false, 0, false)
-    assertEquals(expected.nodeName, renderer.textRenderer.toString())
-    assertEquals(expected.children?.size ?: 0, actual.childCount)
-    expected.children?.zip(actual.children().toList())?.forEach { (expected, actual) -> verifyNodes(expected, actual as UpdaterTreeNode) }
-  }
-
-  private fun createLocalPackage(path: String, major: Int, minor: Int? = null, micro: Int? = null, preview: Int? = null) =
-    FakePackage.FakeLocalPackage(path).apply {
-      setRevision(Revision(major, minor, micro, preview))
-      displayName = path
-    }
 }
