@@ -17,21 +17,18 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.net.Socket
-import java.util.ArrayDeque
 
 class DebugViewAttributesTest {
-  private val commandHandler = ShellCommandHandler()
+  private val commandHandler = FakeShellCommandHandler()
   private val projectRule = AndroidProjectRule.inMemory()
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private lateinit var debugViewAttributes: DebugViewAttributes
@@ -56,12 +53,12 @@ class DebugViewAttributesTest {
     debugViewAttributes.set()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(1)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
     debugViewAttributes.clear()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(2)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
@@ -71,12 +68,12 @@ class DebugViewAttributesTest {
     debugViewAttributes.set()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("0")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(1)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
     debugViewAttributes.clear()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("0")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(2)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 
   @Test
@@ -86,12 +83,12 @@ class DebugViewAttributesTest {
     debugViewAttributes.set()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(0)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
     debugViewAttributes.clear()
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(0)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }
 
   @Test
@@ -101,12 +98,12 @@ class DebugViewAttributesTest {
     debugViewAttributes.set()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(0)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
 
     debugViewAttributes.clear()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(0)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
   }
 
   @Test
@@ -116,53 +113,11 @@ class DebugViewAttributesTest {
     debugViewAttributes.set()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(processName)
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(1)
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(1)
 
     debugViewAttributes.clear()
     assertThat(commandHandler.debugViewAttributes).isNull()
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isNull()
-    assertThat(commandHandler.debugViewAttributesChanges).isEqualTo(2)
-  }
-
-  private class ShellCommandHandler : DeviceCommandHandler("shell") {
-    var debugViewAttributes: String? = null
-    var debugViewAttributesApplicationPackage: String? = null
-    var debugViewAttributesChanges = 0
-
-    override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-      val response = when (command) {
-        "shell" -> handleShellCommand(args) ?: return false
-        else -> return false
-      }
-      writeOkay(socket.getOutputStream())
-      writeString(socket.getOutputStream(), response)
-      return true
-    }
-
-    private fun handleShellCommand(argsAsString: String): String? {
-      val args = ArrayDeque(argsAsString.split(' '))
-      if (args.poll() != "settings") {
-        return null
-      }
-      val operation = args.poll()
-      if (args.poll() != "global") {
-        return null
-      }
-      val variable = when (args.poll()) {
-        "debug_view_attributes" -> this::debugViewAttributes
-        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
-        else -> return null
-      }
-      val argument = if (args.isEmpty()) "" else args.poll()
-      if (args.isNotEmpty()) {
-        return null
-      }
-      return when (operation) {
-        "get" -> { variable.get().toString() }
-        "put" -> { variable.set(argument); debugViewAttributesChanges++; ""}
-        "delete" -> { variable.set(null); debugViewAttributesChanges++; ""}
-        else -> null
-      }
-    }
+    assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(2)
   }
 }
