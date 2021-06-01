@@ -92,6 +92,9 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
+  void setNameOverride(@NotNull Key key, @NotNull String nameOverride) {
+  }
+
   private void combineDevices() {
     Collection<PhysicalDevice> domainNameDevices = filterDevicesBy(DomainName.class);
     Collection<PhysicalDevice> serialNumberDevices = filterDevicesBy(SerialNumber.class);

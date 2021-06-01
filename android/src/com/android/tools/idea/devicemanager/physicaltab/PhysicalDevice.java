@@ -130,6 +130,10 @@ public final class PhysicalDevice extends Device implements Comparable<@NotNull 
     return StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE;
   }
 
+  @NotNull String getNameOverride() {
+    return myNameOverride;
+  }
+
   @Override
   public boolean isOnline() {
     return !myConnectionTypes.isEmpty();

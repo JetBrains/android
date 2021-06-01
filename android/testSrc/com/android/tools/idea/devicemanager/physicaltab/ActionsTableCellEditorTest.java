@@ -34,7 +34,7 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void getTableCellEditorComponent() {
     // Arrange
-    TableCellEditor editor = new ActionsTableCellEditor(Mockito.mock(Project.class));
+    TableCellEditor editor = new ActionsTableCellEditor(Mockito.mock(Project.class), Mockito.mock(PhysicalDeviceTableModel.class));
     JTable table = new JBTable(new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3)));
 
     // Act

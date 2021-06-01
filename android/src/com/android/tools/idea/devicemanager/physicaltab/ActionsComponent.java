@@ -21,84 +21,107 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
+import java.awt.Component;
 import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ActionsComponent extends JBPanel<ActionsComponent> {
   private final @Nullable Project myProject;
+  private final @Nullable PhysicalDeviceTableModel myModel;
   private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
+  private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
 
-  private @Nullable AbstractButton myDeviceFileExplorerButton;
-  private @Nullable AbstractButton myMoreButton;
+  private final @NotNull AbstractButton myActivateDeviceFileExplorerWindowButton;
+  private final @NotNull AbstractButton myEditDeviceNameButton;
+  private final @NotNull Component myMoreButton;
 
   private @Nullable PhysicalDevice myDevice;
 
-  ActionsComponent(@Nullable Project project) {
-    this(project, DeviceExplorerToolWindowFactory::openAndShowDevice);
+  ActionsComponent(@Nullable Project project, @Nullable PhysicalDeviceTableModel model) {
+    this(project, model, DeviceExplorerToolWindowFactory::openAndShowDevice, EditDeviceNameDialog::new);
   }
 
   @VisibleForTesting
-  ActionsComponent(@Nullable Project project, @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice) {
+  ActionsComponent(@Nullable Project project,
+                   @Nullable PhysicalDeviceTableModel model,
+                   @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice,
+                   @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog) {
     super(null);
 
     myProject = project;
+    myModel = model;
     myOpenAndShowDevice = openAndShowDevice;
+    myNewEditDeviceNameDialog = newEditDeviceNameDialog;
 
-    initDeviceFileExplorerButton();
-    initMoreButton();
+    myActivateDeviceFileExplorerWindowButton = newJButton(AllIcons.General.OpenDiskHover, this::activateDeviceFileExplorerWindow);
+    myEditDeviceNameButton = newJButton(AllIcons.Actions.Edit, this::editDeviceName);
+
+    myMoreButton = newJButton(AllIcons.Actions.More, () -> {
+    });
 
     setLayout();
   }
 
-  private void initDeviceFileExplorerButton() {
-    myDeviceFileExplorerButton = new JButton(AllIcons.General.OpenDiskHover);
+  private static @NotNull AbstractButton newJButton(@NotNull Icon icon, @NotNull Runnable runnable) {
+    AbstractButton button = new JButton(icon);
 
-    myDeviceFileExplorerButton.setBorderPainted(false);
-    myDeviceFileExplorerButton.setContentAreaFilled(false);
+    button.setBorderPainted(false);
+    button.setContentAreaFilled(false);
+    button.addActionListener(event -> runnable.run());
 
-    myDeviceFileExplorerButton.addActionListener(event -> {
-      // TODO(http://b/187856375) Does the Device File Explorer need to work from the Welcome to Android Studio window?
-      if (myProject == null) {
-        return;
-      }
-
-      if (myDevice == null) {
-        return;
-      }
-
-      if (!myDevice.isOnline()) {
-        return;
-      }
-
-      myOpenAndShowDevice.accept(myProject, myDevice.getKey().toString());
-    });
+    return button;
   }
 
-  private void initMoreButton() {
-    myMoreButton = new JButton(AllIcons.Actions.More);
+  private void activateDeviceFileExplorerWindow() {
+    if (myProject == null) {
+      return;
+    }
 
-    myMoreButton.setBorderPainted(false);
-    myMoreButton.setContentAreaFilled(false);
+    if (myDevice == null) {
+      return;
+    }
+
+    if (!myDevice.isOnline()) {
+      return;
+    }
+
+    myOpenAndShowDevice.accept(myProject, myDevice.getKey().toString());
+  }
+
+  private void editDeviceName() {
+    assert myDevice != null;
+    EditDeviceNameDialog dialog = myNewEditDeviceNameDialog.apply(myProject, myDevice.getNameOverride(), myDevice.getName());
+
+    if (!dialog.showAndGet()) {
+      return;
+    }
+
+    assert myModel != null;
+    myModel.setNameOverride(myDevice.getKey(), dialog.getNameOverride());
   }
 
   private void setLayout() {
     GroupLayout layout = new GroupLayout(this);
+    int size = JBUIScale.scale(22);
 
     Group horizontalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
-      .addComponent(myDeviceFileExplorerButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE)
-      .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE);
+      .addComponent(myActivateDeviceFileExplorerWindowButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+      .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+      .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
       .addGroup(layout.createParallelGroup()
-                  .addComponent(myDeviceFileExplorerButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE)
-                  .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, JBUIScale.scale(22), GroupLayout.PREFERRED_SIZE))
+                  .addComponent(myActivateDeviceFileExplorerWindowButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+                  .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+                  .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE))
       .addGap(0, 0, Short.MAX_VALUE);
 
     layout.setHorizontalGroup(horizontalGroup);
@@ -108,9 +131,13 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
   }
 
   @VisibleForTesting
-  @NotNull AbstractButton getDeviceFileExplorerButton() {
-    assert myDeviceFileExplorerButton != null;
-    return myDeviceFileExplorerButton;
+  @NotNull AbstractButton getActivateDeviceFileExplorerWindowButton() {
+    return myActivateDeviceFileExplorerWindowButton;
+  }
+
+  @VisibleForTesting
+  @NotNull AbstractButton getEditDeviceNameButton() {
+    return myEditDeviceNameButton;
   }
 
   @VisibleForTesting
