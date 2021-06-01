@@ -27,6 +27,7 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeepLinkLaunch;
 import com.android.tools.idea.run.editor.DefaultActivityLaunch;
+import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.LaunchOption;
 import com.android.tools.idea.run.editor.LaunchOptionState;
 import com.android.tools.idea.run.editor.NoLaunch;
@@ -114,13 +115,18 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   private final Map<String, LaunchOptionState> myLaunchOptionStates = Maps.newHashMap();
 
   public AndroidRunConfiguration(Project project, ConfigurationFactory factory) {
-    super(project, factory, false);
+    super(project, factory);
 
     for (LaunchOption option : LAUNCH_OPTIONS) {
       myLaunchOptionStates.put(option.getId(), option.createState());
     }
 
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
+  }
+
+  @Override
+  public @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders() {
+    return getDeployTargetContext().getApplicableDeployTargetProviders(false);
   }
 
   @Override
