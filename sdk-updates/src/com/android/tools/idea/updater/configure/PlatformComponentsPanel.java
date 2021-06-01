@@ -96,6 +96,9 @@ public class PlatformComponentsPanel {
     List<AndroidVersion> versions = Lists.newArrayList(myCurrentPackages.keySet());
     versions = Lists.reverse(versions);
     for (AndroidVersion version : versions) {
+      if (version.equals(0)) {
+        continue;
+      }
       Set<UpdaterTreeNode> versionNodes = Sets.newHashSet();
       UpdaterTreeNode marker = new ParentTreeNode(version);
       for (UpdatablePackage info : myCurrentPackages.get(version)) {
