@@ -483,7 +483,7 @@ android-studio/lib/bcpkix-jdk15on-1.68.jar
 android-studio/lib/bcprov-jdk15on-1.68.jar
 android-studio/lib/blockmap-1.0.2.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-211.6556.6.2111.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-211.6693.14.2111.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-2.8.8.jar
 android-studio/lib/cds/classesLogAgent.jar
@@ -574,7 +574,7 @@ android-studio/lib/jcip-annotations-1.0.jar
 android-studio/lib/jcodings-1.0.55.jar
 android-studio/lib/jdkAnnotations.jar
 android-studio/lib/jdom.jar
-android-studio/lib/jediterm-pty-2.40.jar
+android-studio/lib/jediterm-pty-2.42.jar
 android-studio/lib/jetCheck-0.2.2.jar
 android-studio/lib/jffi-1.2.19-native.jar
 android-studio/lib/jffi-1.2.19.jar
@@ -2660,7 +2660,7 @@ android-studio/plugins/completionMlRankingModels/lib/completion-ranking-python-0
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.2.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.2.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
-android-studio/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.1.jar
+android-studio/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.2.jar
 android-studio/plugins/completionMlRankingModels/lib/completion-ranking-typescript-0.3.1.jar
 android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/completionMlRankingModels/lib/resources_en.jar
