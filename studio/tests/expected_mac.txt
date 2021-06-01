@@ -572,7 +572,7 @@ Android Studio Preview.app/Contents/lib/jcip-annotations-1.0.jar
 Android Studio Preview.app/Contents/lib/jcodings-1.0.55.jar
 Android Studio Preview.app/Contents/lib/jdkAnnotations.jar
 Android Studio Preview.app/Contents/lib/jdom.jar
-Android Studio Preview.app/Contents/lib/jediterm-pty-2.40.jar
+Android Studio Preview.app/Contents/lib/jediterm-pty-2.42.jar
 Android Studio Preview.app/Contents/lib/jetCheck-0.2.2.jar
 Android Studio Preview.app/Contents/lib/jing-20030619.jar
 Android Studio Preview.app/Contents/lib/jna-platform.jar
@@ -2654,7 +2654,7 @@ Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/comple
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-ruby-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-rust-0.2.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-scala-0.3.1.jar
-Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.1.jar
+Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-swift-0.1.2.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completion-ranking-typescript-0.3.1.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/resources_en.jar
