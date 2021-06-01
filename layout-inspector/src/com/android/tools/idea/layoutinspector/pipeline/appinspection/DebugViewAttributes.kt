@@ -18,21 +18,14 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.layoutinspector.pipeline.adb.AbortAdbCommandRunnable
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.project.AndroidNotification
 import com.google.common.html.HtmlEscapers
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.panel
-import com.intellij.util.ui.UIUtil
-import java.awt.Component
-import java.awt.event.ActionEvent
-import javax.swing.AbstractAction
-import javax.swing.JLabel
 
 /**
  * Helper class that handles setting debug settings on the device via ADB.
@@ -42,18 +35,7 @@ import javax.swing.JLabel
  */
 class DebugViewAttributes(private val adb: AndroidDebugBridge, private val project: Project, private val process: ProcessDescriptor) {
 
-  private class OkButtonAction : AbstractAction("OK") {
-    init {
-      putValue(DialogWrapper.DEFAULT_ACTION, true)
-    }
-
-    override fun actionPerformed(event: ActionEvent) {
-      val wrapper = DialogWrapper.findInstance(event.source as? Component)
-      wrapper?.close(DialogWrapper.OK_EXIT_CODE)
-    }
-  }
-
-  private var debugAttributesSet = false
+  private var abortDeleteRunnable: AbortAdbCommandRunnable? = null
 
   /**
    * Enable debug view attributes for the current process.
@@ -62,7 +44,7 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
    */
   @Slow
   fun set() {
-    if (debugAttributesSet) return
+    if (abortDeleteRunnable != null) return
 
     var errorMessage: String
     try {
@@ -77,9 +59,22 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
       }
       errorMessage =
         adb.executeShellCommand(process.device, "settings put global debug_view_attributes_application_package ${process.name}")
+
       if (errorMessage.isEmpty()) {
         // A return value of "" means: "debug_view_attributes_application_package" were successfully overridden.
-        debugAttributesSet = true
+
+        // Later, we'll try to clear the setting via `clear`, but we also register additional logic to trigger
+        // automatically if the user forcefully closes the connection under us (e.g. closing the emulator or
+        // pulling their USB cable).
+        abortDeleteRunnable = AbortAdbCommandRunnable(
+          adb,
+          process.device,
+          // This works by spawning a subshell which hangs forever (waiting for a read that never gets satisfied)
+          // but trips the delete request when that shell is forcefully exited.
+          "sh -c 'trap \"settings delete global debug_view_attributes_application_package\" EXIT; read'"
+        ).also {
+          AndroidExecutors.getInstance().workerThreadExecutor.execute(it)
+        }
       }
     }
     catch (ex: Exception) {
@@ -104,34 +99,16 @@ class DebugViewAttributes(private val adb: AndroidDebugBridge, private val proje
    */
   @Slow
   fun clear() {
-    if (!debugAttributesSet) return
+    if (abortDeleteRunnable == null) return
 
-    debugAttributesSet = false
     try {
       adb.executeShellCommand(process.device, "settings delete global debug_view_attributes_application_package")
     }
     catch (ex: Exception) {
-      reportUnableToResetGlobalSettings()
+      abortDeleteRunnable!!.stop()
     }
-  }
-
-  private fun reportUnableToResetGlobalSettings() {
-    ApplicationManager.getApplication().invokeLater {
-      val message = """Could not reset the state on your device.
-
-                       To fix this, manually run this command:
-                       $ adb shell settings delete global debug_view_attributes_application_package
-                       """.trimIndent()
-
-      val dialog = dialog(
-        title = "Unable to connect to your device",
-        panel = panel {
-          row(JLabel(UIUtil.getErrorIcon())) {}
-          noteRow(message)
-        },
-        createActions = { listOf(OkButtonAction()) },
-        project = project)
-      dialog.show()
+    finally {
+      abortDeleteRunnable = null
     }
   }
 }

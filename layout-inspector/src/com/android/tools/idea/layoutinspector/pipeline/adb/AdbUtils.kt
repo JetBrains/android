@@ -30,6 +30,7 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+private const val ADB_NEVER_TIMEOUT = 0L
 private const val ADB_TIMEOUT_SECONDS = 2L
 
 fun AndroidDebugBridge.findDevice(device: DeviceDescriptor): IDevice? {
@@ -51,13 +52,27 @@ fun AndroidDebugBridge.findClient(process: ProcessDescriptor): Client? {
 @Slow
 fun AndroidDebugBridge.executeShellCommand(device: DeviceDescriptor,
                                            command: String,
-                                           timeoutSecs: Long = ADB_TIMEOUT_SECONDS): String {
+                                           timeoutSecs: Long = ADB_TIMEOUT_SECONDS,
+): String {
+  val latch = CountDownLatch(1)
+  val receiver = startShellCommand(device, command, timeoutSecs, latch)
+  latch.await(timeoutSecs, TimeUnit.SECONDS)
+  return receiver.output.trim()
+}
+
+/**
+ * Attempts to start running a target [command], returning a [CollectingOutputReceiver] so the
+ * caller can have more control over when to cancel it or fetch the results.
+ */
+fun AndroidDebugBridge.startShellCommand(device: DeviceDescriptor,
+                                         command: String,
+                                         timeoutSecs: Long = ADB_NEVER_TIMEOUT,
+                                         latch: CountDownLatch = CountDownLatch(1)
+): CollectingOutputReceiver {
   return findDevice(device)?.let { adbDevice ->
-    val latch = CountDownLatch(1)
     val receiver = CollectingOutputReceiver(latch)
-    adbDevice.executeShellCommand(command, receiver, ADB_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-    latch.await(timeoutSecs, TimeUnit.SECONDS)
-    receiver.output.trim()
+    adbDevice.executeShellCommand(command, receiver, timeoutSecs, TimeUnit.SECONDS)
+    receiver
   } ?: throw IllegalArgumentException("Could not execute ADB command [$command]. Device (${device.model}) is disconnected.")
 }
 
