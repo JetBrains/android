@@ -202,27 +202,6 @@ java_import(
 
 # managed by go/iml_to_build
 java_import(
-    name = "layoutinspector-skia-proto",
-    jars = ["//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "layoutinspector-view-proto",
-    jars = ["//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "layoutinspector-compose-proto",
-    jars = ["//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
     name = "android-test-plugin-host-device-info-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
     visibility = ["//visibility:public"],
@@ -258,5 +237,17 @@ java_import(
 java_import(
     name = "libapp-processes-proto",
     jars = ["//tools/base/ddmlib:libapp-processes-proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "layoutinspector-proto",
+    # do not sort: must match IML order
+    jars = [
+        "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto.jar",
+        "//prebuilts/tools/common/app-inspection/androidx/compose/ui:layout_inspector_compose_java_proto.jar",
+        "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto.jar",
+    ],
     visibility = ["//visibility:public"],
 )

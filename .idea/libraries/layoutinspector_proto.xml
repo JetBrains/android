@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="layoutinspector-proto">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/dynamic-layout-inspector/skia/proto/layout_inspector_skia_java_proto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/compose/ui/layout_inspector_compose_java_proto.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../bazel-bin/tools/base/dynamic-layout-inspector/agent/appinspection/proto/layout_inspector_view_java_proto.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

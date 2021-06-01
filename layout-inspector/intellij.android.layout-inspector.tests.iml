@@ -28,7 +28,7 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="transport-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-skia-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="layoutinspector-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
@@ -45,8 +45,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-view-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="layoutinspector-compose-proto" level="project" />
     <orderEntry type="module-library" scope="PROVIDED">
       <library name="skiaparser_test_support">
         <CLASSES />
