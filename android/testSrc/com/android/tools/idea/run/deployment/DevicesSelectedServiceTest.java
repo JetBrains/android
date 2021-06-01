@@ -44,7 +44,7 @@ public final class DevicesSelectedServiceTest {
 
   public DevicesSelectedServiceTest() {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-    myService = new DevicesSelectedService(new PersistentStateComponent(), clock, () -> false);
+    myService = new DevicesSelectedService(new PersistentStateComponent(), clock);
   }
 
   @Test

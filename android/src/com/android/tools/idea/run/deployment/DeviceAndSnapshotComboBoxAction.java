@@ -48,7 +48,6 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("ComponentNotRegistered")
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
@@ -230,10 +229,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
 
     return service.getTargetSelectedWithComboBox(devices).map(Collections::singleton).orElseGet(Collections::emptySet);
-  }
-
-  @NotNull Set<@NotNull Target> getTargetsSelectedWithDialog(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
-    return myDevicesSelectedServiceGetInstance.apply(project).getTargetsSelectedWithDialog(devices);
   }
 
   void selectMultipleDevices(@NotNull Project project) {

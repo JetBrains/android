@@ -16,8 +16,6 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -25,7 +23,6 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.BooleanSupplier;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,13 +34,6 @@ final class PopupActionGroup extends DefaultActionGroup {
   private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
 
   PopupActionGroup(@NotNull Collection<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(devices, comboBoxAction, StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get);
-  }
-
-  @VisibleForTesting
-  PopupActionGroup(@NotNull Collection<Device> devices,
-                   @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                   @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet) {
     myDevices = devices;
     myComboBoxAction = comboBoxAction;
 
@@ -58,9 +48,7 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     ActionManager manager = ActionManager.getInstance();
 
-    String id = runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? RunOnMultipleDevicesAction.ID : SelectMultipleDevicesAction.ID;
-    add(manager.getAction(id));
-
+    add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
     add(manager.getAction(WearDevicePairingAction.ID));
     add(manager.getAction(RunAndroidAvdManagerAction.ID));

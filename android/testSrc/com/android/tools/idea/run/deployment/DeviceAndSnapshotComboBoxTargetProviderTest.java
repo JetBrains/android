@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -61,14 +60,8 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
       .build();
 
     List<Device> devices = Arrays.asList(deviceWithError, device);
-
-    DialogWrapper selectDeviceDialog = Mockito.mock(DialogWrapper.class);
-
     DialogWrapper errorDialog = Mockito.mock(DialogWrapper.class);
-    Mockito.when(selectDeviceDialog.showAndGet()).thenReturn(true);
-
     Project project = Mockito.mock(Project.class);
-    Mockito.when(project.getUserData(MULTIPLE_DEPLOY_TARGETS)).thenReturn(false);
 
     DialogSupplier errorDialogSupplier = Mockito.mock(DialogSupplier.class);
     Mockito.when(errorDialogSupplier.get(any(Project.class), anyList())).thenReturn(errorDialog);
@@ -80,8 +73,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Mockito.when(action.getDevices(project)).thenReturn(Optional.of(devices));
     Mockito.when(action.getSelectedTargets(project)).thenReturn(targets);
 
-    DeployTargetProvider provider =
-      new DeviceAndSnapshotComboBoxTargetProvider(() -> action, (p, d) -> selectDeviceDialog, errorDialogSupplier);
+    DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> action, errorDialogSupplier);
 
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(project);

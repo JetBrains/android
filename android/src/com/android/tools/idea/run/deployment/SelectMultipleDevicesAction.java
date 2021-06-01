@@ -26,9 +26,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
-// TODO Reduce the visibility of SelectMultipleDevicesAction and ID
-public final class SelectMultipleDevicesAction extends AnAction {
-  public static final String ID = "SelectMultipleDevices";
+final class SelectMultipleDevicesAction extends AnAction {
+  static final String ID = "SelectMultipleDevices";
   private final @NotNull Function<@NotNull Project, @NotNull AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
   @SuppressWarnings("unused")
