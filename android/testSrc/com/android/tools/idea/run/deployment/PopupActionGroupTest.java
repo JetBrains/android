@@ -58,30 +58,12 @@ public final class PopupActionGroupTest {
   }
 
   @Test
-  public void popupActionGroupRunOnMultipleDevicesActionIsEnabled() {
-    // Arrange
-    Collection<Device> devices = Collections.emptyList();
-
-    // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> true);
-
-    // Assert
-    Object[] children = {
-      myActionManager.getAction(RunOnMultipleDevicesAction.ID),
-      myActionManager.getAction(PairDevicesUsingWiFiAction.ID),
-      myActionManager.getAction(WearDevicePairingAction.ID),
-      myActionManager.getAction(RunAndroidAvdManagerAction.ID)};
-
-    assertArrayEquals(children, group.getChildren(null));
-  }
-
-  @Test
   public void popupActionGroup() {
     // Arrange
     Collection<Device> devices = Collections.emptyList();
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -107,7 +89,7 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -142,7 +124,7 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -176,7 +158,7 @@ public final class PopupActionGroupTest {
     Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -203,7 +185,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -231,7 +213,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Collections.singletonList(device);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {
@@ -265,7 +247,7 @@ public final class PopupActionGroupTest {
     Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
 
     // Act
-    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, () -> false);
+    ActionGroup group = new PopupActionGroup(devices, myComboBoxAction);
 
     // Assert
     Object[] children = {

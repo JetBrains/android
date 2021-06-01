@@ -28,15 +28,12 @@ import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.run.deployment.RunOnMultipleDevicesAction;
-import com.android.tools.idea.run.deployment.SelectMultipleDevicesAction;
 import com.android.tools.idea.serverflags.ServerFlagDownloader;
 import com.android.tools.idea.serverflags.ServerFlagInitializer;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
@@ -63,8 +60,6 @@ import java.io.File;
 import java.util.concurrent.ScheduledExecutorService;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.kapt.idea.KaptProjectResolverExtension;
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -96,8 +91,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
     }
-
-    setUpDeviceComboBoxActions(actionManager);
   }
 
   private static void tweakDefaultColorScheme() {
@@ -107,11 +100,6 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
     TextAttributes textAttributes = colorsScheme.getAttributes(HighlighterColors.TEXT);
     TextAttributes xmlTagAttributes = colorsScheme.getAttributes(XmlHighlighterColors.XML_TAG);
     xmlTagAttributes.setBackgroundColor(textAttributes.getBackgroundColor());
-  }
-
-  private static void setUpDeviceComboBoxActions(@NotNull ActionManager manager) {
-    String id = StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED.get() ? SelectMultipleDevicesAction.ID : RunOnMultipleDevicesAction.ID;
-    Actions.hideAction(manager, id);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {

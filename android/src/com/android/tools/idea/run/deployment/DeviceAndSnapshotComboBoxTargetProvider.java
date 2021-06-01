@@ -23,11 +23,8 @@ import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -37,24 +34,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
-  static final @NotNull Key<@NotNull Boolean> MULTIPLE_DEPLOY_TARGETS = Key
-    .create("com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider.MULTIPLE_DEPLOY_TARGETS");
-
   private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
-  private final @NotNull DialogSupplier myNewSelectMultipleDevicesDialog;
   private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
 
   // TODO This should not be used in tests
   public DeviceAndSnapshotComboBoxTargetProvider() {
-    this(DeviceAndSnapshotComboBoxAction::getInstance, SelectMultipleDevicesDialog::new, SelectedDevicesErrorDialog::new);
+    this(DeviceAndSnapshotComboBoxAction::getInstance, SelectedDevicesErrorDialog::new);
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
-                                          @NotNull DialogSupplier newSelectMultipleDevicesDialog,
                                           @NotNull DialogSupplier selectedDevicesErrorDialog) {
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
-    myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
     mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
   }
 
@@ -86,12 +77,6 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public boolean requiresRuntimePrompt(@NotNull Project project) {
-    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
-    Boolean showRunMultipleDeviceDialog = MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
-    if (showRunMultipleDeviceDialog) {
-      return true;
-    }
-
     List<Device> devicesWithError = selectedDevicesWithError(project);
     if (devicesWithError.isEmpty()) {
       return false;
@@ -110,16 +95,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
 
   @Override
   public @Nullable DeployTarget showPrompt(@NotNull AndroidFacet facet) {
-    DeviceAndSnapshotComboBoxAction action = myDeviceAndSnapshotComboBoxActionGetInstance.get();
     Project project = facet.getModule().getProject();
-    List<Device> devices = action.getDevices(project).orElse(Collections.emptyList());
-
-    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
-    Boolean showRunMultipleDeviceDialog = MoreObjects.firstNonNull(project.getUserData(MULTIPLE_DEPLOY_TARGETS), false);
-    if (showRunMultipleDeviceDialog && !myNewSelectMultipleDevicesDialog.get(project, devices).showAndGet()) {
-      return null;
-    }
-
     List<Device> devicesWithError = selectedDevicesWithError(project);
     if (!devicesWithError.isEmpty()) {
       if (!mySelectedDevicesErrorDialog.get(project, devicesWithError).showAndGet()) {
@@ -127,12 +103,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       }
     }
 
-    // TODO(b/162278375) Remove when prompt-based multiple device deployment is removed.
-    if (showRunMultipleDeviceDialog) {
-      return new DeviceAndSnapshotComboBoxTarget(action::getTargetsSelectedWithDialog);
-    }
-
-    return new DeviceAndSnapshotComboBoxTarget(action::getSelectedTargets);
+    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
   }
 
   @NotNull

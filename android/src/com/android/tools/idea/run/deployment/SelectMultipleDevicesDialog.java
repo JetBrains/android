@@ -18,7 +18,6 @@ package com.android.tools.idea.run.deployment;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
-import com.intellij.CommonBundle;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -29,14 +28,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +43,6 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   private final Project myProject;
 
   private final @NotNull List<@NotNull Device> myDevices;
-  private final @NotNull BooleanSupplier myRunOnMultipleDevicesActionEnabledGet;
   private final @NotNull TableModel myModel;
 
   @NotNull
@@ -58,7 +54,6 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
     this(project,
          devices,
-         StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED::get,
          StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
          DevicesSelectedService::getInstance);
   }
@@ -66,46 +61,25 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @VisibleForTesting
   SelectMultipleDevicesDialog(@NotNull Project project,
                               @NotNull List<@NotNull Device> devices,
-                              @NotNull BooleanSupplier runOnMultipleDevicesActionEnabledGet,
                               @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
                               @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
     myDevices = devices;
-    myRunOnMultipleDevicesActionEnabledGet = runOnMultipleDevicesActionEnabledGet;
     myModel = new SelectMultipleDevicesDialogTableModel(devices, selectDeviceSnapshotComboBoxSnapshotsEnabledGet);
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();
-    initOkAction();
     init();
-    setTitle(runOnMultipleDevicesActionEnabledGet.getAsBoolean() ? "Run on Multiple Devices" : "Select Multiple Devices");
+    setTitle("Select Multiple Devices");
   }
 
   private void initTable() {
-    if (myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
-      myModel.addTableModelListener(event -> {
-        if (event.getColumn() == SelectMultipleDevicesDialogTableModel.SELECTED_MODEL_COLUMN_INDEX &&
-            event.getType() == TableModelEvent.UPDATE) {
-          assert myTable != null;
-          getOKAction().setEnabled(IntStream.range(0, myTable.getRowCount()).anyMatch(myTable::isSelected));
-        }
-      });
-    }
-
     myTable = new SelectMultipleDevicesDialogTable();
 
     myTable.setModel(myModel);
     myTable.setSelectedTargets(myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog(myDevices));
-  }
-
-  private void initOkAction() {
-    // Undo what happened in createDefaultActions below if we're using the new multiple devices UI
-    if (!myRunOnMultipleDevicesActionEnabledGet.getAsBoolean()) {
-      myOKAction.setEnabled(true);
-      myOKAction.putValue(Action.NAME, CommonBundle.getOkButtonText());
-    }
   }
 
   @NotNull
@@ -132,18 +106,6 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
 
     panel.setLayout(layout);
     return panel;
-  }
-
-  // TODO Remove this when we remove StudioFlags.RUN_ON_MULTIPLE_DEVICES_ACTION_ENABLED
-  @Override
-  protected void createDefaultActions() {
-    super.createDefaultActions();
-
-    // Default to the old multiple devices UI. I'd do that depending on the myRunOnMultipleDevicesActionEnabledGet field (and not have
-    // initOkAction) but the field is null at this point because this method is called by DialogWrapper before the field is initialized. I
-    // could suck it up and statically reference the flag instead but I still think that mutating static state in tests is the greater evil.
-    myOKAction.setEnabled(false);
-    myOKAction.putValue(Action.NAME, "Run");
   }
 
   @Override
