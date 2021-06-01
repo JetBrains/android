@@ -100,7 +100,7 @@ dependencies {
 
 androidComponents {
     beforeVariants(selector().all()) {
-        ${"enable".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
+        ${"enabled".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
     }
 }
 
