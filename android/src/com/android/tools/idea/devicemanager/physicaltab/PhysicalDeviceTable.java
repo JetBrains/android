@@ -40,7 +40,7 @@ final class PhysicalDeviceTable extends JBTable {
     super(new PhysicalDeviceTableModel());
 
     if (project != null) {
-      setDefaultEditor(Actions.class, new ActionsTableCellEditor(project));
+      setDefaultEditor(Actions.class, new ActionsTableCellEditor(project, getModel()));
     }
 
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());

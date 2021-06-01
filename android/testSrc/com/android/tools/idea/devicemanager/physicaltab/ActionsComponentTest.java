@@ -32,9 +32,10 @@ public final class ActionsComponentTest {
   private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice = Mockito.mock(BiConsumer.class);
 
   @Test
-  public void initDeviceFileExplorerButtonProjectIsNull() {
+  public void activateDeviceFileExplorerWindowProjectIsNull() {
     // Arrange
-    AbstractButton button = new ActionsComponent(null, myOpenAndShowDevice).getDeviceFileExplorerButton();
+    ActionsComponent component = new ActionsComponent(null, null, myOpenAndShowDevice, EditDeviceNameDialog::new);
+    AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
     // Act
     button.doClick();
@@ -44,9 +45,10 @@ public final class ActionsComponentTest {
   }
 
   @Test
-  public void initDeviceFileExplorerButtonDeviceIsNull() {
+  public void activateDeviceFileExplorerWindowDeviceIsNull() {
     // Arrange
-    AbstractButton button = new ActionsComponent(Mockito.mock(Project.class), myOpenAndShowDevice).getDeviceFileExplorerButton();
+    ActionsComponent component = new ActionsComponent(Mockito.mock(Project.class), null, myOpenAndShowDevice, EditDeviceNameDialog::new);
+    AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
     // Act
     button.doClick();
@@ -56,12 +58,12 @@ public final class ActionsComponentTest {
   }
 
   @Test
-  public void initDeviceFileExplorerButtonDeviceIsntOnline() {
+  public void activateDeviceFileExplorerWindowDeviceIsntOnline() {
     // Arrange
-    ActionsComponent component = new ActionsComponent(Mockito.mock(Project.class), myOpenAndShowDevice);
+    ActionsComponent component = new ActionsComponent(Mockito.mock(Project.class), null, myOpenAndShowDevice, EditDeviceNameDialog::new);
     component.setDevice(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
-    AbstractButton button = component.getDeviceFileExplorerButton();
+    AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
     // Act
     button.doClick();
@@ -71,7 +73,7 @@ public final class ActionsComponentTest {
   }
 
   @Test
-  public void initDeviceFileExplorerButton() {
+  public void activateDeviceFileExplorerWindow() {
     // Arrange
     Project project = Mockito.mock(Project.class);
 
@@ -83,15 +85,60 @@ public final class ActionsComponentTest {
       .addConnectionType(ConnectionType.USB)
       .build();
 
-    ActionsComponent component = new ActionsComponent(project, myOpenAndShowDevice);
+    ActionsComponent component = new ActionsComponent(project, null, myOpenAndShowDevice, EditDeviceNameDialog::new);
     component.setDevice(device);
 
-    AbstractButton button = component.getDeviceFileExplorerButton();
+    AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
     // Act
     button.doClick();
 
     // Assert
     Mockito.verify(myOpenAndShowDevice).accept(project, device.getKey().toString());
+  }
+
+  @Test
+  public void editDeviceNameNotDialogShowAndGet() {
+    // Arrange
+    PhysicalDeviceTableModel model = Mockito.mock(PhysicalDeviceTableModel.class);
+
+    NewEditDeviceNameDialog newEditDeviceNameDialog = Mockito.mock(NewEditDeviceNameDialog.class);
+    Mockito.when(newEditDeviceNameDialog.apply(null, "", "Google Pixel 3")).thenReturn(Mockito.mock(EditDeviceNameDialog.class));
+
+    ActionsComponent component = new ActionsComponent(null, model, myOpenAndShowDevice, newEditDeviceNameDialog);
+    component.setDevice(TestPhysicalDevices.GOOGLE_PIXEL_3);
+
+    AbstractButton button = component.getEditDeviceNameButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    Mockito.verify(model, Mockito.never()).setNameOverride(ArgumentMatchers.any(), ArgumentMatchers.any());
+  }
+
+  @Test
+  public void editDeviceName() {
+    // Arrange
+    PhysicalDeviceTableModel model = Mockito.mock(PhysicalDeviceTableModel.class);
+
+    EditDeviceNameDialog dialog = Mockito.mock(EditDeviceNameDialog.class);
+
+    Mockito.when(dialog.showAndGet()).thenReturn(true);
+    Mockito.when(dialog.getNameOverride()).thenReturn("Google Pixel 5");
+
+    NewEditDeviceNameDialog newEditDeviceNameDialog = Mockito.mock(NewEditDeviceNameDialog.class);
+    Mockito.when(newEditDeviceNameDialog.apply(null, "", "Google Pixel 3")).thenReturn(dialog);
+
+    ActionsComponent component = new ActionsComponent(null, model, myOpenAndShowDevice, newEditDeviceNameDialog);
+    component.setDevice(TestPhysicalDevices.GOOGLE_PIXEL_3);
+
+    AbstractButton button = component.getEditDeviceNameButton();
+
+    // Act
+    button.doClick();
+
+    // Assert
+    Mockito.verify(model).setNameOverride(new SerialNumber("86UX00F4R"), "Google Pixel 5");
   }
 }

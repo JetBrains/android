@@ -27,8 +27,8 @@ import org.jetbrains.annotations.NotNull;
 final class ActionsTableCellEditor extends AbstractCellEditor implements TableCellEditor {
   private final @NotNull ActionsComponent myComponent;
 
-  ActionsTableCellEditor(@NotNull Project project) {
-    myComponent = new ActionsComponent(project);
+  ActionsTableCellEditor(@NotNull Project project, @NotNull PhysicalDeviceTableModel model) {
+    myComponent = new ActionsComponent(project, model);
   }
 
   @Override
