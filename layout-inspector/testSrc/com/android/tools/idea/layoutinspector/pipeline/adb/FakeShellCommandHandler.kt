@@ -43,6 +43,9 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
   private fun handleShellCommand(argsAsString: String): String? {
     val args = ArrayDeque(argsAsString.split(' '))
     val command = args.poll()
+    // DebugViewAttributes spawns a blocking subshell on a background thread in production; this flow is not easily testable so just
+    // treat it like a no-op.
+    if (command == "sh") return ""
     if (command != "settings") {
       return null
     }
