@@ -523,7 +523,14 @@ public class NavDesignSurface extends DesignSurface {
 
   @Override
   public boolean canZoomToFit() {
-    return !isEmpty();
+    if (isEmpty()) {
+      return false;
+    }
+
+    Double fitScale = getFitScale(true);
+    Double scale = getScale();
+
+    return Math.abs(fitScale - scale) > SCALING_THRESHOLD;
   }
 
   @Override
