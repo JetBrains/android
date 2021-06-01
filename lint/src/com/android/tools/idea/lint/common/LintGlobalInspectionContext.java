@@ -94,7 +94,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    Set<Issue> issues = LintExternalAnnotator.getIssuesFromInspections(project, null);
+    Set<Issue> issues = LintExternalAnnotator.Companion.getIssuesFromInspections(project, null);
     if (issues.isEmpty()) {
       return;
     }
