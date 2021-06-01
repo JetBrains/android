@@ -147,7 +147,12 @@ public abstract class StudioProgramRunner extends AndroidProgramRunner {
     return descriptor;
   }
 
-  private void throwExceptionIfExecutorIdIsNotSupported(@NotNull Project project, @NotNull String executorId) throws ExecutionException {
+  /**
+   * Throws exception if this runner is targeting multiple devices, but the operation implied by the executorId is not supported on
+   * multiple devices. The default implementation here allows running on multiple devices, but disallows debugging (or any other executors)
+   * on multiple devices.
+   */
+  protected void throwExceptionIfExecutorIdIsNotSupported(@NotNull Project project, @NotNull String executorId) throws ExecutionException {
     if (((AndroidExecutionTarget)myGetActiveTarget.apply(project)).getAvailableDeviceCount() <= 1) {
       return;
     }
