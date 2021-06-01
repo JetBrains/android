@@ -17,8 +17,6 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
@@ -30,6 +28,8 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
+import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -45,8 +45,6 @@ import com.intellij.openapi.util.Disposer
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.net.Socket
-import java.util.ArrayDeque
 import java.util.concurrent.TimeUnit
 
 val MODERN_DEVICE = object : DeviceDescriptor {
@@ -131,74 +129,6 @@ class LayoutInspectorRule(
   getPreferredProcessNames: () -> List<String> = { listOf() }
 ) : TestRule {
 
-  /**
-   * Class which installs fake handling for adb commands related to querying and updating debug
-   * view properties.
-   */
-  class AdbDebugViewProperties(adbRule: FakeAdbRule) {
-    var debugViewAttributesChangesCount = 0
-      private set
-    var debugViewAttributes: String? = null
-      private set
-    var debugViewAttributesApplicationPackage: String? = null
-      private set
-
-    init {
-      adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
-        override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-          val response = when (command) {
-            "shell" -> handleShellCommand(args) ?: return false
-            else -> return false
-          }
-          writeOkay(socket.getOutputStream())
-          writeString(socket.getOutputStream(), response)
-          return true
-        }
-      })
-    }
-
-    /**
-     * Handle shell commands.
-     *
-     * Examples:
-     *  - "settings get global debug_view_attributes"
-     *  - "settings get global debug_view_attributes_application_package"
-     *  - "settings put global debug_view_attributes 1"
-     *  - "settings put global debug_view_attributes_application_package com.example.myapp"
-     *  - "settings delete global debug_view_attributes"
-     *  - "settings delete global debug_view_attributes_application_package"
-     */
-    private fun handleShellCommand(command: String): String? {
-      val args = ArrayDeque(command.split(' '))
-      if (args.poll() != "settings") {
-        return null
-      }
-      val operation = args.poll()
-      if (args.poll() != "global") {
-        return null
-      }
-      val variable = when (args.poll()) {
-        "debug_view_attributes" -> this::debugViewAttributes
-        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
-        else -> return null
-      }
-      val argument = if (args.isEmpty()) "" else args.poll()
-      if (args.isNotEmpty()) {
-        return null
-      }
-      return when (operation) {
-        "get" -> variable.get().toString()
-        "put" -> {
-          variable.set(argument); debugViewAttributesChangesCount++; ""
-        }
-        "delete" -> {
-          variable.set(null); debugViewAttributesChangesCount++; ""
-        }
-        else -> null
-      }
-    }
-  }
-
   lateinit var launcher: InspectorClientLauncher
     private set
   private val launcherDisposable = Disposer.newDisposable()
@@ -221,7 +151,9 @@ class LayoutInspectorRule(
   val processes = ProcessesModel(processNotifier, getPreferredProcessNames)
 
   val adbRule = FakeAdbRule()
-  val adbProperties = AdbDebugViewProperties(adbRule)
+  val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
+    adbRule.withDeviceCommandHandler(this)
+  }
 
   lateinit var inspector: LayoutInspector
     private set
