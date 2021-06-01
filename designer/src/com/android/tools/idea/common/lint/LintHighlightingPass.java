@@ -30,11 +30,11 @@ import com.intellij.codeHighlighting.HighlightingPass;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import java.lang.ref.WeakReference;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
 public class LintHighlightingPass implements HighlightingPass {
@@ -128,7 +128,7 @@ public class LintHighlightingPass implements HighlightingPass {
 
       Issue issue = problemData.getIssue();
       Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
-        LintExternalAnnotator.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
+        LintExternalAnnotator.Companion.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
       if (pair == null) {
         continue;
       }
