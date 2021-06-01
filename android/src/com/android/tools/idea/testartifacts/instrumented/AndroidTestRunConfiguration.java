@@ -22,9 +22,9 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
@@ -41,6 +41,7 @@ import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
+import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
@@ -61,8 +62,6 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
@@ -154,9 +153,15 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public boolean RETENTION_COMPRESS_SNAPSHOTS = false;
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
-    super(project, factory, true);
+    super(project, factory);
+    getOptions().setAllowRunningInParallel(StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get());
 
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
+  }
+
+  @Override
+  public @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders() {
+    return getDeployTargetContext().getApplicableDeployTargetProviders(true);
   }
 
   @Override

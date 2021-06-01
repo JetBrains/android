@@ -10,7 +10,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.editor.AndroidDebugger;
@@ -98,23 +97,14 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   private final ProfilerState myProfilerState;
 
-  private final boolean myAndroidTests;
-
   private final DeployTargetContext myDeployTargetContext = new DeployTargetContext();
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
 
-  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean androidTests) {
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory) {
     super(new JavaRunConfigurationModule(project, false), factory);
 
     myProfilerState = new ProfilerState();
-    myAndroidTests = androidTests;
-
-    if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
-      getOptions().setAllowRunningInParallel(true);
-    }
-    else {
-      getOptions().setAllowRunningInParallel(!androidTests);
-    }
+    getOptions().setAllowRunningInParallel(true);
   }
 
   @Override
@@ -269,10 +259,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return result;
   }
 
-  @NotNull
-  public List<DeployTargetProvider> getApplicableDeployTargetProviders() {
-    return getDeployTargetContext().getApplicableDeployTargetProviders(myAndroidTests);
-  }
+  public abstract @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders();
 
   protected void validateBeforeRun(@NotNull Executor executor) throws ExecutionException {
     List<ValidationError> errors = validate(executor);
@@ -433,7 +420,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return ProjectSystemUtil.getProjectSystem(getProject()).getApplicationIdProvider(this);
   }
 
-  @Nullable
   protected int getNumberOfSelectedDevices(@NotNull AndroidFacet facet) {
     return getDeployTarget(facet).getDevices(facet).getDevices().size();
   }
