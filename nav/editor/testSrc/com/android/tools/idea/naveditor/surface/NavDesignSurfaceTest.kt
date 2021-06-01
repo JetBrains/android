@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
@@ -37,7 +38,6 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
-import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.LayoutTestUtilities
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -50,6 +50,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
+import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.jetbrains.android.refactoring.setAndroidxProperties
@@ -646,6 +647,25 @@ class NavDesignSurfaceTest : NavTestCase() {
     testCurrentNavigation(surface, root, fragment1, nested1)
     testCurrentNavigation(surface, nested1, fragment2, nested2)
     testCurrentNavigation(surface, nested1, fragment2, nested2, fragment1)
+  }
+
+  fun testCanZoomToFit() {
+    val sceneManager = mock(NavSceneManager::class.java)
+    `when`(sceneManager.isEmpty).thenReturn(true)
+
+    val surface = mock(NavDesignSurface::class.java)
+    `when`(surface.sceneManager).thenReturn(sceneManager)
+    doCallRealMethod().`when`(surface).canZoomToFit()
+
+    `when`(surface.getFitScale(true)).thenReturn(1.5)
+    `when`(surface.scale).thenReturn(1.0)
+    assertFalse(surface.canZoomToFit())
+
+    `when`(sceneManager.isEmpty).thenReturn(false)
+    assertTrue(surface.canZoomToFit())
+
+    `when`(surface.scale).thenReturn(1.5)
+    assertFalse(surface.canZoomToFit())
   }
 
   private fun testCurrentNavigation(surface: NavDesignSurface, expected: NlComponent, vararg select: NlComponent) {
