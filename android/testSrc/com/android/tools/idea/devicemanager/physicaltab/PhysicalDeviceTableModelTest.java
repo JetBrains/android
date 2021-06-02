@@ -106,6 +106,54 @@ public final class PhysicalDeviceTableModelTest {
   }
 
   @Test
+  public void setNameOverride() {
+    // Arrange
+    Key domainName = new DomainName("adb-86UX00F4R-cYuns7._adb-tls-connect._tcp");
+
+    PhysicalDevice googlePixel3WithDomainName = new PhysicalDevice.Builder()
+      .setKey(domainName)
+      .setName("Google Pixel 3")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .build();
+
+    TableModelListener listener = Mockito.mock(TableModelListener.class);
+
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Arrays.asList(TestPhysicalDevices.GOOGLE_PIXEL_3,
+                                                                                googlePixel3WithDomainName,
+                                                                                TestPhysicalDevices.GOOGLE_PIXEL_5));
+
+    model.addTableModelListener(listener);
+
+    Key serialNumber = new SerialNumber("86UX00F4R");
+
+    // Act
+    model.setNameOverride(serialNumber, "Name Override");
+
+    // Assert
+    Object expectedDevice1 = new PhysicalDevice.Builder()
+      .setKey(serialNumber)
+      .setName("Google Pixel 3")
+      .setNameOverride("Name Override")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .build();
+
+    Object expectedDevice2 = new PhysicalDevice.Builder()
+      .setKey(domainName)
+      .setName("Google Pixel 3")
+      .setNameOverride("Name Override")
+      .setTarget("Android 12 Preview")
+      .setApi("S")
+      .build();
+
+    assertEquals(Arrays.asList(expectedDevice1, expectedDevice2, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getDevices());
+    assertEquals(Arrays.asList(expectedDevice1, TestPhysicalDevices.GOOGLE_PIXEL_5), model.getCombinedDevices());
+
+    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+  }
+
+  @Test
   public void combineDevicesDomainNameSerialNumberEqualsSerialNumberDeviceKey() {
     // Arrange
     PhysicalDevice domainNameGooglePixel3 = new PhysicalDevice.Builder()
