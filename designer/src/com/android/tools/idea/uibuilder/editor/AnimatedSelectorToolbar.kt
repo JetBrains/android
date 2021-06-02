@@ -224,10 +224,11 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
 
   private fun createTempAnimatedSelectorFile(originalFileName: String): VirtualFile {
     ApplicationManager.getApplication().assertWriteAccessAllowed()
+    val nameWithoutSuffix = originalFileName.substringBefore(".")
     val systemTempDir = File(FileUtilRt.getTempDirectory()).toVirtualFile()!!
     val tempDrawableDir = systemTempDir.findChild(TEMP_ANIMATED_SELECTOR_FOLDER)
                           ?: systemTempDir.createChildDirectory(this, TEMP_ANIMATED_SELECTOR_FOLDER)
-    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$originalFileName", null, true)
+    val physicalChildInTempDrawableFile = FileUtilRt.createTempFile(tempDrawableDir.toIoFile(), "fake_of_$nameWithoutSuffix", ".xml", true, true)
     return physicalChildInTempDrawableFile.toVirtualFile()!!
   }
 
