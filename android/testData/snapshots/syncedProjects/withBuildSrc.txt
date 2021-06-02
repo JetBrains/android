@@ -696,7 +696,7 @@ PROJECT                       : testWithBuildSrc
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: javaparser-core-3.17.0 [=]
-            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.1<GRADLE_VERSION>.jar!/
+            *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/javaparser-core-3.17.0.jar!/
         LIBRARY                       : Gradle: kotlin-reflect-<KOTLIN_VERSION>
             LibraryLevel                  : project
             IsModuleLevel                 : false
