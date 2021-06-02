@@ -6,11 +6,14 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-inspection.inspector.ide.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )

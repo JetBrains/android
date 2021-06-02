@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide
 
+import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -37,9 +38,17 @@ abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messengers: Iterable<AppInspectorMessenger?>,
+    messengerTargets: Iterable<AppInspectorMessengerTarget>,
     parentDisposable: Disposable): AppInspectorTab {
-    return createTab(project, ideServices, processDescriptor, messengers.single()!!, parentDisposable)
+    return when (val target = messengerTargets.single()) {
+      is AppInspectorMessengerTarget.Resolved -> createTab(project, ideServices, processDescriptor, target.messenger, parentDisposable)
+      is AppInspectorMessengerTarget.Unresolved -> {
+        object : AppInspectorTab {
+          override val messengers = emptyList<AppInspectorMessenger>()
+          override val component = EmptyStatePanel(target.error, learnMoreUrl)
+        }
+      }
+    }
   }
 
   protected abstract fun createTab(

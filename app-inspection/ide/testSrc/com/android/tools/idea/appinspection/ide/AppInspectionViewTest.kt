@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
@@ -66,7 +67,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -182,7 +182,10 @@ class AppInspectionViewTest {
           if (i == 0) {
             assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
             inspectionView.inspectorTabs.forEach { it.waitForContent() }
-            tabs = inspectionView.inspectorTabs.mapNotNull { it.getUserData(TAB_KEY) }
+            tabs = inspectionView.inspectorTabs
+              .mapNotNull { it.getUserData(TAB_KEY) }
+              .filter { it.messengers.iterator().hasNext() } // If a tab is "dead", it won't have any messengers
+
             assertThat(tabs).hasSize(1)
             inspectionView.processesModel.selectedProcess = inspectionView.processesModel.processes.first { process ->
               process != inspectionView.processesModel.selectedProcess
@@ -276,7 +279,7 @@ class AppInspectionViewTest {
     val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
     val tabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID) {
       override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
-                             messengers: Iterable<AppInspectorMessenger?>, parentDisposable: Disposable): AppInspectorTab {
+                             messengers: Iterable<AppInspectorMessengerTarget>, parentDisposable: Disposable): AppInspectorTab {
         return object : AppInspectorTab, Disposable {
           override val messengers: Iterable<AppInspectorMessenger> = listOf(StubTestAppInspectorMessenger())
           override val component = JPanel()
@@ -293,7 +296,7 @@ class AppInspectionViewTest {
     val offlineTabProvider = object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
       override fun supportsOffline() = true
       override fun createTab(project: Project, ideServices: AppInspectionIdeServices, processDescriptor: ProcessDescriptor,
-                             messengers: Iterable<AppInspectorMessenger?>, parentDisposable: Disposable): AppInspectorTab {
+                             messengers: Iterable<AppInspectorMessengerTarget>, parentDisposable: Disposable): AppInspectorTab {
         return object : AppInspectorTab, Disposable {
           override val messengers = listOf(StubTestAppInspectorMessenger())
           override val component = JPanel()
@@ -691,7 +694,8 @@ class AppInspectionViewTest {
         tab.waitForContent()
         val statePanel = tab.containerPanel.getComponent(0)
         assertThat(statePanel).isInstanceOf(EmptyStatePanel::class.java)
-        assertThat((statePanel as EmptyStatePanel).reasonText).isEqualTo(AppInspectionBundle.message(
+        assertThat((statePanel as EmptyStatePanel).reasonText).isEqualTo(
+          AppInspectionBundle.message(
           "inspector.launch.error", tab.provider.displayName))
         tabsAdded.complete(Unit)
       }
@@ -762,7 +766,8 @@ class AppInspectionViewTest {
         tab.waitForContent()
         val emptyPanel = tab.containerPanel.getComponent(0) as EmptyStatePanel
         assertThat(emptyPanel.reasonText)
-          .isEqualTo(AppInspectionBundle.message(
+          .isEqualTo(
+            AppInspectionBundle.message(
             "incompatible.version",
             (provider.launchConfigs.single().params as LibraryInspectorLaunchParams).minVersionLibraryCoordinate.toString()))
 
@@ -884,7 +889,8 @@ class AppInspectionViewTest {
             incompatibleInspector -> {
               val emptyPanel = inspectorTab.containerPanel.getComponent(0) as EmptyStatePanel
               assertThat(emptyPanel.reasonText)
-                .isEqualTo(AppInspectionBundle.message(
+                .isEqualTo(
+                  AppInspectionBundle.message(
                   "incompatible.version",
                   (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                     .minVersionLibraryCoordinate.toString()))
@@ -892,7 +898,8 @@ class AppInspectionViewTest {
             unresolvableInspector -> {
               val emptyPanel = inspectorTab.containerPanel.getComponent(0) as EmptyStatePanel
               assertThat(emptyPanel.reasonText)
-                .isEqualTo(AppInspectionBundle.message(
+                .isEqualTo(
+                  AppInspectionBundle.message(
                   "unresolved.inspector",
                   (inspectorTab.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                     .minVersionLibraryCoordinate.toString()))

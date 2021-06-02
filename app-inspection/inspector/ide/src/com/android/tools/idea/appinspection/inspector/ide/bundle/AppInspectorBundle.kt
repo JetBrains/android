@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.ide.ui
+package com.android.tools.idea.appinspection.inspector.ide.bundle
 
-import com.android.tools.adtui.stdui.EmptyStatePanel
-import com.android.tools.adtui.stdui.UrlData
-import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
+import com.android.tools.idea.localization.MessageBundleReference
+import org.jetbrains.annotations.PropertyKey
 
-/**
- * Convenience constructor that sets up an empty message with a learn more URL (if present).
- */
-fun EmptyStatePanel(reason: String, learnMoreUrl: String?) =
-  EmptyStatePanel(
-    reason,
-    learnMoreUrl?.let { url -> UrlData(AppInspectionBundle.message("learn.more"), url) }
-  )
+private const val BUNDLE_NAME = "messages.AppInspectorBundle"
+
+object AppInspectorBundle {
+  private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
+}
