@@ -626,6 +626,7 @@ Android Studio Preview.app/Contents/lib/kryo-2.24.0.jar
 Android Studio Preview.app/Contents/lib/log4j.jar
 Android Studio Preview.app/Contents/lib/lz4-java-1.7.1.jar
 Android Studio Preview.app/Contents/lib/markdownj-core-0.4.2-SNAPSHOT.jar
+Android Studio Preview.app/Contents/lib/marketplace-zip-signer-0.1.3.jar
 Android Studio Preview.app/Contents/lib/maven-artifact-3.6.3.jar
 Android Studio Preview.app/Contents/lib/maven-builder-support-3.6.3.jar
 Android Studio Preview.app/Contents/lib/maven-model-3.6.3.jar
@@ -670,7 +671,6 @@ Android Studio Preview.app/Contents/lib/platform-statistics-devkit.jar
 Android Studio Preview.app/Contents/lib/plexus-interpolation-1.25.jar
 Android Studio Preview.app/Contents/lib/plexus-utils-3.3.0.jar
 Android Studio Preview.app/Contents/lib/proto-google-common-protos-1.12.0.jar
-Android Studio Preview.app/Contents/lib/protobuf-java-3.11.4.jar
 Android Studio Preview.app/Contents/lib/protobuf-java-3.13.0.jar
 Android Studio Preview.app/Contents/lib/proxy-vole-1.0.11.jar
 Android Studio Preview.app/Contents/lib/pty4j-0.11.4.jar
@@ -718,7 +718,6 @@ Android Studio Preview.app/Contents/lib/xmlrpc-2.0.1.jar
 Android Studio Preview.app/Contents/lib/xpp3_min-1.1.4c.jar
 Android Studio Preview.app/Contents/lib/xstream-1.4.11.1.jar
 Android Studio Preview.app/Contents/lib/xz-1.8.jar
-Android Studio Preview.app/Contents/lib/zip-signer-0.8.jar
 Android Studio Preview.app/Contents/license/XStream_license.txt
 Android Studio Preview.app/Contents/license/ant_license.txt
 Android Studio Preview.app/Contents/license/antlr4-runtime-4.5.3.jar-NOTICE

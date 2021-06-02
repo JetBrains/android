@@ -483,7 +483,7 @@ android-studio/lib/bcpkix-jdk15on-1.68.jar
 android-studio/lib/bcprov-jdk15on-1.68.jar
 android-studio/lib/blockmap-1.0.2.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-211.7142.45.2111.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-211.7442.40.2111.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-2.8.8.jar
 android-studio/lib/cds/classesLogAgent.jar
@@ -613,6 +613,7 @@ android-studio/lib/kryo-2.24.0.jar
 android-studio/lib/log4j.jar
 android-studio/lib/lz4-java-1.7.1.jar
 android-studio/lib/markdownj-core-0.4.2-SNAPSHOT.jar
+android-studio/lib/marketplace-zip-signer-0.1.3.jar
 android-studio/lib/maven-artifact-3.6.3.jar
 android-studio/lib/maven-builder-support-3.6.3.jar
 android-studio/lib/maven-model-3.6.3.jar
@@ -657,7 +658,6 @@ android-studio/lib/platform-statistics-devkit.jar
 android-studio/lib/plexus-interpolation-1.25.jar
 android-studio/lib/plexus-utils-3.3.0.jar
 android-studio/lib/proto-google-common-protos-1.12.0.jar
-android-studio/lib/protobuf-java-3.11.4.jar
 android-studio/lib/protobuf-java-3.13.0.jar
 android-studio/lib/proxy-vole-1.0.11.jar
 android-studio/lib/pty4j-0.11.4.jar
@@ -709,7 +709,6 @@ android-studio/lib/xmlrpc-2.0.1.jar
 android-studio/lib/xpp3_min-1.1.4c.jar
 android-studio/lib/xstream-1.4.11.1.jar
 android-studio/lib/xz-1.8.jar
-android-studio/lib/zip-signer-0.8.jar
 android-studio/license/XStream_license.txt
 android-studio/license/ant_license.txt
 android-studio/license/antlr4-runtime-4.5.3.jar-NOTICE
