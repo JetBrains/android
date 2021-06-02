@@ -936,12 +936,11 @@ android-studio/plugins/Kotlin/kotlinc/license/third_party/trove_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/trove_readme_license.txt
 android-studio/plugins/Kotlin/lib/allopen-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/android-extensions-compiler-plugin-for-ide.jar
-android-studio/plugins/Kotlin/lib/completion-ranking-kotlin-0.1.3.jar
+android-studio/plugins/Kotlin/lib/completion-ranking-kotlin-0.2.2.jar
 android-studio/plugins/Kotlin/lib/javaslang-2.0.6.jar
 android-studio/plugins/Kotlin/lib/javaslang-match-2.0.6.jar
 android-studio/plugins/Kotlin/lib/javax.inject-1.jar
 android-studio/plugins/Kotlin/lib/jps/kotlin-jps-plugin.jar
-android-studio/plugins/Kotlin/lib/kotlin-android-extensions-runtime.jar
 android-studio/plugins/Kotlin/lib/kotlin-common.jar
 android-studio/plugins/Kotlin/lib/kotlin-compiler-plugins-allopen.jar
 android-studio/plugins/Kotlin/lib/kotlin-compiler-plugins-annotation-based-compiler-support.jar
@@ -998,7 +997,6 @@ android-studio/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm-0.3.1.jar
 android-studio/plugins/Kotlin/lib/kotlinx-coroutines-core-1.4.2.jar
 android-studio/plugins/Kotlin/lib/kotlinx-coroutines-jdk8-1.4.2.jar
 android-studio/plugins/Kotlin/lib/kotlinx-serialization-compiler-plugin-for-ide.jar
-android-studio/plugins/Kotlin/lib/markdown-0.1.41.jar
 android-studio/plugins/Kotlin/lib/noarg-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/parcelize-compiler-plugin-for-ide.jar
 android-studio/plugins/Kotlin/lib/sam-with-receiver-compiler-plugin-for-ide.jar
