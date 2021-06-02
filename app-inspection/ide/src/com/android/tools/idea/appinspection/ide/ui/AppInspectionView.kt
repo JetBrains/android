@@ -22,21 +22,22 @@ import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.ide.APP_PROGUARDED_MESSAGE
 import com.android.tools.idea.appinspection.ide.AppInspectorTabLaunchSupport
 import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.InspectorJarTarget
 import com.android.tools.idea.appinspection.ide.InspectorTabJarTargets
 import com.android.tools.idea.appinspection.ide.analytics.AppInspectionAnalyticsTrackerService
-import com.android.tools.idea.appinspection.ide.APP_PROGUARDED_MESSAGE
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.ide.toEmptyStatePanelIfSingleUnresolvedInspector
 import com.android.tools.idea.appinspection.ide.toIncompatibleVersionMessage
 import com.android.tools.idea.appinspection.inspector.api.*
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.ActivityTracker
@@ -271,17 +272,23 @@ class AppInspectionView @VisibleForTesting constructor(
     try {
       val messengers = provider.launchConfigs
         .map { config ->
-          (tabTargets.targets[config.id] as? InspectorJarTarget.Resolved)?.let { resolvedTarget ->
-            apiServices.launchInspector(
-              LaunchParameters(
-                process,
-                config.id,
-                resolvedTarget.jar,
-                project.name,
-                (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
-                force
+          when (val jarTarget = tabTargets.targets.getValue(config.id)) {
+            is InspectorJarTarget.Resolved -> {
+              val messenger = apiServices.launchInspector(
+                LaunchParameters(
+                  process,
+                  config.id,
+                  jarTarget.jar,
+                  project.name,
+                  (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+                  force
+                )
               )
-            )
+              AppInspectorMessengerTarget.Resolved(messenger)
+            }
+            is InspectorJarTarget.Unresolved -> {
+              AppInspectorMessengerTarget.Unresolved(jarTarget.error)
+            }
           }
         }
 
@@ -291,10 +298,10 @@ class AppInspectionView @VisibleForTesting constructor(
         tabShell.putUserData(TAB_KEY, tab)
       }
       messengers
-        .filterNotNull()
-        .forEach { messenger ->
+        .filterIsInstance<AppInspectorMessengerTarget.Resolved>()
+        .forEach { target ->
           launch {
-            val cause = messenger.awaitForDisposal()
+            val cause = target.messenger.awaitForDisposal()
             currentInspectorsJob?.cancel()
             if (cause is AppInspectorForcefullyDisposedException) {
               // TODO(b/188934519): A failure in one inspector tab shouldn't stop others
@@ -365,15 +372,9 @@ class AppInspectionView @VisibleForTesting constructor(
       }
 
       val tabs = tabTargetsList.map { tabTargets ->
-        val emptyState = tabTargets.toEmptyStatePanelIfSingleUnresolvedInspector()
-        val shell = AppInspectorTabShell(tabTargets.provider)
-        if (emptyState != null) {
-          shell.setComponent(emptyState)
-        }
-        else {
+        AppInspectorTabShell(tabTargets.provider).also { shell ->
           launchInspectorForTab(process, tabTargets, shell, force)
         }
-        shell
       }
 
       withContext(uiDispatcher)

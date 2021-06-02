@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
-import com.android.tools.idea.appinspection.ide.ui.EmptyStatePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
@@ -126,21 +124,6 @@ class InspectorTabJarTargets(
   /** Map of inspector ID to jar targets */
   var targets: Map<String, InspectorJarTarget>,
 )
-
-/**
- * Convenience method for providing an empty state panel for simple, unresolvable cases.
- *
- * In most cases, tabs wrap a single inspector. If such a tab's inspector could not be successfully
- * resolved, we can suggest a standard [EmptyStatePanel] to use in that case.
- *
- * This method will return null if the tab contains multiple inspectors *or* a single inspector
- * that was successfully resolved.
- */
-fun InspectorTabJarTargets.toEmptyStatePanelIfSingleUnresolvedInspector(): EmptyStatePanel? {
-  return targets.values.singleOrNull()
-    ?.let { target -> target as? InspectorJarTarget.Unresolved }
-    ?.let { unresolvedTarget -> EmptyStatePanel(unresolvedTarget.error, provider.learnMoreUrl) }
-}
 
 // TODO(b/187421789): Figure out how to migrate this case in a multi-inspector tab world
 internal fun AppInspectorTabProvider.toIncompatibleVersionMessage() =

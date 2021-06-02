@@ -71,8 +71,9 @@ class SelectProcessAction(private val model: ProcessesModel,
                           private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
                           private val stopPresentation: StopPresentation = StopPresentation(),
                           private val onStopAction: ((ProcessDescriptor) -> Unit)? = null) :
-  DropDownAction(AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
-                 ICON_PHONE) {
+  DropDownAction(
+    AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
+    ICON_PHONE) {
 
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {

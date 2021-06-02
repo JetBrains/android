@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.Disposable
@@ -31,6 +32,17 @@ class AppInspectorLaunchConfig(
   val id: String,
   val params: AppInspectorLaunchParams
 )
+
+/** A wrapper around a target inspector jar that either was successfully resolved or not. */
+sealed class AppInspectorMessengerTarget {
+  class Resolved(val messenger: AppInspectorMessenger) : AppInspectorMessengerTarget()
+
+  /**
+   * Represents inspectors that cannot be launched, e.g. the target library used by the app is too
+   * old or the user's app was proguarded.
+   */
+  class Unresolved(val error: String) : AppInspectorMessengerTarget()
+}
 
 interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
   companion object {
@@ -71,15 +83,15 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
    *   that will drive this UI is attached to
-   * @param messengers A list of inspector messengers, one generated per config specified in
-   *   [launchConfigs]. It's possible a messenger in the list will be null if the inspector
-   *   couldn't be started for some reason, e.g. a required library to be inspected wasn't present.
+   * @param messengers A list of inspector messenger targets, one generated per config specified in
+   *   [launchConfigs]. Children should check if the target is [AppInspectorMessengerTarget.Resolved]
+   *   or, if not, may want to consider showing the wrapped error to users.
    */
   fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messengers: Iterable<AppInspectorMessenger?>,
+    messengers: Iterable<AppInspectorMessengerTarget>,
     parentDisposable: Disposable
   ): AppInspectorTab
 
