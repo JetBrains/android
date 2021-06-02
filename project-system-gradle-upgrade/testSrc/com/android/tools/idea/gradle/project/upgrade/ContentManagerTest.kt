@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.ignore.IgnoreTestRule
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnMac
 import com.android.tools.adtui.HtmlLabel
@@ -51,6 +52,9 @@ class ContentManagerTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk().onEdt()
+
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
 
   val project by lazy { projectRule.project }
 
