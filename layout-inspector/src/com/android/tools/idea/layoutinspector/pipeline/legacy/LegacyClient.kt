@@ -35,7 +35,7 @@ private const val MAX_CONNECTION_ATTEMPTS = 5
 
 /**
  * [InspectorClient] that supports pre-api 29 devices.
- * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
+ * Since it doesn't use `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually fired.
  */
 class LegacyClient(
   adb: AndroidDebugBridge,

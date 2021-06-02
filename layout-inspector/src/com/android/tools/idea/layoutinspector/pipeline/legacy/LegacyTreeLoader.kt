@@ -21,6 +21,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
@@ -29,6 +30,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
 import org.apache.log4j.Logger
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -72,25 +74,19 @@ class LegacyTreeLoader(private val adb: AndroidDebugBridge, private val client: 
     propertiesUpdater.lookup.resourceLookup.dpi = ddmClient.device.density
     val hierarchyData = hierarchyHandler.getData() ?: return null
     client.latestData[windowName] = hierarchyData
-    val (rootNode, _) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    getScreenshotPngBytes(ddmClient)?.let { client.latestScreenshots[windowName] = it }
+    val (rootNode, hash) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
+    val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
+    ddmClient.captureView(windowName, hash, imageHandler)
+    try {
+      imageHandler.getData()?.let {
+        client.latestScreenshots[windowName] = it
+      }
+    }
+    catch (e: IOException) {
+      // We didn't get an image, but still return the hierarchy and properties
+    }
 
     return LegacyAndroidWindow(client, rootNode, windowName)
-  }
-
-  private fun getScreenshotPngBytes(ddmClient: Client): ByteArray? {
-    // TODO(171901393): move back to using ddmclient so we can have windows fetched separately.
-    val rawImage = try {
-      ddmClient.device.getScreenshot(5, TimeUnit.SECONDS)
-    }
-    catch (ex: Exception) {
-      Logger.getLogger(LegacyTreeLoader::class.java).warn("Couldn't get screenshot from device", ex)
-      return null
-    }
-    val bufferedImage = rawImage.asBufferedImage()
-    val baos = ByteArrayOutputStream()
-    ImageIO.write(bufferedImage, "PNG", baos)
-    return baos.toByteArray()
   }
 
   private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {

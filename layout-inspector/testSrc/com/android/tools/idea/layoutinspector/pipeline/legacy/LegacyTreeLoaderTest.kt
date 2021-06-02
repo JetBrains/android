@@ -21,7 +21,6 @@ import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
 import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.RawImage
 import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
@@ -46,22 +45,19 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.property.testing.ApplicationRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.util.io.readBytes
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
-import org.mockito.Mockito.doAnswer
-import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
-import java.io.File
+import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
@@ -190,7 +186,7 @@ DONE.
 
   @Test
   fun testLoadComponentTree() {
-    val image = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
+    val imageBytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readBytes()
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
@@ -209,14 +205,11 @@ DONE.
     }
     `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
-
-    val rawImage = spy(RawImage())
-    rawImage.width = image.width
-    rawImage.height = image.height
-    rawImage.bpp = 8
-    doAnswer { it.getArgument<Int>(0).let { idx -> image.getRGB(idx % image.width, idx / image.width)} }
-      .`when`(rawImage).getARGB(anyInt())
-    `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
+    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+      invocation
+        .getArgument<DebugViewDumpHandler>(2)
+        .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageBytes), true, 1234)
+    }
     legacyClient.treeLoader.ddmClientOverride = client
     val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
@@ -228,7 +221,7 @@ DONE.
     assertThat(window.id).isEqualTo("window1")
 
     val expected = view(0x41673e3, width = 585, height = 804) {
-      image(image)
+      image(ImageIO.read(ByteArrayInputStream(imageBytes)))
       view(0x8dc1681) {
         view(0xd0e237b)
         view(0x1d72495) {
@@ -253,7 +246,8 @@ DONE.
   @Suppress("UndesirableClassUsage")
   @Test
   fun testRefreshImages() {
-    val image1 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image1.png"))
+    val imageBytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image1.png").readBytes()
+    val image1 = ImageIO.read(ByteArrayInputStream(imageBytes))
     val lookup = mock<ViewNodeAndResourceLookup>()
     val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
@@ -276,14 +270,12 @@ DONE.
     }
     `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
+    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+      invocation
+        .getArgument<DebugViewDumpHandler>(2)
+        .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageBytes), true, 1234)
+    }
 
-    val rawImage = spy(RawImage())
-    rawImage.width = image1.width
-    rawImage.height = image1.height
-    rawImage.bpp = 8
-    doAnswer { it.getArgument<Int>(0).let { idx -> image1.getRGB(idx % image1.width, idx / image1.width)} }
-      .`when`(rawImage).getARGB(anyInt())
-    `when`(device.getScreenshot(anyLong(), any())).thenReturn(rawImage)
     legacyClient.treeLoader.ddmClientOverride = client
     val window = legacyClient.treeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
@@ -311,12 +303,15 @@ DONE.
       .image, 0.0)
 
     // Update the image returned by the device and verify the draw image is not refreshed yet
-    val image2 = ImageIO.read(File(getWorkspaceRoot().toFile(), "$TEST_DATA_PATH/image2.png"))
-    rawImage.width = image2.width
-    rawImage.height = image2.height
-    rawImage.bpp = 8
-    doAnswer { it.getArgument<Int>(0).let { idx -> image2.getRGB(idx % image2.width, idx / image2.width)} }
-      .`when`(rawImage).getARGB(anyInt())
+    val image2Bytes = getWorkspaceRoot().resolve("$TEST_DATA_PATH/image2.png").readBytes()
+    val image2 = ImageIO.read(ByteArrayInputStream(image2Bytes))
+
+    `when`(client.captureView(eq("window1"), any(), any())).thenAnswer { invocation ->
+      invocation
+        .getArgument<DebugViewDumpHandler>(2)
+        .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(image2Bytes), true, 1234)
+    }
+
     window.refreshImages(1.0)
     ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
       .filterIsInstance<DrawViewImage>()
