@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnMac
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
@@ -271,6 +273,7 @@ class ContentManagerTest {
     assertThat(stepPresentation.treeText).isEqualTo("Insert directives to continue using Java 7")
   }
 
+  @IgnoreWithCondition(reason = "b/189890821", condition = OnMac::class)
   @Test
   fun testToolWindowViewWithGradleAndPluginUpgrades() {
     projectRule.fixture.addFileToProject(
@@ -428,6 +431,7 @@ class ContentManagerTest {
     assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
   }
 
+  @IgnoreWithCondition(reason = "b/189890821", condition = OnMac::class)
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
