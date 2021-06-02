@@ -1468,8 +1468,8 @@ fun updatePluginsResolutionManagement(origContent: String): String {
           if (requested.id.namespace == "com.android") {
               useModule("com.android.tools.build:gradle:$agpVersion")
           }
-          if (requested.id.id == "com.google.secrets_gradle_plugin") {
-              useModule("com.google:plugin:${findPluginVersion("com.google.secrets_gradle_plugin")}")
+          if (requested.id.id == "com.google.android.libraries.mapsplatform.secrets-gradle-plugin") {
+              useModule("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:${findPluginVersion("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")}")
           }
           if (requested.id.id == "org.jetbrains.kotlin.android") {
               useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${findPluginVersion("org.jetbrains.kotlin.android")}")

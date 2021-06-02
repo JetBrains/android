@@ -898,6 +898,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.2.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-tasks/17.2.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/gms/play-services-wearable/17.0.0:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/android/libraries/mapsplatform/secrets-gradle-plugin/secrets-gradle-plugin/1.2.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.3.0:aar",
