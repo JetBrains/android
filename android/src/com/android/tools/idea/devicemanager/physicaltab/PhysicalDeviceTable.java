@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.Device;
-import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -30,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceTable extends JBTable {
   PhysicalDeviceTable(@Nullable Project project) {
-    this(project, () -> new DeviceTableCellRenderer<>(Device.class), ActionsTableCellRenderer::new);
+    this(project, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
   }
 
   @VisibleForTesting

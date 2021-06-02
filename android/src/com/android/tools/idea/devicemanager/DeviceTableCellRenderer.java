@@ -100,7 +100,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myIconLabel.setIcon(device.getIcon());
 
     myNameLabel.setForeground(foreground);
-    myNameLabel.setText(device.getName());
+    myNameLabel.setText(getName(device));
 
     myOnlineLabel.setIcon(device.isOnline() ? StudioIcons.Common.CIRCLE_GREEN : null);
 
@@ -112,6 +112,10 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     myPanel.setBorder(myGetBorder.apply(selected, focused));
 
     return myPanel;
+  }
+
+  protected @NotNull String getName(@NotNull D device) {
+    return device.getName();
   }
 
   protected @NotNull String getLine2(@NotNull D device) {
@@ -140,7 +144,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
   }
 
   @VisibleForTesting
-  final @NotNull JLabel getNameLabel() {
+  public final @NotNull JLabel getNameLabel() {
     return myNameLabel;
   }
 
