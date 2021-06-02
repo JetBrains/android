@@ -93,6 +93,29 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
   }
 
   void setNameOverride(@NotNull Key key, @NotNull String nameOverride) {
+    for (int i = 0, size = myDevices.size(); i < size; i++) {
+      PhysicalDevice device = myDevices.get(i);
+      Key k = device.getKey();
+
+      if (!(k.equals(key) || k.getSerialNumber().equals(key))) {
+        continue;
+      }
+
+      PhysicalDevice newDevice = new PhysicalDevice.Builder()
+        .setKey(k)
+        .setLastOnlineTime(device.getLastOnlineTime())
+        .setName(device.getName())
+        .setNameOverride(nameOverride)
+        .setTarget(device.getTarget())
+        .setApi(device.getApi())
+        .addAllConnectionTypes(device.getConnectionTypes())
+        .build();
+
+      myDevices.set(i, newDevice);
+    }
+
+    combineDevices();
+    fireTableDataChanged();
   }
 
   private void combineDevices() {
@@ -139,6 +162,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .setKey(serialNumberDevice.getKey())
       .setLastOnlineTime(Collections.min(times, PhysicalDevice.LAST_ONLINE_TIME_COMPARATOR))
       .setName(serialNumberDevice.getName())
+      .setNameOverride(serialNumberDevice.getNameOverride())
       .setTarget(serialNumberDevice.getTarget())
       .setApi(serialNumberDevice.getApi())
       .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
