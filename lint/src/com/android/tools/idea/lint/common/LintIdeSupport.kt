@@ -55,18 +55,8 @@ abstract class LintIdeSupport {
   companion object {
     private val EP_NAME = ExtensionPointName.create<LintIdeSupport>("com.android.tools.idea.lint.common.lintIdeSupport")
 
-    private val INSTANCE: LintIdeSupport // these are all stateless
-    init {
-      val extensions = EP_NAME.extensions
-      when (extensions.size) {
-        1 -> INSTANCE = extensions[0]
-        0 -> INSTANCE = object : LintIdeSupport() { }
-        else -> error("Multiple lint customizer extensions found: ${extensions.toList()}")
-      }
-    }
-
     @JvmStatic
-    fun get(): LintIdeSupport = INSTANCE
+    fun get(): LintIdeSupport = EP_NAME.extensionList.single()
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
