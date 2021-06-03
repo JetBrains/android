@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.resources.ScreenOrientation
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -46,6 +47,22 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
     assertNotEmpty(nlModels)
     for (nlModel in nlModels) {
       assertTrue(WEAR_DEVICES_TO_DISPLAY.contains (nlModel.configuration.device!!.displayName))
+    }
+  }
+
+  fun testOrientationForWearDevices() {
+    // Round and Circle device must be portrait, and Chin device must be landscape
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val modelsProvider = WearDeviceModelsProvider
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+
+    assertNotEmpty(nlModels)
+
+    for (nlModel in nlModels) {
+      val device = nlModel.configuration.device
+      TestCase.assertNotNull(device)
+      val expected = if (device!!.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+      TestCase.assertEquals(expected, nlModel.configuration.deviceState!!.orientation)
     }
   }
 

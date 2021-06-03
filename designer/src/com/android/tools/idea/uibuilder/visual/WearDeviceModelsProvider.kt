@@ -69,8 +69,12 @@ object WearDeviceModelsProvider: VisualizationModelsProvider {
     for (device in wearDevices) {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
+      // Round and Circle device must be portrait, and Chin device must be landscape
+      val screenOrientation = if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
+      config.deviceState = device.getState(screenOrientation.shortDisplayValue)
+
       var label = device.displayName
-      val size = device.getScreenSize(ScreenOrientation.PORTRAIT)
+      val size = device.getScreenSize(screenOrientation)
       if (size != null) {
         label = label + " (" + size.width + " x " + size.height + ")"
       }
