@@ -36,7 +36,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
@@ -189,7 +188,7 @@ public class NewProjectTest {
     AndroidVersion version = AndroidModel.get(appModule).getMinSdkVersion();
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
-    assertThat(LanguageLevelModuleExtensionImpl.getInstance(appModule).getLanguageLevel()).named("Java language level").isAtLeast(LanguageLevel.JDK_1_7);
+    assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule).getPreviewLevel()).named("Java language level").isAtLeast(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
     assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule)).named("Gradle Java language level in module " + appModule.getName())
