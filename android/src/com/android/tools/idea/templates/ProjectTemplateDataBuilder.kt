@@ -34,9 +34,9 @@ import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.module.LanguageLevelUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.android.refactoring.isAndroidx
@@ -118,7 +118,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   // to sync the overall project level; instead we  have to take the min of all the modules
   private fun determineJavaVersion(project: Project) = runReadAction {
     ModuleManager.getInstance(project).modules
-      .mapNotNull { LanguageLevelModuleExtensionImpl.getInstance(it)?.languageLevel }
+      .mapNotNull { LanguageLevelUtil.getCustomLanguageLevel(it) }
       .min() ?: LanguageLevelProjectExtension.getInstance(project).languageLevel
   }.toJavaVersion()
 
