@@ -390,12 +390,15 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
   fun IdeAndroidLibrary.manifestFile(): File? = this.folder?.resolve(this.manifest)
 
   val aarManifests =
-    GradleAndroidModel.get(this)
-      ?.selectedMainCompileLevel2Dependencies
-      ?.androidLibraries
-      ?.mapNotNull { it.manifestFile() }
-      ?.toSet()
-      .orEmpty()
+    (listOf(this) + dependencies)
+      .flatMap {
+        GradleAndroidModel.get(it)
+          ?.selectedMainCompileLevel2Dependencies
+          ?.androidLibraries
+          ?.mapNotNull { it.manifestFile() }
+          .orEmpty()
+      }
+      .toSet()
 
   // Local library manifests come first because they have higher priority.
   return localLibManifests +
