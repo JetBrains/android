@@ -36,6 +36,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
+        "//tools/adt/idea/emulator/native:native_lib",
         "//tools/adt/idea/emulator/testData",
     ],
     test_srcs = ["testSrc"],

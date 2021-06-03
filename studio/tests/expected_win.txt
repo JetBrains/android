@@ -2088,6 +2088,7 @@ android-studio/plugins/android/resources/layoutlib/data/layoutlib-extensions.jar
 android-studio/plugins/android/resources/layoutlib/data/win/lib64/libandroid_runtime.dll
 android-studio/plugins/android/resources/layoutlib/data/win/lib64/libicuuc-host.dll
 android-studio/plugins/android/resources/layoutlib/data/win/lib64/libicuuc_stubdata.dll
+android-studio/plugins/android/resources/native/libimage_converter.dll
 android-studio/plugins/android/resources/perfa.jar
 android-studio/plugins/android/resources/perfa_okhttp.dex
 android-studio/plugins/android/resources/perfetto/arm64-v8a/libperfetto.so

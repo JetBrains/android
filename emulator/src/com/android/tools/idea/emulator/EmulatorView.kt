@@ -18,6 +18,7 @@ package com.android.tools.idea.emulator
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.ImageConverter
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
@@ -42,7 +43,6 @@ import com.android.tools.idea.emulator.EmulatorController.ConnectionStateListene
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
-import com.android.tools.idea.protobuf.ByteString
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.TextFormat.shortDebugString
 import com.intellij.ide.DataManager
@@ -1079,12 +1079,12 @@ class EmulatorView(
       val recycledImage = recycledImage.getAndSet(null)?.get()
       val image = if (recycledImage?.width == imageFormat.width && recycledImage.height == imageFormat.height) {
         val pixels = (recycledImage.raster.dataBuffer as DataBufferInt).data
-        unpackPixels(response.image, pixels)
+        ImageConverter.unpackRgb888(response.image, pixels)
         recycledImage
       }
       else {
         val pixels = IntArray(imageFormat.width * imageFormat.height)
-        unpackPixels(response.image, pixels)
+        ImageConverter.unpackRgb888(response.image, pixels)
         val buffer = DataBufferInt(pixels, pixels.size)
         val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, imageFormat.width, imageFormat.height, SAMPLE_MODEL_BIT_MASKS)
         val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
@@ -1164,23 +1164,6 @@ class EmulatorView(
       frameNumber++
       frameTimestampMillis = System.currentTimeMillis()
       repaint()
-    }
-
-    /**
-     * This takes noticeable time because it processes a lot of data but is still fast enough
-     * to be called on the gRPC thread.
-     */
-    // TODO: Consider moving to native code.
-    fun unpackPixels(imageBytes: ByteString, pixels: IntArray) {
-      val alpha = 0xFF shl 24
-      var j = 0
-      for (i in pixels.indices) {
-        val red = imageBytes.byteAt(j).toInt() and 0xFF
-        val green = imageBytes.byteAt(j + 1).toInt() and 0xFF
-        val blue = imageBytes.byteAt(j + 2).toInt() and 0xFF
-        j += 3
-        pixels[i] = alpha or (red shl 16) or (green shl 8) or blue
-      }
     }
 
     override fun dispose() {
