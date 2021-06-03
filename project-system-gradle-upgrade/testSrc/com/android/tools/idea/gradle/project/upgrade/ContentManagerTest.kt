@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.GradleVersion
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.testutils.ignore.IgnoreWithCondition
-import com.android.testutils.ignore.OnMac
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
@@ -39,6 +37,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
 import org.junit.Before
@@ -277,7 +276,6 @@ class ContentManagerTest {
     assertThat(stepPresentation.treeText).isEqualTo("Insert directives to continue using Java 7")
   }
 
-  @IgnoreWithCondition(reason = "b/189890821", condition = OnMac::class)
   @Test
   fun testToolWindowViewWithGradleAndPluginUpgrades() {
     projectRule.fixture.addFileToProject(
@@ -305,12 +303,12 @@ class ContentManagerTest {
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     val model = ToolWindowModel(project, currentAgpVersion)
     val view = ContentManager.View(model, toolWindow.contentManager)
-    assertThat(view.tree.rowCount).isEqualTo(4)
-    fun rowText(n: Int) =
-      ((view.tree.getPathForRow(n).lastPathComponent as CheckedTreeNode).userObject as ToolWindowModel.DefaultStepPresentation).treeText
-    assertThat(rowText(1)).contains("Upgrade Gradle version")
-    assertThat(rowText(2)).contains("Upgrade Gradle plugins")
-    assertThat(rowText(3)).contains("Upgrade AGP dependency")
+    assertThat(treeString(view.tree)).isEqualTo("""
+      Upgrade
+        Upgrade Gradle version to ${CompatibleGradleVersion.getCompatibleGradleVersion(latestAgpVersion).version}
+        Upgrade Gradle plugins
+        Upgrade AGP dependency from 4.1.0 to $latestAgpVersion
+    """.trimIndent())
   }
 
   @Test
@@ -435,13 +433,13 @@ class ContentManagerTest {
     assertThat(suggestedVersions).isEqualTo(listOf<GradleVersion>())
   }
 
-  @IgnoreWithCondition(reason = "b/189890821", condition = OnMac::class)
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
     val toolWindowModel = ToolWindowModel(project, currentAgpVersion)
     val knownVersions = listOf("4.1.0", "4.2.0-alpha01", "4.2.0").map { GradleVersion.parse(it) }.toSet()
     val suggestedVersions  = toolWindowModel.suggestedVersionsList(knownVersions)
-    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion))
+    assertThat(suggestedVersions)
+      .isEqualTo(setOf(latestAgpVersion, GradleVersion.parse("4.2.0"), currentAgpVersion).toList().sortedDescending())
   }
 
   @Test
@@ -470,5 +468,24 @@ class ContentManagerTest {
       assertThat(model.editingValidation(newPointVersion.toString()).first).isEqualTo(EditingErrorCategory.WARNING)
       assertThat(model.editingValidation(newPointVersion.toString()).second).isEqualTo("Upgrade to target AGP version is unverified.")
     }
+  }
+
+  fun treeString(tree: CheckboxTree): String {
+    fun addRowText(n: Int, sb: StringBuilder) {
+      val path = tree.getPathForRow(n)
+      val userObject = (path.lastPathComponent as CheckedTreeNode).userObject
+      sb.append("  ".repeat(path.pathCount - 2))
+      when(userObject) {
+        is ToolWindowModel.DefaultStepPresentation -> sb.append(userObject.treeText)
+        is AgpUpgradeComponentNecessity -> sb.append(userObject.treeText())
+        else -> sb.append("Unknown entry in tree: $userObject")
+      }
+    }
+    val sb = StringBuilder()
+    for (i in 0 until tree.rowCount) {
+      addRowText(i, sb)
+      if (i < tree.rowCount - 1) sb.append("\n")
+    }
+    return sb.toString()
   }
 }
