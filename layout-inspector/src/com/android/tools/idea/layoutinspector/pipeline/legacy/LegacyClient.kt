@@ -127,6 +127,7 @@ class LegacyClient(
     reloadAllWindows()
   }
 
+  @Slow
   override fun saveSnapshot(path: Path) {
     saveLegacySnapshot(path, latestData, latestScreenshots)
   }

@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
 
@@ -51,6 +52,7 @@ object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export) {
     val result = saveFileDialog.save(outputDir, fileName) ?: return
 
     val path = result.getVirtualFile(true)?.toNioPath() ?: return
-    inspector.currentClient.saveSnapshot(path)
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      { inspector.currentClient.saveSnapshot(path) }, "Saving snapshot", true, event.project)
   }
 }
