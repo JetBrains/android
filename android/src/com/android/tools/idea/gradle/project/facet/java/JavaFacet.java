@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.facet.java;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,7 +56,7 @@ public class JavaFacet extends Facet<JavaFacetConfiguration> {
 
   @Nullable
   public static JavaFacet getInstance(@NotNull Module module) {
-    return FacetManager.getInstance(module).getFacetByType(TYPE_ID);
+    return FacetManager.getInstance(ModuleUtil.getHolderModule(module)).getFacetByType(TYPE_ID);
   }
 
   public JavaFacet(@NotNull Module module,

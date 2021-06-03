@@ -17,6 +17,8 @@ package org.jetbrains.android.facet;
 
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 
+import com.android.tools.idea.util.CommonAndroidUtil;
+import com.android.tools.idea.util.LinkedAndroidModuleGroup;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -68,7 +70,11 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module) {
-    return !module.isDisposed() ? FacetManager.getInstance(module).getFacetByType(ID) : null;
+    // We can't use the utilities in ModuleUtil in this module as such we access the LINKED_ANDROID_MODULE_GROUP directly
+    LinkedAndroidModuleGroup moduleGroup = module.getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP);
+    Module targetModule = (moduleGroup != null) ? moduleGroup.getMain() : module;
+
+    return !targetModule.isDisposed() ? FacetManager.getInstance(targetModule).getFacetByType(ID) : null;
   }
 
   public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {

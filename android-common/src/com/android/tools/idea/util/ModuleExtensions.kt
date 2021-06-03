@@ -23,3 +23,13 @@ import org.jetbrains.android.facet.AndroidFacet
 val Module.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
 val PsiElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
 val DomElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this)
+
+/**
+ * This class, along with the key [CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP] is used to track and group modules
+ * that are based on the same Gradle project. Instances of this class will be attached to all Android modules.
+ *
+ * These classes shouldn't be used directly instead utility methods in ModuleUtil in intellij.android.core should be called.
+ */
+data class LinkedAndroidModuleGroup(val holder: Module, val main: Module, val unitTest: Module?, val androidTest: Module?) {
+  fun getModules() = listOf(holder, main, unitTest, androidTest)
+}
