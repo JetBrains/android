@@ -44,6 +44,7 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
@@ -497,8 +498,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
     layer.getPhaseList().stream().sorted(AndroidFrameEventTrackModel.getTrackComparator()).forEach(
       phase -> {
         AndroidFrameEventTrackModel phaseTrack = new AndroidFrameEventTrackModel(phase.getFrameEventList(), timeline.getViewRange());
+        AndroidFrameEventTooltip tooltip = new AndroidFrameEventTooltip(timeline, phaseTrack.getSeries().get(0));
         String trackTitle = AndroidFrameEventTrackModel.getDisplayName(phase.getPhaseName());
-        frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle));
+        frameLayer.addTrackModel(TrackModel.newBuilder(phaseTrack, ProfilerTrackRendererType.ANDROID_FRAME_EVENT, trackTitle)
+                                   .setDefaultTooltipModel(tooltip));
       }
     );
     return frameLayer;

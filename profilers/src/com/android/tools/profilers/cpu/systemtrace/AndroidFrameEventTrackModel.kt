@@ -39,11 +39,11 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
       for (event in events) {
         // Add an fake event as padding between real events, needed for StateChart rendering.
         if (event.timestampNanoseconds > lastEndTimeNs) {
-          eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), AndroidFrameEvent.Padding))
+          eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(lastEndTimeNs), Padding))
         }
         lastEndTimeNs = event.timestampNanoseconds + event.durationNanoseconds
         // Add the real event.
-        eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds), AndroidFrameEvent.Data(event.frameNumber)))
+        eventSeries.add(SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestampNanoseconds), Data(event)))
       }
       if (eventSeries.isNotEmpty()) {
         addSeries(RangedSeries(viewRange, LazyDataSeries { eventSeries }))
@@ -96,6 +96,11 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
  * Use [Data] for events that contain [TraceProcessor.AndroidFrameEventsResult.FrameEvent] and [Padding] for padding events.
  */
 sealed class AndroidFrameEvent {
-  data class Data(val frameNumber: Int) : AndroidFrameEvent()
+  data class Data(val frameNumber: Int, val timestampUs: Long, val durationUs: Long) : AndroidFrameEvent() {
+    constructor(frameEvent: TraceProcessor.AndroidFrameEventsResult.FrameEvent) : this(frameEvent.frameNumber,
+                                                                                       frameEvent.timestampNanoseconds,
+                                                                                       frameEvent.durationNanoseconds)
+  }
+
   object Padding : AndroidFrameEvent()
 }
