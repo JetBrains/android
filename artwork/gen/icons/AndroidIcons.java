@@ -23,6 +23,7 @@ public final class AndroidIcons {
 
   public static final class Explorer {
     /** 16x16 */ public static final @NotNull Icon DatabaseFolder = load("icons/explorer/DatabaseFolder.png", 0L, 7);
+    /** 220x125 */ public static final @NotNull Icon DevicesLineup = load("icons/explorer/devices-lineup.png", 0L, 7);
   }
 
   public static final class Flags {
