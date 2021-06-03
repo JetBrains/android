@@ -151,6 +151,56 @@ public class AddKotlinTest {
 
     okButtonFixture.click();
 
+    // TODO: the following is a hack. See http://b/79752752 for removal of the hack
+    // The Kotlin plugin version chosen is done with a network request. This does not work
+    // in an environment where network access is unavailable. We need to handle setting
+    // the Kotlin plugin version ourselves temporarily.
+    Wait.seconds(15)
+      .expecting("Gradle Kotlin plugin version to be set")
+      .until(() ->
+        ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("ext.kotlin_version")
+      );
+
+    String buildGradleContents = ideFrameFixture.getEditor()
+      .open("build.gradle")
+      .getCurrentFileContents();
+
+    String kotlinVersion = bundledRuntimeVersion();
+    int dash = kotlinVersion.indexOf('-');
+    if (dash != -1) {
+      kotlinVersion = kotlinVersion.substring(0, dash);
+    }
+    String newBuildGradleContents = buildGradleContents.replaceAll(
+      "ext\\.kotlin_version.*=.*",
+      "ext.kotlin_version = '" + kotlinVersion + '\'')
+      .replaceAll(
+        "mavenCentral\\(\\)",
+        ""
+      );
+
+    OutputStream buildGradleOutput = ideFrameFixture.getEditor()
+      .open("build.gradle")
+      .getCurrentFile()
+      .getOutputStream(null);
+    Ref<IOException> ioErrors = new Ref<>();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        try (
+          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8)
+        ) {
+          buildGradleWriter.write(newBuildGradleContents);
+        } catch (IOException writeError) {
+          ioErrors.set(writeError);
+        }
+      });
+    });
+    IOException ioError = ioErrors.get();
+    if (ioError != null) {
+      throw new Exception("Unable to modify build.gradle file", ioError);
+    }
+    guiTest.waitForBackgroundTasks();
+    // TODO End hack
+
     ideFrameFixture.requestProjectSyncAndWaitForSyncToFinish();
 
     assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
