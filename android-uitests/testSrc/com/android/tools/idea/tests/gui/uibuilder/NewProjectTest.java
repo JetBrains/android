@@ -35,9 +35,9 @@ import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelModuleExtension;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
@@ -193,8 +193,7 @@ public class NewProjectTest {
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
     Module appModule = guiTest.ideFrame().getModule("app");
-    LanguageLevelModuleExtension moduleExt = LanguageLevelModuleExtensionImpl.getInstance(appModule);
-    assertThat(moduleExt.getLanguageLevel()).named("Gradle Java language level in module " + appModule.getName())
+    assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule)).named("Gradle Java language level in module " + appModule.getName())
       .isAtLeast(LanguageLevel.JDK_1_7);
   }
 

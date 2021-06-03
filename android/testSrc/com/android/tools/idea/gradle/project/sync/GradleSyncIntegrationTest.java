@@ -98,13 +98,13 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.SystemInfo;
@@ -127,8 +127,6 @@ import java.util.Properties;
 import junit.framework.AssertionFailedError;
 import org.jetbrains.android.compiler.ModuleSourceAutogenerating;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -254,13 +252,8 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
   public void testModuleJavaLanguageLevel() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = TestModuleUtil.findModule(getProject(), "library1");
-    LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
+    LanguageLevel javaLanguageLevel = LanguageLevelUtil.getCustomLanguageLevel(library1Module);
     assertEquals(JDK_1_8, javaLanguageLevel);
-  }
-
-  @Nullable
-  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
-    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
   }
 
   // https://code.google.com/p/android/issues/detail?id=227931

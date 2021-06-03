@@ -56,6 +56,7 @@ import com.android.tools.idea.ui.GuiTestingService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -64,7 +65,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -84,7 +84,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
@@ -323,12 +322,7 @@ public class GradleSyncTest {
 
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultipleModuleTypes");
     Module javaLib = guiTest.ideFrame().getModule("javaLib");
-    assertEquals(JDK_1_8, getJavaLanguageLevel(javaLib));
-  }
-
-  @Nullable
-  private static LanguageLevel getJavaLanguageLevel(@NotNull Module module) {
-    return LanguageLevelModuleExtensionImpl.getInstance(module).getLanguageLevel();
+    assertEquals(JDK_1_8, LanguageLevelUtil.getCustomLanguageLevel(javaLib));
   }
 
   @Test
