@@ -23,7 +23,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-class BackgroundTaskInspectorClient(private val messenger: AppInspectorMessenger, private val clientScope: CoroutineScope) {
+sealed class WmiMessengerTarget {
+  class Resolved(val messenger: AppInspectorMessenger): WmiMessengerTarget()
+  class Unresolved(val error: String): WmiMessengerTarget()
+}
+
+class BackgroundTaskInspectorClient(
+  private val btiMessenger: AppInspectorMessenger,
+  private val wmiMessengerTarget: WmiMessengerTarget,
+  clientScope: CoroutineScope
+) {
   private val _listeners = mutableListOf<() -> Unit>()
   fun addWorksChangedListener(listener: () -> Unit) = _listeners.add(listener)
   var event: String = ""
@@ -31,10 +40,10 @@ class BackgroundTaskInspectorClient(private val messenger: AppInspectorMessenger
   init {
     val command = Command.newBuilder().setTrackBackgroundTask(TrackBackgroundTaskCommand.getDefaultInstance()).build()
     clientScope.launch {
-      messenger.sendRawCommand(command.toByteArray())
+      btiMessenger.sendRawCommand(command.toByteArray())
     }
     clientScope.launch {
-      messenger.eventFlow.collect { eventData ->
+      btiMessenger.eventFlow.collect { eventData ->
         event = Event.parseFrom(eventData).toString()
         _listeners.forEach { listener -> listener() }
       }

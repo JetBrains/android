@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.workmanager.analytics.Ide
 import com.android.tools.idea.appinspection.inspectors.workmanager.model.WorkManagerInspectorClient
 import com.android.tools.idea.appinspection.inspectors.workmanager.view.WorkManagerInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags.ENABLE_BACKGROUND_TASK_INSPECTOR_TAB
 import com.android.tools.idea.flags.StudioFlags.ENABLE_WORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -50,7 +51,7 @@ class WorkManagerInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val learnMoreUrl = "https://d.android.com/r/studio-ui/background-task-inspector-help"
 
   override fun isApplicable(): Boolean {
-    return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get()
+    return ENABLE_WORK_MANAGER_INSPECTOR_TAB.get() && !ENABLE_BACKGROUND_TASK_INSPECTOR_TAB.get()
   }
 
   override fun createTab(
