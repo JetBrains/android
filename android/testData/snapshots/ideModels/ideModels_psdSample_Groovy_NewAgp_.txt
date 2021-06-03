@@ -1250,7 +1250,6 @@ MODULE                        : project.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
-                    RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2589,7 +2588,6 @@ MODULE                        : project.app
                             IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
-                    RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.dyn_feature
     ModelVersion                  : <AGP_VERSION>
