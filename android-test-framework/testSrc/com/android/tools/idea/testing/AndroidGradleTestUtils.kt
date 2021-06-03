@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -95,9 +96,11 @@ import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
 import com.android.utils.cxx.CompileCommandsEncoder
 import com.google.common.truth.Truth.assertThat
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -127,6 +130,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.text.nullize
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
 import org.jetbrains.annotations.SystemIndependent
@@ -137,6 +141,7 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 data class AndroidProjectModels(
@@ -1396,3 +1401,21 @@ private fun createModuleIdToModuleDataMap(moduleNodes: Collection<DataNode<Modul
   }
 }
 
+inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableFuture<T>): T {
+  val gradleBuildInvoker = GradleBuildInvoker.getInstance(this)
+  val future = invoker(gradleBuildInvoker)
+  try {
+    return future.get(5, TimeUnit.MINUTES)
+  }
+  finally {
+    AndroidTestBase.refreshProjectFiles()
+    ApplicationManager.getApplication().invokeAndWait {
+      try {
+        AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(this, null)
+      }
+      catch (e: Exception) {
+        e.printStackTrace()
+      }
+    }
+  }
+}
