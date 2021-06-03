@@ -41,13 +41,13 @@ class AndroidFrameEventTrackModelTest {
     val trackModel = AndroidFrameEventTrackModel(FRAME_EVENTS, Range(0.0, 10.0))
     assertThat(trackModel.series.size).isEqualTo(2)
     assertThat(trackModel.series[0].series).containsExactly(
-      SeriesData(0L, AndroidFrameEvent.Data(0)),
-      SeriesData(1L, AndroidFrameEvent.Data(1)),
-      SeriesData(2L, AndroidFrameEvent.Data(2))
+      SeriesData(0L, AndroidFrameEvent.Data(FRAME_EVENTS[0])),
+      SeriesData(1L, AndroidFrameEvent.Data(FRAME_EVENTS[1])),
+      SeriesData(2L, AndroidFrameEvent.Data(FRAME_EVENTS[2]))
     ).inOrder()
     assertThat(trackModel.series[1].series).containsExactly(
       SeriesData(0L, AndroidFrameEvent.Padding),
-      SeriesData(2L, AndroidFrameEvent.Data(3))
+      SeriesData(2L, AndroidFrameEvent.Data(FRAME_EVENTS[3]))
     )
   }
 
