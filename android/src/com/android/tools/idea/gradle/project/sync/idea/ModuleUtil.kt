@@ -21,12 +21,13 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.diagnostic.logger
+import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.util.LinkedAndroidModuleGroup
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import org.jetbrains.kotlin.idea.inspections.gradle.findAll
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -48,6 +49,8 @@ object ModuleUtil {
   fun Project.isModulePerSourceSetEnabled(): Boolean = GradleUtil.getGradleProjectSettings(this)?.isResolveModulePerSourceSet ?: false
 
   /**
+   * Do not use this method outside of project system code.
+   *
    * This method is used to link all modules that come from the same Gradle project.
    * It uses user data under the [LINKED_ANDROID_MODULE_GROUP] key to store an instance of [LinkedAndroidModuleGroup] on each module.
    *
@@ -98,8 +101,6 @@ object ModuleUtil {
   fun Module.getHolderModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
 }
 
-val LINKED_ANDROID_MODULE_GROUP : Key<LinkedAndroidModuleGroup> = Key("linked.android.module.group")
-
 fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
     val moduleName = getModuleName(artifactName)
     val suffix = ":$moduleName"
@@ -109,7 +110,3 @@ fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactNa
       null
     }
   } ?: this
-
-data class LinkedAndroidModuleGroup(val holder: Module, val main: Module, val unitTest: Module?, val androidTest: Module?) {
-  fun getModules() = listOf(holder, main, unitTest, androidTest)
-}
