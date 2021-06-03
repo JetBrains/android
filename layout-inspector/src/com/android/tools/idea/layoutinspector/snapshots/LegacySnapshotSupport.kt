@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -78,6 +79,7 @@ class LegacySnapshotLoader : SnapshotLoader {
   }
 }
 
+@Slow
 fun saveLegacySnapshot(path: Path, data: Map<String, ByteArray>, images: Map<String, ByteArray>) {
   val baos = ByteArrayOutputStream(4096)
   ObjectOutputStream(baos).use { output ->

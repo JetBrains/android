@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
+import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
@@ -184,6 +185,7 @@ class AppInspectionInspectorClient(
     capabilities.addAll(dynamicCapabilities)
   }
 
+  @Slow
   override fun saveSnapshot(path: Path) {
     viewInspector.saveSnapshot(path)
   }
