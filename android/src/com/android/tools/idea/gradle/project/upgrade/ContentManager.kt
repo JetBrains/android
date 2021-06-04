@@ -17,6 +17,8 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
@@ -31,6 +33,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
@@ -80,7 +83,7 @@ class ToolWindowModel(
   val project: Project,
   val currentVersionProvider: () -> GradleVersion?,
   val knownVersionsRequester: () -> Set<GradleVersion> = { IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle") }
-) {
+) : GradleSyncListener, Disposable {
 
   val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
@@ -215,17 +218,11 @@ class ToolWindowModel(
     }
   }
 
-  val connection = project.messageBus.connect()
-
   init {
+    Disposer.register(project, this)
     refresh()
-    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        uiState.set(UIState.Loading)
-        refresh(true)
-      }
-    })
 
+    GradleSyncState.subscribe(project, this, this)
     // Initialize known versions (e.g. in case of offline work with no cache)
     suggestedVersions.value = suggestedVersionsList(setOf())
 
@@ -237,6 +234,20 @@ class ToolWindowModel(
         invokeLater(ModalityState.NON_MODAL) { suggestedVersions.value = suggestedVersionsList }
       }
     })
+  }
+
+  override fun syncStarted(project: Project) = Unit
+  override fun syncFailed(project: Project, errorMessage: String) = syncFinished()
+  override fun syncSucceeded(project: Project) = syncFinished()
+  override fun syncSkipped(project: Project) = syncFinished()
+
+  private fun syncFinished() {
+    uiState.set(UIState.Loading)
+    refresh(true)
+  }
+
+  override fun dispose() {
+    processor?.usageView?.close()
   }
 
   fun editingValidation(value: String?): Pair<EditingErrorCategory, String> {
@@ -450,10 +461,7 @@ class ContentManager(val project: Project) {
     val model = ToolWindowModel(project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion })
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
-    content.setDisposer {
-      model.processor?.usageView?.close()
-      Disposer.dispose(model.connection)
-    }
+    content.setDisposer(model)
     content.isPinned = true
     toolWindow.contentManager.addContent(content)
     toolWindow.show()
@@ -519,7 +527,7 @@ class ContentManager(val project: Project) {
       val textField = editor.editorComponent as CommonTextField<*>
       textField.registerActionKey({ hidePopup(); textField.enterInLookup() }, KeyStrokes.ENTER, "enter")
       textField.registerActionKey({ hidePopup(); textField.escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
-      ComponentValidator(this@View.model.connection).withValidator { ->
+      ComponentValidator(this@View.model).withValidator { ->
         val text = editor.item.toString()
         val validation = this@View.model.editingValidation(text)
         when (validation.first) {
