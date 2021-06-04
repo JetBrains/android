@@ -53,4 +53,34 @@ class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
     val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
     assertThat(distributionUrlLine).contains("gradle-6.5-bin.zip")
   }
+
+  fun testUpgradeBasic40to42() {
+    loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72")
+
+    val appModule = ModuleManager.getInstance(project).modules.first { it.name == "Basic40.app" }
+    assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
+    assertThat(GradleFacet.getInstance(appModule)?.configuration?.LAST_SUCCESSFUL_SYNC_AGP_VERSION).isEqualTo("4.0.0")
+
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    processor.run()
+
+    assertThat(ProjectSystemService.getInstance(project).projectSystem.getSyncManager().getLastSyncResult()).isEqualTo(SUCCESS)
+    assertThat(GradleFacet.getInstance(appModule)?.configuration?.LAST_SUCCESSFUL_SYNC_AGP_VERSION).isEqualTo("4.2.0")
+
+    // We can't straightforwardly assert the exact contents of build.gradle, because the test infrastructure patches it with repository
+    // declarations to make it work in the test environment
+    val projectBuildFile = File(project.basePath, "build.gradle")
+    val projectBuildFileLines = projectBuildFile.readLines().map { it.trim() }
+    assertThat(projectBuildFileLines).contains("classpath 'com.android.tools.build:gradle:4.2.0'")
+    assertThat(projectBuildFileLines).doesNotContain("google()")
+    assertThat(projectBuildFileLines).contains("ext.kotlin_version = \"1.3.72\"")
+
+    val appBuildFile = File(File(project.basePath, "app"), "build.gradle")
+    assertThat(appBuildFile.readText()).isEqualTo(File(File(project.basePath, "app"), "build.gradle.expected.to42").readText())
+
+    val gradleWrapperFile = File(File(File(project.basePath, "gradle"), "wrapper"), "gradle-wrapper.properties")
+    val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
+    assertThat(distributionUrlLine).contains("gradle-6.7.1-bin.zip")
+  }
+
 }
