@@ -75,6 +75,6 @@ public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
     String taskName = AndroidModuleModel.get(myAndroidFacet).getSelectedVariant().getMainArtifact().getAssembleTaskName();
     invokeGradleTasks(getProject(), taskName);
     // Bug b/146366612
-    assertEquals("one.name.debug", getModel().getApplicationId());
+    assertEquals("one.name.defaultConfig.debug", getModel().getApplicationId());
   }
 }

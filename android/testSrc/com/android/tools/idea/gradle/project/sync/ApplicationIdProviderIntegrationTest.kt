@@ -55,7 +55,7 @@ class ApplicationIdProviderIntegrationTest : GradleIntegrationTest {
       val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
       runConfiguration.executeMakeBeforeRunStepInTest()
       val applicationId = project.getProjectSystem().getApplicationIdProvider(runConfiguration)?.packageName
-      assertThat(applicationId).isEqualTo("one.name.debug")
+      assertThat(applicationId).isEqualTo("one.name.defaultConfig.debug")
     }
   }
 

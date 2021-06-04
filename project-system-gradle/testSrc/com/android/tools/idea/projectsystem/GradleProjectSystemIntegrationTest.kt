@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
 import com.android.testutils.truth.PathSubject.assertThat
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -26,9 +27,10 @@ import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.switchVariant
+import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import junit.framework.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -44,6 +46,9 @@ class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   var testName = TestName()
+
+  @get:Rule
+  val expect: Expect = Expect.create()
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
@@ -75,8 +80,37 @@ class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
       val defaultApkFile = project
         .getProjectSystem()
         .getDefaultApkFile()
-      assertNotNull(defaultApkFile)
+      assertThat(defaultApkFile).isNotNull()
       assertThat(defaultApkFile!!.name).isEqualTo("app-debug.apk")
+    }
+  }
+
+  @Test
+  fun testGetPackageName() {
+    // `getPackageName` returns an `R` class Java package name and does not depend on the currently selected build variant or
+    // whether the project has been built or not.
+
+    fun Project.appModule() = this.gradleModule(":app")!!
+    fun Project.appModuleSystem() = this.appModule().getModuleSystem()
+    fun AssembleInvocationResult.errors() = this.invocationResult.invocations.mapNotNull { it.buildError }
+
+    runTestOn(TestProjectPaths.APPLICATION_ID_SUFFIX) { project ->
+      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
+      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+
+      val debugBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
+      expect.that(debugBuildResult.errors()).isEmpty()
+      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
+      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+
+      switchVariant(project, ":app", "release")
+      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
+      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+
+      val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
+      expect.that(releaseBuildResult.errors()).isEmpty()
+      expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
+      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
     }
   }
 
