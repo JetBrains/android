@@ -564,6 +564,9 @@ public class AndroidGradleTests {
 
     copyDir(srcRoot, projectRoot);
 
+    // patcher may use VFS (in fact, PropertiesFiles is using VFS now), need to refresh
+    // otherwise pre-populated properties files are cleared (e.g. `android.useAndroidX` property)
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
     patcher.consume(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
