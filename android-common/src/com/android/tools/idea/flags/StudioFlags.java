@@ -586,6 +586,14 @@ public final class StudioFlags {
     "Enables the expression filter in Logcat",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
+    RUNDEBUG,
+    "logcat.suppressed.tags.enable",
+    "Enable Suppressed Tags Dialog in Logcat",
+    "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
+    false
+  );
   //endregion
 
   //region Gradle Project System

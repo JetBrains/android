@@ -323,6 +323,7 @@
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.FrameworkResourceRepositoryManager"/>
+    <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatGlobalPreferences"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>

@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.logcat;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.execution.actions.ClearConsoleAction;
 import com.intellij.execution.actions.ConsoleActionsPostProcessor;
 import com.intellij.execution.impl.ConsoleViewImpl;
@@ -116,16 +117,22 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
    */
   @NotNull
   private static AnAction[] processPopupActions(@NotNull AndroidLogConsole console, @NotNull AnAction[] actions) {
-    AnAction[] resultActions = new AnAction[actions.length];
-    for (int i = 0; i < actions.length; ++i) {
-      if (actions[i] instanceof ClearConsoleAction) {
-        resultActions[i] = new ClearLogCatAction(console);
+    List<AnAction> resultActions = new ArrayList<>();
+    for (AnAction action : actions) {
+      if (action instanceof ClearConsoleAction) {
+        resultActions.add(new ClearLogCatAction(console));
       }
       else {
-        resultActions[i] = actions[i];
+        resultActions.add(action);
       }
     }
-    return resultActions;
+    AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(console.getProject());
+    if (StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.get()) {
+      if (AndroidLogcatFormatter.isTagShown(preferences.LOGCAT_FORMAT_STRING)) {
+        resultActions.add(new SuppressSingleLogTagAction(console));
+      }
+    }
+    return resultActions.toArray(new AnAction[0]);
   }
 
   private static final class ClearLogCatAction extends DumbAwareAction {

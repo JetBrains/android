@@ -52,9 +52,9 @@ final class ConfigureLogcatHeaderDialog extends DialogWrapper {
     String format = preferences.LOGCAT_FORMAT_STRING;
     myShowDateAndTimeCheckBox = createShowDateAndTimeCheckBox(format);
     myShowAsSecondsSinceEpochCheckBox = createCheckBox("Show as seconds since epoch", preferences.SHOW_AS_SECONDS_SINCE_EPOCH, 8);
-    myShowProcessAndThreadIdsCheckBox = createCheckBox("Show process and thread IDs", format.isEmpty() || format.contains("%2$s"), 5);
-    myShowPackageNameCheckBox = createCheckBox("Show package name", format.isEmpty() || format.contains("%3$s"), 13);
-    myShowTagCheckBox = createCheckBox("Show tag", format.isEmpty() || format.contains("%5$s"), 7);
+    myShowProcessAndThreadIdsCheckBox = createCheckBox("Show process and thread IDs", AndroidLogcatFormatter.isProcessShown(format), 5);
+    myShowPackageNameCheckBox = createCheckBox("Show package name", AndroidLogcatFormatter.isPackageShown(format), 13);
+    myShowTagCheckBox = createCheckBox("Show tag", AndroidLogcatFormatter.isTagShown(format), 7);
     mySampleLabel = createSampleLabel();
 
     init();
