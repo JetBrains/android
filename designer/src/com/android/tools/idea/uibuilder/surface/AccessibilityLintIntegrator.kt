@@ -33,6 +33,8 @@ import com.android.tools.lint.detector.api.Category
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import java.awt.Desktop
 import java.net.URL
 import java.util.stream.Stream
@@ -228,7 +230,12 @@ class NlAtfIssue(
       }
       return HyperlinkListener {
         if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-          Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+          try {
+            Desktop.getDesktop().browse(URL(result.mHelpfulUrl).toURI())
+          } catch (exception: Exception) {
+            val project : Project? = null
+            Messages.showErrorDialog(project, "Unable to open a browser", "Error")
+          }
         }
       }
     }
