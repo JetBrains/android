@@ -27,16 +27,12 @@ import static com.android.testutils.TestUtils.getKotlinVersionForTests;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.testutils.TestUtils.getWorkspaceFile;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.io.Files.write;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertTrue;
@@ -71,7 +67,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.EdtTestUtil;
@@ -81,7 +76,6 @@ import com.intellij.util.ThrowableConsumer;
 import com.intellij.util.ThrowableRunnable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -251,19 +245,6 @@ public class AndroidGradleTests {
         write(contents, path, Charsets.UTF_8);
       }
     }
-  }
-
-  /**
-   * Converts plugin version to base version. E.g. 4.0.1 -> 27.0.1
-   */
-  @NotNull
-  private static String getBaseVersion(@NotNull String pluginVersion) {
-    String[] versionParts = pluginVersion.split("\\.", 2);
-    assert versionParts.length == 2: "Unexpected version string: " + pluginVersion + ". Expected smth like 4.0.0";
-    int pluginMajor = Integer.valueOf(versionParts[0]);
-    int baseMajor = pluginMajor + 23;
-    String minorNumbers = versionParts[1];
-    return baseMajor + "." + minorNumbers;
   }
 
   @NotNull
@@ -594,6 +575,9 @@ public class AndroidGradleTests {
 
     copyDir(srcRoot, projectRoot);
 
+    // patcher may use VFS (in fact, PropertiesFiles is using VFS now), need to refresh
+    // otherwise pre-populated properties files are cleared (e.g. `android.useAndroidX` property)
+    VfsUtil.markDirtyAndRefresh(false, true, true, findFileByIoFile(projectRoot, true));
     patcher.consume(projectRoot);
 
     // Refresh project dir to have files under of the project.getBaseDir() visible to VFS.
