@@ -33,7 +33,8 @@ import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.All
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.InvalidVersionError
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Loading
 import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.ReadyToRun
-import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.Running
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningSync
+import com.android.tools.idea.gradle.project.upgrade.ToolWindowModel.UIState.RunningUpgrade
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.onEdt
@@ -367,7 +368,7 @@ class ContentManagerTest {
     changingCurrentAgpVersion = latestAgpVersion
     toolWindowModel.syncSucceeded(project)
     assertThat(psiFile.text).contains("classpath 'com.android.tools.build:gradle:$latestAgpVersion")
-    assertThat(uiStates).containsExactly(Running, Loading, AllDone).inOrder()
+    assertThat(uiStates).containsExactly(RunningUpgrade, RunningSync, Loading, AllDone).inOrder()
   }
 
   @Test
