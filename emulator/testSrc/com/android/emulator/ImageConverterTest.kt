@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.emulator
 
 import com.android.tools.idea.protobuf.ByteString
@@ -92,6 +91,6 @@ class ImageConverterTest {
   }
 }
 
-const val IMAGE_SIZE = 1000000
-const val WARM_UP_LOOPS = 1000
-const val BENCHMARK_LOOPS = 1000
+private const val IMAGE_SIZE = 1000000
+private const val WARM_UP_LOOPS = 1000
+private const val BENCHMARK_LOOPS = 1000
