@@ -90,6 +90,11 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintClosed() {
+    if (SystemInfo.isWindows) {
+      // Do not run on Windows: b/187441420
+      // The font in the links are rendered differently on similar test machines
+      return
+    }
     setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
@@ -98,6 +103,11 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpen() {
+    if (SystemInfo.isWindows) {
+      // Do not run on Windows: b/187441420
+      // The font in the links are rendered differently on similar test machines
+      return
+    }
     setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     checkImage(editors, "Open")
@@ -105,6 +115,11 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpenWithDetails() {
+    if (SystemInfo.isWindows) {
+      // Do not run on Windows: b/187441420
+      // The font in the links are rendered differently on similar test machines
+      return
+    }
     setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
@@ -114,6 +129,11 @@ class ResolutionElementEditorTest {
 
   @Test
   fun testPaintOpenWithTwoDetails() {
+    if (SystemInfo.isWindows) {
+      // Do not run on Windows: b/187441420
+      // The font in the links are rendered differently on similar test machines
+      return
+    }
     setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
