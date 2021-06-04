@@ -85,7 +85,7 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           name = "APPLICATION_ID_SUFFIX run configuration",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
           expectApks = """
-            ApplicationId: one.name.debug
+            ApplicationId: one.name.defaultConfig.debug
             File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
