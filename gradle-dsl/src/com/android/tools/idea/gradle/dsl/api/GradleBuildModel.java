@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
 import com.intellij.openapi.diagnostic.ControlFlowException;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.List;
 import java.util.Set;
 
-public interface GradleBuildModel extends GradleFileModel {
+public interface GradleBuildModel extends GradleFileModel, PluginsModel {
   /**
    * Runs the given supplier and returns the result if no exception was thrown. If an exception was thrown then
    * log it to back intellijs logs and the AndroidStudioCrashReporter and return null.
@@ -94,17 +95,6 @@ public interface GradleBuildModel extends GradleFileModel {
   static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project) {
     return GradleModelProvider.getInstance().parseBuildFile(file, project);
   }
-
-  @NotNull
-  List<PluginModel> plugins();
-
-  @NotNull
-  PluginModel applyPlugin(@NotNull String plugin);
-
-  @NotNull
-  PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply);
-
-  void removePlugin(@NotNull String plugin);
 
   /**
    * In most cases in the Dsl api, we can obtain a PsiElement for an element from the corresponding model.  In the specific case of plugins,
