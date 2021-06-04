@@ -29,6 +29,8 @@ data class AndroidTestConfiguration(
   // Run Android Instrumented Tests using Gradle.
   @JvmField
   var RUN_ANDROID_TEST_USING_GRADLE: Boolean = false,
+  // Show the dialog and ask users to opt-in Gradle Android Test Runner.
+  var SHOW_RUN_ANDROID_TEST_USING_GRADLE_OPT_IN_DIALOG: Boolean = true,
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
     @JvmStatic

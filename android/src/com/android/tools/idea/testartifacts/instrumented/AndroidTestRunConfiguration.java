@@ -303,6 +303,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
                                                           @NotNull ApplicationIdProvider applicationIdProvider,
                                                           @NotNull ApkProvider apkProvider,
                                                           @NotNull LaunchOptions launchOptions) {
+    GradleAndroidTestRunnerOptInDialogKt.showGradleAndroidTestRunnerOptInDialog(getProject());
+
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       return new GradleAndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
                                                   TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
