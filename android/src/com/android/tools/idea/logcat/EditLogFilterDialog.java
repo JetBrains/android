@@ -6,7 +6,6 @@ import static com.android.ddmlib.Log.LogLevel.INFO;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.ExpressionFilterManager.ExpressionException;
 import com.android.tools.idea.logcat.PersistentAndroidLogFilters.FilterData;
 import com.google.common.collect.Lists;

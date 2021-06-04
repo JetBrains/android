@@ -16,7 +16,11 @@
 
 package com.android.tools.idea.logcat;
 
-import com.intellij.openapi.components.*;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +37,10 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   /**
    * Optional, but if set, used for applying one final format pass on output going to the logcat
    * console.
-   *
+   * <p>
    * Don't set formatting directly; instead,
    * use {@link AndroidLogcatFormatter#createCustomFormat(boolean, boolean, boolean, boolean)}
-   *
+   * <p>
    * Or, set to an empty string to disable this extra step of processing
    */
   public String LOGCAT_FORMAT_STRING = "";

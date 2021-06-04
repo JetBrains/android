@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.util.Locale;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
  * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
 public final class AndroidLogcatFormatter extends DefaultLogFormatter {
+  public static final String TAG_PATTERN_GROUP_NAME = "tag";
+  public static final Pattern TAG_PATTERN = Pattern.compile(" [VDIWEA]/(?<tag>.*?): ");
+
   private static final String CONTINUATION_LINE = "\n    ";
   private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
   private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
@@ -85,6 +89,19 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
     }
     builder.append(": %6$s");
     return builder.toString();
+  }
+
+
+  public static boolean isProcessShown(String format) {
+    return format.isEmpty() || format.contains("%2$s");
+  }
+
+  public  static boolean isPackageShown(String format) {
+    return format.isEmpty() || format.contains("%3$s");
+  }
+
+  public static boolean isTagShown(String format) {
+    return format.isEmpty() || format.contains("%5$s");
   }
 
   @NotNull

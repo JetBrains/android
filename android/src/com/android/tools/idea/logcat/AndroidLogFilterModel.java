@@ -19,6 +19,7 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.logging.LogConsoleBase;
 import com.intellij.diagnostic.logging.LogFilter;
@@ -56,6 +57,7 @@ final class AndroidLogFilterModel extends LogFilterModel {
 
   @NotNull private final ImmutableList<AndroidLogLevelFilter> myLogLevelFilters;
   @NotNull private final AndroidLogcatPreferences myPreferences;
+  @NotNull private final AndroidLogcatGlobalPreferences myGlobalPreferences = AndroidLogcatGlobalPreferences.getInstance();
   @NotNull private final AndroidLogcatFormatter myFormatter;
 
   AndroidLogFilterModel(@NotNull AndroidLogcatFormatter formatter, @NotNull AndroidLogcatPreferences preferences) {
@@ -144,6 +146,11 @@ final class AndroidLogFilterModel extends LogFilterModel {
   }
 
   private boolean isApplicable(@NotNull LogCatMessage logCatMessage) {
+    if (StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.get()) {
+      if (myGlobalPreferences.getSuppressedLogTags().contains(logCatMessage.getHeader().getTag())) {
+        return false;
+      }
+    }
     if (myCustomPattern != null && !myCustomPattern.matcher(myFormatter.formatMessage(logCatMessage)).find()) {
       return false;
     }

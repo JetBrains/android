@@ -22,20 +22,30 @@ import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.diagnostic.logging.LogFilterModel;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.ApplicationRule;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.regex.Pattern;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 public class AndroidLogFilterModelTest {
+  @Rule
+  public ApplicationRule rule = new ApplicationRule();
+
   private AndroidLogFilterModel myFilterModel;
   private AndroidLogcatPreferences myPreferences;
+  private AndroidLogcatGlobalPreferences myGlobalPreferences;
 
   @Before
   public void setUp() throws Exception {
     myPreferences = new AndroidLogcatPreferences();
+    myGlobalPreferences = ApplicationManager.getApplication().getService(AndroidLogcatGlobalPreferences.class);
+    myGlobalPreferences.getSuppressedLogTags().clear();
     myFilterModel = new AndroidLogFilterModel(new AndroidLogcatFormatter(ZoneId.of("America/Los_Angeles"), myPreferences), myPreferences);
     myFilterModel.processingStarted();
   }
@@ -49,7 +59,7 @@ public class AndroidLogFilterModelTest {
 
   @Test
   public void processLine_invalidLine_throws() {
-    assertThrows(RuntimeException.class, () ->myFilterModel.processLine("--- INVALID LINE ---"));
+    assertThrows(RuntimeException.class, () -> myFilterModel.processLine("--- INVALID LINE ---"));
   }
 
   @Test
@@ -137,6 +147,37 @@ public class AndroidLogFilterModelTest {
     myFilterModel.updateLogcatFilter(DefaultAndroidLogcatFilter.compile(filterData, "(Unused Name)"));
 
     assertThat(myFilterModel.processLine(line).isApplicable()).isFalse();
+  }
+
+  @Test
+  public void suppressedTags_disabledByDefault() {
+    String tag = "Tag";
+    myGlobalPreferences.getSuppressedLogTags().add(tag);
+
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(new LogLineBuilder().setTag(tag).build());
+
+    assertThat(result.isApplicable()).isTrue();
+  }
+
+  @Test
+  public void suppressedTags_tagSuppressed_rejected() {
+    StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.override(true);
+    String tag = "Tag";
+    myGlobalPreferences.getSuppressedLogTags().add(tag);
+
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(new LogLineBuilder().setTag(tag).build());
+
+    assertThat(result.isApplicable()).isFalse();
+  }
+
+  @Test
+  public void suppressedTags_tagSuppressed_otherTagAccepted() {
+    StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.override(true);
+    myGlobalPreferences.getSuppressedLogTags().add("Tag");
+
+    LogFilterModel.MyProcessingResult result = myFilterModel.processLine(new LogLineBuilder().setTag("OtherTag").build());
+
+    assertThat(result.isApplicable()).isTrue();
   }
 
   private static class LogLineBuilder {
