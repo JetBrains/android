@@ -28,8 +28,6 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FAILURE_PREDICTED
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
@@ -136,11 +134,17 @@ class ToolWindowModel(
       override val runTooltip = ""
       override val loadingText = "Loading"
     }
-    object Running : UIState() {
+    object RunningUpgrade : UIState() {
       override val runEnabled = false
       override val showLoadingState = true
       override val runTooltip = ""
-      override val loadingText = "Running"
+      override val loadingText = "Running Upgrade"
+    }
+    object RunningSync : UIState() {
+      override val runEnabled = false
+      override val showLoadingState = true
+      override val runTooltip = ""
+      override val loadingText = "Running Sync"
     }
     object AllDone : UIState() {
       override val runEnabled = false
@@ -236,7 +240,7 @@ class ToolWindowModel(
     })
   }
 
-  override fun syncStarted(project: Project) = Unit
+  override fun syncStarted(project: Project) = uiState.set(UIState.RunningSync)
   override fun syncFailed(project: Project, errorMessage: String) = syncFinished()
   override fun syncSucceeded(project: Project) = syncFinished()
   override fun syncSkipped(project: Project) = syncFinished()
@@ -381,7 +385,7 @@ class ToolWindowModel(
   }
 
   fun runUpgrade(showPreview: Boolean) = processor?.let { processor ->
-    if (!showPreview) uiState.set(UIState.Running)
+    if (!showPreview) uiState.set(UIState.RunningUpgrade)
     processor.components().forEach { it.isEnabled = false }
     CheckboxTreeHelper.getCheckedNodes(DefaultStepPresentation::class.java, null, treeModel)
       .forEach { it.processor.isEnabled = true }
