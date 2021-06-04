@@ -16,13 +16,11 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
-import static com.android.tools.idea.testartifacts.instrumented.testsuite.view.OptInBannerViewKt.createConsoleViewWithOptInBanner;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeTestOptions;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -65,7 +63,6 @@ import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
-import com.intellij.execution.testframework.sm.SMTestRunnerConnectionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.SettingsEditor;
@@ -73,7 +70,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -154,8 +150,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
 
   public AndroidTestRunConfiguration(final Project project, final ConfigurationFactory factory) {
     super(project, factory);
-    getOptions().setAllowRunningInParallel(StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get());
-
     putUserData(BaseAction.SHOW_APPLY_CHANGES_UI, true);
   }
 
@@ -334,18 +328,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
     return (parent, handler, executor) -> {
-      final ConsoleView consoleView;
-      if ((runOnMultipleDevices || AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX())
-          && StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get()) {
-        consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(),
-                                               executor.getToolWindowId(), this);
-        consoleView.attachToProcess(handler);
-      } else {
-        AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
-        consoleView = createConsoleViewWithOptInBanner(
-          SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties));
-        Disposer.register(parent, consoleView);
-      }
+      final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getModule(),
+                                                               executor.getToolWindowId(), this);
+      consoleView.attachToProcess(handler);
       return consoleView;
     };
   }

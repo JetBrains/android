@@ -902,12 +902,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> MULTIDEVICE_INSTRUMENTATION_TESTS = Flag.create(
-    TESTING, "multidevice.instrumentation.tests", "Allow running instrumentation tests on multiple devices at a time.",
-    "If enabled, you can choose run-on-selected-devices for android instrumentation test run configurations.",
-    true
-  );
-
   public static final Flag<Boolean> UTP_TEST_RESULT_SUPPORT = Flag.create(
     TESTING, "utp.instrumentation.tests", "Allow importing UTP test results.",
     "If enabled, you can import UTP test results and display them in test result panel.",

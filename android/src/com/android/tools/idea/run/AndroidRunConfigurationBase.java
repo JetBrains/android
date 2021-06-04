@@ -27,8 +27,6 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.Futures;
@@ -49,7 +47,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.Pair;
@@ -316,25 +313,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (deviceFutures == null) {
       // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
       return null;
-    }
-
-    // Show a confirmation dialog before running Android instrumentation tests on multiple devices.
-    // This opt-in flow is requested for the Android Studio version 4.2 and can be removed in
-    // the future release.
-    if (deviceFutures.getDevices().size() > 1 && this instanceof AndroidTestRunConfiguration
-        && !AndroidTestConfiguration.getInstance().getALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX()) {
-      boolean accepted = Messages.showOkCancelDialog(
-        getProject(),
-        "Running tests across multiple devices in parallel requires that you enable an experimental UI to display the results." +
-        " This UI is also optimized and used for single-device test results. You can revert to the older UI at any time in Settings.",
-        "Running Tests Across Multiple Devices in Parallel",
-        "Enable and Run",
-        "Not Now",
-        null) == Messages.OK;
-      if (!accepted) {
-        return null;
-      }
-      AndroidTestConfiguration.getInstance().setALWAYS_DISPLAY_RESULTS_IN_THE_TEST_MATRIX(true);
     }
 
     // Record stat if we launched a device.

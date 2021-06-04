@@ -808,33 +808,6 @@
     <option name="your" hit="In some cases, when Apply Changes or Apply Code Changes succeeds, you might need to manually restart your app to see your changes." />
   </configurable>
   <configurable id="testing.instrumented.configuration" configurable_name="Testing">
-    <option name="" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="a" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="also" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="and" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="both" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="displaying" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="enables" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="for" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="multi-device" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="new" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="optimized" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="option" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="results" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="single-" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="test" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="this" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="ui" hit="   This option also enables a new UI optimized for displaying both single- and multi-device test results.   " />
-    <option name="across" hit="Enable test runs across multiple devices in parallel." />
-    <option name="devices" hit="Enable test runs across multiple devices in parallel." />
-    <option name="enable" hit="Enable test runs across multiple devices in parallel." />
-    <option name="in" hit="Enable test runs across multiple devices in parallel." />
-    <option name="multiple" hit="Enable test runs across multiple devices in parallel." />
-    <option name="parallel" hit="Enable test runs across multiple devices in parallel." />
-    <option name="runs" hit="Enable test runs across multiple devices in parallel." />
-    <option name="test" hit="Enable test runs across multiple devices in parallel." />
-    <option name="learn" hit="Learn more" />
-    <option name="more" hit="Learn more" />
     <option name="android" hit="Run Android Instrumented Tests using Gradle." />
     <option name="gradle" hit="Run Android Instrumented Tests using Gradle." />
     <option name="instrumented" hit="Run Android Instrumented Tests using Gradle." />
