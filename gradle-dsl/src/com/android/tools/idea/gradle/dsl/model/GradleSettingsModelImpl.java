@@ -31,8 +31,10 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.settings.DependencyResolutionManagementModelImpl;
+import com.android.tools.idea.gradle.dsl.model.settings.PluginManagementModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -41,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
+import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -336,5 +339,12 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     DependencyResolutionManagementDslElement dependencyResolutionManagementElement =
       myGradleDslFile.ensurePropertyElement(DependencyResolutionManagementDslElement.DEPENDENCY_RESOLUTION_MANAGEMENT);
     return new DependencyResolutionManagementModelImpl(dependencyResolutionManagementElement);
+  }
+
+  @Override
+  public @NotNull PluginManagementModel pluginManagement() {
+    PluginManagementDslElement pluginManagementDslElement =
+      myGradleDslFile.ensurePropertyElementAt(PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT, 0);
+    return new PluginManagementModelImpl(pluginManagementDslElement);
   }
 }
