@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
+import org.jetbrains.annotations.NotNull;
 
 public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel implements DependencyResolutionManagementModel {
 
@@ -29,7 +30,7 @@ public class DependencyResolutionManagementModelImpl extends GradleDslBlockModel
   }
 
   @Override
-  public RepositoriesModel repositories() {
+  public @NotNull RepositoriesModel repositories() {
     RepositoriesDslElement repositoriesElement = myDslElement.ensurePropertyElement(RepositoriesDslElement.REPOSITORIES);
     return new RepositoriesModelImpl(repositoriesElement);
   }
