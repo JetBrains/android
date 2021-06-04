@@ -78,11 +78,14 @@ private val LOG = Logger.getInstance("Upgrade Assistant")
 // "Model" here loosely in the sense of Model-View-Controller
 class ToolWindowModel(
   val project: Project,
-  var current: GradleVersion?,
+  val currentVersionProvider: () -> GradleVersion?,
   val knownVersionsRequester: () -> Set<GradleVersion> = { IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle") }
 ) {
 
   val latestKnownVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+
+  var current: GradleVersion? = currentVersionProvider()
+    private set
   private var _selectedVersion: GradleVersion? = latestKnownVersion
   val selectedVersion: GradleVersion?
     get() = _selectedVersion
@@ -96,6 +99,28 @@ class ToolWindowModel(
     abstract val runTooltip: String
     open val loadingText: String = ""
     open val errorMessage: Pair<Icon, String>? = null
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (other !is UIState) return false
+
+      if (runEnabled != other.runEnabled) return false
+      if (showLoadingState != other.showLoadingState) return false
+      if (runTooltip != other.runTooltip) return false
+      if (loadingText != other.loadingText) return false
+      if (errorMessage != other.errorMessage) return false
+
+      return true
+    }
+
+    override fun hashCode(): Int {
+      var result = runEnabled.hashCode()
+      result = 31 * result + showLoadingState.hashCode()
+      result = 31 * result + runTooltip.hashCode()
+      result = 31 * result + loadingText.hashCode()
+      result = 31 * result + (errorMessage?.hashCode() ?: 0)
+      return result
+    }
 
     object ReadyToRun : UIState() {
       override val runEnabled = true
@@ -266,7 +291,7 @@ class ToolWindowModel(
     processor = null
 
     if (refindPlugin) {
-      current = AndroidPluginInfo.find(project)?.pluginVersion
+      current = currentVersionProvider()
       suggestedVersions.value = suggestedVersionsList(knownVersions.valueOrNull ?: setOf())
     }
     val newVersion = selectedVersion
@@ -420,10 +445,9 @@ class ContentManager(val project: Project) {
   }
 
   fun showContent() {
-    val current = AndroidPluginInfo.find(project)?.pluginVersion
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!
     toolWindow.contentManager.removeAllContents(true)
-    val model = ToolWindowModel(project, current)
+    val model = ToolWindowModel(project, currentVersionProvider = { AndroidPluginInfo.find(project)?.pluginVersion })
     val view = View(model, toolWindow.contentManager)
     val content = ContentFactory.SERVICE.getInstance().createContent(view.content, model.current.contentDisplayName(), true)
     content.setDisposer {
