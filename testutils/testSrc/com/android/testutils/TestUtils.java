@@ -286,7 +286,15 @@ public class TestUtils {
    */
   @NonNull
   public static File getSdk() {
-    return new File(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk/prebuilts/studio/sdk/linux");
+    final String platform;
+    if (SystemInfo.isMac){
+      platform = "darwin";
+    } else if (SystemInfo.isWindows) {
+      platform = "windows";
+    } else {
+      platform = "linux";
+    }
+    return new File(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk/prebuilts/studio/sdk/" + platform);
   }
 
   @NonNull
