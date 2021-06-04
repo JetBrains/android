@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.structure;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
@@ -116,6 +117,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
 
+  private static final String JDK_MOVED_TEXT = "JDK location was moved to <hyperlink>Gradle Settings.</hyperlink>";
+
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
   @Nullable private final Project myProject;
@@ -132,6 +135,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @SuppressWarnings("unused") private JPanel myNdkDownloadPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
   private ComboboxWithBrowseButton myNdkLocationComboBox;
+  private HyperlinkLabel myJdkMovedLabel;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
@@ -183,6 +187,8 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!supportsSideBySideNdk) {
       addHistoryUpdater("myNdkLocationComboBox", myNdkLocationComboBox.getComboBox(), historyUpdater);
     }
+
+    myJdkMovedLabel.setEnabled(myProject != null && !myProject.isDefault());
   }
 
   private void maybeLoadSdks(@Nullable Project project) {
@@ -282,6 +288,21 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     createSdkLocationTextField();
     createNdkLocationComboBox();
     createNdkDownloadLink();
+    createJdkMovedLink();
+  }
+
+  private void createJdkMovedLink() {
+    myJdkMovedLabel = new HyperlinkLabel();
+    //noinspection UnstableApiUsage
+    myJdkMovedLabel.setTextWithHyperlink(JDK_MOVED_TEXT);
+    myJdkMovedLabel.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent e) {
+        if (myProject != null) {
+          showGradleSettings(myProject);
+        }
+      }
+    });
   }
 
   private void createNdkLocationComboBox() {
