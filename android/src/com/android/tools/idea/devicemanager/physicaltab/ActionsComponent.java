@@ -113,14 +113,14 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     Group horizontalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
       .addComponent(myActivateDeviceFileExplorerWindowButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
-      .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+      // .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
       .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE);
 
     Group verticalGroup = layout.createSequentialGroup()
       .addGap(0, 0, Short.MAX_VALUE)
       .addGroup(layout.createParallelGroup()
                   .addComponent(myActivateDeviceFileExplorerWindowButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
-                  .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
+                  // .addComponent(myEditDeviceNameButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE)
                   .addComponent(myMoreButton, GroupLayout.PREFERRED_SIZE, size, GroupLayout.PREFERRED_SIZE))
       .addGap(0, 0, Short.MAX_VALUE);
 
