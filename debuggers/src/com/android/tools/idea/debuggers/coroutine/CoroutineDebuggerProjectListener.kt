@@ -49,7 +49,7 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
     // multiple projects can be opened, which causes multiple ProjectManagerListeners to be created.
     // ProjectManagerListeners#projectOpened is called on every listener every time a project is opened.
     // by checking this flag we prevent the same listener to register the execution listener multiple times.
-    if (executionListener.registered) {
+    if (executionListener.project != null) {
       return
     }
 
@@ -59,15 +59,17 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
     // has the advantage that we need to set this up only once, when the project is opened, instead of every time an app is
     // launched.
     connection!!.subscribe(ExecutionManager.EXECUTION_TOPIC, executionListener)
-    executionListener.registered = true
+    executionListener.project = project
   }
 
   override fun projectClosed(project: Project) {
-    connection?.disconnect()
+    if (executionListener.project == project) {
+      connection?.disconnect()
+    }
   }
 
   private class CoroutineDebuggerExecutionListener : ExecutionListener {
-    var registered = false
+    var project: Project? = null
 
     override fun processStarting(executorId: String, env: ExecutionEnvironment) {
       // Checking for AndroidRunConfigurationBase makes sure that the code is executed only for Android apps, not regular JVM or
