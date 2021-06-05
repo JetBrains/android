@@ -140,7 +140,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
    */
   private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>): AndroidStudioEvent.Builder {
     val id = data["project"] as? String? ?: return this
-    val eventLogConfiguration = EventLogConfiguration.getOrCreate("FUS")
+    val eventLogConfiguration = EventLogConfiguration.getInstance().getOrCreate("FUS")
     val project = ProjectManager.getInstance().openProjects
       .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
     return this.withProjectId(project)
