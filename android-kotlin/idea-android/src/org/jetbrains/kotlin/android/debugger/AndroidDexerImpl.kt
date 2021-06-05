@@ -16,59 +16,48 @@
 
 package org.jetbrains.kotlin.android.debugger
 
-import com.android.io.CancellableFileIo
-import com.intellij.openapi.module.ModuleManager
+import com.android.tools.r8.ByteDataView
+import com.android.tools.r8.CompilationMode
+import com.android.tools.r8.D8
+import com.android.tools.r8.D8Command
+import com.android.tools.r8.DexIndexedConsumer
+import com.android.tools.r8.DiagnosticsHandler
+import com.android.tools.r8.origin.Origin
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootModificationTracker
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.ClassToLoad
-import java.io.File
-import java.net.URLClassLoader
-import java.security.ProtectionDomain
+
 
 class AndroidDexerImpl(val project: Project) : AndroidDexer {
-    private val cachedDexWrapper = CachedValuesManager.getManager(project).createCachedValue({
-        val dexWrapper = doGetAndroidDexFile()?.let { dexJarFile ->
-            val androidDexWrapperName = AndroidDexWrapper::class.java.canonicalName
-            val classBytes = this.javaClass.classLoader.getResource(
-                    androidDexWrapperName.replace('.', '/') + ".class").readBytes()
 
-            val dexClassLoader = object : URLClassLoader(arrayOf(dexJarFile.toURI().toURL()), this::class.java.classLoader) {
-                init {
-                    defineClass(androidDexWrapperName, classBytes, 0, classBytes.size, null as ProtectionDomain?)
-                }
-            }
+    private class DexConsumer : DexIndexedConsumer {
+        var bytes: ByteArray? = null
 
-            Class.forName(androidDexWrapperName, true, dexClassLoader).newInstance()
+        @Synchronized
+        override fun accept(
+          fileIndex: Int, data: ByteDataView, descriptors: Set<String>, handler: DiagnosticsHandler) {
+            if (bytes != null) throw IllegalStateException("Multidex not supported")
+            bytes = data.copyByteData()
         }
 
-        CachedValueProvider.Result.createSingleDependency(dexWrapper, ProjectRootModificationTracker.getInstance(project))
-    }, /* trackValue = */ false)
-
-    override fun dex(classes: Collection<ClassToLoad>): ByteArray? {
-        val dexWrapper = cachedDexWrapper.value
-        val dexMethod = dexWrapper::class.java.methods.firstOrNull { it.name == "dex" } ?: return null
-        return dexMethod.invoke(dexWrapper, classes) as? ByteArray ?: return null
+        override fun finished(handler: DiagnosticsHandler) {
+        }
     }
-
-    private fun doGetAndroidDexFile(): File? {
-        for (module in ModuleManager.getInstance(project).modules) {
-            val androidFacet = AndroidFacet.getInstance(module) ?: continue
-            val sdkData = AndroidSdkData.getSdkData(androidFacet) ?: continue
-            val latestBuildTool = sdkData.getLatestBuildTool(/* allowPreview = */ false)
-                                  ?: sdkData.getLatestBuildTool(/* allowPreview = */ true)
-                                  ?: continue
-
-            val dxJar = latestBuildTool.location.resolve("lib/dx.jar")
-            if (CancellableFileIo.exists(dxJar)) {
-                return dxJar.toFile()
+    override fun dex(classes: Collection<ClassToLoad>): ByteArray? {
+        try {
+            val builder: D8Command.Builder = D8Command.builder()
+            val consumer = DexConsumer()
+            for ((_, _, bytes) in classes) {
+                builder.addClassProgramData(bytes, Origin.unknown());
             }
+            builder.mode = CompilationMode.DEBUG
+            builder.programConsumer = consumer
+            builder.minApiLevel = 13
+            builder.disableDesugaring = true
+            D8.run(builder.build())
+            return consumer.bytes
+        } catch (e: Exception) {
+            return null
         }
-
-        return null
     }
 }
