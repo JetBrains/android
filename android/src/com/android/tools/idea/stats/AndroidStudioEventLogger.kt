@@ -17,11 +17,19 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
+import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
+import com.google.wireless.android.sdk.stats.RunFinishData
+import com.google.wireless.android.sdk.stats.RunStartData
 import com.google.wireless.android.sdk.stats.VfsRefresh
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
+import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.getProjectCacheFileName
 import java.util.concurrent.CompletableFuture
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
@@ -30,7 +38,10 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     when (group.id) {
-      "file.types.usage" -> logFileUsage(data)
+      "file.types" -> logFileType(eventId, data)
+      "file.types.usage" -> logFileTypeUsage(data)
+      "kotlin.project.configuration" -> logKotlinProjectConfiguration(data)
+      "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
@@ -38,7 +49,23 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
 
   override fun rollOver() {}
 
-  private fun logFileUsage(data: Map<String, Any>) {
+  private fun logFileType(eventId: String, data: Map<String, Any>) {
+    if (eventId != "file.in.project") {
+      return
+    }
+
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.FILE_TYPE
+      fileType = FileType.newBuilder().apply {
+        (data["file_type"] as? String)?.let { fileType = it }
+        (data["plugin_type"] as? String)?.let { pluginType = it }
+        (data["count"] as? String)?.toIntOrNull()?.let { numberOfFiles = it }
+      }.build()
+    }.withProjectId(data))
+  }
+
+  private fun logFileTypeUsage(data: Map<String, Any>) {
+
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.FILE_USAGE
       fileUsage = FileUsage.newBuilder().apply {
@@ -46,7 +73,44 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         (data["file_type"] as? String)?.let { fileType = it }
         (data["plugin_type"] as? String)?.let { pluginType = it }
       }.build()
-    })
+    }.withProjectId(data))
+  }
+
+  private fun logKotlinProjectConfiguration(data: Map<String, Any>) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.KOTLIN_PROJECT_CONFIGURATION
+      kotlinProjectConfiguration = KotlinProjectConfiguration.newBuilder().apply {
+        (data["system"] as? String?)?.let { system = it }
+        (data["plugin_version"] as? String?)?.let { pluginVersion = it }
+        (data["plugin"] as? String?)?.let { plugin = it }
+        (data["plugin_type"] as? String?)?.let { pluginType = it }
+        (data["platform"] as? String?)?.let { platform = it }
+        (data["isMPP"] as? String?)?.toBoolean()?.let { isMultiplatform = it }
+      }.build()
+    }.withProjectId(data))
+  }
+
+  private fun logRunConfigurationExec(eventId: String, data: Map<String, Any>) {
+    val builder = when (eventId) {
+      "started" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.RUN_START_DATA
+        runStartData = RunStartData.newBuilder().apply {
+          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivityId = it }
+          (data["executor"] as? String?)?.let { executor = it }
+          (data["run_configuration"] as? String?)?.let { runConfiguration = it }
+        }.build()
+      }
+      "finished" -> AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
+        runFinishData = RunFinishData.newBuilder().apply {
+          (data["duration_ms"] as? String?)?.toLongOrNull()?.let { durationMs = it }
+          (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
+        }.build()
+      }
+      else -> return
+    }
+
+    UsageTracker.log(builder.withProjectId(data))
   }
 
   private fun logVfsEvent(eventId: String, data: Map<String, Any>) {
@@ -59,5 +123,16 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                          .setKind(AndroidStudioEvent.EventKind.VFS_REFRESH)
                          .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs)))
     }
+  }
+
+  /**
+   * Adds the associated project from the IntelliJ anonymization project id to the builder
+   */
+  private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>): AndroidStudioEvent.Builder {
+    val id = data["project"] as? String? ?: return this
+    val eventLogConfiguration = EventLogConfiguration.getOrCreate("FUS")
+    val project = ProjectManager.getInstance().openProjects
+      .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
+    return this.withProjectId(project)
   }
 }
