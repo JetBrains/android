@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.internal
 
+import android.annotation.SuppressLint
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.app.inspection.AppInspection.AppInspectionCommand
 import com.android.tools.app.inspection.AppInspection.DisposeInspectorCommand
@@ -149,7 +150,7 @@ internal class AppInspectorConnection(
       val rawEvent = it.event.appInspectionEvent.rawEvent
       when(rawEvent.dataCase) {
         AppInspection.RawEvent.DataCase.CONTENT -> rawEvent.content.toByteArray()
-        AppInspection.RawEvent.DataCase.PAYLOAD_ID -> queryPayload(rawEvent.payloadId)
+        AppInspection.RawEvent.DataCase.PAYLOAD_ID -> removePayload(rawEvent.payloadId)
         // This should never happen to users - devs should catch it if we ever add a new case
         else -> throw IllegalStateException("Unhandled event data case: ${rawEvent.dataCase}")
       }
@@ -221,14 +222,32 @@ internal class AppInspectorConnection(
     }
   }
 
-  private fun queryPayload(id: Long): ByteArray {
+  /**
+   * Query the payload, removing it from the datastore at the same time (so obsolete, expensively
+   * large data doesn't fill up the cache).
+   */
+  @SuppressLint("CheckResult") // deleteEvents returns an empty message, nothing to check
+  private fun removePayload(id: Long): ByteArray {
     val response = transport.client.transportStub.getEventGroups(
       Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(transport.process.streamId)
+        .setPid(transport.process.pid)
         .setFromTimestamp(connectionStartTimeNs)
         .setKind(APP_INSPECTION_PAYLOAD)
         .setGroupId(id)
         .build()
     )
+    transport.client.transportStub.deleteEvents(
+      Transport.DeleteEventsRequest.newBuilder()
+        .setStreamId(transport.process.streamId)
+        .setPid(transport.process.pid)
+        .setKind(APP_INSPECTION_PAYLOAD)
+        .setGroupId(id)
+        .setFromTimestamp(Long.MIN_VALUE)
+        .setToTimestamp(Long.MAX_VALUE)
+        .build()
+    )
+
     val chunks = response
       .groupsList
       // payload ID is globally unique so there should only be one matching group, but we take most recent just in case
@@ -279,7 +298,7 @@ internal class AppInspectorConnection(
       val rawResponse = response.await().rawResponse
       return when(rawResponse.dataCase) {
         AppInspection.RawResponse.DataCase.CONTENT -> rawResponse.content.toByteArray()
-        AppInspection.RawResponse.DataCase.PAYLOAD_ID -> queryPayload(rawResponse.payloadId)
+        AppInspection.RawResponse.DataCase.PAYLOAD_ID -> removePayload(rawResponse.payloadId)
         // This should never happen to users - devs should catch it if we ever add a new case
         else -> throw IllegalStateException("Unhandled response data case: ${rawResponse.dataCase}")
       }
