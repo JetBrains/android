@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.project.ModuleBasedClassFileFinder;
 import com.android.tools.idea.projectsystem.ClassFileFinderUtil;
-import com.android.tools.idea.run.GradleApkProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -72,16 +71,6 @@ public class GradleClassFileFinder extends ModuleBasedClassFileFinder {
     IdeAndroidArtifact mainArtifactInfo = model.getMainArtifact();
     File classesFolder = mainArtifactInfo.getClassesFolder();
     ImmutableList.Builder<VirtualFile> compilerOutputs = new ImmutableList.Builder<>();
-
-    // Older models may not supply it; in that case, we rely on looking relative to the .APK file location:
-    //noinspection ConstantConditions
-    if (classesFolder == null) {
-      File file = GradleApkProvider.getOutputFile(model);
-      if (file != null) {
-        File buildFolder = file.getParentFile().getParentFile();
-        classesFolder = new File(buildFolder, "classes"); // See AndroidContentRoot
-      }
-    }
 
     //noinspection ConstantConditions
     if (classesFolder != null) {
