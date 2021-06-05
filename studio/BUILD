@@ -234,10 +234,6 @@ studio_plugin(
             "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         ],
     },
-    # List of modules and libraries we expect to be provided by the platform
-    provided = [
-        "//tools/adt/idea/android-kotlin:dx",  # TODO
-    ],
     resources = {
         "resources": [
             "//prebuilts/studio/layoutlib:layoutlib",

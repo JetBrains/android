@@ -28,7 +28,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-kotlin:dx",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
@@ -39,6 +38,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//prebuilts/r8",
     ],
 )
 
@@ -109,12 +109,5 @@ filegroup(
         "android-extensions-idea/testData/**",
         "android-extensions-runtime/src/**",
     ]),
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "dx",
-    jars = ["lib/dx.jar"],
     visibility = ["//visibility:public"],
 )
