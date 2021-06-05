@@ -196,7 +196,7 @@ def _studio_plugin_impl(ctx):
                       [m.module.plugin_deps for m in ctx.attr.modules] +
                       [m.module.external_deps for m in ctx.attr.modules])
     have = depset(
-        direct = ctx.attr.modules + ctx.attr.libs + ctx.attr.provided,
+        direct = ctx.attr.modules + ctx.attr.libs,
         transitive = [d.module_deps for d in ctx.attr.deps if hasattr(d, "module_deps")] +
                      [d.lib_deps for d in ctx.attr.deps if hasattr(d, "lib_deps")] +
                      [depset([p for p in ctx.attr.deps if hasattr(p, "plugin_info")])],
@@ -232,7 +232,6 @@ _studio_plugin = rule(
         "directory": attr.string(),
         "compress": attr.bool(),
         "deps": attr.label_list(),
-        "provided": attr.label_list(),
         "external_xmls": attr.string_list(),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
