@@ -91,15 +91,13 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-fun getOutputFilesFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(
+fun getOutputFilesFromListingFileByVariantName(
   androidModel: AndroidModuleModel,
   variantName: String,
-  outputType: OutputType,
-  isTest: Boolean
+  outputType: OutputType
 ): List<File> {
   val outputInformation =
-    if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
-    else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
+    androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
   return outputInformation?.getOutputFilesFromListingFile(outputType).orEmpty()
 }
 

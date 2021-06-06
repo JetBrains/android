@@ -54,10 +54,10 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
   @Override
   @NotNull
   public Map<String, File> getBuildsToPaths(@Nullable Object model,
-                                     @NotNull List<String> buildVariants,
-                                     @NotNull Collection<Module> modules,
-                                     boolean isAppBundle,
-                                     @Nullable String signedApkOrBundlePath) {
+                                            @NotNull List<String> buildVariants,
+                                            @NotNull Collection<Module> modules,
+                                            boolean isAppBundle,
+                                            @Nullable String signedApkOrBundlePath) {
     boolean isSigned = !buildVariants.isEmpty();
     if (isSigned) {
       assert modules.size() == 1;
@@ -100,8 +100,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       // get from build output listing file.
       OutputType outputType = isAppBundle ? OutputType.Bundle : OutputType.Apk;
-      List<File> outputFiles = GradleBuildOutputUtil
-        .getOutputFilesFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(androidModel, buildVariant, outputType, false);
+      List<File> outputFiles = GradleBuildOutputUtil.getOutputFilesFromListingFileByVariantName(androidModel, buildVariant, outputType);
       outputFolderOrFile =
         outputFiles.size() > 1 ? outputFiles.get(0).getParentFile() : (!outputFiles.isEmpty() ? outputFiles.get(0) : null);
     }
