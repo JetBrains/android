@@ -102,6 +102,18 @@ class PropertiesPageTest {
   }
 
   @Test
+  fun testNoSeparatorAddedBetweenTableAndTitle() {
+    page!!.addTitle("Title1")
+    page!!.addTable(tableModel!!, false, tableUI!!, emptyList())
+    page!!.addSubTitle("SubTitle")
+
+    checkLineModels(pageLines,
+                    CollapsibleLabelModel::class.java,
+                    TableLineModel::class.java,
+                    CollapsibleLabelModel::class.java)
+  }
+
+  @Test
   fun testFlatTitleHasTwoSeparators() {
     page!!.addEditor(makeEditor())
     page!!.addTitle("Title1")
