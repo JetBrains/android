@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 
 enum class FakeLineType {
-  TITLE, PROPERTY, TABLE, PANEL, SEPARATOR
+  TITLE, SUBTITLE, PROPERTY, TABLE, PANEL, SEPARATOR
 }
 
 open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {

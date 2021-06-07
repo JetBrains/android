@@ -35,6 +35,13 @@ class FakeInspectorPanel : InspectorPanel {
     return line
   }
 
+  override fun addSubTitle(title: String, initiallyExpanded: Boolean, parent: InspectorLineModel?): InspectorLineModel {
+    val line = FakeInspectorLineModel(FakeLineType.SUBTITLE)
+    line.title = title
+    lines.add(line)
+    return line
+  }
+
   override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     editorModel.lineModel = line
