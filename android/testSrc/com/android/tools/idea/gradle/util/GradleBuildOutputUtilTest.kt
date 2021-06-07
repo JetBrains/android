@@ -61,7 +61,7 @@ class GradleBuildOutputUtilTest {
   "version": 1,
   "artifactType": {
     "type": "APK",
-    "kind": "Directory"
+    "kind": "RegularFile"
   },
   "applicationId": "com.example.myapplication",
   "variantName": "debug",
@@ -104,14 +104,16 @@ class GradleBuildOutputUtilTest {
     val outputFile = tempDir.newFile("output.json")
     writeToFile(outputFile, singleAPKOutputFileText)
     val expectedFile = File(tempDir.root, "app-debug.apk")
-    assertEquals(expectedFile, getOutputFileOrFolderFromListingFile(outputFile.path))
+    assertEquals(listOf(expectedFile), getOutputFilesFromListingFile(outputFile.path))
   }
 
   @Test
   fun getPathFromOutputListingFileWithMultiApks() {
     val outputFile = tempDir.newFile("output.json")
     writeToFile(outputFile, multiAPKsOutputFileText)
-    assertEquals(tempDir.root, getOutputFileOrFolderFromListingFile(outputFile.path))
+    val expectedFile1 = File(tempDir.root, "app-x86-debug.apk")
+    val expectedFile2 = File(tempDir.root, "app-hdpiX86-debug.apk")
+    assertEquals(listOf(expectedFile1, expectedFile2), getOutputFilesFromListingFile(outputFile.path))
   }
 
   @Test
