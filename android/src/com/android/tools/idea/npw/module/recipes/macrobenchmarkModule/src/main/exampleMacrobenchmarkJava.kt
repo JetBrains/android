@@ -29,8 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 @RunWith(AndroidJUnit4.class)
 public class ExampleStartupBenchmark {
@@ -40,9 +39,9 @@ public class ExampleStartupBenchmark {
 
     @Test
     public void startup() {
-        mMacrobenchmarkRule.measureRepeated(
+        mBenchmarkRule.measureRepeated(
                 "$targetPackageName",
-                Arrays.asList(new StartupTimingMetric()),
+                Collections.singletonList(new StartupTimingMetric()),
                 new CompilationMode.SpeedProfile(),
                 StartupMode.COLD,
                 3,
