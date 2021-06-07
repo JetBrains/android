@@ -24,7 +24,6 @@ import com.intellij.usages.UsageView
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
-import javax.swing.Icon
 
 /**
  * Usage Grouping by component.
@@ -69,7 +68,6 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun getIcon(): Icon? = null
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
 
