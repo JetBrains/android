@@ -47,6 +47,7 @@ import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
 
 private const val TITLE_SEPARATOR_HEIGHT = 4
+private const val SUBTITLE_SEPARATOR_HEIGHT = 2
 
 /**
  * Provides a page for a tab defined by a [PropertiesViewTab].
@@ -136,6 +137,21 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return model
   }
 
+  override fun addSubTitle(title: String, initiallyExpanded: Boolean, parent: InspectorLineModel?): InspectorLineModel {
+    addSeparatorBeforeTitle()
+    val model = TitleLineModel(title)
+    val label = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD)
+    label.isOpaque = true
+    label.innerBorder = JBUI.Borders.empty(SUBTITLE_SEPARATOR_HEIGHT, 0)
+    label.border = JBUI.Borders.merge(JBUI.Borders.empty(0, LEFT_HORIZONTAL_CONTENT_BORDER_SIZE, 0, 0),
+                                      SideBorder(JBColor.border(), SideBorder.BOTTOM), true)
+    addLine(model, parent)
+    inspector.addLineElement(label)
+    lastTitleLine = model
+    model.makeExpandable(initiallyExpanded)
+    return model
+  }
+
   override fun addCustomEditor(editorModel: PropertyEditorModel, editor: JComponent, parent: InspectorLineModel?): InspectorLineModel {
     addSeparatorAfterTitle(parent)
     val model = CollapsibleLabelModel(editorModel.property.name, editorModel)
@@ -170,17 +186,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   }
 
   private fun addLine(model: GenericInspectorLineModel, parent: InspectorLineModel?) {
-    addAsChild(model, parent)
+    parent?.let { checkNewParent(it).addChild(model) }
     inspectorModel.add(model)
     lastAddedLine = model
-  }
-
-  private fun addAsChild(model: GenericInspectorLineModel, parent: InspectorLineModel?) {
-    when (parent) {
-      null -> {}
-      lastAddedLine -> checkNewParent(parent).addChild(model)
-      else -> checkExistingParent(parent).addChild(model)
-    }
   }
 
   private fun checkNewParent(parent: InspectorLineModel): CollapsibleLabelModel {
@@ -191,34 +199,36 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
     return label
   }
 
-  private fun checkExistingParent(parent: InspectorLineModel): CollapsibleLabelModel {
-    var lastParentLine = lastAddedLine?.parent
-    while (lastParentLine != null) {
-      if (parent == lastParentLine) {
-        return lastParentLine as CollapsibleLabelModel
-      }
-      lastParentLine = lastParentLine.parent
-    }
-    // Cannot add children to this parent !
-    throw IllegalArgumentException()
-  }
-
   private fun addSeparatorBeforeTitle() {
     if (lastAddedLine == null || lastAddedLine == lastTitleLine) {
       return
     }
-    var topParent: InspectorLineModel? = lastAddedLine
-    while (topParent?.parent != null) {
-      topParent = topParent.parent
-    }
-    val parent = if (topParent == lastTitleLine) lastTitleLine else null
-    addSeparator(bottomDivider = true, parent = parent)
+    addSeparator(bottomDivider = true, parent = topParent(lastAddedLine))
   }
 
   private fun addSeparatorAfterTitle(parent: InspectorLineModel?) {
     if (lastAddedLine == null || lastAddedLine == lastTitleLine) {
       addSeparator(bottomDivider = false, parent = parent)
     }
+    else {
+      // Special case:
+      // If the previous line belongs to a SubTitle and the line being added belongs
+      // to a different title, add a separator here such that there will be a separator
+      // between the SubTitle and this the line being added when the SubTitle is closed.
+      val lastTopParent = topParent(lastAddedLine)
+      val topParent = topParent(parent)
+      if (lastTopParent != topParent) {
+        addSeparator(bottomDivider = false, parent = topParent)
+      }
+    }
+  }
+
+  private fun topParent(line: InspectorLineModel?): InspectorLineModel? {
+    var topParent: InspectorLineModel? = line
+    while (topParent?.parent != null && topParent !is TitleLineModel) {
+      topParent = topParent.parent
+    }
+    return topParent as? TitleLineModel
   }
 
   private fun addSeparator(bottomDivider: Boolean, parent: InspectorLineModel? = null): GenericInspectorLineModel {

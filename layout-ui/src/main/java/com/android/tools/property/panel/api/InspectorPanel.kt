@@ -46,6 +46,11 @@ interface InspectorPanel {
   }
 
   /**
+   * Add an expandable subtitle line to the inspector.
+   */
+  fun addSubTitle(title: String, initiallyExpanded: Boolean = true, parent: InspectorLineModel? = null): InspectorLineModel
+
+  /**
    * Add an editor component with the property name for the label to the inspector.
    *
    * Add [editor] with model [editorModel] to the inspector, and return the new [InspectorLineModel].
