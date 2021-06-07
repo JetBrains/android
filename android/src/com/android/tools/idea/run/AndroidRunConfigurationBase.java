@@ -422,15 +422,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                                             @NotNull ConsolePrinter consolePrinter,
                                                             @NotNull IDevice device);
 
-  public final DeviceCount getDeviceCount(boolean debug) {
-    return DeviceCount.fromBoolean(supportMultipleDevices() && !debug);
-  }
-
-  /**
-   * @return true iff this run configuration supports deploying to multiple devices.
-   */
-  protected abstract boolean supportMultipleDevices();
-
   /**
    * @return true iff this configuration can run while out of sync with the build system.
    */

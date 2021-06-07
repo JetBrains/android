@@ -249,11 +249,6 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     };
   }
 
-  @Override
-  protected boolean supportMultipleDevices() {
-    return true;
-  }
-
   @Nullable
   @Override
   protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
