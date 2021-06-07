@@ -27,6 +27,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
                            roamingType = RoamingType.DISABLED)])
 data class AndroidTestConfiguration(
   // Run Android Instrumented Tests using Gradle.
+  @JvmField
   var RUN_ANDROID_TEST_USING_GRADLE: Boolean = false,
 ) : PersistentStateComponent<AndroidTestConfiguration> {
   companion object {
