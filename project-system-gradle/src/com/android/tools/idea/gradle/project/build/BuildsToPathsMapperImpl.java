@@ -100,8 +100,10 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       // get from build output listing file.
       OutputType outputType = isAppBundle ? OutputType.Bundle : OutputType.Apk;
-      outputFolderOrFile = GradleBuildOutputUtil
-        .getOutputFileOrFolderFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(androidModel, buildVariant, outputType, false);
+      List<File> outputFiles = GradleBuildOutputUtil
+        .getOutputFilesFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(androidModel, buildVariant, outputType, false);
+      outputFolderOrFile =
+        outputFiles.size() > 1 ? outputFiles.get(0).getParentFile() : (!outputFiles.isEmpty() ? outputFiles.get(0) : null);
     }
     else if (postBuildModel != null) {
       if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_APP ||

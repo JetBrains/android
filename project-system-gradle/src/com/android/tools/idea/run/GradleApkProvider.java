@@ -17,11 +17,11 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFileOrFolderFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.Collections.emptyList;
 
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.AppBundleVariantBuildOutput;
@@ -34,12 +34,6 @@ import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
-import com.android.tools.idea.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
-import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
-import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.apk.analyzer.AaptInvoker;
@@ -47,11 +41,18 @@ import com.android.tools.apk.analyzer.AndroidApplicationInfo;
 import com.android.tools.apk.analyzer.ArchiveContext;
 import com.android.tools.apk.analyzer.Archives;
 import com.android.tools.idea.apk.viewer.ApkParser;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
+import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModelCache;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
@@ -531,13 +532,14 @@ public class GradleApkProvider implements ApkProvider {
 
     // Note: Instant apps and app bundles outputs are assumed to be signed
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
+    //noinspection ConstantConditions
     if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         getOutputKind(targetDevicesMinVersion) == OutputKind.AppBundleOutputModel ||
         isArtifactSigned(androidModuleModel)) {
       return result.build();
     }
 
-    File outputFile = getOutputFile(androidModuleModel);
+    File outputFile = getFirstItem(getOutputFiles(androidModuleModel));
     String outputFileName = outputFile == null ? "Unknown output" : outputFile.getName();
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
@@ -571,58 +573,62 @@ public class GradleApkProvider implements ApkProvider {
       return null;
     }
 
-    File apkFolder = androidModel.getFeatures().isBuildOutputFileSupported()
-                     ? getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
-                                                            OutputType.ApkFromBundle)
-                     : collectApkFolderFromPostBuildModel(outputModelProvider,
-                                                          GradleUtil.getGradlePath(module),
-                                                          androidModel.getSelectedVariant().getName());
+    List<File> apkFiles = androidModel.getFeatures().isBuildOutputFileSupported()
+                          ? GradleBuildOutputUtil
+                            .getOutputFilesFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
+                                                           OutputType.ApkFromBundle)
+                          : collectApkFilesFromPostBuildModel(outputModelProvider,
+                                                              GradleUtil.getGradlePath(module),
+                                                              androidModel.getSelectedVariant().getName());
 
-    if (apkFolder == null) {
-      getLogger().warn("Could not find apk folder.");
+    if (apkFiles.isEmpty()) {
+      getLogger().warn("Could not find apk files.");
       return null;
     }
 
     // List all files in the folder
-    try (Stream<Path> stream = Files.list(apkFolder.toPath())) {
-      List<ApkFileUnit> apks = stream
-        .map(path -> new ApkFileUnit(getFeatureNameFromPathHack(path), path.toFile()))
-        .collect(Collectors.toList());
-      return new ApkInfo(apks, pkgName);
-    }
-    catch (IOException e) {
-      getLogger().warn(String.format("Error reading list of APK files from bundle build output directory \"%s\".", apkFolder), e);
-      return null;
-    }
+    List<ApkFileUnit> apks = apkFiles.stream()
+      .map(path -> new ApkFileUnit(getFeatureNameFromPathHack(path.toPath()), path))
+      .collect(Collectors.toList());
+    return new ApkInfo(apks, pkgName);
   }
 
   /**
-   * Returns the folder that contains all of the APKS generated by the "select apks from bundle" Gradle task, this method retrieves
+   * Returns the APKS generated by the "select apks from bundle" Gradle task, this method retrieves
    * the folder from post build model. This method should be used for AGP prior to 4.0.
    */
-  @Nullable
-  private static File collectApkFolderFromPostBuildModel(@NotNull PostBuildModelProvider outputModelProvider,
-                                                         @Nullable String gradlePath,
-                                                         @Nullable String variantName) {
+  @NotNull
+  private static List<File> collectApkFilesFromPostBuildModel(@NotNull PostBuildModelProvider outputModelProvider,
+                                                              @Nullable String gradlePath,
+                                                              @Nullable String variantName) {
     PostBuildModel model = outputModelProvider.getPostBuildModel();
     if (model == null) {
       getLogger().warn("Post build model is null. Build might have failed.");
-      return null;
+      return emptyList();
     }
     AppBundleProjectBuildOutput output = model.findAppBundleProjectBuildOutput(gradlePath);
     if (output == null) {
       getLogger().warn("Project output is null. Build may have failed.");
-      return null;
+      return emptyList();
     }
 
     for (AppBundleVariantBuildOutput variantBuildOutput : output.getAppBundleVariantsBuildOutput()) {
       if (variantBuildOutput.getName().equals(variantName)) {
-        return variantBuildOutput.getApkFolder();
+        try (Stream<Path> stream = Files.list(variantBuildOutput.getApkFolder().toPath())) {
+          return stream.map(Path::toFile).collect(Collectors.toList());
+        }
+        catch (IOException e) {
+          getLogger()
+            .warn(String.format("Error reading list of APK files from bundle build output directory \"%s\".",
+                                variantBuildOutput.getApkFolder()),
+                  e);
+          return emptyList();
+        }
       }
     }
 
     getLogger().warn("Bundle variant build output model has no entries. Build may have failed.");
-    return null;
+    return emptyList();
   }
 
   /**
@@ -642,25 +648,20 @@ public class GradleApkProvider implements ApkProvider {
   }
 
   /**
-   * Get the main output APK file for the selected variant.
+   * Get the APKs file for the selected variant.
    * The method uses output listing file if it is supported, in which case, the output file will be empty if the project is never built.
    * If build output listing file is not supported, then AndroidArtifact::getOutputs will be used.
-   *
-   * @return the main output file for selected variant.
    */
-  @Nullable
-  public static File getOutputFile(@NotNull AndroidModuleModel androidModel) {
+  @NotNull
+  private static List<File> getOutputFiles(@NotNull AndroidModuleModel androidModel) {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return getOutputFileOrFolderFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
-                                                  OutputType.Apk);
+      return GradleBuildOutputUtil.getOutputFilesFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
+                                                                 OutputType.Apk);
     }
     else {
       //noinspection deprecation
       List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
-      if (outputs.isEmpty()) return null;
-      IdeAndroidArtifactOutput output = getFirstItem(outputs);
-      assert output != null;
-      return output.getOutputFile();
+      return outputs.stream().map(IdeAndroidArtifactOutput::getOutputFile).collect(Collectors.toList());
     }
   }
 

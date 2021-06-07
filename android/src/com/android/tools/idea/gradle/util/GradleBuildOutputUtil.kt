@@ -20,9 +20,9 @@ package com.android.tools.idea.gradle.util
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.build.GenericBuiltArtifacts
 import com.android.ide.common.build.GenericBuiltArtifactsLoader.loadFromFile
+import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
-import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildListener
@@ -64,6 +64,7 @@ enum class OutputType {
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
+@Deprecated("This method supports a limited set of AGP versions and devices only. Use ApkProviders instead.")
 fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigurationBase, isTest: Boolean): File? {
   val androidModel = AndroidModuleModel.get(module) ?: return null
   val selectedVariant = androidModel.selectedVariant
@@ -72,7 +73,12 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
     else selectedVariant.mainArtifact
 
   return if (androidModel.features.isBuildOutputFileSupported)
-    artifact.buildInformation.getOutputFileOrFolderFromListingFile(getOutputType(module, configuration))
+    artifact.buildInformation
+      .getOutputFilesFromListingFile(getOutputType(module, configuration))
+      .let {
+        if (it.size > 1) it.first().parentFile
+        else it.firstOrNull()
+      }
   else artifact.outputs.firstOrNull()?.outputFile
 }
 
@@ -85,41 +91,53 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
  * If the generated file is a single APK, this method returns the location of the apk.
  * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
  */
-fun getOutputFileOrFolderFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(
+fun getOutputFilesFromListingFileByVariantNameOrFromSelectedVariantTestArtifact(
   androidModel: AndroidModuleModel,
   variantName: String,
   outputType: OutputType,
   isTest: Boolean
-): File? {
+): List<File> {
   val outputInformation =
     if (isTest) androidModel.selectedVariant.androidTestArtifact?.buildInformation
     else androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-  return outputInformation?.getOutputFileOrFolderFromListingFile(outputType)
+  return outputInformation?.getOutputFilesFromListingFile(outputType).orEmpty()
 }
 
-fun IdeBuildTasksAndOutputInformation.getOutputFileOrFolderFromListingFile(
+fun IdeBuildTasksAndOutputInformation.getOutputFilesFromListingFile(
   outputType: OutputType
-): File? {
+): List<File> {
   val listingFile = getOutputListingFile(outputType)
   if (listingFile != null) {
-    return getOutputFileOrFolderFromListingFile(listingFile)
+    return getOutputFilesFromListingFile(listingFile)
   }
   LOG.warn("Could not find output listing file. Build may have failed.")
-  return null
+  return emptyList()
 }
 
 @VisibleForTesting
-fun getOutputFileOrFolderFromListingFile(listingFile: String): File? {
+fun getOutputFilesFromListingFile(listingFile: String): List<File> {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
-    val artifacts = builtArtifacts.elements
-    if (!artifacts.isEmpty()) {
-      val output = File(artifacts.iterator().next().outputFile)
-      return if (artifacts.size > 1) output.parentFile else output
+    val items = builtArtifacts.elements.map { File(it.outputFile) }
+    // NOTE: These strings come from com.android.build.api.artifact.ArtifactKind.DIRECTORY and alike.
+    return if (builtArtifacts.elementType == null || builtArtifacts.elementType == "Directory") {
+      items.flatMap { fileOrDirectory ->
+        runCatching {
+          if (fileOrDirectory.isDirectory) fileOrDirectory.listFiles()?.toList().orEmpty()
+          else listOf(fileOrDirectory)
+        }
+          .getOrElse { e ->
+            LOG.warn("Error reading list of APK files from build output directory '$fileOrDirectory'.", e)
+            emptyList()
+          }
+      }
+    }
+    else {
+      items
     }
   }
   LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
-  return null
+  return emptyList()
 }
 
 private fun getOutputType(module: Module, configuration: AndroidRunConfigurationBase): OutputType {
