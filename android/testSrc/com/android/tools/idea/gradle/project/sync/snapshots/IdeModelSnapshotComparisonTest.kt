@@ -55,7 +55,7 @@ bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --tes
 
 @RunsInEdt
 @RunWith(Parameterized::class)
-class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
+open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparisonTest {
 
   data class TestProject(
     val template: String,
@@ -95,18 +95,19 @@ class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotComparison
       TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY))
     )
 
-    @Suppress("unused")
-    @Contract(pure = true)
-    @JvmStatic
-    @Parameterized.Parameters(name = "{1}\${0}")
-    fun testProjects(): Collection<*> {
-      return AgpVersion.values()
+    fun testProjectsFor(agpVersions: Collection<AgpVersion>) =
+      agpVersions
         .flatMap { agpVersion ->
           projectsList
             .filter { agpVersion !in it.incompatibleWithAgps }
             .map { listOf(agpVersion, it).toTypedArray() }
         }
-    }
+
+    @Suppress("unused")
+    @Contract(pure = true)
+    @JvmStatic
+    @Parameterized.Parameters(name = "{1}\${0}")
+    fun testProjects(): Collection<*> = testProjectsFor(AgpVersion.values().filter { it == AgpVersion.CURRENT })
   }
 
   @get:Rule
