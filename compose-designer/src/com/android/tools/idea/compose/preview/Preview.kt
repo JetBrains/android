@@ -321,6 +321,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             }
             surface.background = INTERACTIVE_BACKGROUND_COLOR
             interactiveMode = ComposePreviewManager.InteractiveMode.READY
+            ActivityTracker.getInstance().inc()
           }
         }
         else { // Disable interactive
@@ -390,6 +391,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
         forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+          ActivityTracker.getInstance().inc()
         }
       }
     }
@@ -590,7 +592,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // Force updating toolbar icons after build
         ActivityTracker.getInstance().inc()
       }
-    }, this)
+    }, this, allowMultipleSubscriptionsPerProject = true)
 
     if (COMPOSE_PREVIEW_BUILD_ON_SAVE.get()) {
       setupOnSaveListener(project, psiFile,

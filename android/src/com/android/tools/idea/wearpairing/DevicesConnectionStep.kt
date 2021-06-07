@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearparing
+package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.HtmlLabel
-import com.android.tools.adtui.ui.SVGScaledImageProvider
-import com.android.tools.adtui.ui.ScalingImagePanel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -34,14 +32,15 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.labels.LinkLabel
+import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IconUtil
+import com.intellij.util.SVGLoader
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
@@ -54,10 +53,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import org.apache.commons.lang.time.StopWatch
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.kotlin.tools.projectWizard.wizard.ui.addBorder
-import java.awt.BorderLayout
+import java.awt.EventQueue
 import java.awt.GridBagConstraints.HORIZONTAL
 import java.awt.GridBagConstraints.LINE_START
 import java.awt.GridBagConstraints.RELATIVE
@@ -69,6 +67,7 @@ import java.util.concurrent.CompletionStage
 import java.util.concurrent.Future
 import javax.swing.Box
 import javax.swing.Box.createVerticalStrut
+import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -167,7 +166,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     val isNewWearPairingDevice = WearPairingManager.getPairedDevices().second?.deviceID != wearPairingDevice.deviceID
     WearPairingManager.removePairedDevices(restartWearGmsCore = isNewWearPairingDevice)
     WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
-    createDeviceBridge(phoneDevice, wearDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {
       // Companion App already installed, go to the next step
@@ -187,22 +185,20 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiInstallCompanionAppScanning(phoneDevice, scanningLabel = message("wear.assistant.device.connection.scanning.wear.os.lnk"))
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY) {
-      if (phoneDevice.isCompanionAppInstalled()) {
-        showUiInstallCompanionAppSuccess(phoneDevice)
-        canGoForward.set(true)
-        return
-      }
-      delay(1000)
+    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { phoneDevice.isCompanionAppInstalled() }) {
+      showUiInstallCompanionAppSuccess(phoneDevice)
+      canGoForward.set(true)
     }
-
-    showUiInstallCompanionAppRetry(phoneDevice) // After some time we give up and show the manual retry ui
+    else {
+      showUiInstallCompanionAppRetry(phoneDevice) // After some time we give up and show the manual retry ui
+    }
   }
 
   private suspend fun showSecondPhase(phoneDevice: IDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
-    if (devicesPaired(phoneIDevice, wearIDevice)) {
+    createDeviceBridge(phoneDevice, wearDevice)
+    // Note: createDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
+    if (waitForCondition(5_000) { checkDevicesPaired(phoneIDevice, wearIDevice) }) {
       showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
     else {
@@ -219,16 +215,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiPairingScanning(phoneDevice, wearDevice, scanningLabel = message("wear.assistant.device.connection.wait.pairing.lnk"))
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY) {
-      if (devicesPaired(phoneDevice, wearDevice)) {
-        showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
-        return
-      }
-      delay(1000)
+    if (waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { checkDevicesPaired(phoneDevice, wearDevice) }) {
+      showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
-
-    showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+    else {
+      showUiPairingRetry(phoneDevice, wearDevice)  // After some time we give up and show the manual retry ui
+    }
   }
 
   private suspend fun showPairingSuccess(phoneName: String, watchName: String) {
@@ -256,7 +248,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         // Give some time for Node/Cloud ID to load, but not too long, as it may just mean it never paired before
         showUiWaitingDeviceStatus()
         waitForCondition(50_000) { iDevice.loadNodeID().isNotEmpty() }
-        waitForCondition(10_000) { iDevice.loadCloudNetworkID().isNotEmpty() }
+        waitForCondition(10_000) { iDevice.loadCloudNetworkID(ignoreNullOutput = false).isNotEmpty() }
       }
 
       return iDevice
@@ -281,10 +273,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       }
     }
 
-    val stopWatch = StopWatch().apply { start() }
-    while (stopWatch.time < TIME_TO_SHOW_MANUAL_RETRY && model.getNonSelectedRunningWearEmulators().isNotEmpty()) {
-      delay(200)
-    }
+    waitForCondition(TIME_TO_SHOW_MANUAL_RETRY) { model.getNonSelectedRunningWearEmulators().isEmpty() }
   }
 
   private suspend fun showUI(
@@ -397,21 +386,6 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
 
     isOpaque = false
     border = empty(8, 2, 12, 4)
-  }
-
-  private fun createSuccessPanel(successLabel: String): JPanel = JPanel(BorderLayout()).apply {
-    add(ScalingImagePanel().apply {
-      Disposer.register(this@DevicesConnectionStep, this)
-      preferredSize = JBUI.size(150, 150)
-      scaledImageProvider = SVGScaledImageProvider.create(StudioIcons.Common.SUCCESS)
-    }, BorderLayout.NORTH)
-    add(JBLabel(successLabel).apply {
-      verticalAlignment = SwingConstants.TOP
-      horizontalAlignment = SwingConstants.CENTER
-      font = JBFont.label().asBold()
-    }, BorderLayout.CENTER)
-
-    border = empty(32, 0, 0, 0)
   }
 
   private suspend fun showUiLaunchingDevice(progressTopLabel: String, progressBottomLabel: String) = showUI(
@@ -535,10 +509,38 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     scanningLabel = scanningLabel,
   )
 
-  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String) = showUI(
-    header = message("wear.assistant.device.connection.pairing.success.title"),
-    body = createSuccessPanel(message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName))
-  )
+  private suspend fun showUiPairingSuccess(phoneName: String, watchName: String) {
+    // Load svg image offline
+    check(!EventQueue.isDispatchThread())
+    val svgUrl = (StudioIcons.Common.SUCCESS as IconLoader.CachedImageIcon).url!!
+    val imgSize = JBUI.size(150, 150)
+    val svgImg = SVGLoader.load(svgUrl, svgUrl.openStream(), ScaleContext.create(mainPanel), imgSize.getWidth(), imgSize.getHeight())
+    val successLabel = message("wear.assistant.device.connection.pairing.success.subtitle", phoneName, watchName)
+    val svgLabel = JBLabel(successLabel).apply {
+      horizontalAlignment = SwingConstants.CENTER
+      horizontalTextPosition = JLabel.CENTER
+      verticalTextPosition = JLabel.BOTTOM
+      font = JBFont.label().asBold()
+      icon = ImageIcon(svgImg)
+    }
+
+    // Show ui on UI Thread
+    withContext(uiThread(ModalityState.any())) {
+      mainPanel.apply {
+        removeAll()
+
+        add(JBLabel(message("wear.assistant.device.connection.pairing.success.title"), UIUtil.ComponentStyle.LARGE).apply {
+          font = JBFont.label().biggerOn(5.0f)
+        }, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL))
+        add(Box.createVerticalGlue(), gridConstraint(x = 0, y = RELATIVE, weighty = 1.0))
+        add(svgLabel, gridConstraint(x = 0, y = RELATIVE, weightx = 1.0, fill = HORIZONTAL))
+        add(Box.createVerticalGlue(), gridConstraint(x = 0, y = RELATIVE, weighty = 1.0))
+
+        revalidate()
+        repaint()
+      }
+    }
+  }
 
   private suspend fun showUiNeedsFactoryReset(wearDeviceName: String) {
     val wipeButton = JButton(message("wear.assistant.factory.reset.button"))
@@ -653,12 +655,14 @@ suspend fun <T> Future<T>.await(): T {
   return get() // If isDone() returned true, this call will not block
 }
 
-private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> Boolean) {
-  withTimeoutOrNull(timeMillis) {
+private suspend fun waitForCondition(timeMillis: Long, condition: suspend () -> Boolean): Boolean {
+  val res = withTimeoutOrNull(timeMillis) {
     while (!condition()) {
       delay(1000)
     }
+    true
   }
+  return res == true
 }
 
 private suspend fun IDevice.isCompanionAppInstalled(): Boolean {
@@ -666,7 +670,7 @@ private suspend fun IDevice.isCompanionAppInstalled(): Boolean {
   return output.contains("versionName=")
 }
 
-private suspend fun devicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
+private suspend fun checkDevicesPaired(phoneDevice: IDevice, wearDevice: IDevice): Boolean {
   val phoneDeviceID = phoneDevice.loadNodeID()
   if (phoneDeviceID.isNotEmpty()) {
     val wearPattern = "connection to peer node: $phoneDeviceID"

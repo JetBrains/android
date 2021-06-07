@@ -24,8 +24,11 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.event.ItemEvent
 import javax.swing.JComponent
+import javax.swing.JEditorPane
+import javax.swing.LayoutFocusTraversalPolicy
 
 /**
  * Main view of Build Analyzer report that is based on ComboBoxes navigation on the top level.
@@ -79,6 +82,13 @@ class BuildAnalyzerComboBoxView(
     val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
       border = JBUI.Borders.emptyLeft(4)
     }
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
+      override fun accept(aComponent: Component?): Boolean {
+        return aComponent !is JEditorPane && super.accept(aComponent)
+      }
+    }
+
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
     add(controlsPanel, BorderLayout.NORTH)

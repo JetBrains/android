@@ -18,7 +18,7 @@ package com.android.tools.idea.run.deployment
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
-import com.android.tools.idea.wearparing.WearDevicePairingWizard
+import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons

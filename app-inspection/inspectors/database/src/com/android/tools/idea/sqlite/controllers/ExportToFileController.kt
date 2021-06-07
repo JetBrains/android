@@ -56,6 +56,7 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.delete
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
 import kotlinx.coroutines.CancellationException
@@ -63,7 +64,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.guava.await
@@ -118,6 +121,9 @@ class ExportToFileController(
 
   @VisibleForTesting
   var lastExportJob : Job? = null
+
+  @VisibleForTesting
+  var queryRowBatchSize = 1000
 
   fun setUp() {
     view.addListener(listener)
@@ -268,6 +274,11 @@ class ExportToFileController(
     }
 
   private suspend fun cloneDatabase(srcPath: Path, dstPath: Path) = withContext(taskDispatcher) {
+    when {
+      dstPath.isDirectory() -> throw IllegalArgumentException("Destination path ($dstPath) points to an existing directory.")
+      dstPath.exists() -> dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
+    }
+
     runSqliteCliCommand(
       SqliteCliArgs
         .builder()
@@ -285,8 +296,9 @@ class ExportToFileController(
       "a system property $SQLITE3_PATH_PROPERTY pointing to the file."
     )
     val commandResponse = SqliteCliClientImpl(sqlite3, taskDispatcher).runSqliteCliCommand(args)
-    if (commandResponse.exitCode != 0) {
-      throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.")
+    if (commandResponse.exitCode != 0 || commandResponse.errOutput.isNotBlank()) {
+      val errorSuffix = if (commandResponse.errOutput.isNotBlank()) " Error: ${commandResponse.errOutput}." else ""
+      throw IllegalStateException("Issue while executing sqlite3 command: ${commandResponse.errOutput}. Arguments: $args.$errorSuffix")
     }
   }
 
@@ -386,29 +398,32 @@ class ExportToFileController(
     createSqliteStatement(project, statementText)
   }
 
-  private suspend fun executeQuery(srcDatabase: SqliteDatabaseId, srcQuery: SqliteStatement): List<SqliteRow> =
-    withContext(taskDispatcher) {
+  private suspend fun executeQuery(srcDatabase: SqliteDatabaseId, srcQuery: SqliteStatement): Flow<SqliteRow> =
+    flow {
       withDatabaseLock(srcDatabase) {
         val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
-        // TODO(161081452): convert to a streaming implementation not to crash / hang on huge tables
-        resultSet.getRowBatch(0, Integer.MAX_VALUE).await()
+        val totalRowCount = resultSet.totalRowCount.await()
+        (0 until totalRowCount step queryRowBatchSize).forEach { rowOffset ->
+          resultSet.getRowBatch(rowOffset, queryRowBatchSize).await().forEach {
+            emit(it)
+          }
+        }
       }
     }
 
-  // TODO(161081452): change to writing a chunk at a time
   // TODO(161081452): move out to an IO class
   @Suppress("BlockingMethodInNonBlockingContext") // the warning tries to make us use Dispatchers.IO
-  private suspend fun writeRowsToCsvFile(rows: List<SqliteRow>, delimiter: Delimiter, dstPath: Path) = withContext(taskDispatcher) {
+  private suspend fun writeRowsToCsvFile(rows: Flow<SqliteRow>, delimiter: Delimiter, dstPath: Path) = withContext(taskDispatcher) {
     val delimiterString = delimiter.delimiter.toString()
 
     dstPath.toFile().bufferedWriter().use { writer ->
-      // header
-      rows.firstOrNull()?.values?.map { it.columnName }?.let {
-        writer.append(it.joinToString(delimiterString))
-        writer.newLine()
-      }
-      // data
-      rows.forEach { row ->
+      rows.collectIndexed { ix, row ->
+        // header
+        if (ix == 0) {
+          writer.append(row.values.joinToString(delimiterString) { it.columnName })
+          writer.newLine()
+        }
+        // data
         writer.append(row.values.joinToString(delimiterString) { it.value.asString })
         writer.newLine()
       }

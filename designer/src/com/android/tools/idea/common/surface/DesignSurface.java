@@ -53,7 +53,6 @@ import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewp
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
@@ -254,8 +253,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   private final boolean myIsEditable;
 
-  private final ConfigurationListener myConfigurationListener;
-
   /**
    * Responsible for converting this surface state and send it for tracking (if logging is enabled).
    */
@@ -282,11 +279,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @NotNull
   private final ZoomControlsPolicy myZoomControlsPolicy;
-
-  /**
-   * If true, when any of the {@link NlModel} configurations change, we will zoom to fit to accomodate any size changes.
-   */
-  private final boolean myZoomOnConfigurationChange;
 
   @NotNull
   private final AWTEventListener myOnHoverListener;
@@ -322,8 +314,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable, ZoomType.FIT_INTO,
-         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, false);
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, isEditable,
+         positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy);
   }
 
   public DesignSurface(
@@ -332,27 +324,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     boolean isEditable,
-    @NotNull ZoomType onChangedZoom,
     @NotNull Function<DesignSurface, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
     @NotNull SelectionModel selectionModel,
-    @NotNull ZoomControlsPolicy zoomControlsPolicy,
-    boolean zoomOnConfigurationChange) {
+    @NotNull ZoomControlsPolicy zoomControlsPolicy) {
     super(new BorderLayout());
 
-    myConfigurationListener = flags -> {
-      if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
-        UIUtil.invokeLaterIfNeeded(() -> zoom(onChangedZoom, -1, -1));
-      }
-
-      return true;
-    };
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;
     mySelectionModel = selectionModel;
     myZoomControlsPolicy = zoomControlsPolicy;
-    myZoomOnConfigurationChange = zoomOnConfigurationChange;
 
     boolean hasZoomControls = myZoomControlsPolicy != ZoomControlsPolicy.HIDDEN;
 
@@ -623,7 +605,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     model.addListener(myModelListener);
-    if (myZoomOnConfigurationChange) model.getConfiguration().addListener(myConfigurationListener);
     manager = createSceneManager(model);
     myModelToSceneManagersLock.writeLock().lock();
     try {
@@ -750,7 +731,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     model.deactivate(this);
 
-    model.getConfiguration().removeListener(myConfigurationListener);
     model.removeListener(myModelListener);
 
     Disposer.dispose(manager);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.wearparing
+package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
 import com.android.ddmlib.AndroidDebugBridge
@@ -25,20 +25,20 @@ import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.concurrency.AndroidDispatchers.ioThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
-import com.android.tools.idea.wearparing.ConnectionState.OFFLINE
-import com.android.tools.idea.wearparing.ConnectionState.ONLINE
 import com.google.common.util.concurrent.Futures
 import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -51,7 +51,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 private val LOG get() = logger<WearPairingManager>()
 
 object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
-  private val updateDevicesChannel = Channel<Unit>(1)
+  private val updateDevicesChannel = Channel<Unit>(Channel.CONFLATED)
 
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
@@ -69,7 +69,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
 
     AndroidDebugBridge.addDeviceChangeListener(this)
     runningJob?.cancel(null) // Don't reuse pending job, in case it's stuck on a slow operation (eg bridging devices)
-    runningJob = GlobalScope.launch(Dispatchers.IO) {
+    runningJob = GlobalScope.launch(ioThread) {
       for (operation in updateDevicesChannel) {
         try {
           updateListAndForwardState()
@@ -93,6 +93,15 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   @Synchronized
   fun getPairedDevices(): Pair<PairingDevice?, PairingDevice?> {
     return Pair(pairedPhoneDevice, pairedWearDevice)
+  }
+
+  suspend fun checkCloudSyncIsEnabled(phone: PairingDevice): Boolean {
+    getConnectedDevices()[phone.deviceID]?.also {
+      val localIdPattern = "Cloud Sync setting: true"
+      val output = it.runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
+      return output.isNotEmpty()
+    }
+    return false
   }
 
   @Synchronized
@@ -157,22 +166,19 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       }
     }
 
-    // Add "paired phone/wear" (if not added already), so they will be shown as "disconnected"
-    pairedPhoneDevice?.apply {
-      deviceTable.putIfAbsent(deviceID, this)
-    }
-    pairedWearDevice?.apply {
-      deviceTable.putIfAbsent(deviceID, this)
-    }
+    addDisconnectedPairedDeviceIfMissing(pairedPhoneDevice, deviceTable)
+    addDisconnectedPairedDeviceIfMissing(pairedWearDevice, deviceTable)
 
-    // Broadcast data to listeners
-    val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
-    model.phoneList.set(phones)
-    model.wearList.set(wears)
-    updateSelectedDevice(phones, model.selectedPhoneDevice)
-    updateSelectedDevice(wears, model.selectedWearDevice)
+    withContext(uiThread(ModalityState.any())) {
+      // Broadcast data to listeners
+      val (wears, phones) = deviceTable.values.sortedBy { it.displayName }.partition { it.isWearDevice }
+      model.phoneList.set(phones)
+      model.wearList.set(wears)
+      updateSelectedDevice(phones, model.selectedPhoneDevice)
+      updateSelectedDevice(wears, model.selectedWearDevice)
 
-    updateForwardState(connectedDevices)
+      updateForwardState(connectedDevices)
+    }
   }
 
   private fun getConnectedDevices(): Map<String, IDevice> {
@@ -208,25 +214,36 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   private fun isPaired(deviceID: String): Boolean = (deviceID == pairedPhoneDevice?.deviceID || deviceID == pairedWearDevice?.deviceID)
+
+  private suspend fun addDisconnectedPairedDeviceIfMissing(device: PairingDevice?, deviceTable: HashMap<String, PairingDevice>) {
+    val deviceID = device?.deviceID ?: return
+    if (!deviceTable.contains(deviceID)) {
+      if (device.isEmulator) {
+         removePairedDevices() // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+      }
+      else {
+        deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
+      }
+    }
+  }
 }
 
 private const val GMS_PACKAGE = "com.google.android.gms"
 
 suspend fun IDevice.executeShellCommand(cmd: String) {
-  withContext(Dispatchers.IO) {
+  withContext(ioThread) {
     runCatching {
       executeShellCommand(cmd, NullOutputReceiver())
     }
   }
 }
 
-suspend fun IDevice.runShellCommand(cmd: String): String = withContext(Dispatchers.IO) {
+suspend fun IDevice.runShellCommand(cmd: String): String = withContext(ioThread) {
   val outputReceiver = CollectingOutputReceiver()
   runCatching {
     executeShellCommand(cmd, outputReceiver)
   }
-  outputReceiver.output.trim().apply {
-  }
+  outputReceiver.output.trim()
 }
 
 suspend fun IDevice.loadNodeID(): String {
@@ -235,10 +252,13 @@ suspend fun IDevice.loadNodeID(): String {
   return output.replace(localIdPattern, "").trim()
 }
 
-suspend fun IDevice.loadCloudNetworkID(): String {
+suspend fun IDevice.loadCloudNetworkID(ignoreNullOutput: Boolean = true): String {
   val cloudNetworkIdPattern = "cloud network id: "
   val output = runShellCommand("dumpsys activity service WearableService | grep '$cloudNetworkIdPattern'")
-  return output.replace(cloudNetworkIdPattern, "").replace("null", "").trim()
+  return output.replace(cloudNetworkIdPattern, "").run {
+    // The Wear Device may have a "null" cloud ID until ADB forward is established and a properly setup phone connects to it.
+    if (ignoreNullOutput) replace("null", "") else this
+  }.trim()
 }
 suspend fun IDevice.retrieveUpTime(): Double {
   runCatching {
@@ -292,7 +312,7 @@ private fun IDevice.toPairingDevice(deviceID: String, isPared: Boolean, avdDevic
     apiLevel = avdDevice?.apiLevel ?: version.featureLevel,
     isEmulator = isEmulator,
     isWearDevice = avdDevice?.isWearDevice ?: supportsFeature(HardwareFeature.WATCH),
-    state = if (isOnline) ONLINE else OFFLINE,
+    state = if (isOnline) ConnectionState.ONLINE else ConnectionState.OFFLINE,
     hasPlayStore = avdDevice?.hasPlayStore ?: false,
     isPaired = isPared
   ).apply {
@@ -307,7 +327,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
     apiLevel = androidVersion.featureLevel,
     isEmulator = true,
     isWearDevice = SystemImage.WEAR_TAG == tag,
-    state = OFFLINE,
+    state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
     isPaired = isPared
   ).apply {

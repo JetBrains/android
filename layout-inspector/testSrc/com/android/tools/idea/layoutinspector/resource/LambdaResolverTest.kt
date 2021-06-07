@@ -38,44 +38,90 @@ class LambdaResolverTest {
   fun before() {
     val fixture = projectRule.fixture
     fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.copyFileToProject("java/androidx/compose/runtime/Composable.kt")
     fixture.copyFileToProject("java/com/example/MyLambdas.kt")
   }
 
   @Test
   fun testFindLambdaLocation() {
-    checkLambda("1", 32, 32, 32, "{ 1 }")
-    checkLambda("2", 32, 32, 32, "{ 2 }")
-    checkLambda("3", 32, 32, 32, "{ f2({ 3 }, { 4 }) }")
-    checkLambda("3$1", 32, 32, 32, "{ 3 }")
-    checkLambda("3$2", 32, 32, 32, "{ 4 }")
-    checkLambda("1", 36, 36, 36, "{ -1 }")
-    checkLambda("1", 24, 24, 24, "{ 1 }")
-    checkLambda("2", 24, 24, 24, "{ 2 }")
-    checkLambda("3", 24, 24, 24, "{ f2({ 3 }, { 4 }) }")
-    checkLambda("3$1", 24, 24, 24, "{ 3 }")
-    checkLambda("3$2", 24, 24, 24, "{ 4 }")
-    checkLambda("9$2", 26, 26, 26, "{ 2 }")
-    checkLambda("1", 3, 3, 3, "{ it }")
-    checkLambda("1", 6, 7, 4, """
-       { number ->
-         // The line numbers from JVMTI of this lambda, starts AFTER this comment...
-         number * number
-       }
-       """.trimIndent())
-    checkLambda("1", 8, 8, 8, null) // A function reference should not be found as a lambda expr
-    checkLambda("1", 100, 120, 45, null) // Lambda of inline function (lines are out of range)
+    checkLambda("1", 34, 34, 34, "{ 1 }")
+    checkLambda("2", 34, 34, 34, "{ 2 }")
+    checkLambda("3", 34, 34, 34, "{ f2({ 3 }, { 4 }) }")
+    checkLambda("3$1", 34, 34, 34, "{ 3 }")
+    checkLambda("3$2", 34, 34, 34, "{ 4 }")
+    checkLambda("1", 38, 38, 38, "{ -1 }")
+    checkLambda("1", 26, 26, 26, "{ 1 }")
+    checkLambda("2", 26, 26, 26, "{ 2 }")
+    checkLambda("3", 26, 26, 26, "{ f2({ 3 }, { 4 }) }")
+    checkLambda("3$1", 26, 26, 26, "{ 3 }")
+    checkLambda("3$2", 26, 26, 26, "{ 4 }")
+    checkLambda("9$2", 28, 28, 28, "{ 2 }")
+    checkLambda("1", 5, 5, 5, "{ it }")
+    checkLambda("1", 8, 8, 6, """
+      { number ->
+        // The line numbers from JVMTI of this lambda, starts AFTER this comment...
+        number * number
+      }
+      """.trimIndent())
+    checkLambda("1", 50, 54, 49, """
+      {
+        intArrayOf(
+          1,
+          2,
+          3,
+          4
+        )
+      }
+      """.trimIndent())
+    checkLambda("1", 10, 10, 10, null) // A function reference should not be found as a lambda expr
+    checkLambda("1", 100, 120, 89, null) // Lambda of inline function (lines are out of range)
+  }
+
+  @Test
+  fun testFindLambdaLocationWithinComposable() {
+    checkLambda("1", 79, 79, 79, "{ it - 1 }")
+    checkLambda("lambda-10\$1", 80, 86, 79, """
+      {
+        Element(l1 = { it + 1 }, l2 = { Element() }, l3 = { it + 2 }) {
+          Element(l1 = { it + 3 }, l3 = { it + 4 }) {
+            Element()
+            Element(l1 = { 1 })
+          }
+        }
+      }
+      """.trimIndent())
+    checkLambda("lambda-10\$1\$1", 80, 80, 80) // { it + 1 }
+    checkLambda("lambda-7\$1", 80, 80, 80)     // { Element() }
+    checkLambda("lambda-10\$1\$2", 80, 80, 80) // { it + 2 }
+    checkLambda("lambda-9\$1", 81, 85, 80, """
+      {
+        Element(l1 = { it + 3 }, l3 = { it + 4 }) {
+          Element()
+          Element(l1 = { 1 })
+        }
+      }
+      """.trimIndent())
+    checkLambda("lambda-9\$1\$1", 81, 81, 81, "{ it + 3 }")
+    checkLambda("lambda-9\$1\$2", 81, 81, 81, "{ it + 4 }")
+    checkLambda("lambda-8\$1", 82, 83, 81, """
+      {
+        Element()
+        Element(l1 = { 1 })
+      }
+      """.trimIndent())
+    checkLambda("lambda-8\$1\$1", 83, 83, 83, "{ 1 }")
   }
 
   @Test
   fun testFindFunctionReferenceLocation() {
-    check("1", "f3", 8, 8, 8, "::f3")
-    check("1", "fx", 21, 21, 21, "::fx")
-    check("4", "f3", 25, 25, 25, "::f3")
-    check("5", "f4", 25, 25, 25, "::f4")
-    check("1", "f5", 25, 25, 25, "::f5")
-    check("2", "f6", 25, 25, 25, "::f6")
-    check("8", "f6", 26, 26, 26, "::f6")
-    check("1", "f1", 3, 3, 3, null) // A lambda expression should not be found as a fct ref
+    check("1", "f3", 10, 10, 10, "::f3")
+    check("1", "fx", 23, 23, 23, "::fx")
+    check("4", "f3", 27, 27, 27, "::f3")
+    check("5", "f4", 27, 27, 27, "::f4")
+    check("1", "f5", 27, 27, 27, "::f5")
+    check("2", "f6", 27, 27, 27, "::f6")
+    check("8", "f6", 28, 28, 28, "::f6")
+    check("1", "f1", 5, 5, 5, null) // A lambda expression should not be found as a fct ref
   }
 
   @Test
@@ -86,7 +132,7 @@ class LambdaResolverTest {
     assertThat(result.navigatable).isNull()
   }
 
-  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedStartLine: Int, expectedText: String?) =
+  private fun checkLambda(lambdaName: String, startLine: Int, endLine: Int, expectedStartLine: Int, expectedText: String? = null) =
     check(lambdaName, functionName = "", startLine, endLine, expectedStartLine, expectedText)
 
   private fun check(
@@ -99,7 +145,6 @@ class LambdaResolverTest {
   ) {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result = resourceLookup.findLambdaLocation("com.example", "MyLambdas.kt", lambdaName, functionName, startLine, endLine)
-    assertThat(result.source).isEqualTo("MyLambdas.kt:$expectedStartLine")
     if (expectedText == null) {
       val fileDescriptor = result.navigatable as? OpenFileDescriptor
       assertThat(fileDescriptor).isNotNull()
@@ -107,7 +152,12 @@ class LambdaResolverTest {
       assertThat(fileDescriptor?.column).isEqualTo(0)
     }
     else {
-      assertThat((result.navigatable as? PsiElement)?.text).isEqualTo(expectedText)
+      var actual = (result.navigatable as? PsiElement)?.text?.trim()
+      if (actual != null && actual.startsWith("{\n")) {
+        actual = "{\n" + actual.substring(2).trimIndent()
+      }
+      assertThat(actual).isEqualTo(expectedText.trim().trimIndent())
     }
+    assertThat(result.source).isEqualTo("MyLambdas.kt:$expectedStartLine")
   }
 }

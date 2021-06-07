@@ -445,7 +445,7 @@ public class RenderErrorContributor {
   @VisibleForTesting
   public void performClick(@NotNull RenderResult result, @NotNull String url) {
     Module module = result.getModule();
-    PsiFile file = result.getFile();
+    PsiFile file = result.getSourceFile();
 
     myLinkManager.handleUrl(url, module, file, myDataContext, result, myDesignSurface);
   }
@@ -759,7 +759,7 @@ public class RenderErrorContributor {
       return;
     }
     AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getFile().getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(result.getSourceFile().getProject());
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
@@ -1363,7 +1363,7 @@ public class RenderErrorContributor {
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
                          JavaPsiFacade.getInstance(project).findClass(className, scope);
-          String layoutName = myResult.getFile().getName();
+          String layoutName = myResult.getSourceFile().getName();
           boolean separate = false;
           if (clz != null) {
             // TODO: Should instead find all R.layout elements
@@ -1450,7 +1450,7 @@ public class RenderErrorContributor {
       reportRelevantCompilationErrors(logger);
       reportMissingSizeAttributes(logger,
                                   renderContext,
-                                  (myResult.getFile() instanceof XmlFile) ? (XmlFile)myResult.getFile() : null);
+                                  (myResult.getSourceFile() instanceof XmlFile) ? (XmlFile)myResult.getSourceFile() : null);
       reportMissingClasses(logger);
     }
     reportBrokenClasses(logger);

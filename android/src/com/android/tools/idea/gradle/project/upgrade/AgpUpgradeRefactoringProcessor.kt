@@ -285,7 +285,6 @@ class AgpUpgradeRefactoringProcessor(
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
-    MIGRATE_TO_BUILD_FEATURES_INFO.RefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
@@ -788,6 +787,10 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
+  private var _cachedUsages = listOf<UsageInfo>()
+  internal val cachedUsages
+    get() = _cachedUsages
+
   public final override fun findUsages(): Array<out UsageInfo> {
     if (!isEnabled) {
       trackComponentUsage(FIND_USAGES, 0)
@@ -795,6 +798,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       return UsageInfo.EMPTY_ARRAY
     }
     val usages = findComponentUsages()
+    _cachedUsages = usages.toList()
     val size = usages.size
     trackComponentUsage(FIND_USAGES, size)
     LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")

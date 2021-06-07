@@ -65,9 +65,11 @@ class TaskViewDetailPagesFactoryTest {
         Plugin: myPlugin<br>
         Type: CompilationType<br>
         <br>
-        <b>Warnings</b><br>
       """.trimIndent())
-      Truth.assertThat(clearHtml((textElements[2] as JLabel).text)).isEqualTo("No warnings found")
+      Truth.assertThat(clearHtml((textElements[2] as JEditorPane).text)).isEqualTo("""
+        <b>Warnings</b><br>
+        No warnings found
+      """.trimIndent())
     }
   }
 
@@ -127,6 +129,19 @@ class TaskViewDetailPagesFactoryTest {
 
     Truth.assertThat(clearHtml(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()[1].text))
       .startsWith("This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module.")
+  }
+
+  @Test
+  fun testTaskWhenNoPluginInfoBecauseOfConfigCache() {
+    val taskData = mockTask(":module1", "task1", "Unknown plugin", 100, pluginUnknownBecauseOfCC = true)
+    val data = MockUiData(tasksList = listOf(taskData), criticalPathDurationMs = 1000)
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+
+    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
+    val expectedHelpText = "Gradle did not provide plugin information for this task due to Configuration cache being enabled and its entry being reused."
+    Truth.assertThat(clearHtml(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()[1].text))
+      .contains("Plugin: N/A <icon alt=\"$expectedHelpText\" src=\"AllIcons.General.ContextHelp\"><br>")
   }
 
   @Test

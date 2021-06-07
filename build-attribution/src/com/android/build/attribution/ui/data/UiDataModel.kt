@@ -88,6 +88,8 @@ interface TaskUiData {
   val onExtendedCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
+  val pluginUnknownBecauseOfCC: Boolean
+    get() = false
   val reasonsToRun: List<String>
   val issues: List<TaskIssueUiData>
   val hasWarning: Boolean

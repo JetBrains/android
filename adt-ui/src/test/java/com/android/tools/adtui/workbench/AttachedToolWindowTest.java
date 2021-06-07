@@ -62,6 +62,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Objects;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -672,7 +673,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     IdeKeyEventDispatcher dispatcher = new IdeKeyEventDispatcher(null);
     dispatcher.dispatchKeyEvent(
       new KeyEvent(panel.getComponent(), KeyEvent.KEY_PRESSED, 0, ourCommandF.getModifiers(), ourCommandF.getKeyCode(), 'F'));
-    assertThat(myToolWindow.getSearchField().isVisible()).isTrue();
+    assertThat(Objects.requireNonNull(myToolWindow.getSearchField()).isVisible()).isTrue();
   }
 
   public void testActionsEnabledAtStartup() {

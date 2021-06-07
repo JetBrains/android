@@ -377,9 +377,16 @@ class AppInspectionInspectorClientTest {
 
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
+
+    // Verify that the MaterialTextView from the views were placed under the ComposeViewNode: "ComposeNode" with id of -7
     val composeNode = inspectorRule.inspectorModel[-7]!!
     assertThat(composeNode.parent?.qualifiedName).isEqualTo("AndroidView")
     assertThat(composeNode.qualifiedName).isEqualTo("ComposeNode")
     assertThat(composeNode.children.single().qualifiedName).isEqualTo("com.google.android.material.textview.MaterialTextView")
+
+    // Also verify that the ComposeView do not contain the MaterialTextView nor the RippleContainer in its children:
+    val composeView = inspectorRule.inspectorModel[6]!!
+    assertThat(composeView.qualifiedName).isEqualTo("android.view.ComposeView")
+    assertThat(composeView.children.single().qualifiedName).isEqualTo("Surface")
   }
 }

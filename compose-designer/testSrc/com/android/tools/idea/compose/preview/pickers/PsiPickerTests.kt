@@ -257,6 +257,7 @@ class PsiPickerTests(previewAnnotationPackage: String, composableAnnotationPacka
     assertEquals("theme", properties.next().name)
     assertEquals("widthDp", properties.next().name)
     assertEquals("heightDp", properties.next().name)
+    assertEquals("locale", properties.next().name)
     assertEquals("fontScale", properties.next().name)
   }
 

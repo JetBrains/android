@@ -72,13 +72,14 @@ class ViewNodeCreator(
 
     val children = view.childrenList.map { it.convert(shouldInterrupt) }.toMutableList()
     composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }
+    val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()
     children.forEach { child ->
       val composeParent = composeNodeCreator?.androidViews?.get(child.drawId)
       if (composeParent != null) {
         composeParent.children.add(child)
         child.parent = composeParent
       }
-      else {
+      else if (!viewsToSkip.contains(child.drawId)) {
         node.children.add(child)
         child.parent = node
       }

@@ -40,6 +40,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -72,6 +74,29 @@ class AndroidLiveLiteralDeployMonitor {
   // Maps "Project featuring Composable" -> "Devices running that project" (with alive process).
   private static final Multimap<Project, String> ACTIVE_DEVICES = ArrayListMultimap.create();
 
+  private static class LiteralChangesListener implements Disposable {
+    private Project project;
+    private final String packageName;
+
+    private LiteralChangesListener(Project project, String packageName) {
+      this.project = project;
+      this.packageName = packageName;
+    }
+
+    @Override
+    public void dispose() {
+      ACTIVE_PROJECTS.remove(project);
+      ACTIVE_DEVICES.removeAll(project);
+      project = null;
+    }
+
+    public Unit onLiteralsChanged(List<? extends LiteralReference> changes) {
+      long timestamp = System.nanoTime();
+      AndroidLiveLiteralDeployMonitor.pushLiteralsToDevice(project, packageName, (List<LiteralReference>) changes, timestamp);
+      return Unit.INSTANCE;
+    }
+  }
+
   /**
    * Returns a callback that, upon successful deployment of an Android application, can be invoked to
    * starts a service to monitor live literal changes in such project and live deploy to the device.
@@ -94,17 +119,10 @@ class AndroidLiveLiteralDeployMonitor {
     return () -> {
       synchronized (ACTIVE_PROJECTS) {
         if (!ACTIVE_PROJECTS.containsKey(project)) {
-          LiveLiteralsService.Companion.getInstance(project).addOnLiteralsChangedListener(
-            (Disposable)() -> {
-              ACTIVE_PROJECTS.remove(project);
-              ACTIVE_DEVICES.removeAll(project);
-            },
-            (changes) -> {
-              long timestamp = System.nanoTime();
-              AndroidLiveLiteralDeployMonitor.pushLiteralsToDevice(project, packageName, (List<LiteralReference>)changes, timestamp);
-              return null;
-            }
-          );
+          LiveLiteralsService service = LiveLiteralsService.Companion.getInstance(project);
+          LiteralChangesListener listener = new LiteralChangesListener(project, packageName);
+          service.addOnLiteralsChangedListener(service, listener::onLiteralsChanged);
+          Disposer.register(service, listener);
           ACTIVE_PROJECTS.put(project, new HashMap<>());
         } else {
           ACTIVE_PROJECTS.get(project).clear();

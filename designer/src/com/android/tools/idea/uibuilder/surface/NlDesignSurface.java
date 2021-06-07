@@ -20,7 +20,6 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
@@ -123,7 +122,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
-    @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
     /**
      * An optional {@link DataProvider} that allows users of the surface to provide additional information associated
      * with this surface.
@@ -143,7 +141,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private Function<DesignSurface, DesignSurfaceActionHandler> myActionHandlerProvider = NlDesignSurface::defaultActionHandlerProvider;
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.VISIBLE;
-    private boolean myZoomOnConfigurationChange = true;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
 
     private Builder(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -271,16 +268,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Set zoom type to apply to surface on configuration changes.
-     * @param onChangeZoom {@link ZoomType} to be applied on configuration change
-     * @return this {@link Builder}
-     */
-    public Builder setOnConfigurationChangedZoom(@NotNull ZoomType onChangeZoom) {
-      myOnChangeZoom = onChangeZoom;
-      return this;
-    }
-
-    /**
      * Sets the {@link DesignSurfaceActionHandler} provider for this surface.
      */
     @NotNull
@@ -318,15 +305,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     }
 
     /**
-     * Disables automatic zoom to fit when the configuration changes.
-     */
-    @NotNull
-    public Builder disableZoomOnConfigurationChange() {
-      myZoomOnConfigurationChange = false;
-      return this;
-    }
-
-    /**
      * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
      * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
      * By default, the builder assumes there is no supported {@link NlSupportedActions}.
@@ -358,12 +336,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myNavigationHandler,
                                  myMinScale,
                                  myMaxScale,
-                                 myOnChangeZoom,
                                  myActionHandlerProvider,
                                  myDelegateDataProvider,
                                  mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
                                  myZoomControlsPolicy,
-                                 myZoomOnConfigurationChange,
                                  mySupportedActions);
     }
   }
@@ -445,19 +421,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @Nullable NavigationHandler navigationHandler,
                           @SurfaceScale double minScale,
                           @SurfaceScale double maxScale,
-                          @NotNull ZoomType onChangeZoom,
                           @NotNull Function<DesignSurface, DesignSurfaceActionHandler> actionHandlerProvider,
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
-                          boolean zoomOnConfigurationChange,
                           @NotNull Set<NlSupportedActions> supportedActions) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable, onChangeZoom,
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, isEditable,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
           selectionModel,
-          zoomControlsPolicy,
-          zoomOnConfigurationChange);
+          zoomControlsPolicy);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;

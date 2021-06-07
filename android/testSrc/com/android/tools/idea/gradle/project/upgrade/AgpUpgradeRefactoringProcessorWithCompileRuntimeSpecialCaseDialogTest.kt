@@ -105,7 +105,7 @@ class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialogTest : He
     processor.setCompileRuntimeIsAlwaysNoOpForProject(false)
     val compileRuntimeProcessor = processor.getCompileRuntimeProcessor()
     val dialog = AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(processor, compileRuntimeProcessor)
-    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Preview" }
+    val previewAction = dialog.createActions().first { it.getValue(Action.NAME) == "Show Usages" }
     previewAction.actionPerformed(null)
     assertTrue(dialog.isOK)
     assertTrue(isPreviewUsagesField.getBoolean(processor))

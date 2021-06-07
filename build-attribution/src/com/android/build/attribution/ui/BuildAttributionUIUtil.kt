@@ -59,12 +59,14 @@ fun warningIcon(): Icon = AllIcons.General.BalloonWarning
 fun htmlTextLabelWithLinesWrap(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(true, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
 fun htmlTextLabelWithFixedLines(htmlBodyContent: String): JEditorPane =
   SwingHelper.createHtmlViewer(false, null, null, null).apply {
     border = JBUI.Borders.empty()
+    isFocusable = true
     SwingHelper.setHtml(this, htmlBodyContent, null)
   }
 
@@ -75,3 +77,4 @@ fun wrapPathToSpans(text: String): String = "<p>${text.replace("/", "<span>/</sp
 fun String.insertBRTags(): String = replace("\n", "<br/>\n")
 fun externalLink(text: String, link: BuildAnalyzerBrowserLinks) =
   "<a href='${link.name}'>$text</a><icon src='ide/external_link_arrow.svg'>"
+fun helpIcon(text: String): String = "<icon alt='$text' src='AllIcons.General.ContextHelp'>"

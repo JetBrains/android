@@ -22,20 +22,23 @@ import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableContents
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.text.Strings
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
+import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.io.StringWriter
 import java.io.Writer
 import java.nio.file.Path
-import java.util.Scanner
 import kotlin.text.Charsets.UTF_8
 
 private const val sqliteCliOutputArgPrefix = ".output"
@@ -47,6 +50,7 @@ interface SqliteCliClient {
 
 data class SqliteCliArg(val rawArg: String)
 
+/** Note in some cases [exitCode] can be `0` despite an error - inspecting [errOutput] can be used to detect such scenarios. */
 data class SqliteCliResponse(val exitCode: Int, val stdOutput: String, val errOutput: String)
 
 class SqliteCliArgs private constructor() {
@@ -125,8 +129,8 @@ private object ProcessExecutor {
     val process = Runtime.getRuntime().exec(executable)
 
     val exitCode = async { process.waitFor() }
-    val errOutput = async { consumeProcessOutput(process.errorStream, errWriter, process) }
-    val stdOutput = async { consumeProcessOutput(process.inputStream, stdWriter, process) }
+    val errOutput = async { consumeProcessOutput(process.errorStream, errWriter, process, dispatcher) }
+    val stdOutput = async { consumeProcessOutput(process.inputStream, stdWriter, process, dispatcher) }
     val input = async { feedProcessInput(process.outputStream, inputLines) }
 
     input.await()
@@ -146,19 +150,27 @@ private object ProcessExecutor {
   }
 
   // Consumes output stream as the process is being executed - otherwise on Windows the process would block when the output buffer is full.
-  private suspend fun consumeProcessOutput(source: InputStream?, outputWriter: Writer, process: Process) {
-    if (source == null) return
+  private suspend fun consumeProcessOutput(source: InputStream?,
+                                           outputWriter: Writer,
+                                           process: Process,
+                                           dispatcher: CoroutineDispatcher) = withContext(dispatcher) {
+    if (source == null) return@withContext
 
     var isFirstLine = true
-    Scanner(source, UTF_8.name()).use { scanner ->
-      while (process.isAlive || scanner.hasNextLine()) {
-        while (scanner.hasNextLine()) {
+    BufferedReader(InputStreamReader(source, UTF_8.name())).use { reader ->
+      do {
+        val line = reader.readLine()
+        if (Strings.isNotEmpty(line)) {
           if (!isFirstLine) outputWriter.append(System.lineSeparator())
           isFirstLine = false
-          outputWriter.append(scanner.nextLine())
+          outputWriter.append(line)
         }
-        delay(50)
+        else {
+          yield()
+        }
+        ensureActive()
       }
+      while (process.isAlive || line != null)
     }
   }
 }

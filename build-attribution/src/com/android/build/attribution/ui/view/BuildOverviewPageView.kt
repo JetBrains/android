@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.externalLink
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.build.attribution.ui.model.shouldShowWarning
 import com.android.build.attribution.ui.percentageStringHtml
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TabularLayout
@@ -53,7 +54,7 @@ class BuildOverviewPageView(
     layout = VerticalLayout(0, SwingConstants.LEFT)
     val buildSummary = model.reportUiData.buildSummary
     val buildFinishedTime = DateFormatUtil.formatDateTime(buildSummary.buildFinishedTimestamp)
-    val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData != ConfigurationCachingTurnedOn)
+    val optionalConfigurationCacheLink = if (model.reportUiData.confCachingData.shouldShowWarning())
       " - <a href='configuration-cache'>Optimize this</a>."
     else ""
     val text = """

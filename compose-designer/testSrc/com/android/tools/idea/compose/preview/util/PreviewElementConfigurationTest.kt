@@ -71,7 +71,7 @@ class PreviewElementConfigurationTest(previewAnnotationPackage: String, composab
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
-      val previewConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, deviceSpec)
+      val previewConfiguration = PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
       previewConfiguration.applyConfigurationForTest(it,
                                                      highestApiTarget = { null },
                                                      devicesProvider = deviceProvider,
