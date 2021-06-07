@@ -96,5 +96,4 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/3.0.0:jar",
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
     ],
-    use_zip = False,
 )

@@ -1206,7 +1206,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/xmlpull/xmlpull/1.1.3.1:jar",
         "//prebuilts/tools/common/m2/repository/xpp3/xpp3/1.1.4c:jar",
     ],
-    use_zip = False,
     visibility = ["//visibility:public"],
 )
 

@@ -188,7 +188,6 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-library/1.3:jar",
         "//prebuilts/tools/common/m2/repository/org/mockito/mockito-core/1.10.19:jar",
     ],
-    use_zip = False,
     visibility = ["//visibility:public"],
 )
 
