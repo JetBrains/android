@@ -551,36 +551,6 @@ public final class StudioFlags {
     "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
-  /**
-   * The strategy that {@link com.android.tools.idea.run.activity.DefaultActivityLocator}
-   * uses to obtain a list of activities from a given module's merged manifest.
-   *
-   * @see StudioFlags#DEFAULT_ACTIVITY_LOCATOR_STRATEGY
-   */
-  public enum DefaultActivityLocatorStrategy {
-    /**
-     * Unconditionally block on a fresh view of the merged manifest.
-     */
-    BLOCK,
-    /**
-     * Determine the list of activities using the {@link com.android.tools.idea.model.AndroidManifestIndex}.
-     */
-    INDEX,
-    /**
-     * Use a potentially stale view of the merged manifest if the caller is on the EDT.
-     */
-    STALE
-  }
-
-  public static final Flag<DefaultActivityLocatorStrategy> DEFAULT_ACTIVITY_LOCATOR_STRATEGY = Flag.create(
-    RUNDEBUG,
-    "default.activity.locator.strategy",
-    "Choose a strategy for selecting the default activity to launch from the merged manifest.",
-    "This can be \"BLOCK\" to unconditionally block on a fresh merged manifest, \"STALE\" to use a potentially stale manifest, "
-    + "or \"INDEX\" to use the custom Android Manifest index (only select this option if manifest indexing is enabled).",
-    DefaultActivityLocatorStrategy.INDEX
-  );
-
   public static final Flag<Boolean> DEFAULT_ACTIVITY_LOCATOR_FROM_APKS = Flag.create(
     RUNDEBUG,
     "default.activity.locator.sourceoftruth",

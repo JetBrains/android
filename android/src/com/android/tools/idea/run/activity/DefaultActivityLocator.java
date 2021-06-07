@@ -24,10 +24,6 @@ import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
-import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -38,7 +34,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -84,28 +79,11 @@ public class DefaultActivityLocator extends ActivityLocator {
   public void validate() throws ActivityLocatorException {
     assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
 
-    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
-
-    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
-      if (DumbService.isDumb(myFacet.getModule().getProject())) {
-        return;
-      }
-      List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
-      if (computeDefaultActivity(activities) == null) {
-        throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
-      }
+    if (DumbService.isDumb(myFacet.getModule().getProject())) {
       return;
     }
-
-    // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
-    // This workaround avoids calculating the MergedManifest on the UI thread.
-    boolean usePotentiallyStaleManifest = ApplicationManager.getApplication().isDispatchThread();
-    MergedManifestSnapshot mergedManifest = getMergedManifest(myFacet, usePotentiallyStaleManifest);
-    List<ActivityWrapper> activities = mergedManifest == null ?
-                                       Collections.emptyList() :
-                                       ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
-    String defaultActivity = computeDefaultActivity(activities);
-    if (defaultActivity == null) {
+    List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
+    if (computeDefaultActivity(activities) == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
   }
@@ -113,25 +91,10 @@ public class DefaultActivityLocator extends ActivityLocator {
   /**
    * Retrieves the list of activities from the merged manifest of the Android module
    * corresponding to the given facet.
-   *
-   * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
   public static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
-    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
-    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
-      return DumbService.getInstance(facet.getModule().getProject())
-        .runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
-    }
-    boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
-    boolean usePotentiallyStaleManifest = onEdt && strategy == DefaultActivityLocatorStrategy.STALE;
-    Stopwatch timer = Stopwatch.createStarted();
-    MergedManifestSnapshot mergedManifest = getMergedManifest(facet, usePotentiallyStaleManifest);
-    List<ActivityWrapper> activities = mergedManifest == null ?
-                                       Collections.emptyList() :
-                                       ActivityWrapper.get(mergedManifest.getActivities(), mergedManifest.getActivityAliases());
-    logManifestLatency(onEdt, false, usePotentiallyStaleManifest, timer.elapsed(TimeUnit.MILLISECONDS));
-    return activities;
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
   }
 
   @NotNull
@@ -139,14 +102,12 @@ public class DefaultActivityLocator extends ActivityLocator {
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     Stopwatch timer = Stopwatch.createStarted();
     List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet).getJoined();
-    logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
+    logManifestLatency(onEdt, timer.elapsed(TimeUnit.MILLISECONDS));
     return activityWrappers;
   }
 
   private static void logManifestLatency(
     boolean blocksUiThread,
-    boolean indexBased,
-    boolean usedPotentiallyStaleManifest,
     long latencyMs
   ) {
     AndroidStudioEvent.Builder proto = AndroidStudioEvent.newBuilder()
@@ -154,8 +115,8 @@ public class DefaultActivityLocator extends ActivityLocator {
       .setDefaultActivityLocatorStats(
         DefaultActivityLocatorStats.newBuilder()
           .setBlocksUiThread(blocksUiThread)
-          .setIndexBased(indexBased)
-          .setUsedPotentiallyStaleManifest(usedPotentiallyStaleManifest)
+          .setIndexBased(true)
+          .setUsedPotentiallyStaleManifest(false)
           .setLatencyMs(latencyMs)
       );
     UsageTracker.log(proto);

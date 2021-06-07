@@ -29,8 +29,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
 import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestModificationListener;
@@ -50,15 +48,6 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link DefaultActivityLocator}.
  */
 public class DefaultActivityLocatorTest extends AndroidTestCase {
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.clearOverride();
-    } finally {
-      super.tearDown();
-    }
-  }
 
   @Override
   protected boolean providesCustomManifest() {
@@ -150,55 +139,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
                computeDefaultActivity(myFacet, null));
   }
 
-  public void testBlockStrategy_blocksOnFreshMergedManifest() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.BLOCK);
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
-  }
-
-  public void testStaleStrategy_blocksBackgroundThreadOnFreshMergedManifest() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    assertEquals("com.example.unittest.Launcher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-    assertEquals("com.example.unittest.NewLauncher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
-  }
-
-  public void testStaleStrategy_usesStaleManifestOnEdt() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.STALE);
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-
-    // We've never computed the merged manifest, so DefaultActivityLocator won't have a stale manifest to get activities from.
-    runAndWaitForMergedManifestUpdate(() -> assertNull(computeDefaultActivity(myFacet, null)));
-    // But we should have triggered a merged manifest recompute in a background thread to ensure the manifest is eventually
-    // available in future calls.
-    assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
-
-    renameClass("com.example.unittest.Launcher", "NewLauncher");
-
-    // Forced to use a stale view of the merged manifest, DefaultActivityLauncher picks an activity that no longer exists.
-    runAndWaitForMergedManifestUpdate(
-      () -> assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null)));
-    // But it eventually is able to identify the correct class once the merged manifest has been recomputed.
-    assertEquals("com.example.unittest.NewLauncher", computeDefaultActivity(myFacet, null));
-  }
-
   public void testIndexStrategy_onBackgroundThread() throws Exception {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -211,7 +152,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_onEdt() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
     ApplicationManager.getApplication().assertIsDispatchThread();
 
@@ -225,7 +165,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_cacheHit() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -237,7 +176,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_valid() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     MergedManifestModificationListener.ensureSubscribed(getProject());
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -253,7 +191,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testIndexStrategy_invalid() {
-    StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.override(DefaultActivityLocatorStrategy.INDEX);
     myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     DefaultActivityLocator defaultActivityLocator = new DefaultActivityLocator(myFacet);
     try {
