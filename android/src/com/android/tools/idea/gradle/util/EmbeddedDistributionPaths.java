@@ -86,7 +86,6 @@ public class EmbeddedDistributionPaths {
           candidate = Paths.get(sourcesRoot).resolve(candidate);
         }
         File offlineRepo = candidate.toFile();
-        System.out.println(offlineRepo);
         if (offlineRepo.isDirectory()) {
           repoPaths.add(offlineRepo);
         }
