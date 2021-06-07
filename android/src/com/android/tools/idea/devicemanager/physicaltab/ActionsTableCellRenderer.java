@@ -23,7 +23,7 @@ import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 final class ActionsTableCellRenderer implements TableCellRenderer {
-  private final JComponent myComponent = new ActionsComponent(null, null);
+  private final JComponent myComponent = new ActionsComponent();
 
   @Override
   public @NotNull Component getTableCellRendererComponent(@NotNull JTable table,
