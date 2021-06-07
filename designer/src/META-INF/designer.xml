@@ -39,6 +39,8 @@
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationManager" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
+    <applicationService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolSettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.uibuilder.visual.VisualizationToolProjectSettings"/>
     <postStartupActivity implementation="com.android.tools.idea.uibuilder.visual.VisualizationManager$VisualizationManagerPostStartupActivity" />
   </extensions>
 
