@@ -70,5 +70,4 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/org/objenesis/objenesis/2.6:jar",
         "//prebuilts/tools/common/m2/repository/org/slf4j/slf4j-api/1.7.2:jar",
     ],
-    use_zip = False,
 )

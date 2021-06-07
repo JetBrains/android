@@ -84,5 +84,4 @@ maven_repo(
     artifacts = [
         "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
     ],
-    use_zip = False,
 )
