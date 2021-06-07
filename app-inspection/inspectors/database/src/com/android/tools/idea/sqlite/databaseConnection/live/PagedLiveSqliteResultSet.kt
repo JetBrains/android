@@ -40,14 +40,17 @@ class PagedLiveSqliteResultSet(
       response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.longValue?.toInt() ?: 0
     }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return sendQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize)).transform(taskExecutor) { response ->
-      val columnNames = response.query.columnNamesList
-      response.query.rowsList.map {
-        val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
-        SqliteRow(sqliteColumnValues)
+    return sendQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), responseSizeByteLimitHint)
+      .transform(taskExecutor) { response ->
+        val columnNames = response.query.columnNamesList
+        response.query.rowsList.map {
+          val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
+          SqliteRow(sqliteColumnValues)
+        }
       }
-    }
   }
+
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int) = getRowBatch(rowOffset, rowBatchSize, null)
 }
