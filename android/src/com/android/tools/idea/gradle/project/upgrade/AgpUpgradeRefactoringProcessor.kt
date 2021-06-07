@@ -2065,7 +2065,6 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun update() {}
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
 

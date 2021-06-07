@@ -56,7 +56,6 @@ class ResourcePackageGroupingRule : SingleParentUsageGroupingRule() {
  */
 data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun update() {}
 
   override fun canNavigate() = false
   override fun canNavigateToSource() = false
