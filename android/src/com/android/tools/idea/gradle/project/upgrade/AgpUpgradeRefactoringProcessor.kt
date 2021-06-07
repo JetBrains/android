@@ -114,7 +114,6 @@ import com.intellij.openapi.util.Factory
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.util.text.StringUtil.pluralize
-import com.intellij.openapi.vcs.FileStatus
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.Navigatable
 import com.intellij.pom.java.LanguageLevel
@@ -2066,7 +2065,6 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun getFileStatus(): FileStatus? = null
   override fun update() {}
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false

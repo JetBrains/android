@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vcs.FileStatus
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -59,7 +58,6 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
   override fun update() {}
 
-  override fun getFileStatus(): FileStatus? = null
   override fun isValid() = true
   override fun canNavigate() = false
   override fun canNavigateToSource() = false
