@@ -335,11 +335,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     };
   }
 
-  @Override
-  protected boolean supportMultipleDevices() {
-    return false;
-  }
-
   @Nullable
   @Override
   protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
