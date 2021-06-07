@@ -27,7 +27,6 @@ import com.intellij.usages.impl.rules.UsageGroupingRulesDefaultRanks
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
-import javax.swing.Icon
 
 class ResourcePackageGroupingRuleProvider : UsageGroupingRuleProvider {
 
@@ -60,7 +59,6 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
   override fun update() {}
 
-  override fun getIcon(isOpen: Boolean): Icon? = null
   override fun getFileStatus(): FileStatus? = null
   override fun isValid() = true
   override fun canNavigate() = false

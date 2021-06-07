@@ -2066,7 +2066,6 @@ class ComponentGroupingRule : SingleParentUsageGroupingRule() {
 
 data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
-  override fun getIcon(isOpen: Boolean): Icon? = null
   override fun getFileStatus(): FileStatus? = null
   override fun update() {}
   override fun canNavigate(): Boolean = false
