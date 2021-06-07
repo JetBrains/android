@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PAT
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteQueries
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveSqliteResultSet
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
@@ -123,7 +124,7 @@ class ExportToFileController(
   var lastExportJob : Job? = null
 
   @VisibleForTesting
-  var queryRowBatchSize = 1000
+  var responseSizeByteLimitHint = 8L * 1024 * 1024 // 8 MB
 
   fun setUp() {
     view.addListener(listener)
@@ -402,11 +403,16 @@ class ExportToFileController(
     flow {
       withDatabaseLock(srcDatabase) {
         val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
+
         val totalRowCount = resultSet.totalRowCount.await()
-        (0 until totalRowCount step queryRowBatchSize).forEach { rowOffset ->
-          resultSet.getRowBatch(rowOffset, queryRowBatchSize).await().forEach {
-            emit(it)
-          }
+        var rowOffset = 0
+        while (rowOffset < totalRowCount) {
+          val batch = when (resultSet) {
+            is LiveSqliteResultSet -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE, responseSizeByteLimitHint)
+            else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
+          }.await()
+          batch.forEach { emit(it) }
+          rowOffset += batch.size
         }
       }
     }

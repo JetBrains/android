@@ -39,9 +39,9 @@ class LazyLiveSqliteResultSet(
       response.query.rowsList.size
     }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return sendQueryCommand(sqliteStatement).transform(taskExecutor) { response ->
+    return sendQueryCommand(sqliteStatement, responseSizeByteLimitHint).transform(taskExecutor) { response ->
       val columnNames = response.query.columnNamesList
       val rows = response.query.rowsList
       rows.subList(rowOffset, minOf(rowOffset + rowBatchSize, rows.size)).map {
@@ -50,4 +50,6 @@ class LazyLiveSqliteResultSet(
       }
     }
   }
+
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int) = getRowBatch(rowOffset, rowBatchSize, null)
 }
