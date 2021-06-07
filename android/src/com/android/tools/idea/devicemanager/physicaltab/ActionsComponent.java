@@ -15,98 +15,29 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.Component;
-import java.util.function.BiConsumer;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class ActionsComponent extends JBPanel<ActionsComponent> {
-  private final @Nullable Project myProject;
-  private final @Nullable PhysicalDeviceTableModel myModel;
-  private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
-  private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
-
   private final @NotNull AbstractButton myActivateDeviceFileExplorerWindowButton;
   private final @NotNull AbstractButton myEditDeviceNameButton;
   private final @NotNull Component myMoreButton;
 
-  private @Nullable PhysicalDevice myDevice;
-
-  ActionsComponent(@Nullable Project project, @Nullable PhysicalDeviceTableModel model) {
-    this(project, model, DeviceExplorerToolWindowFactory::openAndShowDevice, EditDeviceNameDialog::new);
-  }
-
-  @VisibleForTesting
-  ActionsComponent(@Nullable Project project,
-                   @Nullable PhysicalDeviceTableModel model,
-                   @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice,
-                   @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog) {
+  ActionsComponent() {
     super(null);
 
-    myProject = project;
-    myModel = model;
-    myOpenAndShowDevice = openAndShowDevice;
-    myNewEditDeviceNameDialog = newEditDeviceNameDialog;
+    myActivateDeviceFileExplorerWindowButton = newJButton(AllIcons.General.OpenDiskHover);
+    myEditDeviceNameButton = newJButton(AllIcons.Actions.Edit);
+    myMoreButton = newJButton(AllIcons.Actions.More);
 
-    myActivateDeviceFileExplorerWindowButton = newJButton(AllIcons.General.OpenDiskHover, this::activateDeviceFileExplorerWindow);
-    myEditDeviceNameButton = newJButton(AllIcons.Actions.Edit, this::editDeviceName);
-
-    myMoreButton = newJButton(AllIcons.Actions.More, () -> {
-    });
-
-    setLayout();
-  }
-
-  private static @NotNull AbstractButton newJButton(@NotNull Icon icon, @NotNull Runnable runnable) {
-    AbstractButton button = new JButton(icon);
-
-    button.setBorderPainted(false);
-    button.setContentAreaFilled(false);
-    button.addActionListener(event -> runnable.run());
-
-    return button;
-  }
-
-  private void activateDeviceFileExplorerWindow() {
-    if (myProject == null) {
-      return;
-    }
-
-    if (myDevice == null) {
-      return;
-    }
-
-    if (!myDevice.isOnline()) {
-      return;
-    }
-
-    myOpenAndShowDevice.accept(myProject, myDevice.getKey().toString());
-  }
-
-  private void editDeviceName() {
-    assert myDevice != null;
-    EditDeviceNameDialog dialog = myNewEditDeviceNameDialog.apply(myProject, myDevice.getNameOverride(), myDevice.getName());
-
-    if (!dialog.showAndGet()) {
-      return;
-    }
-
-    assert myModel != null;
-    myModel.setNameOverride(myDevice.getKey(), dialog.getNameOverride());
-  }
-
-  private void setLayout() {
     GroupLayout layout = new GroupLayout(this);
     int size = JBUIScale.scale(22);
 
@@ -130,23 +61,20 @@ final class ActionsComponent extends JBPanel<ActionsComponent> {
     setLayout(layout);
   }
 
-  @VisibleForTesting
+  private static @NotNull AbstractButton newJButton(@NotNull Icon icon) {
+    AbstractButton button = new JButton(icon);
+
+    button.setBorderPainted(false);
+    button.setContentAreaFilled(false);
+
+    return button;
+  }
+
   @NotNull AbstractButton getActivateDeviceFileExplorerWindowButton() {
     return myActivateDeviceFileExplorerWindowButton;
   }
 
-  @VisibleForTesting
   @NotNull AbstractButton getEditDeviceNameButton() {
     return myEditDeviceNameButton;
-  }
-
-  @VisibleForTesting
-  @NotNull PhysicalDevice getDevice() {
-    assert myDevice != null;
-    return myDevice;
-  }
-
-  void setDevice(@NotNull PhysicalDevice device) {
-    myDevice = device;
   }
 }
