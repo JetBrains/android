@@ -242,7 +242,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myContentWrapper = new ContentWrapper();
     myContentWrapper.add(myContentPanel);
 
-    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE()) {
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       NumberFormat maxSnapshotsFormat = NumberFormat.getIntegerInstance();
       maxSnapshotsFormat.setMinimumIntegerDigits(0);
       JFormattedTextField maxSnapshotsTextField = new JFormattedTextField(maxSnapshotsFormat);
@@ -282,7 +282,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.INSTRUMENTATION_RUNNER_CLASS = isBuildWithGradle ? "" : myInstrumentationClass.get();
     configuration.EXTRA_OPTIONS = myUserModifiedInstrumentationExtraParams;
     configuration.INCLUDE_GRADLE_EXTRA_OPTIONS = myIncludeGradleExtraParams;
-    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE()) {
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       configuration.RETENTION_ENABLED = myEnableEmulatorSnapshotItemsComboBox.getItem();
       configuration.RETENTION_MAX_SNAPSHOTS = Integer.parseInt(myMaxSnapshots.get());
       configuration.RETENTION_COMPRESS_SNAPSHOTS = myCompressSnapshots.get();
@@ -305,7 +305,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       : configuration.INSTRUMENTATION_RUNNER_CLASS);
     myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
     myIncludeGradleExtraParams = configuration.INCLUDE_GRADLE_EXTRA_OPTIONS;
-    if (AndroidTestConfiguration.getInstance().getRUN_ANDROID_TEST_USING_GRADLE()) {
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       myEnableRetention.setValue(configuration.RETENTION_ENABLED);
       myMaxSnapshots.set(Integer.toString(configuration.RETENTION_MAX_SNAPSHOTS));
       myCompressSnapshots.set(configuration.RETENTION_COMPRESS_SNAPSHOTS);
