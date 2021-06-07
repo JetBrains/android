@@ -68,20 +68,25 @@ public class EmbeddedDistributionPaths {
 
     if (StudioPathManager.isRunningFromSources()) {
       // Repo path candidates, the path should be relative to tools/idea.
-      List<String> repoCandidates = new ArrayList<>();
+      List<Path> repoCandidates = new ArrayList<>();
 
       if (studioCustomRepo == null) {
-        repoCandidates.add("out/repo");
+        repoCandidates.add(Paths.get("out", "repo"));
       }
 
       // Add locally published offline studio repo
-      repoCandidates.add("out/studio/repo");
+      repoCandidates.add(Paths.get("out", "studio", "repo"));
       // Add prebuilts repo.
-      repoCandidates.add("prebuilts/tools/common/m2/repository");
+      repoCandidates.add(Paths.get("prebuilts", "tools", "common", "m2", "repository"));
+      repoCandidates.add(Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo"));
 
       String sourcesRoot = StudioPathManager.getSourcesRoot();
-      for (String candidate : repoCandidates) {
-        File offlineRepo = new File(toCanonicalPath(Paths.get(sourcesRoot, candidate).toString()));
+      for (Path candidate : repoCandidates) {
+        if (!candidate.isAbsolute()) {
+          candidate = Paths.get(sourcesRoot).resolve(candidate);
+        }
+        File offlineRepo = candidate.toFile();
+        System.out.println(offlineRepo);
         if (offlineRepo.isDirectory()) {
           repoPaths.add(offlineRepo);
         }
