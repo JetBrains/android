@@ -200,7 +200,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   }
 
   private fun addSeparatorBeforeTitle() {
-    if (lastAddedLine == null || lastAddedLine == lastTitleLine) {
+    if (lastAddedLine == null || lastAddedLine == lastTitleLine || lastAddedLine is TableLineModel) {
       return
     }
     addSeparator(bottomDivider = true, parent = topParent(lastAddedLine))
