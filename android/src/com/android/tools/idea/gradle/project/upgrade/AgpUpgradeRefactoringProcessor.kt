@@ -2068,7 +2068,6 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun update() {}
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
-  override fun isValid(): Boolean = true
 
   override fun getText(view: UsageView?): String = usageName
 

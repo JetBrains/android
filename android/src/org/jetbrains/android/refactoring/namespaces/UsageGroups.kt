@@ -58,7 +58,6 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
   override fun navigate(requestFocus: Boolean) {}
   override fun update() {}
 
-  override fun isValid() = true
   override fun canNavigate() = false
   override fun canNavigateToSource() = false
   override fun getText(view: UsageView?): String = "Resources from $packageName"
