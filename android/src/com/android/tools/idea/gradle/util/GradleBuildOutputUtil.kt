@@ -82,25 +82,6 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
   else artifact.outputs.firstOrNull()?.outputFile
 }
 
-/**
- * Retrieve the location of generated APK or Bundle for the given variant.
- *
- * This method returns null if build output listing file is not supported.
- *
- * If the generated file is a bundle file, this method returns the location of bundle.
- * If the generated file is a single APK, this method returns the location of the apk.
- * If the generated files are multiple APKs, this method returns the folder that contains the APKs.
- */
-fun getOutputFilesFromListingFileByVariantName(
-  androidModel: AndroidModuleModel,
-  variantName: String,
-  outputType: OutputType
-): List<File> {
-  val outputInformation =
-    androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
-  return outputInformation?.getOutputFilesFromListingFile(outputType).orEmpty()
-}
-
 fun IdeBuildTasksAndOutputInformation.getOutputFilesFromListingFile(
   outputType: OutputType
 ): List<File> {
@@ -151,7 +132,7 @@ private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(vari
   return firstOrNull { it.variantName == variantName }?.buildInformation
 }
 
-fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
+internal fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
   return when (outputType) {
     OutputType.Apk -> assembleTaskOutputListingFile
     OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
