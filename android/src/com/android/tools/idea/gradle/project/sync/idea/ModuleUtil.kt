@@ -99,6 +99,14 @@ object ModuleUtil {
 
   @JvmStatic
   fun Module.getHolderModule() = getUserData(LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
+
+  /**
+   * Utility method to find out if a module is derived from an Android Gradle project. This will return true
+   * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
+   * holder module used as the parent of these source set modules.
+   */
+  @JvmStatic
+  fun Module.isLinkedAndroidModule() = getUserData(LINKED_ANDROID_MODULE_GROUP) != null
 }
 
 fun String.removeSourceSetSuffixFromExternalProjectID() : String = IdeArtifactName.values().firstNotNullResult { artifactName ->
