@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.*
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
@@ -55,7 +55,7 @@ class ExistingProjectModelData(
   override var project: Project,
   override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 ) : ProjectModelData {
-  override val applicationName: StringValueProperty = StringValueProperty("My Application")
+  override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useAppCompat = BoolValueProperty()
