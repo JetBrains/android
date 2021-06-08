@@ -100,8 +100,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
   @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
-  private static final int ROTATE_AMOUNT = 90;
-
   private final @NotNull Project myProject;
   private final @Nullable IDevice myDevice;
 
@@ -123,12 +121,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JButton myCopyButton;
 
   /**
-   * Angle in degrees by which the screenshot from the device has been rotated. One of 0, 90, 180 or 270.
+   * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3.
    */
-  private int myRotationAngle = 0;
+  private int myRotationQuadrants = 0;
 
   /**
-   * Reference to the screenshot obtained from the device and then rotated by {@link #myRotationAngle} degrees.
+   * Reference to the screenshot obtained from the device and then rotated by {@link #myRotationQuadrants} degrees.
    * Accessed from both EDT and background threads.
    */
   private final AtomicReference<BufferedImage> mySourceImageRef = new AtomicReference<>();
@@ -176,10 +174,10 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         doRefreshScreenshot();
       }
       else if (actionEvent.getSource() == myRotateRightButton) {
-        doRotateScreenshot(ROTATE_AMOUNT);
+        doRotateScreenshot(3);
       }
       else if (actionEvent.getSource() == myRotateLeftButton) {
-        doRotateScreenshot(ROTATE_AMOUNT * 3);
+        doRotateScreenshot(1);
       }
       else if (actionEvent.getSource() == myFrameScreenshotCheckBox
                || actionEvent.getSource() == myDeviceArtCombo
@@ -293,14 +291,15 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
         BufferedImage image = getScreenshot();
         mySourceImageRef.set(image);
-        processScreenshot(myFrameScreenshotCheckBox.isSelected(), myRotationAngle);
+        processScreenshot(myFrameScreenshotCheckBox.isSelected(), myRotationQuadrants);
       }
     }.queue();
   }
 
-  private void doRotateScreenshot(int change) {
-    myRotationAngle = (myRotationAngle + change) % 360;
-    processScreenshot(myFrameScreenshotCheckBox.isSelected(), change);
+  private void doRotateScreenshot(int numQuadrants) {
+    assert numQuadrants >= 0;
+    myRotationQuadrants = (myRotationQuadrants + numQuadrants) % 4;
+    processScreenshot(myFrameScreenshotCheckBox.isSelected(), numQuadrants);
   }
 
   private void doFrameScreenshot() {
@@ -336,12 +335,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     zoomModel.setZoomFactor(ImageUtils.calcFullyDisplayZoomFactor(viewHeight, viewWidth, imageHeight, imageWidth));
   }
 
-  private void processScreenshot(boolean addFrame, int rotateByAngle) {
+  private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
     DeviceArtDescriptor spec = addFrame ? myDeviceArtDescriptors.get(myDeviceArtCombo.getSelectedIndex()) : null;
     boolean shadow = addFrame && myDropShadowCheckBox.isSelected();
     boolean reflection = addFrame && myScreenGlareCheckBox.isSelected();
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByAngle, spec, shadow, reflection, myBackingVirtualFile) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, shadow, reflection, myBackingVirtualFile) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -353,7 +352,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private static class ImageProcessorTask extends Task.Backgroundable {
     private final @NotNull BufferedImage mySrcImage;
-    private final int myRotationAngle;
+    private final int myRotationQuadrants;
     private final @Nullable DeviceArtDescriptor myDescriptor;
     private final boolean myAddShadow;
     private final boolean myAddReflection;
@@ -364,7 +363,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     public ImageProcessorTask(@Nullable Project project,
                               @NotNull BufferedImage srcImage,
-                              int rotateByAngle,
+                              int rotateByQuadrants,
                               @Nullable DeviceArtDescriptor descriptor,
                               boolean addShadow,
                               boolean addReflection,
@@ -372,7 +371,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
-      myRotationAngle = rotateByAngle;
+      myRotationQuadrants = rotateByQuadrants;
       myDescriptor = descriptor;
       myAddShadow = addShadow;
       myAddReflection = addReflection;
@@ -381,12 +380,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      if (myRotationAngle != 0) {
-        myRotatedImage = ImageUtils.rotateByRightAngle(mySrcImage, myRotationAngle);
-      }
-      else {
-        myRotatedImage = mySrcImage;
-      }
+      myRotatedImage = ImageUtils.rotateByQuadrants(mySrcImage, myRotationQuadrants);
 
       if (myDescriptor != null) {
         myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, myAddShadow, myAddReflection);

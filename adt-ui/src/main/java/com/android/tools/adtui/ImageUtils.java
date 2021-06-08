@@ -21,6 +21,7 @@ import static java.awt.RenderingHints.KEY_RENDERING;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_OFF;
 import static java.awt.RenderingHints.VALUE_ANTIALIAS_ON;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+import static java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
 import static java.awt.RenderingHints.VALUE_RENDER_QUALITY;
 import static java.awt.RenderingHints.VALUE_RENDER_SPEED;
 import static java.lang.Math.max;
@@ -43,9 +44,7 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.awt.image.ImageObserver;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -76,66 +75,6 @@ public class ImageUtils {
     int rgb = bufferedImage.getRGB(x, y);
     return (rgb & 0xFF000000) == 0;
   };
-
-  /**
-   * Rotates given image by given degrees which should be a multiple of 90
-   *
-   * @param source  image to be rotated
-   * @param degrees the angle by which to rotate, should be a multiple of 90
-   * @return the rotated image
-   */
-  public static BufferedImage rotateByRightAngle(BufferedImage source, int degrees) {
-    assert degrees % 90 == 0;
-    degrees = degrees % 360;
-
-    int w = source.getWidth();
-    int h = source.getHeight();
-    int w1, h1;
-    switch (degrees) {
-      case 90:
-      case 270:
-        w1 = h;
-        h1 = w;
-        break;
-      default:
-        w1 = w;
-        h1 = h;
-    }
-
-    // Preserve the color model and color space
-    ColorModel model = source.getColorModel();
-    WritableRaster raster = model.createCompatibleWritableRaster(w1, h1);
-    BufferedImage rotated = new BufferedImage(model, raster, source.isAlphaPremultiplied(), null);
-
-    for (int x = 0; x < w; x++) {
-      for (int y = 0; y < h; y++) {
-        int v = source.getRGB(x, y);
-        int x1, y1;
-        switch (degrees) {
-          case 90:
-            x1 = h - y - 1;
-            y1 = x;
-            break;
-          case 180:
-            x1 = w - x - 1;
-            y1 = h - y - 1;
-            break;
-          case 270:
-            x1 = y;
-            y1 = w - x - 1;
-            break;
-          default:
-            x1 = x;
-            y1 = y;
-            break;
-        }
-
-        rotated.setRGB(x1, y1, v);
-      }
-    }
-
-    return rotated;
-  }
 
   /**
    * Rotates the given image by the given number of quadrants.
@@ -193,12 +132,16 @@ public class ImageUtils {
     }
 
     BufferedImage result = new BufferedImage(rotatedW, rotatedH, source.getType());
+    Graphics2D graphics = result.createGraphics();
+    graphics.setRenderingHint(KEY_RENDERING, VALUE_RENDER_SPEED);
+    graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
     AffineTransform transform = new AffineTransform();
     // Please notice that the transformations are applied in the reverse order, starting from rotation.
     transform.translate(shiftX, shiftY);
     transform.quadrantRotate(-numQuadrants);
-    AffineTransformOp transformOp = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-    return transformOp.filter(source, result);
+    graphics.drawRenderedImage(source, transform);
+    graphics.dispose();
+    return result;
   }
 
   /**
