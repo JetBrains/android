@@ -915,8 +915,6 @@
                     dynamic="false"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.designer.overlays.overlayProvider"
                     interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider" />
-    <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
-                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
                     interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionSupport"

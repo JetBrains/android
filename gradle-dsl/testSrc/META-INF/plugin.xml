@@ -1,0 +1,4 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <id>com.android.tools.idea.gradle.dsl.tests</id>
+  <xi:include href="/META-INF/gradle-dsl.xml" xpointer="xpointer(/idea-plugin/*)"/>
+</idea-plugin>
