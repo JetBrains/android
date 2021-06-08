@@ -127,7 +127,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     Application application = ApplicationManager.getApplication();
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
 
-    List<GradleDslTransformerFactory> factories = Arrays.asList(new GroovyDslTransformerFactory(), new KotlinDslTransformerFactory());
+    List<GradleDslTransformerFactory> factories = GradleDslTransformerFactory.EXTENSION_POINT_NAME.getExtensionList();
     boolean foundFactory = false;
 
     // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
