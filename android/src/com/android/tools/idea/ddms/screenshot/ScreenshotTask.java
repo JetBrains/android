@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ddms.screenshot;
 
 import com.android.ddmlib.IDevice;
@@ -39,7 +38,7 @@ public class ScreenshotTask extends Task.Modal {
   private BufferedImage myImage;
 
   public ScreenshotTask(@NotNull Project project, @NotNull IDevice device) {
-    super(project, AndroidBundle.message("android.ddms.actions.screenshot"), true);
+    super(project, AndroidBundle.message("android.ddms.actions.screenshot.title"), true);
     myDevice = device;
   }
 
