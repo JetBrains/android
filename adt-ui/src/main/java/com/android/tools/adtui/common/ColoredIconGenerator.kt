@@ -20,6 +20,7 @@ import com.intellij.ui.JBColor
 import com.intellij.util.IconUtil
 import java.awt.Color
 import java.awt.image.RGBImageFilter
+import java.util.function.Supplier
 import javax.swing.Icon
 
 val WHITE = JBColor(Color.white, Color.white)
@@ -39,15 +40,16 @@ object ColoredIconGenerator {
                                         imports = ["com.intellij.ui.JBColor"]))
   fun generateColoredIcon(icon: Icon, color: Color) = generateColoredIcon(icon, JBColor(color, color))
 
-  fun generateColoredIcon(icon: Icon, color: JBColor): Icon = ColoredLazyIcon(icon, color)
-}
+  fun generateColoredIcon(icon: Icon, color: JBColor): Icon = IconLoader.createLazy(object : Supplier<Icon> {
+    private val cache = mutableMapOf<Int, Icon>()
 
-private class ColoredLazyIcon(val icon: Icon, val color: JBColor) : IconLoader.LazyIcon() {
-  private val cache = mutableMapOf<Int, Icon>()
-
-  override fun compute() =
-    cache.getOrPut(color.rgb) {
-      IconUtil.filterIcon(icon, { object: RGBImageFilter() {
-        override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color.rgb
-      } }, null) }
+    override fun get(): Icon =
+      cache.getOrPut(color.rgb) {
+        IconUtil.filterIcon(icon, {
+          object : RGBImageFilter() {
+            override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color.rgb
+          }
+        }, null)
+      }
+  })
 }
