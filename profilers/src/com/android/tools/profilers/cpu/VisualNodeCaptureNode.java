@@ -33,6 +33,6 @@ public class VisualNodeCaptureNode extends CaptureNode {
    */
   @Override
   public void addChild(CaptureNode node) {
-    myChildren.add(node);
+    childrenList.add(node);
   }
 }
