@@ -40,7 +40,7 @@ import javax.swing.text.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
+public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
   private @Nullable JButton myRefreshButton;
@@ -50,7 +50,7 @@ final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private final @NotNull VirtualDisplayList myAvdDisplayList;
   private final @NotNull PreconfiguredDisplayList myPreconfiguredDisplayList;
 
-  VirtualDevicePanel(@NotNull Project project) {
+  public VirtualDevicePanel(@Nullable Project project) {
     myAvdDisplayList = new VirtualDisplayList(project);
     myPreconfiguredDisplayList = new PreconfiguredDisplayList(project, myAvdDisplayList);
     DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
