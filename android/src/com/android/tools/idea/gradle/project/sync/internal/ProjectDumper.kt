@@ -200,7 +200,9 @@ fun ProjectDumper.head(name: String, value: () -> String? = { null }) {
   appendln(name.smartPad() + if (v != null) ": $v" else "")
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?:
+                                            System.getenv("GRADLE_USER_HOME") ?:
+                                            (System.getProperty("user.home") + "/.gradle"))
 
 private fun getStudioSourcesLocation() = File(StudioPathManager.getSourcesRoot())
 
