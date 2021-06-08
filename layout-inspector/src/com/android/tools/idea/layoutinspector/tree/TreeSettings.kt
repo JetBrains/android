@@ -24,11 +24,7 @@ import com.intellij.ide.util.PropertiesComponent
 const val KEY_HIDE_SYSTEM_NODES = "live.layout.inspector.tree.hide.system"
 const val DEFAULT_HIDE_SYSTEM_NODES = true
 
-const val KEY_MERGED_SEMANTICS_TREE = "live.layout.inspector.tree.merged.semantics"
-const val DEFAULT_MERGED_SEMANTICS_TREE = false
-
-const val KEY_UNMERGED_SEMANTICS_TREE = "live.layout.inspector.tree.unmerged.semantics"
-const val DEFAULT_UNMERGED_SEMANTICS_TREE = false
+const val DEFAULT_HIGHLIGHT_SEMANTICS = false
 
 const val KEY_COMPOSE_AS_CALLSTACK = "live.layout.inspector.tree.compose.callstack"
 const val DEFAULT_COMPOSE_AS_CALLSTACK = true
@@ -43,15 +39,11 @@ interface TreeSettings {
 
   var hideSystemNodes: Boolean
   var composeAsCallstack: Boolean
-  var mergedSemanticsTree: Boolean
-  var unmergedSemanticsTree: Boolean
+  var highlightSemantics: Boolean
   var supportLines: Boolean
 
   fun isInComponentTree(node: ViewNode): Boolean =
-    !(hideSystemNodes && node.isSystemNode) &&
-    ((!mergedSemanticsTree && !unmergedSemanticsTree) ||
-     (mergedSemanticsTree && node.hasMergedSemantics) ||
-     (unmergedSemanticsTree && node.hasUnmergedSemantics))
+    !(hideSystemNodes && node.isSystemNode)
 
   companion object {
     const val skipSystemNodesInAgent = false
@@ -71,22 +63,14 @@ class TreeSettingsImpl(private val activeClient: () -> InspectorClient) : TreeSe
     get() = get(KEY_COMPOSE_AS_CALLSTACK, DEFAULT_COMPOSE_AS_CALLSTACK)
     set(value) = set(KEY_COMPOSE_AS_CALLSTACK, value, DEFAULT_COMPOSE_AS_CALLSTACK)
 
-  override var mergedSemanticsTree: Boolean
-    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
-            hasCapability(Capability.SUPPORTS_SEMANTICS) &&
-            get(KEY_MERGED_SEMANTICS_TREE, DEFAULT_MERGED_SEMANTICS_TREE)
-    set(value) = set(KEY_MERGED_SEMANTICS_TREE, value, DEFAULT_MERGED_SEMANTICS_TREE)
-
-  override var unmergedSemanticsTree: Boolean
-    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
-            hasCapability(Capability.SUPPORTS_SEMANTICS) &&
-            get(KEY_UNMERGED_SEMANTICS_TREE, DEFAULT_UNMERGED_SEMANTICS_TREE)
-    set(value) = set(KEY_UNMERGED_SEMANTICS_TREE, value, DEFAULT_UNMERGED_SEMANTICS_TREE)
+  override var highlightSemantics = DEFAULT_HIGHLIGHT_SEMANTICS
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() && field
 
   override var supportLines: Boolean
     get() = get(KEY_SUPPORT_LINES, DEFAULT_SUPPORT_LINES)
     set(value) = set(KEY_SUPPORT_LINES, value, DEFAULT_SUPPORT_LINES)
 
+  @Suppress("SameParameterValue")
   private fun hasCapability(capability: Capability): Boolean {
     val client = activeClient()
     if (!client.isConnected) {

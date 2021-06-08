@@ -40,10 +40,13 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.SpeedSearchComparator
+import com.intellij.ui.TreeActions
 import com.intellij.ui.treeStructure.Tree
+import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.util.Collections
+import javax.swing.AbstractAction
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JScrollPane
@@ -84,6 +87,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withHorizontalScrollBar()
       .withComponentName("inspectorComponentTree")
       .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
+      .withKeyboardActions(::installKeyboardActions)
 
     val (scrollPane, model, selectionModel) = builder.build()
     componentTree = scrollPane
@@ -116,6 +120,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   val tree: Tree?
     get() = (component as? JScrollPane)?.viewport?.view as? Tree
+
+  private fun installKeyboardActions(tree: JComponent) {
+    tree.actionMap.put(TreeActions.Down.ID, TreeAction(::nextMatch))
+    tree.actionMap.put(TreeActions.Up.ID, TreeAction(::previousMatch))
+  }
 
   private fun showPopup(component: JComponent, x: Int, y: Int) {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as TreeViewNode?
@@ -159,6 +168,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     }
   }
 
+  fun updateSemanticsFiltering() {
+    setFilter(filter)
+  }
+
   private fun nextMatch() {
     val selection = tree?.selectionModel?.selectionPath?.lastPathComponent as? TreeViewNode
     val nodes = getNodes()
@@ -186,24 +199,39 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun matchAndSelectNode(node: TreeViewNode): Boolean {
-    if (filter.isEmpty()) {
+    val match = matchNode(node)
+    if (match) {
+      selectNode(node)
+    }
+    return match
+  }
+
+  private fun matchNode(node: TreeViewNode): Boolean {
+    val treeSettings = layoutInspector?.treeSettings ?: return true
+    if (filter.isEmpty() && !treeSettings.highlightSemantics) {
       return true
+    }
+    if (treeSettings.highlightSemantics && !node.view.hasMergedSemantics && !node.view.hasUnmergedSemantics) {
+      return false
     }
     val name = node.view.qualifiedName
     val id = node.view.viewId?.name
     val text = node.view.textValue.ifEmpty { null }
     val searchString = listOfNotNull(name, id, text).joinToString(" - ")
     if (comparator.matchingFragments(filter, searchString) != null) {
-      if (node !== tree?.selectionModel?.selectionPath?.lastPathComponent) {
-        componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
-        layoutInspector?.layoutInspectorModel?.apply {
-          setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
-          layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
-        }
-      }
       return true
     }
     return false
+  }
+
+  private fun selectNode(node: TreeViewNode) {
+    if (node !== tree?.selectionModel?.selectionPath?.lastPathComponent) {
+      componentTreeSelectionModel.currentSelection = Collections.singletonList(node)
+      layoutInspector?.layoutInspectorModel?.apply {
+        setSelection(node.view, SelectionOrigin.COMPONENT_TREE)
+        layoutInspector?.stats?.selectionMadeFromComponentTree(node.view)
+      }
+    }
   }
 
   private fun getNodes(): List<TreeViewNode> =
@@ -297,6 +325,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @Suppress("UNUSED_PARAMETER")
   private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     componentTreeSelectionModel.currentSelection = listOfNotNull(newView?.treeNode)
+  }
+
+  private class TreeAction(private val action: () -> Unit): AbstractAction() {
+    override fun actionPerformed(event: ActionEvent) = action()
   }
 
   private class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {

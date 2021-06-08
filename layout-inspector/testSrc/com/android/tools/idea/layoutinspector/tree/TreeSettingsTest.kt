@@ -65,13 +65,19 @@ class TreeSettingsTest {
   }
 
   @Test
-  fun testMergedSemanticsTree() {
-    testFlag(DEFAULT_MERGED_SEMANTICS_TREE, KEY_MERGED_SEMANTICS_TREE, Capability.SUPPORTS_SEMANTICS) { settings.mergedSemanticsTree }
-  }
+  fun testHighlightSemantics() {
+    assertThat(settings.highlightSemantics).isFalse()
+    settings.highlightSemantics = true
+    assertThat(settings.highlightSemantics).isTrue()
+    settings.highlightSemantics = false
+    assertThat(settings.highlightSemantics).isFalse()
 
-  @Test
-  fun testUnmergedSemanticsTree() {
-    testFlag(DEFAULT_UNMERGED_SEMANTICS_TREE, KEY_UNMERGED_SEMANTICS_TREE, Capability.SUPPORTS_SEMANTICS) { settings.unmergedSemanticsTree }
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.override(false)
+    assertThat(settings.highlightSemantics).isFalse()
+    settings.highlightSemantics = true
+    assertThat(settings.highlightSemantics).isFalse()
+    settings.highlightSemantics = false
+    assertThat(settings.highlightSemantics).isFalse()
   }
 
   @Test
