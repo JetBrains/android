@@ -17,10 +17,14 @@ package com.android.tools.idea.gradle.dsl.parser;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public interface GradleDslTransformerFactory {
+  ExtensionPointName<GradleDslTransformerFactory> EXTENSION_POINT_NAME =
+    ExtensionPointName.create("com.android.tools.idea.gradle.dsl.transformerFactory");
+
   boolean canTransform(@NotNull PsiFile psiFile);
 
   @NotNull
