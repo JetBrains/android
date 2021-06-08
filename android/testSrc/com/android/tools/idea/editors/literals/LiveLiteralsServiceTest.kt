@@ -8,6 +8,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.assertEquals
@@ -24,13 +26,11 @@ internal class LiveLiteralsServiceTest {
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
-  private val rootDisposable: Disposable
-    get() = projectRule.fixture.testRootDisposable
   lateinit var file1: PsiFile
   lateinit var file2: PsiFile
 
   private fun getTestLiveLiteralsService(): LiveLiteralsService =
-    LiveLiteralsService.getInstanceForTest(project, rootDisposable)
+    LiveLiteralsService.getInstance(project)
 
   @Before
   fun setup() {
@@ -69,14 +69,27 @@ internal class LiveLiteralsServiceTest {
     """.trimIndent())
   }
 
+  /**
+   * Runs [runnable] and ensures that a document was added to the tracking of the [liveLiteralsService] after the call.
+   */
+  private fun runAndWaitForDocumentAdded(liveLiteralsService: LiveLiteralsService, runnable: () -> Unit) {
+    val documentAdded = CountDownLatch(1)
+    val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable, "DocumentAddDiposable")
+    liveLiteralsService.addOnDocumentsUpdatedListener(disposable) {
+      documentAdded.countDown()
+    }
+    runnable()
+    documentAdded.await(5, TimeUnit.SECONDS)
+    Disposer.dispose(disposable) // Remove listener
+  }
+
   @Test
   fun `check that already open editors register constants`() {
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(liveLiteralsService.isAvailable)
-    ApplicationManager.getApplication().invokeAndWait {
-      // We run it and wait to ensure this has executed before the next assert
+    runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
     assertTrue(liveLiteralsService.isAvailable)
@@ -88,17 +101,18 @@ internal class LiveLiteralsServiceTest {
     val liveLiteralsService = getTestLiveLiteralsService()
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(liveLiteralsService.isAvailable)
-    ApplicationManager.getApplication().invokeAndWait {
-      // We run it and wait to ensure this has executed before the next assert
-      liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
-    }
+    liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     assertTrue(liveLiteralsService.isAvailable)
     assertTrue(liveLiteralsService.allConstants().isEmpty())
-    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    }
     assertEquals(9, liveLiteralsService.allConstants().size)
 
     // Open second editor
-    projectRule.fixture.configureFromExistingVirtualFile(file2.virtualFile)
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      projectRule.fixture.configureFromExistingVirtualFile(file2.virtualFile)
+    }
     assertEquals(10, liveLiteralsService.allConstants().size)
 
     // Close the second editor
@@ -117,8 +131,7 @@ internal class LiveLiteralsServiceTest {
       latch.countDown()
     }
     projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
-    ApplicationManager.getApplication().invokeAndWait {
-      // We run it and wait to ensure this has executed before the next assert
+    runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
     assertFalse(liveLiteralsService.allConstants().isEmpty())
@@ -144,8 +157,7 @@ internal class LiveLiteralsServiceTest {
     assertTrue(liveLiteralsService.allConstants().isEmpty())
     assertFalse(liveLiteralsService.isAvailable)
     assertEquals(0, changeListenerCalls)
-    ApplicationManager.getApplication().invokeAndWait {
-      // We run it and wait to ensure this has executed before the next assert
+    runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
     assertTrue(liveLiteralsService.isAvailable)
@@ -171,12 +183,13 @@ internal class LiveLiteralsServiceTest {
       changeListenerCalls++
       latch.countDown()
     }
-    ApplicationManager.getApplication().invokeAndWait {
-      // We run it and wait to ensure this has executed before the next assert
+    runAndWaitForDocumentAdded(liveLiteralsService) {
       liveLiteralsService.liveLiteralsMonitorStarted("TestDevice", LiveLiteralsMonitorHandler.DeviceType.PREVIEW)
     }
     assertTrue(liveLiteralsService.isAvailable)
-    projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    runAndWaitForDocumentAdded(liveLiteralsService) {
+      projectRule.fixture.configureFromExistingVirtualFile(file1.virtualFile)
+    }
 
     LiveLiteralsApplicationConfiguration.getInstance().isEnabled = false
     assertFalse(liveLiteralsService.isAvailable)
