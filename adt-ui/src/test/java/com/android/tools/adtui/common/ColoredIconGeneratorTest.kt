@@ -16,6 +16,7 @@
 package com.android.tools.adtui.common
 
 import com.android.testutils.TestResources
+import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.EdtRule
@@ -28,6 +29,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.AlphaComposite
+import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -72,15 +74,45 @@ class ColoredIconGeneratorTest {
       val origImg = getImage(origIcon)
       val coloredImg = getImage(coloredIcon)
 
-      compareImages(origImg, coloredImg, LIGHT_COLOR)
+      compareColoredImages(origImg, coloredImg, LIGHT_COLOR)
 
       JBColor.setDark(true)
       IconLoader.setUseDarkIcons(true)
       val origImgDark = getImage(origIcon)
       val coloredImgDark = getImage(coloredIcon)
 
-      compareImages(origImgDark, coloredImgDark, DARK_COLOR)
+      compareColoredImages(origImgDark, coloredImgDark, DARK_COLOR)
     }
+  }
+
+  @Test
+  fun testDeEmphasizedIcon() {
+    for (origIcon in listOf(StudioIcons.Common.ERROR, StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE, StudioIcons.Cursors.GRAB)) {
+      val deEmphasizedIcon = ColoredIconGenerator.generateDeEmphasizedIcon(origIcon)
+
+      JBColor.setDark(false)
+      IconLoader.setUseDarkIcons(false)
+
+      val origImg = getImage(origIcon)
+      val deEmphasizedImg = getImage(deEmphasizedIcon)
+
+      compareDeEmphasizedImages(origImg, deEmphasizedImg)
+
+      JBColor.setDark(true)
+      IconLoader.setUseDarkIcons(true)
+      val origImgDark = getImage(origIcon)
+      val deEmphasizedImgDark = getImage(deEmphasizedIcon)
+
+      compareDeEmphasizedImages(origImgDark, deEmphasizedImgDark)
+    }
+  }
+
+  @Test
+  fun testDeEmphasize() {
+    // Using this constructor from Java: public Color(int r, int g, int b, int a)
+    assertThat(Color(0x12, 0x34, 0x56, 0xff).deEmphasize()).isEqualTo(Color(0x12, 0x34, 0x56, 0x80))
+    assertThat(Color(0x12, 0x34, 0x56, 0x80).deEmphasize()).isEqualTo(Color(0x12, 0x34, 0x56, 0x40))
+    assertThat(Color(0x40123456, true).deEmphasize()).isEqualTo(Color(0x20123456, true))
   }
 
   @Suppress("UndesirableClassUsage")
@@ -93,7 +125,7 @@ class ColoredIconGeneratorTest {
     return img
   }
 
-  private fun compareImages(origImg: BufferedImage, coloredImg: BufferedImage, color: Int) {
+  private fun compareColoredImages(origImg: BufferedImage, coloredImg: BufferedImage, color: Int) {
     assertThat(origImg.width).isEqualTo(coloredImg.width)
     assertThat(origImg.height).isEqualTo(coloredImg.height)
 
@@ -102,6 +134,19 @@ class ColoredIconGeneratorTest {
       if (coloredValue != 0 || origValue != 0) {
         assertThat(coloredValue and 0xffffff).isEqualTo(color and 0xffffff)
         assertThat(coloredValue shr 24).isEqualTo(origValue shr 24)
+      }
+    }
+  }
+
+  private fun compareDeEmphasizedImages(origImg: BufferedImage, deEmphasizedImage: BufferedImage) {
+    assertThat(origImg.width).isEqualTo(deEmphasizedImage.width)
+    assertThat(origImg.height).isEqualTo(deEmphasizedImage.height)
+
+    for ((origValue, deEmphasizedValue) in origImg.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width).zip(
+      deEmphasizedImage.getRGB(0, 0, origImg.width, origImg.height, null, 0, origImg.width))) {
+      if (deEmphasizedValue != 0 || origValue != 0) {
+        assertThat(deEmphasizedValue and 0xffffff).isEqualTo(origValue and 0xffffff)
+        assertThat((deEmphasizedValue shr 24) and 0xff).isEqualTo((((origValue shr 24) and 0xff) + 1) / 2)
       }
     }
   }
