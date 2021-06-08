@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.ddms.actions;
 
 import com.android.SdkConstants;
@@ -29,11 +28,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
+import java.io.File;
+import javax.imageio.ImageIO;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import javax.imageio.ImageIO;
-import java.io.File;
 
 public class ScreenshotAction extends AbstractDeviceAction {
   private final Project myProject;
@@ -54,7 +52,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
       public void onSuccess() {
         String msg = getError();
         if (msg != null) {
-          Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot"));
+          Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot.title"));
           return;
         }
 
@@ -79,7 +77,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
           Logger.getInstance(ScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
           Messages.showErrorDialog(project,
                                    AndroidBundle.message("android.ddms.screenshot.generic.error", e),
-                                   AndroidBundle.message("android.ddms.actions.screenshot"));
+                                   AndroidBundle.message("android.ddms.actions.screenshot.title"));
         }
       }
     }.queue();
