@@ -17,8 +17,8 @@ package com.android.tools.adtui;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestResources;
 import com.android.testutils.ImageDiffUtil;
+import com.android.testutils.TestResources;
 import com.intellij.util.ui.ColorIcon;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -75,20 +75,20 @@ public class ImageUtilsTest extends TestCase {
     assertEquals(0xFFFF0000, scaled.getRGB(13, 13));
   }
 
-  public void testRotateByRightAngle() throws IOException {
+  public void testRotateByQuadrants() throws IOException {
     BufferedImage srcImage = readImage("/imageutils/0.png");
     BufferedImage expected90 = readImage("/imageutils/90.png");
     BufferedImage expected180 = readImage("/imageutils/180.png");
     BufferedImage expected270 = readImage("/imageutils/270.png");
 
-    assertEqualsImage(expected90, ImageUtils.rotateByRightAngle(srcImage, 90));
-    assertEqualsImage(expected180, ImageUtils.rotateByRightAngle(srcImage, 180));
-    assertEqualsImage(expected270, ImageUtils.rotateByRightAngle(srcImage, 270));
+    assertEqualsImage(expected90, ImageUtils.rotateByQuadrants(srcImage, 3));
+    assertEqualsImage(expected180, ImageUtils.rotateByQuadrants(srcImage, 2));
+    assertEqualsImage(expected270, ImageUtils.rotateByQuadrants(srcImage, 1));
 
     // verify that rotating the image 4 times by 90 degrees doesn't lose any data
     BufferedImage img = readImage("/imageutils/0.png");
     for (int i = 0; i < 4; i++) {
-      img = ImageUtils.rotateByRightAngle(img, 90);
+      img = ImageUtils.rotateByQuadrants(img, 3);
     }
     assertEqualsImage(srcImage, img);
   }
