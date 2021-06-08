@@ -17,10 +17,12 @@ package com.android.tools.componenttree.impl
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.SimpleTextAttributes.STYLE_STRIKEOUT
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -72,6 +74,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     renderer.textValue = type.textValueOf(node)
     renderer.treeIcon = type.iconOf(node)
     renderer.enabledValue = type.isEnabled(node)
+    renderer.deEmphasized = type.isDeEmphasized(node)
 
     renderer.generate()
     return renderer
@@ -94,9 +97,12 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var textValue: String? = null
     var treeIcon: Icon? = null
     var enabledValue = true
+    var deEmphasized = false
 
     private val baseFontMetrics = getFontMetrics(UIUtil.getLabelFont())
     private val boldFontMetrics = getFontMetrics(deriveFont(UIUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
+    private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
+    private val boldStrikeout = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
 
     // Do not make the SimpleColoredRenderer paint the background
     override fun shouldPaintBackground() = false
@@ -141,18 +147,22 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       clear()
       icon = treeIcon
       toolTipText = generateTooltip()
-      var attributes = if (!enabledValue) SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES else SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
+      var attributes = if (!enabledValue) boldStrikeout else SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES
       if (!append(id, attributes, boldFontMetrics, maxWidth)) {
         return
       }
       if (id == null || textValue.isNullOrEmpty()) {
         val tagText = if (id != null) " - $tagName" else tagName
-        attributes = if (!enabledValue) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
+        attributes = if (!enabledValue) strikeout else SimpleTextAttributes.REGULAR_ATTRIBUTES
         if (!append(tagText, attributes, baseFontMetrics, maxWidth)) {
           return
         }
       }
-      attributes = if (!selectedValue || !enabledValue) SimpleTextAttributes.GRAYED_ATTRIBUTES else SimpleTextAttributes.REGULAR_ATTRIBUTES
+      attributes = when {
+        !enabledValue -> strikeout
+        selectedValue -> SimpleTextAttributes.REGULAR_ATTRIBUTES
+        else -> SimpleTextAttributes.GRAYED_ATTRIBUTES
+      }
       textValue?.nullize()?.let { append(" - \"$it\"", attributes, baseFontMetrics, maxWidth) }
     }
 
@@ -174,6 +184,10 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       foreground = UIUtil.getTreeForeground(selectedValue, focusedValue)
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
       icon = treeIcon?.let { if (focusedValue) ColoredIconGenerator.generateWhiteIcon(it) else it }
+      if (deEmphasized || !enabledValue) {
+        foreground = foreground.deEmphasize()
+        icon = ColoredIconGenerator.generateDeEmphasizedIcon(icon)
+      }
       isTransparentIconBackground = true
     }
 

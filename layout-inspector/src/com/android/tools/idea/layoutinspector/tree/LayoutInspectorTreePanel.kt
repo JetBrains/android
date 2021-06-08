@@ -76,6 +76,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
 
+  @VisibleForTesting
+  val nodeViewType: ViewNodeType<TreeViewNode>
+    get() = nodeType
+
   init {
     val builder = ComponentTreeBuilder()
       .withHiddenRoot()
@@ -166,6 +170,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         return
       }
     }
+    tree?.repaint()
   }
 
   fun updateSemanticsFiltering() {
@@ -331,7 +336,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     override fun actionPerformed(event: ActionEvent) = action()
   }
 
-  private class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {
+  private inner class InspectorViewNodeType : ViewNodeType<TreeViewNode>() {
     var model: InspectorModel? = null
     override val clazz = TreeViewNode::class.java
 
@@ -349,5 +354,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     override fun childrenOf(node: TreeViewNode): List<TreeViewNode> = node.children
 
     override fun isEnabled(node: TreeViewNode) = model?.isVisible(node.view) == true
+
+    override fun isDeEmphasized(node: TreeViewNode): Boolean = !matchNode(node)
   }
 }
