@@ -379,7 +379,7 @@ class LiteralsManager(
     ReadAction.nonBlocking {
       root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
         override fun visitElement(element: PsiElement) {
-          if (!elementFilter(element)) return
+          if (!elementFilter(element) || !element.isValid) return
 
           // Special case for string templates
           if (element is KtStringTemplateExpression) {

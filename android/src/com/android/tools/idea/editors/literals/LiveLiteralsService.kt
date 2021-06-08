@@ -3,6 +3,9 @@ package com.android.tools.idea.editors.literals
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
@@ -36,6 +39,9 @@ import com.intellij.util.containers.WeakList
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import java.awt.GraphicsEnvironment
 import java.lang.ref.WeakReference
@@ -120,7 +126,7 @@ interface LiveLiteralsMonitorHandler {
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
                                               listenerExecutor: Executor,
-                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
+                                              val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
@@ -199,14 +205,24 @@ class LiveLiteralsService private constructor(private val project: Project,
    * Listener that gets notified if there's been a change in which elements are now handled by this service for a given file.
    * This allows to refresh any user of the [isElementManaged] method to let them know there might have been a change.
    */
-  interface ManagedElementsUpdatedListener {
+  fun interface ManagedElementsUpdatedListener {
     fun onChange(file: PsiFile)
+  }
+
+  /**
+   * Listener that gets notified when a document begins being tracked.
+   */
+  fun interface DocumentsUpdatedListener {
+    fun onAdded(document: Document)
   }
 
   companion object {
     private val MANAGED_ELEMENTS_UPDATED_TOPIC: Topic<ManagedElementsUpdatedListener> = Topic.create("Managed elements updated",
                                                                                                      ManagedElementsUpdatedListener::class.java)
-    private val COMPILER_LITERALS_FINDER: Key<CompilerLiveLiteralsManager.Finder> = Key.create(Companion::COMPILER_LITERALS_FINDER.qualifiedName)
+    private val DOCUMENTS_UPDATED_TOPIC: Topic<DocumentsUpdatedListener> = Topic.create("Documents updated",
+                                                                                        DocumentsUpdatedListener::class.java)
+    private val COMPILER_LITERALS_FINDER: Key<CompilerLiveLiteralsManager.Finder> = Key.create(
+      Companion::COMPILER_LITERALS_FINDER.qualifiedName)
     private val DOCUMENT_SNAPSHOT_KEY: Key<LiteralReferenceSnapshot> = Key.create(Companion::DOCUMENT_SNAPSHOT_KEY.qualifiedName)
 
     private fun Document.getCachedDocumentSnapshot() = getUserData(DOCUMENT_SNAPSHOT_KEY)
@@ -215,15 +231,6 @@ class LiveLiteralsService private constructor(private val project: Project,
 
     @JvmStatic
     fun getInstance(project: Project): LiveLiteralsService = project.getService(LiveLiteralsService::class.java)
-
-    @TestOnly
-    fun getInstanceForTest(project: Project,
-                           parentDisposable: Disposable,
-                           listenerExecutor: Executor = MoreExecutors.directExecutor()): LiveLiteralsService =
-      LiveLiteralsService(project, listenerExecutor,
-                          LiveLiteralsDeploymentReportService.getInstanceForTesting(project, listenerExecutor)).also {
-        Disposer.register(parentDisposable, it)
-      }
 
     private fun PsiFile?.hasCompilerLiveLiteral(path: String, offset: Int) =
       this?.getUserData(COMPILER_LITERALS_FINDER)?.hasCompilerLiveLiteral(path, offset) ?: true
@@ -362,14 +369,14 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
   }
 
-  private fun newFileSnapshotForDocument(file: PsiFile, document: Document): LiteralReferenceSnapshot {
+  private suspend fun newFileSnapshotForDocument(file: PsiFile, document: Document): LiteralReferenceSnapshot = withContext(workerThread) {
     val fileSnapshot = literalsManager.findLiterals(file)
 
     if (fileSnapshot.all.isNotEmpty()) {
       document.putCachedDocumentSnapshot(fileSnapshot)
     }
 
-    return fileSnapshot
+    return@withContext fileSnapshot
   }
 
   /**
@@ -382,33 +389,40 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
 
     val file = AndroidPsiUtils.getPsiFileSafely(project, document) ?: return
-    val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
-    val tracker = HighlightTracker(file, editor, cachedSnapshot)
+    AndroidCoroutineScope(parentDisposable).launch(uiThread) {
+      val cachedSnapshot: LiteralReferenceSnapshot = document.getCachedDocumentSnapshot() ?: newFileSnapshotForDocument(file, document)
+      if (editor.isDisposed || !isActive) return@launch
+      val tracker = HighlightTracker(file, editor, cachedSnapshot)
 
-    CompilerLiveLiteralsManager.findAsync(file) {
-      file.putUserData(COMPILER_LITERALS_FINDER, it)
-      project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
-    }
+      CompilerLiveLiteralsManager.findAsync(file) {
+        file.putUserData(COMPILER_LITERALS_FINDER, it)
+        project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
+      }
 
-    trackers.add(tracker)
-    Disposer.register(parentDisposable, tracker)
-    editor.addEditorMouseListener(object : EditorMouseListener {
-      override fun mouseEntered(event: EditorMouseEvent) {
-        if (showLiveLiteralsHighlights) {
-          tracker.showHighlights()
+      trackers.add(tracker)
+      Disposer.register(parentDisposable, tracker)
+      editor.addEditorMouseListener(object : EditorMouseListener {
+        override fun mouseEntered(event: EditorMouseEvent) {
+          if (showLiveLiteralsHighlights) {
+            tracker.showHighlights()
+          }
         }
+
+        override fun mouseExited(event: EditorMouseEvent) {
+          tracker.hideHighlights()
+        }
+      }, parentDisposable)
+
+      withContext(workerThread) {
+        project.messageBus.syncPublisher(DOCUMENTS_UPDATED_TOPIC).onAdded(document)
       }
 
-      override fun mouseExited(event: EditorMouseEvent) {
-        tracker.hideHighlights()
-      }
-    }, parentDisposable)
-
-    // If the mouse is already within the editor hover area, activate the highlights
-    if (GraphicsEnvironment.isHeadless() || editor.component.mousePosition != null) {
-      UIUtil.invokeLaterIfNeeded {
-        if (showLiveLiteralsHighlights) {
-          tracker.showHighlights()
+      // If the mouse is already within the editor hover area, activate the highlights
+      if (GraphicsEnvironment.isHeadless() || editor.component.mousePosition != null) {
+        UIUtil.invokeLaterIfNeeded {
+          if (showLiveLiteralsHighlights) {
+            tracker.showHighlights()
+          }
         }
       }
     }
@@ -515,6 +529,14 @@ class LiveLiteralsService private constructor(private val project: Project,
 
   fun addOnManagedElementsUpdatedListener(parentDisposable: Disposable, listener: ManagedElementsUpdatedListener) {
     project.messageBus.connect(parentDisposable).subscribe(MANAGED_ELEMENTS_UPDATED_TOPIC, listener)
+  }
+
+  /**
+   * Adds a new [DocumentsUpdatedListener] that gets notified when the tracked documents are updated.
+   */
+  @TestOnly
+  fun addOnDocumentsUpdatedListener(parentDisposable: Disposable, listener: DocumentsUpdatedListener) {
+    project.messageBus.connect(parentDisposable).subscribe(DOCUMENTS_UPDATED_TOPIC, listener)
   }
 
   /**
