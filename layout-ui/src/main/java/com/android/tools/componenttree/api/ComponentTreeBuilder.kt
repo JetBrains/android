@@ -15,7 +15,6 @@
  */
 package com.android.tools.componenttree.api
 
-import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.impl.ComponentTreeModelImpl
 import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
 import com.android.tools.componenttree.impl.TreeImpl
@@ -23,10 +22,7 @@ import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.tree.ui.Control
 import com.intellij.util.ui.JBUI
-import java.awt.Component
-import java.awt.Graphics
 import javax.swing.JComponent
-import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
@@ -52,7 +48,6 @@ class ComponentTreeBuilder {
   private val badges = mutableListOf<BadgeItem>()
   private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
-  private val keyStrokes = mutableMapOf<KeyStroke, Pair<String, () -> Unit>>()
   private var installTreeSearch = true
   private var isRootVisible = true
   private var showRootHandles = false
@@ -60,6 +55,7 @@ class ComponentTreeBuilder {
   private var autoScroll = false
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
+  private var installKeyboardActions: (JComponent) -> Unit = {}
 
   /**
    * Register a [NodeType].
@@ -80,11 +76,6 @@ class ComponentTreeBuilder {
    * Add a double click handler on the tree node item.
    */
   fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply { doubleClick = doubleClickHandler }
-
-  /**
-   * Add key strokes on the tree.
-   */
-  fun withKeyActionKey(name: String, keyStroke: KeyStroke, action: () -> Unit) = apply { keyStrokes[keyStroke] = Pair(name, action) }
 
   /**
    * Specify specific invokeLater implementation to use.
@@ -132,12 +123,17 @@ class ComponentTreeBuilder {
   fun withPainter(painter: () -> Control.Painter?) = apply { this.painter = painter }
 
   /**
+   * Allows custom keyboard actions to be installed.
+   */
+  fun withKeyboardActions(installer: (JComponent) -> Unit) = apply { this.installKeyboardActions = installer }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions)
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
     if (installTreeSearch) {
@@ -150,9 +146,6 @@ class ComponentTreeBuilder {
       }
     }
     tree.selectionModel = selectionModel
-    keyStrokes.forEach {
-      tree.registerActionKey(it.value.second, it.key, it.value.first, { true }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    }
     val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
     val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
     scrollPane.border = JBUI.Borders.empty()

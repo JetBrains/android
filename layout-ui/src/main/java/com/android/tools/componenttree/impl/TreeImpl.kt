@@ -56,7 +56,8 @@ class TreeImpl(
   private val doubleClick: DoubleClickHandler,
   private val badges: List<BadgeItem>,
   componentName: String,
-  private val painter: (() -> Control.Painter?)?
+  private val painter: (() -> Control.Painter?)?,
+  private val installKeyboardActions: (JComponent) -> Unit
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
@@ -102,6 +103,8 @@ class TreeImpl(
       // Recreate all renderers since fonts and colors may be cached in the renderers.
       model!!.clearRendererCache()
       setCellRenderer(TreeCellRendererImpl(this, badges, model!!))
+
+      installKeyboardActions(this)
     }
   }
 
