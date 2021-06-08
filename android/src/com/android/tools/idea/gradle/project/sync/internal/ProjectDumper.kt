@@ -23,6 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.sanitizeFileName
@@ -39,7 +40,7 @@ class ProjectDumper(
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
   private val additionalRoots: Map<String, File> = emptyMap()
 ) {
-  private val devBuildHome: File = getStudioSourcesLocation()
+  private val devBuildHome: File = File(PathManager.getCommunityHomePath())
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
 
