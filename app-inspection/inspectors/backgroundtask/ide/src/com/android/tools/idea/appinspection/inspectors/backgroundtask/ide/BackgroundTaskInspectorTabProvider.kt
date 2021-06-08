@@ -85,4 +85,10 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
       override val component = BackgroundTaskInspectorTab(client).component
     }
   }
+
+  override fun compareTo(other: AppInspectorTabProvider): Int {
+    // TODO(b/183624170): This is a temporary patch to make sure WMI doesn't show up before DBI for now, while
+    //  the UI is still mostly barren (this should not be true in a later version of Studio)
+    return 1
+  }
 }
