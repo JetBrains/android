@@ -127,8 +127,8 @@ fun androidConfig(
     """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
     ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
     ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
-    versionCode 1
-    versionName "1.0"
+    ${renderIf(!isLibraryProject) { "versionCode 1" }}
+    ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
   }
   val testsBlock = renderIf(hasTests) {

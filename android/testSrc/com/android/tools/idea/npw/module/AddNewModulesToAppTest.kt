@@ -41,7 +41,7 @@ import org.mockito.Mockito
 
 
 @RunWith(Parameterized::class)
-class BuildDynamicFeatureAppTest(private val useGradleKts: Boolean) {
+class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "useGradleKts={0}")
@@ -79,6 +79,19 @@ class BuildDynamicFeatureAppTest(private val useGradleKts: Boolean) {
     val baseModule = project.findModule("base")
     createDefaultDynamicFeatureModel(project, "feature1", baseModule, useGradleKts, emptyProjectSyncInvoker)
     createDefaultDynamicFeatureModel(project, "feature2", baseModule, useGradleKts, emptyProjectSyncInvoker)
+
+    assembleDebugProject()
+  }
+
+  @Test
+  fun addNewAndroidLibraryModule() {
+    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+
+    val project = projectRule.project
+    val libModuleModel = NewAndroidModuleModel.fromExistingProject(
+      project = project, moduleParent = ":", projectSyncInvoker = emptyProjectSyncInvoker, formFactor = FormFactor.Mobile, isLibrary = true
+    )
+    generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts) // Base module is always kts for this test
 
     assembleDebugProject()
   }
