@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.tools.idea.FileEditorUtil
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -53,7 +52,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.io.sanitizeFileName
 import java.io.File
 
@@ -242,7 +240,6 @@ private fun ProjectDumper.dump(ideBaseArtifact: IdeBaseArtifact) {
   prop("CompileTaskName") { ideBaseArtifact.compileTaskName }
   prop("AssembleTaskName") { ideBaseArtifact.assembleTaskName }
   prop("ClassFolder") { ideBaseArtifact.classesFolder.path.toPrintablePath() }
-  prop("JavaResourcesFolder") { ideBaseArtifact.javaResourcesFolder?.path?.toPrintablePath() }
   prop("IsTestArtifact") { ideBaseArtifact.isTestArtifact.toString() }
   ideBaseArtifact.ideSetupTaskNames.forEach { prop("IdeSetupTaskNames") { it } }
   ideBaseArtifact.generatedSourceFolders.forEach { prop("GeneratedSourceFolders") { it.path.toPrintablePath() } }

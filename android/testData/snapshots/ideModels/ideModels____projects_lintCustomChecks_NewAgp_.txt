@@ -248,7 +248,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -281,7 +280,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -317,7 +315,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -570,7 +567,6 @@ MODULE                        : project.library
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/library/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/library/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debug/out [-]
@@ -590,7 +586,6 @@ MODULE                        : project.library
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/library/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -622,7 +617,6 @@ MODULE                        : project.library
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/library/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/library/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -871,7 +865,6 @@ MODULE                        : project.library-remote
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/library-remote/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/library-remote/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debug/out [-]
@@ -891,7 +884,6 @@ MODULE                        : project.library-remote
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/library-remote/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -923,7 +915,6 @@ MODULE                        : project.library-remote
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/library-remote/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/library-remote/build/generated/ap_generated_sources/debugUnitTest/out [-]

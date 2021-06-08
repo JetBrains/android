@@ -251,7 +251,6 @@ MODULE                        : application.app
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/application/app/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/application/app/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debug/out [-]
@@ -816,7 +815,6 @@ MODULE                        : application.app
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/application/app/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/application/app/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1493,7 +1491,6 @@ MODULE                        : application.app
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/application/app/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/application/app/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/application/app/build/generated/ap_generated_sources/debugUnitTest/out [-]

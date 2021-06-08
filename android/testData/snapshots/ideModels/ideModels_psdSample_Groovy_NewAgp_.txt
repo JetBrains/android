@@ -627,7 +627,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileBasicBarDebugSources
                 AssembleTaskName              : assembleBasicBarDebug
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicBarDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
@@ -1267,7 +1266,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileBasicBarDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
@@ -1991,7 +1989,6 @@ MODULE                        : project.app
                 CompileTaskName               : compileBasicBarDebugUnitTestSources
                 AssembleTaskName              : assembleBasicBarDebugUnitTest
                 ClassFolder                   : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/app/build/intermediates/java_res/basicBarDebugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
@@ -2818,7 +2815,6 @@ MODULE                        : project.dyn_feature
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
@@ -2839,7 +2835,6 @@ MODULE                        : project.dyn_feature
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2868,7 +2863,6 @@ MODULE                        : project.dyn_feature
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/dyn_feature/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -3118,7 +3112,6 @@ MODULE                        : project.lib
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -3655,7 +3648,6 @@ MODULE                        : project.lib
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -4203,7 +4195,6 @@ MODULE                        : project.lib
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/lib/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -4960,7 +4951,6 @@ MODULE                        : project.nested1
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
@@ -4980,7 +4970,6 @@ MODULE                        : project.nested1
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -5012,7 +5001,6 @@ MODULE                        : project.nested1
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -5258,7 +5246,6 @@ MODULE                        : project.nested1.deep
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
@@ -5278,7 +5265,6 @@ MODULE                        : project.nested1.deep
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -5310,7 +5296,6 @@ MODULE                        : project.nested1.deep
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested1/deep/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -5658,7 +5643,6 @@ MODULE                        : project.nested2
                 CompileTaskName               : compileBasicDebugSources
                 AssembleTaskName              : assembleBasicDebug
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
@@ -5691,7 +5675,6 @@ MODULE                        : project.nested2
                 CompileTaskName               : compileBasicDebugAndroidTestSources
                 AssembleTaskName              : assembleBasicDebugAndroidTest
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
@@ -5736,7 +5719,6 @@ MODULE                        : project.nested2
                 CompileTaskName               : compileBasicDebugUnitTestSources
                 AssembleTaskName              : assembleBasicDebugUnitTest
                 ClassFolder                   : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/build/intermediates/java_res/basicDebugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
@@ -5990,7 +5972,6 @@ MODULE                        : project.nested2.deep
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
@@ -6010,7 +5991,6 @@ MODULE                        : project.nested2.deep
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -6042,7 +6022,6 @@ MODULE                        : project.nested2.deep
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/deep/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -6284,7 +6263,6 @@ MODULE                        : project.nested2.trans.deep2
                 CompileTaskName               : compileDebugSources
                 AssembleTaskName              : assembleDebug
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debug/out [-]
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
@@ -6304,7 +6282,6 @@ MODULE                        : project.nested2.trans.deep2
                 CompileTaskName               : compileDebugAndroidTestSources
                 AssembleTaskName              : assembleDebugAndroidTest
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debugAndroidTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -6336,7 +6313,6 @@ MODULE                        : project.nested2.trans.deep2
                 CompileTaskName               : compileDebugUnitTestSources
                 AssembleTaskName              : assembleDebugUnitTest
                 ClassFolder                   : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
-                JavaResourcesFolder           : <ROOT>/nested2/trans/deep2/build/intermediates/java_res/debugUnitTest/out [-]
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
