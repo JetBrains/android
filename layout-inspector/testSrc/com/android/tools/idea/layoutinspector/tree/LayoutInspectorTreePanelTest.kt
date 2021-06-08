@@ -457,6 +457,18 @@ class LayoutInspectorTreePanelTest {
     inspector.treeSettings.highlightSemantics = true
     treePanel.updateSemanticsFiltering()
 
+    // Test de-emphasis
+    val viewType = treePanel.nodeViewType
+    assertThat(viewType.isDeEmphasized(model[2]!!.treeNode)).isTrue()
+    assertThat(viewType.isDeEmphasized(model[3]!!.treeNode)).isTrue()
+    assertThat(viewType.isDeEmphasized(model[4]!!.treeNode)).isFalse()
+    assertThat(viewType.isDeEmphasized(model[5]!!.treeNode)).isFalse()
+    assertThat(viewType.isDeEmphasized(model[6]!!.treeNode)).isTrue()
+    assertThat(viewType.isDeEmphasized(model[7]!!.treeNode)).isTrue()
+    assertThat(viewType.isDeEmphasized(model[8]!!.treeNode)).isFalse()
+    assertThat(viewType.isDeEmphasized(model[9]!!.treeNode)).isTrue()
+    assertThat(viewType.isDeEmphasized(model[10]!!.treeNode)).isFalse()
+
     // The first node with semantics should have been selected
     var selection = tree.lastSelectedPathComponent as? TreeViewNode
     assertThat(selection?.view?.qualifiedName).isEqualTo("Text")

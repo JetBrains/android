@@ -33,4 +33,6 @@ class ItemNodeType : ViewNodeType<Item>() {
   override fun childrenOf(node: Item) = node.children
 
   override fun isEnabled(node: Item) = true
+
+  override fun isDeEmphasized(node: Item) = false
 }

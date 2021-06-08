@@ -138,6 +138,8 @@ class TreePanel : ToolContent<DesignSurface> {
 
     override fun isEnabled(node: NlComponent) = true
 
+    override fun isDeEmphasized(node: NlComponent) = false
+
     override fun parentOf(node: NlComponent) = node.parent
 
     override fun childrenOf(node: NlComponent) = node.children.filter { it.isDestination || it.isAction }
