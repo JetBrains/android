@@ -144,7 +144,9 @@ class CliDatabaseConnection(private val databasePath: Path,
         rowBatchSize: Int,
         responseSizeByteLimitHint: Long?
       ): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(let {
-        val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize // simulate responseSizeByteLimitHint
+        // simulate responseSizeByteLimitHint by hard-coding `2` rows per response - good enough for testing purposes
+        val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize
+        // min(batchSize, rowBatchSize) ensures that both size [bytes] and row count limits are enforced
         rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
           val cells = row.mapIndexed { ix, cell -> SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell)) }
           SqliteRow(cells)
