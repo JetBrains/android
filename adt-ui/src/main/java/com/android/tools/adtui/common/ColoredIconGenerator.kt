@@ -57,4 +57,23 @@ object ColoredIconGenerator {
         }, null)
       }
   })
+
+  /**
+   * Generate an icon where all the alpha values are decreased thus giving a more faint version of the specified [icon].
+   */
+  fun generateDeEmphasizedIcon(icon: Icon): Icon = IconLoader.createLazy {
+    IconUtil.filterIcon(icon, {
+      object : RGBImageFilter() {
+        override fun filterRGB(x: Int, y: Int, rgb: Int): Int {
+          val color = Color(rgb, true)
+          return color.deEmphasize().rgb
+        }
+      }
+    }, null)
+  }
+
+  /**
+   * Return a [Color] where the alpha value is decreased to make a more faint version of the given [Color].
+   */
+  fun Color.deEmphasize(): Color = Color(red, green, blue, (alpha + 1) / 2)
 }
