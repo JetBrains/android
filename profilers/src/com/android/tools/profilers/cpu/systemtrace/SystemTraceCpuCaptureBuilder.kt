@@ -79,7 +79,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
    *
    * @return The [CaptureNode] that mirrors the [TraceEventModel] passed in.
    */
-  private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int, nodeFactory: SystemTraceNodeFactory): CaptureNode? {
+  private fun populateCaptureNode(traceEventModel: TraceEventModel, depth: Int, nodeFactory: SystemTraceNodeFactory): CaptureNode {
     val node = CaptureNode(nodeFactory.getNode(traceEventModel.name))
     node.startGlobal = traceEventModel.startTimestampUs
     node.endGlobal = traceEventModel.endTimestampUs
