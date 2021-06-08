@@ -17,15 +17,13 @@ package com.android.tools.idea.layoutinspector.util
 
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_COMPOSE_AS_CALLSTACK
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_HIDE_SYSTEM_NODES
-import com.android.tools.idea.layoutinspector.tree.DEFAULT_MERGED_SEMANTICS_TREE
 import com.android.tools.idea.layoutinspector.tree.DEFAULT_SUPPORT_LINES
-import com.android.tools.idea.layoutinspector.tree.DEFAULT_UNMERGED_SEMANTICS_TREE
+import com.android.tools.idea.layoutinspector.tree.DEFAULT_HIGHLIGHT_SEMANTICS
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 
 class FakeTreeSettings : TreeSettings {
   override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES
   override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
-  override var mergedSemanticsTree: Boolean = DEFAULT_MERGED_SEMANTICS_TREE
-  override var unmergedSemanticsTree: Boolean = DEFAULT_UNMERGED_SEMANTICS_TREE
+  override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
   override var supportLines: Boolean = DEFAULT_SUPPORT_LINES
 }

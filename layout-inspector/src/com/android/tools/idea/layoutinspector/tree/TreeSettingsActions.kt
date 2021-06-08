@@ -35,8 +35,7 @@ import icons.StudioIcons
 object FilterGroupAction : DropDownAction("Filter", "View options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
     add(SystemNodeFilterAction)
-    add(MergedSemanticsFilterAction)
-    add(UnmergedSemanticsFilterAction)
+    add(HighlightSemanticsAction)
     add(CallstackAction)
     add(SupportLines)
   }
@@ -83,30 +82,15 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
   }
 }
 
-object MergedSemanticsFilterAction : ToggleAction("Show merged semantics tree") {
+object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree ?: DEFAULT_MERGED_SEMANTICS_TREE
+    LayoutInspector.get(event)?.treeSettings?.highlightSemantics ?: DEFAULT_HIGHLIGHT_SEMANTICS
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    LayoutInspector.get(event)?.treeSettings?.mergedSemanticsTree = state
-    event.treePanel()?.refresh()
-  }
+    LayoutInspector.get(event)?.treeSettings?.highlightSemantics = state
 
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    event.presentation.isVisible =
-      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS.get() &&
-      isActionVisible(event, Capability.SUPPORTS_SEMANTICS)
-  }
-}
-
-object UnmergedSemanticsFilterAction : ToggleAction("Show unmerged semantics tree") {
-  override fun isSelected(event: AnActionEvent): Boolean =
-    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree ?: DEFAULT_UNMERGED_SEMANTICS_TREE
-
-  override fun setSelected(event: AnActionEvent, state: Boolean) {
-    LayoutInspector.get(event)?.treeSettings?.unmergedSemanticsTree = state
-    event.treePanel()?.refresh()
+    // Update the component tree:
+    event.treePanel()?.updateSemanticsFiltering()
   }
 
   override fun update(event: AnActionEvent) {

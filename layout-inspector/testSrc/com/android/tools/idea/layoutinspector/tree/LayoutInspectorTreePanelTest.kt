@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.SdkConstants
-import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.flags.junit.SetFlagRule
@@ -38,7 +37,6 @@ import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
-import com.android.tools.idea.layoutinspector.model.FLAG_SYSTEM_DEFINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -435,72 +433,72 @@ class LayoutInspectorTreePanelTest {
     val model = InspectorModel(projectRule.project)
     val inspector = LayoutInspector(launcher, model, mock(), FakeTreeSettings(), MoreExecutors.directExecutor())
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val tree = treePanel.tree!!
     inspector.treeSettings.hideSystemNodes = false
     setToolContext(treePanel, inspector)
     val window = window(ROOT, ROOT) {
       compose(2, "App") {
-        compose(3, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)
-        compose(4, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
-          compose(5, "Layout", composeFlags = FLAG_SYSTEM_DEFINED) {
-            compose(6, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
-            compose(7, "Box", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
-            compose(8, "Button", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+        compose(3, "MaterialTheme")
+        compose(4, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)
+        compose(5, "Column", composeFlags = FLAG_HAS_MERGED_SEMANTICS) {
+          compose(6, "Row") {
+            compose(7, "Layout") {
+              compose(8, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+              compose(9, "Box")
+              compose(10, "Button", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS)
+            }
           }
         }
       }
     }
     model.update(window, listOf(ROOT), 1)
-    val root = treePanel.tree?.model?.root as TreeViewNode
-    assertTreeStructure(root, expected =
-    compose(-1, "root") {
-      view(1, qualifiedName = CLASS_VIEW) {
-        compose(2, "App") {
-          compose(3, "Text")
-          compose(4, "Column") {
-            compose(5, "Layout") {
-              compose(6, "Text")
-              compose(7, "Box")
-              compose(8, "Button")
-            }
-          }
-        }
-      }
-    }.build())
 
-    inspector.treeSettings.mergedSemanticsTree = true
-    treePanel.refresh()
+    // Turn on highlightSemantics
+    inspector.treeSettings.highlightSemantics = true
+    treePanel.updateSemanticsFiltering()
 
-    assertTreeStructure(root, expected =
-    compose(-1, "root") {
-      compose(3, "Text")
-      compose(4, "Column")
-    }.build())
+    // The first node with semantics should have been selected
+    var selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Text")
+    assertThat(selection?.view?.drawId).isEqualTo(4)
+    assertThat(model.selection).isSameAs(selection?.view)
 
-    inspector.treeSettings.mergedSemanticsTree = false
-    inspector.treeSettings.unmergedSemanticsTree = true
-    treePanel.refresh()
+    // Simulate a down arrow keyboard event in the tree: the next node with semantic information should be selected
+    val ui = FakeUi(tree)
+    ui.keyboard.setFocus(tree)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Column")
+    assertThat(selection?.view?.drawId).isEqualTo(5)
+    assertThat(model.selection).isSameAs(selection?.view)
 
-    assertTreeStructure(root, expected =
-    compose(-1, "root") {
-      compose(3, "Text")
-      compose(6, "Text")
-      compose(7, "Box")
-      compose(8, "Button")
-    }.build())
+    // Simulate another down arrow keyboard event in the tree: expect to skip Row and Layout since these don't have semantic information
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Text")
+    assertThat(selection?.view?.drawId).isEqualTo(8)
+    assertThat(model.selection).isSameAs(selection?.view)
 
-    inspector.treeSettings.mergedSemanticsTree = true
-    inspector.treeSettings.unmergedSemanticsTree = true
-    treePanel.refresh()
+    // Simulate another down arrow keyboard event in the tree: expect to skip Box since it doesn't have semantic information
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Button")
+    assertThat(selection?.view?.drawId).isEqualTo(10)
+    assertThat(model.selection).isSameAs(selection?.view)
 
-    assertTreeStructure(root, expected =
-    compose(-1, "root") {
-      compose(3, "Text")
-      compose(4, "Column") {
-        compose(6, "Text")
-        compose(7, "Box")
-        compose(8, "Button")
-      }
-    }.build())
+    // Simulate another down arrow keyboard event in the tree: wrap and find the first node with semantics
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Text")
+    assertThat(selection?.view?.drawId).isEqualTo(4)
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate an up arrow keyboard event in the tree: wrap and find the last node with semantics
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    selection = tree.lastSelectedPathComponent as? TreeViewNode
+    assertThat(selection?.view?.qualifiedName).isEqualTo("Button")
+    assertThat(selection?.view?.drawId).isEqualTo(10)
+    assertThat(model.selection).isSameAs(selection?.view)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

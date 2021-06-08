@@ -87,8 +87,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       val treeSettings = object : TreeSettings {
         override var hideSystemNodes = false
         override var composeAsCallstack = false
-        override var mergedSemanticsTree = false
-        override var unmergedSemanticsTree = false
+        override var highlightSemantics = false
         override var supportLines = true
       }
       // TODO: indicate this is a snapshot session in the stats
