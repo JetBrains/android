@@ -282,5 +282,11 @@ MODULE              : project.library-remote
                 LintJar             : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :library-remote
 MODULE              : project.lint
+MODULE              : project.lint.main
+MODULE              : project.lint.test
 MODULE              : project.lintpublish
 MODULE              : project.lintpublish-remote
+MODULE              : project.lintpublish-remote.main
+MODULE              : project.lintpublish-remote.test
+MODULE              : project.lintpublish.main
+MODULE              : project.lintpublish.test

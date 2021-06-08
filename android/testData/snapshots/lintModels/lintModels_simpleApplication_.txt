@@ -636,7 +636,7 @@ MODULE              : project.app
                 ArtifactAddress     : com.google.guava:guava:19.0
                 ResolvedCoordinates : com.google.guava:guava:19.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -648,11 +648,11 @@ MODULE              : project.app
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
-                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar
                 ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.0.2
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.0.2
             LintModelLibrary    : JavaLibrary(junit:junit:4.12)

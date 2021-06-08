@@ -2343,6 +2343,8 @@ MODULE: testNestedProjects.dyn_feature
                 MlModelsDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/ml
 MODULE: testNestedProjects.jav
+MODULE: testNestedProjects.jav.main
+MODULE: testNestedProjects.jav.test
 MODULE: testNestedProjects.lib
     by Facet:
         main (IDEA)

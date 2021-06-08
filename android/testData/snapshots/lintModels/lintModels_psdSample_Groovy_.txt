@@ -700,7 +700,7 @@ MODULE              : project.app
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-1.1.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout:1.1.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -712,20 +712,20 @@ MODULE              : project.app
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.1.0)
-                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/1.1.0/constraint-layout-solver-1.1.0.jar
                 ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.1.0
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.1.0
             LintModelLibrary    : JavaLibrary(com.example.jlib:lib3:1.0)
-                - JarFiles          : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
+                - JarFiles          : <DEV>/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar
                 ArtifactAddress     : com.example.jlib:lib3:1.0
                 ResolvedCoordinates : com.example.jlib:lib3:1.0
                 Provided            : true
             LintModelLibrary    : JavaLibrary(com.example.jlib:lib4:1.0)
-                - JarFiles          : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
+                - JarFiles          : <DEV>/android/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
                 ArtifactAddress     : com.example.jlib:lib4:1.0
                 ResolvedCoordinates : com.example.jlib:lib4:1.0
                 Provided            : true
@@ -909,6 +909,8 @@ MODULE              : project.dyn_feature
                 ArtifactAddress     : artifacts::dyn_feature:unspecified
                 ProjectPath         : :dyn_feature
 MODULE              : project.jav
+MODULE              : project.jav.main
+MODULE              : project.jav.test
 MODULE              : project.lib
     Dir                 : <ROOT>/lib
     ModulePath          : lib
@@ -1521,7 +1523,7 @@ MODULE              : project.lib
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:interpolator:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -1533,7 +1535,7 @@ MODULE              : project.lib
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : LocalLibrary(:jav)

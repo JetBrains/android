@@ -205,17 +205,17 @@ MODULE              : MainActivity.app
         Debuggable          : true
         LibraryResolver
             LintModelLibrary    : AndroidLibrary(androidx.core:core-ktx:1.0.1)
-                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/jars/classes.jar
+                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/jars/classes.jar
                 ArtifactAddress     : androidx.core:core-ktx:1.0.1
-                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/AndroidManifest.xml
-                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1
-                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/res [-]
-                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/assets [-]
-                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/jars/lint.jar [-]
-                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/public.txt [-]
-                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/R.txt
-                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/annotations.zip [-]
-                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-ktx-1.0.1/proguard.txt [-]
+                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/AndroidManifest.xml
+                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1
+                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/res [-]
+                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/assets [-]
+                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/jars/lint.jar [-]
+                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/public.txt [-]
+                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/R.txt
+                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/annotations.zip [-]
+                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-ktx-1.0.1/proguard.txt [-]
                 ResolvedCoordinates : androidx.core:core-ktx:1.0.1
             LintModelLibrary    : AndroidLibrary(androidx.core:core:1.0.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.0/jars/classes.jar
@@ -312,17 +312,17 @@ MODULE              : MainActivity.app
                 ArtifactAddress     : artifacts::app:unspecified
                 ProjectPath         : :app
             LintModelLibrary    : AndroidLibrary(androidx.test.ext:junit:1.1.1)
-                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar
+                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/jars/classes.jar
                 ArtifactAddress     : androidx.test.ext:junit:1.1.1
-                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/AndroidManifest.xml
-                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1
-                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
-                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/assets [-]
-                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/lint.jar [-]
-                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/public.txt [-]
-                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/R.txt
-                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/annotations.zip [-]
-                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/proguard.txt [-]
+                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/AndroidManifest.xml
+                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1
+                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/res [-]
+                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/assets [-]
+                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/jars/lint.jar [-]
+                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/public.txt [-]
+                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/R.txt
+                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/annotations.zip [-]
+                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/junit-1.1.1/proguard.txt [-]
                 ResolvedCoordinates : androidx.test.ext:junit:1.1.1
             LintModelLibrary    : AndroidLibrary(androidx.test.espresso:espresso-core:3.2.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar
@@ -351,17 +351,17 @@ MODULE              : MainActivity.app
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/proguard.txt
                 ResolvedCoordinates : androidx.test:runner:1.2.0
             LintModelLibrary    : AndroidLibrary(androidx.test:core:1.2.0)
-                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar
+                - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/jars/classes.jar
                 ArtifactAddress     : androidx.test:core:1.2.0
-                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/AndroidManifest.xml
-                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0
-                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
-                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/assets [-]
-                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/lint.jar [-]
-                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/public.txt [-]
-                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/R.txt
-                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/annotations.zip [-]
-                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/proguard.txt [-]
+                Manifest            : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/AndroidManifest.xml
+                Folder              : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0
+                ResFolder           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/res [-]
+                AssetsFolder        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/assets [-]
+                LintJar             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/jars/lint.jar [-]
+                PublicResources     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/public.txt [-]
+                SymbolFile          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/R.txt
+                ExternalAnnotations : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/annotations.zip [-]
+                ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.2.0/proguard.txt [-]
                 ResolvedCoordinates : androidx.test:core:1.2.0
             LintModelLibrary    : AndroidLibrary(androidx.test:monitor:1.2.0)
                 - JarFiles          : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar

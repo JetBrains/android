@@ -186,8 +186,8 @@ public class TestUtils {
   @NonNull
   public static File getWorkspaceFile(@NonNull String path) {
     Map<String, String> pathMappings = new HashMap<>();
-    pathMappings.put("tools/adt/idea", "/home/open/projects/idea/merge/community/android");
-    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", "/home/open/projects/idea/merge/out/artifacts/KotlinPlugin");
+    pathMappings.put("tools/adt/idea", PathManager.getCommunityHomePath() + "/android");
+    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", PathManager.getHomePath() + "/out/artifacts/KotlinPlugin");
 
     for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
       String aospPathPrefix = entry.getKey();

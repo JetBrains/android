@@ -668,7 +668,7 @@ MODULE              : TestCompositeLib1.app
                 ArtifactAddress     : org.jetbrains:annotations:13.0
                 ResolvedCoordinates : org.jetbrains:annotations:13.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -680,11 +680,11 @@ MODULE              : TestCompositeLib1.app
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
-                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar
                 ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.0.2
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.0.2
             LintModelLibrary    : LocalLibrary(:lib)
@@ -1354,7 +1354,7 @@ MODULE              : TestCompositeLib1.lib
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:interpolator:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -1366,7 +1366,7 @@ MODULE              : TestCompositeLib1.lib
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>)
@@ -2055,7 +2055,7 @@ MODULE              : TestCompositeLib3.app
                 ArtifactAddress     : org.jetbrains:annotations:13.0
                 ResolvedCoordinates : org.jetbrains:annotations:13.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -2067,11 +2067,11 @@ MODULE              : TestCompositeLib3.app
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
-                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar
                 ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.0.2
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.0.2
             LintModelLibrary    : LocalLibrary(:lib)
@@ -2696,7 +2696,7 @@ MODULE              : TestCompositeLib3.lib
                 ProguardRules       : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-28.0.0/proguard.txt [-]
                 ResolvedCoordinates : com.android.support:interpolator:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -2708,7 +2708,7 @@ MODULE              : TestCompositeLib3.lib
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : LocalLibrary(:)
@@ -2719,7 +2719,11 @@ MODULE              : TestCompositeLib3.lib
                 LintJar             : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                 ProjectPath         : :lib
 MODULE              : composite2
+MODULE              : composite2.main
+MODULE              : composite2.test
 MODULE              : composite4
+MODULE              : composite4.main
+MODULE              : composite4.test
 MODULE              : project
 MODULE              : project.app
     Dir                 : <ROOT>/app
@@ -3395,7 +3399,7 @@ MODULE              : project.app
                 ArtifactAddress     : org.jetbrains:annotations:13.0
                 ResolvedCoordinates : org.jetbrains:annotations:13.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -3407,11 +3411,11 @@ MODULE              : project.app
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : JavaLibrary(com.android.support.constraint:constraint-layout-solver:1.0.2)
-                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/constraint/constraint-layout-solver/1.0.2/constraint-layout-solver-1.0.2.jar
                 ArtifactAddress     : com.android.support.constraint:constraint-layout-solver:1.0.2
                 ResolvedCoordinates : com.android.support.constraint:constraint-layout-solver:1.0.2
             LintModelLibrary    : LocalLibrary(:lib)
@@ -4083,7 +4087,7 @@ MODULE              : project.lib
                 ArtifactAddress     : org.jetbrains:annotations:13.0
                 ResolvedCoordinates : org.jetbrains:annotations:13.0
             LintModelLibrary    : JavaLibrary(com.android.support:collections:28.0.0)
-                - JarFiles          : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/collections/28.0.0/collections-28.0.0.jar
                 ArtifactAddress     : com.android.support:collections:28.0.0
                 ResolvedCoordinates : com.android.support:collections:28.0.0
             LintModelLibrary    : JavaLibrary(android.arch.lifecycle:common:1.1.1)
@@ -4095,7 +4099,7 @@ MODULE              : project.lib
                 ArtifactAddress     : android.arch.core:common:1.1.1
                 ResolvedCoordinates : android.arch.core:common:1.1.1
             LintModelLibrary    : JavaLibrary(com.android.support:support-annotations:28.0.0)
-                - JarFiles          : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+                - JarFiles          : <M2>/com/android/support/support-annotations/28.0.0/support-annotations-28.0.0.jar
                 ArtifactAddress     : com.android.support:support-annotations:28.0.0
                 ResolvedCoordinates : com.android.support:support-annotations:28.0.0
             LintModelLibrary    : LocalLibrary(:lib)

@@ -2578,3 +2578,5 @@ MODULE: AS36.libs.android_library
                 MlModelsDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/ml
 MODULE: AS36.libs.java_lib
+MODULE: AS36.libs.java_lib.main
+MODULE: AS36.libs.java_lib.test

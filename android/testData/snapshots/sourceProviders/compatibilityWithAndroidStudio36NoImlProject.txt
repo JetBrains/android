@@ -2578,3 +2578,5 @@ MODULE: AS36_noiml.libs.android_library
                 MlModelsDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/ml
 MODULE: AS36_noiml.libs.java_lib
+MODULE: AS36_noiml.libs.java_lib.main
+MODULE: AS36_noiml.libs.java_lib.test

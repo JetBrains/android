@@ -661,4 +661,10 @@ MODULE: testWithBuildSrc.app
                     file://./app/src/androidTestDebug/ml
 MODULE: testWithBuildSrc.buildSrc
 MODULE: testWithBuildSrc.buildSrc.lib1
+MODULE: testWithBuildSrc.buildSrc.lib1.main
+MODULE: testWithBuildSrc.buildSrc.lib1.test
 MODULE: testWithBuildSrc.buildSrc.lib2
+MODULE: testWithBuildSrc.buildSrc.lib2.main
+MODULE: testWithBuildSrc.buildSrc.lib2.test
+MODULE: testWithBuildSrc.buildSrc.main
+MODULE: testWithBuildSrc.buildSrc.test

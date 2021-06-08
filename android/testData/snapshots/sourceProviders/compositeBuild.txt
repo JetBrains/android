@@ -2641,7 +2641,11 @@ MODULE: TestCompositeLib3.lib
                 MlModelsDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/ml
 MODULE: composite2
+MODULE: composite2.main
+MODULE: composite2.test
 MODULE: composite4
+MODULE: composite4.main
+MODULE: composite4.test
 MODULE: testCompositeBuild
 MODULE: testCompositeBuild.app
     by Facet:
