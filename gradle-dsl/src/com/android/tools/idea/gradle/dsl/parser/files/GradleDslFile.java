@@ -21,6 +21,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
@@ -37,9 +38,11 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslTransformerFactory;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslParser;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslTransformerFactory;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
@@ -49,6 +52,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -77,6 +81,8 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
  * Provides Gradle specific abstraction over a {@link GroovyFile}.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
+  private static final Logger LOG = Logger.getInstance(GradleDslFile.class);
+
   @NotNull private final ElementList myGlobalProperties = new ElementList();
   @NotNull private final VirtualFile myFile;
   @NotNull private final Project myProject;
@@ -121,25 +127,34 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
     Application application = ApplicationManager.getApplication();
     PsiFile psiFile = application.runReadAction((Computable<PsiFile>)() -> PsiManager.getInstance(myProject).findFile(myFile));
 
-    // Pick the language that should be used by this GradleDslFile, we do this by selecting the parser implementation.
-    if (psiFile instanceof GroovyFile) {
-      GroovyFile groovyPsiFile = (GroovyFile)psiFile;
-      myGradleDslParser = new GroovyDslParser(groovyPsiFile, context, this);
-      myGradleDslWriter = new GroovyDslWriter(context);
-      setPsiElement(groovyPsiFile);
-    }
-    else if (psiFile instanceof KtFile) {
-      KtFile ktFile = (KtFile)psiFile;
-      myGradleDslParser = new KotlinDslParser(ktFile, context, this);
-      myGradleDslWriter = new KotlinDslWriter(context);
-      setPsiElement(ktFile);
+    List<GradleDslTransformerFactory> factories = Arrays.asList(new GroovyDslTransformerFactory(), new KotlinDslTransformerFactory());
+    boolean foundFactory = false;
+
+    // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
+    // This means this file will produce an empty model.
+    @NotNull GradleDslParser dslParser = new GradleDslParser.Adapter(context);
+    @NotNull GradleDslWriter dslWriter = new GradleDslWriter.Adapter(context);
+    // Search for something that does support the build language.
+    if (psiFile == null) {
+      LOG.debug("Failed to find psiFile for virtualFile " + myFile.getName());
     }
     else {
-      // If we don't support the language we ignore the PsiElement and set stubs for the writer and parser.
-      // This means this file will produce an empty model.
-      myGradleDslParser = new GradleDslParser.Adapter(context);
-      myGradleDslWriter = new GradleDslWriter.Adapter(context);
+      for (GradleDslTransformerFactory factory : factories) {
+        if (factory.canTransform(psiFile)) {
+          dslParser = factory.createParser(psiFile, context, this);
+          dslWriter = factory.createWriter(context);
+          setPsiElement(psiFile);
+          foundFactory = true;
+          break;
+        }
+      }
+      if (!foundFactory) {
+        LOG.debug("Failed to find transformer for file " + psiFile.getName() + " (" + psiFile.getClass().getCanonicalName() + ")");
+      }
     }
+
+    myGradleDslWriter = dslWriter;
+    myGradleDslParser = dslParser;
     populateGlobalProperties();
   }
 
