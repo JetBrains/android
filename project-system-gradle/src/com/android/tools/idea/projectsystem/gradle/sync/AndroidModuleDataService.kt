@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeeded
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
@@ -127,7 +128,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         val facetModel = modelsProvider.getModifiableFacetModel(module)
 
         // If we only have one module then module per source set must be disabled as no GradleSourceSetData was found.
-        if (!StudioFlags.USE_MODULE_PER_SOURCE_SET.get() || module == mainArtifactModule) {
+        if (!project.isModulePerSourceSetEnabled() || module == mainArtifactModule) {
           val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
                              ?: createAndroidFacet(module, facetModel)
           // Configure that Android facet from the information in the AndroidModuleModel.

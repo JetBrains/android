@@ -402,7 +402,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // We also need to patch java modules as we disabled the kapt resolver.
     // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
-    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get() && androidModel != null) {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    if (project != null && ModuleUtil.isModulePerSourceSetEnabled(project) && androidModel != null) {
       IdeVariant variant = androidModel.getSelectedVariant();
       createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, variant.getMainArtifact());
       IdeBaseArtifact unitTest = variant.getUnitTestArtifact();
@@ -653,7 +654,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
 
     nextResolver.populateModuleContentRoots(gradleModule, ideModule);
 
-    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+    Project project = myProjectFinder.findProject(resolverCtx);
+    if (project != null && ModuleUtil.isModulePerSourceSetEnabled(project)) {
       ContentRootUtilKt.setupAndroidContentEntriesPerSourceSet(
         ideModule,
         androidModuleModelNode.getData()
@@ -749,16 +751,17 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return null;
     };
 
-    if (StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+    if (project != null && ModuleUtil.isModulePerSourceSetEnabled(project)) {
       DependencyUtilKt.setupAndroidDependenciesForMpss(
         ideModule,
         moduleDataLookup::apply,
         artifactLookup::apply,
         androidModelNode.getData(),
-        androidModelNode.getData().getSelectedVariant()
+        androidModelNode.getData().getSelectedVariant(),
+        project
       );
     } else {
-      DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, moduleDataLookup::apply, artifactLookup::apply);
+      DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, moduleDataLookup::apply, artifactLookup::apply, project);
     }
   }
 

@@ -1396,7 +1396,7 @@ private fun setupDataNodesForSelectedVariant(
         libraryFilePaths.getCachedPathsForArtifact(id)?.javaDoc,
         libraryFilePaths.getCachedPathsForArtifact(id)?.sampleSource
       )
-    }, newVariant)
+    }, newVariant, project)
     moduleNode.setupAndroidContentEntries(newVariant)
   }
 }
