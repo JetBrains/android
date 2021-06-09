@@ -77,6 +77,7 @@ import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -745,7 +746,15 @@ public class IdeSdks {
     if (isNullOrEmpty(path)) {
       return null;
     }
-    Path pathFile = Paths.get(path);
+    Path pathFile;
+    // Try to open the given path
+    try {
+      pathFile = Paths.get(path);
+    }
+    catch (InvalidPathException exc) {
+      // It is not a valid path
+      return null;
+    }
     String result = doGetJdkFromPath(pathFile);
     if (result != null) {
       return result;
