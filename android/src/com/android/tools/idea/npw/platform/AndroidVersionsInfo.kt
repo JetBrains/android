@@ -261,13 +261,13 @@ private fun getLabel(version: AndroidVersion, target: IAndroidTarget?): String {
   val featureLevel = version.featureLevel
 
   if (featureLevel > HIGHEST_KNOWN_API) {
-    return "API $featureLevel: Android ${version.apiString}"  + " (${version.codename} preview)".takeIf { version.isPreview }.orEmpty()
+    return "API ${version.apiString}: Android ${version.apiString}"  + " (${version.codename} preview)".takeIf { version.isPreview }.orEmpty()
   }
 
   return when {
       version.isPreview ->
         "API %s: Android %s (%s preview)".format(
-          featureLevel,
+          version.apiString,
           SdkVersionInfo.getVersionStringSanitized(featureLevel),
           SdkVersionInfo.getCodeName(featureLevel))
       target == null || target.isPlatform -> SdkVersionInfo.getAndroidName(featureLevel)
