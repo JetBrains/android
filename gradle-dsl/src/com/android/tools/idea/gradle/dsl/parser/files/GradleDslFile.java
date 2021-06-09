@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.files;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
@@ -54,6 +53,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -64,6 +64,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -143,7 +144,8 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
   }
 
   private void populateGlobalProperties() {
-    GradleDslElement rootDir = new GradleDslGlobalValue(this, Projects.getBaseDirPath(myProject).getPath(), "rootDir");
+    GradleDslElement rootDir =
+      new GradleDslGlobalValue(this, new File(FileUtil.toCanonicalPath(Optional.ofNullable(myProject.getBasePath()).orElse(""))).getPath(), "rootDir");
     myGlobalProperties.addElement(rootDir, ElementState.DEFAULT, false);
     GradleDslElement projectDir = new GradleDslGlobalValue(this, getDirectoryPath().getPath(), "projectDir");
     myGlobalProperties.addElement(projectDir, ElementState.DEFAULT, false);
