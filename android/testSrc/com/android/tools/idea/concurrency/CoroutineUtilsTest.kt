@@ -24,16 +24,26 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
+import junit.framework.Assert.fail
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.apache.log4j.Logger
 import org.junit.After
 import org.junit.Before
@@ -241,6 +251,197 @@ class CoroutineUtilsTest {
       }
 
       override fun dispose() {}
+    }
+  }
+
+  @Test
+  fun `read action with coroutines runs sucessfully`() {
+    val writeActionIsReady = CountDownLatch(1)
+    val writeLatch = CountDownLatch(1)
+    UIUtil.invokeLaterIfNeeded {
+      WriteAction.run<Throwable> {
+        writeActionIsReady.countDown()
+        // Hold the read lock
+        writeLatch.await()
+      }
+    }
+
+    // Wait until we know the write action has the lock
+    writeActionIsReady.await()
+    val readActionExecuted = CompletableDeferred<Boolean>()
+    try {
+      runBlocking(workerThread) {
+        launch(workerThread) {
+          assertThat(readActionExecuted.isCompleted).isFalse()
+          runReadAction {
+            readActionExecuted.complete(true)
+          }
+          assertThat(readActionExecuted.isCompleted).isTrue()
+        }
+        withTimeout(500) {
+          assertThat(readActionExecuted.getCompletedOrNull()).isNull()
+          delay(100)
+          // The read action should not have executed yet
+          assertThat(readActionExecuted.getCompletedOrNull()).isNull()
+          // Release write lock so the read action can execute
+          writeLatch.countDown()
+          // Check the write action executes
+          assertThat(readActionExecuted.await()).isTrue()
+        }
+      }
+    }
+    finally {
+      writeLatch.countDown()
+    }
+  }
+
+  @Test
+  fun `read action with coroutines times out`() {
+    val writeActionIsReady = CountDownLatch(1)
+    val writeLatch = CountDownLatch(1)
+    UIUtil.invokeLaterIfNeeded {
+      WriteAction.run<Throwable> {
+        writeActionIsReady.countDown()
+        // Hold the read lock
+        writeLatch.await()
+      }
+    }
+
+    // Wait until we know the write action has the lock
+    writeActionIsReady.await()
+    val readActionExecuted = CompletableDeferred<Boolean>()
+    try {
+      runBlocking(workerThread) {
+        val smartReadJob = launch(workerThread) {
+          assertThat(readActionExecuted.isCompleted).isFalse()
+          runReadAction {
+            readActionExecuted.complete(true)
+          }
+          assertThat(readActionExecuted.isCompleted).isTrue()
+        }
+        try {
+          withTimeout(2000) {
+            // This be block and the timeout will expire
+            readActionExecuted.await()
+          }
+          fail("The write lock is still being held, timeout was expected")
+        }
+        catch (_: TimeoutCancellationException) {
+        }
+        finally {
+          smartReadJob.cancel()
+        }
+      }
+    }
+    finally {
+      // Release the lock
+      writeLatch.countDown()
+    }
+  }
+
+  @Test
+  fun `smart read action with coroutines runs successfully`() {
+    val writeActionIsReady = CountDownLatch(1)
+    val writeActionCompleted = CompletableDeferred<Boolean>()
+    val writeLatch = CountDownLatch(1)
+    val project = projectRule.project
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(project).isDumb = true
+    }
+    UIUtil.invokeLaterIfNeeded {
+      WriteAction.run<Throwable> {
+        writeActionIsReady.countDown()
+        // Hold the read lock
+        writeLatch.await()
+        writeActionCompleted.complete(true)
+      }
+    }
+
+    // Wait until we know the write action has the lock
+    writeActionIsReady.await()
+    val smartReadActionExecuted = CompletableDeferred<Boolean>()
+    runBlocking(workerThread) {
+      launch(workerThread) {
+        assertThat(smartReadActionExecuted.isCompleted).isFalse()
+        runInSmartReadAction(project) {
+          smartReadActionExecuted.complete(true)
+        }
+        assertThat(smartReadActionExecuted.isCompleted).isTrue()
+      }
+      try {
+        withTimeout(500) {
+          assertThat(smartReadActionExecuted.getCompletedOrNull()).isNull()
+          delay(100)
+          // The read action should not have executed yet
+          assertThat(smartReadActionExecuted.getCompletedOrNull()).isNull()
+          // Release write lock so the read action can execute
+          writeLatch.countDown()
+          // Check the write action completed
+          assertThat(writeActionCompleted.await()).isTrue()
+          // The read action should not have executed yet because we are still in non-smart mode
+          assertThat(smartReadActionExecuted.getCompletedOrNull()).isNull()
+          runInEdtAndWait {
+            DumbServiceImpl.getInstance(project).isDumb = false
+          }
+          assertThat(smartReadActionExecuted.await()).isTrue()
+        }
+      }
+      finally {
+        writeLatch.countDown()
+      }
+    }
+  }
+
+  @Test
+  fun `smart read action with coroutines runs times out`() {
+    val writeActionIsReady = CountDownLatch(1)
+    val writeActionCompleted = CompletableDeferred<Boolean>()
+    val writeLatch = CountDownLatch(1)
+    val project = projectRule.project
+    runInEdtAndWait {
+      DumbServiceImpl.getInstance(project).isDumb = true
+    }
+    UIUtil.invokeLaterIfNeeded {
+      WriteAction.run<Throwable> {
+        writeActionIsReady.countDown()
+        // Hold the read lock
+        writeLatch.await()
+        writeActionCompleted.complete(true)
+      }
+    }
+
+    // Wait until we know the write action has the lock
+    writeActionIsReady.await()
+    val smartReadActionExecuted = CompletableDeferred<Boolean>()
+    runBlocking(workerThread) {
+      val smartActionJob = launch(workerThread) {
+        runInSmartReadAction(project) {
+          smartReadActionExecuted.complete(true)
+        }
+      }
+      try {
+        withTimeout(500) {
+          smartReadActionExecuted.await()
+          fail("Not on smart mode and read lock should not be available")
+        }
+      }
+      catch (_: TimeoutCancellationException) {
+      }
+      finally {
+        writeLatch.countDown()
+      }
+      writeActionCompleted.await()
+
+      // Now we have released the read lock, check we still timeout
+      try {
+        withTimeout(500) {
+          smartReadActionExecuted.await()
+          fail("Not on smart mode")
+        }
+      }
+      catch (_: TimeoutCancellationException) {
+      }
+      smartActionJob.cancel()
     }
   }
 }
