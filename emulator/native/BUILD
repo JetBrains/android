@@ -31,6 +31,72 @@ studio_data(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "image_converter",
+    srcs = ["ImageConverter.c"],
+    copts = ["-O2"] + select({
+        "@platforms//cpu:x86_64": ["-mmovbe"],
+        "//conditions:default": [],
+    }),
+    defines = ["NDEBUG"],
+    linkstatic = True,
+    deps = ["//prebuilts/studio/jdk:jni_headers"],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "libimage_converter.so",
+    linkopts = ["-Wl,--strip-all"],
+    linkshared = True,
+    stamp = 0,
+    tags = [
+        "no_mac",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":image_converter",
+    ],
+)
+
+cc_binary(
+    name = "libimage_converter.dylib",
+    linkshared = True,
+    stamp = 0,
+    tags = [
+        "no_linux",
+        "no_windows",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":image_converter",
+    ],
+)
+
+cc_binary(
+    name = "image_converter.dll",
+    linkshared = True,
+    stamp = 0,
+    tags = [
+        "no_linux",
+        "no_mac",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":image_converter",
+    ],
+)
+
+filegroup(
+    name = "libimage_converter",
+    srcs = select({
+        "@platforms//os:linux": [":libimage_converter.so"],
+        "@platforms//os:macos": [":libimage_converter.dylib"],
+        "@platforms//os:windows": [":image_converter.dll"],
+    }),
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "libimage_converter.prebuilt",
     srcs = select({
