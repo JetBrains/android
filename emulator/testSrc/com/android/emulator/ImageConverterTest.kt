@@ -27,6 +27,11 @@ class ImageConverterTest {
   private val testImage = createTestImage()
 
   @Test
+  fun testLoadNativeLibrary() {
+    ImageConverter.loadNativeLibrary()
+  }
+
+  @Test
   fun testUnpackRgb888Slow() {
     val pixels = IntArray(IMAGE_SIZE)
     val t = runBenchmark { ImageConverter.unpackRgb888Slow(testImage, pixels) }
