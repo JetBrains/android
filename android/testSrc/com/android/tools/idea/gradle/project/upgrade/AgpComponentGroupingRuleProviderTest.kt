@@ -28,7 +28,6 @@ import com.intellij.usages.impl.rules.UsageTypeGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleProvider
 import org.jetbrains.android.AndroidTestCase
-import java.util.ArrayList
 
 class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
   override fun setUp() {
@@ -174,7 +173,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usageViewSettings = UsageViewSettings.instance
     val list = ArrayList<UsageGroupingRule>(providers.size)
     for (provider in providers) {
-      list.addAll(provider.getActiveRules(project, usageViewSettings))
+      list.addAll(provider.getActiveRules(project, usageViewSettings, null))
     }
 
     list.sortBy { it.rank }
