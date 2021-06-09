@@ -24,10 +24,12 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.idea.configuration.AndroidGradle
-import org.jetbrains.kotlin.idea.configuration.GradleBuildScriptManipulator
+import org.jetbrains.kotlin.idea.configuration.BuildSystemType
+import org.jetbrains.kotlin.idea.extensions.gradle.GradleBuildScriptManipulator
 import org.jetbrains.kotlin.idea.configuration.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
+import org.jetbrains.kotlin.idea.extensions.gradle.getManipulator
+import org.jetbrains.kotlin.idea.gradle.KotlinGradleFacadeImpl
 import org.jetbrains.kotlin.idea.util.projectStructure.version
 import org.jetbrains.kotlin.idea.versions.MAVEN_STDLIB_ID_JDK7
 import org.jetbrains.kotlin.idea.versions.hasJreSpecificRuntime
@@ -45,7 +47,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
     override val presentableText: String = "Android with Gradle"
 
-    public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == AndroidGradle
+    public override fun isApplicable(module: Module): Boolean = module.getBuildSystemType() == BuildSystemType.AndroidGradle
 
     override val kotlinPluginName: String = KOTLIN_ANDROID
 
@@ -53,7 +55,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         if (forKotlinDsl) "kotlin(\"android\")" else "id 'org.jetbrains.kotlin.android' "
 
     override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, version: String): Boolean {
-        val manipulator = getManipulator(file, false)
+        val manipulator = KotlinGradleFacadeImpl.getManipulator(file, false)
         val module = ModuleUtil.findModuleForPsiElement(file)?: return false
         val sdk = ModuleRootManager.getInstance(module).sdk
         val jvmTarget = getJvmTarget(sdk, version)
