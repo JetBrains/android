@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
-import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.Disposable
@@ -57,7 +56,7 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
    *
    * The overridden value provided here must contain at least one configuration. See also: [createTab].
    */
-  val launchConfigs: Iterable<AppInspectorLaunchConfig>
+  val launchConfigs: List<AppInspectorLaunchConfig>
   val displayName: String
   val icon: Icon? get() = null
   val learnMoreUrl: String? get() = null
@@ -83,15 +82,16 @@ interface AppInspectorTabProvider: Comparable<AppInspectorTabProvider> {
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
    *   that will drive this UI is attached to
-   * @param messengers A list of inspector messenger targets, one generated per config specified in
-   *   [launchConfigs]. Children should check if the target is [AppInspectorMessengerTarget.Resolved]
-   *   or, if not, may want to consider showing the wrapped error to users.
+   * @param messengerTargets A list of inspector messenger targets, one generated per config
+   *   specified in [launchConfigs]. Children should check if the target is
+   *   [AppInspectorMessengerTarget.Resolved] or, if not, may want to consider showing the wrapped
+   *   error to users.
    */
   fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messengers: Iterable<AppInspectorMessengerTarget>,
+    messengerTargets: List<AppInspectorMessengerTarget>,
     parentDisposable: Disposable
   ): AppInspectorTab
 
