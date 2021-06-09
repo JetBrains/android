@@ -90,6 +90,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -911,9 +912,11 @@ public final class GradleUtil {
   public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
     HashSet<String> result = new HashSet<>();
     addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
-    for(Module module : ModuleManager.getInstance(project).getModules()) {
-      addBuildFileType(result, getGradleBuildFile(module));
-    }
+    ReadAction.run(() -> {
+      for(Module module : ModuleManager.getInstance(project).getModules()) {
+        addBuildFileType(result, getGradleBuildFile(module));
+      }
+    });
     return result;
   }
 

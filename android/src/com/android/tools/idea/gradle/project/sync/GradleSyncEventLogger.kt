@@ -27,6 +27,7 @@ import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.google.wireless.android.sdk.stats.KotlinSupport
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 
@@ -99,21 +100,24 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
 
-    val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
-    if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
-    val lastSuccessfulVersion = GradleUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
-    if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
+    runReadAction {
+      val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
+      if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
+      val lastSuccessfulVersion = GradleUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
+      if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
 
-    // Set up the Android studio event
-    event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
-    event.kind = kind
-    event.gradleSyncStats = syncStats.build()
+      // Set up the Android studio event
+      event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
+      event.kind = kind
+      event.gradleSyncStats = syncStats.build()
 
-    if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
-      event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
-      event.setKotlinSupport(generateKotlinSupport())
+      if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
+        event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.toString() ?: ""
+        event.setKotlinSupport(generateKotlinSupport())
+      }
+      event.withProjectId(project)
     }
-    return event.withProjectId(project)
+    return event
   }
 }
 
