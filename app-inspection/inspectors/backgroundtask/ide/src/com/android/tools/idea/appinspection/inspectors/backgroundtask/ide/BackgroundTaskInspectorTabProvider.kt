@@ -68,12 +68,11 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
   override fun createTab(project: Project,
                          ideServices: AppInspectionIdeServices,
                          processDescriptor: ProcessDescriptor,
-                         messengers: Iterable<AppInspectorMessengerTarget>,
+                         messengerTargets: List<AppInspectorMessengerTarget>,
                          parentDisposable: Disposable): AppInspectorTab {
 
-    val messengers = messengers.toList()
-    val btiMessenger = (messengers[0] as AppInspectorMessengerTarget.Resolved).messenger
-    val wmiMessengerTarget = when (val target = messengers[1]) {
+    val btiMessenger = (messengerTargets[0] as AppInspectorMessengerTarget.Resolved).messenger
+    val wmiMessengerTarget = when (val target = messengerTargets[1]) {
       is AppInspectorMessengerTarget.Resolved -> WmiMessengerTarget.Resolved(target.messenger)
       is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
     }
@@ -81,7 +80,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope)
 
     return object : AppInspectorTab {
-      override val messengers = messengers.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
+      override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
       override val component = BackgroundTaskInspectorTab(client).component
     }
   }

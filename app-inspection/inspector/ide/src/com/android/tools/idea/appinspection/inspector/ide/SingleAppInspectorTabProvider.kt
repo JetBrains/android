@@ -38,7 +38,7 @@ abstract class SingleAppInspectorTabProvider : AppInspectorTabProvider {
     project: Project,
     ideServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
-    messengerTargets: Iterable<AppInspectorMessengerTarget>,
+    messengerTargets: List<AppInspectorMessengerTarget>,
     parentDisposable: Disposable): AppInspectorTab {
     return when (val target = messengerTargets.single()) {
       is AppInspectorMessengerTarget.Resolved -> createTab(project, ideServices, processDescriptor, target.messenger, parentDisposable)
