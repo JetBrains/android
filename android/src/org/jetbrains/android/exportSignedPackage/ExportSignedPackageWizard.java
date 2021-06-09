@@ -44,7 +44,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -496,7 +496,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return;
       }
     }
-    GuiUtils.invokeLaterIfNeeded(() -> {
+    ModalityUiUtil.invokeLaterIfNeeded(() -> {
       String title = AndroidBundle.message("android.export.package.wizard.title");
       Project project = getProject();
       File apkFile = new File(apkPath);

@@ -50,13 +50,13 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.CollectionListModel
-import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.labels.LinkLabel
 import com.intellij.ui.components.labels.LinkListener
 import com.intellij.ui.speedSearch.NameFilteringListModel
+import com.intellij.util.ModalityUiUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -511,7 +511,10 @@ class ResourceExplorerListView(
     if (populateResourcesFuture?.isDone == false) {
       if (showLoadingFuture == null) {
         showLoadingFuture = JobScheduler.getScheduler().schedule(
-          { GuiUtils.invokeLaterIfNeeded(this::displayLoading, ModalityState.defaultModalityState()) },
+          {
+            ModalityUiUtil.invokeLaterIfNeeded(this::displayLoading,
+                                               ModalityState.defaultModalityState())
+          },
           MS_DELAY_BEFORE_LOADING_STATE,
           UNIT_DELAY_BEFORE_LOADING_STATE)
       }

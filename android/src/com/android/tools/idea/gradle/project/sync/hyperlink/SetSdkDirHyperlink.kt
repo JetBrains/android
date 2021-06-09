@@ -26,7 +26,7 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.Project
-import com.intellij.ui.GuiUtils.invokeLaterIfNeeded
+import com.intellij.util.ModalityUiUtil.invokeLaterIfNeeded
 import org.jetbrains.android.sdk.AndroidSdkData
 import java.io.File
 

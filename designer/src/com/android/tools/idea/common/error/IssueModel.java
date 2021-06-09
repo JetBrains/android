@@ -21,7 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ModalityUiUtil;
 import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class IssueModel {
   }
 
   public IssueModel() {
-    this(command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+    this(command -> ModalityUiUtil.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
   }
 
   @Nullable

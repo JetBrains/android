@@ -42,11 +42,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.progress.util.ProgressWindow
-import com.intellij.ui.GuiUtils
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.util.ModalityUiUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
@@ -106,7 +106,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       val formFactors = formFactors.get()
 
       // Update UI with the loaded formFactors. Switch back to UI thread.
-      GuiUtils.invokeLaterIfNeeded(
+      ModalityUiUtil.invokeLaterIfNeeded(
         { updateUi(wizard, formFactors) },
         ModalityState.any())
     })
