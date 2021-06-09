@@ -29,10 +29,10 @@ import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.isModulePerSourceSetEnabled
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.diagnostic.Logger
@@ -50,6 +50,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.DependencyScope
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.filesEqual
@@ -95,7 +96,8 @@ data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: Javad
 fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   idToModuleData: (String) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
-  variant: IdeVariant? = null
+  variant: IdeVariant? = null,
+  project: Project?
 ) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return // TODO: Error here
   // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
@@ -133,7 +135,8 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     idToModuleData,
     additionalArtifactsMapper,
     processedLibraries,
-    processedModuleDependencies
+    processedModuleDependencies,
+    project
   )
 
   // Setup the dependencies for the main artifact, the main dependencies are done first since there scope is more permissive.
@@ -281,7 +284,8 @@ private class AndroidDependenciesSetupContext(
   private val idToModuleData: (String) -> ModuleData?,
   private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
-  private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>
+  private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>,
+  private val project: Project?
 ) {
 
   private abstract inner class WorkItem<T : IdeLibrary> {
@@ -368,7 +372,7 @@ private class AndroidDependenciesSetupContext(
     if (library.projectPath.isEmpty()) return null
     val targetModuleId = computeModuleIdForLibraryTarget(library, projectDataNode.data, compositeData)
     // If we aren't using module per source set then we short cut here as the current implementation takes a long time
-    if (!StudioFlags.USE_MODULE_PER_SOURCE_SET.get()) {
+    if (project != null && !project.isModulePerSourceSetEnabled()) {
       val targetData = idToModuleData(targetModuleId) ?: return null
       return ModuleLibraryWorkItem(targetModuleId, targetData)
     }
@@ -500,7 +504,8 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   idToModuleData: (String) -> ModuleData?,
   additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   androidModel: AndroidModuleModel,
-  variant: IdeVariant
+  variant: IdeVariant,
+  project: Project?
 ) {
   // The DataNode tree should have a ProjectData node as a parent of the ModuleData node. We don't throw an
   // exception here as other intellij plugins can manipulate the tree, we do not want to break an import
@@ -535,7 +540,8 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       idToModuleData,
       additionalArtifactsMapper,
       processedLibraries,
-      processedModuleDependencies
+      processedModuleDependencies,
+      project
     )
       .setupForArtifact(ideBaseArtifact, dependencyScope)
 
