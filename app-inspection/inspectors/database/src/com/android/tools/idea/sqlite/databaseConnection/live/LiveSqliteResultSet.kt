@@ -50,12 +50,14 @@ abstract class LiveSqliteResultSet(
   /**
    * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
    */
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> =
+  final override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> =
     getRowBatch(rowOffset, rowBatchSize, null)
 
   /**
    * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
-   * @param responseSizeByteLimitHint - best effort limit of a batch size expressed in bytes
+   * @param responseSizeByteLimitHint - best effort limit of a batch size expressed in bytes - only introduced in [LiveSqliteResultSet]
+   * (as opposed to [SqliteResultSet]) as other implementations use the local file system, where we don't need to be so careful with the
+   * response size. Memory on the device (subclasses of [LiveSqliteResultSet]) is much more restricted.
    */
   abstract fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long? = null): ListenableFuture<List<SqliteRow>>
 

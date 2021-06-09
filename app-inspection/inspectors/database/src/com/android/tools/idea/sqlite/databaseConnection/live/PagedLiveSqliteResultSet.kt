@@ -51,6 +51,4 @@ class PagedLiveSqliteResultSet(
         }
       }
   }
-
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int) = getRowBatch(rowOffset, rowBatchSize, null)
 }
