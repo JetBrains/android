@@ -3,14 +3,22 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
+import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
+import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
@@ -24,6 +32,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -51,6 +60,16 @@ import org.jetbrains.annotations.Nullable;
 
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
   public static final String MODULE_PROPERTY = "ExportedModule";
+  @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
+  @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
+
+  private static class KeyStorePasswordRequestor {
+    // dummy: used as a requestor class id to access the key store password
+  }
+
+  private static class KeyPasswordRequestor {
+    // dummy: used as a requestor class id to access the key password
+  }
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
@@ -61,6 +80,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private TextFieldWithBrowseButton.NoPathCompletion myKeyAliasField;
   private JTextField myKeyStorePathField;
   private JButton myLoadKeyStoreButton;
+  private JBCheckBox myRememberPasswordCheckBox;
   @VisibleForTesting
   JComboBox<AndroidFacet> myModuleCombo;
   private JPanel myGradlePanel;
@@ -94,6 +114,26 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(project);
     myKeyStorePathField.setText(settings.KEY_STORE_PATH);
     myKeyAliasField.setText(settings.KEY_ALIAS);
+    myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
+
+    if (settings.REMEMBER_PASSWORDS) {
+      Application application = ApplicationManager.getApplication();
+      application.executeOnPooledThread(() -> {
+        String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
+        String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyStorePasswordField.setText(password));
+        }
+      });
+
+      application.executeOnPooledThread(() -> {
+        String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
+        String password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyPasswordField.setText(password));
+        }
+      });
+    }
 
     myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       if (value == null) return;
@@ -201,6 +241,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myKeyStorePathField.setVisible(!showError);
     myCreateKeyStoreButton.setVisible(!showError);
     myLoadKeyStoreButton.setVisible(!showError);
+    myRememberPasswordCheckBox.setVisible(!showError);
     myKeyStorePasswordLabel.setVisible(!showError);
     myKeyPasswordLabel.setVisible(!showError);
     myKeyAliasLabel.setVisible(!showError);
@@ -211,6 +252,35 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     // gradle error fields
     myGradlePanel.setVisible(showError);
+  }
+
+  @Slow
+  private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
+    String password = null;
+    PasswordSafe passwordSafe = null;
+    // Return a null password in case there are problems reading it from PasswordSafe (b/70654787)
+    try {
+      passwordSafe = PasswordSafe.getInstance();
+      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(primaryRequestor, key));
+    }
+    catch (Throwable t) {
+      Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
+    }
+    if ((password == null) && (passwordSafe != null)) {
+      // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
+      // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
+      // passwords at once.
+      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(KeystoreStep.class, key));
+    }
+
+    return password;
+  }
+
+  private static void updateSavedPassword(@NotNull Class<?> primaryRequestor, @NotNull String key, @Nullable String value) {
+    PasswordSafe passwordSafe = PasswordSafe.getInstance();
+    passwordSafe.set(CredentialAttributes(primaryRequestor, key), value == null ? null : new Credentials(key, value));
+    // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
+    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null);
   }
 
   @VisibleForTesting
@@ -288,6 +358,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     settings.KEY_STORE_PATH = keyStoreLocation;
     settings.KEY_ALIAS = keyAlias;
 
+    boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
+    settings.REMEMBER_PASSWORDS = rememberPasswords;
+
     if (myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
       boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
       settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
@@ -305,6 +378,12 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
         myWizard.setExportKeyPath(keyFolder);
       }
     }
+
+    String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
+    String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
+
+    updateSavedPassword(KeyStorePasswordRequestor.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
+    updateSavedPassword(KeyPasswordRequestor.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
 
     myWizard.setFacet(getSelectedFacet());
   }
