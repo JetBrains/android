@@ -68,10 +68,10 @@ public class GenerateApkWithReleaseVariantTest {
     ideFrame.getEditor()
       .open("app/build.gradle")
       .moveBetween("dependencies {", "")
-      .enterText("\nimplementation project(path: ':myapplication')\n");
+      .enterText("\nimplementation project(path: ':mylibrary')\n");
 
     ideFrame.getEditor()
-      .open("myapplication/build.gradle")
+      .open("mylibrary/build.gradle")
       .moveBetween("release {", "")
       .enterText("\nshrinkResources true");
     ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(20));
