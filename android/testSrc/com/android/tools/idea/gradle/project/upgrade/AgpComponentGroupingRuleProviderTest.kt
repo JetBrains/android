@@ -71,7 +71,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
     val group = getParentComponentGroupFor(usages[0])
-    assertThat(group.getText(null)).isEqualTo("Upgrade AGP dependency from 3.6.0 to 4.0.0")
+    assertThat(group.presentableGroupText).isEqualTo("Upgrade AGP dependency from 3.6.0 to 4.0.0")
   }
 
   fun testAgpGradleVersionRefactoringProcessor() {
@@ -83,7 +83,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
     val group = getParentComponentGroupFor(usages[0])
-    assertThat(group.getText(null)).isEqualTo("Upgrade Gradle version to 6.5")
+    assertThat(group.presentableGroupText).isEqualTo("Upgrade Gradle version to 6.5")
   }
 
   fun testGMavenRepositoryRefactoringProcessor() {
@@ -101,7 +101,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
     val group = getParentComponentGroupFor(usages[0])
-    assertThat(group.getText(null)).isEqualTo("Add google() GMaven to buildscript repositories")
+    assertThat(group.presentableGroupText).isEqualTo("Add google() GMaven to buildscript repositories")
   }
 
   fun testJava8DefaultRefactoringProcessorInsertOldDefault() {
@@ -120,7 +120,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.INSERT_OLD_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
       .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
   }
 
@@ -140,7 +140,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
       .containsExactly("Add directives to keep using Java 7", "Add directives to keep using Java 7")
   }
 
@@ -161,7 +161,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     assertTrue(processor.isEnabled)
     val usages = processor.findUsages()
     assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).getText(null) })
+    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText })
       .containsExactly("Replace deprecated configurations", "Replace deprecated configurations")
   }
 

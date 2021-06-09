@@ -2068,7 +2068,7 @@ data class ComponentUsageGroup(val usageName: String) : UsageGroup {
   override fun canNavigate(): Boolean = false
   override fun canNavigateToSource(): Boolean = false
 
-  override fun getText(view: UsageView?): String = usageName
+  override fun getPresentableGroupText(): String = usageName
 
   override fun compareTo(other: UsageGroup?): Int = when (other) {
     is ComponentUsageGroup -> usageName.compareTo(other.usageName)

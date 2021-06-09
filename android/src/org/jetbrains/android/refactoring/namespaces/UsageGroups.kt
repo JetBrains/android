@@ -21,7 +21,6 @@ import com.intellij.usages.Usage
 import com.intellij.usages.UsageGroup
 import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.usages.UsageTarget
-import com.intellij.usages.UsageView
 import com.intellij.usages.impl.rules.UsageGroupingRulesDefaultRanks
 import com.intellij.usages.rules.SingleParentUsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRule
@@ -59,7 +58,7 @@ data class ResourcePackageUsageGroup(val packageName: String) : UsageGroup {
 
   override fun canNavigate() = false
   override fun canNavigateToSource() = false
-  override fun getText(view: UsageView?): String = "Resources from $packageName"
+  override fun getPresentableGroupText(): String = "Resources from $packageName"
 
   override fun compareTo(other: UsageGroup): Int {
     return if (other is ResourcePackageUsageGroup) {
