@@ -17,6 +17,7 @@ package com.android.emulator;
 
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.protobuf.UnsafeByteOperations;
+import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
@@ -26,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class ImageConverter {
   private static Field bytesField;
@@ -39,7 +41,7 @@ public class ImageConverter {
       initByteStringFields();
     }
     catch (Throwable e) {
-      Logger.getInstance(ImageConverter.class).warn("Native image converter library is not available", e);
+      logger().warn("Native image converter library is not available", e);
     }
   }
 
@@ -59,7 +61,7 @@ public class ImageConverter {
         return;
       }
       catch (IllegalAccessException e) {
-        Logger.getInstance(ImageConverter.class).warn("Unable to use reflection, will use slow path", e);
+        logger().warn("Unable to use reflection, will use slow path", e);
         bytesField = null;
         offsetField = null;
         lengthField = null;
@@ -90,12 +92,13 @@ public class ImageConverter {
     }
   }
 
-  private synchronized static void loadNativeLibrary() {
+  @VisibleForTesting
+  synchronized static void loadNativeLibrary() {
     Path libFile = getLibLocation();
     System.load(libFile.toString());
   }
 
-  public static @NotNull Path getLibLocation() {
+  private static @NotNull Path getLibLocation() {
     String libName = getLibName();
     Path homePath = Paths.get(PathManager.getHomePath());
     // Installed Studio.
@@ -105,19 +108,16 @@ public class ImageConverter {
     }
 
     // Dev environment.
-    libFile = homePath.resolve("../../../../../../tools/adt/idea/emulator/native").normalize().resolve(getPlatformName()).resolve(libName);
+    libFile = Paths.get(StudioPathManager.getSourcesRoot()).resolve("tools/adt/idea/emulator/native")
+        .resolve(getPlatformName()).resolve(libName);
     if (Files.exists(libFile)) {
       return libFile;
     }
     throw new UnsatisfiedLinkError("Unable to find " + libName);
   }
 
-  public static @NotNull String getLibName() {
-    String fileName = System.mapLibraryName("image_converter");
-    if (SystemInfo.isMac) {
-      fileName = fileName.replace(".jnilib", ".dylib");
-    }
-    return fileName;
+  private static @NotNull String getLibName() {
+    return System.mapLibraryName("image_converter");
   }
 
   private static @NotNull String getPlatformName() {
@@ -144,11 +144,16 @@ public class ImageConverter {
       lengthField.setAccessible(true);
     }
     catch (NoSuchFieldException e) {
-      Logger.getInstance(ImageConverter.class).warn("Unable to access fields of " + byteStringClass.getName(), e);
+      logger().warn("Unable to access fields of " + byteStringClass.getName(), e);
       bytesField = null;
       offsetField = null;
       lengthField = null;
     }
+  }
+
+  @NotNull
+  private static Logger logger() {
+    return Logger.getInstance(ImageConverter.class);
   }
 
   private static native void initNative();
