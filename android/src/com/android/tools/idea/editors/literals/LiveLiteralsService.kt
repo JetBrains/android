@@ -394,9 +394,11 @@ class LiveLiteralsService private constructor(private val project: Project,
       if (editor.isDisposed || !isActive) return@launch
       val tracker = HighlightTracker(file, editor, cachedSnapshot)
 
-      CompilerLiveLiteralsManager.findAsync(file) {
+      CompilerLiveLiteralsManager.find(file).also {
         file.putUserData(COMPILER_LITERALS_FINDER, it)
-        project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
+        withContext(workerThread) {
+          project.messageBus.syncPublisher(MANAGED_ELEMENTS_UPDATED_TOPIC).onChange(file)
+        }
       }
 
       trackers.add(tracker)

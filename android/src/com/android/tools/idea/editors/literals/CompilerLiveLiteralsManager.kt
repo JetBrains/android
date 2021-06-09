@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -25,6 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.org.objectweb.asm.ClassReader
 
@@ -78,31 +81,28 @@ object CompilerLiveLiteralsManager {
     sourceFile.module?.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
   /**
-   * Finds the literals declared by the compiler for the given [sourceFile]. If any are found, [onCompilerLiteralsFound] will be called with
-   * the result of the lookup in a [Finder] object.
+   * Finds the literals declared by the compiler for the given [sourceFile] and returns a [Finder] object with the result.
    */
-  fun findAsync(sourceFile: PsiFile, onCompilerLiteralsFound: (Finder) -> Unit = {}) {
-    val project = sourceFile.project
-    val classOwner = sourceFile as? PsiClassOwner ?: return
-
-    ReadAction.nonBlocking<List<CompilerLiteralDefinition>> {
-      classOwner.classes
-        .mapNotNull { it.name }
-        .flatMap { className ->
-          val classFileLiterals = findLiteralsInClass(
-            findClassFileForSourceFileAndClassName(sourceFile, "${sourceFile.packageName}.LiveLiterals${'$'}$className"))
-          classFileLiterals
-        }
+  suspend fun find(sourceFile: PsiFile): Finder {
+    val classOwner = sourceFile as? PsiClassOwner ?: return object: Finder {
+      override fun hasCompilerLiveLiteral(path: String, offset: Int): Boolean = false
     }
-      .coalesceBy(sourceFile, LiveLiteralsService::class)
-      .inSmartMode(project)
-      .submit(AppExecutorUtil.getAppExecutorService())
-      .onSuccess {
-        if (it.isNotEmpty()) {
-          onCompilerLiteralsFound(object : Finder {
-            override fun hasCompilerLiveLiteral(path: String, offset: Int) = it.contains(CompilerLiteralDefinition(path, offset))
-          })
-        }
+    return withContext(workerThread) {
+      val packageName = runReadAction { sourceFile.packageName }
+      val liveLiteralClasses = runReadAction {
+        classOwner.classes.mapNotNull { it.name }
       }
+        .mapNotNull { className ->
+          findClassFileForSourceFileAndClassName(sourceFile, "${packageName}.LiveLiterals${'$'}$className")
+        }
+
+      val literalDefinitions = runReadAction {
+        liveLiteralClasses.flatMap { findLiteralsInClass(it) }
+      }
+
+      return@withContext object : Finder {
+        override fun hasCompilerLiveLiteral(path: String, offset: Int) = literalDefinitions.contains(CompilerLiteralDefinition(path, offset))
+      }
+    }
   }
 }
