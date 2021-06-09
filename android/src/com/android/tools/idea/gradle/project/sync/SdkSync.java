@@ -41,7 +41,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ModalityUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -234,7 +234,7 @@ public class SdkSync {
     // Just to be on the safe side, we update local.properties.
     setProjectSdk(localProperties, projectAndroidSdkPath);
 
-    GuiUtils.invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+    ModalityUiUtil.invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks.getInstance().setAndroidSdkPath(projectAndroidSdkPath, null);
     }), ModalityState.defaultModalityState());
   }

@@ -26,7 +26,7 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.Project
-import com.intellij.ui.GuiUtils.invokeLaterIfNeeded
+import com.intellij.util.ModalityUiUtil
 import org.jetbrains.android.sdk.AndroidSdkData
 import java.io.File
 
@@ -76,7 +76,7 @@ class SetSdkDirHyperlink(
   private fun setSdkDirsAndRequestSync(localProperties: List<LocalProperties>) {
     val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
     if (sdkData != null) {
-      invokeLaterIfNeeded(
+      ModalityUiUtil.invokeLaterIfNeeded(
         {
           CommandProcessor.getInstance().executeCommand(project, {
             val undoableAction = SetSdkDirUndoableAction(localProperties, sdkData)

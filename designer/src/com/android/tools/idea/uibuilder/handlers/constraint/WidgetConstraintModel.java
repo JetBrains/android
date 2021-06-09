@@ -60,8 +60,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnch
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.ui.GuiUtils;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ModalityUiUtil;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.Timer;
@@ -289,7 +289,7 @@ public class WidgetConstraintModel implements SelectionListener {
 
   private void fireUIUpdate() {
     if (myUpdateCallback != null) {
-      GuiUtils.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(() -> {
         myIsInCallback = true;
         try {
           myUpdateCallback.run();

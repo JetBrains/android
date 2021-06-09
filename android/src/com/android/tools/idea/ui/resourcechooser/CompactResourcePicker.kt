@@ -42,13 +42,13 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.GuiUtils
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearch
+import com.intellij.util.ModalityUiUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBDimension
@@ -222,7 +222,7 @@ class CompactResourcePicker(
    */
   private val showAsLoadingFuture = JobScheduler.getScheduler().schedule(
     {
-      GuiUtils.invokeLaterIfNeeded(
+      ModalityUiUtil.invokeLaterIfNeeded(
         {
           // Schedule the 'loading' state of the list, to avoid flashing in the UI
           resourcesList.setPaintBusy(true)

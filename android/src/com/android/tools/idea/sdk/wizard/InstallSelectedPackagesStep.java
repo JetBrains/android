@@ -52,7 +52,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.ui.GuiUtils;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBFont;
@@ -218,7 +218,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      GuiUtils.invokeLaterIfNeeded(() -> {
+      ModalityUiUtil.invokeLaterIfNeeded(() -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
