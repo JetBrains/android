@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED

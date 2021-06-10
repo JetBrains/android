@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.dsl.TestFileNameImpl
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400
@@ -103,6 +101,7 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.ExternalNa
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.CMakeOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -1040,7 +1039,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1167,7 +1166,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1206,7 +1205,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1383,7 +1382,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -2169,7 +2168,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val text = ""
     writeToBuildFile(text)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     val defaultConfig = buildModel.android().defaultConfig()
 
     defaultConfig.minSdkVersion().setValue(18)

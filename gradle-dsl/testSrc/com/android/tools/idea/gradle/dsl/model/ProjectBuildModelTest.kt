@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE
@@ -25,7 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.I
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.INTERPOLATED
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.STRING
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
-import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.runWriteAction
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.annotations.SystemDependent
@@ -385,7 +384,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val settingsModel = pbm.projectSettingsModel!!
     val buildModel = pbm.projectBuildModel!!
 
-    val version = GradleVersion.parse("3.5.0")
+    val version = AndroidGradlePluginVersion.parse("3.5.0")
     pbm.context.agpVersion = version
     assertEquals(version, pbm.context.agpVersion)
     assertEquals(version, buildModel.context.agpVersion)

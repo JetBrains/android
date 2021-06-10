@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
-import com.android.annotations.Nullable;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.ide.common.repository.GradleVersionRange;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a constraint on the validity of something -- for example, a description of
@@ -48,27 +46,27 @@ public class VersionConstraint {
   VersionConstraint() {
   }
 
-  public static VersionConstraint agpBefore(@NotNull GradleVersion agpVersion) {
+  public static VersionConstraint agpBefore(@NotNull AndroidGradlePluginVersion agpVersion) {
     VersionConstraint versionConstraint = new VersionConstraint();
     versionConstraint.agpVersion = Collections.singletonList(new VersionInterval(null, agpVersion));
     return versionConstraint;
   }
 
   public static VersionConstraint agpBefore(@NotNull String agpVersion) {
-    return agpBefore(GradleVersion.parse(agpVersion));
+    return agpBefore(AndroidGradlePluginVersion.Companion.parse(agpVersion));
   }
 
-  public static VersionConstraint agpFrom(@NotNull GradleVersion agpVersion) {
+  public static VersionConstraint agpFrom(@NotNull AndroidGradlePluginVersion agpVersion) {
     VersionConstraint versionConstraint = new VersionConstraint();
     versionConstraint.agpVersion = Collections.singletonList(new VersionInterval(agpVersion, null));
     return versionConstraint;
   }
 
   public static VersionConstraint agpFrom(@NotNull String agpVersion) {
-    return agpFrom(GradleVersion.parse(agpVersion));
+    return agpFrom(AndroidGradlePluginVersion.Companion.parse(agpVersion));
   }
 
-  public boolean isOkWith(@Nullable GradleVersion agpVersion) {
+  public boolean isOkWith(@Nullable AndroidGradlePluginVersion agpVersion) {
     if (this.agpVersion == null) {
       return true;
     }
@@ -97,18 +95,18 @@ public class VersionConstraint {
 }
 
 /**
- * Similar to {@link GradleVersionRange} but admits a null lower bound, and is not intended for parsing.
+ * Similar to {@code GradleVersionRange} (in android.sdktools.common) but admits a null lower bound, and is not intended for parsing.
  */
 class VersionInterval {
-  @Nullable private final GradleVersion min;
-  @Nullable private final GradleVersion max;
+  @Nullable private final AndroidGradlePluginVersion min;
+  @Nullable private final AndroidGradlePluginVersion max;
 
-  VersionInterval(@Nullable GradleVersion min, @Nullable GradleVersion max) {
+  VersionInterval(@Nullable AndroidGradlePluginVersion min, @Nullable AndroidGradlePluginVersion max) {
     this.min = min;
     this.max = max;
   }
 
-  public boolean contains(@Nullable GradleVersion query) {
+  public boolean contains(@Nullable AndroidGradlePluginVersion query) {
     if (query == null) return this.max == null;
     return (this.min == null || this.min.compareTo(query) <= 0) && (this.max == null || this.max.compareTo(query) > 0);
   }
