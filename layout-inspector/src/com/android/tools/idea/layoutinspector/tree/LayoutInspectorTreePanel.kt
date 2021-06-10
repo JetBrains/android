@@ -72,6 +72,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val comparator = SpeedSearchComparator(false)
   private var toolWindowCallback: ToolWindowCallback? = null
   private var filter = ""
+  private val modelModifiedListener = ::modelModified
+  private val selectionChangedListener = ::selectionChanged
 
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
@@ -139,12 +141,13 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {
-    layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(modelModifiedListener)
+    layoutInspector?.layoutInspectorModel?.selectionListeners?.remove(selectionChangedListener)
     layoutInspector = toolContext
     nodeType.model = layoutInspector?.layoutInspectorModel
-    layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
+    layoutInspector?.layoutInspectorModel?.modificationListeners?.add(modelModifiedListener)
     componentTreeModel.treeRoot = root
-    toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
+    layoutInspector?.layoutInspectorModel?.selectionListeners?.add(selectionChangedListener)
     layoutInspector?.layoutInspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
   }
 
@@ -270,7 +273,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
   }
-
 
   override fun dispose() {
   }

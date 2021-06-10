@@ -39,6 +39,10 @@ import kotlin.reflect.KProperty
 class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
   private var provider: PropertiesProvider? = null
+  private val selectionListener = ::handleNewSelection
+  private val modificationListener = ::handleModelChange
+  private val connectionListener = ::handleConnectionChange
+  private val propertiesListener = ::updateProperties
 
   var structuralUpdates = 0
     private set
@@ -51,12 +55,12 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   @Suppress("UNUSED_PARAMETER")
   private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
-    oldInspector?.layoutInspectorModel?.selectionListeners?.remove(::handleNewSelection)
-    newInspector?.layoutInspectorModel?.selectionListeners?.add(::handleNewSelection)
-    oldInspector?.layoutInspectorModel?.modificationListeners?.remove(::handleModelChange)
-    newInspector?.layoutInspectorModel?.modificationListeners?.add(::handleModelChange)
-    oldInspector?.layoutInspectorModel?.connectionListeners?.remove(::handleConnectionChange)
-    newInspector?.layoutInspectorModel?.connectionListeners?.add(::handleConnectionChange)
+    oldInspector?.layoutInspectorModel?.selectionListeners?.remove(selectionListener)
+    newInspector?.layoutInspectorModel?.selectionListeners?.add(selectionListener)
+    oldInspector?.layoutInspectorModel?.modificationListeners?.remove(modificationListener)
+    newInspector?.layoutInspectorModel?.modificationListeners?.add(modificationListener)
+    oldInspector?.layoutInspectorModel?.connectionListeners?.remove(connectionListener)
+    newInspector?.layoutInspectorModel?.connectionListeners?.add(connectionListener)
   }
 
   override fun deactivate() {
@@ -92,9 +96,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun handleConnectionChange(client: InspectorClient?) {
-    provider?.resultListeners?.remove(::updateProperties)
+    provider?.resultListeners?.remove(propertiesListener)
     provider = client?.provider
-    provider?.resultListeners?.add(::updateProperties)
+    provider?.resultListeners?.add(propertiesListener)
   }
 
   private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {
