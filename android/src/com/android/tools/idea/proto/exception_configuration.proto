@@ -48,6 +48,10 @@ message ExceptionAction {
       2;  // include the full stack trace of the exception
   optional LogFilter log_filter =
       3;  // specifies which idea log entries should be included
+  optional bool requires_confirmation = 4;  // prompt user before enabling
+  optional bool send_original =
+      5;  // Upload original report in addition to user-sent one.
+          // May result in double reporting of the same error.
 }
 
 // Configuration for actions to take when encountering an exception that matches
