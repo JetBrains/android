@@ -12,7 +12,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
 
