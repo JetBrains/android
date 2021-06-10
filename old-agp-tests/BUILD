@@ -47,7 +47,7 @@ iml_module(
         "//tools/external/gradle:gradle-distrib-3.5",
         "//tools/external/gradle:gradle-distrib-4.5",
     ],
-    test_shard_count = 2,
+    test_shard_count = 4,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
