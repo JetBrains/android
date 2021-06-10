@@ -74,7 +74,6 @@ typealias SourcesPath = File?
 typealias JavadocPath = File?
 typealias SampleSourcePath = File?
 typealias ArtifactId = String
-typealias ArtifactPath = File
 
 data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
 
@@ -95,7 +94,7 @@ data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: Javad
 @JvmOverloads
 fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   idToModuleData: (String) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths,
+  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   variant: IdeVariant? = null
 ) {
   val androidModel = ExternalSystemApiUtil.find(this, AndroidProjectKeys.ANDROID_MODEL)?.data ?: return // TODO: Error here
@@ -276,7 +275,7 @@ private class AndroidDependenciesSetupContext(
   private val projectDataNode: DataNode<ProjectData>,
   private val compositeData: CompositeBuildData?,
   private val idToModuleData: (String) -> ModuleData?,
-  private val additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths?,
+  private val additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths?,
   private val processedLibraries: MutableMap<String, LibraryDependencyData>,
   private val processedModuleDependencies: MutableMap<String, ModuleDependencyData>
 ) {
@@ -320,7 +319,7 @@ private class AndroidDependenciesSetupContext(
   private inner class JavaLibraryWorkItem(library: IdeJavaLibrary) : LibraryWorkItem<IdeJavaLibrary>(library) {
     override fun setupTarget() {
       libraryData.addPath(BINARY, library.artifact.absolutePath)
-      setupSourcesAndJavaDocsFrom(libraryData, libraryName, library)
+      setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }
   }
 
@@ -333,7 +332,7 @@ private class AndroidDependenciesSetupContext(
       // TODO: Should this be binary? Do we need the platform to allow custom types here?
       libraryData.addPath(BINARY, library.manifest)
       setupAnnotationsFrom(libraryData, libraryName, library)
-      setupSourcesAndJavaDocsFrom(libraryData, libraryName, library)
+      setupSourcesAndJavaDocsFrom(libraryData, libraryName)
     }
   }
 
@@ -406,11 +405,10 @@ private class AndroidDependenciesSetupContext(
 
   private fun setupSourcesAndJavaDocsFrom(
     libraryData: LibraryData,
-    libraryName: String,
-    library: IdeLibrary
+    libraryName: String
   ) {
     val (sources, javadocs, sampleSources) =
-      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName), library.artifact) ?: return
+      additionalArtifactsMapper(stripExtensionAndClassifier(libraryName)) ?: return
 
     sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
@@ -495,7 +493,7 @@ private fun getExtraSdkLibraries(
 
 fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   idToModuleData: (String) -> ModuleData?,
-  additionalArtifactsMapper: (ArtifactId, ArtifactPath) -> AdditionalArtifactsPaths,
+  additionalArtifactsMapper: (ArtifactId) -> AdditionalArtifactsPaths,
   androidModel: AndroidModuleModel,
   variant: IdeVariant
 ) {

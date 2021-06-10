@@ -726,7 +726,7 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
       return null;
     };
 
-    BiFunction<String, File, AdditionalArtifactsPaths> artifactLookup = (artifactId, artifactPath) -> {
+    Function<String, AdditionalArtifactsPaths> artifactLookup = (artifactId) -> {
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
       // or contain an imcomplete set of entries. In order to complete this set we need to obtains the reminder from LibraryFilePaths cache.
       AdditionalClassifierArtifacts artifacts = additionalArtifactsMap.get(artifactId);
