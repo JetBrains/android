@@ -83,7 +83,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
 
     val usageInfos = listOf(
       AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
-      RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel, GradleVersion.parse("6.1.1")),
+      RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel),
       GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
       WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
       WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, pluginModel, gradlePropertyModel, "1.3.72"),
@@ -94,7 +94,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "implementation"),
       ObsoleteConfigurationConfigurationUsageInfo(wrappedPsiElement, configurationModel, "paidReleaseImplementation"),
       RemoveFabricMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel, repositoryModel),
-      AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel, GradleVersion.parse("6.1.1")),
+      AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositoriesModel),
       RemoveFabricClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel, dependencyModel),
       AddGoogleServicesClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),
       AddFirebaseCrashlyticsClasspathDependencyUsageInfo(wrappedPsiElement, dependenciesModel),

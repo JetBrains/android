@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
@@ -182,7 +181,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
 
   /**
    * Look for Google Maven repository. If Gradle version is 4 or newer, look for it by method call and url.
-   * If it is lower than 4, look only by url.
+   * If it is lower than 4, look only by url.  (But as of Arctic Fox we only support Gradle 4 or newer.)
    *
    * @return {@code true} if Google Maven repository can be found in {@code repositoriesModel}, {@code false} otherwise.
    */
@@ -201,12 +200,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
   }
 
   @Override
-  public void addGoogleMavenRepository(@NotNull GradleVersion gradleVersion) {
-    if (gradleVersion.compareIgnoringQualifiers("4.0") >= 0) {
-      addRepositoryByMethodName(GOOGLE_METHOD_NAME);
-    }
-    else {
-      addMavenRepositoryByUrl(GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME);
-    }
+  public void addGoogleMavenRepository() {
+    addRepositoryByMethodName(GOOGLE_METHOD_NAME);
   }
 }

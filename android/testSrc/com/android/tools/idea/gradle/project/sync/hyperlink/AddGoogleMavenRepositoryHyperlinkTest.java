@@ -51,11 +51,6 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     super.setUp();
   }
 
-  public void testExecuteWithGradle3dot5() throws Exception {
-    // Check that quickfix adds google maven repository using url when gradle version is lower than 4.0
-    verifyExecute("3.5");
-  }
-
   public void testExecuteWithGradle4dot0() throws Exception {
     // Check that quickfix adds google maven repository using method name when gradle version is 4.0 or higher
     verifyExecute("4.0");
@@ -178,7 +173,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
   }
 
   private void verifyExecute(@NotNull String version) throws IOException {
-    assumeTrue(version.equals("3.5") || version.equals("4.0"));
+    assumeTrue(version.equals("4.0"));
     // Prepare project and mock version
     prepareProjectForImport(SIMPLE_APPLICATION);
     Project project = getProject();
@@ -201,12 +196,12 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     assertThat(buildModel).isNotNull();
     List<? extends RepositoryModel> repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(1);
-    verifyRepositoryForm(repositories.get(0), version.equals("4.0"));
+    verifyRepositoryForm(repositories.get(0), true);
 
     // Verify it was added in buildscript
     repositories = buildModel.buildscript().repositories().repositories();
     assertThat(repositories).hasSize(1);
-    verifyRepositoryForm(repositories.get(0), version.equals("4.0"));
+    verifyRepositoryForm(repositories.get(0), true);
   }
 
   private void removeRepositories(@NotNull Project project) {

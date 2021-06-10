@@ -122,11 +122,10 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
       if (filePsiElement != null && elements.contains(filePsiElement)) {
         switch (myRepository) {
           case GOOGLE:
-            GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersionOrDefault(myProject, new GradleVersion(1, 0));
-            buildModel.repositories().addGoogleMavenRepository(gradleVersion);
+            buildModel.repositories().addGoogleMavenRepository();
             PsiElement buildScriptElement = buildModel.buildscript().getPsiElement();
             if (buildScriptElement != null) {
-              buildModel.buildscript().repositories().addGoogleMavenRepository(gradleVersion);
+              buildModel.buildscript().repositories().addGoogleMavenRepository();
             }
             break;
           default:
