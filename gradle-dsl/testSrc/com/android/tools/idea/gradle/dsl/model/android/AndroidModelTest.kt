@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
@@ -23,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModelImpl
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Test
@@ -1277,7 +1277,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   fun testEditAndApplyLiteralElements400() {
     writeToBuildFile(TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1369,7 +1369,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   fun testEditAndApplyIntegerLiteralElements400() {
     writeToBuildFile(TestFile.EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1461,7 +1461,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   fun testAddAndApplyLiteralElements400() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1552,7 +1552,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   fun testAddAndApplyIntegerLiteralElements400() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 
@@ -1630,7 +1630,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   fun testAddAndApplyListElements400() {
     writeToBuildFile(TestFile.ADD_AND_APPLY_LIST_ELEMENTS)
     val buildModel = gradleBuildModel
-    buildModel.context.agpVersion = GradleVersion.parse("4.0.0")
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
     var android = buildModel.android()
     assertNotNull(android)
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.semantics
 
-import com.android.ide.common.repository.GradleVersion
 import com.google.common.truth.Expect
 import org.junit.Rule
 import org.junit.Test
@@ -29,7 +28,7 @@ class VersionConstraintTest {
     val versions = listOf("3.0.0", "4.0.0", "4.1.0-alpha01", "4.1.0-alpha02", "4.1.0-beta01", "4.1.0-rc01", "4.1.0", "4.1.1")
     versions.forEach { v1 ->
       val vc1 = VersionConstraint.agpFrom(v1)
-      val vc1b = VersionConstraint.agpFrom(GradleVersion.parse(v1))
+      val vc1b = VersionConstraint.agpFrom(AndroidGradlePluginVersion.parse(v1))
       expect.that(vc1 == vc1b).isTrue()
       expect.that(vc1.hashCode() == vc1b.hashCode()).isTrue()
       versions.forEach { v2 ->
@@ -44,7 +43,7 @@ class VersionConstraintTest {
       }
       versions.forEach { v3 ->
         val vc3 = VersionConstraint.agpBefore(v3)
-        val vc3b = VersionConstraint.agpBefore(GradleVersion.parse(v3))
+        val vc3b = VersionConstraint.agpBefore(AndroidGradlePluginVersion.parse(v3))
         expect.that(vc3 == vc3b).isTrue()
         expect.that(vc3.hashCode() == vc3b.hashCode()).isTrue()
         expect.that(vc1 == vc3).isFalse()
@@ -58,7 +57,7 @@ class VersionConstraintTest {
     versions.forEachIndexed { i, v1 ->
       val vc = VersionConstraint.agpFrom(v1)
       versions.forEachIndexed { j, v2 ->
-        val v = GradleVersion.parse(v2)
+        val v = AndroidGradlePluginVersion.parse(v2)
         if (i > j) {
           expect.that(vc.isOkWith(v)).isFalse()
         }
@@ -76,7 +75,7 @@ class VersionConstraintTest {
     versions.forEachIndexed { i, v1 ->
       val vc = VersionConstraint.agpBefore(v1)
       versions.forEachIndexed { j, v2 ->
-        val v = GradleVersion.parse(v2)
+        val v = AndroidGradlePluginVersion.parse(v2)
         if (i <= j) {
           expect.that(vc.isOkWith(v)).isFalse()
         }

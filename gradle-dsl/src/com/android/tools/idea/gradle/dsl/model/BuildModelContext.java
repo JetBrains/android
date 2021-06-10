@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslEleme
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
@@ -35,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
@@ -84,7 +84,7 @@ public final class BuildModelContext {
   @Nullable
   private GradleBuildFile myRootProjectFile;
   @Nullable
-  private GradleVersion agpVersion;
+  private AndroidGradlePluginVersion agpVersion;
 
   public void setRootProjectFile(@NotNull GradleBuildFile rootProjectFile) {
     myRootProjectFile = rootProjectFile;
@@ -95,12 +95,12 @@ public final class BuildModelContext {
     return myRootProjectFile;
   }
 
-  public void setAgpVersion(@Nullable GradleVersion agpVersion) {
+  public void setAgpVersion(@Nullable AndroidGradlePluginVersion agpVersion) {
     this.agpVersion = agpVersion;
   }
 
   @Nullable
-  public GradleVersion getAgpVersion() {
+  public AndroidGradlePluginVersion getAgpVersion() {
     return agpVersion;
   }
 
