@@ -716,7 +716,7 @@ public final class StudioFlags {
     "If enabled the component tree will include Composable nodes if they are wrapped in an Inspectable.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.show.semantics", "Show semantics",
-    "If enabled, display semantic information found in the agent.", false);
+    "If enabled, display semantic information found in the agent.", true);
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_ENABLE_SNAPSHOTS = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.snapshots", "Enable snapshots",
     "Enable saving and loading snapshots in the layout inspector.", false);
