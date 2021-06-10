@@ -21,13 +21,18 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.intellij.util.containers.ContainerUtil;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.junit.Test;
 
 public class CaptureNodeTest {
@@ -151,6 +156,39 @@ public class CaptureNodeTest {
     node.getAspectModel().addDependency(new AspectObserver()).onChange(CaptureNode.Aspect.FILTER_APPLIED, () -> latch.countDown());
     node.applyFilter(new Filter());
     assertThat(latch.await(100, TimeUnit.MILLISECONDS)).isTrue();
+  }
+
+  @Test
+  public void abbreviationCollapseAdjacentUninterestingNodes() {
+    Function<CaptureNodeModel, Function<List<CaptureNode>, CaptureNode>> make = data -> children -> {
+      CaptureNode node = new CaptureNode(data);
+      node.addChildren(children);
+      return node;
+    };
+    CaptureNodeModel interestingData = new SingleNameModel("interesting");
+    CaptureNodeModel uninterestingData = new SingleNameModel("uninteresting");
+
+    Function<List<CaptureNode>, CaptureNode>
+      transparent = make.apply(interestingData),
+      opaque = make.apply(uninterestingData);
+
+    Supplier<CaptureNode>
+      transparentLeaf = () -> transparent.apply(Arrays.asList()),
+      opaqueLeaf = () -> opaque.apply(Arrays.asList());
+
+    CaptureNode tree =
+      transparent.apply(Arrays.asList(transparent.apply(Arrays.asList(transparentLeaf.get(), transparentLeaf.get())),
+                                      opaque.apply(Arrays.asList(transparentLeaf.get(), opaqueLeaf.get())),
+                                      opaque.apply(Arrays.asList(transparentLeaf.get(),
+                                                                 opaque.apply(Arrays.asList(transparentLeaf.get(),
+                                                                                            transparentLeaf.get()))))));
+
+    CaptureNode abbreviatedTree = tree.abbreviatedBy(node -> node.getData() == uninterestingData, uninterestingData);
+
+    // All opaque nodes above are adjacent, so abbreviated tree should only have 1 opaque node
+    assertThat(abbreviatedTree.fold(node -> node.getData() == uninterestingData ? 1 : 0, Integer::sum)).isEqualTo(1);
+    // The only opaque node should have a total of 4 transparent children from collapsing
+    assertThat(abbreviatedTree.fold(node -> node.getData() == uninterestingData ? node.getChildCount() : 0, Integer::sum)).isEqualTo(4);
   }
 
   /**
