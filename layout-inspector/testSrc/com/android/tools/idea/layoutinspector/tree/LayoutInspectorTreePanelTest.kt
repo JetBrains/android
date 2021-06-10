@@ -146,7 +146,7 @@ class LayoutInspectorTreePanelTest {
           ViewString(13, "style")
 
           Root {
-            id = 1
+            id = ROOT
             packageName = 1
             className = 2
             ViewNode {
@@ -160,6 +160,18 @@ class LayoutInspectorTreePanelTest {
                 className = 7
                 resource = ViewResource(8, 10, 9)
                 layoutResource = ViewResource(4, 12, 3)
+              }
+              ViewNode {
+                id = VIEW3
+                packageName = 5
+                className = 6
+                layoutResource = ViewResource(4, 12, 3)
+                ViewNode {
+                  id = VIEW4
+                  packageName = 5
+                  className = 7
+                  layoutResource = ViewResource(4, 12, 3)
+                }
               }
             }
           }
@@ -329,16 +341,18 @@ class LayoutInspectorTreePanelTest {
     UIUtil.dispatchAllInvocationEvents()
 
     // The component tree is now collapsed with the top element: DecorView
-    // Demo has 3 views: DecorView, RelativeLayout, TextView. We should be able to find views even if they are currently collapsed:
+    // Demo has 5 views: DecorView(ROOT), RelativeLayout(VIEW1), TextView(VIEW2), RelativeLayout(VIEW3), TextView(VIEW4).
+    // We should be able to find views even if they are currently collapsed:
     tree.setFilter("View")
     UIUtil.dispatchAllInvocationEvents()
     var selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
     assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(ROOT)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate a down arrow keyboard event in the search field: the next match should be found (TextView)
+    // Simulate a down arrow keyboard event in the search field: the next match should be found (TextView(VIEW2))
     val searchField = JPanel()
     searchField.addKeyListener(tree.filterKeyListener)
     val ui = FakeUi(searchField)
@@ -348,6 +362,16 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.tree?.selectionRows?.asList()).containsExactly(2)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(selection?.view?.viewId?.name).isEqualTo("title")
+    assertThat(selection?.view?.drawId).isEqualTo(VIEW2)
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
     assertThat(model.selection).isSameAs(selection?.view)
 
     // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
@@ -356,14 +380,48 @@ class LayoutInspectorTreePanelTest {
     assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
     assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
     assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(ROOT)
     assertThat(model.selection).isSameAs(selection?.view)
 
-    // Simulate an up arrow keyboard event in the search field: the previous match should be found (TextView)
+    // Now hide TextView(VIEW2)
+    model.hideSubtree(model[VIEW2]!!)
+
+    // Simulate another down arrow keyboard event in the search field: the next match should be found (TextView(VIEW4))
+    // Because TextView(VIEW2) is skipped when hidden
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate another down arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(ROOT)
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate an up arrow keyboard event in the search field: the previous match should be found (TextView(VIEW4))
     ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
     selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
-    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(2)
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(4)
     assertThat(selection?.view?.qualifiedName).isEqualTo(FQCN_TEXT_VIEW)
-    assertThat(selection?.view?.viewId?.name).isEqualTo("title")
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(VIEW4)
+    assertThat(model.selection).isSameAs(selection?.view)
+
+    // Simulate another up arrow keyboard event in the search field: the next match should be found (back to DecorView)
+    // (skipping TextView(VIEW2))
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    selection = tree.tree?.lastSelectedPathComponent as? TreeViewNode
+    assertThat(tree.tree?.selectionRows?.asList()).containsExactly(0)
+    assertThat(selection?.view?.qualifiedName).isEqualTo(DECOR_VIEW)
+    assertThat(selection?.view?.viewId?.name).isNull()
+    assertThat(selection?.view?.drawId).isEqualTo(ROOT)
     assertThat(model.selection).isSameAs(selection?.view)
 
     // Accepting a matched value, should close the search field
