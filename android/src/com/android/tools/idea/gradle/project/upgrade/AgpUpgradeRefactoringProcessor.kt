@@ -941,15 +941,8 @@ class AgpVersionUsageInfo(
 }
 
 class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new) {
-    this.gradleVersion = getCompatibleGradleVersion(new).version
-  }
-  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
-    this.gradleVersion = getCompatibleGradleVersion(processor.new).version
-  }
-
-  var gradleVersion: GradleVersion
-    @VisibleForTesting set
+  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
   override fun necessity() = standardPointNecessity(current, new, GradleVersion(3, 0, 0))
 
@@ -970,7 +963,7 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
               //  we're going to do in terms of that parent.  (But a buildscript block without a repositories block is unusual)
               repositories.psiElement?.let { element ->
                 val wrappedElement = WrappedPsiElement(element, this, USAGE_TYPE)
-                usages.add(RepositoriesNoGMavenUsageInfo(wrappedElement, repositories, gradleVersion))
+                usages.add(RepositoriesNoGMavenUsageInfo(wrappedElement, repositories))
               }
             }
           }
@@ -1005,13 +998,12 @@ class GMavenRepositoryRefactoringProcessor : AgpUpgradeComponentRefactoringProce
 
 class RepositoriesNoGMavenUsageInfo(
   element: WrappedPsiElement,
-  private val repositoriesModel: RepositoriesModel,
-  private val gradleVersion: GradleVersion
+  private val repositoriesModel: RepositoriesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.repositoriesNoGMavenUsageInfo.tooltipText")
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    repositoriesModel.addGoogleMavenRepository(gradleVersion)
+    repositoriesModel.addGoogleMavenRepository()
   }
 }
 
@@ -1434,11 +1426,8 @@ class FabricCrashlyticsRefactoringProcessor : AgpUpgradeComponentRefactoringProc
           }
         }
         if (seenFabricMavenRepository && !repositories.hasGoogleMavenRepository()) {
-          // TODO(xof): in theory this could collide with the refactoring to add google() to pre-3.0.0 projects.  In practice there's
-          //  probably little overlap in fabric upgrades with such old projects.
-          val compatibleGradleVersion = getCompatibleGradleVersion(new)
           val wrappedPsiElement = WrappedPsiElement(repositoriesOrHigherPsiElement, this, ADD_GMAVEN_REPOSITORY_USAGE_TYPE)
-          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories, compatibleGradleVersion.version)
+          val usageInfo = AddGoogleMavenRepositoryUsageInfo(wrappedPsiElement, repositories)
           usages.add(usageInfo)
         }
       }
@@ -1622,11 +1611,10 @@ class RemoveFabricMavenRepositoryUsageInfo(
 
 class AddGoogleMavenRepositoryUsageInfo(
   element: WrappedPsiElement,
-  private val repositories: RepositoriesModel,
-  private val gradleVersion: GradleVersion
+  private val repositories: RepositoriesModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    repositories.addGoogleMavenRepository(gradleVersion)
+    repositories.addGoogleMavenRepository()
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.addGoogleMavenRepositoryUsageInfo.tooltipText")

@@ -24,7 +24,6 @@ import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralR
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
@@ -731,7 +730,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.buildscript().repositories();
 
-    repositoriesModel.addGoogleMavenRepository(GradleVersion.tryParse("4.10.1"));
+    repositoriesModel.addGoogleMavenRepository();
     applyChangesAndReparse(buildModel);
 
     verifyFileContents(myBuildFile, TestFile.ADD_GOOGLE_REPOSITORY_WITH_WITH);

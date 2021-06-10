@@ -142,9 +142,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
     processor.classpathRefactoringProcessor.isEnabled = false
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it is GMavenRepositoryRefactoringProcessor }
-    processor.componentRefactoringProcessors
-      .filterIsInstance<GMavenRepositoryRefactoringProcessor>()
-      .forEach { it.gradleVersion = GradleVersion.parse("6.5") }
     processor.run()
     verifyFileContents(buildFile, TestFileName("GMavenRepository/AGP2ProjectExpected"))
   }
