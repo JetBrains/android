@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement.INCLUDE;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.BUILD_FILE_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.PROJECT_DIR;
-import static com.android.utils.BuildScriptUtil.findGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -45,6 +44,7 @@ import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
@@ -324,7 +324,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
 
     // If the BUILD_FILE_NAME property doesn't exist, look for the default build file in the module.
     if (buildFileName == null) {
-      return findGradleBuildFile(moduleDirectory);
+      return BuildScriptUtil.findGradleBuildFile(moduleDirectory);
     }
 
     return new File(moduleDirectory, buildFileName);

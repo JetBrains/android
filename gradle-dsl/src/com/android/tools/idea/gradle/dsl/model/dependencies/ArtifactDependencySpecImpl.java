@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 

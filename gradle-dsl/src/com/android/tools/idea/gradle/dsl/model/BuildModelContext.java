@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFileCache;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
-import com.android.utils.BuildScriptUtil;
+import com.android.tools.idea.gradle.dsl.utils.BuildScriptUtil;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
