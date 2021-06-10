@@ -212,7 +212,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun matchNode(node: TreeViewNode): Boolean {
-    val treeSettings = layoutInspector?.treeSettings ?: return true
+    val inspector = layoutInspector ?: return true
+    if (!inspector.layoutInspectorModel.isVisible(node.view)) {
+      return false
+    }
+    val treeSettings = inspector.treeSettings
     if (filter.isEmpty() && !treeSettings.highlightSemantics) {
       return true
     }
