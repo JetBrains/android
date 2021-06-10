@@ -24,6 +24,7 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import java.util.PriorityQueue
 import java.util.function.Predicate
 import java.util.stream.Stream
+import kotlin.reflect.KMutableProperty1
 
 open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
   /**
@@ -86,6 +87,8 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
     childrenList.add(node)
     node.parent = this
   }
+
+  fun addChildren(nodes: Collection<CaptureNode>) = nodes.forEach(::addChild)
 
   override fun getChildCount() = childrenList.size
   override fun getChildAt(index: Int) = childrenList[index]
@@ -171,6 +174,57 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
     return FilterResult(matchCount, totalCount, !filter.isEmpty)
   }
 
+  private fun resetDepth(n: Int) {
+    depth = n
+    children.forEach { it.resetDepth(n + 1) }
+  }
+
+  /**
+   * Return a new tree like this one, but with all uninteresting nodes collapsed into the given abbreviation.
+   * In the returned abbreviated tree:
+   *   - no abbreviated parent has any abbreviated child
+   *   - no consecutive siblings are both abbreviated
+   */
+  fun abbreviatedBy(isUninteresting: (CaptureNode) -> Boolean, abbreviation: CaptureNodeModel) =
+    fold({it.clonedWithData(if (isUninteresting(it)) abbreviation else it.data)}) { clone, abbreviatedChild ->
+      clone.also {
+        when {
+          // Parent and child are both abbreviated -> merge child's children with parent's
+          clone.data === abbreviation && abbreviatedChild.data === abbreviation -> clone.addChildren(abbreviatedChild.children)
+          // Consecutive children are abbreviated -> merge em
+          abbreviatedChild.data === abbreviation && clone.children.lastOrNull()?.data === abbreviation ->
+            clone.children.last().let { mergedChild ->
+              mergedChild.addChildren(abbreviatedChild.children)
+              mergedChild.copyFrom(abbreviatedChild, CaptureNode::endGlobal, CaptureNode::endThread)
+            }
+          // Nothing to merge, just add it
+          else -> clone.addChild(abbreviatedChild)
+        }
+      }
+    }.also { it.resetDepth(depth) }
+
+  /**
+   * Accumulates value of type T over the capture tree.
+   * This is a non-standard version of fold that instead of taking a single `combine` function
+   * that combines sub-results, mirroring CaptureNode's shape,
+   * allows more incremental accumulation of the result.
+   *
+   * @param init Computes the initial result from the node
+   * @param combine Combines the accumulated result with the result from the next child to produce a new one
+   */
+  fun <T> fold(init: (CaptureNode) -> T, combine: (T, T) -> T): T =
+    children.fold(init(this)) { acc, child -> combine(acc, child.fold(init, combine)) }
+
+  /**
+   * Return a copy of this node (same start, end, etc.) with custom data and empty children list
+   */
+  private fun clonedWithData(data: CaptureNodeModel) = CaptureNode(data).also { clone ->
+    clone.copyFrom(this,
+                   CaptureNode::startGlobal, CaptureNode::endGlobal,
+                   CaptureNode::startThread, CaptureNode::endThread,
+                   CaptureNode::clockType)
+  }
+
   enum class FilterType {
     /**
      * This [CaptureNode] matches to the filter.
@@ -194,4 +248,9 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
      */
     FILTER_APPLIED
   }
+}
+
+private fun<T> T.copyFrom(that: T, vararg properties: KMutableProperty1<T, *>) {
+  fun<P> T.copy(property: KMutableProperty1<T, P>) = property.set(this, property.get(that))
+  properties.forEach { copy(it) }
 }
