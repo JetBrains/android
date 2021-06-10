@@ -26,21 +26,26 @@ import javax.swing.Icon
 val WHITE = JBColor(Color.white, Color.white)
 
 /**
- * Generator of icons where all colors are replaced with the given color.
- * The alpha value of the source icon is maintained. It is assumed that the alpha of the target color is 1.
+ * Generator of icons where the colors are modified from given source icons.
  */
 object ColoredIconGenerator {
 
+  /**
+   * Generate an icon where all the colors are replaced with [WHITE].
+   *
+   * This method is meant to be used in renderer of selected content where the background is dark blue.
+   */
   @JvmStatic fun generateWhiteIcon(icon: Icon): Icon {
     return generateColoredIcon(icon, WHITE)
   }
 
-  @Deprecated(message = "Use generatedColorIcon(Icon, JBColor) instead",
-              replaceWith = ReplaceWith(expression = "ColoredIconGenerator.generateColoredIcon(icon, JBColor(color, color))",
-                                        imports = ["com.intellij.ui.JBColor"]))
-  fun generateColoredIcon(icon: Icon, color: Color) = generateColoredIcon(icon, JBColor(color, color))
-
-  fun generateColoredIcon(icon: Icon, color: JBColor): Icon = IconLoader.createLazy(object : Supplier<Icon> {
+  /**
+   * Generate an icon where all the colors are replaced with the given [color].
+   *
+   * The alpha value of the source icon is maintained. It is assumed that the alpha of the target [color] is 1.
+   * Note: that the actual instance of [color] may be an [JBColor] and we may end up with 3 different icons in the cache created.
+   */
+  fun generateColoredIcon(icon: Icon, color: Color): Icon = IconLoader.createLazy(object : Supplier<Icon> {
     private val cache = mutableMapOf<Int, Icon>()
 
     override fun get(): Icon =
