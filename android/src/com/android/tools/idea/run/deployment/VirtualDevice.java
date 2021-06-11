@@ -292,6 +292,7 @@ final class VirtualDevice extends Device {
     VirtualDevice device = (VirtualDevice)object;
 
     return getName().equals(device.getName()) &&
+           getType().equals(device.getType()) &&
            getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
@@ -303,14 +304,14 @@ final class VirtualDevice extends Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(
-      getName(),
-      getLaunchCompatibility(),
-      getKey(),
-      getConnectionTime(),
-      getAndroidDevice(),
-      myNameKey,
-      mySnapshots,
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
+    return Objects.hash(getName(),
+                        getType(),
+                        getLaunchCompatibility(),
+                        getKey(),
+                        getConnectionTime(),
+                        getAndroidDevice(),
+                        myNameKey,
+                        mySnapshots,
+                        mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
   }
 }

@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.Device.Type;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.util.Collections;
@@ -80,6 +81,7 @@ public final class ConnectedDevicesTaskTest {
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
       .setName("emulator-5554")
+      .setType(Type.PHONE)
       .setKey(new SerialNumber("emulator-5554"))
       .setAndroidDevice(androidDevice)
       .build();
@@ -102,6 +104,7 @@ public final class ConnectedDevicesTaskTest {
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
       .setName("86UX00F4R")
+      .setType(Type.PHONE)
       .setKey(new SerialNumber("86UX00F4R"))
       .setAndroidDevice(androidDevice)
       .build();
@@ -126,6 +129,7 @@ public final class ConnectedDevicesTaskTest {
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
       .setName("Pixel_4_API_30")
+      .setType(Type.PHONE)
       .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(androidDevice)
       .build();
@@ -149,6 +153,7 @@ public final class ConnectedDevicesTaskTest {
     // Assert
     Object connectedDevice = new ConnectedDevice.Builder()
       .setName("Pixel_4_API_30")
+      .setType(Type.PHONE)
       .setKey(new VirtualDeviceName("Pixel_4_API_30"))
       .setAndroidDevice(androidDevice)
       .build();
