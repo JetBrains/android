@@ -86,7 +86,7 @@ class DeviceListStep(model: WearDevicePairingModel, val project: Project, val wi
     emptyTextTitle = message("wear.assistant.device.list.no.phone")
   )
   private val wearListPanel = createDeviceListPanel(
-    title = message("wear.assistant.device.list.phone.header"),
+    title = message("wear.assistant.device.list.wear.header"),
     listName = "wearList",
     emptyTextTitle = message("wear.assistant.device.list.no.wear")
   )
