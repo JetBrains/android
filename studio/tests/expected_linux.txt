@@ -1944,7 +1944,7 @@ android-studio/plugins/android/lib/javacpp-1.5.7.jar
 android-studio/plugins/android/lib/javacpp-platform-1.5.7.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
 android-studio/plugins/android/lib/javax.inject-1.jar
-android-studio/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
+android-studio/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
 android-studio/plugins/android/lib/juniversalchardet-1.0.3.jar
 android-studio/plugins/android/lib/kotlinx-coroutines-guava-1.5.0.jar
 android-studio/plugins/android/lib/kxml2-2.3.0.jar

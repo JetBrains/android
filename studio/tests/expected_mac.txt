@@ -1945,7 +1945,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.7.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.7.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
-Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta09.jar
+Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
 Android Studio Preview.app/Contents/plugins/android/lib/juniversalchardet-1.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/kotlinx-coroutines-guava-1.5.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/kxml2-2.3.0.jar
