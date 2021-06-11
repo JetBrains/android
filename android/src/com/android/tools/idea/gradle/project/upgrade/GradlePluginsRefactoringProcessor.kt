@@ -47,6 +47,22 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
+    fun addUsagesFor(plugin: PluginModel) {
+      if (plugin.version().valueType == GradlePropertyModel.ValueType.STRING) {
+        val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
+        if (GradleVersion(0, 0) >= version) return
+        WELL_KNOWN_GRADLE_PLUGIN_TABLE[plugin.name().toString()]?.let { info ->
+          val minVersion = info(compatibleGradleVersion)
+          if (minVersion <= version) return
+          val resultModel = plugin.version().resultModel
+          val element = resultModel.rawElement
+          val psiElement = element?.psiElement ?: return
+          val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+          usages.add(WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, plugin, resultModel, minVersion.toString()))
+        }
+      }
+    }
+
     // Check plugins for compatibility with our minimum Gradle version even if we're not upgrading (because the project has a higher
     // version, for example) because some compatibility issues are related to the (AGP,Gradle) version pair rather than just directly
     // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
@@ -74,22 +90,9 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
           }
         }
       }
-      model.plugins().forEach plugin@{ plugin ->
-        if (plugin.version().valueType == GradlePropertyModel.ValueType.STRING) {
-          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@plugin
-          if (GradleVersion(0, 0) >= version) return@plugin
-          WELL_KNOWN_GRADLE_PLUGIN_TABLE[plugin.name().toString()]?.let { info ->
-            val minVersion = info(compatibleGradleVersion)
-            if (minVersion <= version) return@plugin
-            val resultModel = plugin.version().resultModel
-            val element = resultModel.rawElement
-            val psiElement = element?.psiElement ?: return@plugin
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
-            usages.add(WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, plugin, resultModel, minVersion.toString()))
-          }
-        }
-      }
+      model.plugins().forEach(::addUsagesFor)
     }
+    projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
     return usages.toTypedArray()
   }
 

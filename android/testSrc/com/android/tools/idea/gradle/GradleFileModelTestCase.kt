@@ -61,9 +61,11 @@ open class GradleFileModelTestCase {
   @JvmField
   var languageName: String? = null
   protected lateinit var buildFile: VirtualFile
+  protected lateinit var settingsFile: VirtualFile
   protected lateinit var testDataPath: String
-  private val isGroovy: Boolean get() = languageName == GradleFileModelTestCase.GROOVY_LANGUAGE
+  private val isGroovy: Boolean get() = languageName == GROOVY_LANGUAGE
   protected val buildFileName: String get() = if (isGroovy) SdkConstants.FN_BUILD_GRADLE else SdkConstants.FN_BUILD_GRADLE_KTS
+  protected val settingsFileName: String get() = if (isGroovy) SdkConstants.FN_SETTINGS_GRADLE else SdkConstants.FN_SETTINGS_GRADLE_KTS
   protected val gradleBuildModel: GradleBuildModel
     get() {
       val projectBuildModel = ProjectBuildModel.get(projectRule.project)
@@ -84,16 +86,22 @@ open class GradleFileModelTestCase {
   fun setUp() {
     runWriteAction {
       buildFile = projectRule.fixture.tempDirFixture.createFile(buildFileName)
+      settingsFile = projectRule.fixture.tempDirFixture.createFile(settingsFileName)
       assertTrue(buildFile.isWritable)
+      assertTrue(settingsFile.isWritable)
     }
   }
 
-  protected fun writeToBuildFile(fileName: GradleFileModelTestCase.TestFileName) {
+  private fun writeToGradleFile(fileName: TestFileName, file: VirtualFile) {
     val testFile = fileName.toFile(testDataPath, testDataExtension!!)
     assertTrue(testFile.exists())
     val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
-    runWriteAction { VfsUtil.saveText(buildFile, VfsUtilCore.loadText(virtualTestFile!!)) }
+    runWriteAction { VfsUtil.saveText(file, VfsUtilCore.loadText(virtualTestFile!!)) }
   }
+
+  protected fun writeToBuildFile(fileName: TestFileName) = writeToGradleFile(fileName, buildFile)
+
+  protected fun writeToSettingsFile(fileName: TestFileName) = writeToGradleFile(fileName, settingsFile)
 
   protected fun applyChanges(buildModel: GradleBuildModel) {
     WriteCommandAction.runWriteCommandAction(projectRule.project) { buildModel.applyChanges() }
@@ -106,7 +114,7 @@ open class GradleFileModelTestCase {
   }
 
   @Throws(IOException::class)
-  protected fun verifyFileContents(file: VirtualFile, expected: GradleFileModelTestCase.TestFileName) {
+  protected fun verifyFileContents(file: VirtualFile, expected: TestFileName) {
     fun String.normalize() = replace("[ \\t]+".toRegex(), "").trim { it <= ' ' }
 
     val expectedText = FileUtil.loadFile(expected.toFile(testDataPath, testDataExtension!!)).normalize()

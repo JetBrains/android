@@ -826,6 +826,23 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
+    fun addUsagesFor(plugin: PluginModel) {
+      if (plugin.version().valueType == STRING && plugin.name().toString().startsWith("com.android")) {
+        val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
+        if (version == current && version < new)  {
+          val resultModel = plugin.version().resultModel
+          val psiElement = when (val element = resultModel.rawElement) {
+            null -> return
+            else -> element.psiElement
+          }
+          val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
+          psiElement?.let {
+            usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
+          }
+        }
+      }
+    }
+
     val buildSrcDir = File(getBaseDirPath(project), "buildSrc").toVirtualFile()
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       // Using the buildModel, look for classpath dependencies on AGP, and if we find one, record it as a usage.
@@ -873,23 +890,9 @@ class AgpClasspathDependencyRefactoringProcessor : AgpUpgradeComponentRefactorin
         }
       }
       // Examine plugins for plugin Dsl declarations.
-      model.plugins().forEach { plugin ->
-        if (plugin.version().valueType == STRING && plugin.name().toString().startsWith("com.android")) {
-          val version = GradleVersion.tryParse(plugin.version().toString()) ?: return@forEach
-          if (version == current && version < new)  {
-            val resultModel = plugin.version().resultModel
-            val psiElement = when (val element = resultModel.rawElement) {
-              null -> return@forEach
-              else -> element.psiElement
-            }
-            val presentableText = AndroidBundle.message("project.upgrade.agpClasspathDependencyRefactoringProcessor.target.presentableText")
-            psiElement?.let {
-              usages.add(AgpVersionUsageInfo(WrappedPsiElement(it, this, USAGE_TYPE, presentableText), current, new, resultModel))
-            }
-          }
-        }
-      }
+      model.plugins().forEach(::addUsagesFor)
     }
+    projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
     return usages.toTypedArray()
   }
 
