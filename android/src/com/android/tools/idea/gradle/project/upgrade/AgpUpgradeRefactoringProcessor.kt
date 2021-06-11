@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
@@ -499,6 +500,7 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
+    projectBuildModel.context.agpVersion = AndroidGradlePluginVersion.tryParse(new.toString())
     trackProcessorUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
     executedUsages = usages
     super.execute(usages)
@@ -746,6 +748,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
+    projectBuildModel.context.agpVersion = AndroidGradlePluginVersion.tryParse(new.toString())
     trackComponentUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
     super.execute(usages)
   }
