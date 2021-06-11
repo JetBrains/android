@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
+import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
@@ -31,5 +33,19 @@ class CpuFullTraceAnalysisModelTest {
     val model = CpuFullTraceAnalysisModel(capture, Range())
     val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP)
+  }
+
+  @Test
+  fun systemTraceWithFrameDataShouldShowFramesTab() {
+    val systemTraceData = Mockito.mock(CpuSystemTraceData::class.java).apply {
+      Mockito.`when`(getAndroidFrameLayers()).thenReturn(listOf(TraceProcessor.AndroidFrameEventsResult.Layer.getDefaultInstance()))
+    }
+    val capture = Mockito.mock(CpuCapture::class.java).apply {
+      Mockito.`when`(this.range).thenReturn(Range())
+      Mockito.`when`(this.systemTraceData).thenReturn(systemTraceData)
+    }
+    val model = CpuFullTraceAnalysisModel(capture, Range())
+    val analysisModels = model.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
+    assertThat(analysisModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP, Type.FRAMES)
   }
 }
