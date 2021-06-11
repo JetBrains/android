@@ -225,7 +225,7 @@
     </action>
 
     <action id="InferAnnotations" class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
-      <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
+      <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
     <!-- FIXME-ank3: custom feedback action (move to android menu?)-->
     <!--<action-->
