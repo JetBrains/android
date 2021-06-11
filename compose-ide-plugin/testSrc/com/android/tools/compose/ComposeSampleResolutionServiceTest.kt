@@ -54,12 +54,12 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
-    // Pass empty path as library path to make sure that sample sources are from maven, not from local directory.
-    val samples = libraryFilePaths.findSampleSourcesJarPath("com.example.libraryWithSamples:lib1:1.0.0", File(""))
+    // Make sure that sample sources are from maven, not from local directory.
+    val samples = libraryFilePaths.getCachedPathsForArtifact("com.example.libraryWithSamples:lib1:1.0.0")?.sampleSource
     // We download samples only for androidx libraries.
     assume().that(samples).isNull()
 
-    val androidxSamples = libraryFilePaths.findSampleSourcesJarPath("androidx.ui.libraryWithSamples:lib1:1.0.0", File(""))
+    val androidxSamples = libraryFilePaths.getCachedPathsForArtifact("androidx.ui.libraryWithSamples:lib1:1.0.0")?.sampleSource
     assume().that(androidxSamples).isNotNull()
     assertThat(androidxSamples!!.name).isEqualTo("lib1-1.0.0-${AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER}.jar")
   }

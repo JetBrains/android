@@ -1384,11 +1384,11 @@ private fun setupDataNodesForSelectedVariant(
     moduleNode.setupCompilerOutputPaths(newVariant)
     // Then patch in any Kapt generated sources that we need
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
-    moduleNode.setupAndroidDependenciesForModule({ id: String -> moduleIdToDataMap[id] }, { id, path ->
+    moduleNode.setupAndroidDependenciesForModule({ id: String -> moduleIdToDataMap[id] }, { id, _ ->
       AdditionalArtifactsPaths(
-        libraryFilePaths.findSourceJarPath(id, path),
-        libraryFilePaths.findJavadocJarPath(id, path),
-        libraryFilePaths.findSampleSourcesJarPath(id, path)
+        libraryFilePaths.getCachedPathsForArtifact(id)?.sources,
+        libraryFilePaths.getCachedPathsForArtifact(id)?.javaDoc,
+        libraryFilePaths.getCachedPathsForArtifact(id)?.sampleSource
       )
     }, newVariant)
     moduleNode.setupAndroidContentEntries(newVariant)
