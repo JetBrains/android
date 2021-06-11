@@ -294,12 +294,6 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun findUsages(): Array<UsageInfo> {
-    // TODO(xof): *something* needs to ensure that the buildModel has a fresh view of the Dsl files before
-    //  looking for things (particularly since findUsages can be re-run by user action) but it's not clear that
-    //  this is the right thing: it is a bit expensive, and sub-processors will have to also reparse() in case
-    //  they are run in isolation.  We could be correct regarding the sub-processor issue by either keeping track
-    //  of which constructor was used (e.g. "do I have a parent processor?  If so, don't reparse") or by reparsing
-    //  in findUsages() but calling findComponentUsages() from here.
     projectBuildModel.reparse()
     val usages = ArrayList<UsageInfo>()
 
@@ -724,6 +718,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val current: GradleVersion
   val new: GradleVersion
   val uuid: String
+  val hasParentProcessor: Boolean
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
     set(value) {
@@ -758,17 +753,22 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.current = current
     this.new = new
     this.uuid = UUID.randomUUID().toString()
+    this.hasParentProcessor = false
   }
 
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor) {
     this.current = processor.current
     this.new = processor.new
     this.uuid = processor.uuid
+    this.hasParentProcessor = true
   }
 
   abstract fun necessity(): AgpUpgradeComponentNecessity
 
   public final override fun findUsages(): Array<out UsageInfo> {
+    if (!hasParentProcessor) {
+      projectBuildModel.reparse()
+    }
     if (!isEnabled) {
       trackComponentUsage(FIND_USAGES, 0)
       LOG.info("\"${this.commandName}\" refactoring is disabled")
