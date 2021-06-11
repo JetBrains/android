@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
+import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -48,15 +49,17 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
       .setKey(key30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device deviceWithError = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
+      .setType(Type.PHONE)
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "error"))
       .setKey(key29)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "error"))
       .build();
 
     List<Device> devices = Arrays.asList(deviceWithError, device);

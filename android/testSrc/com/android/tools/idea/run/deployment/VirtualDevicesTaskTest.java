@@ -22,6 +22,7 @@ import com.android.emulator.snapshot.SnapshotOuterClass;
 import com.android.emulator.snapshot.SnapshotOuterClass.Image;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.Device.Type;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -64,6 +65,7 @@ public final class VirtualDevicesTaskTest {
     // Assert
     Object device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
+      .setType(Type.PHONE)
       .setKey(new VirtualDevicePath("/home/juancnuno/.android/avd/Pixel_4_API_30.avd"))
       .setAndroidDevice(myAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
