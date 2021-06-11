@@ -40,6 +40,15 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
+  fun testKotlinPluginVersionInSettings() {
+    writeToSettingsFile(TestFileName("GradlePlugins/KotlinPluginVersionInSettings"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+
+    verifyFileContents(settingsFile, TestFileName("GradlePlugins/KotlinPluginVersionInSettingsExpected"))
+  }
+
+  @Test
   fun testKotlinPluginNewEnoughVersionInLiteral() {
     writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginNewEnoughVersionInLiteral"))
     val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
@@ -53,6 +62,14 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginNewEnoughVersionInDsl"))
+  }
+
+  @Test
+  fun testKotlinPluginNewEnoughVersionInSettings() {
+    writeToSettingsFile(TestFileName("GradlePlugins/KotlinPluginNewEnoughVersionInSettings"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+    verifyFileContents(settingsFile, TestFileName("GradlePlugins/KotlinPluginNewEnoughVersionInSettings"))
   }
 
   @Test
