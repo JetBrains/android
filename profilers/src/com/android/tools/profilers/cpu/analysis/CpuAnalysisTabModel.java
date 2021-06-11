@@ -20,7 +20,7 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Model for {@link CpuAnalysisTab}. Each tab has unique rendering requirements as such this container holds a list of data that can be
+ * Model for CpuAnalysisTab. Each tab has unique rendering requirements as such this container holds a list of data that can be
  * used for the tab. An example of a tab that uses the list may be the Flame chart with multiselect or in the "Full Trace".
  *
  * @param <T> type of the analysis object, e.g. {@link com.android.tools.profilers.cpu.CpuThreadTrackModel}.
@@ -39,6 +39,7 @@ public class CpuAnalysisTabModel<T> {
     BOTTOM_UP("Bottom Up"),
     EVENTS("Events"),
     OCCURRENCES("Occurrences"),
+    FRAMES("Frames"),
     LOGS("Logs");
 
     /**

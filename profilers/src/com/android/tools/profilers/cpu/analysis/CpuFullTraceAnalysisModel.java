@@ -50,5 +50,12 @@ public class CpuFullTraceAnalysisModel extends CpuAnalysisModel<CpuCapture> {
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.BOTTOM_UP, selectionRange, capture, CpuCapture::getCaptureNodes);
     bottomUp.getDataSeries().add(capture);
     addTabModel(bottomUp);
+
+    // Frames (System Trace only)
+    if (capture.getSystemTraceData() != null && !capture.getSystemTraceData().getAndroidFrameLayers().isEmpty()) {
+      CpuAnalysisFramesTabModel framesModel = new CpuAnalysisFramesTabModel(capture.getRange());
+      framesModel.getDataSeries().add(capture);
+      addTabModel(framesModel);
+    }
   }
 }
