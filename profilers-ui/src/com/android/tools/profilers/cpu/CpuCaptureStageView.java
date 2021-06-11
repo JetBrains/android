@@ -31,6 +31,8 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.adtui.ComboCheckBox;
+import com.android.tools.profilers.PathUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayout;
@@ -56,6 +58,7 @@ import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
+import com.android.tools.profilers.DropDownButton;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
@@ -71,9 +74,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.ArrayList;
+import java.util.HashSet;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -81,6 +87,7 @@ import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -110,6 +117,20 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private final JScrollPane myScrollPane;
   private final LinkLabel<?> myDeselectAllLabel;
   private final JPanel myDeselectAllToolbar;
+  private final JButton myCollapseFrameButton = DropDownButton.of(
+    "Collapse frames",
+    () ->
+      ComboCheckBox.of(new ArrayList<>(getStage().getCapture().getHidablePaths()),
+                       getStage().getCapture().getHiddenFilePaths(),
+                            selected -> {
+                              getStage().getCapture().setHideNodesFromPaths(new HashSet<>(selected));
+                              onTrackGroupSelectionChange();
+                              updateComponents();
+                              return Unit.INSTANCE;
+                            },
+                       "Collapse frames",
+                            filter -> PathUtils.abbreviate(filter.toString()))
+  );
 
   /**
    * To avoid conflict with drag-and-drop, we need a keyboard modifier (e.g. VK_SPACE) to toggle panning mode.
@@ -159,6 +180,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myDeselectAllToolbar.add(new FlatSeparator());
     myDeselectAllToolbar.setVisible(false);
     panel.add(myDeselectAllToolbar, BorderLayout.EAST);
+    panel.add(myCollapseFrameButton, BorderLayout.WEST);
     return panel;
   }
 
@@ -166,6 +188,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     getComponent().removeAll();
     if (getStage().getState() == CpuCaptureStage.State.PARSING) {
       getComponent().add(new StatusPanel(getStage().getCaptureHandler(), "Parsing", "Abort"));
+      myCollapseFrameButton.setVisible(false);
     }
     else {
       // If we had any previously registered analyzing events we unregister them first.
@@ -177,6 +200,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       getComponent().revalidate();
       // Request focus to enable keyboard shortcuts once loading finishes.
       myTrackGroupList.getComponent().requestFocusInWindow();
+      myCollapseFrameButton.setVisible(!getStage().getCapture().getHidablePaths().isEmpty());
     }
   }
 

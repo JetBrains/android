@@ -23,6 +23,11 @@ import org.jetbrains.annotations.NotNull;
 public interface CaptureNodeModel {
 
   @NotNull
+  default String getFileName() {
+    return "";
+  }
+
+  @NotNull
   String getName();
 
   @NotNull

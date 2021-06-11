@@ -52,7 +52,7 @@ public class NodeNameParser {
     }
     else if (fullName.contains(".")) {
       // Method is in the format "java.package.Class.method". Parse it into a JavaMethodModel.
-      return createJavaMethodModel(fullName);
+      return createJavaMethodModel(fullName, fileName);
     }
     else {
       // Node represents a syscall.
@@ -224,7 +224,7 @@ public class NodeNameParser {
    * Receives a full method name and returns a {@link JavaMethodModel} containing its class name and its (simple) name.
    * @param fullName The method's full qualified name (e.g. java.lang.Object.equals)
    */
-  private static JavaMethodModel createJavaMethodModel(String fullName) {
+  private static JavaMethodModel createJavaMethodModel(String fullName, String fileName) {
     // First, we should extract the method name, which is the name after the last "." character.
     String[] splittedMethod = JAVA_SEPARATOR_PATTERN.split(fullName);
     int methodNameIndex = splittedMethod.length - 1;
@@ -236,6 +236,6 @@ public class NodeNameParser {
       className.append(".");
       className.append(splittedMethod[i]);
     }
-    return new JavaMethodModel(methodName, className.toString());
+    return new JavaMethodModel(methodName, className.toString(), "", fileName);
   }
 }

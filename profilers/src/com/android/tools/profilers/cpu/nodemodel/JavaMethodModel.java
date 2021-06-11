@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.nodemodel;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Represents characteristics of Java methods.
@@ -43,14 +44,23 @@ public class JavaMethodModel implements CaptureNodeModel {
 
   private String myId;
 
-  public JavaMethodModel(@NotNull String name, @NotNull String className, @NotNull String signature) {
+  private final String myFileName;
+
+  public JavaMethodModel(@NotNull String name, @NotNull String className, @NotNull String signature, @NotNull String fileName) {
     myName = name;
     myClassName = className;
     mySignature = signature;
+    myFileName = fileName;
   }
 
+  @VisibleForTesting
   public JavaMethodModel(@NotNull String name, @NotNull String className) {
-    this(name, className, "");
+    this(name, className, "", "");
+  }
+
+  @Override
+  public @NotNull String getFileName() {
+    return myFileName;
   }
 
   @Override

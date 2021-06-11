@@ -183,17 +183,17 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
   /**
    * Return a new tree like this one, but with all uninteresting nodes collapsed into the given abbreviation.
    * In the returned abbreviated tree:
-   *   - no abbreviated parent has any abbreviated child
-   *   - no consecutive siblings are both abbreviated
+   *   - no abbreviated parent has any abbreviated child of the same kind
+   *   - no consecutive siblings are both abbreviated of the same kind
    */
-  fun abbreviatedBy(isUninteresting: (CaptureNode) -> Boolean, abbreviation: CaptureNodeModel) =
-    fold({it.clonedWithData(if (isUninteresting(it)) abbreviation else it.data)}) { clone, abbreviatedChild ->
+  fun abbreviatedBy(abbreviate: (CaptureNode) -> CaptureNodeModel?, isAbbreviation: (CaptureNodeModel) -> Boolean) =
+    fold({it.clonedWithData(abbreviate(it) ?: it.data)}) { clone, abbreviatedChild ->
       clone.also {
         when {
           // Parent and child are both abbreviated -> merge child's children with parent's
-          clone.data === abbreviation && abbreviatedChild.data === abbreviation -> clone.addChildren(abbreviatedChild.children)
+          isAbbreviation(clone.data) && abbreviatedChild.data === clone.data -> clone.addChildren(abbreviatedChild.children)
           // Consecutive children are abbreviated -> merge em
-          abbreviatedChild.data === abbreviation && clone.children.lastOrNull()?.data === abbreviation ->
+          isAbbreviation(abbreviatedChild.data) && clone.children.lastOrNull()?.data === abbreviatedChild.data ->
             clone.children.last().let { mergedChild ->
               mergedChild.addChildren(abbreviatedChild.children)
               mergedChild.copyFrom(abbreviatedChild, CaptureNode::endGlobal, CaptureNode::endThread)
@@ -203,6 +203,9 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
         }
       }
     }.also { it.resetDepth(depth) }
+
+  fun abbreviatedBy(shouldAbbreviate: (CaptureNode) -> Boolean, abbreviation: CaptureNodeModel) =
+    abbreviatedBy({ node -> abbreviation.takeIf { shouldAbbreviate(node) } }, { it === abbreviation })
 
   /**
    * Accumulates value of type T over the capture tree.
