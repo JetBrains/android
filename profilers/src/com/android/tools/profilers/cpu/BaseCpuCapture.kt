@@ -20,21 +20,27 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
+import java.util.regex.Pattern
 
-open class BaseCpuCapture(/**
-                           * ID of the trace used to generate the capture.
-                           */
-                          private val traceId: Long,
-                          /**
-                           * Technology used to generate the capture.
-                           */
-                          private val type: CpuTraceType,
-                          range: Range,
-                          captureTrees: Map<CpuThreadInfo, CaptureNode>) : CpuCapture {
+open class BaseCpuCapture @JvmOverloads constructor(/**
+                                                     * ID of the trace used to generate the capture.
+                                                     */
+                                                    private val traceId: Long,
+                                                    /**
+                                                     * Technology used to generate the capture.
+                                                     */
+                                                    private val type: CpuTraceType,
+                                                    range: Range,
+                                                    captureTrees: Map<CpuThreadInfo, CaptureNode>,
+                                                    private val hidablePaths: Set<PathFilter> = setOf()) : CpuCapture {
   private val availableThreads: Set<CpuThreadInfo>
   private val threadIdToNode: Map<Int, CaptureNode>
   private val mainThreadId: Int
   private var clockType: ClockType
+  var pathsHidden = setOf<PathFilter>()
+    private set
+  private val unabbreviatedTrees: Map<CaptureNode, List<CaptureNode>>
 
   init {
     availableThreads = captureTrees.keys
@@ -42,6 +48,7 @@ open class BaseCpuCapture(/**
     // If the trace is empty, use [NO_THREAD_ID].
     mainThreadId = (availableThreads.find { it.isMainThread } ?: captureTrees.maxBy { it.value.duration }?.key)?.id ?: NO_THREAD_ID
     clockType = threadIdToNode[mainThreadId]?.clockType ?: ClockType.GLOBAL
+    unabbreviatedTrees = threadIdToNode.values.associateWith { it.children.toList() }
   }
 
   companion object {
@@ -82,4 +89,33 @@ open class BaseCpuCapture(/**
   // Right now, the only trace technology that supports dual clock is ART.
   override fun isDualClock() = type == CpuTraceType.ART
   override fun getType() = type
+
+  override fun setHideNodesFromPaths(pathsToHide: Set<PathFilter>) {
+    if (pathsToHide != pathsHidden) {
+      val matcher = Pattern.compile(pathsToHide.joinToString("|") { it.regex }).asMatchPredicate()
+      fun shouldHide(node: CaptureNode) = node.data is NativeNodeModel && matcher.test(node.data.fileName)
+      fun hideFromPaths(children: List<CaptureNode>) = children.map { it.abbreviatedBy(::shouldHide, OpaqueNativeNodeModel) }
+
+      unabbreviatedTrees.forEach { (root, unabbreviartedChildren) ->
+        root.clearChildren()
+        root.addChildren(if (pathsToHide.isEmpty()) unabbreviartedChildren else hideFromPaths(unabbreviartedChildren))
+      }
+      pathsHidden = pathsToHide
+    }
+  }
+
+  override fun getHidablePaths() = hidablePaths
+  override fun getHiddenFilePaths() = pathsHidden
+  private object OpaqueNativeNodeModel : NativeNodeModel() {
+    init { myName = "<<native code>>" }
+  }
+}
+
+sealed class PathFilter(val regex: String) {
+  data class Literal(val lit: String): PathFilter(Pattern.quote(lit)) {
+    override fun toString() = lit
+  }
+  data class Prefix(val prefix: String): PathFilter("${Pattern.quote(prefix)}.*") {
+    override fun toString() = "$prefix*"
+  }
 }
