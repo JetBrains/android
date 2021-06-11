@@ -61,7 +61,7 @@ public class ArtTraceHandler implements VmTraceHandler {
 
   @Override
   public void addMethod(long id, MethodInfo info) {
-    myMethods.put(id, new JavaMethodModel(info.methodName, info.className, info.signature));
+    myMethods.put(id, new JavaMethodModel(info.methodName, info.className, info.signature, ""));
   }
 
   @Override

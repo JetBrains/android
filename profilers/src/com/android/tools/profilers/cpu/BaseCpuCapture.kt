@@ -20,7 +20,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
 import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
+import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import java.util.regex.Pattern
 
 open class BaseCpuCapture @JvmOverloads constructor(/**
@@ -93,8 +97,17 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
   override fun setHideNodesFromPaths(pathsToHide: Set<PathFilter>) {
     if (pathsToHide != pathsHidden) {
       val matcher = Pattern.compile(pathsToHide.joinToString("|") { it.regex }).asMatchPredicate()
-      fun shouldHide(node: CaptureNode) = node.data is NativeNodeModel && matcher.test(node.data.fileName)
-      fun hideFromPaths(children: List<CaptureNode>) = children.map { it.abbreviatedBy(::shouldHide, OpaqueNativeNodeModel) }
+      fun collapse(node: CaptureNode) = when {
+        !matcher.test(node.data.fileName) -> null
+        else -> when (node.data) {
+          is JavaMethodModel -> OpaqueJavaMethodModel
+          is SyscallModel -> OpaqueSyscallModel
+          else -> OpaqueNativeNodeModel
+        }
+      }
+      fun isOpaqueModel(data: CaptureNodeModel) =
+        data === OpaqueJavaMethodModel || data === OpaqueSyscallModel || data === OpaqueNativeNodeModel
+      fun hideFromPaths(children: List<CaptureNode>) = children.map { it.abbreviatedBy(::collapse, ::isOpaqueModel) }
 
       unabbreviatedTrees.forEach { (root, unabbreviartedChildren) ->
         root.clearChildren()
@@ -106,8 +119,12 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
 
   override fun getHidablePaths() = hidablePaths
   override fun getHiddenFilePaths() = pathsHidden
+
+  private object OpaqueJavaMethodModel : JavaMethodModel("<<java code>>", "", "", "")
+  private object OpaqueSyscallModel: SyscallModel("<<syscall>>")
   private object OpaqueNativeNodeModel : NativeNodeModel() {
     init { myName = "<<native code>>" }
+    override fun getFileName() = ""
   }
 }
 
