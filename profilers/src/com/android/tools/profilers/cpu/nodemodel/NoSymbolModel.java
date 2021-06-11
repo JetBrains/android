@@ -28,12 +28,20 @@ public class NoSymbolModel extends NativeNodeModel {
    */
   private boolean myKernel;
 
-  public NoSymbolModel(@NotNull String name) {
+  @NotNull private final String myFileName;
+
+  public NoSymbolModel(@NotNull String fileName, @NotNull String name) {
     myName = name;
     myKernel = name.startsWith(KERNEL_ELF);
+    myFileName = fileName;
   }
 
   public boolean isKernel() {
     return myKernel;
+  }
+
+  @Override
+  public String getFileName() {
+    return myFileName;
   }
 }

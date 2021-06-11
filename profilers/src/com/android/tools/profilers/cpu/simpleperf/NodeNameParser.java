@@ -56,7 +56,7 @@ public class NodeNameParser {
     }
     else {
       // Node represents a syscall.
-      return new SyscallModel(fullName);
+      return new SyscallModel(fileName, fullName);
     }
   }
 

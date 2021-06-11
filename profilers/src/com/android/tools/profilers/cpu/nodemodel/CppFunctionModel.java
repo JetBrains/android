@@ -86,6 +86,7 @@ public class CppFunctionModel extends NativeNodeModel {
     return myIsUserCode;
   }
 
+  @Override
   public String getFileName() {
     return myFileName;
   }

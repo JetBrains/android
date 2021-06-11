@@ -89,6 +89,7 @@ open class CaptureNode(val data: CaptureNodeModel) : HNode<CaptureNode> {
   }
 
   fun addChildren(nodes: Collection<CaptureNode>) = nodes.forEach(::addChild)
+  fun clearChildren() = childrenList.clear()
 
   override fun getChildCount() = childrenList.size
   override fun getChildAt(index: Int) = childrenList[index]

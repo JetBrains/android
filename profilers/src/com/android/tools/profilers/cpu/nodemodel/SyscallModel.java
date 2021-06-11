@@ -18,7 +18,19 @@ package com.android.tools.profilers.cpu.nodemodel;
  */
 public class SyscallModel extends NativeNodeModel {
 
+  private final String myFileName;
+
   public SyscallModel(String name) {
+    this("", name);
+  }
+
+  public SyscallModel(String fileName, String name) {
+    myFileName = fileName != null ? fileName : "";
     myName = name;
+  }
+
+  @Override
+  public String getFileName() {
+    return myFileName;
   }
 }

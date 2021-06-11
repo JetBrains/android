@@ -22,6 +22,10 @@ public abstract class NativeNodeModel implements CaptureNodeModel {
 
   protected String myName;
 
+  public String getFileName() {
+    return "";
+  }
+
   @NotNull
   @Override
   public String getName() {

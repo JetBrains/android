@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.tools.adtui.model.Range
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo
 import com.google.common.truth.Truth.assertThat
@@ -30,6 +31,26 @@ class BaseCpuCaptureTest {
     assertClockType(capture.captureNodes, ClockType.GLOBAL)
     capture.updateClockType(ClockType.THREAD)
     assertClockType(capture.captureNodes, ClockType.THREAD)
+  }
+
+  @Test
+  fun `frames from paths to hide are hidden and can be restored`() {
+    val captureTrees = mapOf<CpuThreadInfo, CaptureNode>(
+      CpuThreadSliceInfo(1, "main", 1, "foo") to CaptureNode(SingleNameModel("foo")).apply {
+        addChild(CaptureNode(NoSymbolModel("path","bar")).apply {
+          addChild(CaptureNode(SingleNameModel("foobar")))
+        })
+      },
+      CpuThreadSliceInfo(2, "thread-2", 1, "foo") to CaptureNode(SingleNameModel("foo")).apply {
+        addChild(CaptureNode(SingleNameModel("bar")))
+      }
+    )
+    val capture = BaseCpuCapture(42, Cpu.CpuTraceType.SIMPLEPERF, Range(0.0, 1.0), captureTrees, setOf(PathFilter.Literal("path")))
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
+    capture.setHideNodesFromPaths(setOf(PathFilter.Literal("path")))
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data !is NoSymbolModel)
+    capture.setHideNodesFromPaths(setOf())
+    assertThat(capture.getCaptureNode(1)!!.getChildAt(0).data is NoSymbolModel)
   }
 
   /**

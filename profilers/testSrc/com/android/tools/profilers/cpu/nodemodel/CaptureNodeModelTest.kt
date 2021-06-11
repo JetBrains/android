@@ -60,14 +60,14 @@ class CaptureNodeModelTest {
     assertThat(syscallModel.id).isEqualTo("write")
     assertThat(syscallModel).isInstanceOf(NativeNodeModel::class.java)
 
-    var noSymbolModel = NoSymbolModel("[kernel.kallsyms]+0xff00ff")
+    var noSymbolModel = NoSymbolModel("kernel.kallsyms", "[kernel.kallsyms]+0xff00ff")
     assertThat(noSymbolModel.name).isEqualTo("[kernel.kallsyms]+0xff00ff")
     assertThat(noSymbolModel.fullName).isEqualTo("[kernel.kallsyms]+0xff00ff")
     assertThat(noSymbolModel.id).isEqualTo("[kernel.kallsyms]+0xff00ff")
     assertThat(noSymbolModel.isKernel).isTrue()
     assertThat(noSymbolModel).isInstanceOf(NativeNodeModel::class.java)
 
-    noSymbolModel = NoSymbolModel("non-kernel.so+0xff00ff")
+    noSymbolModel = NoSymbolModel("non-kernel.so", "non-kernel.so+0xff00ff")
     assertThat(noSymbolModel.name).isEqualTo("non-kernel.so+0xff00ff")
     assertThat(noSymbolModel.fullName).isEqualTo("non-kernel.so+0xff00ff")
     assertThat(noSymbolModel.id).isEqualTo("non-kernel.so+0xff00ff")
