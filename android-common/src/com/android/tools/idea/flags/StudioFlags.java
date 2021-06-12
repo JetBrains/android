@@ -87,7 +87,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_MACRO_BENCHMARK_MODULE = Flag.create(
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
-    false);
+    true);
   //endregion
 
   //region Profiler
