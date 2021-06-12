@@ -19,7 +19,15 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
+import com.intellij.usageView.UsageInfo
+import com.intellij.usages.PsiElementUsageTarget
+import com.intellij.usages.UsageTargetUtil
 
 /**
  * Tests that require a gradle project to operate, eg. for including AARs
@@ -38,7 +46,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
 
     // Resource from androidx library used in both app and lib modules
     myFixture.moveCaret("R.color.abc_tint|_default")
-    val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
+    val usages = findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (4)\n" +
@@ -78,7 +86,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     // Adding the non-transitive representation of the same resource written above, ie. from Aar R class. Although they have different
     // fully qualified paths, they reference the same resource.
     myFixture.type("\n    androidx.appcompat.R.color.abc_tint_default")
-    val usages = AndroidResourcesFindUsagesTest.findUsages(myFixture.file.virtualFile, myFixture)
+    val usages = findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
       .isEqualTo("<root> (6)\n" +
@@ -104,5 +112,19 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "     Library (1)\n" +
                  "      foo() (1)\n" +
                  "       6int color = R.color.abc_tint_default;\n")
+  }
+
+  fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture): Collection<UsageInfo?> {
+    return findUsages(file, fixture, null)
+  }
+
+  fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture, scope: GlobalSearchScope?): Collection<UsageInfo?> {
+    fixture.configureFromExistingVirtualFile(file!!)
+    val targets = UsageTargetUtil.findUsageTargets { dataId: String? ->
+      (fixture.editor as EditorEx).dataContext.getData(
+        dataId!!)
+    }
+    assert(targets != null && targets.size > 0 && targets[0] is PsiElementUsageTarget)
+    return (fixture as CodeInsightTestFixtureImpl).findUsages((targets!![0] as PsiElementUsageTarget).element, scope)
   }
 }

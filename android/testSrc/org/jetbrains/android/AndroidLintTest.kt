@@ -135,6 +135,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.lint.checks.HardcodedValuesDetector
@@ -172,8 +173,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
@@ -182,6 +185,7 @@ import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.NonNls
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 import java.util.stream.Collectors
 
 class AndroidLintTest : AndroidTestCase() {
@@ -353,6 +357,63 @@ class AndroidLintTest : AndroidTestCase() {
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           Fix: Suppress: Add tools:ignore="ContentDescription" attribute
     """.trimIndent())
+  }
+
+  fun PsiFile.findCaretOffset(caret: String): Int {
+    val delta = caret.indexOf("|")
+    if (delta == -1) AndroidGradleTestCase.fail("${name} does not contain caret marker, |")
+    val context = caret.substring(0, delta) + caret.substring(delta + 1)
+    val index = text.indexOf(context)
+    if (index == -1) AndroidGradleTestCase.fail("${name} does not contain $context")
+    return index + delta
+  }
+
+  fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
+    AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
+    enableInspections(inspection)
+    val fileText = psiFile.text
+    val sb = StringBuilder()
+    val target = psiFile.findCaretOffset(caret)
+    val highlights = doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+    for (highlight in highlights) {
+      val startIndex = highlight.startOffset
+      val endOffset = highlight.endOffset
+      if (target < startIndex || target > endOffset) {
+        continue
+      }
+      val description = highlight.description
+      val severity = highlight.severity
+      sb.append(severity.name.toLowerCase(Locale.ROOT).capitalize()).append(": ")
+      sb.append(description).append("\n")
+
+      val lineStart = fileText.lastIndexOf("\n", startIndex).let { if (it == -1) 0 else it + 1 }
+      val lineEnd = fileText.indexOf("\n", startIndex).let { if (it == -1) fileText.length else it }
+      sb.append(fileText.substring(lineStart, lineEnd)).append("\n")
+      val rangeEnd = if (lineEnd < endOffset) lineEnd else endOffset
+      for (i in lineStart until startIndex) sb.append(" ")
+      for (i in startIndex until rangeEnd) sb.append("~")
+      sb.append("\n")
+
+      for (pair in highlight.quickFixActionRanges) {
+        val action = pair.first.action
+        sb.append("    ")
+        if (action.isAvailable(project, editor, psiFile)) {
+          sb.append("Fix: ")
+          sb.append(action.text)
+        }
+        else {
+          sb.append("Disabled Fix: ")
+          sb.append(action.text)
+        }
+        sb.append("\n")
+      }
+    }
+
+    if (sb.isEmpty()) {
+      sb.append("No warnings.")
+    }
+
+    AndroidGradleTestCase.assertEquals(expected.trimIndent().trim(), sb.toString().trimIndent().trim())
   }
 
   fun testAdapterViewChildren() {

@@ -126,6 +126,7 @@
       <module fileurl="file://$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.iml" filepath="$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.tests.iml" filepath="$PROJECT_DIR$/compose-ide-plugin/intellij.android.compose-ide-plugin.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.tests.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" />
