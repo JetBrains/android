@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.psiclass;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
@@ -175,22 +176,48 @@ public class LightBindingClass extends AndroidLightClassBase {
         .toArray(PsiField[]::new);
     }
 
-    // If here, we have multiple layouts. Generated fields are non-null only if their source IDs
-    // are defined consistently across all layouts.
-    Map<String, Integer> idCounts = new HashMap<>();
+    // If here, we have multiple layouts.
+
+    // Generated fields are non-null only if their source IDs are defined consistently across all layouts.
     Set<ViewIdData> dedupedViewIds = new HashSet<>(); // Only create one field per ID
-    for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
-      for (ViewIdData viewId : viewIds) {
-        int count = idCounts.compute(viewId.getId(), (key, value) -> (value == null) ? 1 : (value + 1));
-        if (count == 1) {
-          // It doesn't matter which copy of the ID we keep, so just keep the first one
-          dedupedViewIds.add(viewId);
+    Map<String, Integer> idCounts = new HashMap<>();
+    {
+      for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+        for (ViewIdData viewId : viewIds) {
+          int count = idCounts.compute(viewId.getId(), (key, value) -> (value == null) ? 1 : (value + 1));
+          if (count == 1) {
+            // It doesn't matter which copy of the ID we keep, so just keep the first one
+            dedupedViewIds.add(viewId);
+          }
+        }
+      }
+    }
+
+    // If tags have inconsitent IDs, e.g. <TextView ...> in one configuration and <Button ...> in another,
+    // the databinding compiler reverts to View
+    Set<String> inconsistentlyTypedIds = new HashSet<>();
+    {
+      Map<String, String> idTypes = new HashMap<>();
+
+      for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+        for (ViewIdData viewId : viewIds) {
+          String id = viewId.getId();
+          String viewName = viewId.getViewName();
+          String previousViewName = idTypes.get(id);
+          if (previousViewName == null) {
+            idTypes.put(id, viewName);
+          }
+          else {
+            if (!viewName.equals(previousViewName)) {
+              inconsistentlyTypedIds.add(id);
+            }
+          }
         }
       }
     }
 
     return dedupedViewIds.stream()
-      .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts))
+      .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts, inconsistentlyTypedIds.contains(viewId.getId())))
       .filter(field -> field != null)
       .toArray(PsiField[]::new);
   }
@@ -566,8 +593,20 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   @Nullable
   private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
+    return createPsiField(viewIdData, isNonNull, false);
+  }
+
+  @Nullable
+  private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull, boolean forceTypeToView) {
     String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
-    PsiType type = LayoutBindingTypeUtil.resolveViewPsiType(myConfig.getTargetLayout().getData(), viewIdData, this);
+
+    PsiType type;
+    if (!forceTypeToView) {
+      type = LayoutBindingTypeUtil.resolveViewPsiType(myConfig.getTargetLayout().getData(), viewIdData, this);
+    }
+    else {
+      type = LayoutBindingTypeUtil.parsePsiType(CLASS_VIEW, this);
+    }
     if (type == null) {
       return null;
     }

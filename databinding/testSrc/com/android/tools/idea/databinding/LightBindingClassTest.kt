@@ -734,6 +734,37 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun inconsistentTypesAcrossLayoutsDefaultsToView() {
+    fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout>
+          <TextView android:id="@+id/consistent_type" />
+          <TextView android:id="@+id/inconsistent_type" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+
+    fixture.addFileToProject("res/layout-land/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout>
+          <TextView android:id="@+id/consistent_type" />
+          <Button android:id="@+id/inconsistent_type" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(binding.fields).hasLength(2)
+    val consistentField = binding.fields.first { it.name == "consistentType" }
+    val inconsistentField = binding.fields.first { it.name == "inconsistentType" }
+    assertThat(consistentField.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
+    assertThat(inconsistentField.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.View", context))
+  }
+
+  @Test
   fun methodsAreAnnotatedNonNullAndNullableCorrectly() {
     fixture.addFileToProject("res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
