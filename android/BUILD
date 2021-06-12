@@ -181,10 +181,8 @@ iml_module(
             "test_filter": "com.android.tools.idea.avdmanager",
         },
         "jetbrains": {
-            "shard_count": 6,
+            "shard_count": 3,
             "test_filter": "org.jetbrains.android",
-            # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
         },
         "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
             "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
@@ -1148,4 +1146,56 @@ java_import(
     name = "libstudio.android-test-plugin-host-retention-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto.jar"],
     visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.core.agp-integration-tests",
+    iml_files = ["intellij.android.core.agp-integration-tests.iml"],
+    split_test_targets = {
+        "UnusedResourcesGradleTest": {
+            # The testKotlin test case takes 3 minutes (linux) or 5 minutes (windows).
+            # This does not shard well so it is kept as its own target.
+            "test_filter": "org.jetbrains.android.refactoring.UnusedResourcesGradleTest",
+        },
+        "other": {},
+    },
+    test_class = "com.android.tools.idea.IdeaTestSuite",
+    # keep sorted
+    test_data = [
+        ":test_deps",
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+        "//tools/base/build-system:gradle-distrib",  # Please do not add old versions of AGP here. Use the old-agp-tests module instead.
+        "//tools/base/build-system:studio_repo",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/base/third_party/kotlin:kotlin-m2repository",
+    ],
+    test_srcs = ["agpIntegrationTestSrc"],
+    test_tags = [],
+    test_timeout = "long",
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
+    ],
 )
