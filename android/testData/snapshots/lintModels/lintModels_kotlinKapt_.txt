@@ -16,6 +16,7 @@ MODULE                        : MainActivity.app
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
+        CheckDependencies             : true
     LintModelVariant              : debug
         BuildFeatures
             ViewBinding                   : false

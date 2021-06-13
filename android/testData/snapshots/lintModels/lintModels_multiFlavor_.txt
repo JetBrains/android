@@ -16,6 +16,7 @@ MODULE                        : MultiFlavor.app
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
+        CheckDependencies             : true
     LintModelVariant              : firstAbcSecondAbcDebug
         BuildFeatures
             ViewBinding                   : false
