@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.android.ddmlib.IDevice.CHANGE_STATE;
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
@@ -162,7 +164,7 @@ public class AndroidLogcatServiceTest {
   }
 
   @Test
-  public void testDeviceChanged() throws Exception {
+  public void testDeviceChanged_stateChanged() throws Exception {
 
     when(mockDevice.isOnline()).thenReturn(true);
     myLogcatService.deviceConnected(mockDevice);
@@ -173,12 +175,32 @@ public class AndroidLogcatServiceTest {
     myExecuteShellCommandLatch = new CountDownLatch(2);
     myLogcatListener.reset();
     when(mockDevice.isOnline()).thenReturn(false);
-    myLogcatService.deviceChanged(mockDevice, 0);
+    myLogcatService.deviceChanged(mockDevice, CHANGE_STATE);
     when(mockDevice.isOnline()).thenReturn(true);
-    myLogcatService.deviceChanged(mockDevice, 0);
+    myLogcatService.deviceChanged(mockDevice, CHANGE_STATE);
 
+    assertThat(myExecuteShellCommandLatch.await(10, SECONDS)).isTrue();
+    myLogcatListener.assertAllReceived();
+  }
+
+  @Test
+  public void testDeviceChanged_stateDidNotChange() throws Exception {
+
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceConnected(mockDevice);
+    myLogcatService.addListener(mockDevice, myLogcatListener, true);
     myExecuteShellCommandLatch.await();
     myLogcatListener.assertAllReceived();
+
+    myExecuteShellCommandLatch = new CountDownLatch(2);
+    myLogcatListener.reset();
+    when(mockDevice.isOnline()).thenReturn(false);
+    int stateDidNotChangeMask = 0xffff - CHANGE_STATE;
+    myLogcatService.deviceChanged(mockDevice, stateDidNotChangeMask);
+    when(mockDevice.isOnline()).thenReturn(true);
+    myLogcatService.deviceChanged(mockDevice, stateDidNotChangeMask);
+
+    assertThat(myExecuteShellCommandLatch.await(10, SECONDS)).isFalse();
   }
 
   @Test
@@ -244,7 +266,7 @@ public class AndroidLogcatServiceTest {
       return null;
     };
 
-    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat --help"), any(), eq(10L), eq(TimeUnit.SECONDS));
+    doAnswer(answer).when(mockDevice).executeShellCommand(eq("logcat --help"), any(), eq(10L), eq(SECONDS));
   }
 
   private void stubExecuteLogcatVLongVEpoch() throws Exception {

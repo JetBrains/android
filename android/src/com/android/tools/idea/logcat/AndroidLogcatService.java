@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.android.ddmlib.IDevice.CHANGE_STATE;
+
 import com.android.annotations.NonNull;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -448,6 +450,9 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
   @Override
   public void deviceChanged(@NotNull IDevice device, int changeMask) {
+    if ((changeMask & CHANGE_STATE) == 0) {
+      return;
+    }
     if (device.isOnline()) {
       startReceiving(device);
     }
