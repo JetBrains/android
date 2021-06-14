@@ -63,7 +63,6 @@ class SqliteCliArgs private constructor() {
 
     fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
     fun output(path: Path) = apply { args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}")) }
-    fun clone(path: Path) = apply { args.add(SqliteCliArg(".clone '${path.toAbsolutePath()}'")) }
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
@@ -73,6 +72,12 @@ class SqliteCliArgs private constructor() {
     fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
     fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
+    /**
+     * Moves data from the WAL (write-ahead log) to the main DB file.
+     *
+     * [SQLite documentation](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint)
+     */
+    fun walCheckpointTruncate() = apply { args.add(SqliteCliArg("PRAGMA wal_checkpoint(TRUNCATE);")) }
     private fun quit() = apply { args.add(SqliteCliArg(".quit")) } // exits the sqlite3 interactive mode
 
     fun build() = this.quit().args.toList() // appends the ".quit" command as the last argument
