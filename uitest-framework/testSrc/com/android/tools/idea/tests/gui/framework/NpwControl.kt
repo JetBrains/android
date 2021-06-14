@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.tools.idea.npw.model.MultiTemplateRenderer.TemplateRendererListener
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.updatePluginsResolutionManagement
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
@@ -44,6 +45,7 @@ class NpwControl(private val project: Project) : TemplateRendererListener {
       val gradleVirtualFile = VfsUtil.findFileByIoFile(gradleFile, true)!!
       val origContent = VfsUtil.loadText(gradleVirtualFile)
       val newContent = AndroidGradleTests.updateLocalRepositories(origContent, AndroidGradleTests.getLocalRepositoriesForGroovy())
+        .run { updatePluginsResolutionManagement(this) }
       if (newContent != origContent) {
         runWriteAction {
           VfsUtil.saveText(gradleVirtualFile, newContent)

@@ -178,6 +178,14 @@ public class GradleInitScripts {
              "  repositories {\n" + paths +
              "  }\n" +
              "}\n" +
+             "if (GradleVersion.current().baseVersion >= GradleVersion.version('7.0')) {\n" +
+             "  beforeSettings {\n" +
+             "    it.pluginManagement {\n" +
+             "      repositories {\n" + paths +
+             "      }\n" +
+             "    }\n" +
+             "  }\n" +
+             "}\n" +
              "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
              "  beforeSettings {\n" +
              "    it.dependencyResolutionManagement {\n" +
