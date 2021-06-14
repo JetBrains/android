@@ -233,7 +233,6 @@ class SqliteCliClientTest : LightPlatformTestCase() {
   /**
    * Tests cloning a database and exporting a database as a SQL script
    * Uses:
-   * - [SqliteCliArgs.Builder.clone]
    * - [SqliteCliArgs.Builder.database]
    * - [SqliteCliArgs.Builder.dumpTable]
    * - [SqliteCliArgs.Builder.dump]
@@ -348,7 +347,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       SqliteCliArgs
         .builder()
         .database(databaseFile)
-        .clone(databaseClone)
+        .raw(".clone '${databaseClone.toAbsolutePath()}'")
         .build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
@@ -383,7 +382,7 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       SqliteCliArgs
         .builder()
         .database(databaseFile)
-        .clone(dstPath)
+        .raw(".clone '${dstPath.toAbsolutePath()}'")
         .build())
 
     assertThat(response.exitCode).isEqualTo(0)

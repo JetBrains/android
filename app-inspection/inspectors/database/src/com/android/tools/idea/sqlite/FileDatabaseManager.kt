@@ -92,7 +92,7 @@ class FileDatabaseManagerImpl(
   }
 
   override suspend fun cleanUp(databaseFileData: DatabaseFileData) {
-    val filesToClose = listOf(databaseFileData.mainFile) + databaseFileData.walFiles
+    val filesToClose = (listOf(databaseFileData.mainFile) + databaseFileData.walFiles).filter { it.exists() }
     deviceFileDownloaderService
       .deleteFiles(filesToClose)
       .await()
