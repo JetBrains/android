@@ -41,7 +41,7 @@ fun RecipeExecutor.generatePureLibrary(
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
   save(buildGradle(), moduleOut.resolve(buildFile))
-  applyPlugin("java-library")
+  applyPlugin("java-library", null)
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
     srcOut.resolve("$className.${language.extension}")
@@ -55,7 +55,7 @@ fun RecipeExecutor.generatePureLibrary(
   if (language == Language.Kotlin) {
     setKotlinVersion(projectData.kotlinVersion)
     addKotlinDependencies(androidX = false)
-    applyPlugin("kotlin")
+    applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
   }
 
   createDirectory(moduleOut.resolve(LIBS_FOLDER))

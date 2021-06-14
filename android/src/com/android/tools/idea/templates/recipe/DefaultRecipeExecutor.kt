@@ -26,6 +26,7 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
+import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
@@ -46,6 +47,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -184,16 +186,40 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     context.filesToOpen.add(file)
   }
 
-  override fun applyPlugin(plugin: String) {
-    referencesExecutor.applyPlugin(plugin)
+  override fun applyPlugin(plugin: String, revision: String?, minRev: String?) {
+    referencesExecutor.applyPlugin(plugin, revision)
 
     val buildModel = moduleGradleBuildModel ?: return
     if (buildModel.plugins().none { it.name().forceString() == plugin }) {
       buildModel.applyPlugin(plugin)
     }
+
+    if (revision != null) {
+      // Check if pluginManagement.plugins block is declared
+      val settingsPluginsModel = projectSettingsModel?.pluginManagement()?.plugins()?.also { it.psiElement ?: return } ?: return
+
+      val pluginCoordinate =  "$plugin:$plugin.gradle.plugin:$revision"
+      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).version?.toString() ?: revision
+      val targetPluginModel = settingsPluginsModel.plugins().firstOrNull { it.name().toString() == plugin }
+
+      if (targetPluginModel == null) {
+        settingsPluginsModel.applyPlugin(plugin, resolvedVersion, false)
+      }
+      else {
+        val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
+        val existingVersion = GradleVersion.parse(targetPluginModel.version().toString())
+        if (toBeAddedVersion > existingVersion) {
+          targetPluginModel.version().setValue(resolvedVersion)
+        }
+      }
+    }
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?) {
+    if (projectSettingsModel?.pluginManagement()?.plugins()?.psiElement != null) {
+      return // If plugins are being declared on Settings, we skip this since all work is handled in [applyPlugin]
+    }
+
     val resolvedCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev).toString()
 
     referencesExecutor.addClasspathDependency(resolvedCoordinate, minRev)

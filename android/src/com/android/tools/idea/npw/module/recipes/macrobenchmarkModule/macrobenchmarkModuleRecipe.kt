@@ -23,9 +23,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
+import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
-import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -70,7 +70,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(bg, moduleOut.resolve(buildFile))
-  applyPlugin("com.android.test")
+  applyPlugin("com.android.test", projectData.gradlePluginVersion)
 
   addDependency("androidx.test.ext:junit:+", "implementation")
   addDependency("androidx.test.espresso:espresso-core:3.+", "implementation")

@@ -58,8 +58,8 @@ fun RecipeExecutor.generateBenchmarkModule(
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
   save(bg, moduleOut.resolve(buildFile))
-  applyPlugin("com.android.library")
-  applyPlugin("androidx.benchmark")
+  applyPlugin("com.android.library", projectData.gradlePluginVersion)
+  applyPlugin("androidx.benchmark", projectData.gradlePluginVersion)
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
   addDependency("junit:junit:4.+", "androidTestImplementation")

@@ -33,7 +33,7 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
 fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
     setKotlinVersion(data.kotlinVersion)
-    applyPlugin("kotlin-android")
+    applyPlugin("org.jetbrains.kotlin.android", data.kotlinVersion)
     addKotlinDependencies(data.androidXSupport && !noKtx)
   }
 }

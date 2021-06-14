@@ -50,7 +50,7 @@ internal class FindReferencesRecipeExecutor(private val context: RenderingContex
 
   override fun createDirectory(at: File) {}
 
-  override fun applyPlugin(plugin: String) {
+  override fun applyPlugin(plugin: String, revision: String?, minRev: String?) {
     context.plugins.add(plugin)
   }
 
