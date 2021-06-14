@@ -40,16 +40,10 @@ fun RecipeExecutor.androidProjectRecipe(
   val topOut = data.rootDir
 
   if (useGradleKts) {
-    save(
-      androidProjectBuildGradleKts(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
-      topOut.resolve(FN_BUILD_GRADLE_KTS)
-    )
+    save(androidProjectBuildGradleKts(), topOut.resolve(FN_BUILD_GRADLE_KTS))
   }
   else {
-    save(
-      androidProjectBuildGradle(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
-      topOut.resolve(FN_BUILD_GRADLE)
-    )
+    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE))
   }
 
   if (makeIgnore) {
@@ -57,7 +51,7 @@ fun RecipeExecutor.androidProjectRecipe(
   }
 
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle, data.kotlinVersion), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
+  save(androidProjectGradleSettings(appTitle, language == Language.Kotlin, data.kotlinVersion, useGradleKts, data.gradlePluginVersion), settingsFile)
   save(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck, forceNonTransitiveRClass),
     topOut.resolve(FN_GRADLE_PROPERTIES))
