@@ -53,10 +53,10 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
   private val myLaunchOptions: LaunchOptions = launchOptions
   private val myProject: Project = facet.module.project
   private val myGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker = GradleConnectedAndroidTestInvoker(myRunConfig.getNumberOfSelectedDevices(facet))
-  private val TESTINGTYPE: Int = testingType
-  private val PACKAGENAME: String = packageName
-  private val CLASSNAME: String = className
-  private val METHODNAME: String = methodName
+  private val myTestingType: Int = testingType
+  private val myPackageName: String = packageName
+  private val myClassName: String = className
+  private val myMethodName: String = methodName
 
   override fun getTasks(device: IDevice, launchStatus: LaunchStatus, consolePrinter: ConsolePrinter): List<LaunchTask> {
     val launchTasks: MutableList<LaunchTask> = Lists.newArrayList()
@@ -72,7 +72,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
       launchStatus.terminateLaunch("Unable to determine test package name", true)
       return launchTasks
     }
-    val appLaunchTask = when (TESTINGTYPE) {
+    val appLaunchTask = when (myTestingType) {
       TEST_ALL_IN_MODULE -> {
         allInModuleTest(
           myProject,
@@ -94,7 +94,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
           launchStatus.processHandler,
           consolePrinter,
           device,
-          PACKAGENAME,
+          myPackageName,
           myGradleConnectedAndroidTestInvoker,
           retentionConfiguration)
       }
@@ -107,7 +107,7 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
           launchStatus.processHandler,
           consolePrinter,
           device,
-          CLASSNAME,
+          myClassName,
           myGradleConnectedAndroidTestInvoker,
           retentionConfiguration)
       }
@@ -120,12 +120,12 @@ class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfig
          launchStatus.processHandler,
          consolePrinter,
          device,
-         CLASSNAME,
-         METHODNAME,
+         myClassName,
+         myMethodName,
          myGradleConnectedAndroidTestInvoker,
          retentionConfiguration)
      } else -> {
-      launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $TESTINGTYPE", true)
+      launchStatus.terminateLaunch("Unknown testing type is selected, testing type is $myTestingType", true)
       null
      }
     }
