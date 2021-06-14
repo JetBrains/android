@@ -222,16 +222,15 @@ object TemplateUtils {
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
 
-fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): String {
-  // If we can't parse the dependency, just return it back
+fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): GradleCoordinate {
   val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
 
   val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
 
   // If we cannot resolve the dependency on the repo, return the at least the min requested
-  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate.toString()
+  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate
 
-  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER).toString()
+  return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER)
 }
 
 fun getAppNameForTheme(appName: String): String {
