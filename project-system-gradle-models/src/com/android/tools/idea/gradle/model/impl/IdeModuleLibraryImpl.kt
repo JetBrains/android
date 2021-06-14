@@ -69,13 +69,6 @@ data class IdeModuleLibraryCore(
     lintJar = null
   )
 
-  override val artifact: File
-    get() = throw unsupportedMethodForModuleLibrary("getArtifact()")
-
   override val isProvided: Nothing
     get() = error("abstract")
-}
-
-private fun unsupportedMethodForModuleLibrary(methodName: String): UnsupportedOperationException {
-  return UnsupportedOperationException("$methodName() cannot be called when getType() returns LIBRARY_MODULE")
 }

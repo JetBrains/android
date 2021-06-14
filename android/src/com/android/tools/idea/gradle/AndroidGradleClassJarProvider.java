@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
-import com.android.tools.idea.gradle.model.IdeLibrary;
+import com.android.tools.idea.gradle.model.IdeJavaLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.utils.ImmutableCollectors;
@@ -47,7 +47,7 @@ public class AndroidGradleClassJarProvider implements ClassJarProvider {
                          library -> library.getRuntimeJarFiles().stream())
                        .map(jar -> new File(jar)),
                      model.getSelectedMainCompileLevel2Dependencies().getJavaLibraries().stream()
-                       .map(IdeLibrary::getArtifact))
+                       .map(IdeJavaLibrary::getArtifact))
       // Flat map the concatenated streams
       .flatMap(s -> s)
       .collect(ImmutableCollectors.toImmutableList());

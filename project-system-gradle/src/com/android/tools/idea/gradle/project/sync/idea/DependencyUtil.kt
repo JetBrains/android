@@ -143,7 +143,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
 
   // Setup the dependencies of the test artifact.
   listOfNotNull(selectedVariant.unitTestArtifact, selectedVariant.androidTestArtifact).forEach { testArtifact ->
-      dependenciesSetupContext.setupForArtifact(testArtifact, DependencyScope.TEST)
+    dependenciesSetupContext.setupForArtifact(testArtifact, DependencyScope.TEST)
   }
 
   // Determine an order for the dependencies, for now we put the modules first and the libraries after.
@@ -159,7 +159,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
     // We want the Test scope artifacts to appear on the classpath before the compile type artifacts. This is to prevent ensure that
     // if the same dependency (with a different version) is present as both a test and compile dependency then we use the Test version
     // when running tests. This should become irrelevant once we switch to running unit tests through Gradle.
-    libraryDependencyData.order =  orderIndex + Math.floorMod((tempOrderIndex++ - endCompileIndex), processedLibrarySize)
+    libraryDependencyData.order = orderIndex + Math.floorMod((tempOrderIndex++ - endCompileIndex), processedLibrarySize)
     createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
   }
   orderIndex += tempOrderIndex
@@ -181,7 +181,7 @@ const val LOCAL_LIBRARY_PREFIX = "__local_aars__"
  * Name shortening is required because the maximum allowed file name length is 256 characters and .jar files located in deep
  * directories in CI environments may exceed this limit.
  */
-private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String) : @SystemIndependent String {
+private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String): @SystemIndependent String {
   val maybeRelative = artifactFile.relativeToOrSelf(File(toSystemDependentName(projectBasePath)))
   if (!filesEqual(maybeRelative, artifactFile)) {
     return toSystemIndependentName(File(".${File.separator}${maybeRelative}").path)
@@ -194,8 +194,11 @@ private fun adjustLocalLibraryName(artifactFile: File, projectBasePath: String) 
  * Converts the artifact address into a name that will be used by the IDE to represent the library.
  */
 private fun convertToLibraryName(library: IdeArtifactLibrary, projectBasePath: String): String {
-  if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:"))  {
-    return adjustLocalLibraryName(library.artifact, projectBasePath)
+  if (library.artifactAddress.startsWith("$LOCAL_LIBRARY_PREFIX:")) {
+    return adjustLocalLibraryName(
+      File(library.artifactAddress.removePrefix("$LOCAL_LIBRARY_PREFIX:").substringBefore(":")),
+      projectBasePath
+    )
   }
 
   return convertMavenCoordinateStringToIdeLibraryName(library.artifactAddress)
@@ -212,7 +215,7 @@ private fun convertToLibraryName(library: IdeArtifactLibrary, projectBasePath: S
  * Current this method removes any @jar from the end of the coordinate since IDEA defaults to this and doesn't display
  * it.
  */
-private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String) : String {
+private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String): String {
   return mavenCoordinate.removeSuffix("@jar")
 }
 
@@ -220,7 +223,7 @@ private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String
  * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
  * can't be parsed as a [GradleCoordinate] this method returns the [libraryName] un-edited.
  */
-private fun stripExtensionAndClassifier(libraryName: String) : String {
+private fun stripExtensionAndClassifier(libraryName: String): String {
   val parts = libraryName.split(':')
   if (parts.size < 3) return libraryName // There is not enough parts to form a group:id:version string.
   return "${parts[0]}:${parts[1]}:${parts[2]}"
@@ -228,7 +231,8 @@ private fun stripExtensionAndClassifier(libraryName: String) : String {
 
 private fun IdeArtifactLibrary.isModuleLevel(modulePath: String) = try {
   FileUtil.isAncestor(modulePath, artifactAddress, false)
-} catch (e: UnsupportedMethodException) {
+}
+catch (e: UnsupportedMethodException) {
   false
 }
 
@@ -384,7 +388,8 @@ private class AndroidDependenciesSetupContext(
 
     return if (sourceSet != null) {
       ModuleLibraryWorkItem(sourceSet.data.id, sourceSet.data)
-    } else {
+    }
+    else {
       ModuleLibraryWorkItem(targetModuleId, targetDataNode.data)
     }
   }
@@ -457,7 +462,7 @@ private fun getExtraSdkLibraries(
   projectDataNode: DataNode<ProjectData>,
   moduleDataNode: DataNode<ModuleData>,
   bootClasspath: Collection<String>
-) : List<LibraryDependencyData> {
+): List<LibraryDependencyData> {
   return bootClasspath.filter { path ->
     File(path).name != FN_FRAMEWORK_LIBRARY
   }.map { path ->
@@ -540,7 +545,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
       gradleSourceSetData.createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
     }
     processedLibraries.forEach { (_, libraryDependencyData) ->
-      libraryDependencyData.order =  orderIndex++
+      libraryDependencyData.order = orderIndex++
       gradleSourceSetData.createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
     }
   }
@@ -555,7 +560,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   }
 }
 
-fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact) : DataNode<GradleSourceSetData> {
+fun DataNode<ModuleData>.findSourceSetDataForArtifact(ideBaseArtifact: IdeBaseArtifact): DataNode<GradleSourceSetData> {
   return ExternalSystemApiUtil.find(this, GradleSourceSetData.KEY) {
     it.data.externalName.substringAfterLast(":") == ModuleUtil.getModuleName(ideBaseArtifact)
   } ?: throw ExternalSystemException("Missing GradleSourceSetData data for artifact!")

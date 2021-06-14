@@ -103,16 +103,19 @@ class GradleModuleSystem(
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getDependenciesFor(module, scope)
-      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
+      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
       ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) }
       ?.find { it.matches(coordinate) }
   }
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getDependenciesFor(module, DependencyScopeType.MAIN)
-      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
-      ?.find { GradleCoordinate.parseCoordinateString(it.artifactAddress)?.matches(coordinate) ?: false }
-      ?.artifact?.toPath()
+      ?.let { dependencies ->
+        dependencies.androidLibraries.asSequence().map { it.artifactAddress to it.artifact } +
+        dependencies.javaLibraries.asSequence().map { it.artifactAddress to it.artifact }
+      }
+      ?.find { GradleCoordinate.parseCoordinateString(it.first)?.matches(coordinate) ?: false }
+      ?.second?.toPath()
   }
 
   // TODO: b/129297171
@@ -134,7 +137,7 @@ class GradleModuleSystem(
     }
     else {
       getDependenciesFor(module, DependencyScopeType.MAIN)
-        ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence()}
+        ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
         ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.artifactAddress) } ?: emptySequence()
     }
   }

@@ -21,10 +21,6 @@ import java.io.File
  * Represent a variant/module/artifact dependency.
  */
 interface IdeLibrary {
-
-  /** Returns the artifact location.  */
-  val artifact: File
-
   /**
    * Returns the location of the lint jar. The file may not point to an existing file.
    *
@@ -51,6 +47,9 @@ interface IdeArtifactLibrary: IdeLibrary {
 }
 
 interface IdeAndroidLibrary: IdeArtifactLibrary {
+  /** Returns the artifact location.  */
+  val artifact: File
+
   /**
    * Returns the location of the unzipped bundle folder.
    */
@@ -127,7 +126,10 @@ interface IdeAndroidLibrary: IdeArtifactLibrary {
   val symbolFile: String
 }
 
-interface IdeJavaLibrary: IdeArtifactLibrary
+interface IdeJavaLibrary: IdeArtifactLibrary {
+  /** Returns the artifact location.  */
+  val artifact: File
+}
 
 interface IdeModuleLibrary: IdeLibrary {
   /**
