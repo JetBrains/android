@@ -30,15 +30,9 @@ fun RecipeExecutor.setKotlinVersion(kotlinVersion: String) {
   addClasspathDependency("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
 }
 
-fun RecipeExecutor.addKotlinToBaseProject(language: Language, kotlinVersion: String, isNewProject: Boolean = false) {
-  if (!isNewProject && language == Language.Kotlin) {
-    setKotlinVersion(kotlinVersion)
-  }
-}
-
 fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
-    addKotlinToBaseProject(data.language, data.kotlinVersion)
+    setKotlinVersion(data.kotlinVersion)
     applyPlugin("kotlin-android")
     addKotlinDependencies(data.androidXSupport && !noKtx)
   }
