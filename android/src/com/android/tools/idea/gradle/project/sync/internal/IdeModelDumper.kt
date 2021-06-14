@@ -221,7 +221,10 @@ private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
   }
   prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
   prop("IsProvided") { ideLibrary.isProvided.toString() }
-  if (ideLibrary !is IdeModuleLibrary) prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
+  when (ideLibrary) {
+    is IdeAndroidLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
+    is IdeJavaLibrary -> prop("Artifact") { ideLibrary.artifact.path.toPrintablePath() }
+  }
 }
 
 private fun ProjectDumper.dump(javaLibrary: IdeJavaLibrary) {

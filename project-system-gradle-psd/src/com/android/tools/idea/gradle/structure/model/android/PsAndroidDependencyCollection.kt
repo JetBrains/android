@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
@@ -152,6 +154,11 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
   }
 
   private fun addLibrary(library: IdeArtifactLibrary, artifact: PsAndroidArtifact) {
+    val libraryArtifactFile = when (library) {
+      is IdeAndroidLibrary -> library.artifact
+      is IdeJavaLibrary -> library.artifact
+      else -> error("Unsupported IdeArtifactLibrary instance.")
+    }
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.dependencies
 
@@ -165,11 +172,11 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
-      androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifactAddress, library.artifact))
+      androidDependency.setDependenciesFromPomFile(parent.parent.pomDependencyCache.getPomDependencies(library.artifactAddress, libraryArtifactFile))
       addLibraryDependency(androidDependency)
     }
     else {
-      val artifactCanonicalFile = library.artifact.canonicalFile
+      val artifactCanonicalFile = libraryArtifactFile.canonicalFile
       val matchingDeclaredDependencies =
         matchJarDeclaredDependenciesIn(parsedDependencies, artifactCanonicalFile)
       val path = parent.relativeFile(artifactCanonicalFile)

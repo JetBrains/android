@@ -21,7 +21,6 @@ import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.projectmodel.ResourceFolder
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeLibrary
 
 /**
  * Converts a builder-model [IdeAndroidLibrary] into a [ExternalAndroidLibrary]. Returns null
@@ -29,7 +28,7 @@ import com.android.tools.idea.gradle.model.IdeLibrary
  */
 fun convertLibraryToExternalLibrary(source: IdeAndroidLibrary): ExternalAndroidLibrary = AndroidLibraryWrapper(source)
 
-private abstract class LibraryWrapper<T: IdeLibrary>(protected val lib: T) : ExternalAndroidLibrary {
+private abstract class LibraryWrapper<T: IdeAndroidLibrary>(protected val lib: T) : ExternalAndroidLibrary {
   @Suppress("FileComparisons")
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
