@@ -22,10 +22,10 @@ import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.RecipeExecutor
 
 enum class IconsGenerationStyle {
   ALL,
@@ -84,9 +84,9 @@ fun RecipeExecutor.generateCommonModule(
 
   // Note: com.android.* needs to be applied before kotlin
   when {
-    isLibraryProject -> applyPlugin("com.android.library")
-    data.isDynamic -> applyPlugin("com.android.dynamic-feature")
-    else -> applyPlugin("com.android.application")
+    isLibraryProject -> applyPlugin("com.android.library", projectData.gradlePluginVersion)
+    data.isDynamic -> applyPlugin("com.android.dynamic-feature", projectData.gradlePluginVersion)
+    else -> applyPlugin("com.android.application", projectData.gradlePluginVersion)
   }
   addKotlinIfNeeded(projectData)
 
