@@ -37,6 +37,7 @@ import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.updatePluginsResolutionManagement
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.wizard.template.BytecodeLevel
@@ -123,7 +124,10 @@ data class ProjectChecker(
 
     val settingsFile = File(projectRoot, SdkConstants.FN_SETTINGS_GRADLE)
     val settingsOrigContent = settingsFile.readText()
+
     val settingsNewContent = updateLocalRepositories(settingsOrigContent, getLocalRepositoriesForGroovy())
+      .run { updatePluginsResolutionManagement(this) }
+
     settingsFile.writeText(settingsOrigContent, settingsNewContent)
 
     refreshProjectFiles()

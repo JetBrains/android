@@ -22,6 +22,7 @@ import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
 import com.android.testutils.TestUtils.getWorkspaceRoot
@@ -1447,4 +1448,36 @@ inline fun <T> Project.buildAndWait(invoker: (GradleBuildInvoker) -> ListenableF
   finally {
     Disposer.dispose(disposable)
   }
+}
+
+// HACK: b/143864616 and ag/14916674 Bazel hack, until missing dependencies are available in "offline-maven-repo"
+fun updatePluginsResolutionManagement(origContent: String): String {
+  if (!TestUtils.runningFromBazel()) {
+    return origContent
+  }
+
+  fun findPluginVersion(pluginId: String): String? = origContent.lines()
+    .firstOrNull { it.contains(pluginId) && it.contains("version") }
+    ?.replace(" apply false", "")?.replace("'", "")
+    ?.substringAfterLast(" ")
+
+  val pluginsResolutionStrategy = findPluginVersion("com.android.application")?.let { agpVersion ->
+    """
+      resolutionStrategy {
+        eachPlugin {
+          if (requested.id.namespace == "com.android") {
+              useModule("com.android.tools.build:gradle:$agpVersion")
+          }
+          if (requested.id.id == "com.google.secrets_gradle_plugin") {
+              useModule("com.google:plugin:${findPluginVersion("com.google.secrets_gradle_plugin")}")
+          }
+          if (requested.id.id == "org.jetbrains.kotlin.android") {
+              useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${findPluginVersion("org.jetbrains.kotlin.android")}")
+          }
+        }
+      }
+      """
+  } ?: ""
+
+  return origContent.replace("pluginManagement {", "pluginManagement { $pluginsResolutionStrategy")
 }

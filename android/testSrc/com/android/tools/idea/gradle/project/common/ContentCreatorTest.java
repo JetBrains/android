@@ -59,6 +59,17 @@ public class ContentCreatorTest extends PlatformTestCase {
                       "      maven { url 'path3'}\n" +
                       "  }\n" +
                       "}\n" +
+                      "if (GradleVersion.current().baseVersion >= GradleVersion.version('7.0')) {\n" +
+                      "  beforeSettings {\n" +
+                      "    it.pluginManagement {\n" +
+                      "      repositories {\n" +
+                      "      maven { url 'path1'}\n" +
+                      "      maven { url 'path2'}\n" +
+                      "      maven { url 'path3'}\n" +
+                      "      }\n" +
+                      "    }\n" +
+                      "  }\n" +
+                      "}\n" +
                       "if (GradleVersion.current().baseVersion >= GradleVersion.version('6.8')) {\n" +
                       "  beforeSettings {\n" +
                       "    it.dependencyResolutionManagement {\n" +
