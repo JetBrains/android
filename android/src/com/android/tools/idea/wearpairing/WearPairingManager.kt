@@ -161,7 +161,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     connectedDevices.forEach { (deviceID, iDevice) ->
       val avdDevice = deviceTable[deviceID]
       // Note: Emulators IDevice "Hardware" feature returns "emulator" (instead of TV, WEAR, etc), so we only check for physical devices
-      if ((!iDevice.isEmulator && iDevice.isWearOrPhone()) || avdDevice != null) {
+      if (iDevice.isPhysicalPhone() || avdDevice != null) {
         deviceTable[deviceID] = iDevice.toPairingDevice(deviceID, isPaired(deviceID), avdDevice = avdDevice)
       }
     }
@@ -335,11 +335,11 @@ private fun AvdInfo.toPairingDevice(deviceID: String, isPared: Boolean): Pairing
   }
 }
 
-private fun IDevice.isWearOrPhone(): Boolean = when {
-  supportsFeature(HardwareFeature.WATCH) -> true
+private fun IDevice.isPhysicalPhone(): Boolean = when {
+  isEmulator -> false
+  supportsFeature(HardwareFeature.WATCH) -> false
   supportsFeature(HardwareFeature.TV) -> false
   supportsFeature(HardwareFeature.AUTOMOTIVE) -> false
-  isEmulator -> throw RuntimeException("Call on emulator") // supportsFeature() only works for physical devices
   else -> true
 }
 
