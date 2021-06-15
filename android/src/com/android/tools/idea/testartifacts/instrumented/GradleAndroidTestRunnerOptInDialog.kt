@@ -16,6 +16,8 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 
@@ -28,6 +30,7 @@ import com.intellij.openapi.ui.Messages
 fun showGradleAndroidTestRunnerOptInDialog(
   project: Project,
   config: AndroidTestConfiguration = AndroidTestConfiguration.getInstance(),
+  logger: AndroidTestSuiteLogger = AndroidTestSuiteLogger(),
   showDialogFunc: () -> Boolean = {
     Messages.showOkCancelDialog(
       project,
@@ -44,10 +47,22 @@ fun showGradleAndroidTestRunnerOptInDialog(
     return
   }
 
+  logger.addImpression(ParallelAndroidTestReportUiEvent.UiElement.GRADLE_ANDROID_TEST_RUNNER_OPT_IN_DIALOG)
+  logger.reportImpressions()
+
   val accepted = showDialogFunc()
   if (accepted) {
     config.RUN_ANDROID_TEST_USING_GRADLE = true
   }
+
+  logger.reportClickInteraction(
+    ParallelAndroidTestReportUiEvent.UiElement.GRADLE_ANDROID_TEST_RUNNER_OPT_IN_DIALOG,
+    if (accepted) {
+      ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.ACCEPT
+    } else {
+      ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.DISMISS
+    }
+  )
 
   config.SHOW_RUN_ANDROID_TEST_USING_GRADLE_OPT_IN_DIALOG = false
 }
