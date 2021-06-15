@@ -17,6 +17,9 @@
 package com.android.tools.idea.logcat;
 
 import static com.android.ddmlib.Log.LogLevel.DEBUG;
+import static com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat.DATETIME;
+import static com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat.EPOCH;
+import static com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat.NONE;
 import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.Assert.assertEquals;
@@ -49,8 +52,8 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
-  public void formatMessage_emptyFormat() {
-    myPreferences.LOGCAT_FORMAT_STRING = "";
+  public void formatMessage_defaultFormat() {
+    myPreferences.LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat();
     LogCatMessage logCatMessage = new LogCatMessage(
       new LogCatHeader(DEBUG, 1234, 56, "com.app.test", "test", Instant.ofEpochSecond(1534635551, MILLISECONDS.toNanos(789))),
       "Test message");
@@ -61,8 +64,20 @@ public class AndroidLogcatFormatterTest {
   }
 
   @Test
+  public void formatMessage_timestampAsEpoch() {
+    myPreferences.LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat(EPOCH, true, true, true);
+    LogCatMessage logCatMessage = new LogCatMessage(
+      new LogCatHeader(DEBUG, 1234, 56, "com.app.test", "test", Instant.ofEpochSecond(1534635551, MILLISECONDS.toNanos(789))),
+      "Test message");
+
+    String formattedMessage = myFormatter.formatMessage(LogcatJson.toJson(logCatMessage));
+
+    assertEquals("1534635551.789 1234-56/com.app.test D/test: Test message", formattedMessage);
+  }
+
+  @Test
   public void formatMessage_multilineIndent() {
-    myPreferences.LOGCAT_FORMAT_STRING = "";
+    myPreferences.LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat();
     LogCatMessage logCatMessage = new LogCatMessage(
       new LogCatHeader(DEBUG, 1234, 56, "com.app.test", "test", Instant.ofEpochSecond(1534635551, MILLISECONDS.toNanos(789))),
       "Line1\nLine2");
@@ -83,6 +98,7 @@ public class AndroidLogcatFormatterTest {
 
     String message = LogcatJson.toJson(logCatMessage);
 
+    assertExpected(true, true, true, true, message, "2018-08-18 16:39:11.789 1234-56/com.app.test D/test: Test message");
     assertExpected(true, true, false, false, message, "2018-08-18 16:39:11.789 1234-56 D: Test message");
     assertExpected(false, true, false, false, message, "1234-56 D: Test message");
     assertExpected(false, false, true, true, message, "com.app.test D/test: Test message");
@@ -94,7 +110,7 @@ public class AndroidLogcatFormatterTest {
                                      String message, String expected) {
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
     LogFormatter formatter = new AndroidLogcatFormatter(TIME_ZONE, preferences);
-    preferences.LOGCAT_FORMAT_STRING = AndroidLogcatFormatter.createCustomFormat(showTime, showPid, showPackage, showTag);
+    preferences.LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat(showTime ? DATETIME : NONE, showPid, showPackage, showTag);
     String formattedMessage = formatter.formatMessage(message);
     assertEquals(expected, formattedMessage);
   }

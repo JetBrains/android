@@ -26,6 +26,8 @@ import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatPreferences;
 import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
+import com.android.tools.idea.logcat.LogcatHeaderFormat;
+import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.android.tools.idea.run.AndroidDebugState;
@@ -104,12 +106,13 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
     // Reuse the current ConsoleView to retain the UI state and not to lose test results.
     Object androidTestResultListener = processHandler.getCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY);
     if (androidTestResultListener instanceof ConsoleView) {
-      ConsoleView consoleViewToReuse = (ConsoleView) androidTestResultListener;
+      ConsoleView consoleViewToReuse = (ConsoleView)androidTestResultListener;
       debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, (parent, handler, executor) -> {
         consoleViewToReuse.attachToProcess(handler);
         return consoleViewToReuse;
       });
-    } else {
+    }
+    else {
       debugState = new AndroidDebugState(myProject, debugProcessHandler, connection, currentLaunchInfo.consoleProvider);
     }
 
@@ -243,7 +246,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTaskBase {
   }
 
   private static final class MyLogcatListener extends ApplicationLogListener {
-    private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+    private static final LogcatHeaderFormat SIMPLE_FORMAT = new LogcatHeaderFormat(TimestampFormat.NONE, false, false, true);
 
     private final AndroidLogcatFormatter myFormatter;
     private final AtomicBoolean myIsFirstMessage;

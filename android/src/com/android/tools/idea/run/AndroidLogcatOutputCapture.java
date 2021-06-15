@@ -23,6 +23,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatPreferences;
 import com.android.tools.idea.logcat.AndroidLogcatService;
+import com.android.tools.idea.logcat.LogcatHeaderFormat;
+import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider;
 import com.android.tools.idea.logcat.output.LogcatOutputSettings;
 import com.intellij.execution.process.ProcessOutputTypes;
@@ -41,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  * they are shown in the Run Console window.
  */
 public class AndroidLogcatOutputCapture implements AutoCloseable {
-  private static final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+  private static final LogcatHeaderFormat SIMPLE_FORMAT = new LogcatHeaderFormat(TimestampFormat.NONE, false, false, true);
   private static final Logger LOG = Logger.getInstance(AndroidLogcatOutputCapture.class);
 
   /**
@@ -150,7 +152,8 @@ public class AndroidLogcatOutputCapture implements AutoCloseable {
       String message = myFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
       if (ourShowDeviceName.get()) {
         return '[' + myDevice.getName() + "]: " + message;
-      } else {
+      }
+      else {
         return message;
       }
     }

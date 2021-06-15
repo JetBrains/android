@@ -19,45 +19,18 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.intellij.diagnostic.logging.DefaultLogFormatter;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
-import java.util.Locale;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Class which handles parsing the output from logcat and reformatting it to its final form before
  * displaying it to the user.
- *
- * <p>By default, this formatter prints a full header + message to the console, but you can modify
- * {@link AndroidLogcatPreferences#LOGCAT_FORMAT_STRING} (setting it to a value returned by
- * {@link #createCustomFormat(boolean, boolean, boolean, boolean)}) to hide parts of the header.
  */
 public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   public static final String TAG_PATTERN_GROUP_NAME = "tag";
   public static final Pattern TAG_PATTERN = Pattern.compile(" [VDIWEA]/(?<tag>.*?): ");
 
-  private static final String CONTINUATION_LINE = "\n    ";
-  private static final String FULL_FORMAT = createCustomFormat(true, true, true, true);
-  private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-    .append(DateTimeFormatter.ISO_LOCAL_DATE)
-    .appendLiteral(' ')
-    .appendValue(ChronoField.HOUR_OF_DAY, 2)
-    .appendLiteral(':')
-    .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
-    .appendLiteral(':')
-    .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
-    .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-    .toFormatter(Locale.ROOT);
-  private static final DateTimeFormatter EPOCH_TIME_FORMATTER =
-    new DateTimeFormatterBuilder()
-      .appendValue(ChronoField.INSTANT_SECONDS)
-      .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-      .toFormatter(Locale.ROOT);
 
   @NotNull private final ZoneId myTimeZone;
   private final AndroidLogcatPreferences myPreferences;
@@ -68,76 +41,27 @@ public final class AndroidLogcatFormatter extends DefaultLogFormatter {
   }
 
   /**
-   * Creates a format string for the formatMessage methods that take one.
+   * Parse a JSON encoded {@link LogCatMessage} and format it based on {@link AndroidLogcatPreferences#LOGCAT_HEADER_FORMAT}
    */
-  @NotNull
-  public static String createCustomFormat(boolean showTime, boolean showPid, boolean showPackage, boolean showTag) {
-    StringBuilder builder = new StringBuilder();
-    if (showTime) {
-      builder.append("%1$s ");
-    }
-    if (showPid) {
-      // Slightly different formatting if we show BOTH PID and package instead of one or the other
-      builder.append("%2$s").append(showPackage ? '/' : ' ');
-    }
-    if (showPackage) {
-      builder.append("%3$s ");
-    }
-    builder.append("%4$c");
-    if (showTag) {
-      builder.append("/%5$s");
-    }
-    builder.append(": %6$s");
-    return builder.toString();
-  }
-
-
-  public static boolean isProcessShown(String format) {
-    return format.isEmpty() || format.contains("%2$s");
-  }
-
-  public  static boolean isPackageShown(String format) {
-    return format.isEmpty() || format.contains("%3$s");
-  }
-
-  public static boolean isTagShown(String format) {
-    return format.isEmpty() || format.contains("%5$s");
-  }
-
   @NotNull
   @Override
   public String formatMessage(@NotNull String message) {
     return formatMessage(LogcatJson.fromJson(message));
   }
 
+  /**
+   * Parse a {@link LogCatMessage} and format it based on {@link AndroidLogcatPreferences#LOGCAT_HEADER_FORMAT}
+   */
   @NotNull
   String formatMessage(@NotNull LogCatMessage message) {
-    String format = myPreferences.LOGCAT_FORMAT_STRING.isEmpty() ? FULL_FORMAT : myPreferences.LOGCAT_FORMAT_STRING;
-    return formatMessage(format, message.getHeader(), message.getMessage());
+    return myPreferences.LOGCAT_HEADER_FORMAT.formatMessage(message, myTimeZone);
   }
 
+  /**
+   * Parse a {@link LogCatMessage} and format it
+   */
   @NotNull
-  public String formatMessage(@NotNull String format, @NotNull LogCatHeader header, @NotNull String message) {
-    Instant timestamp = header.getTimestamp();
-
-    Object timestampString = myPreferences.SHOW_AS_SECONDS_SINCE_EPOCH
-                             ? EPOCH_TIME_FORMATTER.format(timestamp)
-                             : DATE_TIME_FORMATTER.format(LocalDateTime.ofInstant(timestamp, myTimeZone));
-
-    Object processIdThreadId = header.getPid() + "-" + header.getTid();
-    Object priority = header.getLogLevel().getPriorityLetter();
-
-    // Replacing spaces with non breaking spaces makes parsing easier later
-    Object tag = header.getTag().replace(' ', '\u00A0');
-
-    return String.format(
-      Locale.ROOT,
-      format,
-      timestampString,
-      processIdThreadId,
-      header.getAppName(),
-      priority,
-      tag,
-      message.replaceAll("\n", CONTINUATION_LINE));
+  public String formatMessage(@NotNull LogcatHeaderFormat format, @NotNull LogCatHeader header, @NotNull String message) {
+    return format.formatMessage(new LogCatMessage(header, message), myTimeZone);
   }
 }
