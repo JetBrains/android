@@ -218,16 +218,16 @@ final class Updater {
 
     if (selectedTargets.retainAll(targets)) {
       myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets);
+    }
 
-      if (selectedTargets.isEmpty()) {
-        myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
+    if (selectedTargets.isEmpty()) {
+      myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
 
-        Target selectedTarget = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElse(null);
-        myDevicesSelectedService.setTargetSelectedWithComboBox(selectedTarget);
+      Target selectedTarget = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElse(null);
+      myDevicesSelectedService.setTargetSelectedWithComboBox(selectedTarget);
 
-        updateInToolbarForSingleDevice();
-        return;
-      }
+      updateInToolbarForSingleDevice();
+      return;
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
