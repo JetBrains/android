@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide
 
-import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
