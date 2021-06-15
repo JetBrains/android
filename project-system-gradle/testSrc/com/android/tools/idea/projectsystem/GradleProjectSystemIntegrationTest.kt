@@ -30,16 +30,48 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.TruthJUnit.assume
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.Contract
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.io.File
 
 /**
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
  */
-class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
+abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
+
+  @RunWith(Parameterized::class)
+  class CurrentAgp : GradleProjectSystemIntegrationTestCase() {
+
+    companion object {
+      @Suppress("unused")
+      @Contract(pure = true)
+      @JvmStatic
+      @Parameterized.Parameters(name = "{0}")
+      fun testProjects(): Collection<*> {
+        return tests.map { listOf(it).toTypedArray() }
+      }
+    }
+  }
+
+  companion object {
+    val tests =
+      listOf(TestDefinition(agpVersion = AgpVersion.CURRENT))
+  }
+
+  data class TestDefinition(val agpVersion: AgpVersion)
+
+  enum class AgpVersion(val agpVersion: String? = null, val gradleVersion: String? = null, val kotlinVersion: String? = null) {
+    CURRENT,
+    AGP_35(agpVersion = "3.5.0", gradleVersion = "5.5", kotlinVersion = "1.4.32"),
+    AGP_40(agpVersion = "4.0.0", gradleVersion = "6.5"),
+    AGP_41(agpVersion = "4.1.0")
+  }
 
   @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModels()
@@ -49,6 +81,10 @@ class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
 
   @get:Rule
   val expect: Expect = Expect.create()
+
+  @JvmField
+  @Parameterized.Parameter(0)
+  var testDefinition: TestDefinition? = null
 
   override fun getName(): String = testName.methodName
   override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
@@ -74,6 +110,8 @@ class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun testGetDefaultApkFile() {
+    // TODO(b/191146142): Remove assumption when fixed.
+    assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersion.AGP_40)
     runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
       // Invoke assemble task to generate output listing file and apk file.
       project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE) }
@@ -118,9 +156,9 @@ class GradleProjectSystemIntegrationTest : GradleIntegrationTest {
     prepareGradleProject(
       testProjectPath,
       "project",
-      gradleVersion = null,
-      gradlePluginVersion = null,
-      kotlinVersion = null
+      gradleVersion = testDefinition!!.agpVersion.gradleVersion,
+      gradlePluginVersion = testDefinition!!.agpVersion.agpVersion,
+      kotlinVersion = testDefinition!!.agpVersion.kotlinVersion
     )
     openPreparedProject("project", test)
   }
