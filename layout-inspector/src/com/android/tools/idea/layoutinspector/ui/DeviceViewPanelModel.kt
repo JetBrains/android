@@ -165,14 +165,13 @@ class DeviceViewPanelModel(
       root.y = rootBounds.x
       root.width = rootBounds.width
       root.height = rootBounds.height
-      transform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
       // Don't allow rotation to completely edge-on, since some rendering can have problems in that situation. See issue 158452416.
       // You might say that this is ( •_•)>⌐■-■ / (⌐■_■) an edge-case.
       magnitude = min(0.98, hypot(xOff, yOff))
       angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-      transform.translate(rootBounds.width / 2.0 - rootBounds.x, rootBounds.height / 2.0 - rootBounds.y)
+      transform.translate(-rootBounds.x.toDouble(), -rootBounds.y.toDouble())
       transform.rotate(angle)
     }
     else {
@@ -259,9 +258,11 @@ class DeviceViewPanelModel(
   }
 
   fun resetRotation() {
-    xOff = 0.0
-    yOff = 0.0
-    refresh()
+    if (xOff != 0.0 || yOff != 0.0) {
+      xOff = 0.0
+      yOff = 0.0
+      refresh()
+    }
   }
 
   /**
