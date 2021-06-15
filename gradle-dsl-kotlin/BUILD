@@ -1,0 +1,15 @@
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.gradle.dsl.kotlin",
+    srcs = ["src"],
+    iml_files = ["intellij.android.gradle.dsl.kotlin.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+    ],
+)
