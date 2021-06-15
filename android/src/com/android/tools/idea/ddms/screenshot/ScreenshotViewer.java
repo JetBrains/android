@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.ddms.screenshot;
 
+import static com.intellij.util.ui.ImageUtil.applyQualityRenderingHints;
+
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.resources.ScreenOrientation;
@@ -51,12 +53,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.ContainerUtil;
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Graphics2D;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
@@ -104,6 +110,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final FileEditorProvider myProvider;
 
   private final List<DeviceArtDescriptor> myDeviceArtDescriptors;
+  private final boolean myImageIsRound;
 
   private JPanel myPanel;
   private JButton myRefreshButton;
@@ -139,13 +146,15 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           @NotNull BufferedImage image,
                           @NotNull File backingFile,
                           @Nullable IDevice device,
-                          @Nullable String deviceModel) {
+                          @Nullable String deviceModel,
+                          boolean isRound) {
     super(project, true);
 
     myProject = project;
     myDevice = device;
     mySourceImageRef.set(image);
     myDisplayedImageRef.set(image);
+    myImageIsRound = isRound;
 
     myBackingVirtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(backingFile);
     assert myBackingVirtualFile != null;
@@ -291,19 +300,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myDeviceArtCombo.setEnabled(shouldFrame);
 
-    if (shouldFrame) {
-      processScreenshot(true, 0);
-    }
-    else {
-      myDisplayedImageRef.set(mySourceImageRef.get());
-      updateEditorImage();
-    }
+    processScreenshot(shouldFrame, 0);
   }
 
   private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
     DeviceArtDescriptor spec = addFrame ? myDeviceArtDescriptors.get(myDeviceArtCombo.getSelectedIndex()) : null;
+    boolean applyRoundClip = !addFrame && myImageIsRound;
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, myBackingVirtualFile) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, applyRoundClip, myBackingVirtualFile) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -318,6 +322,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     private final int myRotationQuadrants;
     private final @Nullable DeviceArtDescriptor myDescriptor;
     private final @Nullable VirtualFile myDestinationFile;
+    private final boolean myApplyRoundClip;
 
     private BufferedImage myRotatedImage;
     private BufferedImage myProcessedImage;
@@ -326,13 +331,33 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                               @NotNull BufferedImage srcImage,
                               int rotateByQuadrants,
                               @Nullable DeviceArtDescriptor descriptor,
+                              boolean applyRoundClip,
                               @Nullable VirtualFile writeToFile) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
       myRotationQuadrants = rotateByQuadrants;
       myDescriptor = descriptor;
+      myApplyRoundClip = applyRoundClip;
       myDestinationFile = writeToFile;
+    }
+
+    @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
+    private @NotNull BufferedImage circularClip(@NotNull BufferedImage image, int diameter) {
+      BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      Graphics2D graphics = mask.createGraphics();
+      applyQualityRenderingHints(graphics);
+      graphics.fill(new Area(new Ellipse2D.Double(0, 0, diameter, diameter)));
+
+      BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+      graphics = shapedImage.createGraphics();
+      applyQualityRenderingHints(graphics);
+      graphics.drawImage(image, 0, 0, null);
+      graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
+      graphics.drawImage(mask, 0, 0, null);
+      graphics.dispose();
+
+      return shapedImage;
     }
 
     @Override
@@ -343,7 +368,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, false, false);
       }
       else {
-        myProcessedImage = myRotatedImage;
+        myProcessedImage = myApplyRoundClip ? circularClip(myRotatedImage, myRotatedImage.getWidth()) : myRotatedImage;
       }
 
       myProcessedImage = ImageUtils.cropBlank(myProcessedImage, null);
