@@ -21,5 +21,14 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library name="workmanager-inspector-proto">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/work/workmanager_inspector_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

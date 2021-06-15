@@ -13,6 +13,8 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:intellij.android.app-inspection.inspectors.backgroundtask.model[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
+        "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
     ],
 )
 
@@ -20,5 +22,12 @@ iml_module(
 java_import(
     name = "background-inspector-proto",
     jars = ["//tools/base/app-inspection/inspectors/backgroundtask:backgroundtask_inspector_java_proto.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+java_import(
+    name = "workmanager-inspector-proto",
+    jars = ["//prebuilts/tools/common/app-inspection/androidx/work:workmanager_inspector_proto.jar"],
     visibility = ["//visibility:public"],
 )

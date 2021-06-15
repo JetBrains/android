@@ -15,37 +15,51 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 
-import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Command
-import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Event
-import backgroundtask.inspection.BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand
+import androidx.work.inspection.WorkManagerInspectorProtocol
+import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 sealed class WmiMessengerTarget {
-  class Resolved(val messenger: AppInspectorMessenger): WmiMessengerTarget()
-  class Unresolved(val error: String): WmiMessengerTarget()
+  class Resolved(val messenger: AppInspectorMessenger) : WmiMessengerTarget()
+  class Unresolved(val error: String) : WmiMessengerTarget()
 }
 
+/**
+ * Class used to send commands to and handle events from the on-device work manager inspector and background task inspector.
+ */
 class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
   private val wmiMessengerTarget: WmiMessengerTarget,
-  clientScope: CoroutineScope
+  val scope: CoroutineScope,
+  val uiThread: CoroutineDispatcher
 ) {
-  private val _listeners = mutableListOf<() -> Unit>()
-  fun addWorksChangedListener(listener: () -> Unit) = _listeners.add(listener)
-  var event: String = ""
+  private val _listeners = mutableListOf<(Any) -> Unit>()
+  fun addEventListener(listener: (Any) -> Unit) = _listeners.add(listener)
 
   init {
-    val command = Command.newBuilder().setTrackBackgroundTask(TrackBackgroundTaskCommand.getDefaultInstance()).build()
-    clientScope.launch {
-      btiMessenger.sendRawCommand(command.toByteArray())
-    }
-    clientScope.launch {
+    val trackBackgroundTaskCommand = BackgroundTaskInspectorProtocol.Command.newBuilder()
+      .setTrackBackgroundTask(BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance())
+      .build()
+    scope.launch {
+      btiMessenger.sendRawCommand(trackBackgroundTaskCommand.toByteArray())
       btiMessenger.eventFlow.collect { eventData ->
-        event = Event.parseFrom(eventData).toString()
-        _listeners.forEach { listener -> listener() }
+        _listeners.forEach { listener -> listener(BackgroundTaskInspectorProtocol.Event.parseFrom(eventData)) }
+      }
+    }
+
+    if (wmiMessengerTarget is WmiMessengerTarget.Resolved) {
+      val trackWorkManagerCommand = WorkManagerInspectorProtocol.Command.newBuilder()
+        .setTrackWorkManager(WorkManagerInspectorProtocol.TrackWorkManagerCommand.getDefaultInstance())
+        .build()
+      scope.launch {
+        wmiMessengerTarget.messenger.sendRawCommand(trackWorkManagerCommand.toByteArray())
+        wmiMessengerTarget.messenger.eventFlow.collect { eventData ->
+          _listeners.forEach { listener -> listener(WorkManagerInspectorProtocol.Event.parseFrom(eventData)) }
+        }
       }
     }
   }

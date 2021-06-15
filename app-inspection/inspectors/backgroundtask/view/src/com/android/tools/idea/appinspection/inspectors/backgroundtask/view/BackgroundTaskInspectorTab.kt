@@ -15,21 +15,39 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * View class for the Background Task Inspector Tab.
+ */
 class BackgroundTaskInspectorTab(private val client: BackgroundTaskInspectorClient) {
-  val component = JBTextArea("No events available")
+
+  private val textArea = JBTextArea("")
+
+  private val splitter = JBSplitter(false).apply {
+    border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
+    isOpaque = true
+    firstComponent = BackgroundTaskInstanceView(client)
+    secondComponent = JBScrollPane().apply { setViewportView(textArea) }
+    dividerWidth = 1
+    divider.background = AdtUiUtils.DEFAULT_BORDER_COLOR
+  }
+
+  val component = splitter
+
 
   init {
     var count = 0
-    client.addWorksChangedListener {
-      CoroutineScope(AndroidDispatchers.uiThread).launch {
+    client.addEventListener { event ->
+      client.scope.launch(client.uiThread) {
         count += 1
-        component.text = "Event#$count\n${client.event}\n${component.text}"
+        textArea.text = "Event#$count\n${event}\n${textArea.text}"
       }
     }
   }
