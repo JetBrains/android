@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.NONE;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
@@ -124,6 +126,9 @@ public interface GradleDslParser extends GradleDslNameConverter {
     public Adapter(@NotNull BuildModelContext context) {
       this.context = context;
     }
+
+    @Override
+    public Kind getKind() { return NONE; }
 
     @Override
     public void parse() { }

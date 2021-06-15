@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
@@ -40,6 +41,9 @@ import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import java.util.regex.Pattern
 
 interface KotlinDslNameConverter: GradleDslNameConverter {
+  @JvmDefault
+  override fun getKind() = KOTLIN
+
   @JvmDefault
   override fun psiToName(element: PsiElement): String {
     return when (element) {
