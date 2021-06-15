@@ -274,7 +274,7 @@ open class TemplateTest : AndroidGradleTestCase() {
   fun testComposeActivity() {
     val withOldKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
       projectData.language = Language.Kotlin
-      projectData.kotlinVersion = "1.4.32" // b/182477583
+      projectData.kotlinVersion = "1.5.10" // b/191141248
     }
     checkCreateTemplate("Empty Compose Activity", withOldKotlin) // Compose is always Kotlin
   }

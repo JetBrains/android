@@ -439,16 +439,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   /**
    * Sets Compose Options field values
    */
-  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?, kotlinCompilerVersion: String?) {
+  override fun setComposeOptions(kotlinCompilerExtensionVersion: String?) {
     val buildModel = moduleGradleBuildModel ?: return
     val composeOptionsModel = buildModel.android().composeOptions()
 
     if (kotlinCompilerExtensionVersion != null) {
       composeOptionsModel.kotlinCompilerExtensionVersion().setValueIfNone(kotlinCompilerExtensionVersion)
-    }
-
-    if (kotlinCompilerVersion != null) {
-      composeOptionsModel.kotlinCompilerVersion().setValueIfNone(kotlinCompilerVersion)
     }
 
     buildModel.android().defaultConfig().vectorDrawables().useSupportLibrary().setValue(true)
@@ -467,11 +463,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         version().setValue(cppVersion)
       }
     }
-  }
-
-  override fun setUseKotlinIrCompiler() {
-    val buildModel = moduleGradleBuildModel ?: return
-    buildModel.android().kotlinOptions().useIR().setValue(true)
   }
 
   /**
