@@ -21,6 +21,8 @@ import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.logcat.AndroidLogcatFormatter;
 import com.android.tools.idea.logcat.AndroidLogcatPreferences;
 import com.android.tools.idea.logcat.AndroidLogcatService.LogcatListener;
+import com.android.tools.idea.logcat.LogcatHeaderFormat;
+import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -48,7 +50,7 @@ public final class ApplicationLogListenerTest {
   }
 
   private static final class TestApplicationLogListener extends ApplicationLogListener {
-    private static final String FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
+    private static final LogcatHeaderFormat FORMAT = new LogcatHeaderFormat(TimestampFormat.NONE, false, false, true);
 
     private final AndroidLogcatFormatter myFormatter;
     private final StringBuilder myBuilder;

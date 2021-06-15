@@ -423,9 +423,7 @@ public class AndroidLogcatView {
       ConfigureLogcatHeaderDialog dialog = new ConfigureLogcatHeaderDialog(project, preferences, ZoneId.systemDefault());
 
       if (dialog.showAndGet()) {
-        preferences.LOGCAT_FORMAT_STRING = dialog.getFormat();
-        preferences.SHOW_AS_SECONDS_SINCE_EPOCH = dialog.getShowAsSecondsSinceEpochCheckBox().isSelected();
-
+        preferences.LOGCAT_HEADER_FORMAT = dialog.getFormat();
         myView.myLogConsole.refresh();
       }
     }

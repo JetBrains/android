@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.logcat;
 
+import com.android.tools.idea.util.xmlb.LogcatHeaderFormatConverter;
+import com.intellij.openapi.components.*;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
@@ -23,6 +25,7 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.OptionTag;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,17 +38,10 @@ public final class AndroidLogcatPreferences implements PersistentStateComponent<
   public String TOOL_WINDOW_CONFIGURED_FILTER = "";
   public boolean TOOL_WINDOW_REGEXP_FILTER = true;
   /**
-   * Optional, but if set, used for applying one final format pass on output going to the logcat
-   * console.
-   * <p>
-   * Don't set formatting directly; instead,
-   * use {@link AndroidLogcatFormatter#createCustomFormat(boolean, boolean, boolean, boolean)}
-   * <p>
-   * Or, set to an empty string to disable this extra step of processing
+   * Specify the format of a logcat message in the console
    */
-  public String LOGCAT_FORMAT_STRING = "";
-
-  public boolean SHOW_AS_SECONDS_SINCE_EPOCH;
+  @OptionTag(converter = LogcatHeaderFormatConverter.class)
+  public LogcatHeaderFormat LOGCAT_HEADER_FORMAT = new LogcatHeaderFormat();
 
   public static AndroidLogcatPreferences getInstance(Project project) {
     return ServiceManager.getService(project, AndroidLogcatPreferences.class);

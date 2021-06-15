@@ -127,7 +127,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     }
     AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(console.getProject());
     if (StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.get()) {
-      if (AndroidLogcatFormatter.isTagShown(preferences.LOGCAT_FORMAT_STRING)) {
+      if (preferences.LOGCAT_HEADER_FORMAT.getShowTag()) {
         resultActions.add(new SuppressLogTagsMenuAction(console::refresh));
       }
     }

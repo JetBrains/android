@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.logcat;
 
+import static com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat.EPOCH;
+import static com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat.NONE;
+
 import com.android.ddmlib.Log.LogLevel;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.tools.idea.logcat.LogcatHeaderFormat.TimestampFormat;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.ui.JBFont;
@@ -49,12 +53,12 @@ final class ConfigureLogcatHeaderDialog extends DialogWrapper {
     super(project, false, IdeModalityType.PROJECT);
     myTimeZone = timeZone;
 
-    String format = preferences.LOGCAT_FORMAT_STRING;
+    LogcatHeaderFormat format = preferences.LOGCAT_HEADER_FORMAT;
     myShowDateAndTimeCheckBox = createShowDateAndTimeCheckBox(format);
-    myShowAsSecondsSinceEpochCheckBox = createCheckBox("Show as seconds since epoch", preferences.SHOW_AS_SECONDS_SINCE_EPOCH, 8);
-    myShowProcessAndThreadIdsCheckBox = createCheckBox("Show process and thread IDs", AndroidLogcatFormatter.isProcessShown(format), 5);
-    myShowPackageNameCheckBox = createCheckBox("Show package name", AndroidLogcatFormatter.isPackageShown(format), 13);
-    myShowTagCheckBox = createCheckBox("Show tag", AndroidLogcatFormatter.isTagShown(format), 7);
+    myShowAsSecondsSinceEpochCheckBox = createCheckBox("Show as seconds since epoch", format.getTimestampFormat() == EPOCH, 8);
+    myShowProcessAndThreadIdsCheckBox = createCheckBox("Show process and thread IDs", format.getShowProcessId(), 5);
+    myShowPackageNameCheckBox = createCheckBox("Show package name", format.getShowPackageName(), 13);
+    myShowTagCheckBox = createCheckBox("Show tag", format.getShowTag(), 7);
     mySampleLabel = createSampleLabel();
 
     init();
@@ -62,8 +66,8 @@ final class ConfigureLogcatHeaderDialog extends DialogWrapper {
   }
 
   @NotNull
-  private AbstractButton createShowDateAndTimeCheckBox(@NotNull String format) {
-    AbstractButton checkBox = new JCheckBox("Show date and time", format.isEmpty() || format.contains("%1$s"));
+  private AbstractButton createShowDateAndTimeCheckBox(LogcatHeaderFormat format) {
+    AbstractButton checkBox = new JCheckBox("Show date and time", format.getTimestampFormat() != NONE);
     checkBox.setDisplayedMnemonicIndex(14);
 
     checkBox.addItemListener(event -> {
@@ -95,23 +99,23 @@ final class ConfigureLogcatHeaderDialog extends DialogWrapper {
   @NotNull
   private String formatSample() {
     AndroidLogcatPreferences preferences = new AndroidLogcatPreferences();
-
-    preferences.LOGCAT_FORMAT_STRING = getFormat();
-    preferences.SHOW_AS_SECONDS_SINCE_EPOCH = myShowAsSecondsSinceEpochCheckBox.isSelected();
-
+    preferences.LOGCAT_HEADER_FORMAT = getFormat();
     return new AndroidLogcatFormatter(myTimeZone, preferences).formatMessage(SAMPLE);
   }
 
-  @NotNull
-  String getFormat() {
-    boolean showDateAndTime = myShowDateAndTimeCheckBox.isSelected();
-    boolean showProcessAndThreadIds = myShowProcessAndThreadIdsCheckBox.isSelected();
-    boolean showPackageName = myShowPackageNameCheckBox.isSelected();
-    boolean showTag = myShowTagCheckBox.isSelected();
-
-    return showDateAndTime && showProcessAndThreadIds && showPackageName && showTag
-           ? ""
-           : AndroidLogcatFormatter.createCustomFormat(showDateAndTime, showProcessAndThreadIds, showPackageName, showTag);
+  LogcatHeaderFormat getFormat() {
+    final TimestampFormat timestampFormat;
+    if (myShowDateAndTimeCheckBox.isSelected()) {
+      timestampFormat = myShowAsSecondsSinceEpochCheckBox.isSelected() ? TimestampFormat.EPOCH : TimestampFormat.DATETIME;
+    }
+    else {
+      timestampFormat = NONE;
+    }
+    return new LogcatHeaderFormat(
+      timestampFormat,
+      myShowProcessAndThreadIdsCheckBox.isSelected(),
+      myShowPackageNameCheckBox.isSelected(),
+      myShowTagCheckBox.isSelected());
   }
 
   @NotNull
