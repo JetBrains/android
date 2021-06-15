@@ -1,2 +1,2 @@
-include ':app'
+include ':app', ':lib'
 rootProject.name = "Application ID Suffix Test App"

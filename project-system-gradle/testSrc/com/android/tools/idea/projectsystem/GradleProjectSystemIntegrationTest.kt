@@ -80,7 +80,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   var testName = TestName()
 
   @get:Rule
-  val expect: Expect = Expect.create()
+  val expect: Expect = Expect.createAndEnableStackTrace()
 
   @JvmField
   @Parameterized.Parameter(0)
@@ -129,26 +129,36 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     // whether the project has been built or not.
 
     fun Project.appModule() = this.gradleModule(":app")!!
+    fun Project.libModule() = this.gradleModule(":lib")!!
     fun Project.appModuleSystem() = this.appModule().getModuleSystem()
+    fun Project.libModuleSystem() = this.libModule().getModuleSystem()
     fun AssembleInvocationResult.errors() = this.invocationResult.invocations.mapNotNull { it.buildError }
 
     runTestOn(TestProjectPaths.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
+      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
       val debugBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
       expect.that(debugBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
+      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
       switchVariant(project, ":app", "release")
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
+      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
       val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
       expect.that(releaseBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
       // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
+      expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
     }
   }
 
