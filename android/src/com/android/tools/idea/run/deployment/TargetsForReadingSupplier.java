@@ -31,7 +31,9 @@ import org.jetbrains.annotations.Nullable;
  */
 final class TargetsForReadingSupplier {
   private final @NotNull Collection<@NotNull Device> myDevices;
+
   private final @NotNull Set<@NotNull Target> myTargets;
+  private final @NotNull Set<@NotNull RunningDeviceTarget> myRunningDeviceTargetsToRemove;
 
   TargetsForReadingSupplier(@NotNull Collection<@NotNull Device> devices,
                             @Nullable RunningDeviceTarget runningDeviceTarget,
@@ -43,23 +45,23 @@ final class TargetsForReadingSupplier {
                             @NotNull Collection<@NotNull RunningDeviceTarget> runningDeviceTargets,
                             @NotNull Collection<@NotNull Target> targets) {
     myDevices = devices;
-    myTargets = Sets.newHashSetWithExpectedSize(devices.size());
 
-    runningDeviceTargets.stream()
-      .filter(runningDeviceTarget -> isDeviceRunning(runningDeviceTarget) || noTargetMatches(targets, runningDeviceTarget))
-      .forEach(myTargets::add);
+    int size = devices.size();
+    myTargets = Sets.newHashSetWithExpectedSize(size);
+    myRunningDeviceTargetsToRemove = Sets.newHashSetWithExpectedSize(size);
+
+    runningDeviceTargets.forEach(runningDeviceTarget -> {
+      if (isDeviceRunning(runningDeviceTarget)) {
+        myTargets.add(runningDeviceTarget);
+      }
+      else {
+        myRunningDeviceTargetsToRemove.add(runningDeviceTarget);
+      }
+    });
 
     targets.stream()
       .map(this::newRunningDeviceTargetIfDeviceIsRunning)
       .forEach(myTargets::add);
-  }
-
-  private static boolean noTargetMatches(@NotNull Collection<@NotNull Target> targets, @NotNull RunningDeviceTarget runningDeviceTarget) {
-    Object key = runningDeviceTarget.getDeviceKey();
-
-    return targets.stream()
-      .map(Target::getDeviceKey)
-      .noneMatch(key::equals);
   }
 
   private @NotNull Target newRunningDeviceTargetIfDeviceIsRunning(@NotNull Target target) {
@@ -83,7 +85,15 @@ final class TargetsForReadingSupplier {
     return DeploymentCollections.toOptional(myTargets);
   }
 
+  @NotNull Optional<@NotNull RunningDeviceTarget> getDropDownRunningDeviceTargetToRemove() {
+    return DeploymentCollections.toOptional(myRunningDeviceTargetsToRemove);
+  }
+
   @NotNull Set<@NotNull Target> getDialogTargets() {
     return myTargets;
+  }
+
+  @NotNull Set<@NotNull RunningDeviceTarget> getDialogRunningDeviceTargetsToRemove() {
+    return myRunningDeviceTargetsToRemove;
   }
 }

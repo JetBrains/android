@@ -44,7 +44,41 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A project scoped service that persists the targets selected with the drop down or the Select Multiple Devices dialog
+ * The interface between the deployment target drop down and ${PROJECT}/.idea/deploymentTargetDropDown.xml. deploymentTargetDropDown.xml has
+ * two broad sets of fields:
+ *
+ * <ol>
+ * <li>A set for the single selection in the drop down: runningDeviceTargetSelectedWithDropDown, targetSelectedWithDropDown, and
+ * timeTargetWasSelectedWithDropDown
+ * <li>A set for the multiple selections in the Select Multiple Devices dialog: runningDeviceTargetsSelectedWithDialog and
+ * targetsSelectedWithDialog
+ * </ol>
+ *
+ * <p>The drop down and dialog selections are independent of each other. Pixel 4 API 30 can be selected in the drop down while Pixel 3 API
+ * 30 is selected in the dialog. multipleDevicesSelectedInDropDown tracks the active selection. If it's true, the dialog selection is the
+ * active one and the drop down button's text will render something like "Multiple Devices (2)". If it's false, the drop down selection is
+ * the active one.
+ *
+ * <p>runningDeviceTargetSelectedWithDropDown and runningDeviceTargetsSelectedWithDialog will always refer to RunningDeviceTargets.
+ * targetSelectedWithDropDown and targetsSelectedWithDialog will always refer to ColdBoot, QuickBoot, or BootWithSnapshotTargets and never
+ * to RunningDeviceTargets.
+ *
+ * <p>Eventually we want running devices to tell Android Studio how they were booted. A user can select a BootWithSnapshotTarget with Studio
+ * and then cold boot the device with the terminal. I assume that any running device was booted in an unknown way because of this.
+ *
+ * <p>When the drop down asks DevicesSelectedService for the current selections, TargetsForReadingSupplier takes the selections and the list
+ * of devices and replaces ColdBoot, QuickBoot, and BootWithSnapshotTargets with RunningDeviceTargets if the devices are running. When the
+ * drop down asks DevicesSelectedService to save new selections, TargetsForWritingSupplier takes the selections and splits out the
+ * RunningDeviceTargets so they're saved separately. Keeping the RunningDeviceTarget selections separate means any ColdBoot, QuickBoot, and
+ * BootWithSnapshotTarget selections are restored when the devices are stopped.
+ *
+ * <p>Targets saved in deploymentTargetDropDown.xml correspond to actual user selections with the drop down or dialog. Note that there is a
+ * lot of default selection logic in getTargetSelectedWithComboBox. The result of that logic is <em>not</em> saved in
+ * deploymentTargetDropDown.xml because those aren't user selections.
+ *
+ * <p>timeTargetWasSelectedWithDropDown is the timestamp of the user's last drop down selection. If it falls before the connection time of a
+ * newly connected device, that newly connected device is returned by the default selection logic in getTargetSelectedWithComboBox.
+ * Otherwise the user's selection takes precedence.
  */
 final class DevicesSelectedService {
   private final @NotNull PersistentStateComponent myPersistentStateComponent;
@@ -76,10 +110,27 @@ final class DevicesSelectedService {
 
     State state = myPersistentStateComponent.getState();
 
-    RunningDeviceTarget runningDeviceTarget = state.getRunningDeviceTargetSelectedWithDropDown();
-    Target target = state.getTargetSelectedWithDropDown();
+    TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices,
+                                                                       state.getRunningDeviceTargetSelectedWithDropDown(),
+                                                                       state.getTargetSelectedWithDropDown());
 
-    target = new TargetsForReadingSupplier(devices, runningDeviceTarget, target).getDropDownTarget().orElse(null);
+    // The user selected a running target, but it's no longer running. Clear it from the persisted state.
+    //
+    // If targetSelectedWithDropDown is null, then timeTargetWasSelectedWithDropDown is the time that running target was selected, so clear
+    // it as well
+    //
+    // If targetSelectedWithDropDown isn't null, then they selected an available target, launched it, and selected the same target again. Do
+    // not clear the time because the following code expects selections to always have times associated with them and the first selection is
+    // still referred to by targetSelectedWithDropDown.
+    if (supplier.getDropDownRunningDeviceTargetToRemove().isPresent()) {
+      state.runningDeviceTargetSelectedWithDropDown = null;
+
+      if (state.targetSelectedWithDropDown == null) {
+        state.timeTargetWasSelectedWithDropDown = null;
+      }
+    }
+
+    Target target = supplier.getDropDownTarget().orElse(null);
 
     if (target == null) {
       return Optional.of(devices.get(0).getDefaultTarget());
@@ -139,9 +190,12 @@ final class DevicesSelectedService {
     State state = myPersistentStateComponent.getState();
 
     Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
-    Collection<Target> targets = state.getTargetsSelectedWithDialog();
+    TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices, runningDeviceTargets, state.getTargetsSelectedWithDialog());
 
-    return new TargetsForReadingSupplier(devices, runningDeviceTargets, targets).getDialogTargets();
+    runningDeviceTargets.removeAll(supplier.getDialogRunningDeviceTargetsToRemove());
+    state.setRunningDeviceTargetsSelectedWithDialog(runningDeviceTargets);
+
+    return supplier.getDialogTargets();
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<@NotNull Target> targetsSelectedWithDialog) {
