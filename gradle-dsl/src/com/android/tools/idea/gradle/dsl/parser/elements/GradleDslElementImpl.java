@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
@@ -555,6 +557,16 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    return getExternalToModelMap(converter, ExternalToModelMap.empty, ExternalToModelMap.empty);
+  }
+
+  protected final @NotNull ExternalToModelMap getExternalToModelMap(
+    @NotNull GradleDslNameConverter converter,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts
+  ) {
+    if (converter instanceof GroovyDslNameConverter) return groovy;
+    if (converter instanceof KotlinDslNameConverter) return kts;
     return ExternalToModelMap.empty;
   }
 
