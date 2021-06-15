@@ -37,13 +37,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
-import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
-import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslTransformerFactory;
-import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
-import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslParser;
-import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslTransformerFactory;
-import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
@@ -74,11 +68,9 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.psi.KtFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 
 /**
- * Provides Gradle specific abstraction over a {@link GroovyFile}.
+ * Provides Gradle-specific abstraction over Gradle build files, whatever their implementation language.
  */
 public abstract class GradleDslFile extends GradlePropertiesDslElement {
   private static final Logger LOG = Logger.getInstance(GradleDslFile.class);
