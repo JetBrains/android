@@ -46,6 +46,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerT
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.LibraryInspectorLaunchParams
+import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
 import com.android.tools.idea.appinspection.inspector.ide.ui.EmptyStatePanel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
@@ -187,6 +188,7 @@ class AppInspectionView @VisibleForTesting constructor(
       severity = AppInspectionIdeServices.Severity.ERROR
     ) {
       AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
+      // TODO(b/188934519): we should only relaunch the affected inspector.
       launchInspectorTabsForCurrentProcess(currentProcess!!)
     }
   }
@@ -283,17 +285,25 @@ class AppInspectionView @VisibleForTesting constructor(
         .map { config ->
           when (val jarTarget = tabTargets.targets.getValue(config.id)) {
             is InspectorJarTarget.Resolved -> {
-              val messenger = apiServices.launchInspector(
-                LaunchParameters(
-                  process,
-                  config.id,
-                  jarTarget.jar,
-                  project.name,
-                  (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
-                  force
+              try {
+                val messenger = apiServices.launchInspector(
+                  LaunchParameters(
+                    process,
+                    config.id,
+                    jarTarget.jar,
+                    project.name,
+                    (config.params as? LibraryInspectorLaunchParams)?.minVersionLibraryCoordinate,
+                    force
+                  )
                 )
-              )
-              AppInspectorMessengerTarget.Resolved(messenger)
+                AppInspectorMessengerTarget.Resolved(messenger)
+              }
+              catch (e: AppInspectionVersionIncompatibleException) {
+                AppInspectorMessengerTarget.Unresolved(provider.toIncompatibleVersionMessage())
+              }
+              catch (e: AppInspectionLibraryMissingException) {
+                AppInspectorMessengerTarget.Unresolved(provider.toIncompatibleVersionMessage())
+              }
             }
             is InspectorJarTarget.Unresolved -> {
               AppInspectorMessengerTarget.Unresolved(jarTarget.error)
@@ -306,26 +316,19 @@ class AppInspectionView @VisibleForTesting constructor(
         tabShell.setComponent(tab.component)
         tabShell.putUserData(TAB_KEY, tab)
       }
-      messengers
-        .filterIsInstance<AppInspectorMessengerTarget.Resolved>()
-        .forEach { target ->
+
+      if (messengers.any { it is AppInspectorMessengerTarget.Resolved }) {
+        if (provider.launchConfigs.size == 1) {
           launch {
-            val cause = target.messenger.awaitForDisposal()
-            currentInspectorsJob?.cancel()
-            if (cause is AppInspectorForcefullyDisposedException) {
-              // TODO(b/188934519): A failure in one inspector tab shouldn't stop others
-              stopInspectors()
-            }
-            else if (cause is AppInspectionCrashException) {
-              AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
-              // Wait until AFTER we're disposed before showing the notification. This ensures if
-              // the user hits restart, which requests launching a new inspector, it won't reuse
-              // the existing client. (Users probably would never hit restart fast enough but it's
-              // possible to trigger in tests.)
-              showCrashNotification(provider.displayName)
-            }
+            waitAndHandleSingleInspectorTermination(messengers.single() as AppInspectorMessengerTarget.Resolved, provider, tabShell)
           }
         }
+        else {
+          launch {
+            waitAndHandleInspectorTermination(messengers.toList(), provider, tabShell)
+          }
+        }
+      }
     }
     catch (e: CancellationException) {
       // We don't log but rethrow cancellation exceptions because they are expected as part of the operation. For example: the service
@@ -351,12 +354,6 @@ class AppInspectionView @VisibleForTesting constructor(
           hyperlinkClicked = hyperlinkClicked
         )
       }
-    }
-    catch (e: AppInspectionVersionIncompatibleException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage(), provider.learnMoreUrl)) }
-    }
-    catch (e: AppInspectionLibraryMissingException) {
-      withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(provider.toIncompatibleVersionMessage(), provider.learnMoreUrl)) }
     }
     catch (e: AppInspectionAppProguardedException) {
       withContext(uiDispatcher) { tabShell.setComponent(EmptyStatePanel(APP_PROGUARDED_MESSAGE, provider.learnMoreUrl)) }
@@ -428,6 +425,55 @@ class AppInspectionView @VisibleForTesting constructor(
     inspectorPanel.removeAll()
     val inspectorComponent = if (inspectorTabs.size > 0) createInspectorTabsPane() else noInspectorsMessage
     inspectorPanel.add(inspectorComponent)
+  }
+
+  /**
+   * Handles the termination and exceptions to tabs provided by [SingleAppInspectorTabProvider].
+   */
+  private suspend fun waitAndHandleSingleInspectorTermination(
+    target: AppInspectorMessengerTarget.Resolved,
+    provider: AppInspectorTabProvider,
+    tabShell: AppInspectorTabShell
+  ) {
+    when (target.messenger.awaitForDisposal()) {
+      is AppInspectorForcefullyDisposedException -> {
+        withContext(uiDispatcher) {
+          tabShell.setComponent(
+            EmptyStatePanel(AppInspectionBundle.message("inspector.forcefully.stopped", provider.displayName), provider.learnMoreUrl))
+        }
+      }
+      is AppInspectionCrashException -> {
+        AppInspectionAnalyticsTrackerService.getInstance(project).trackErrorOccurred(AppInspectionEvent.ErrorKind.INSPECTOR_CRASHED)
+        // Wait until AFTER we're disposed before showing the notification. This ensures if
+        // the user hits restart, which requests launching a new inspector, it won't reuse
+        // the existing client. (Users probably would never hit restart fast enough but it's
+        // possible to trigger in tests.)
+        withContext(uiDispatcher) {
+          showCrashNotification(provider.displayName)
+        }
+      }
+      else -> {
+        withContext(uiDispatcher) {
+          tabShell.setComponent(
+            EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl))
+        }
+      }
+    }
+  }
+
+  private suspend fun waitAndHandleInspectorTermination(
+    messengers: List<AppInspectorMessengerTarget>,
+    provider: AppInspectorTabProvider,
+    tabShell: AppInspectorTabShell
+  ) {
+    messengers
+      .filterIsInstance(AppInspectorMessengerTarget.Resolved::class.java)
+      .forEach { target -> target.messenger.awaitForDisposal() }
+
+    withContext(uiDispatcher) {
+      tabShell.setComponent(
+        EmptyStatePanel(AppInspectionBundle.message("inspector.stopped", provider.displayName), provider.learnMoreUrl))
+    }
   }
 
   internal fun isInspectionActive() = processesModel.selectedProcess?.isRunning ?: false

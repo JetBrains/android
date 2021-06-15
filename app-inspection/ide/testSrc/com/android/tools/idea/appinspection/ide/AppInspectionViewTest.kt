@@ -56,6 +56,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -222,54 +223,45 @@ class AppInspectionViewTest {
     }.build()
 
     lateinit var inspectionView: AppInspectionView
-    val tabsAdded = CompletableDeferred<Unit>()
-    val tabsCleared = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                         appInspectionServiceRule.scope, uiDispatcher) {
+                                         { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
+                                         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       // Test initial tabs added.
       inspectionView.tabsChangedFlow
-        .take(2)
-        .collectIndexed { i, _ ->
-          if (i == 0) {
-            assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
-            inspectionView.inspectorTabs.forEach { it.waitForContent() }
-            tabsAdded.complete(Unit)
+        .first {
+          assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
+          val tabShell = inspectionView.inspectorTabs[0]
+          val component = tabShell.waitForContent()
+          assertThat(component).isNotInstanceOf(EmptyStatePanel::class.java)
+          launch(start = CoroutineStart.UNDISPATCHED) {
+            assertThat(tabShell.componentUpdates.first()).isInstanceOf(EmptyStatePanel::class.java)
           }
-          else if (i == 1) {
-            // When the inspectors are disposed, tabs should be cleared.
-            assertThat(inspectionView.inspectorTabs).isEmpty()
-            tabsCleared.complete(Unit)
-          }
+          // Generate fake dispose event
+          transportService.addEventToStream(
+            fakeDevice.deviceId,
+            Common.Event.newBuilder()
+              .setPid(fakeProcess.pid)
+              .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
+              .setTimestamp(timer.currentTimeNs)
+              .setIsEnded(true)
+              .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
+                                       .setInspectorId(INSPECTOR_ID)
+                                       .setDisposedEvent(AppInspection.DisposedEvent.getDefaultInstance())
+                                       .build())
+              .build()
+          )
+          true
         }
     }
 
     // Launch a processes and wait for its tab to be created
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess)
-
-    tabsAdded.await()
-
-    // Generate fake dispose event
-    transportService.addEventToStream(
-      fakeDevice.deviceId,
-      Common.Event.newBuilder()
-        .setPid(fakeProcess.pid)
-        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-        .setTimestamp(timer.currentTimeNs)
-        .setIsEnded(true)
-        .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
-                                 .setInspectorId(INSPECTOR_ID)
-                                 .setDisposedEvent(AppInspection.DisposedEvent.getDefaultInstance())
-                                 .build())
-        .build()
-    )
-
-    tabsCleared.await()
   }
 
   @Test
@@ -361,26 +353,57 @@ class AppInspectionViewTest {
     val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
 
     lateinit var inspectionView: AppInspectionView
-    val tabsAdded = CompletableDeferred<Unit>()
-    val restartedTabAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                         appInspectionServiceRule.scope, uiDispatcher) {
+                                         { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
+                                         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       // Test initial tabs added.
       inspectionView.tabsChangedFlow
-        .take(2)
+        .take(2) // The second refresh of tabs is caused by the test clicking on the crash notification.
         .collectIndexed { i, _ ->
           if (i == 0) {
-            assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
-            inspectionView.inspectorTabs.forEach { it.waitForContent() }
-            tabsAdded.complete(Unit)
-          }
-          else if (i == 1) {
-            restartedTabAdded.complete(Unit)
+            assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
+            val tabShell = inspectionView.inspectorTabs[0]
+            tabShell.waitForContent()
+
+            // Test crash notification shown.
+            val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
+            ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
+
+            // Generate fake crash event
+            transportService.addEventToStream(
+              fakeDevice.deviceId,
+              Common.Event.newBuilder()
+                .setPid(fakeProcess.pid)
+                .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
+                .setTimestamp(timer.currentTimeNs)
+                .setIsEnded(true)
+                .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
+                                         .setInspectorId(INSPECTOR_ID)
+                                         .setDisposedEvent(
+                                           AppInspection.DisposedEvent.newBuilder()
+                                             .setErrorMessage("error")
+                                             .build()
+                                         )
+                                         .build())
+                .build()
+            )
+
+            // increment timer manually here because otherwise the new inspector connection created below will poll the crash event above.
+            timer.currentTimeNs += 1
+
+            val notificationData = notificationDataDeferred.await()
+            assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
+            assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
+
+            launch(uiDispatcher) {
+              // Make sure clicking the notification causes a new tab to get created
+              notificationData.hyperlinkClicked()
+            }
           }
         }
     }
@@ -388,44 +411,6 @@ class AppInspectionViewTest {
     // Launch a processes and wait for its tab to be created
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess)
-
-    tabsAdded.await()
-
-    // Test crash notification shown.
-    val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
-    ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
-
-    // Generate fake crash event
-    transportService.addEventToStream(
-      fakeDevice.deviceId,
-      Common.Event.newBuilder()
-        .setPid(fakeProcess.pid)
-        .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-        .setTimestamp(timer.currentTimeNs)
-        .setIsEnded(true)
-        .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
-                                 .setInspectorId(INSPECTOR_ID)
-                                 .setDisposedEvent(
-                                   AppInspection.DisposedEvent.newBuilder()
-                                     .setErrorMessage("error")
-                                     .build()
-                                 )
-                                 .build())
-        .build()
-    )
-
-    // increment timer manually here because otherwise the new inspector connection created below will poll the crash event above.
-    timer.currentTimeNs += 1
-
-    val notificationData = notificationDataDeferred.await()
-    assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
-    assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
-
-    launch(uiDispatcher) {
-      // Make sure clicking the notification causes a new tab to get created
-      notificationData.hyperlinkClicked()
-    }
-    restartedTabAdded.await()
   }
 
   @Test
@@ -463,7 +448,7 @@ class AppInspectionViewTest {
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                         { listOf(TestAppInspectorTabProvider1()) },
+                                         { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
                                          appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
