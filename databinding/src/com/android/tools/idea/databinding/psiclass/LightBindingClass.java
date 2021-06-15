@@ -164,62 +164,65 @@ public class LightBindingClass extends AndroidLightClassBase {
       return PsiField.EMPTY_ARRAY;
     }
 
+    PsiField[] computed;
+
     int numLayouts = scopedViewIds.keySet().size();
     if (numLayouts == 1) {
       // In the overwhelmingly common case, there's only a single layout, which means that all the
       // IDs are present in every layout (there's only the one!), so the fields generated for it
       // are always non-null.
       Collection<ViewIdData> viewIds = scopedViewIds.values().stream().findFirst().get();
-      return viewIds.stream()
+      computed = viewIds.stream()
         .map(viewId -> createPsiField(viewId, true))
         .filter(field -> field != null)
         .toArray(PsiField[]::new);
     }
-
-    // If here, we have multiple layouts.
-
-    // Generated fields are non-null only if their source IDs are defined consistently across all layouts.
-    Set<ViewIdData> dedupedViewIds = new HashSet<>(); // Only create one field per ID
-    Map<String, Integer> idCounts = new HashMap<>();
-    {
-      for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
-        for (ViewIdData viewId : viewIds) {
-          int count = idCounts.compute(viewId.getId(), (key, value) -> (value == null) ? 1 : (value + 1));
-          if (count == 1) {
-            // It doesn't matter which copy of the ID we keep, so just keep the first one
-            dedupedViewIds.add(viewId);
-          }
-        }
-      }
-    }
-
-    // If tags have inconsitent IDs, e.g. <TextView ...> in one configuration and <Button ...> in another,
-    // the databinding compiler reverts to View
-    Set<String> inconsistentlyTypedIds = new HashSet<>();
-    {
-      Map<String, String> idTypes = new HashMap<>();
-
-      for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
-        for (ViewIdData viewId : viewIds) {
-          String id = viewId.getId();
-          String viewName = viewId.getViewName();
-          String previousViewName = idTypes.get(id);
-          if (previousViewName == null) {
-            idTypes.put(id, viewName);
-          }
-          else {
-            if (!viewName.equals(previousViewName)) {
-              inconsistentlyTypedIds.add(id);
+    else { // Two or more layouts.
+      // Generated fields are non-null only if their source IDs are defined consistently across all layouts.
+      Set<ViewIdData> dedupedViewIds = new HashSet<>(); // Only create one field per ID
+      Map<String, Integer> idCounts = new HashMap<>();
+      {
+        for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+          for (ViewIdData viewId : viewIds) {
+            int count = idCounts.compute(viewId.getId(), (key, value) -> (value == null) ? 1 : (value + 1));
+            if (count == 1) {
+              // It doesn't matter which copy of the ID we keep, so just keep the first one
+              dedupedViewIds.add(viewId);
             }
           }
         }
       }
+
+      // If tags have inconsitent IDs, e.g. <TextView ...> in one configuration and <Button ...> in another,
+      // the databinding compiler reverts to View
+      Set<String> inconsistentlyTypedIds = new HashSet<>();
+      {
+        Map<String, String> idTypes = new HashMap<>();
+
+        for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
+          for (ViewIdData viewId : viewIds) {
+            String id = viewId.getId();
+            String viewName = viewId.getViewName();
+            String previousViewName = idTypes.get(id);
+            if (previousViewName == null) {
+              idTypes.put(id, viewName);
+            }
+            else {
+              if (!viewName.equals(previousViewName)) {
+                inconsistentlyTypedIds.add(id);
+              }
+            }
+          }
+        }
+      }
+
+      computed = dedupedViewIds.stream()
+        .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts, inconsistentlyTypedIds.contains(viewId.getId())))
+        .filter(field -> field != null)
+        .toArray(PsiField[]::new);
     }
 
-    return dedupedViewIds.stream()
-      .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts, inconsistentlyTypedIds.contains(viewId.getId())))
-      .filter(field -> field != null)
-      .toArray(PsiField[]::new);
+    return computed;
   }
 
   /**
