@@ -30,6 +30,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Color
 import java.awt.image.BufferedImage
 
 /**
@@ -51,7 +52,12 @@ class ScreenshotViewerTest {
     setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
     val file = VfsUtilCore.virtualToIoFile(projectRule.fixture.tempDirFixture.createFile("screenshot1.png"))
-    val viewer = ScreenshotViewer(projectRule.project, BufferedImage(150, 280, BufferedImage.TYPE_INT_ARGB), file, null, null)
+    val image = BufferedImage(150, 280, BufferedImage.TYPE_INT_ARGB)
+    val graphics = image.createGraphics()
+    graphics.background = Color.WHITE
+    graphics.clearRect(0, 0, image.width, image.height)
+    graphics.dispose()
+    val viewer = ScreenshotViewer(projectRule.project, image, file, null, null, true)
     Disposer.register(testRootDisposable) { viewer.close(CLOSE_EXIT_CODE) }
     viewer.show()
     screenshotViewer = viewer
@@ -81,6 +87,17 @@ class ScreenshotViewerTest {
     viewer.updateEditorImage();
     ui.layoutAndDispatchEvents()
     assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+  }
+
+  @Test
+  fun testClipRoundScreenshot(){
+    val viewer = screenshotViewer!!
+    val ui = createFakeUi(viewer)
+    ui.layoutAndDispatchEvents()
+
+    val processedImage: BufferedImage = viewer.imageFileEditor.imageEditor.document.value
+    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.WHITE.rgb)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(0x0)
   }
 
   private fun createFakeUi(viewer: DialogWrapper): FakeUi {

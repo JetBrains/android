@@ -60,7 +60,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
           File backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG, true);
           ImageIO.write(getScreenshot(), SdkConstants.EXT_PNG, backingFile);
 
-          new ScreenshotViewer(project, getScreenshot(), backingFile, device, device.getProperty(IDevice.PROP_DEVICE_MODEL)) {
+          new ScreenshotViewer(project, getScreenshot(), backingFile, device, device.getProperty(IDevice.PROP_DEVICE_MODEL), isRound()) {
             @Override
             protected void doOKAction() {
               super.doOKAction();
