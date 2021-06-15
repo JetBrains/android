@@ -366,7 +366,6 @@ class DeviceViewPanelTest {
     replaceAdtUiCursorWithPredefinedCursor(AdtUiCursorType.GRABBING, Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR))
   }
 
-  @Ignore("b/185809224")
   @Test
   fun testZoomOnConnect() {
     val viewSettings = DeviceViewSettings(scalePercent = 100)
@@ -374,7 +373,9 @@ class DeviceViewPanelTest {
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, mock(), treeSettings, MoreExecutors.directExecutor())
+    val stats: SessionStatistics = mock()
+    `when`(stats.rotation).thenReturn(mock())
+    val inspector = LayoutInspector(launcher, model, stats, treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(processes, inspector, viewSettings, disposableRule.disposable)
 
