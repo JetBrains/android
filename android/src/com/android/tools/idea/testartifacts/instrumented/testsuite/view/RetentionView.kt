@@ -47,6 +47,7 @@ import com.google.wireless.android.sdk.stats.AndroidTestRetentionEvent.SnapshotC
 import com.google.wireless.android.sdk.stats.EmulatorSnapshotFailureReason
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
@@ -65,7 +66,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.utils.FileNameUtils
 import org.apache.commons.lang.StringEscapeUtils
-import java.awt.Desktop
 import java.awt.Image
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -177,7 +177,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     addHyperlinkListener {
       LOG.warn("opening ${it.url.path}")
       if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-        Desktop.getDesktop().browse(it.url.toURI())
+        BrowserUtil.browse(it.url.toURI())
       }
     }
   }
