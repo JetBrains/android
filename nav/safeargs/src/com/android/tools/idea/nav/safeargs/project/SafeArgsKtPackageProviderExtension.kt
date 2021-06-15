@@ -72,4 +72,8 @@ class SafeArgsSyntheticPackageProvider(
       .filter { (k, _) -> !k.isRoot && k.parent() == fqName }
       .mapTo(mutableListOf()) { it.key }
   }
+
+  override fun isEmpty(fqName: FqName): Boolean {
+    return packageDescriptorProvider[fqName].isNullOrEmpty()
+  }
 }

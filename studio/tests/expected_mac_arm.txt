@@ -891,6 +891,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-test-testn
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-test.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlinx-coroutines-core.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlinx-serialization-compiler-plugin.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/lombok-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/mutability-annotations-compat.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/noarg-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/parcelize-compiler.jar
@@ -918,6 +919,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/j
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/karma-teamcity-reporter_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/karma_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/lodash_LICENSE.txt
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/lombok_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/maven_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/mocha-teamcity-reporter_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/pcollections_LICENSE.txt
@@ -930,6 +932,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/t
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/eclipse_distribution_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/eclipse_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/findbugs_license.txt
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/jspecify_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/lombok_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/rxjava_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/testdata/spring_license.txt
@@ -937,6 +940,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/t
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/trove_readme_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/allopen-compiler-plugin-for-ide.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/android-extensions-compiler-plugin-for-ide.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/base-compiler-plugins-ide-support.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/completion-ranking-kotlin-0.2.2.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/javaslang-2.0.6.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/javaslang-match-2.0.6.jar
@@ -947,6 +951,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-a
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-annotation-based-compiler-support.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-kapt.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-kotlinx-serialization.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-lombok.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-noarg.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-sam-with-receiver.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlin-compiler-plugins-scripting.jar
@@ -998,6 +1003,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-collections-immut
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-coroutines-core-1.4.2.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-coroutines-jdk8-1.4.2.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-serialization-compiler-plugin-for-ide.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/lombok-compiler-plugin-for-ide.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/noarg-compiler-plugin-for-ide.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/parcelize-compiler-plugin-for-ide.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/sam-with-receiver-compiler-plugin-for-ide.jar
