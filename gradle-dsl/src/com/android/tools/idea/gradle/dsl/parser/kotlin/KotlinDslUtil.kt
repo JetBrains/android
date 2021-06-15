@@ -1033,3 +1033,5 @@ internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
   }
   return true
 }
+
+internal fun isWhiteSpaceOrNls(element: PsiElement?) = element?.node?.let { WHITESPACES.contains(it.elementType) } ?: false
