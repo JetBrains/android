@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.NONE;
+
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
@@ -75,6 +77,9 @@ public interface GradleDslWriter extends GradleDslNameConverter {
     public Adapter(@NotNull BuildModelContext context) {
       this.context = context;
     }
+
+    @Override
+    public @NotNull Kind getKind() { return NONE; }
 
     @Override
     public PsiElement moveDslElement(@NotNull GradleDslElement element) { return null; }

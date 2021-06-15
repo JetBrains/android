@@ -26,6 +26,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleDslNameConverter {
+  enum Kind {
+    NONE,
+    GROOVY,
+    KOTLIN
+  }
+
+  /**
+   * Provides a way for the Dsl models to dispatch based on the backend language of the name converter (parser/writer) we have
+   * without requiring a dependency on the implementation.
+   *
+   * @return an enum indicating the kind of name converter this is.
+   */
+  @NotNull Kind getKind();
+
   /**
    * Converts Psi of an external language into a string suitable as input to GradleNameElement (with dotted notation indicating
    * hierarchy).  Implementors should perform syntactic analysis of the {@code element} as appropriate to the external language.

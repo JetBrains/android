@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.External
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.AUGMENTED_ASSIGNMENT;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.convertToExternalTextValue;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.decodeStringLiteral;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.getGradleNameForPsiElement;
@@ -58,6 +59,12 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
 
   GroovyDslNameConverter(@NotNull BuildModelContext context) {
     this.context = context;
+  }
+
+  @NotNull
+  @Override
+  public Kind getKind() {
+    return GROOVY;
   }
 
   @NotNull
