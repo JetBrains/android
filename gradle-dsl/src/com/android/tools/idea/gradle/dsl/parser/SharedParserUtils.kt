@@ -115,7 +115,7 @@ private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesD
 /**
  * Get the parent dsl element with a valid psi
  */
-internal fun getNextValidParent(element: GradleDslElement): GradleDslElement? {
+fun getNextValidParent(element: GradleDslElement): GradleDslElement? {
   var element : GradleDslElement? = element
   var psi = element?.psiElement
   while (element != null && (psi == null || !psi.isValid)) {
@@ -127,7 +127,7 @@ internal fun getNextValidParent(element: GradleDslElement): GradleDslElement? {
   return element
 }
 
-internal fun removePsiIfInvalid(element: GradleDslElement?) {
+fun removePsiIfInvalid(element: GradleDslElement?) {
   if (element == null) return
 
   if (element.psiElement != null && !element.psiElement!!.isValid) {
@@ -143,7 +143,7 @@ internal fun removePsiIfInvalid(element: GradleDslElement?) {
  * @param startElement starting element
  * @return the last non-null psi element in the tree starting at node startElement.
  */
-internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
+fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
   val psiElement = startElement.psiElement
   if (psiElement != null) {
     return psiElement
@@ -165,7 +165,7 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
  * returning an instance containing the name and whether this is a method call an assignment or unknown (see
  * [GradleDslNameConverter.externalNameForParent])
  */
-internal fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConverter): ExternalNameInfo {
+fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConverter): ExternalNameInfo {
   val name = element.nameElement
   // TODO(b/151607418): this is only an approximation to the scope in which this element is being written: a proper calculation should have
   //  separate understanding of lexical scope from the position the element holds in the model hierarchy, and compute trimming relative
