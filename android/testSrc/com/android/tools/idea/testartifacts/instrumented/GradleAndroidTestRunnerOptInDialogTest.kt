@@ -16,13 +16,18 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration
+import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.ParallelAndroidTestReportUiEvent
 import com.intellij.openapi.project.Project
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.MockitoJUnit
 import org.mockito.quality.Strictness
 
@@ -35,12 +40,13 @@ class GradleAndroidTestRunnerOptInDialogTest {
   @get:Rule val mockitoRule = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
 
   @Mock private lateinit var mockProject: Project
+  @Mock private lateinit var mockLogger: AndroidTestSuiteLogger
 
   private val config: AndroidTestConfiguration = AndroidTestConfiguration()
   private var isDisplayed: Boolean = false
 
   private fun showDialog(acceptSuggestion: Boolean = true) {
-    showGradleAndroidTestRunnerOptInDialog(mockProject, config) {
+    showGradleAndroidTestRunnerOptInDialog(mockProject, config, mockLogger) {
       isDisplayed = true
       acceptSuggestion
     }
@@ -51,6 +57,11 @@ class GradleAndroidTestRunnerOptInDialogTest {
     showDialog()
 
     assertThat(isDisplayed).isTrue()
+
+    inOrder(mockLogger).apply {
+      verify(mockLogger).addImpression(ParallelAndroidTestReportUiEvent.UiElement.GRADLE_ANDROID_TEST_RUNNER_OPT_IN_DIALOG)
+      verify(mockLogger).reportImpressions()
+    }
   }
 
   @Test
@@ -60,6 +71,8 @@ class GradleAndroidTestRunnerOptInDialogTest {
     showDialog()
 
     assertThat(isDisplayed).isFalse()
+
+    verifyNoInteractions(mockLogger)
   }
 
   @Test
@@ -69,6 +82,8 @@ class GradleAndroidTestRunnerOptInDialogTest {
     showDialog()
 
     assertThat(isDisplayed).isFalse()
+
+    verifyNoInteractions(mockLogger)
   }
 
   @Test
@@ -77,6 +92,11 @@ class GradleAndroidTestRunnerOptInDialogTest {
 
     assertThat(config.RUN_ANDROID_TEST_USING_GRADLE).isTrue()
     assertThat(config.SHOW_RUN_ANDROID_TEST_USING_GRADLE_OPT_IN_DIALOG).isFalse()
+
+    verify(mockLogger).reportClickInteraction(
+      ParallelAndroidTestReportUiEvent.UiElement.GRADLE_ANDROID_TEST_RUNNER_OPT_IN_DIALOG,
+      ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.ACCEPT
+    )
   }
 
   @Test
@@ -86,5 +106,10 @@ class GradleAndroidTestRunnerOptInDialogTest {
     assertThat(config.RUN_ANDROID_TEST_USING_GRADLE).isFalse()
     // We won't show the dialog again even if a user declines our suggestion.
     assertThat(config.SHOW_RUN_ANDROID_TEST_USING_GRADLE_OPT_IN_DIALOG).isFalse()
+
+    verify(mockLogger).reportClickInteraction(
+      ParallelAndroidTestReportUiEvent.UiElement.GRADLE_ANDROID_TEST_RUNNER_OPT_IN_DIALOG,
+      ParallelAndroidTestReportUiEvent.UserInteraction.UserInteractionResultType.DISMISS
+    )
   }
 }
