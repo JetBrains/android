@@ -29,6 +29,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.WmiMessengerTarget
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -77,7 +78,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
       is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
     }
     val scope = AndroidCoroutineScope(parentDisposable)
-    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope)
+    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope, AndroidDispatchers.uiThread)
 
     return object : AppInspectorTab {
       override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
