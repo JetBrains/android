@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRI
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRANSFORM;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
@@ -38,14 +37,12 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.psi.KtFile;
 
 /**
  * Common base class for {@link BuildTypeModelImpl} and {@link ProductFlavorModelImpl}.
@@ -315,34 +312,17 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                           @NotNull String name,
                                                                           @NotNull String value) {
     String elementName = property.name;
-    GradleNameElement nameElement = GradleNameElement.create(elementName);
-    // TODO(b/155853837): Groovy expects buildConfigField and resValue to be expressed with GradleDslExpressionList, while Kotlin expresses
-    //  them with a GradleDslMethodCall.  This method of detecting which to produce is unsound given the possibility of multi-language build
-    //  files, and should in any case be replaced by the two language backends producing a common representation.
-    boolean forKotlin = myDslElement.getDslFile().getPsiElement() instanceof KtFile;
-    GradleDslExpressionList expressionList;
-    GradleDslMethodCall expressionCall = null;
-    if (forKotlin) {
-      expressionCall = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), elementName);
-      ModelEffectDescription effect = new ModelEffectDescription(property, OTHER);
-      expressionCall.setModelEffect(effect);
-      expressionList = new GradleDslExpressionList(expressionCall, GradleNameElement.empty(), false);
-      expressionCall.setParsedArgumentList(expressionList);
-    }
-    else {
-      expressionList = new GradleDslExpressionList(myDslElement, nameElement, false);
-    }
+    GradleDslMethodCall expressionCall = new GradleDslMethodCall(myDslElement, GradleNameElement.empty(), elementName);
+    ModelEffectDescription effect = new ModelEffectDescription(property, OTHER);
+    expressionCall.setModelEffect(effect);
+    GradleDslExpressionList expressionList = new GradleDslExpressionList(expressionCall, GradleNameElement.empty(), false);
+    expressionCall.setParsedArgumentList(expressionList);
     T newValue = producer.apply(expressionList);
     assert newValue != null;
     newValue.type().setValue(type);
     newValue.name().setValue(name);
     newValue.value().setValue(value);
-    if (expressionCall == null) {
-      myDslElement.setNewElement(expressionList);
-    }
-    else {
-      myDslElement.setNewElement(expressionCall);
-    }
+    myDslElement.setNewElement(expressionCall);
     return newValue;
   }
 
