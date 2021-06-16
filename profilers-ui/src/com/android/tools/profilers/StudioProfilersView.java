@@ -81,7 +81,11 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
@@ -92,6 +96,7 @@ import javax.swing.KeyStroke;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 public class StudioProfilersView extends AspectObserver implements Disposable {
@@ -312,8 +317,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myCommonToolbar.add(new FlatSeparator());
 
     JComboBox<Class<? extends Stage>> stageCombo = new FlatComboBox<>();
+    Supplier<List<Class<? extends Stage>>> getSupportedStages = () -> getStudioProfilers().getDirectStages().stream()
+      .filter(st -> getStudioProfilers().getSelectedSessionSupportLevel().isStageSupported((Class<? extends Stage<?>>)st))
+      .collect(Collectors.toList());
     JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
-                                               myProfiler::getDirectStages,
+                                               getSupportedStages,
                                                myProfiler::getStageClass,
                                                stage -> confirmExit("Exit?", () -> {
                                                  // Track first, so current stage is sent with the event
@@ -623,5 +631,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull
   public IdeProfilerComponents getIdeProfilerComponents() {
     return myIdeProfilerComponents;
+  }
+
+  @VisibleForTesting
+  public JPanel getCommonToolbar() {
+    return myCommonToolbar;
   }
 }

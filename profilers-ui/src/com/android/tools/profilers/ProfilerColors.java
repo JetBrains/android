@@ -204,6 +204,8 @@ public class ProfilerColors {
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0x3F4142);
 
+  public static final Color NOTIFICATION_BACKGROUND = new JBColor(0xFFF8D1, 0x1D3857);
+
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(new Color(0xEFC4B2), new Color(0x7D6B64));
 
   public static final Color NETWORK_RECEIVING_COLOR = new JBColor(0x5882CC, 0x557CC1);
