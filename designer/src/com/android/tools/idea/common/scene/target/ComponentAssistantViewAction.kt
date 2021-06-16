@@ -25,11 +25,13 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory
 import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFocusManager
 import icons.StudioIcons
 import java.awt.Point
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import java.lang.ref.WeakReference
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
@@ -47,16 +49,15 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
 ) : DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, assistantLabel) {
 
   private var onClose: (cancelled: Boolean) -> Unit = {}
-  private var popup: LightCalloutPopup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
 
   /**
    * Add an action to the action map so that the popup is hidden when the user presses escape.
    */
-  private fun setupActionInputMap(component: JComponent) {
+  private fun setupActionInputMap(component: JComponent, onCancel: () -> Unit) {
     component.actionMap.put(ACTION_HIDE, object : AbstractAction() {
       override fun actionPerformed(e: ActionEvent?) {
         fireCancelEvent()
-        popup.cancel()
+        onCancel()
       }
     })
     component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_HIDE)
@@ -83,14 +84,18 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
     val scene = sceneComponent.scene
     val designSurface = scene.designSurface
     val context = scene.sceneManager.sceneView.context
+    val popup = LightCalloutPopup(closedCallback = this::fireCloseEvent, cancelCallBack = this::fireCancelEvent)
+    val popupRef = WeakReference(popup)
     val assistantContext = ComponentAssistantFactory.Context(selectedComponent) { cancel ->
-      if (cancel) popup.cancel() else popup.close()
+      if (cancel) popupRef.get()?.cancel() else popupRef.get()?.close()
     }
     val component = panelFactory.createComponent(assistantContext).apply {
       name = "Component Assistant" // For UI tests
     }
 
-    setupActionInputMap(component)
+    setupActionInputMap(component) {
+      popupRef.get()?.cancel()
+    }
 
     onClose = { cancelled ->
       onClose = {} // One-off trigger. Disable the callback
@@ -108,8 +113,6 @@ class ComponentAssistantViewAction @JvmOverloads constructor(
                            context.getSwingYDip(sceneComponent.drawBottom.toFloat()))
       popup.show(component, parentComponent, location, position = Balloon.Position.above)
     }
-
-    IdeFocusManager.getGlobalInstance().requestFocus(component, true)
   }
 
   override fun updatePresentation(presentation: ViewActionPresentation,
