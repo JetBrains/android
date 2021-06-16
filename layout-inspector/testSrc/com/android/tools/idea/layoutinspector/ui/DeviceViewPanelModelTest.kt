@@ -62,8 +62,8 @@ class DeviceViewPanelModelTest {
   @Test
   fun testFlatRectsWithHiddenSystemNodes() {
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0),
-      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -40.0, -50.0))
+      VIEW2 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
+      VIEW3 to ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
 
     checkRects(expectedTransforms, 0.0, 0.0, hideSystemNodes = true)
   }
@@ -82,8 +82,8 @@ class DeviceViewPanelModelTest {
   @Test
   fun test1dRectsWithHiddenSystemNodes() {
     val expectedTransforms = mapOf(
-      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0),
-      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -39.850, -50.0))
+      VIEW2 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
+      VIEW3 to ComparingTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
 
     checkRects(expectedTransforms, 0.1, 0.0, hideSystemNodes = true)
   }

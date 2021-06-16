@@ -161,6 +161,12 @@ class DeviceViewPanelModel(
     var angle = 0.0
     if (maxDepth > 0) {
       rootBounds = levelLists[0].map { it.node.bounds.bounds }.reduce { acc, bounds -> acc.apply { add(bounds) } }
+      // If nodes are visible (not explicitly hidden via right-click) but filtered out (e.g. by filter system nodes) they won't be in
+      // levelLists but may still paint something. Prior to initial image generation there's no way to know if they will end up painting
+      // or not, but we still need to be able to zoom to fit correctly, so include those bounds here.
+      model.root.flatten()
+        .filter { model.isVisible(it) }
+        .forEach { node -> rootBounds.add(node.layoutBounds) }
       root.x = rootBounds.x
       root.y = rootBounds.x
       root.width = rootBounds.width
