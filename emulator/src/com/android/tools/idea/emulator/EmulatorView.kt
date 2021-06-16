@@ -1015,7 +1015,7 @@ class EmulatorView(
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if (!virtualSceneCameraActive) {
+      if (!virtualSceneCameraOperating) {
         sendMouseEvent(event.x, event.y, 1)
       }
     }
@@ -1026,7 +1026,7 @@ class EmulatorView(
 
     private fun updateMultiTouchMode(event: MouseEvent) {
       val oldMultiTouchMode = multiTouchMode
-      multiTouchMode = isMultiTouchModeSupported && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraActive
+      multiTouchMode = isMultiTouchModeSupported && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraOperating
       if (multiTouchMode && oldMultiTouchMode) {
         repaint() // If multitouch mode changed above, the repaint method was already called.
       }
