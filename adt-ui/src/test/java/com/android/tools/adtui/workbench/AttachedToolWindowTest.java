@@ -117,12 +117,10 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
       }
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
       myMocks.close();
+      super.tearDown();
     }
     catch (Throwable e) {
       addSuppressedException(e);
-    }
-    finally {
-      super.tearDown();
     }
   }
 
@@ -575,6 +573,15 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(searchField.isVisible()).isFalse();
 
     ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "Search");
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assertThat(panel).isNotNull();
+    panel.setFilteringActive(false);
+    button.update();
+    assertThat(button.isEnabled()).isFalse();
+    panel.setFilteringActive(true);
+    button.update();
+    assertThat(button.isEnabled()).isTrue();
+
     button.click();
 
     assertThat(header.isVisible()).isFalse();

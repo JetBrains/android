@@ -176,6 +176,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     tree?.repaint()
   }
 
+  override fun isFilteringActive(): Boolean {
+    return layoutInspector?.currentClient?.isConnected ?: false
+  }
+
   fun updateSemanticsFiltering() {
     setFilter(filter)
   }

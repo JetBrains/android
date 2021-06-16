@@ -116,4 +116,12 @@ public interface ToolContent<T> extends Disposable {
   default KeyListener getFilterKeyListener() {
     return null;
   }
+
+
+  /**
+   * Return true if the search button currently should be enabled.
+   *
+   * Note: this method could be called quite often.
+   */
+  default boolean isFilteringActive() { return true; }
 }
