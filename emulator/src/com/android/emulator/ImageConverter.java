@@ -55,10 +55,12 @@ public class ImageConverter {
   public static void unpackRgb888(@NotNull ByteString imageBytes, int @NotNull [] pixels) {
     if (bytesField != null) {
       try {
-        byte[] bytes = (byte[])bytesField.get(imageBytes);
-        int offset = offsetField.getInt(imageBytes);
         int length = lengthField.getInt(imageBytes);
-        unpackRgb888(bytes, offset, length, pixels);
+        if (length > 0) {
+          byte[] bytes = (byte[])bytesField.get(imageBytes);
+          int offset = offsetField.getInt(imageBytes);
+          unpackRgb888(bytes, offset, length, pixels);
+        }
         return;
       }
       catch (IllegalAccessException e) {
