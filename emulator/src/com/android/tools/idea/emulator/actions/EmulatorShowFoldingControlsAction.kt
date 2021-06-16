@@ -30,6 +30,11 @@ class EmulatorShowFoldingControlsAction : AbstractEmulatorAction() {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isEmulatorConnected(event) && getEmulatorController(event)?.emulatorConfig?.foldable ?: false
+    event.presentation.isVisible = isEmulatorConnected(event) && isFoldableOrRollable(event)
+  }
+
+  private fun isFoldableOrRollable(event: AnActionEvent): Boolean {
+    val config = getEmulatorController(event)?.emulatorConfig ?: return false
+    return config.foldable || config.rollable
   }
 }
