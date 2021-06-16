@@ -942,7 +942,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake AVD folder for Pixel 3 XL API 29. The skin path in config.ini is absolute.
+     * Creates a fake AVD folder for 7.6 Fold-in with outer display API 29.
      */
     @JvmStatic
     fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
@@ -1047,7 +1047,127 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake AVD folder for Android Wear Round API28. The skin path in config.ini is absolute.
+     * Creates a fake AVD folder for 7.4 Rollable API 31.
+     */
+    @JvmStatic
+    fun createRollableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
+      val avdId = "7.4_Rollable_API_31"
+      val avdFolder = parentFolder.resolve("${avdId}.avd")
+      val avdName = avdId.replace('_', ' ')
+
+      val configIni = """
+          AvdId=${avdId}
+          PlayStore.enabled=false
+          abi.type=x86
+          avd.ini.displayname=${avdName}
+          avd.ini.encoding=UTF-8
+          disk.dataPartition.size=800M
+          hw.accelerometer=yes
+          hw.arc=false
+          hw.audioInput=yes
+          hw.battery=yes
+          hw.camera.back=virtualscene
+          hw.camera.front=emulated
+          hw.cpu.arch=x86_64
+          hw.cpu.ncore=4
+          hw.dPad=no
+          hw.device.name = 7.4in Rollable
+          hw.displayRegion.0.1.height = 2428
+          hw.displayRegion.0.1.width = 1080
+          hw.displayRegion.0.1.xOffset = 0
+          hw.displayRegion.0.1.yOffset = 0
+          hw.displayRegion.0.2.height = 2428
+          hw.displayRegion.0.2.width = 1366
+          hw.displayRegion.0.2.xOffset = 0
+          hw.displayRegion.0.2.yOffset = 0
+          hw.gps=yes
+          hw.gpu.enabled=yes
+          hw.gpu.mode=auto
+          hw.initialOrientation=Portrait
+          hw.keyboard=yes
+          hw.lcd.density = 420
+          hw.lcd.height = 2428
+          hw.lcd.width = 1600
+          hw.mainKeys=no
+          hw.ramSize=1536
+          hw.sdCard=yes
+          hw.sensor.hinge.type = 3
+          hw.sensor.posture_list = 1, 2, 3
+          hw.sensor.roll = yes
+          hw.sensor.roll.count = 1
+          hw.sensor.roll.defaults = 67.5
+          hw.sensor.roll.direction = 1
+          hw.sensor.roll.radius = 3
+          hw.sensor.roll.ranges = 58.55-100
+          hw.sensor.roll.resize_to_displayRegion.0.1_at_posture = 1
+          hw.sensor.roll.resize_to_displayRegion.0.2_at_posture = 2
+          hw.sensor.roll_percentages_posture_definitions = 58.55-76.45, 76.45-94.35, 94.35-100
+          hw.sensors.orientation=yes
+          hw.sensors.proximity=yes
+          hw.trackBall=no
+          image.sysdir.1=system-images/android-31/google_apis/x86_64/
+          runtime.network.latency=none
+          runtime.network.speed=full
+          sdcard.path=${avdFolder}/sdcard.img
+          sdcard.size=512 MB
+          showDeviceFrame=no
+          skin.dynamic=yes
+          skin.name = 1600x2428
+          skin.path = _no_skin
+          tag.display=Google APIs
+          tag.id=google_apis
+          """.trimIndent()
+
+      val hardwareIni = """
+          hw.cpu.arch = x86_64
+          hw.cpu.ncore = 4
+          hw.lcd.width = 1600
+          hw.lcd.height = 2428
+          hw.lcd.density = 420
+          hw.displayRegion.0.1.xOffset = 0
+          hw.displayRegion.0.1.yOffset = 0
+          hw.displayRegion.0.1.width = 1080
+          hw.displayRegion.0.1.height = 2428
+          hw.displayRegion.0.2.xOffset = 0
+          hw.displayRegion.0.2.yOffset = 0
+          hw.displayRegion.0.2.width = 1366
+          hw.displayRegion.0.2.height = 2428
+          hw.ramSize = 1536
+          hw.screen = multi-touch
+          hw.dPad = false
+          hw.rotaryInput = false
+          hw.gsmModem = true
+          hw.gps = true
+          hw.battery = false
+          hw.accelerometer = false
+          hw.gyroscope = true
+          hw.sensor.hinge = true
+          hw.sensor.hinge.count = 0
+          hw.sensor.hinge.type = 3
+          hw.sensor.hinge.sub_type = 0
+          hw.sensor.posture_list = 1, 2, 3
+          hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture = 1
+          hw.sensor.roll = true
+          hw.sensor.roll.count = 1
+          hw.sensor.roll.radius = 3
+          hw.sensor.roll.ranges = 58.55-100
+          hw.sensor.roll.direction = 1
+          hw.sensor.roll.defaults = 67.5
+          hw.sensor.roll_percentages_posture_definitions = 58.55-76.45, 76.45-94.35, 94.35-100
+          hw.sensor.roll.resize_to_displayRegion.0.1_at_posture = 1
+          hw.sensor.roll.resize_to_displayRegion.0.2_at_posture = 2
+          hw.sensor.roll.resize_to_displayRegion.0.3_at_posture = 6
+          hw.audioInput = true
+          hw.audioOutput = true
+          hw.sdCard = false
+          android.sdk.root = $sdkFolder
+          """.trimIndent()
+
+      return createAvd(avdFolder, configIni, hardwareIni)
+    }
+
+    /**
+     * Creates a fake AVD folder for Android Wear Round API 28. The skin path in config.ini is absolute.
      */
     @JvmStatic
     fun createWatchAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk")): Path {
