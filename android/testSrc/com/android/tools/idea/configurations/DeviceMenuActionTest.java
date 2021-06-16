@@ -76,6 +76,7 @@ public class DeviceMenuActionTest extends AndroidTestCase {
       "    320 \u00d7 290, tvdpi (Round Chin)\n" +
       "    ------------------------------------------------------\n" +
       "    TV\n" +
+      "    4K, 3840 \u00d7 2160, xxxhdpi (TV)\n" +
       "    1080p, 1920 \u00d7 1080, xhdpi (TV)\n" +
       "    720p, 1280 \u00d7 720, tvdpi (TV)\n" +
       "    ------------------------------------------------------\n" +

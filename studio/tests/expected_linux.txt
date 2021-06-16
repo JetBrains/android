@@ -2310,6 +2310,10 @@ android-studio/plugins/android/resources/device-art-resources/tv_1080p/back.png
 android-studio/plugins/android/resources/device-art-resources/tv_1080p/fore.png
 android-studio/plugins/android/resources/device-art-resources/tv_1080p/layout
 android-studio/plugins/android/resources/device-art-resources/tv_1080p/shadow.png
+android-studio/plugins/android/resources/device-art-resources/tv_4k/back.png
+android-studio/plugins/android/resources/device-art-resources/tv_4k/fore.png
+android-studio/plugins/android/resources/device-art-resources/tv_4k/layout
+android-studio/plugins/android/resources/device-art-resources/tv_4k/shadow.png
 android-studio/plugins/android/resources/device-art-resources/tv_720p/back.png
 android-studio/plugins/android/resources/device-art-resources/tv_720p/fore.png
 android-studio/plugins/android/resources/device-art-resources/tv_720p/layout
