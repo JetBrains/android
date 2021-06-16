@@ -24,6 +24,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Process.ExposureLevel.PROFILEABLE
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
@@ -252,6 +253,86 @@ class SessionsViewTest {
   }
 
   @Test
+  fun testProcessDropdownUpToDateForProfileables() {
+    myIdeProfilerServices.enableProfileable(true)
+    val device1 = Common.Device.newBuilder()
+      .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
+    val device2 = Common.Device.newBuilder()
+      .setDeviceId(2).setManufacturer("Manufacturer2").setModel("Model2").setState(Common.Device.State.ONLINE).build()
+    val process1 = debuggableProcess { pid = 10; deviceId = 1; name = "Process1"; exposureLevel = PROFILEABLE }
+    val otherProcess1 = debuggableProcess { pid = 20; deviceId = 1; name = "Other1" }
+    val otherProcess2 = debuggableProcess { pid = 30; deviceId = 2; name = "Other2"; exposureLevel = PROFILEABLE }
+    // Process* is preferred, Other* should be in the other processes flyout.
+    myProfilers.setPreferredProcess("Manufacturer1 Model1", "Process", null)
+
+    var selectionAction = mySessionsView.processSelectionAction
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    var loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
+    assertThat(loadAction.isEnabled).isTrue()
+    assertThat(loadAction.childrenActionCount).isEqualTo(0)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    assertThat(selectionAction.childrenActions[2].text).isEqualTo(SessionsView.NO_SUPPORTED_DEVICES)
+    assertThat(selectionAction.childrenActions[2].isEnabled).isFalse()
+
+    myTransportService.addDevice(device1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    assertThat(selectionAction.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    loadAction = selectionAction.childrenActions.first { c -> c.text == "Load from file..." }
+    assertThat(loadAction.isEnabled).isTrue()
+    assertThat(loadAction.childrenActionCount).isEqualTo(0)
+    var deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(1)
+    assertThat(deviceAction1.childrenActions[0].text).isEqualTo(SessionsView.NO_DEBUGGABLE_PROCESSES)
+    assertThat(deviceAction1.childrenActions[0].isEnabled).isFalse()
+
+    myTransportService.addProcess(device1, process1)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myProfilers.setProcess(device1, process1)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(3)
+    var processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10) (profileable)" }
+    assertThat(processAction1.childrenActionCount).isEqualTo(0)
+
+    myTransportService.addProcess(device1, otherProcess1)
+    try {
+      myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    } catch (e: NullPointerException) { /* Ignore error from HelpToolTip in test but not in production */ }
+    assertThat(selectionAction.childrenActionCount).isEqualTo(3)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(4)  // process1 + separator + "other debuggables" + "other profileables"
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10) (profileable)" }
+    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    var processAction2 = deviceAction1.childrenActions
+      .first { c -> c.text == "Other debuggable processes" }.childrenActions
+      .first { c -> c.text == "Other1 (20)" }
+
+    // Test the reverse case of having only "other" processes
+    myTransportService.addDevice(device2)
+    myTransportService.addProcess(device2, otherProcess2)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(selectionAction.childrenActionCount).isEqualTo(4)
+    deviceAction1 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer1 Model1" }
+    assertThat(deviceAction1.isEnabled).isTrue()
+    assertThat(deviceAction1.childrenActionCount).isEqualTo(4)  // process1 + separator + "other debuggables" + "other profileables"
+    processAction1 = deviceAction1.childrenActions.first { c -> c.text == "Process1 (10) (profileable)" }
+    assertThat(deviceAction1.childrenActions[1]).isInstanceOf(CommonAction.SeparatorAction::class.java)
+    processAction2 = deviceAction1.childrenActions
+      .first { c -> c.text == "Other debuggable processes" }.childrenActions
+      .first { c -> c.text == "Other1 (20)" }
+    var deviceAction2 = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
+    assertThat(deviceAction2.isEnabled).isTrue()
+    assertThat(deviceAction2.childrenActionCount).isEqualTo(2) // No separator + "no other debuggables" + "other profileables"
+    var processAction3 = deviceAction2.childrenActions
+      .first { c -> c.text == "Other profileable processes" }.childrenActions
+      .first { c -> c.text == "Other2 (30)" }
+  }
+
+  @Test
   fun testUnsupportedDeviceDropdown() {
     val unsupportedReason = "Unsupported";
     val device = Common.Device.newBuilder().setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(
@@ -298,7 +379,7 @@ class SessionsViewTest {
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
     assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(1)
-    var processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
+    val processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
   }
 
