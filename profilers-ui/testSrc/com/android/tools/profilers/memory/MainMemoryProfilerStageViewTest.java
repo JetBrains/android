@@ -52,6 +52,7 @@ import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -871,6 +872,26 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     RecordingOptionsView view = ((MainMemoryProfilerStageView)myProfilersView.getStageView()).getRecordingOptionsView();
     assertThat(view.getStartStopButton().isEnabled()).isFalse();
     view.getAllRadios().forEach(btn -> assertThat(btn.isEnabled()).isFalse());
+  }
+
+  @Test
+  public void gcDisabledForDeadSession() {
+    myProfilers.setStage(new NullMonitorStage(myProfilers));
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    MainMemoryProfilerStageView view = (MainMemoryProfilerStageView)myProfilersView.getStageView();
+    assertThat(view.getGarbageCollectionButtion().isEnabled()).isFalse();
+  }
+
+  @Test
+  public void gcEnabledForLiveDebuggableProcess() {
+    assumeTrue(myProfilers.getSelectedSessionSupportLevel() == SupportLevel.FULL);
+    myProfilers.setStage(new NullMonitorStage(myProfilers));
+    myProfilers.setStage(new MainMemoryProfilerStage(myProfilers, myMockLoader));
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    MainMemoryProfilerStageView view = (MainMemoryProfilerStageView)myProfilersView.getStageView();
+    assertThat(view.getGarbageCollectionButtion().isEnabled()).isTrue();
   }
 
   @Test

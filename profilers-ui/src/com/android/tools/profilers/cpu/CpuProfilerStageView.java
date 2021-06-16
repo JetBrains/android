@@ -24,6 +24,7 @@ import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
 import com.android.tools.adtui.stdui.StreamingScrollbar;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.DismissibleMessage;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerMode;
@@ -32,6 +33,7 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
@@ -114,6 +116,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * the size of the view used for the CallChart, FlameChart, ect..
    */
   private static final float KERNEL_VIEW_SPLITTER_RATIO = 0.75f;
+
+  private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.cpu.message";
 
   private final CpuProfilerStage myStage;
 
@@ -210,7 +214,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   @Override
   public JPanel getToolbar() {
-    return new JPanel();
+    return getStage().getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.PROFILEABLE
+           ? DismissibleMessage.of(getStage().getStudioProfilers(),
+                                   SHOW_PROFILEABLE_MESSAGE,
+                                   "API initiated profiling is disabled for profileable processes",
+                                   () -> Unit.INSTANCE)
+           : new JPanel();
   }
 
   private void sessionChanged() {
