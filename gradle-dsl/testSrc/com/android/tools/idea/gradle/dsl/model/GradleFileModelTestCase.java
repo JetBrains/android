@@ -247,7 +247,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   private String getTestDataPath() {
-    return PathManagerEx.findFileUnderCommunityHome("android/gradle-dsl-impl/testData").getPath();
+    return PathManagerEx.findFileUnderCommunityHome("android/gradle-dsl/testData").getPath();
   }
 
 
