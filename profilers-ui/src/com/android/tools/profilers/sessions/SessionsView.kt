@@ -31,6 +31,7 @@ import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.ProfilerLayout
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.cpu.CpuCaptureArtifactView
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
 import com.android.tools.profilers.memory.AllocationArtifactView
@@ -42,6 +43,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsArtifactView
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifactView.ArtifactDrawInfo
+import com.android.utils.usLocaleCapitalize
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Ordering
 import com.intellij.icons.AllIcons
@@ -54,6 +56,7 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionListener
 import java.io.File
+import java.util.Locale
 import javax.swing.AbstractButton
 import javax.swing.BorderFactory
 import javax.swing.Box
@@ -222,37 +225,69 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
         when {
           processes.isEmpty() -> deviceAction.addChildrenActions(disabledAction(device.unsupportedReason.ifEmpty {NO_DEBUGGABLE_PROCESSES}))
           else -> {
-            fun processAction(process: Common.Process) = commonAction("${process.name} (${process.pid})").apply {
-              setAction {
-                // First warn and stop the currently profiling session if there is one.
-                if (SessionsManager.isSessionAlive(profilers.sessionsManager.profilingSession)) {
-                  // Do not continue to start a new session.
-                  if (!confirm(HIDE_RESTART_PROMPT, CONFIRM_END_TITLE, CONFIRM_RESTART_MESSAGE)) return@setAction
-                  stopProfilingSession()
+            val processAction = fun (postFix: (Common.Process) -> String) = fun(process: Common.Process) =
+              commonAction("${process.name} (${process.pid})${postFix(process)}").apply {
+                setAction {
+                  // First warn and stop the currently profiling session if there is one.
+                  if (SessionsManager.isSessionAlive(profilers.sessionsManager.profilingSession)) {
+                    // Do not continue to start a new session.
+                    if (!confirm(HIDE_RESTART_PROMPT, CONFIRM_END_TITLE, CONFIRM_RESTART_MESSAGE)) return@setAction
+                    stopProfilingSession()
+                  }
+                  profilers.setProcess(device, process)
+                  profilers.ideServices.featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.FULL,
+                                                                          SessionsManager.SessionCreationSource.MANUAL)
                 }
-                profilers.setProcess(device, process)
-                profilers.ideServices.featureTracker.trackCreateSession(Common.SessionMetaData.SessionType.FULL,
-                                                                        SessionsManager.SessionCreationSource.MANUAL)
               }
+            val plainProcessAction = processAction {""}
+            val annotatedProcessAction = processAction {
+              if (profilers.getProcessSupportLevel(it.pid) == SupportLevel.PROFILEABLE) " (profileable)" else ""
             }
 
             val (preferredProcesses, otherProcesses) = profilers.preferredProcessName.let { preferredProcess ->
               processes.partition { preferredProcess != null && it.name.startsWith(preferredProcess) }
             }
             val order = Comparator.comparing(CommonAction::getText, Ordering.natural())
-            val preferredProcessActions = preferredProcesses.map(::processAction).sortedWith(order)
-            val otherProcessActions = otherProcesses.map(::processAction).sortedWith(order)
 
-            if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
-            if (otherProcessActions.isNotEmpty()) {
-              // Only add the separator if there are preferred processes added.
-              if (deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
-              when {
-                // In standalone profiler, all processes falls under "Other processes" so there is no point to have this separate flyout.
-                IdeInfo.isGameTool() -> deviceAction.addChildrenActions(otherProcessActions)
-                else -> CommonAction("Other processes", null).let { otherProcessesFlyout ->
-                  otherProcessesFlyout.addChildrenActions(otherProcessActions)
+            // Add separate menu items for other debuggable processes and other profileable processes
+            if (profilers.ideServices.featureConfig.isProfileableEnabled) {
+              fun addOtherProcessesFlyout(tag: String, actions: List<CommonAction>) = when {
+                actions.isNotEmpty() -> {
+                  val title = if (IdeInfo.isGameTool()) "${tag.usLocaleCapitalize()} processes" else "Other $tag processes"
+                  val otherProcessesFlyout = CommonAction(title, null)
+                  otherProcessesFlyout.addChildrenActions(actions)
                   deviceAction.addChildrenActions(otherProcessesFlyout)
+                }
+                else -> {
+                  val title = if (IdeInfo.isGameTool()) "No $tag processes" else "No other $tag processes"
+                  deviceAction.addChildrenActions(disabledAction(title))
+                }
+              }
+
+              val preferredProcessActions = preferredProcesses.map(annotatedProcessAction).sortedWith(order)
+              if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
+              // Only add the separator if there are preferred processes added.
+              if (otherProcesses.isNotEmpty() && deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
+              val (debuggables, profileables) = otherProcesses.partition { profilers.getProcessSupportLevel(it.pid) == SupportLevel.FULL }
+              addOtherProcessesFlyout("debuggable", debuggables.map(plainProcessAction).sortedWith(order))
+              addOtherProcessesFlyout("profileable", profileables.map(plainProcessAction).sortedWith(order))
+            }
+            // Legacy menu, where all processes are debuggable
+            else {
+              val preferredProcessActions = preferredProcesses.map(plainProcessAction).sortedWith(order)
+              val otherProcessActions = otherProcesses.map(plainProcessAction).sortedWith(order)
+              if (preferredProcessActions.isNotEmpty()) deviceAction.addChildrenActions(preferredProcessActions)
+              if (otherProcessActions.isNotEmpty()) {
+                // Only add the separator if there are preferred processes added
+                if (deviceAction.childrenActionCount != 0) deviceAction.addChildrenActions(SeparatorAction())
+                when {
+                  // In standalone profiler, all processes fall under the "Other processes"
+                  // so there is no point to have this separate flyout
+                  IdeInfo.isGameTool() -> deviceAction.addChildrenActions(otherProcessActions)
+                  else -> CommonAction("Other processes", null).let { otherProcessesFlyout ->
+                    otherProcessesFlyout.addChildrenActions(otherProcessActions)
+                    deviceAction.addChildrenActions(otherProcessesFlyout)
+                  }
                 }
               }
             }
