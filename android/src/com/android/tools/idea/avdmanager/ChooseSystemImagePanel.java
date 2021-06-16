@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.AndroidVersion.MIN_4K_TV_API;
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
@@ -253,6 +254,13 @@ public class ChooseSystemImagePanel extends JPanel
       return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
              !imageTag.equals(SystemImage.WEAR_TAG) &&
              !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
+    }
+
+    // 4K TV requires at least S (API 31)
+    if (deviceId.equals("tv_4k")) {
+      if (image.getVersion() == null || image.getVersion().getFeatureLevel() < MIN_4K_TV_API) {
+        return false;
+      }
     }
 
     // Android TV / Google TV and vice versa

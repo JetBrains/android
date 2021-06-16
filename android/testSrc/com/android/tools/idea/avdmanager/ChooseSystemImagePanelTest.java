@@ -97,6 +97,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     String automotivePath = "system-images;android-28;android-automotive;";
     // Android Automotive with Play Store image
     String automotivePsPath = "system-images;android-28;android-automotive-playstore;";
+    // TV 30 image
+    String tv30Path = "system-images;android-30;android-tv;";
+    // TV 31 image
+    String tv31Path = "system-images;android-31;android-tv;";
 
     FakePackage.FakeLocalPackage pkgGapi;
     FakePackage.FakeLocalPackage pkgGapi29;
@@ -107,6 +111,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     FakePackage.FakeLocalPackage pkgCnWear;
     FakePackage.FakeLocalPackage pkgAutomotive;
     FakePackage.FakeLocalPackage pkgAutomotivePs;
+    FakePackage.FakeLocalPackage pkgTv30;
+    FakePackage.FakeLocalPackage pkgTv31;
 
     SystemImageDescription gapiImageDescription;
     SystemImageDescription gapi29ImageDescription;
@@ -117,6 +123,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription wearCnImageDescription;
     SystemImageDescription automotiveImageDescription;
     SystemImageDescription automotivePsImageDescription;
+    SystemImageDescription tv30ImageDescription;
+    SystemImageDescription tv31ImageDescription;
 
     SystemImageTestList(String abi, MockFileOp fileOp) {
       gapiPath += abi;
@@ -128,6 +136,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       wearCnPath += abi;
       automotivePath += abi;
       automotivePsPath += abi;
+      tv30Path += abi;
+      tv31Path += abi;
 
       pkgGapi = createSysimgPackage(gapiPath, abi, IdDisplay.create("google_apis", "Google APIs"),
                                     IdDisplay.create("google", "Google"), 23, fileOp);
@@ -148,10 +158,17 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       pkgAutomotivePs = createSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
                                                                                     "Android Automotive with Google Play"),
                                             IdDisplay.create("google", "Google"), 28, fileOp);
+      pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
+                                          IdDisplay.create("google", "Google"), 28, fileOp);
+      pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Android TV"),
+                                    IdDisplay.create("google", "Google"), 30, fileOp);
+      pkgTv31 = createSysimgPackage(tv31Path, abi, IdDisplay.create("android-tv", "Android TV"),
+                                    IdDisplay.create("google", "Google"), 31, fileOp);
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
-      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs);
+      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive, pkgAutomotivePs, pkgTv30,
+                              pkgTv31);
     }
 
     void generateSystemImageDescriptions(AndroidSdkHandler sdkHandler) {
@@ -176,6 +193,10 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
         sdkHandler.getLocalPackage(automotivePath, progress).getLocation());
       ISystemImage automotivePsImage = systemImageManager.getImageAt(
         sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation());
+      ISystemImage tv30Image = systemImageManager.getImageAt(
+        sdkHandler.getLocalPackage(tv30Path, progress).getLocation());
+      ISystemImage tv31Image = systemImageManager.getImageAt(
+        sdkHandler.getLocalPackage(tv31Path, progress).getLocation());
 
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -186,6 +207,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       wearCnImageDescription = new SystemImageDescription(wearCnImage);
       automotiveImageDescription = new SystemImageDescription(automotiveImage);
       automotivePsImageDescription = new SystemImageDescription(automotivePsImage);
+      tv30ImageDescription = new SystemImageDescription(tv30Image);
+      tv31ImageDescription = new SystemImageDescription(tv31Image);
     }
   }
 
@@ -203,6 +226,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private Device myWearDevice;
   private Device myAutomotiveDevice;
   private Device myFreeform;
+  private Device my4KTV;
 
   @Override
   public void setUp() throws Exception {
@@ -255,6 +279,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
     // Get a Freeform device
     myFreeform = devMgr.getDevice("13.5in Freeform", "Generic");
+
+    // Get a 4K TV
+    my4KTV = devMgr.getDevice("tv_4k", "Google");
   }
 
   public void testClassificationFromParts() {
@@ -382,6 +409,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myFreeform));
     assertFalse(systemImageMatchesDevice(mSysImgsX86.gapi29ImageDescription, myFreeform));
     assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(mSysImgsX86.tv30ImageDescription, my4KTV));
+    assertTrue(systemImageMatchesDevice(mSysImgsX86.tv31ImageDescription, my4KTV));
   }
 
   public void testDeviceType() {

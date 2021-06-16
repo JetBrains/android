@@ -1312,6 +1312,10 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_1080p/fore.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_1080p/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_1080p/shadow.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_4k/back.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_4k/fore.png
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_4k/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_4k/shadow.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_720p/back.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_720p/fore.png
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/tv_720p/layout
