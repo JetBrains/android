@@ -78,6 +78,10 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     .setName(FAKE_PROCESS_NAME)
     .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
     .build();
+  public static final Common.Process FAKE_PROFILEABLE_PROCESS = FAKE_PROCESS.toBuilder()
+    .setPid(2)
+    .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+    .build();
   public static final Common.Device FAKE_OFFLINE_DEVICE = FAKE_DEVICE.toBuilder().setState(Common.Device.State.OFFLINE).build();
   public static final Common.Process FAKE_OFFLINE_PROCESS = FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build();
 
@@ -102,10 +106,14 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
    * Creates a fake profiler service. If connected is true there will be a device with a process already present.
    */
   public FakeTransportService(@NotNull FakeTimer timer, boolean connected) {
-    this(timer, connected, AndroidVersion.VersionCodes.O);
+    this(timer, connected, AndroidVersion.VersionCodes.O, Common.Process.ExposureLevel.DEBUGGABLE);
   }
 
   public FakeTransportService(@NotNull FakeTimer timer, boolean connected, int featureLevel) {
+    this(timer, connected, featureLevel, Common.Process.ExposureLevel.DEBUGGABLE);
+  }
+
+  public FakeTransportService(@NotNull FakeTimer timer, boolean connected, int featureLevel, Common.Process.ExposureLevel exposureLevel) {
     myDevices = new HashMap<>();
     myProcesses = MultiMap.create();
     myCache = new HashMap<>();
@@ -117,9 +125,12 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     Common.Device device = featureLevel == FAKE_DEVICE.getFeatureLevel()
                            ? FAKE_DEVICE
                            : FAKE_DEVICE.toBuilder().setFeatureLevel(featureLevel).build();
+    Common.Process process = exposureLevel == FAKE_PROCESS.getExposureLevel()
+                             ? FAKE_PROCESS
+                             : FAKE_PROCESS.toBuilder().setExposureLevel(exposureLevel).build();
     if (connected) {
       addDevice(device);
-      addProcess(device, FAKE_PROCESS);
+      addProcess(device, process);
     }
     initializeCommandHandlers();
   }

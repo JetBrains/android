@@ -66,12 +66,14 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
+  private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.monitor.message";
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
@@ -252,7 +254,12 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Override
   public JComponent getToolbar() {
-    return new JPanel();
+    return getStage().getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.PROFILEABLE
+           ? DismissibleMessage.of(getStage().getStudioProfilers(),
+                                   SHOW_PROFILEABLE_MESSAGE,
+                                   "Only CPU and Memory profilers are enabled for profileable processes",
+                                   () -> Unit.INSTANCE)
+           : new JPanel();
   }
 
   @Override

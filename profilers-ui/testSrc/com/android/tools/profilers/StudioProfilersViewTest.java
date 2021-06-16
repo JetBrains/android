@@ -20,6 +20,8 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
@@ -56,8 +58,13 @@ import com.intellij.testFramework.RunsInEdt;
 import icons.StudioIcons;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.swing.ComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
@@ -68,20 +75,33 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 @RunsInEdt
+@RunWith(Parameterized.class)
 public class StudioProfilersViewTest {
+
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
-    .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
+    .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).setPid(1).build();
   private static final Common.SessionMetaData SESSION_O_METADATA = Common.SessionMetaData.newBuilder().setSessionId(2).setJvmtiEnabled(true)
     .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
 
   private final FakeTimer myTimer = new FakeTimer();
-  private final FakeTransportService myService = new FakeTransportService(myTimer);
+  private final FakeTransportService myService;
+  private final boolean myIsTestingProfileable;
+
+  public StudioProfilersViewTest(boolean isTestingProfileable) {
+    myIsTestingProfileable = isTestingProfileable;
+    myService = isTestingProfileable
+                ? new FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
+                : new FakeTransportService(myTimer);
+    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", getService(), myProfilerService);
+  }
+
   private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
 
-  @Rule public FakeGrpcServer myGrpcChannel =
-    FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
+  @Rule public final FakeGrpcServer myGrpcChannel;
   @Rule public final EdtRule myEdtRule = new EdtRule();
   @Rule public final ApplicationRule myAppRule = new ApplicationRule();  // For initializing HelpTooltip.
 
@@ -89,6 +109,10 @@ public class StudioProfilersViewTest {
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
   private StudioProfilersView myView;
   private FakeUi myUi;
+
+  private FakeTransportService getService() {
+    return myService;
+  }
 
   @Before
   public void setUp() {
@@ -118,6 +142,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testMonitorExpansion() {
+    assumeFalse(myIsTestingProfileable);
     // Set session to enable Energy Monitor.
     myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -159,6 +184,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testMonitorTooltip() {
+    assumeFalse(myIsTestingProfileable);
     // Set Session to enable Energy monitor tooltip.
     myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -447,6 +473,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testLoadingPanelWhileWaitingForAgentAttach() {
+    assumeFalse(myIsTestingProfileable); // hardcoded `FAKE_DEVICE` is different than one used for the profileable test
     final String FAKE_PROCESS_2 = "FakeProcess2";
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
@@ -555,6 +582,31 @@ public class StudioProfilersViewTest {
     assertThat(myProfilers.getStage()).isNotInstanceOf(FakeStage.class);
   }
 
+  @Test
+  public void menuShowsSupportedStagesForDebuggable() {
+    assumeFalse(myIsTestingProfileable);
+    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, NetworkProfilerStage.class, EnergyProfilerStage.class);
+  }
+
+  @Test
+  public void menuShowsSupportedStagesForProfileable() {
+    assumeTrue(myIsTestingProfileable);
+    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);
+  }
+
+  private void menuShowsSupportedStages(Class<?> ... expected) {
+    myProfilerServices.enableProfileable(true);
+    TreeWalker t = new TreeWalker(myView.getCommonToolbar());
+    Predicate<ComboBoxModel<?>> itemsChecker = model ->
+      model.getSize() == expected.length &&
+      IntStream.range(0, model.getSize())
+        .allMatch(i -> model.getElementAt(i) instanceof Class<?> &&
+                       expected[i].isAssignableFrom((Class<?>)model.getElementAt(i)));
+    assertThat(t.descendantStream()
+                 .anyMatch(view -> view instanceof JComboBox<?> && itemsChecker.test(((JComboBox<?>)view).getModel())))
+      .isTrue();
+  }
+
   private void setFakeStage() {
     FakeStage stage = new FakeStage(myProfilers);
     myView.bind(stage.getClass(), FakeStageView::new);
@@ -629,5 +681,10 @@ public class StudioProfilersViewTest {
     public JComponent getToolbar() {
       return new JPanel();
     }
+  }
+
+  @Parameterized.Parameters
+  public static List<Boolean> isTestingProfileable() {
+    return Arrays.asList(false, true);
   }
 }

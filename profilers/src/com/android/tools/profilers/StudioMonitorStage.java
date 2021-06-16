@@ -39,8 +39,11 @@ public class StudioMonitorStage extends StreamingStage {
 
     Common.Session session = getStudioProfilers().getSession();
     if (session != Common.Session.getDefaultInstance()) {
+      SupportLevel supportLevel = getStudioProfilers().getSelectedSessionSupportLevel();
       for (StudioProfiler profiler : getStudioProfilers().getProfilers()) {
-        myMonitors.add(profiler.newMonitor());
+        if (supportLevel.isMonitorSupported(profiler)) {
+          myMonitors.add(profiler.newMonitor());
+        }
       }
     }
     myMonitors.forEach(ProfilerMonitor::enter);
