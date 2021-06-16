@@ -359,6 +359,9 @@
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
 
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
+    <actionOnSaveInfoProvider id="AndroidBuildOnSaveInfoProvider"
+                              implementation="com.android.tools.idea.gradle.project.build.compiler.GradleCompilerSettingsConfigurable$BuildOnSaveInfoProvider"
+                              order="after FormatOnSaveActionProvider, after EsLintOnSaveInfoProvider, after PrettierOnSaveInfoProvider, after FileWatcherOnSaveActionProvider, after UploadOnSaveActionProvider"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.explorer.options.DeviceFileExplorerSettings"/>
 
