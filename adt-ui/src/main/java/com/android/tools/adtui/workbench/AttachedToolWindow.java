@@ -641,6 +641,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     public void update(@NotNull AnActionEvent event) {
       Presentation presentation = event.getPresentation();
       presentation.setVisible(!myShowSearchField);
+      presentation.setEnabled(myContent != null && myContent.isFilteringActive());
     }
 
     @Override

@@ -57,6 +57,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private boolean myDisposed;
   private boolean myGearActionPerformed;
   private boolean myAdditionalActionPerformed;
+  private boolean myIsFilteringActive;
   private String myFilter;
 
   private PalettePanelToolContent(@NotNull Disposable parentDisposable) {
@@ -77,6 +78,7 @@ class PalettePanelToolContent implements ToolContent<String> {
     };
     myFilter = "";
     myKeyListener = new MyKeyListener();
+    myIsFilteringActive = true;
   }
 
   public static ToolWindowDefinition<String> getDefinition() {
@@ -189,6 +191,15 @@ class PalettePanelToolContent implements ToolContent<String> {
   @Override
   public KeyListener getFilterKeyListener() {
     return myKeyListener;
+  }
+
+  @Override
+  public boolean isFilteringActive() {
+    return myIsFilteringActive;
+  }
+
+  public void setFilteringActive(boolean active) {
+    myIsFilteringActive = active;
   }
 
   private class MyKeyListener extends KeyAdapter {

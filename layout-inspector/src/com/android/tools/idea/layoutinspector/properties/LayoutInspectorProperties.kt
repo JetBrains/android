@@ -52,6 +52,10 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
 
   override fun getFilterKeyListener() = filterKeyListener
 
+  override fun isFilteringActive(): Boolean {
+    return componentModel.layoutInspector?.currentClient?.isConnected ?: false
+  }
+
   private fun createFilterKeyListener() = object : KeyAdapter() {
     override fun keyPressed(event: KeyEvent) {
       if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
