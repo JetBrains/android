@@ -222,6 +222,11 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
+    return forceRefresh();
+  }
+
+  @Override
+  public @NotNull CompletableFuture<Void> forceRefresh() {
     // Ignored for nav editor
     return CompletableFuture.completedFuture(null);
   }
