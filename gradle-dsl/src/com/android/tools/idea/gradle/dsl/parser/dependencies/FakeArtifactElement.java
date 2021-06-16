@@ -228,7 +228,7 @@ public class FakeArtifactElement extends FakeElement {
   @Nullable
   private static ArtifactDependencySpecImpl getSpec(@NotNull GradleDslSimpleExpression element, boolean useResolvedValue) {
     Object val = (useResolvedValue) ? element.getValue() : element.getUnresolvedValue();
-    assert val instanceof String;
+    if (!(val instanceof String)) return null;
     String stringValue = (String)val;
     return ArtifactDependencySpecImpl.create(stringValue);
   }

@@ -646,6 +646,23 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", INTERPOLATED, REGULAR, 1)
   }
 
+  @Test
+  fun testNullVariableInAllProjects() {
+    writeToBuildFile(TestFile.NULL_VARIABLE_IN_ALL_PROJECTS)
+    writeToSubModuleBuildFile(TestFile.NULL_VARIABLE_IN_ALL_PROJECTS_SUB)
+    writeToSettingsFile(subModuleSettingsText)
+
+    val gbm = subModuleGradleBuildModel
+    val dependenciesModel = gbm.dependencies()
+
+    // IDEA-271479: gbm.dependencies() should not throw AssertionException
+
+    // this is not working (not implemented yet): only simple cases of properties resolution are handled
+    //assertSize(1, dependenciesModel.all())
+    //val artModel = dependenciesModel.artifacts()[0]!!
+    //verifyPropertyModel(artModel.completeModel().resultModel, STRING_TYPE, "hello:kotlin:2.0", STRING, REGULAR, 1)
+  }
+
   enum class TestFile(val path: @SystemDependent String): TestFileName {
 
     BUILD_SCRIPT_APPLIED_DEPENDENCIES("buildScriptAppliedDependencies"),
@@ -662,6 +679,8 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_ONE("multipleAllProjectBlocksAppliedOne"),
     MULTIPLE_ALL_PROJECT_BLOCKS_APPLIED_TWO("multipleAllProjectBlocksAppliedTwo"),
     MULTIPLE_ALL_PROJECT_BLOCKS_SUB("multipleAllProjectBlocks_sub"),
+    NULL_VARIABLE_IN_ALL_PROJECTS("nullVariableInAllProjectsDependencies"),
+    NULL_VARIABLE_IN_ALL_PROJECTS_SUB("nullVariableInAllProjectsDependencies_sub"),
     REFERENCE_BLOCK_ELEMENT("referenceBlockElement"),
     ROOT_PROJECT_IN_APPLIED_FILES("rootProjectInAppliedFiles"),
     ROOT_PROJECT_IN_APPLIED_FILES_APPLIED("rootProjectInAppliedFilesApplied"),
