@@ -25,8 +25,11 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.SupportLevel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -77,6 +80,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     startTime.setForeground(StandardColors.TEXT_COLOR);
     panel.add(startTime, new TabularLayout.Constraint(0, 0));
     JPanel liveDotWrapper = new JPanel(new BorderLayout());
+    int titleColumnCount = 1;
     // Session is ongoing.
     if (isSessionAlive) {
       liveDotWrapper.setBorder(TOOLBAR_ICON_BORDER);
@@ -88,7 +92,19 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       installContextMenus(liveDot);
       addMouseListeningComponents(liveDot);
       liveDotWrapper.add(liveDot, BorderLayout.CENTER);
-      panel.add(liveDotWrapper, new TabularLayout.Constraint(0, 1));
+      panel.add(liveDotWrapper, new TabularLayout.Constraint(0, titleColumnCount++));
+    }
+
+    if (getArtifact().getProfilers().getProcessSupportLevel(getArtifact().getSession().getPid()) == SupportLevel.PROFILEABLE) {
+      JLabel infoLabel = new JLabel("");
+      infoLabel.setBorder(new JBEmptyBorder(0, 4, 0, 0));
+      infoLabel.setIcon(StudioIcons.Common.INFO);
+      HelpTooltip tooltip = new HelpTooltip();
+      tooltip.setTitle("Profileable process");
+      tooltip.setDescription("Capabilities are limited for profileable processes");
+      tooltip.setLink("More info", () -> {}); // TODO(b/191506454)
+      tooltip.installOn(infoLabel);
+      panel.add(infoLabel, new TabularLayout.Constraint(0, titleColumnCount++));
     }
 
     JLabel sessionName = new JLabel(getArtifact().getName());
