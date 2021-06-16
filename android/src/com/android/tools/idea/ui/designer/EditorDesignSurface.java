@@ -53,12 +53,19 @@ public abstract class EditorDesignSurface extends AdtPrimaryPanel {
   abstract public ImmutableCollection<Configuration> getConfigurations();
 
   /**
-   * When called, this will trigger a refresh of the layout and returns a {@link CompletableFuture} that will complete when the refresh
-   * has completed.
-   * Only call this method if the action is initiated by the user.
+   * When called, this will trigger a re-inflate and refresh of the layout and returns a {@link CompletableFuture} that will complete
+   * when the refresh has completed.
+   * Only call this method if the action is initiated by the user, call {@link #forceRefresh()} otherwise.
    */
   @NotNull
   abstract public CompletableFuture<Void> forceUserRequestedRefresh();
+
+  /**
+   * When called, this will trigger a re-inflate and refresh of the layout and returns a {@link CompletableFuture} that will complete
+   * when the refresh has completed.
+   */
+  @NotNull
+  abstract public CompletableFuture<Void> forceRefresh();
 
   /**
    * Returns the {@link OverlayConfiguration} of the {@link EditorDesignSurface}

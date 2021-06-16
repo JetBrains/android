@@ -49,6 +49,6 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
       .mapNotNull { surface.getSceneManager(it) as? LayoutlibSceneManager }
       .forEach { it.setShowDecorations(selected) }
     // Changing the decoration needs to rebuild the RenderTask, so we have to force re-render the layouts.
-    surface.forceUserRequestedRefresh()
+    surface.forceRefresh()
   }
 }

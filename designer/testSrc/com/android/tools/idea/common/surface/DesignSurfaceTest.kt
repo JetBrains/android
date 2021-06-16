@@ -337,5 +337,7 @@ class TestDesignSurface(project: Project, disposible: Disposable)
 
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
+  override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+
   override fun getSelectableComponents(): List<NlComponent> = emptyList()
 }

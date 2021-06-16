@@ -73,6 +73,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.PerformInBackgroundOption;
+import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -863,7 +865,26 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
-    return requestSequentialRender(manager -> ((LayoutlibSceneManager)manager).requestUserInitiatedRender());
+    // When the user initiates the refresh, give some feedback via progress indicator.
+    BackgroundableProcessIndicator refreshProgressIndicator = new BackgroundableProcessIndicator(
+      getProject(),
+      "Refreshing...",
+      PerformInBackgroundOption.ALWAYS_BACKGROUND,
+      "",
+      "",
+      false
+    );
+    return requestSequentialRender(manager -> manager.requestRender().whenComplete((r, t) -> refreshProgressIndicator.processFinish()));
+  }
+
+  @NotNull
+  @Override
+  public CompletableFuture<Void> forceRefresh() {
+    return requestSequentialRender(manager -> {
+      LayoutlibSceneManager layoutlibSceneManager = ((LayoutlibSceneManager)manager);
+      layoutlibSceneManager.forceReinflate();
+      return layoutlibSceneManager.requestRender();
+    });
   }
 
   @Override
@@ -1060,7 +1081,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   public void setPreviewWithToolsVisibilityAndPosition(boolean isPreviewWithToolsVisibilityAndPosition) {
     if (myPreviewWithToolsVisibilityAndPosition != isPreviewWithToolsVisibilityAndPosition) {
       myPreviewWithToolsVisibilityAndPosition = isPreviewWithToolsVisibilityAndPosition;
-      forceUserRequestedRefresh();
+      forceRefresh();
     }
   }
 

@@ -954,6 +954,7 @@ public class HtmlLinkManager {
   private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
       if (surface != null) {
         RenderUtils.clearCache(surface.getConfigurations());
+        surface.forceUserRequestedRefresh();
       }
   }
 
