@@ -30,7 +30,7 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
     val module = myFixture.module
     val model = mock(AndroidModuleModel::class.java)
 
-    val connection = module.messageBus.connect()
+    val connection = myFixture.project.messageBus.connect()
 
     var eventReceived = false
 
