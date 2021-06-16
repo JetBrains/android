@@ -25,7 +25,7 @@
 
 static bool hasMovbe = false;
 
-static uint32_t alignmentAdjusters[] = { 0, 5, 2, 7, 4, 1, 6, 3 };
+static uint8_t alignmentAdjusters[] = { 0, 5, 2, 7, 4, 1, 6, 3 };
 
 /*
  * Unpacking function using the x86-64 MOVBE instruction. See
@@ -93,6 +93,9 @@ JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_initNative(JNIEn
  */
 JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_unpackRgb888(
     JNIEnv* env, jclass thisClass, jbyteArray byteArray, jint offset, jint length, jintArray pixelArray) {
+  if (length == 0) {
+    return;
+  }
   if (offset < 0) {
     throwException(env, "java/lang/IllegalArgumentException", "The offset is negative");
   }
@@ -133,8 +136,8 @@ JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_unpackRgb888(
         headLength = numPixels;
       }
       unpackRgb888Universal(bytes, headLength, pixels);
-      if ((numPixels -= headLength) <= 0) {
-        return;
+      if ((numPixels -= headLength) == 0) {
+        goto release_arrays;
       }
       bytes += headLength * 3;
       pixels += headLength;
@@ -152,6 +155,7 @@ JNIEXPORT void JNICALL Java_com_android_emulator_ImageConverter_unpackRgb888(
   unpackRgb888Universal(bytes, numPixels, pixels);
 #endif // !defined(__x86_64__)
 
+release_arrays:
   (*env)->ReleasePrimitiveArrayCritical(env, pixelArray, pixels, 0);
   (*env)->ReleasePrimitiveArrayCritical(env, byteArray, bytes, 0);
 }
