@@ -5,3 +5,11 @@ filegroup(
     ),
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "projects",
+    srcs = glob(
+        include = ["projects/**"],
+    ),
+    visibility = ["//visibility:public"],
+)
