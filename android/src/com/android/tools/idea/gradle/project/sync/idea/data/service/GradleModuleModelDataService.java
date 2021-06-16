@@ -45,6 +45,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.data.BuildParticipant;
+import org.jetbrains.plugins.gradle.util.GradleModuleDataKt;
 
 /**
  * Applies Gradle settings to the modules of an Android project.
@@ -121,7 +122,7 @@ public class GradleModuleModelDataService extends ModuleModelDataService<GradleM
     BuildParticipant participant = new BuildParticipant();
     participant.setRootProjectName(projectDataDataNode.getData().getExternalName());
     for (DataNode<ModuleData> moduleNode : getChildren(projectDataDataNode, ProjectKeys.MODULE)) {
-      if (equalsIgnoreCase("true", moduleNode.getData().getProperty(BUILD_SRC_MODULE_PROPERTY))) {
+      if (GradleModuleDataKt.isBuildSrcModule(moduleNode.getData())) {
         String moduleFolder = moduleNode.getData().getLinkedExternalProjectPath();
         participant.getProjects().add(moduleFolder);
         if (BUILD_SRC_NAME.equals(moduleNode.getData().getExternalName())) {
