@@ -35,6 +35,7 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.SupportLevel;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,12 +134,18 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   public void enter() {
     super.enter();
 
-    myRecordingOptionsModel.addBuiltInOptions(makeHeapDumpOption());
+    BiConsumer<SupportLevel.Feature, RecordingOption> adder = (feature, option) -> {
+      myRecordingOptionsModel.addBuiltInOptions(option);
+      if (!getStudioProfilers().getSelectedSessionSupportLevel().isFeatureSupported(feature)) {
+        myRecordingOptionsModel.setOptionNotReady(option, feature.getTitle() + " is not supported for profileable processes");
+      }
+    };
+    adder.accept(SupportLevel.Feature.MEMORY_HEAP_DUMP, makeHeapDumpOption());
     if (isNativeAllocationSamplingEnabled()) {
-      myRecordingOptionsModel.addBuiltInOptions(makeNativeRecordingOption());
+      adder.accept(SupportLevel.Feature.MEMORY_NATIVE_RECORDING, makeNativeRecordingOption());
     }
     RecordingOption javaRecordingOption = makeJavaRecodingOption();
-    myRecordingOptionsModel.addBuiltInOptions(javaRecordingOption);
+    adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, javaRecordingOption);
     if (isLiveAllocationTrackingSupported() && !isLiveAllocationTrackingReady()) {
       Runnable update = () -> {
         if (isLiveAllocationTrackingReady()) {

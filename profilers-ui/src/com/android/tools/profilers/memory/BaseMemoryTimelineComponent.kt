@@ -85,7 +85,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       registerListenersOn(overlayPanel)
     }
 
-    val eventsView = EventMonitorView(stageView.profilersView, stage.eventMonitor).apply { registerTooltip (tooltip, stage) }
+    val eventsView = EventMonitorView(stageView.profilersView, stage.eventMonitor).apply { registerTooltip(tooltip, stage) }
 
     (layout as TabularLayout).setRowSizing(1, "*") // Give monitor as much space as possible
 
