@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidResourcesDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
-    {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
+    {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAL},
     {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"cruncherEnabled", property, CRUNCHER_ENABLED, VAR},
     {"cruncherProcesses", property, CRUNCHER_PROCESSES, VAR},
@@ -75,6 +75,7 @@ public class AndroidResourcesDslElement extends GradleDslBlockElement {
     {"namespaced", property, NAMESPACED, VAR},
     {"namespaced", exactly(1), NAMESPACED, SET}
   }).collect(toModelMap());
+
   public static final PropertiesElementDescription<AndroidResourcesDslElement> ANDROID_RESOURCES =
     new PropertiesElementDescription<>("androidResources", AndroidResourcesDslElement.class, AndroidResourcesDslElement::new);
 

@@ -15,21 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
+
 import com.android.tools.idea.gradle.dsl.api.android.AndroidResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidResourcesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
+import org.apache.maven.model.Model;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidResourcesModelImpl extends GradleDslBlockModel implements AndroidResourcesModel {
-  @NonNls public static final String ADDITIONAL_PARAMETERS = "mAdditionalParameters";
+  @NonNls public static final ModelPropertyDescription ADDITIONAL_PARAMETERS =
+    new ModelPropertyDescription("mAdditionalParameters", MUTABLE_LIST);
   @NonNls public static final String CRUNCHER_ENABLED = "mCruncherEnabled";
   @NonNls public static final String CRUNCHER_PROCESSES = "mCruncherProcesses";
   @NonNls public static final String FAIL_ON_MISSING_CONFIG_ENTRY = "mFailOnMissingConfigEntry";
   @NonNls public static final String IGNORE_ASSETS = "mIgnoreAssetsPattern";
-  @NonNls public static final String NO_COMPRESS = "mNoCompress";
+  @NonNls public static final ModelPropertyDescription NO_COMPRESS = new ModelPropertyDescription("mNoCompress", MUTABLE_LIST);
   @NonNls public static final String NAMESPACED = "mNamespaced";
 
   public AndroidResourcesModelImpl(@NotNull AndroidResourcesDslElement dslElement) {
