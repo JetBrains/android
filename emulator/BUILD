@@ -67,16 +67,3 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
-
-java_binary(
-    name = "update_libimage_converter",
-    srcs = ["testSrc/com/android/emulator/ImageConverterNativeLibraryUpdater.java"],
-    data = [
-        "//tools/adt/idea/emulator/native:libimage_converter",
-    ],
-    main_class = "com.android.emulator.ImageConverterNativeLibraryUpdater",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk",
-    ],
-)

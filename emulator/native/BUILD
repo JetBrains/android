@@ -107,3 +107,22 @@ filegroup(
     }),
     visibility = ["//visibility:public"],
 )
+
+genrule(
+    name = "update_libimage_converter",
+    srcs = [
+        ":libimage_converter",
+        "//tools/base/repository:find_workspace",
+    ],
+    outs = ["unused_out"],
+    cmd = "touch $(location unused_out) && cp $(location libimage_converter) " +
+          "`cat $(location //tools/base/repository:find_workspace)`/tools/adt/idea/emulator/native/" +
+          select({
+              "@platforms//os:linux": "linux",
+              ":macos": "mac",
+              ":macos_arm": "mac_arm",
+              "@platforms//os:windows": "win",
+          }),
+    local = True,
+    tags = ["manual"],
+)
