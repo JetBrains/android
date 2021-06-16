@@ -1,6 +1,6 @@
 android {
   androidResources {
-    additionalParameters("abcd", "efgh")
-    noCompress("a", "b")
+    additionalParameters += listOf("abcd", "efgh")
+    noCompress += listOf("a", "b")
   }
 }
