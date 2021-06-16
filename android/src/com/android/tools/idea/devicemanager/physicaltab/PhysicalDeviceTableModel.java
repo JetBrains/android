@@ -118,6 +118,16 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
     fireTableDataChanged();
   }
 
+  void remove(@NotNull Key key) {
+    myDevices.removeIf(device -> {
+      Key k = device.getKey();
+      return k.equals(key) || k.getSerialNumber().equals(key);
+    });
+
+    combineDevices();
+    fireTableDataChanged();
+  }
+
   private void combineDevices() {
     Collection<PhysicalDevice> domainNameDevices = filterDevicesBy(DomainName.class);
     Collection<PhysicalDevice> serialNumberDevices = filterDevicesBy(SerialNumber.class);

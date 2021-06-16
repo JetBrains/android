@@ -49,4 +49,9 @@ public abstract class Device {
   public final @NotNull String getTarget() {
     return myTarget;
   }
+
+  @Override
+  public final @NotNull String toString() {
+    return myName;
+  }
 }

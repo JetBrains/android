@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.MessageDialogBuilder;
 import java.awt.Component;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
@@ -35,26 +38,41 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   private final @NotNull PhysicalDeviceTableModel myModel;
   private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
   private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
+  private final @NotNull BiPredicate<@NotNull Device, @NotNull Project> myAskWithRemoveDeviceDialog;
   private final @NotNull ActionsComponent myComponent;
 
   ActionsTableCellEditor(@NotNull Project project, @NotNull PhysicalDeviceTableModel model) {
-    this(project, model, DeviceExplorerToolWindowFactory::openAndShowDevice, EditDeviceNameDialog::new);
+    this(project,
+         model,
+         DeviceExplorerToolWindowFactory::openAndShowDevice,
+         EditDeviceNameDialog::new,
+         ActionsTableCellEditor::askWithRemoveDeviceDialog);
   }
 
   @VisibleForTesting
   ActionsTableCellEditor(@NotNull Project project,
                          @NotNull PhysicalDeviceTableModel model,
                          @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice,
-                         @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog) {
+                         @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog,
+                         @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog) {
     myProject = project;
     myModel = model;
     myOpenAndShowDevice = openAndShowDevice;
     myNewEditDeviceNameDialog = newEditDeviceNameDialog;
+    myAskWithRemoveDeviceDialog = askWithRemoveDeviceDialog;
 
     myComponent = new ActionsComponent();
 
     myComponent.getActivateDeviceFileExplorerWindowButton().addActionListener(event -> activateDeviceFileExplorerWindow());
     myComponent.getEditDeviceNameButton().addActionListener(event -> editDeviceName());
+    myComponent.getRemoveButton().addActionListener(event -> remove());
+  }
+
+  @VisibleForTesting
+  static boolean askWithRemoveDeviceDialog(@NotNull Device device, @NotNull Project project) {
+    return MessageDialogBuilder.okCancel("Remove " + device + " Device", device + " will be removed from the device manager.")
+      .yesText("Remove")
+      .ask(project);
   }
 
   private void activateDeviceFileExplorerWindow() {
@@ -73,6 +91,18 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     myModel.setNameOverride(myDevice.getKey(), dialog.getNameOverride());
   }
 
+  private void remove() {
+    assert myDevice != null;
+
+    if (!myAskWithRemoveDeviceDialog.test(myDevice, myProject)) {
+      fireEditingCanceled();
+      return;
+    }
+
+    fireEditingStopped();
+    myModel.remove(myDevice.getKey());
+  }
+
   @VisibleForTesting
   Object getDevice() {
     return myDevice;
@@ -87,7 +117,10 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     viewColumnIndex = table.convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX);
     myDevice = (PhysicalDevice)table.getValueAt(viewRowIndex, viewColumnIndex);
 
-    myComponent.getActivateDeviceFileExplorerWindowButton().setEnabled(myDevice.isOnline());
+    boolean online = myDevice.isOnline();
+
+    myComponent.getActivateDeviceFileExplorerWindowButton().setEnabled(online);
+    myComponent.getRemoveButton().setEnabled(!online);
 
     myComponent.setBackground(Tables.getBackground(table, selected));
     myComponent.setBorder(Tables.getBorder(selected, true));
