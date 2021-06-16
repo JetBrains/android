@@ -47,33 +47,6 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
   }
 
   @Test
-  fun renderResultMetricsNotValid() {
-    val renderMetric = RenderResultMetricData()
-    assertFalse(renderMetric.isValid())
-  }
-
-  @Test
-  fun renderResultMetricsValid() {
-    val renderMetric = RenderResultMetricData()
-    renderMetric.scanMs = 1
-    renderMetric.renderMs = 1
-    renderMetric.componentCount = 1
-    assertTrue(renderMetric.isValid())
-  }
-
-  @Test
-  fun trackIssueInvalidRender() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val nlAtfIssues = setOf(createTestNlAtfIssue())
-    val renderResultMetricData = RenderResultMetricData()
-
-    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertNull(usageTracker.lastTrackedEvent)
-  }
-
-  @Test
   fun trackIssueNoIssues() {
     val tracker = NlLayoutScannerMetricTracker(mockSurface)
     val nlAtfIssues = setOf<Issue>()

@@ -25,6 +25,7 @@ import com.google.wireless.android.sdk.stats.AtfFixDetail
 import com.google.wireless.android.sdk.stats.AtfResultDetail
 import com.google.wireless.android.sdk.stats.IgnoreAtfResultEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import com.intellij.lang.annotation.HighlightSeverity
 
 /** Metric tracker for results from accessibility testing framework */
 class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
@@ -35,11 +36,9 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
   /** Tracks all issues created by atf. */
   fun trackIssues(issues: Set<Issue>, renderMetric: RenderResultMetricData) {
-    if (!renderMetric.isValid() || issues.isEmpty()) {
-      return
-    }
-
-    val atfIssues = issues.filterIsInstance<NlAtfIssue>()
+    val atfIssues = issues
+      .filterIsInstance<NlAtfIssue>()
+      .filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }
     if (atfIssues.isEmpty()) {
       return
     }
@@ -135,13 +134,8 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
 /** Metric metadata related to render results. */
 data class RenderResultMetricData(
-  var scanMs: Long = 0,
-  var renderMs: Long = 0,
-  var componentCount: Int = 0,
+  var scanMs: Long = -1,
+  var renderMs: Long = -1,
+  var componentCount: Int = -1,
   var isRenderResultSuccess: Boolean = false) {
-
-  /** True if metric is valid. False otherwise. */
-  fun isValid(): Boolean {
-    return scanMs > 0 && renderMs > 0 && componentCount > 0
-  }
 }
