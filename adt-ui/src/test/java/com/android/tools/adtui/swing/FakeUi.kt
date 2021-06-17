@@ -337,6 +337,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
  * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
  * or down (to decrease the importance of text in generated images).
  */
+@JvmOverloads
 fun setPortableUiFont(scale: Float = 1.0f) {
   val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
   val default = ImageDiffTestUtil.getDefaultFont()
