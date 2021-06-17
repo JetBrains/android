@@ -67,14 +67,14 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
       modules.addAll(asList(ModuleManager.getInstance(getProject()).getModules()));
     });
     // Verify that modules are created for root project as well as included projects.
-    assertThat(modules).hasSize(11);
+    assertThat(modules).hasSize(12);
     // Verify module names.
     List<String> moduleNames = ContainerUtil.map(modules, Module::getName);
     String projectName = getProject().getName();
     List<String> expectedModuleNames = asList(projectName, projectName + ".app", projectName + ".lib",
                                               "TestCompositeLib1", "TestCompositeLib1.app", "TestCompositeLib1.lib",
                                               "TestCompositeLib3", "TestCompositeLib3.app", "TestCompositeLib3.lib",
-                                              "composite2", "composite4");
+                                              "composite2", "composite4", "compositeNest");
     assertThat(moduleNames).containsExactlyElementsIn(expectedModuleNames);
   }
 

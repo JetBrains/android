@@ -1995,6 +1995,35 @@ PROJECT                       : testWithCompositeBuild
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
+    MODULE                        : compositeNest
+        ExternalModuleGroup           : com.test.compositeNest
+        ExternalModuleVersion         : 1.0
+        LinkedProjectId               : compositeNest
+        LinkedProjectPath             : <PROJECT>/TestCompositeLib3/TestCompositeLibNested
+        RootProjectPath               : <PROJECT>
+        COMPILER_MODULE_EXTENSION
+            compilerSourceOutputPath      : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build/classes/java/main [-]
+            compilerTestOutputPath        : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build/classes/java/test [-]
+            isCompilerPathInherited       : false
+            isExcludeOutput               : true
+        ModuleFile                    : <PROJECT>/.idea/modules/TestCompositeLib3/TestCompositeLibNested/compositeNest.iml
+        ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            GradlePath                    : :
+        FACET                         : Java-Gradle
+            TypeId                        : java-gradle
+            Buildable                     : true
+        CONENT_ENTRY                  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested
+            JavaSource                    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/main/java
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/.gradle
+            EXCLUDE_FOLDER                : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/build [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/main/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/test/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/TestCompositeLib3/TestCompositeLibNested/src/test/resources [-]
+        JDK                           : <NAME_CUT> JavaSDK
+        *isInherited                  : true
+        ORDER_ENTRY                   : <Module source>
     MODULE                        : testWithCompositeBuild
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified

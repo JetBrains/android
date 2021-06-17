@@ -34,7 +34,8 @@ class GradleModuleHierarchyProviderTest : AndroidGradleTestCase() {
     val project2 = project.findModule("composite2")
     val project3 = project.findModule("TestCompositeLib3")
     val project4 = project.findModule("composite4")
-    assertThat(provider.forProject.submodules).containsExactly(mainProject, project1, project2, project3, project4)
+    val project5 = project.findModule("compositeNest")
+    assertThat(provider.forProject.submodules).containsExactly(mainProject, project1, project2, project3, project4, project5)
   }
 
   fun testUsualStructure() {

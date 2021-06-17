@@ -2650,6 +2650,7 @@ MODULE: TestCompositeLib3.lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
 MODULE: composite2
 MODULE: composite4
+MODULE: compositeNest
 MODULE: testCompositeBuild
 MODULE: testCompositeBuild.app
     by Facet:
