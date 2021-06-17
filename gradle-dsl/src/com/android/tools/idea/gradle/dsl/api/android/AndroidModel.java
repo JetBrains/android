@@ -83,6 +83,9 @@ public interface AndroidModel extends GradleDslModel {
   ResolvedPropertyModel generatePureSplits();
 
   @NotNull
+  InstallationModel installation();
+
+  @NotNull
   KotlinOptionsModel kotlinOptions();
 
   @NotNull

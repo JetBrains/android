@@ -28,6 +28,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslE
 import static com.android.tools.idea.gradle.dsl.parser.android.DependenciesInfoDslElement.DEPENDENCIES_INFO;
 import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD;
+import static com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement.INSTALLATION;
 import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS;
@@ -54,6 +55,7 @@ import com.android.tools.idea.gradle.dsl.api.android.ComposeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.DataBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.DependenciesInfoModel;
 import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.InstallationModel;
 import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
@@ -82,6 +84,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DependenciesInfoDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
@@ -271,6 +274,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ResolvedPropertyModel generatePureSplits() {
     return getModelForProperty(GENERATE_PURE_SPLITS);
+  }
+
+  @Override
+  public @NotNull InstallationModel installation() {
+    InstallationDslElement installationDslElement = myDslElement.ensurePropertyElement(INSTALLATION);
+    return new InstallationModelImpl(installationDslElement);
   }
 
   @Override
