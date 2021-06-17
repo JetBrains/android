@@ -602,8 +602,14 @@ class DeviceViewPanelTest {
     // Rotate the model so that dragging would normally rotate
     contentPanel.model.xOff = 0.02
 
+    assertThat(panel.isPanning).isFalse()
     startPan(fakeUi, panel)
-    fakeUi.mouse.drag(20, 20, -10, -10, panButton)
+    fakeUi.mouse.press(20, 20, panButton)
+    assertThat(panel.isPanning).isTrue()
+    fakeUi.mouse.dragTo(10, 10)
+    assertThat(panel.isPanning).isTrue()
+    fakeUi.mouse.release()
+
     // Unchanged--we panned instead
     TestCase.assertEquals(0.02, contentPanel.model.xOff)
     TestCase.assertEquals(0.0, contentPanel.model.yOff)
@@ -612,6 +618,7 @@ class DeviceViewPanelTest {
     endPan(fakeUi, panel)
     // Now we'll actually rotate
     fakeUi.mouse.drag(20, 20, -10, -10)
+    assertThat(panel.isPanning).isFalse()
     TestCase.assertEquals(0.01, contentPanel.model.xOff)
     TestCase.assertEquals(-0.01, contentPanel.model.yOff)
   }

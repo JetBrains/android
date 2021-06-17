@@ -106,7 +106,10 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1.0
 
   override var isPanning = false
+    get() = field || isMiddleMousePressed || isSpacePressed
+
   private var isSpacePressed = false
+  private var isMiddleMousePressed = false
   private var lastPanMouseLocation: Point? = null
 
   private val selectProcessAction: SelectProcessAction? = if (processes != null) {
@@ -121,13 +124,19 @@ class DeviceViewPanel(
 
   private val contentPanel = DeviceViewContentPanel(
     layoutInspector.layoutInspectorModel, layoutInspector.stats, layoutInspector.treeSettings, viewSettings,
-    { layoutInspector.currentClient }, selectProcessAction, disposableParent
+    { layoutInspector.currentClient }, this, selectProcessAction, disposableParent
   )
 
-  private val panMouseListener: MouseAdapter = object : MouseAdapter() {
-    private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||
-                                                  (SwingUtilities.isLeftMouseButton(e) && isSpacePressed)
+  private fun showGrab() {
+    cursor = if (isPanning) {
+      AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
+    }
+    else {
+      Cursor.getDefaultCursor()
+    }
+  }
 
+  private val panMouseListener: MouseAdapter = object : MouseAdapter() {
     override fun mouseEntered(e: MouseEvent) {
       showGrab()
     }
@@ -136,18 +145,10 @@ class DeviceViewPanel(
       showGrab()
     }
 
-    private fun showGrab() {
-      cursor = if (isPanning) {
-        AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
-      }
-      else {
-        Cursor.getDefaultCursor()
-      }
-    }
-
     override fun mousePressed(e: MouseEvent) {
       contentPanel.requestFocus()
-      if (currentlyPanning(e)) {
+      isMiddleMousePressed = SwingUtilities.isMiddleMouseButton(e)
+      if (isPanning) {
         cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
         e.consume()
@@ -159,7 +160,7 @@ class DeviceViewPanel(
       // convert to non-scrollable coordinates, otherwise as soon as the scroll is changed the mouse position also changes.
       val newLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
       lastPanMouseLocation = newLocation
-      if (currentlyPanning(e) && lastLocation != null) {
+      if (isPanning && lastLocation != null) {
         cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
         val extent = scrollPane.viewport.extentSize
         val view = scrollPane.viewport.viewSize
@@ -176,6 +177,7 @@ class DeviceViewPanel(
     }
 
     override fun mouseReleased(e: MouseEvent) {
+      isMiddleMousePressed = false
       if (lastPanMouseLocation != null) {
         cursor = if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB) else Cursor.getDefaultCursor()
         lastPanMouseLocation = null
@@ -244,12 +246,14 @@ class DeviceViewPanel(
       override fun keyPressed(e: KeyEvent) {
         if (e.keyCode == VK_SPACE) {
           isSpacePressed = true
+          showGrab()
         }
       }
 
       override fun keyReleased(e: KeyEvent) {
         if (e.keyCode == VK_SPACE) {
           isSpacePressed = false
+          showGrab()
         }
       }
     })
