@@ -16,6 +16,8 @@
 package com.android.tools.idea.ddms
 
 import com.android.ddmlib.AndroidDebugBridge
+import com.android.ddmlib.Client
+import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.ddms.DevicePanel.DeviceComboBox
 import com.google.common.util.concurrent.FutureCallback
@@ -101,13 +103,47 @@ internal class DevicePanelTest {
     myPanel.deviceChangedImpl(mockDevice(), IDevice.CHANGE_CLIENT_LIST)
   }
 
-  private fun mockDevice(): IDevice {
+  @Test
+  fun processComboBox_ignoresClientsWithNoName() {
+    mockClients(
+      mockClient(1, "com.company.app1.package", "com.company.app1.description"),
+      mockClient(2, "com.company.app2.package", ""),
+      mockClient(3, "com.company.app3.package", null),
+    )
+
+    assertEquals(1, myPanel.clientComboBox.itemCount)
+    assertEquals("com.company.app1.description", myPanel.clientComboBox.getItemAt(0).clientData.clientDescription)
+  }
+
+  // TODO(b/191684793): Add UI tests for myPanel.clientComboBox integration with ComboboxSpeedSearch
+  private fun mockClients(vararg clients: Client) {
+    val device = mockDevice(clients)
+    Mockito.`when`(myBridge.devices).thenReturn(arrayOf(device))
+    myPanel.setBridge(myBridge)
+    myPanel.putPreferredClient("emulator-5554", "com.google.myapplication")
+    myPanel.updateDeviceCombo()
+  }
+
+  private fun mockDevice(clients: Array<out Client> = emptyArray()): IDevice {
     val device = Mockito.mock(IDevice::class.java)
 
-    Mockito.`when`(device.clients).thenReturn(emptyArray())
+    Mockito.`when`(device.clients).thenReturn(clients)
+    for (client in clients) {
+      Mockito.`when`(client.device).thenReturn(device)
+    }
     Mockito.`when`(device.isEmulator).thenReturn(true)
     Mockito.`when`(device.name).thenReturn("emulator-5554")
 
     return device
+  }
+
+  private fun mockClient(pid: Int, packageName: String?, clientDescription: String?): Client {
+    val mockData = Mockito.mock(ClientData::class.java)
+    Mockito.`when`(mockData.pid).thenReturn(pid)
+    Mockito.`when`(mockData.packageName).thenReturn(packageName)
+    Mockito.`when`(mockData.clientDescription).thenReturn(clientDescription)
+    val mockClient = Mockito.mock(Client::class.java)
+    Mockito.`when`(mockClient.clientData).thenReturn(mockData)
+    return mockClient
   }
 }
