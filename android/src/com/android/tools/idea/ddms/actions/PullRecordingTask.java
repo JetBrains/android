@@ -16,28 +16,22 @@
 package com.android.tools.idea.ddms.actions;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.CommonBundle;
-import com.intellij.ide.actions.RevealFileAction;
-import com.intellij.openapi.fileTypes.NativeFileType;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class PullRecordingTask extends Task.Modal {
   private final String myLocalPath;
+  private final Runnable myHandleSavedFileRunnable;
   private final IDevice myDevice;
 
-  public PullRecordingTask(@Nullable Project project, @NotNull IDevice device, @NotNull String localFilePath) {
+  public PullRecordingTask(@Nullable Project project, @NotNull IDevice device, @NotNull String localFilePath, Runnable handleSavedFileRunnable) {
     super(project, ScreenRecorderAction.TITLE, false);
     myDevice = device;
     myLocalPath = localFilePath;
+    myHandleSavedFileRunnable = handleSavedFileRunnable;
   }
 
   @Override
@@ -51,35 +45,9 @@ final class PullRecordingTask extends Task.Modal {
     }
   }
 
-  // Tries to open the file at myLocalPath
-  private void openSavedFile() {
-    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(myLocalPath);
-    if (file != null) {
-      NativeFileType.openAssociatedApplication(file);
-    }
-  }
-
   @Override
   public void onSuccess() {
     assert myProject != null;
-
-    String message = "Video Recording saved as " + myLocalPath;
-    String cancel = CommonBundle.getOkButtonText();
-    Icon icon = Messages.getInformationIcon();
-
-    if (RevealFileAction.isSupported()) {
-      String no = "Show in " + RevealFileAction.getFileManagerName();
-      int exitCode = Messages.showYesNoCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open", no, cancel, icon);
-
-      if (exitCode == Messages.YES) {
-        openSavedFile();
-      }
-      else if (exitCode == Messages.NO) {
-        RevealFileAction.openFile(new File(myLocalPath));
-      }
-    }
-    else if (Messages.showOkCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open File", cancel, icon) == Messages.OK) {
-      openSavedFile();
-    }
+    myHandleSavedFileRunnable.run();
   }
 }
