@@ -112,8 +112,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JPanel myContentPane;
   private JCheckBox myFrameScreenshotCheckBox;
   private JComboBox<String> myDeviceArtCombo;
-  private JCheckBox myDropShadowCheckBox;
-  private JCheckBox myScreenGlareCheckBox;
   private JButton myCopyButton;
 
   /**
@@ -160,7 +158,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myContentPane.setLayout(new BorderLayout());
     myContentPane.add(myImageFileEditor.getComponent(), BorderLayout.CENTER);
 
-    ActionListener l = actionEvent -> {
+    ActionListener listener = actionEvent -> {
       if (actionEvent.getSource() == myRefreshButton) {
         doRefreshScreenshot();
       }
@@ -171,9 +169,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         doRotateScreenshot(1);
       }
       else if (actionEvent.getSource() == myFrameScreenshotCheckBox
-               || actionEvent.getSource() == myDeviceArtCombo
-               || actionEvent.getSource() == myDropShadowCheckBox
-               || actionEvent.getSource() == myScreenGlareCheckBox) {
+               || actionEvent.getSource() == myDeviceArtCombo) {
         doFrameScreenshot();
       }
       else if (actionEvent.getSource() == myCopyButton) {
@@ -187,14 +183,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       }
     };
 
-    myRefreshButton.addActionListener(l);
-    myRotateRightButton.addActionListener(l);
-    myRotateLeftButton.addActionListener(l);
-    myFrameScreenshotCheckBox.addActionListener(l);
-    myDeviceArtCombo.addActionListener(l);
-    myDropShadowCheckBox.addActionListener(l);
-    myScreenGlareCheckBox.addActionListener(l);
-    myCopyButton.addActionListener(l);
+    myRefreshButton.addActionListener(listener);
+    myRotateRightButton.addActionListener(listener);
+    myRotateLeftButton.addActionListener(listener);
+    myFrameScreenshotCheckBox.addActionListener(listener);
+    myDeviceArtCombo.addActionListener(listener);
+    myCopyButton.addActionListener(listener);
 
     myDeviceArtDescriptors = getDescriptorsToFrame(image);
     String[] titles = new String[myDeviceArtDescriptors.size()];
@@ -296,8 +290,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     boolean shouldFrame = myFrameScreenshotCheckBox.isSelected();
 
     myDeviceArtCombo.setEnabled(shouldFrame);
-    myDropShadowCheckBox.setEnabled(shouldFrame);
-    myScreenGlareCheckBox.setEnabled(shouldFrame);
 
     if (shouldFrame) {
       processScreenshot(true, 0);
@@ -310,10 +302,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
     DeviceArtDescriptor spec = addFrame ? myDeviceArtDescriptors.get(myDeviceArtCombo.getSelectedIndex()) : null;
-    boolean shadow = addFrame && myDropShadowCheckBox.isSelected();
-    boolean reflection = addFrame && myScreenGlareCheckBox.isSelected();
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, shadow, reflection, myBackingVirtualFile) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, myBackingVirtualFile) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -327,8 +317,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     private final @NotNull BufferedImage mySrcImage;
     private final int myRotationQuadrants;
     private final @Nullable DeviceArtDescriptor myDescriptor;
-    private final boolean myAddShadow;
-    private final boolean myAddReflection;
     private final @Nullable VirtualFile myDestinationFile;
 
     private BufferedImage myRotatedImage;
@@ -338,16 +326,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                               @NotNull BufferedImage srcImage,
                               int rotateByQuadrants,
                               @Nullable DeviceArtDescriptor descriptor,
-                              boolean addShadow,
-                              boolean addReflection,
                               @Nullable VirtualFile writeToFile) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
       myRotationQuadrants = rotateByQuadrants;
       myDescriptor = descriptor;
-      myAddShadow = addShadow;
-      myAddReflection = addReflection;
       myDestinationFile = writeToFile;
     }
 
@@ -356,7 +340,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       myRotatedImage = ImageUtils.rotateByQuadrants(mySrcImage, myRotationQuadrants);
 
       if (myDescriptor != null) {
-        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, myAddShadow, myAddReflection);
+        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, false, false);
       }
       else {
         myProcessedImage = myRotatedImage;
