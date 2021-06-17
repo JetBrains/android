@@ -3,7 +3,6 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
-import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
 import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
@@ -11,6 +10,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.CredentialAttributesKt;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
@@ -261,26 +261,50 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     // Return a null password in case there are problems reading it from PasswordSafe (b/70654787)
     try {
       passwordSafe = PasswordSafe.getInstance();
-      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(primaryRequestor, key));
+      password = passwordSafe.getPassword(credentialAttributesForKey(key));
     }
     catch (Throwable t) {
       Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
     }
     if ((password == null) && (passwordSafe != null)) {
       // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
+      // while transitioning to a version which contains the fix for b/192344567, rather than having them retype all the
+      // passwords at once.
+      // Note: this is a deprecated way of creating CredentialAttributes and will be cleaned up soon.
+      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(primaryRequestor, key));
+    }
+    if ((password == null) && (passwordSafe != null)) {
+      // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
       // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
       // passwords at once.
+      // Note: this is a deprecated way of creating CredentialAttributes and will be cleaned up soon.
       password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(KeystoreStep.class, key));
     }
 
     return password;
   }
 
-  private static void updateSavedPassword(@NotNull Class<?> primaryRequestor, @NotNull String key, @Nullable String value) {
+  private static void updateSavedPassword(@NotNull String key, @Nullable String value) {
     PasswordSafe passwordSafe = PasswordSafe.getInstance();
-    passwordSafe.set(CredentialAttributes(primaryRequestor, key), value == null ? null : new Credentials(key, value));
-    // Always erase the one stored with the old requestor (the one used before the fix for b/64995008).
-    passwordSafe.set(CredentialAttributes(KeystoreStep.class, key), null);
+    passwordSafe.set(credentialAttributesForKey(key), value == null ? null : new Credentials(key, value));
+    // Always erase the one stored with the old requestor (the one used before the fix for b/64995008 and for b/192344567).
+    // Note: this is a deprecated way of creating CredantialAttributes and will be cleaned up soon.
+    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.class, key), null);
+    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.KeyStorePasswordRequestor.class, key), null);
+    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.KeyPasswordRequestor.class, key), null);
+  }
+
+  /**
+   * This is the new recommended way to create CredentialAttributes.
+   * Usage of accessor class for creating CredentialAttributes is deprecated.
+   * We need to include key to the service name to be able to save passwords for several keystores/key aliases.
+   * PasswordSafe does not attempt to find the correct credentials by username internally,
+   * thus only one username/password pair can be saved per service name.
+   * That's why we need to include password determining key into service name instead of passing it as user name.
+   */
+  private static CredentialAttributes credentialAttributesForKey(@NotNull String key) {
+    String serviceName = CredentialAttributesKt.generateServiceName("APK Signing Keystore Step", key);
+    return new CredentialAttributes(serviceName);
   }
 
   @VisibleForTesting
@@ -382,8 +406,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
-    updateSavedPassword(KeyStorePasswordRequestor.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
-    updateSavedPassword(KeyPasswordRequestor.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
+    updateSavedPassword(keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
+    updateSavedPassword(keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
 
     myWizard.setFacet(getSelectedFacet());
   }
