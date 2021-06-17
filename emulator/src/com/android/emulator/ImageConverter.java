@@ -33,7 +33,6 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class ImageConverter {
   private static Field bytesField;
   private static Field offsetField;
-  private static Field lengthField;
 
   static {
     try {
@@ -53,21 +52,21 @@ public class ImageConverter {
    * @param pixels the converted pixel values
    */
   public static void unpackRgb888(@NotNull ByteString imageBytes, int @NotNull [] pixels) {
+    int length = imageBytes.size();
+    if (length == 0) {
+      return;
+    }
     if (bytesField != null) {
       try {
-        int length = lengthField.getInt(imageBytes);
-        if (length > 0) {
-          byte[] bytes = (byte[])bytesField.get(imageBytes);
-          int offset = offsetField.getInt(imageBytes);
-          unpackRgb888(bytes, offset, length, pixels);
-        }
+        byte[] bytes = (byte[])bytesField.get(imageBytes);
+        int offset = offsetField.getInt(imageBytes);
+        unpackRgb888(bytes, offset, length, pixels);
         return;
       }
       catch (IllegalAccessException e) {
         logger().warn("Unable to use reflection, will use slow path", e);
         bytesField = null;
         offsetField = null;
-        lengthField = null;
       }
     }
     unpackRgb888Slow(imageBytes, pixels);
@@ -143,14 +142,11 @@ public class ImageConverter {
       bytesField.setAccessible(true);
       offsetField = byteStringClass.getDeclaredField("bytesOffset");
       offsetField.setAccessible(true);
-      lengthField = byteStringClass.getDeclaredField("bytesLength");
-      lengthField.setAccessible(true);
     }
     catch (NoSuchFieldException e) {
       logError("Unable to access fields of " + byteStringClass.getName(), e);
       bytesField = null;
       offsetField = null;
-      lengthField = null;
     }
   }
 
