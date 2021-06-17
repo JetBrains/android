@@ -47,7 +47,7 @@ import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
+public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements Disposable {
   private final @Nullable Project myProject;
   private final @NotNull Function<@NotNull Project, @NotNull PairDevicesUsingWiFiService> myPairDevicesUsingWiFiServiceGetInstance;
   private final @NotNull Supplier<@NotNull PhysicalTabPersistentStateComponent> myPhysicalTabPersistentStateComponentGetInstance;
@@ -79,7 +79,7 @@ final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> implements 
     }
   }
 
-  PhysicalDevicePanel(@Nullable Project project) {
+  public PhysicalDevicePanel(@Nullable Project project) {
     this(project,
          PairDevicesUsingWiFiService::getInstance,
          PhysicalTabPersistentStateComponent::getInstance,
