@@ -56,5 +56,6 @@
     <orderEntry type="library" name="studio-plugin-c-clangd" level="project" />
     <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
+    <orderEntry type="library" name="studio-plugin-completionMlRanking" level="project" />
   </component>
 </module>
