@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
@@ -74,6 +75,7 @@ class DeviceViewContentPanel(
   val treeSettings: TreeSettings,
   val viewSettings: DeviceViewSettings,
   val currentClient: () -> InspectorClient?,
+  val pannable: Pannable,
   @VisibleForTesting val selectProcessAction: SelectProcessAction?,
   disposableParent: Disposable
 ) : AdtPrimaryPanel() {
@@ -182,8 +184,10 @@ class DeviceViewContentPanel(
 
     addMouseListener(object : PopupHandler() {
       override fun invokePopup(comp: Component, x: Int, y: Int) {
-        val views = findComponentsAt(x, y)
-        showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
+        if (!pannable.isPanning) {
+          val views = findComponentsAt(x, y)
+          showViewContextMenu(views.toList(), inspectorModel, this@DeviceViewContentPanel, x, y)
+        }
       }
     })
 
