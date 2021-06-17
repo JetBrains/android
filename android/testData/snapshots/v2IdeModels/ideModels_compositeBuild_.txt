@@ -7811,6 +7811,7 @@ MODULE                        : TestCompositeLib3.lib
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : composite2
 MODULE                        : composite4
+MODULE                        : compositeNest
 MODULE                        : project
 MODULE                        : project.app
     ModelVersion                  : <AGP_VERSION>

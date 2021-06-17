@@ -341,6 +341,8 @@ open class GradleSyncProjectComparisonTest : GradleIntegrationTest, SnapshotComp
 
     @Test
     fun testWithCompositeBuild() {
+      // TODO(b/169230806): Dependencies on nested included builds are broken.
+      // uncomment link in main builds apps build.gradle to test.
       val text = importSyncAndDumpProject(COMPOSITE_BUILD)
       assertIsEqualToSnapshot(text)
     }

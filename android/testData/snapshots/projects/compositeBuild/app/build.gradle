@@ -30,4 +30,6 @@ dependencies {
     implementation project(':lib')
     implementation 'com.test.composite1:lib:1.0'
     implementation 'com.test.composite4:composite4:1.0'
+    // TODO(b/169230806): Dependencies on nested composites are currently broken
+    //implementation 'com.test.compositeNest:compositeNest:1.0'
 }

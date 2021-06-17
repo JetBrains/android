@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+repositories {
+}
+
+group = 'com.test.compositeNest'
+version = '1.0'
+
+dependencies {
+}
+
