@@ -13,60 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ddms.screenshot;
+package com.android.tools.idea.ddms.screenshot
 
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import org.intellij.images.editor.ImageZoomModel;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import java.awt.image.BufferedImage
 
-import javax.swing.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
+/**
+ * Tests for [ScreenshotViewer].
+ */
+@RunsInEdt
+class ScreenshotViewerTest {
+  private val projectRule = AndroidProjectRule.onDisk("ScreenshotViewerTest")
+  @get:Rule
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
-import static org.junit.Assert.assertEquals;
+  private var screenshotViewer: ScreenshotViewer? = null
 
-public final class ScreenshotViewerTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.onDisk("ScreenshotViewerTest");
-
-  private ScreenshotViewer myViewer;
+  private val testRootDisposable
+    get() = projectRule.fixture.testRootDisposable
 
   @Before
-  public void initScreenshotViewer() {
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      File file = VfsUtilCore.virtualToIoFile(myRule.fixture.getTempDirFixture().createFile("screenshot1.png"));
-      myViewer = new ScreenshotViewer(myRule.getProject(), new BufferedImage(280, 280, BufferedImage.TYPE_INT_ARGB), file, null, null);
-    });
-  }
-
-  @After
-  public void disposeOfScreenshotViewer() {
-    ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myViewer.getDisposable()));
+  fun setUp() {
+    setPortableUiFont()
+    enableHeadlessDialogs(testRootDisposable)
+    val file = VfsUtilCore.virtualToIoFile(projectRule.fixture.tempDirFixture.createFile("screenshot1.png"))
+    val viewer = ScreenshotViewer(projectRule.project, BufferedImage(150, 280, BufferedImage.TYPE_INT_ARGB), file, null, null)
+    Disposer.register(testRootDisposable) { viewer.close(CLOSE_EXIT_CODE) }
+    viewer.show()
+    screenshotViewer = viewer
   }
 
   @Test
-  public void updateEditorImageDoesntClobberZoomFactor() {
-    JViewport viewport = Mockito.mock(JViewport.class);
-    Mockito.when(viewport.isShowing()).thenReturn(true);
-    Mockito.when(viewport.getHeight()).thenReturn(598);
-    Mockito.when(viewport.getWidth()).thenReturn(1089);
+  fun testResizing() {
+    val viewer = screenshotViewer!!
+    val ui = createFakeUi(viewer)
 
-    JScrollPane scrollPane = Mockito.mock(JScrollPane.class);
-    Mockito.when(scrollPane.getViewport()).thenReturn(viewport);
+    val zoomModel = viewer.imageFileEditor.imageEditor.zoomModel
+    val zoomFactor = zoomModel.zoomFactor
 
-    myViewer.setScrollPane(scrollPane);
+    viewer.rootPane.setSize(viewer.rootPane.width + 50, viewer.rootPane.width + 100)
+    ui.layoutAndDispatchEvents()
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+  }
 
-    ImageZoomModel model = myViewer.getImageFileEditor().getImageEditor().getZoomModel();
-    model.setZoomFactor(1);
+  @Test
+  fun testUpdateEditorImage() {
+    val viewer = screenshotViewer!!
+    val ui = createFakeUi(viewer)
 
-    myViewer.updateEditorImage();
-    assertEquals(1, model.getZoomFactor(), 0);
+    val zoomModel = viewer.imageFileEditor.imageEditor.zoomModel
+    val zoomFactor = zoomModel.zoomFactor
+
+    viewer.updateEditorImage();
+    ui.layoutAndDispatchEvents()
+    assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
+  }
+
+  private fun createFakeUi(viewer: DialogWrapper): FakeUi {
+    return FakeUi(viewer.rootPane).apply { layoutAndDispatchEvents() }
   }
 }
