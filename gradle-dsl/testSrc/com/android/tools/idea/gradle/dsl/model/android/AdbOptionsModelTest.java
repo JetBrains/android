@@ -28,7 +28,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MOD
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
-import com.android.tools.idea.gradle.dsl.api.android.externalNativeBuild.AdbOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
