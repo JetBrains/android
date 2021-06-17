@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileChooser.FileSaverDialog
@@ -30,11 +31,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export) {
+object CaptureSnapshotAction: AnAction(AllIcons.ToolbarDecorator.Export), TooltipDescriptionProvider {
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled = event.getData(LAYOUT_INSPECTOR_DATA_KEY)?.currentClient?.isConnected ?: false
-    // TODO: tooltip
+    event.presentation.description = "Export a snapshot of Layout inspector to share, inspect, and use offline."
   }
 
   override fun actionPerformed(event: AnActionEvent) {
