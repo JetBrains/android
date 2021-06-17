@@ -193,13 +193,12 @@ public class NlPaletteModel implements Disposable {
     myListeners.remove(updateListener);
   }
 
+  @Slow
   private void notifyUpdateListener(@NotNull LayoutEditorFileType layoutType) {
     if (!myListeners.isEmpty()) {
-      myListeners.forEach(listener -> ApplicationManager.getApplication().invokeLater(() -> {
-        if (!myDisposed) {
-          listener.update(this, layoutType);
-        }
-      }));
+      if (!myDisposed) {
+        myListeners.forEach(listener -> listener.update(NlPaletteModel.this, layoutType));
+      }
     }
   }
 
