@@ -34,12 +34,12 @@ public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptio
   @Override
   @NotNull
   public ResolvedPropertyModel installOptions() {
-    return GradlePropertyModelBuilder.create(myDslElement, INSTALL_OPTIONS).buildResolved();
+    return getModelForProperty(INSTALL_OPTIONS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel timeOutInMs() {
-    return GradlePropertyModelBuilder.create(myDslElement, TIME_OUT_IN_MS).buildResolved();
+    return getModelForProperty(TIME_OUT_IN_MS);
   }
 }
