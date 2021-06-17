@@ -355,59 +355,60 @@ class AppInspectionViewTest {
     lateinit var inspectionView: AppInspectionView
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-                                         { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
-                                         appInspectionServiceRule.scope, uiDispatcher, TestInspectorArtifactService()) {
+                                         appInspectionServiceRule.scope, uiDispatcher) {
         listOf(FakeTransportService.FAKE_PROCESS_NAME)
       }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       // Test initial tabs added.
       inspectionView.tabsChangedFlow
-        .take(2) // The second refresh of tabs is caused by the test clicking on the crash notification.
-        .collectIndexed { i, _ ->
-          if (i == 0) {
-            assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
-            val tabShell = inspectionView.inspectorTabs[0]
-            tabShell.waitForContent()
+        .first {
+          assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
+          inspectionView.inspectorTabs.forEach { it.waitForContent() }
 
-            // Test crash notification shown.
-            val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
-            ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
-
-            // Generate fake crash event
-            transportService.addEventToStream(
-              fakeDevice.deviceId,
-              Common.Event.newBuilder()
-                .setPid(fakeProcess.pid)
-                .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
-                .setTimestamp(timer.currentTimeNs)
-                .setIsEnded(true)
-                .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
-                                         .setInspectorId(INSPECTOR_ID)
-                                         .setDisposedEvent(
-                                           AppInspection.DisposedEvent.newBuilder()
-                                             .setErrorMessage("error")
-                                             .build()
-                                         )
-                                         .build())
-                .build()
-            )
-
-            // increment timer manually here because otherwise the new inspector connection created below will poll the crash event above.
-            timer.currentTimeNs += 1
-
-            val notificationData = notificationDataDeferred.await()
-            assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
-            assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
-
-            launch(uiDispatcher) {
-              // Make sure clicking the notification causes a new tab to get created
-              notificationData.hyperlinkClicked()
-            }
+          // The tab shell that will be restarted.
+          val crashedTabShell = inspectionView.inspectorTabs.first()
+          launch(start = CoroutineStart.UNDISPATCHED) {
+            assertThat(crashedTabShell.componentUpdates.first()).isInstanceOf(TestAppInspectorTabComponent::class.java)
           }
+
+          // Test crash notification shown.
+          val notificationDataDeferred = CompletableDeferred<TestIdeServices.NotificationData>()
+          ideServices.notificationListeners += { data -> notificationDataDeferred.complete(data) }
+
+          // Generate fake crash event
+          transportService.addEventToStream(
+            fakeDevice.deviceId,
+            Common.Event.newBuilder()
+              .setPid(fakeProcess.pid)
+              .setKind(Common.Event.Kind.APP_INSPECTION_EVENT)
+              .setTimestamp(timer.currentTimeNs)
+              .setIsEnded(true)
+              .setAppInspectionEvent(AppInspection.AppInspectionEvent.newBuilder()
+                                       .setInspectorId(INSPECTOR_ID)
+                                       .setDisposedEvent(
+                                         AppInspection.DisposedEvent.newBuilder()
+                                           .setErrorMessage("error")
+                                           .build()
+                                       )
+                                       .build())
+              .build()
+          )
+
+          // increment timer manually here because otherwise the new inspector connection created below will poll the crash event above.
+          timer.currentTimeNs += 1
+
+          val notificationData = notificationDataDeferred.await()
+          assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
+          assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
+
+          launch(uiDispatcher) {
+            // Make sure clicking the notification causes a new tab to get created
+            notificationData.hyperlinkClicked()
+          }
+          true
         }
     }
-
     // Launch a processes and wait for its tab to be created
     transportService.addDevice(fakeDevice)
     transportService.addProcess(fakeDevice, fakeProcess)
@@ -444,7 +445,6 @@ class AppInspectionViewTest {
 
 
     lateinit var inspectionView: AppInspectionView
-    val launchFailed = CompletableDeferred<Unit>()
     val tabsAdded = CompletableDeferred<Unit>()
     launch(uiDispatcher) {
       inspectionView = AppInspectionView(projectRule.project, appInspectionServiceRule.apiServices, ideServices,
@@ -455,26 +455,22 @@ class AppInspectionViewTest {
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
       inspectionView.tabsChangedFlow
-        .take(2)
-        .collectIndexed { i, _ ->
+        .first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
           val tab = inspectionView.inspectorTabs[0]
-          tab.waitForContent()
-          if (i == 0) {
-            assertThat((tab.containerPanel.getComponent(0) as EmptyStatePanel).reasonText).isEqualTo(
-              AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName))
-            launchFailed.complete(Unit)
-          }
-          else if (i == 1) {
-            assertThat(tab).isNotInstanceOf(EmptyStatePanel::class.java)
-            tabsAdded.complete(Unit)
-          }
+          val initialComponent = tab.waitForContent()
+          assertThat((initialComponent as EmptyStatePanel).reasonText).isEqualTo(
+            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName))
+
+          val restartedComponent = tab.componentUpdates.first()
+          assertThat(restartedComponent).isNotSameAs(initialComponent)
+          assertThat(restartedComponent).isInstanceOf(TestAppInspectorTabComponent::class.java)
+          tabsAdded.complete(Unit)
         }
     }
 
     // Verify we crashed on launch, failing to open the UI and triggering the toast.
     val notificationData = notificationDataDeferred.await()
-    launchFailed.join()
     assertThat(notificationData.content).startsWith("Could not launch inspector")
     assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
