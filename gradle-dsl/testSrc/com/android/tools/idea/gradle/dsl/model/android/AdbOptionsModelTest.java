@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_EDIT_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 import org.junit.Test;
 
 /**
@@ -39,7 +32,7 @@ import org.junit.Test;
 public class AdbOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElementsOne() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_PARSE_ELEMENTS_ONE);
+    writeToBuildFile(TestFile.PARSE_ELEMENTS_ONE);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -51,7 +44,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseElementsTwo() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_PARSE_ELEMENTS_TWO);
+    writeToBuildFile(TestFile.PARSE_ELEMENTS_TWO);
 
     AndroidModel android = getGradleBuildModel().android();
     assertNotNull(android);
@@ -63,7 +56,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_EDIT_ELEMENTS);
+    writeToBuildFile(TestFile.EDIT_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -77,7 +70,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     adbOptions.timeOutInMs().setValue(300);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ADB_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.EDIT_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -89,7 +82,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_ADD_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -102,7 +95,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     adbOptions.timeOutInMs().setValue(100);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ADB_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -114,7 +107,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ELEMENTS);
+    writeToBuildFile(TestFile.REMOVE_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -142,7 +135,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
+    writeToBuildFile(TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -154,7 +147,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     adbOptions.installOptions().getListValue("abcd").delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, ADB_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -165,7 +158,7 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementInTheList() throws Exception {
-    writeToBuildFile(ADB_OPTIONS_MODEL_REMOVE_ONLY_ELEMENT_IN_THE_LIST);
+    writeToBuildFile(TestFile.REMOVE_ONLY_ELEMENT_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -187,4 +180,30 @@ public class AdbOptionsModelTest extends GradleFileModelTestCase {
     checkForInvalidPsiElement(adbOptions, AdbOptionsModelImpl.class);
     assertMissingProperty("installOptions", adbOptions.installOptions());
   }
+
+  enum TestFile implements TestFileName {
+    PARSE_ELEMENTS_ONE("parseElementsOne"),
+    PARSE_ELEMENTS_TWO("parseElementsTwo"),
+    EDIT_ELEMENTS("editElements"),
+    EDIT_ELEMENTS_EXPECTED("editElementsExpected"),
+    ADD_ELEMENTS("addElements"),
+    ADD_ELEMENTS_EXPECTED("addElementsExpected"),
+    REMOVE_ELEMENTS("removeElements"),
+    REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST("removeOneOfElementsInTheList"),
+    REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED("removeOneOfElementsInTheListExpected"),
+    REMOVE_ONLY_ELEMENT_IN_THE_LIST("removeOnlyElementInTheList"),
+
+    ;
+    @NotNull @SystemIndependent private final String path;
+    TestFile(@NotNull @SystemIndependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemIndependent String basePath, @NotNull String extension) {
+      return new File(basePath + "/adbOptionsModel/" + path + extension);
+    }
+  }
+
 }
