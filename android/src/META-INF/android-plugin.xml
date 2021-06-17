@@ -614,12 +614,11 @@
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
-    <!-- FIXME(qumeric): create and use custom icon -->
     <facet.toolWindow id="Device Manager"
-                      facetIdList="android,apk"
                       anchor="right"
-                      icon="StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR"
-                      factoryClass="com.android.tools.idea.devicemanager.DeviceManagerFactory"/>
+                      icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
+                      factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"
+                      facetIdList="android,apk"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker"

@@ -16,10 +16,10 @@
 package org.jetbrains.android.actions;
 
 import static com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated;
-import static com.android.tools.idea.devicemanager.DeviceManagerFactoryKt.DEVICE_MANAGER_ID;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdListDialog;
+import com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -78,6 +78,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
       openOldAvdManager(project);
     }
   }
+
   private void openOldAvdManager(@Nullable Project project) {
     if (isChromeOSAndIsNotHWAccelerated()) {
       return;
@@ -100,7 +101,9 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
       // TODO(qumeric): investigate if it is possible and let the user know if it is.
       return;
     }
-    ToolWindow deviceManager = ToolWindowManager.getInstance(project).getToolWindow(DEVICE_MANAGER_ID);
+
+    ToolWindow deviceManager = ToolWindowManager.getInstance(project).getToolWindow(DeviceManagerToolWindowFactory.ID);
+
     if (deviceManager != null) {
       deviceManager.show(null);
     }

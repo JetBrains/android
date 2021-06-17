@@ -1242,11 +1242,6 @@ public final class StudioFlags {
     "Replaces the AVD Manager entry points with Device Manager",
     false
   );
-  public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_GROUPS = Flag.create(
-    DEVICE_MANAGER, "enable.device.manager.groups", "Enable groups tab",
-    "Enables the device groups tab in the new Device Manager",
-    false
-  );
   public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES = Flag.create(
     DEVICE_MANAGER, "enable.device.manager.half.baked.features", "Enable half baked Device Manager features",
     "Enables some features that could be unpolished or unready in the new Device Manager",
