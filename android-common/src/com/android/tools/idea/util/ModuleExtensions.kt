@@ -32,4 +32,5 @@ val DomElement.androidFacet: AndroidFacet? get() = AndroidFacet.getInstance(this
  */
 data class LinkedAndroidModuleGroup(val holder: Module, val main: Module, val unitTest: Module?, val androidTest: Module?) {
   fun getModules() = listOf(holder, main, unitTest, androidTest)
+  override fun toString(): String = "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, androidTest=${androidTest?.name}"
 }

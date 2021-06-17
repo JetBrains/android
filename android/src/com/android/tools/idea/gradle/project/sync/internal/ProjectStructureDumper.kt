@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
+import com.android.tools.idea.util.CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP
+import com.android.tools.idea.util.LinkedAndroidModuleGroup
 import com.android.utils.FileUtils
 import com.intellij.execution.RunManagerEx
 import com.intellij.execution.configurations.RunConfiguration
@@ -76,6 +78,7 @@ private fun ProjectDumper.dump(module: Module) {
     groups?.forEach { group ->
       prop("- ModuleGroupPath") { group }
     }
+    module.getUserData(LINKED_ANDROID_MODULE_GROUP)?.let { dump(it) }
     val externalPropertyManager = ExternalSystemModulePropertyManager.getInstance(module)
     prop("ExternalModuleGroup") { externalPropertyManager.getExternalModuleGroup() }
     prop("ExternalModuleType") { externalPropertyManager.getExternalModuleType() }
@@ -416,6 +419,16 @@ private fun ProjectDumper.dump(compilerModuleExtension: CompilerModuleExtension)
     prop("compilerTestOutputPath") { compilerModuleExtension.compilerOutputUrlForTests?.toPrintablePath() }
     prop("isCompilerPathInherited") { compilerModuleExtension.isCompilerOutputPathInherited.toString() }
     prop("isExcludeOutput") { compilerModuleExtension.isExcludeOutput.toString() }
+  }
+}
+
+private fun ProjectDumper.dump(linkedAndroidModuleGroup: LinkedAndroidModuleGroup) {
+  head("LINKED_ANDROID_MODULE_GROUP") { null }
+  nest {
+    prop("holder") { linkedAndroidModuleGroup.holder.name }
+    prop("main") { linkedAndroidModuleGroup.main.name }
+    prop("unitTest") { linkedAndroidModuleGroup.unitTest?.name }
+    prop("androidTest") { linkedAndroidModuleGroup.androidTest?.name }
   }
 }
 
