@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AdbOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
-    {"installOptions", property, INSTALL_OPTIONS, VAL},
+    {"installOptions", property, INSTALL_OPTIONS, VAR},
     {"installOptions", atLeast(0), INSTALL_OPTIONS, ADD_AS_LIST},
     {"setInstallOptions", exactly(1), INSTALL_OPTIONS, SET},
     {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
@@ -40,7 +40,7 @@ public class AdbOptionsDslElement extends GradleDslBlockElement {
   }).collect(toModelMap());
 
   public static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
-    {"installOptions", property, INSTALL_OPTIONS, VAL},
+    {"installOptions", property, INSTALL_OPTIONS, VAR},
     {"installOptions", atLeast(0), INSTALL_OPTIONS, ADD_AS_LIST},
     {"timeOutInMs", property, TIME_OUT_IN_MS, VAR},
     {"timeOutInMs", exactly(1), TIME_OUT_IN_MS, SET}
