@@ -27,6 +27,7 @@ import com.intellij.psi.codeStyle.arrangement.std.StdArrangementSettings;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.EntryType;
 import com.intellij.psi.codeStyle.arrangement.std.StdArrangementTokens.Regexp;
 import com.intellij.xml.arrangement.XmlRearranger;
+import java.util.Collection;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,12 @@ public final class AndroidXmlRearranger extends XmlRearranger {
     StdArrangementSettings settings = StdArrangementSettings.createByMatchRules(Collections.emptyList(), Collections.singletonList(rule));
 
     return new DefaultArrangementSettingsSerializer(new AndroidXmlMixin(), settings);
+  }
+
+  @Override
+  public @NotNull Collection<ArrangementTabInfo> getArrangementTabInfos() {
+    // No need to duplicate what's already returned by XmlRearranger. Otherwise, there will be two identical 'XML' items in the popup on the Actions on Save page.
+    return Collections.emptyList();
   }
 
   private static final class AndroidXmlMixin implements Mixin {
