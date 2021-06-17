@@ -526,6 +526,11 @@ class ContentManager(val project: Project) {
         }
       }
     ).apply {
+      isEnabled = !this@View.model.uiState.get().showLoadingState
+      myListeners.listen(this@View.model.uiState) { uiState ->
+        isEnabled = !uiState.showLoadingState
+      }
+
       // Need to register additional key listeners to the textfield that would hide main combo-box popup.
       // Otherwise textfield consumes these events without hiding popup making it impossible to do with a keyboard.
       val textField = editor.editorComponent as CommonTextField<*>
