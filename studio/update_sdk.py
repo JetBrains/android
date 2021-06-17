@@ -238,7 +238,7 @@ sudo apt install android-fetch-artifact""")
 
   for artifact in ["android-studio-*-sources.zip", "android-studio-*.mac.zip", "android-studio-*.tar.gz", "android-studio-*.win.zip", "updater-full.jar", "manifest_%s.xml" % bid]:
     os.system(
-        "%s %s --bid %s --target studio-sdk '%s' %s"
+        "%s %s --bid %s --target IntelliJ '%s' %s"
         % (fetch_artifact, auth_flag, bid, artifact, dir))
 
   return dir
@@ -359,7 +359,7 @@ if __name__ == "__main__":
       "--download",
       default="",
       dest="download",
-      help="The build id of the studio-sdk to download from go/ab")
+      help="The AB build to download")
   parser.add_argument(
       "--path",
       default="",
