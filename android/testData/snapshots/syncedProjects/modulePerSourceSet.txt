@@ -24,6 +24,11 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.app
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.app
+            main                          : testModulePerSourceSet.app.main
+            unitTest                      : testModulePerSourceSet.app.unitTest
+            androidTest                   : testModulePerSourceSet.app.androidTest
         ExternalModuleGroup           : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :app
@@ -49,6 +54,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.app.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.app
+            main                          : testModulePerSourceSet.app.main
+            unitTest                      : testModulePerSourceSet.app.unitTest
+            androidTest                   : testModulePerSourceSet.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:androidTest
         LinkedProjectPath             : <PROJECT>/app
@@ -527,6 +537,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.app.main
         ORDER_ENTRY                   : testModulePerSourceSet.lib.main
     MODULE                        : testModulePerSourceSet.app.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.app
+            main                          : testModulePerSourceSet.app.main
+            unitTest                      : testModulePerSourceSet.app.unitTest
+            androidTest                   : testModulePerSourceSet.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:main
         LinkedProjectPath             : <PROJECT>/app
@@ -980,6 +995,11 @@ PROJECT                       : testModulePerSourceSet
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib2-1.0/jars/classes.jar!/
         ORDER_ENTRY                   : testModulePerSourceSet.lib.main
     MODULE                        : testModulePerSourceSet.app.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.app
+            main                          : testModulePerSourceSet.app.main
+            unitTest                      : testModulePerSourceSet.app.unitTest
+            androidTest                   : testModulePerSourceSet.app.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :app:unitTest
         LinkedProjectPath             : <PROJECT>/app
@@ -1351,6 +1371,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.app.main
         ORDER_ENTRY                   : testModulePerSourceSet.lib.main
     MODULE                        : testModulePerSourceSet.dyn_feature
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.dyn_feature
+            main                          : testModulePerSourceSet.dyn_feature.main
+            unitTest                      : testModulePerSourceSet.dyn_feature.unitTest
+            androidTest                   : testModulePerSourceSet.dyn_feature.androidTest
         ExternalModuleGroup           : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :dyn_feature
@@ -1376,6 +1401,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.dyn_feature.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.dyn_feature
+            main                          : testModulePerSourceSet.dyn_feature.main
+            unitTest                      : testModulePerSourceSet.dyn_feature.unitTest
+            androidTest                   : testModulePerSourceSet.dyn_feature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :dyn_feature:androidTest
         LinkedProjectPath             : <PROJECT>/dyn_feature
@@ -1431,6 +1461,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.dyn_feature.main
     MODULE                        : testModulePerSourceSet.dyn_feature.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.dyn_feature
+            main                          : testModulePerSourceSet.dyn_feature.main
+            unitTest                      : testModulePerSourceSet.dyn_feature.unitTest
+            androidTest                   : testModulePerSourceSet.dyn_feature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :dyn_feature:main
         LinkedProjectPath             : <PROJECT>/dyn_feature
@@ -1522,6 +1557,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.dyn_feature.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.dyn_feature
+            main                          : testModulePerSourceSet.dyn_feature.main
+            unitTest                      : testModulePerSourceSet.dyn_feature.unitTest
+            androidTest                   : testModulePerSourceSet.dyn_feature.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :dyn_feature:unitTest
         LinkedProjectPath             : <PROJECT>/dyn_feature
@@ -1626,6 +1666,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.jav.main
     MODULE                        : testModulePerSourceSet.lib
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.lib
+            main                          : testModulePerSourceSet.lib.main
+            unitTest                      : testModulePerSourceSet.lib.unitTest
+            androidTest                   : testModulePerSourceSet.lib.androidTest
         ExternalModuleGroup           : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :lib
@@ -1651,6 +1696,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.lib.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.lib
+            main                          : testModulePerSourceSet.lib.main
+            unitTest                      : testModulePerSourceSet.lib.unitTest
+            androidTest                   : testModulePerSourceSet.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :lib:androidTest
         LinkedProjectPath             : <PROJECT>/lib
@@ -1976,6 +2026,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.jav.main
         ORDER_ENTRY                   : testModulePerSourceSet.lib.main
     MODULE                        : testModulePerSourceSet.lib.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.lib
+            main                          : testModulePerSourceSet.lib.main
+            unitTest                      : testModulePerSourceSet.lib.unitTest
+            androidTest                   : testModulePerSourceSet.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :lib:main
         LinkedProjectPath             : <PROJECT>/lib
@@ -2337,6 +2392,11 @@ PROJECT                       : testModulePerSourceSet
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-<VERSION>/jars/classes.jar!/
         ORDER_ENTRY                   : testModulePerSourceSet.jav.main
     MODULE                        : testModulePerSourceSet.lib.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.lib
+            main                          : testModulePerSourceSet.lib.main
+            unitTest                      : testModulePerSourceSet.lib.unitTest
+            androidTest                   : testModulePerSourceSet.lib.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :lib:unitTest
         LinkedProjectPath             : <PROJECT>/lib
@@ -2647,6 +2707,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : testModulePerSourceSet.jav.main
         ORDER_ENTRY                   : testModulePerSourceSet.lib.main
     MODULE                        : testModulePerSourceSet.nested1
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1
+            main                          : testModulePerSourceSet.nested1.main
+            unitTest                      : testModulePerSourceSet.nested1.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.androidTest
         ExternalModuleGroup           : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested1
@@ -2672,6 +2737,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1
+            main                          : testModulePerSourceSet.nested1.main
+            unitTest                      : testModulePerSourceSet.nested1.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:androidTest
         LinkedProjectPath             : <PROJECT>/nested1
@@ -2727,6 +2797,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.main
     MODULE                        : testModulePerSourceSet.nested1.deep
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1.deep
+            main                          : testModulePerSourceSet.nested1.deep.main
+            unitTest                      : testModulePerSourceSet.nested1.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.deep.androidTest
         ExternalModuleGroup           : testModulePerSourceSet.nested1
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested1:deep
@@ -2752,6 +2827,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.deep.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1.deep
+            main                          : testModulePerSourceSet.nested1.deep.main
+            unitTest                      : testModulePerSourceSet.nested1.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:deep:androidTest
         LinkedProjectPath             : <PROJECT>/nested1/deep
@@ -2807,6 +2887,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.deep.main
     MODULE                        : testModulePerSourceSet.nested1.deep.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1.deep
+            main                          : testModulePerSourceSet.nested1.deep.main
+            unitTest                      : testModulePerSourceSet.nested1.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:deep:main
         LinkedProjectPath             : <PROJECT>/nested1/deep
@@ -2898,6 +2983,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.deep.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1.deep
+            main                          : testModulePerSourceSet.nested1.deep.main
+            unitTest                      : testModulePerSourceSet.nested1.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:deep:unitTest
         LinkedProjectPath             : <PROJECT>/nested1/deep
@@ -2938,6 +3028,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.deep.main
     MODULE                        : testModulePerSourceSet.nested1.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1
+            main                          : testModulePerSourceSet.nested1.main
+            unitTest                      : testModulePerSourceSet.nested1.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:main
         LinkedProjectPath             : <PROJECT>/nested1
@@ -3029,6 +3124,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested1.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested1
+            main                          : testModulePerSourceSet.nested1.main
+            unitTest                      : testModulePerSourceSet.nested1.unitTest
+            androidTest                   : testModulePerSourceSet.nested1.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested1:unitTest
         LinkedProjectPath             : <PROJECT>/nested1
@@ -3069,6 +3169,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested1.main
     MODULE                        : testModulePerSourceSet.nested2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2
+            main                          : testModulePerSourceSet.nested2.main
+            unitTest                      : testModulePerSourceSet.nested2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.androidTest
         ExternalModuleGroup           : testModulePerSourceSet
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2
@@ -3094,6 +3199,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2
+            main                          : testModulePerSourceSet.nested2.main
+            unitTest                      : testModulePerSourceSet.nested2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:androidTest
         LinkedProjectPath             : <PROJECT>/nested2
@@ -3167,6 +3277,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.main
     MODULE                        : testModulePerSourceSet.nested2.deep
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.deep
+            main                          : testModulePerSourceSet.nested2.deep.main
+            unitTest                      : testModulePerSourceSet.nested2.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.deep.androidTest
         ExternalModuleGroup           : testModulePerSourceSet.nested2
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2:deep
@@ -3192,6 +3307,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.deep.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.deep
+            main                          : testModulePerSourceSet.nested2.deep.main
+            unitTest                      : testModulePerSourceSet.nested2.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:deep:androidTest
         LinkedProjectPath             : <PROJECT>/nested2/deep
@@ -3247,6 +3367,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.deep.main
     MODULE                        : testModulePerSourceSet.nested2.deep.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.deep
+            main                          : testModulePerSourceSet.nested2.deep.main
+            unitTest                      : testModulePerSourceSet.nested2.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:deep:main
         LinkedProjectPath             : <PROJECT>/nested2/deep
@@ -3338,6 +3463,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.deep.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.deep
+            main                          : testModulePerSourceSet.nested2.deep.main
+            unitTest                      : testModulePerSourceSet.nested2.deep.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.deep.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:deep:unitTest
         LinkedProjectPath             : <PROJECT>/nested2/deep
@@ -3378,6 +3508,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.deep.main
     MODULE                        : testModulePerSourceSet.nested2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2
+            main                          : testModulePerSourceSet.nested2.main
+            unitTest                      : testModulePerSourceSet.nested2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:main
         LinkedProjectPath             : <PROJECT>/nested2
@@ -3516,6 +3651,11 @@ PROJECT                       : testModulePerSourceSet
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.trans.deep2
+            main                          : testModulePerSourceSet.nested2.trans.deep2.main
+            unitTest                      : testModulePerSourceSet.nested2.trans.deep2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.trans.deep2.androidTest
         ExternalModuleGroup           : testModulePerSourceSet.nested2.trans
         ExternalModuleVersion         : unspecified
         LinkedProjectId               : :nested2:trans:deep2
@@ -3541,6 +3681,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.androidTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.trans.deep2
+            main                          : testModulePerSourceSet.nested2.trans.deep2.main
+            unitTest                      : testModulePerSourceSet.nested2.trans.deep2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.trans.deep2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:trans:deep2:androidTest
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
@@ -3596,6 +3741,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.trans.deep2.main
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.main
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.trans.deep2
+            main                          : testModulePerSourceSet.nested2.trans.deep2.main
+            unitTest                      : testModulePerSourceSet.nested2.trans.deep2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.trans.deep2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:trans:deep2:main
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
@@ -3687,6 +3837,11 @@ PROJECT                       : testModulePerSourceSet
             VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
     MODULE                        : testModulePerSourceSet.nested2.trans.deep2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2.trans.deep2
+            main                          : testModulePerSourceSet.nested2.trans.deep2.main
+            unitTest                      : testModulePerSourceSet.nested2.trans.deep2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.trans.deep2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:trans:deep2:unitTest
         LinkedProjectPath             : <PROJECT>/nested2/trans/deep2
@@ -3727,6 +3882,11 @@ PROJECT                       : testModulePerSourceSet
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : testModulePerSourceSet.nested2.trans.deep2.main
     MODULE                        : testModulePerSourceSet.nested2.unitTest
+        LINKED_ANDROID_MODULE_GROUP
+            holder                        : testModulePerSourceSet.nested2
+            main                          : testModulePerSourceSet.nested2.main
+            unitTest                      : testModulePerSourceSet.nested2.unitTest
+            androidTest                   : testModulePerSourceSet.nested2.androidTest
         ExternalModuleType            : sourceSet
         LinkedProjectId               : :nested2:unitTest
         LinkedProjectPath             : <PROJECT>/nested2
