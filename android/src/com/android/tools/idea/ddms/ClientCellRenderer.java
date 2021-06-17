@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.ddms;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.utils.Pair;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
-import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 import java.util.Comparator;
+import java.util.Locale;
+import javax.swing.JList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
   @NotNull
@@ -46,9 +46,9 @@ final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
     return Pair.of(name.substring(0, index + 1), name.substring(index + 1));
   }
 
-  private static void renderClient(@NotNull Client c, ColoredTextContainer container) {
+  private static void renderClient(@NotNull Client c, @NotNull ColoredTextContainer container) {
     ClientData cd = c.getClientData();
-    String name = cd.getClientDescription();
+    String name = getClientName(cd);
     if (name == null) {
       return;
     }
@@ -65,6 +65,11 @@ final class ClientCellRenderer extends ColoredListCellRenderer<Client> {
     if (!c.isValid()) {
       container.append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
     }
+  }
+
+  @Nullable
+  static String getClientName(@NotNull ClientData cd) {
+    return cd.getClientDescription();
   }
 
   @Override

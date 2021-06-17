@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.ClientCellRenderer.ClientComparator;
 import com.android.tools.idea.ddms.DeviceRenderer.DeviceComboBoxRenderer;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.utils.CharSequences;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
@@ -35,10 +36,11 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NullableLazyValue;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ComboboxSpeedSearch;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
-import java.awt.Component;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import javax.swing.JComboBox;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -186,7 +189,27 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     });
 
     myProcessComboBox = processComboBox;
-    ComboboxSpeedSearch.installSpeedSearch(processComboBox, client -> client.getClientData().getPackageName());
+    // We don't update the combo when it's open so we must do it when it closes in case we missed changes.
+    myProcessComboBox.addPopupMenuListener(new PopupMenuListenerAdapter() {
+      @Override
+      public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+        updateProcessComboBox();
+      }
+    });
+    // Don't use ComboboxSpeedSearch.installSpeedSearch() because it compares using SpeedSearchComparator#matchingFragments():
+    //   matchingFragments("com.google.android.app", "cgaa") == true
+    new ComboboxSpeedSearch(processComboBox) {
+      @Override
+      protected String getElementText(@NotNull Object element) {
+        // Use the same client name that the renderer uses.
+        return ClientCellRenderer.getClientName(((Client)element).getClientData());
+      }
+
+      @Override
+      protected boolean compare(@NotNull String text, @Nullable String pattern) {
+        return pattern != null && CharSequences.indexOfIgnoreCase(text,  pattern, 0) >= 0;
+      }
+    };
   }
 
   @NotNull
@@ -199,7 +222,7 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   }
 
   @NotNull
-  public Component getClientComboBox() {
+  public JComboBox<Client> getClientComboBox() {
     return myProcessComboBox;
   }
 
@@ -269,7 +292,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @VisibleForTesting
   void deviceChangedImpl(@NotNull IDevice device, int changeMask) {
     if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-      updateProcessComboBox();
+      if (!myProcessComboBox.isPopupVisible()) {
+        // Don't change the combo while it's open because it flickers. We will refresh when it closes anyway.
+        updateProcessComboBox();
+      }
     }
     else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
       updateDeviceCombo();
@@ -345,7 +371,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
     if (myDeviceCombo == null) {
       return;
     }
-
     myIgnoringActionEvents = true;
 
     IDevice device = (IDevice)myDeviceCombo.getSelectedItem();
@@ -380,7 +405,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
       clients.sort(new ClientComparator());
 
       for (Client client : clients) {
-        myProcessComboBox.addItem(client);
+        if (!StringUtil.isEmpty(ClientCellRenderer.getClientName(client.getClientData()))) {
+          // For some reason, some clients have no process name or package name. No point in showing empty cells in the combo
+          myProcessComboBox.addItem(client);
+        }
       }
       myProcessComboBox.setSelectedItem(toSelect);
       update = toSelect != selected;
