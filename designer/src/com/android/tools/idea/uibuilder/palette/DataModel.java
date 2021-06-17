@@ -28,6 +28,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 
 import com.android.SdkConstants.PreferenceTags;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
@@ -88,7 +89,7 @@ public class DataModel implements Disposable {
     myPalette = Palette.EMPTY;
     myCurrentSelectedGroup = COMMON;
     myUpdateListener = this::update;
-    myDependencyManager.addDependencyChangeListener(() -> onDependenciesChanged());
+    myDependencyManager.addDependencyChangeListener(this::onDependenciesChanged);
 
     myFilterPattern = new PatternFilter();
     // This filter will hide or display the androidx.* components in the palette depending on whether the
@@ -234,8 +235,12 @@ public class DataModel implements Disposable {
     return Lists.newArrayList(favorites);
   }
 
+  @Slow
   private void update(@NotNull NlPaletteModel paletteModel, @NotNull DesignerEditorFileType layoutType) {
-    if (myPaletteModel != paletteModel || layoutType != myLayoutType || myDisposed) {
+    //noinspection UnstableApiUsage
+    ApplicationManager.getApplication().assertIsNonDispatchThread();
+
+    if (myPaletteModel != paletteModel || layoutType != myLayoutType || myDisposed || Disposer.isDisposed(paletteModel)) {
       return;
     }
     myPaletteLock.writeLock().lock();
@@ -245,9 +250,10 @@ public class DataModel implements Disposable {
     } finally {
       myPaletteLock.writeLock().unlock();
     }
-    update();
+    ApplicationManager.getApplication().invokeLater(this::update);
   }
 
+  @UiThread
   private void update() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 

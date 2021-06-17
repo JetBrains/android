@@ -39,4 +39,3 @@ com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.and
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceNotificationManager$ModuleEventObserver.registerListeners
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources
 com.android.tools.idea.res.ResourceRepositoryManager.getProjectResources|com.android.tools.idea.res.ResourceRepositoryManager.lambda$getLocalesAndLanguages$7
-com.android.tools.idea.uibuilder.palette.NlPaletteModel.getPalette|com.android.tools.idea.uibuilder.palette.DataModel.update
