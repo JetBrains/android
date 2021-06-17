@@ -136,27 +136,27 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
 
     runTestOn(TestProjectPaths.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
-      val debugBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
+      val debugBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.ANDROID_TESTS) }
       expect.that(debugBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
       switchVariant(project, ":app", "release")
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
-      val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.NONE) }
+      val releaseBuildResult = project.buildAndWait { it.assemble(arrayOf(project.appModule()), TestCompileType.ANDROID_TESTS) }
       expect.that(releaseBuildResult.errors()).isEmpty()
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      // TODO(b/187710826): expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test")
+      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
     }
