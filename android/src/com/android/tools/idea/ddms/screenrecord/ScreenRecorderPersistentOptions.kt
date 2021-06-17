@@ -29,6 +29,7 @@ class ScreenRecorderPersistentOptions : PersistentStateComponent<ScreenRecorderP
   var resolutionWidth: Int = 0
   var resolutionHeight: Int = 0
   var showTaps = false
+  var useEmulatorRecording = true
 
   companion object {
     @JvmStatic

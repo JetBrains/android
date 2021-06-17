@@ -39,8 +39,9 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   @VisibleForTesting JTextField myWidthTextField;
   @VisibleForTesting JTextField myHeightTextField;
   @VisibleForTesting JCheckBox myShowTouchCheckBox;
+  private JCheckBox myEmulatorRecordingCheckBox;
 
-  public ScreenRecorderOptionsDialog(@NotNull Project project) {
+  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator) {
     super(project, true);
 
     ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
@@ -58,6 +59,8 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     }
 
     myShowTouchCheckBox.setSelected(options.getShowTaps());
+    myEmulatorRecordingCheckBox.setSelected(options.getUseEmulatorRecording());
+    myEmulatorRecordingCheckBox.setVisible(isEmulator);
 
     setTitle("Screen Recorder Options");
     init();
@@ -90,18 +93,21 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    ValidationInfo info = validateIntegerMultipleOf(myBitRateTextField, 1, "Bit Rate must be an integer.");
+    ValidationInfo info =
+      validateIntegerMultipleOf(myBitRateTextField, 1, AndroidBundle.message("android.ddms.screenrecorder.options.bit.rate.invalid"));
     if (info != null) {
       return info;
     }
 
     // MediaEncoder prefers sizes that are multiples of 16 (https://code.google.com/p/android/issues/detail?id=37769).
-    info = validateIntegerMultipleOf(myWidthTextField, 16, "Width must be an integer.");
+    info = validateIntegerMultipleOf(myWidthTextField, 16,
+                                     AndroidBundle.message("android.ddms.screenrecorder.options.resolution.invalid.width"));
     if (info != null) {
       return info;
     }
 
-    info = validateIntegerMultipleOf(myHeightTextField, 16, "Height must be an integer.");
+    info = validateIntegerMultipleOf(myHeightTextField, 16,
+                                     AndroidBundle.message("android.ddms.screenrecorder.options.resolution.invalid.height"));
     if (info != null) {
       return info;
     }
@@ -124,7 +130,8 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
       return new ValidationInfo(errorMessage, textField);
     }
 
-    return (x % multiple > 0) ? new ValidationInfo("Must be a multiple of " + multiple, textField) : null;
+    return (x % multiple > 0) ? new ValidationInfo(
+      AndroidBundle.message("android.ddms.screenrecorder.options.resolution.invalid.multiple", multiple), textField) : null;
   }
 
   @Override
@@ -134,6 +141,7 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     options.setResolutionHeight(getIntegerValue(myHeightTextField));
     options.setResolutionWidth(getIntegerValue(myWidthTextField));
     options.setShowTaps(myShowTouchCheckBox.isSelected());
+    options.setUseEmulatorRecording(myEmulatorRecordingCheckBox.isSelected());
     super.doOKAction();
   }
 
@@ -152,11 +160,16 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     }
   }
 
+  public boolean getUseEmulatorRecording() {
+    return ScreenRecorderPersistentOptions.getInstance().getUseEmulatorRecording();
+  }
+
   public ScreenRecorderOptions getOptions() {
     ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
     return new ScreenRecorderOptions.Builder()
       .setBitRate(options.getBitRateMbps())
       .setSize(options.getResolutionWidth(), options.getResolutionHeight())
-      .setShowTouches(options.getShowTaps()).build();
+      .setShowTouches(options.getShowTaps())
+      .build();
   }
 }

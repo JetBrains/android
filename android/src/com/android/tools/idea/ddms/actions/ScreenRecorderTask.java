@@ -24,11 +24,14 @@ import com.android.ddmlib.EmulatorConsole;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.CommonBundle;
+import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.fileTypes.NativeFileType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -47,6 +50,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -190,6 +194,7 @@ final class ScreenRecorderTask implements Runnable {
 
       try {
         Files.move(myHostRecordingFile, fileWrapper.getFile().toPath(), REPLACE_EXISTING);
+        handleSavedRecording(fileWrapper);
       }
       catch (IOException e) {
         showError("Unable to copy file to destination", e);
@@ -209,9 +214,38 @@ final class ScreenRecorderTask implements Runnable {
         return;
       }
 
-      File file = fileWrapper.getFile();
-      new PullRecordingTask(myProject, myDevice, file.getAbsolutePath()).queue();
+      new PullRecordingTask(myProject, myDevice, fileWrapper.getFile().getAbsolutePath(), () -> handleSavedRecording(fileWrapper)).queue();
     });
+  }
+
+  private void handleSavedRecording(VirtualFileWrapper fileWrapper) {
+    String path = fileWrapper.getFile().getAbsolutePath();
+    String message = "Video Recording saved as " + path;
+    String cancel = CommonBundle.getOkButtonText();
+    Icon icon = Messages.getInformationIcon();
+
+    if (RevealFileAction.isSupported()) {
+      String no = "Show in " + RevealFileAction.getFileManagerName();
+      int exitCode = Messages.showYesNoCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open", no, cancel, icon);
+
+      if (exitCode == Messages.YES) {
+        openSavedFile(fileWrapper);
+      }
+      else if (exitCode == Messages.NO) {
+        RevealFileAction.openFile(new File(path));
+      }
+    }
+    else if (Messages.showOkCancelDialog(myProject, message, ScreenRecorderAction.TITLE, "Open File", cancel, icon) == Messages.OK) {
+      openSavedFile(fileWrapper);
+    }
+  }
+
+  // Tries to open the file at myLocalPath
+  private static void openSavedFile(VirtualFileWrapper fileWrapper) {
+    VirtualFile file = fileWrapper.getVirtualFile();
+    if (file != null) {
+      NativeFileType.openAssociatedApplication(file);
+    }
   }
 
   private @Nullable VirtualFileWrapper getTargetFile(@NotNull String extension) {

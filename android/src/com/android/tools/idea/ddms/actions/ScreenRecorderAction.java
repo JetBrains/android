@@ -55,7 +55,9 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   static final String TITLE = "Screen Recorder";
 
   private static final String EMU_TMP_FILENAME = "tmp.webm";
-  /** Devices that are currently recording. */
+  /**
+   * Devices that are currently recording.
+   */
   private static final Set<IDevice> myRecordingInProgress = new HashSet<>();
 
   private final Features myFeatures;
@@ -96,7 +98,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
 
   @Override
   protected void performAction(@NotNull AnActionEvent e, @NotNull IDevice device) {
-    final ScreenRecorderOptionsDialog dialog = new ScreenRecorderOptionsDialog(myProject);
+    final ScreenRecorderOptionsDialog dialog = new ScreenRecorderOptionsDialog(myProject, device.isEmulator());
     if (!dialog.showAndGet()) {
       return;
     }
@@ -113,14 +115,18 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
 
       @Override
       public void onSuccess() {
-        startRecordingAsync(dialog.getOptions(), device, myShowTouchEnabled);
+        startRecordingAsync(dialog.getOptions(), dialog.getUseEmulatorRecording(), device, myShowTouchEnabled);
       }
     });
   }
 
-  private void startRecordingAsync(@NotNull ScreenRecorderOptions options, @NotNull IDevice device, boolean showTouchEnabled) {
+  private void startRecordingAsync(@NotNull ScreenRecorderOptions options,
+                                   boolean useEmulatorRecording,
+                                   @NotNull IDevice device,
+                                   boolean showTouchEnabled) {
     AvdManager manager = getVirtualDeviceManager();
-    Path hostRecordingFile = manager == null ? null : getTemporaryVideoPathForVirtualDevice(device, manager);
+    Path emulatorRecordingFile =
+      (manager != null && useEmulatorRecording) ? getTemporaryVideoPathForVirtualDevice(device, manager) : null;
     myRecordingInProgress.add(device);
 
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
@@ -128,7 +134,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
         setShowTouch(device, options.showTouches);
       }
       try {
-        ScreenRecorderTask task = new ScreenRecorderTask(myProject, device, hostRecordingFile, options);
+        ScreenRecorderTask task = new ScreenRecorderTask(myProject, device, emulatorRecordingFile, options);
         task.run();
       }
       finally {
