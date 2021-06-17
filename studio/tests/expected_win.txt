@@ -2164,11 +2164,11 @@ android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagen
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
 android-studio/plugins/android/resources/transport/x86_64/transport
+android-studio/plugins/c-clangd/bin/clang/win/clang-tidy.exe
+android-studio/plugins/c-clangd/bin/clang/win/clangd.exe
 android-studio/plugins/c-clangd/lib/LICENSE.txt
 android-studio/plugins/c-clangd/lib/c-clangd.jar
 android-studio/plugins/c-clangd/lib/resources_en.jar
-android-studio/plugins/c-plugin/bin/clang/win/clang-tidy.exe
-android-studio/plugins/c-plugin/bin/clang/win/clangd.exe
 android-studio/plugins/c-plugin/lib/LICENSE.txt
 android-studio/plugins/c-plugin/lib/c-plugin.jar
 android-studio/plugins/c-plugin/lib/resources_en.jar
