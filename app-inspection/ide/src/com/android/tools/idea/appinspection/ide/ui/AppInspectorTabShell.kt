@@ -17,8 +17,8 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.stdui.EmptyStatePanel
+import com.android.tools.idea.appinspection.ide.InspectorTabJarTargets
 import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
-import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.UserDataHolderBase
@@ -39,8 +39,10 @@ import javax.swing.JTabbedPane
  * ordering across inspector launches.
  */
 class AppInspectorTabShell(
-  val provider: AppInspectorTabProvider
+  val tabJarTargets: InspectorTabJarTargets
 ) : Comparable<AppInspectorTabShell>, UserDataHolderBase(), Disposable {
+  val provider = tabJarTargets.provider
+
   @VisibleForTesting
   val containerPanel = JPanel(BorderLayout())
 

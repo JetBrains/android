@@ -46,7 +46,12 @@ open class StubTestAppInspectorTabProvider(
     parentDisposable: Disposable
   ): AppInspectorTab {
     return object : SingleAppInspectorTab(StubTestAppInspectorMessenger()) {
-      override val component = JPanel()
+      override val component = TestAppInspectorTabComponent()
     }
   }
 }
+
+/**
+ * A test JPanel used in verifying whether the rendered tab is indeed created by the stub provider.
+ */
+class TestAppInspectorTabComponent: JPanel()
