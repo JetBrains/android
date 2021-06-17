@@ -51,14 +51,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.util.containers.ContainerUtil;
-import java.awt.Image;
+import java.awt.BorderLayout;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
@@ -84,10 +82,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
-import org.intellij.images.editor.ImageZoomModel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +109,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private JButton myRefreshButton;
   private JButton myRotateRightButton;
   private JButton myRotateLeftButton;
-  private JScrollPane myScrollPane;
+  private JPanel myContentPane;
   private JCheckBox myFrameScreenshotCheckBox;
   private JComboBox<String> myDeviceArtCombo;
   private JCheckBox myDropShadowCheckBox;
@@ -161,13 +157,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myProvider = getImageFileEditorProvider();
     myImageFileEditor = (ImageFileEditor)myProvider.createEditor(myProject, myBackingVirtualFile);
-    myScrollPane.getViewport().add(myImageFileEditor.getComponent());
-    myScrollPane.getViewport().addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(ComponentEvent e) {
-        updateZoom();
-      }
-    });
+    myContentPane.setLayout(new BorderLayout());
+    myContentPane.add(myImageFileEditor.getComponent(), BorderLayout.CENTER);
 
     ActionListener l = actionEvent -> {
       if (actionEvent.getSource() == myRefreshButton) {
@@ -232,8 +223,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   // returns the list of descriptors capable of framing the given image
   private static @NotNull List<DeviceArtDescriptor> getDescriptorsToFrame(@NotNull BufferedImage image) {
     double imgAspectRatio = image.getWidth() / (double)image.getHeight();
-    final ScreenOrientation orientation =
-      imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
+    ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
 
     List<DeviceArtDescriptor> allDescriptors = DeviceArtDescriptor.getDescriptors(null);
     return ContainerUtil.filter(allDescriptors, descriptor -> descriptor.canFrameImage(image, orientation));
@@ -316,23 +306,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       myDisplayedImageRef.set(mySourceImageRef.get());
       updateEditorImage();
     }
-  }
-
-  private void updateZoom() {
-    if (!myScrollPane.getViewport().isShowing()) {
-      return;
-    }
-
-    ImageEditor imageEditor = myImageFileEditor.getImageEditor();
-    int viewHeight = myScrollPane.getViewport().getHeight();
-    int viewWidth = myScrollPane.getViewport().getWidth();
-
-    Image deviceImage = imageEditor.getDocument().getRenderer();
-    int imageHeight = deviceImage.getHeight(null);
-    int imageWidth = deviceImage.getWidth(null);
-
-    ImageZoomModel zoomModel = imageEditor.getZoomModel();
-    zoomModel.setZoomFactor(ImageUtils.calcFullyDisplayZoomFactor(viewHeight, viewWidth, imageHeight, imageWidth));
   }
 
   private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
@@ -574,12 +547,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   public @NotNull File getScreenshot() {
     assert myScreenshotFile != null;
     return myScreenshotFile;
-  }
-
-  @TestOnly
-  void setScrollPane(@NotNull JScrollPane scrollPane) {
-    // noinspection BoundFieldAssignment
-    myScrollPane = scrollPane;
   }
 
   @TestOnly
