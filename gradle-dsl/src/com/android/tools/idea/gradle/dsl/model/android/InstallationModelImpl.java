@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.InstallationModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class AdbOptionsModelImpl extends GradleDslBlockModel implements AdbOptionsModel {
+public class InstallationModelImpl extends GradleDslBlockModel implements InstallationModel {
   @NonNls public static final String INSTALL_OPTIONS = "mInstallOptions";
   @NonNls public static final String TIME_OUT_IN_MS = "mTimeOutInMs";
 
-  public AdbOptionsModelImpl(@NotNull AdbOptionsDslElement dslElement) {
+  public InstallationModelImpl(@NotNull InstallationDslElement dslElement) {
     super(dslElement);
   }
 
