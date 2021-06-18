@@ -2173,7 +2173,6 @@ android-studio/plugins/c-plugin/lib/LICENSE.txt
 android-studio/plugins/c-plugin/lib/c-plugin.jar
 android-studio/plugins/c-plugin/lib/resources_en.jar
 android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt
-android-studio/plugins/cidr-base-plugin/lib/antlr4-runtime-4.1.jar
 android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 android-studio/plugins/cidr-base-plugin/lib/resources_en.jar
 android-studio/plugins/cidr-debugger-plugin/lib/antlr4-runtime-4.1.jar
