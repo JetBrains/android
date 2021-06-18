@@ -18,8 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi.kotlin
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
-import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
+import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
@@ -104,6 +104,7 @@ class SafeArgsKotlinPackageDescriptorTest {
     val classesMetadata1 = fragmentProvider
       .getPackageFragments(FqName("test.safeargs"))
       .flatMap { it.getMemberScope().classesInScope() }
+      .sortedBy { it.fqcn }
 
     assertThat(classesMetadata1.map { it.toString() }).containsExactly(
       "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
@@ -115,6 +116,7 @@ class SafeArgsKotlinPackageDescriptorTest {
     val classesMetadata2 = fragmentProvider
       .getPackageFragments(FqName("test.safeargs.sub1"))
       .flatMap { it.getMemberScope().classesInScope() }
+      .sortedBy { it.fqcn }
 
     assertThat(classesMetadata2.map { it.toString() }).containsExactly(
       "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",

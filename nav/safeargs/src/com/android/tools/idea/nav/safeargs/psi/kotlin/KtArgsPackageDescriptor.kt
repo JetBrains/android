@@ -59,21 +59,17 @@ class KtArgsPackageDescriptor(
   private val safeArgsPackageDescriptor = this@KtArgsPackageDescriptor
 
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
-    private val lightClass = storageManager.createLazyValue {
-      LightArgsKtClass(navigationVersion, className, destination, superTypesProvider(safeArgsPackageDescriptor),
-                       sourceElement, safeArgsPackageDescriptor, storageManager)
+    private val classes = storageManager.createLazyValue {
+      val argsClass = LightArgsKtClass(navigationVersion, className, destination, superTypesProvider(safeArgsPackageDescriptor),
+                                       sourceElement, safeArgsPackageDescriptor, storageManager)
+      listOfNotNull(argsClass)
     }
 
     override fun getContributedDescriptors(
       kindFilter: DescriptorKindFilter,
       nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-      return if ((kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK) && nameFilter(lightClass().name))) {
-        listOf(lightClass())
-      }
-      else {
-        emptyList()
-      }
+      return classes().filter { kindFilter.acceptsKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK) && nameFilter(it.name) }
     }
 
     override fun getClassifierNames(): Set<Name> {
@@ -83,7 +79,7 @@ class KtArgsPackageDescriptor(
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-      return if (lightClass().name == name) lightClass() else null
+      return classes().firstOrNull { it.name == name }
     }
 
     override fun printScopeStructure(p: Printer) {
