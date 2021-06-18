@@ -553,6 +553,7 @@ py_test(
         ":android-studio.linux.zip",
         "//tools/vendor/google/testing/display:xvfb",
     ],
+    python_version = "PY3",
     tags = [
         "block_network",
         "no_mac",
@@ -563,6 +564,7 @@ py_test(
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
+    python_version = "PY2",
     visibility = ["//visibility:public"],
 )
 
@@ -575,7 +577,7 @@ py_binary(
 py_test(
     name = "tools_test",
     srcs = ["tools_test.py"],
-    python_version = "PY2",  # The custom rule runs under py2
+    python_version = "PY2",
     tags = [
         "no_mac",
         "no_windows",
