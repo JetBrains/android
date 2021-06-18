@@ -127,7 +127,7 @@
               implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
               fieldName="INSTANCE"
               language="Renderscript"
-              extensions="rs;fs;rsh" />
+              extensions="fs;rs;rsh" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.syntaxHighlighter language="Renderscript"

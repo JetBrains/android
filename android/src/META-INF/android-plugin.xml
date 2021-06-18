@@ -432,7 +432,7 @@
     <fileType name="Font"
               implementationClass="com.android.tools.idea.fileTypes.FontFileType"
               fieldName="INSTANCE"
-              extensions="ttf;otf" />
+              extensions="otf;ttf" />
 
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider"/>
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
