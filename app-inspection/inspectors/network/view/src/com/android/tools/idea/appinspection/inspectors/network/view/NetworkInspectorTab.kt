@@ -234,6 +234,10 @@ class NetworkInspectorTab(
         goLive.isSelected = true
       }
     }
+    scope.launch {
+      client.awaitForTermination()
+      timer.stop()
+    }
   }
 
   override fun dispose() {

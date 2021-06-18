@@ -18,17 +18,16 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
-import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 
 
@@ -148,10 +147,14 @@ class NetworkInspectorDataSourceImpl(
       channel.close(e)
     }
     scope.launch {
-      processEvents(channel)
-      messenger.eventFlow.collect {
-        val event = Event.parseFrom(it)
-        channel.send(Intention.InsertData(event))
+      try {
+        processEvents(channel)
+        messenger.eventFlow.collect {
+          val event = Event.parseFrom(it)
+          channel.send(Intention.InsertData(event))
+        }
+      } catch (e: CancellationException) {
+        channel.close(e.cause)
       }
     }
   }
