@@ -1382,6 +1382,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     catch (Throwable e) {
       if (!getModel().getFacet().isDisposed()) {
+        fireOnRenderFail(e);
         completeRender();
         throw e;
       }
@@ -1630,6 +1631,11 @@ public class LayoutlibSceneManager extends SceneManager {
   }
   protected void fireOnRenderComplete() {
     myRenderListeners.forEach(RenderListener::onRenderCompleted);
+  }
+  protected void fireOnRenderFail(@NotNull Throwable e) {
+    myRenderListeners.forEach(listener -> {
+      listener.onRenderFailed(e);
+    });
   }
 
   public void addRenderListener(@NotNull RenderListener listener) {

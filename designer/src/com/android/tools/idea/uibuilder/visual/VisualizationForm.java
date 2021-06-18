@@ -655,6 +655,11 @@ public class VisualizationForm
             // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
             layoutlibSceneManager.removeRenderListener(this);
           }
+
+          @Override
+          public void onRenderFailed(@NotNull Throwable e) {
+            layoutlibSceneManager.removeRenderListener(this);
+          }
         };
 
         layoutlibSceneManager.addRenderListener(renderListener);
