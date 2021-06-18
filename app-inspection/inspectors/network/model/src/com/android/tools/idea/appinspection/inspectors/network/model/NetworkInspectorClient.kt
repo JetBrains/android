@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import studio.network.inspection.NetworkInspectorProtocol.Command
 import studio.network.inspection.NetworkInspectorProtocol.Response
 import studio.network.inspection.NetworkInspectorProtocol.StartInspectionCommand
@@ -29,6 +30,8 @@ class NetworkInspectorClient(
     }
     return response.startInspectionResponse.timestamp
   }
+
+  suspend fun awaitForTermination() = messenger.awaitForDisposal()
 }
 
 private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
