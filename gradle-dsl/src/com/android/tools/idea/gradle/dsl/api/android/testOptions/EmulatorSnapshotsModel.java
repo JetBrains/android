@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.dsl.api.android;
+package com.android.tools.idea.gradle.dsl.api.android.testOptions;
 
-import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapshotsModel;
-import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
-import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface TestOptionsModel extends GradleDslModel {
-  @NotNull
-  EmulatorSnapshotsModel emulatorSnapshots();
+public interface EmulatorSnapshotsModel extends GradleDslModel {
+  @NotNull ResolvedPropertyModel compressSnapshots();
 
-  @NotNull
-  FailureRetentionModel failureRetention();
+  @NotNull ResolvedPropertyModel enableForTestFailures();
 
-  @NotNull
-  ResolvedPropertyModel reportDir();
+  @NotNull ResolvedPropertyModel maxSnapshotsForTestFailures();
 
-  @NotNull
-  ResolvedPropertyModel resultsDir();
-
-  @NotNull
-  UnitTestsModel unitTests();
-
-  @NotNull
-  ResolvedPropertyModel execution();
+  // TODO(xof): consider how to support retainAll()
 }

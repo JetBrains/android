@@ -8,5 +8,10 @@ android {
       enable false
       maxSnapshots 4
     }
+    emulatorSnapshots {
+      compressSnapshots true
+      enableForTestFailures false
+      maxSnapshotsForTestFailures 3
+    }
   }
 }

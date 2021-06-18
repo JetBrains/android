@@ -52,6 +52,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.unitTests().returnDefaultValues().setValue(false);
     testOptions.failureRetention().enable().setValue(false);
     testOptions.failureRetention().maxSnapshots().setValue(4);
+    testOptions.emulatorSnapshots().compressSnapshots().setValue(true);
+    testOptions.emulatorSnapshots().enableForTestFailures().setValue(false);
+    testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().setValue(3);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
@@ -65,6 +68,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("unitTests.returnDefaultValues", Boolean.FALSE, testOptions.unitTests().returnDefaultValues());
     assertEquals("failureRetention.enable", Boolean.FALSE, testOptions.failureRetention().enable());
     assertEquals("failureRetention.maxSnapshots", 4, testOptions.failureRetention().maxSnapshots());
+    assertEquals("emulatorSnapshots.compressSnapshots", Boolean.TRUE, testOptions.emulatorSnapshots().compressSnapshots());
+    assertEquals("emulatorSnapshots.enableForTestFailures", Boolean.FALSE, testOptions.emulatorSnapshots().enableForTestFailures());
+    assertEquals("emulatorSnapshots.maxSnapshotsForTestFailures", 3, testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
   }
 
   @Test
@@ -83,6 +89,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.unitTests().returnDefaultValues().setValue(true);
     testOptions.failureRetention().enable().setValue(true);
     testOptions.failureRetention().maxSnapshots().setValue(3);
+    testOptions.emulatorSnapshots().compressSnapshots().setValue(false);
+    testOptions.emulatorSnapshots().enableForTestFailures().setValue(true);
+    testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().setValue(4);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
@@ -107,6 +116,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.unitTests().returnDefaultValues().delete();
     testOptions.failureRetention().enable().delete();
     testOptions.failureRetention().maxSnapshots().delete();
+    testOptions.emulatorSnapshots().compressSnapshots().delete();
+    testOptions.emulatorSnapshots().enableForTestFailures().delete();
+    testOptions.emulatorSnapshots().maxSnapshotsForTestFailures().delete();
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
@@ -130,6 +142,9 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("unitTests.returnDefaultValues", Boolean.TRUE, testOptions.unitTests().returnDefaultValues());
     assertEquals("failureRetention.enable", Boolean.TRUE, testOptions.failureRetention().enable());
     assertEquals("failureRetention.maxSnapshots", 3, testOptions.failureRetention().maxSnapshots());
+    assertEquals("emulatorSnapshots.compressSnapshots", Boolean.FALSE, testOptions.emulatorSnapshots().compressSnapshots());
+    assertEquals("emulatorSnapshots.enableForTestFailures", Boolean.TRUE, testOptions.emulatorSnapshots().enableForTestFailures());
+    assertEquals("emulatorSnapshots.maxSnapshotsForTestFailures", 4, testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
   }
 
   private void verifyNullTestOptionsValues() {
@@ -143,5 +158,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
     assertMissingProperty("failureRetention.enable", testOptions.failureRetention().enable());
     assertMissingProperty("failureRetention.maxSnapshots", testOptions.failureRetention().maxSnapshots());
+    assertMissingProperty("emulatorSnapshots.compressSnapshots", testOptions.emulatorSnapshots().compressSnapshots());
+    assertMissingProperty("emulatorSnapshots.enableForTestFailures", testOptions.emulatorSnapshots().enableForTestFailures());
+    assertMissingProperty("emulatorSnapshots.maxSnapshotsForTestFailures", testOptions.emulatorSnapshots().maxSnapshotsForTestFailures());
   }
 }

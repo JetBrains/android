@@ -16,18 +16,22 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapshotsModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.android.testOptions.EmulatorSnapshotsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.FailureRetentionModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.testOptions.UnitTestsModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.EmulatorSnapshotsDslElement.EMULATOR_SNAPSHOTS;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement.FAILURE_RETENTION;
 import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS;
 
@@ -39,6 +43,12 @@ public class TestOptionsModelImpl extends GradleDslBlockModel implements TestOpt
 
   public TestOptionsModelImpl(@NotNull TestOptionsDslElement dslElement) {
     super(dslElement);
+  }
+
+  @Override
+  public @NotNull EmulatorSnapshotsModel emulatorSnapshots() {
+    EmulatorSnapshotsDslElement emulatorSnapshotsDslElement = myDslElement.ensurePropertyElement(EMULATOR_SNAPSHOTS);
+    return new EmulatorSnapshotsModelImpl(emulatorSnapshotsDslElement);
   }
 
   @Override
