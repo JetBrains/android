@@ -84,8 +84,8 @@ internal fun XmlTag.hasMatchedIdAttr(id: String): Boolean {
 
 class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
-internal fun SourceElement.withMethodIcon(name: String): SourceElement {
+internal fun SourceElement.withFunctionIcon(name: String, containingClassName: String): SourceElement {
   return (this.getPsi() as? SafeArgsXmlTag)?.let {
-    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), PlatformIcons.METHOD_ICON, name))
+    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), PlatformIcons.FUNCTION_ICON, name, containingClassName))
   } ?: this
 }

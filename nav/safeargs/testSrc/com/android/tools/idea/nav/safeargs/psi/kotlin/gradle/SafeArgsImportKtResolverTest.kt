@@ -143,11 +143,56 @@ class SafeArgsImportKtResolverTest {
       // language=kotlin
       """
         import com.example.mylibrary.SecondFragmentArgs
-        
+
         class FooClass {
             fun myTest() {
                 val argsClass1 = Second${caret}FragmentArgs.
                 val argsClass2 = SecondFragmentArgs().
+            }
+        }
+      """.trimIndent())
+  }
+
+  @Test
+  fun testImportFixForCompanionFunctions() {
+    projectRule.requestSyncAndWait()
+
+    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      file!!.setText(
+        //language=kotlin
+        """
+          package com.example.myapplication
+
+          class FooClass {
+              fun myTest() {
+                  val argsClass1 = from${caret}Bundle()
+              }
+          }
+        """.trimIndent(),
+        fixture.project)
+    }
+    fixture.configureFromExistingVirtualFile(file!!)
+
+    // Before auto import fix
+    val unresolvedReferences = fixture.doHighlighting()
+      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+
+    assertThat(unresolvedReferences).hasSize(1)
+
+    fixture.getAvailableIntention("Import")?.invoke(fixture.project, fixture.editor, fixture.file)
+
+    // After fix
+    fixture.checkResult(
+      // language=kotlin
+      """
+        package com.example.myapplication
+
+        import com.example.mylibrary.FirstFragmentArgs.Companion.fromBundle
+
+        class FooClass {
+            fun myTest() {
+                val argsClass1 = from${caret}Bundle()
             }
         }
       """.trimIndent())

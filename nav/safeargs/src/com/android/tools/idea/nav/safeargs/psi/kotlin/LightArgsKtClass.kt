@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -206,7 +207,14 @@ class LightArgsKtClass(
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
+            XmlSourceElement(
+              SafeArgsXmlTag(
+                it as XmlTagImpl,
+                PlatformIcons.FUNCTION_ICON,
+                methodName,
+                argsClassDescriptor.fqNameSafe.asString()
+              )
+            )
           } ?: argsClassDescriptor.source
 
           argsClassDescriptor.createMethod(
@@ -230,7 +238,14 @@ class LightArgsKtClass(
             .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
           val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
           val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, KotlinIcons.FIELD_VAL, arg.name))
+            XmlSourceElement(
+              SafeArgsXmlTag(
+                it as XmlTagImpl,
+                KotlinIcons.FIELD_VAL,
+                arg.name,
+                argsClassDescriptor.fqNameSafe.asString()
+              )
+            )
           } ?: argsClassDescriptor.source
           argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
         }

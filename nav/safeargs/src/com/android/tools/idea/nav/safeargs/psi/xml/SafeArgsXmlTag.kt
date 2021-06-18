@@ -25,10 +25,15 @@ sealed class SafeArgsNavItem(private val xmlTag: XmlTagImpl) : NavigationItem by
 class SafeArgsXmlTag(
   private val xmlTag: XmlTagImpl,
   private val icon: Icon,
-  private val name: String
+  private val name: String,
+  private val containerIdentifier: String
 ) : XmlTag by xmlTag, SafeArgsNavItem(xmlTag) {
   fun getOriginal(): XmlTagImpl {
     return xmlTag
+  }
+
+  fun getContainerIdentifier(): String {
+    return containerIdentifier
   }
 
   override fun getName(): String {

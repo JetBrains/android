@@ -16,13 +16,14 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.intellij.codeInsight.daemon.QuickFixBundle
-import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.ide.util.DefaultPsiElementCellRenderer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.PopupStep
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep
@@ -31,7 +32,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.ui.popup.list.PopupListElementRenderer
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.KotlinBundle
@@ -47,6 +52,8 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.resolve.asImportedFromObject
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -65,15 +72,15 @@ class SafeArgsImportKtResolver : QuickFixContributor {
 private class SafeArgsImportIntentionAction : KotlinSingleIntentionActionFactory() {
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
     val element = diagnostic.psiElement as? KtNameReferenceExpression ?: return null
-    val referenceName = element.getReferencedName().takeIf { it.endsWith("Args") || it.endsWith("Directions") } ?: return null
+    val referenceName = element.getReferencedName()
     return AddImportAction(referenceName)
   }
 }
 
-private class AddImportAction(private val referenceName: String) : IntentionAction, HighPriorityAction {
+private class AddImportAction(private val referenceName: String) : IntentionAction {
   private lateinit var suggestions: List<AutoImportVariant>
 
-  private class AutoImportVariant(private val descriptorToImport: ClassDescriptor) {
+  private class AutoImportVariant(private val descriptorToImport: DeclarationDescriptor) {
     val importFqName = descriptorToImport.importableFqName
 
     fun declarationToImport(project: Project): PsiElement? {
@@ -92,7 +99,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     return true
   }
 
-  override fun getText() = KotlinBundle.message("fix.import")
+  override fun getText() = AndroidBundle.message("android.safeargs.fix.import")
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (editor == null || file !is KtFile) return
@@ -109,7 +116,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     object : ListPopupImpl(project, getVariantSelectionPopup(project, file, suggestions)) {
       override fun getListElementRenderer(): ListCellRenderer<AutoImportVariant> {
         val baseRenderer = super.getListElementRenderer() as PopupListElementRenderer<AutoImportVariant>
-        val psiRenderer = DefaultPsiElementCellRenderer()
+        val psiRenderer = SafeArgsPsiElementCellRenderer()
         return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
           JPanel(BorderLayout()).apply {
             baseRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
@@ -137,13 +144,34 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .flatten()
       .asSequence()
       .flatMap { descriptor ->
-        descriptor.getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == nameIdentifier }.asSequence()
+        descriptor.findVisibleClassesBySimpleName(nameIdentifier) +
+        descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
       }
-      .filterIsInstance<ClassDescriptor>()
       .map { AutoImportVariant(it) }
       .filter { it.importFqName != null }
       .distinctBy { it.importFqName }
       .toList()
+  }
+
+  private fun PackageFragmentDescriptor.findVisibleClassesBySimpleName(name: Name): Sequence<DeclarationDescriptor> {
+    return getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }.asSequence() +
+           getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS).asSequence()
+             .filterIsInstance<ClassDescriptor>()
+             .mapNotNull { it.companionObjectDescriptor }
+             .filter { it.name == name }
+  }
+
+  private fun PackageFragmentDescriptor.findVisibleFunctionsBySimpleName(name: Name): Sequence<DeclarationDescriptor> {
+    return getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS).asSequence()
+      .filterIsInstance<ClassDescriptor>()
+      .mapNotNull { it.companionObjectDescriptor }
+      .flatMap {
+        ProgressManager.checkCanceled();
+        it.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS).asSequence()
+      }
+      .filterIsInstance<FunctionDescriptor>()
+      .map { it.asImportedFromObject() }
+      .filter { it.fqNameSafe.shortName() == name }
   }
 
   private fun addImport(project: Project, file: KtFile, import: FqName) {
@@ -172,5 +200,16 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
         return null
       }
     }
+  }
+}
+
+private class SafeArgsPsiElementCellRenderer : DefaultPsiElementCellRenderer() {
+  override fun getContainerText(element: PsiElement?, name: String?): String? {
+    val tag = element as? SafeArgsXmlTag ?: error("Invalid type of $element.")
+
+    val baseText = "(generated from ${super.getContainerText(tag, name)})"
+    val addOnText = tag.getContainerIdentifier()
+
+    return if (addOnText.isEmpty()) baseText else "(in $addOnText) $baseText"
   }
 }

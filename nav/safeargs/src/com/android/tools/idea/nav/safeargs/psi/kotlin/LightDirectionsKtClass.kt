@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
@@ -157,7 +158,14 @@ class LightDirectionsKtClass(
               val resolvedSourceElement = (directionsClassDescriptor.source.getPsi() as? XmlTag)
                                             ?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
                                             ?.let {
-                                              XmlSourceElement(SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.METHOD_ICON, methodName))
+                                              XmlSourceElement(
+                                                SafeArgsXmlTag(
+                                                  it as XmlTagImpl,
+                                                  PlatformIcons.FUNCTION_ICON,
+                                                  methodName,
+                                                  companionObject.fqNameSafe.asString()
+                                                )
+                                              )
                                             }
                                           ?: directionsClassDescriptor.source
 
