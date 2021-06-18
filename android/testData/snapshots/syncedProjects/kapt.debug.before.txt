@@ -118,15 +118,12 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource                    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug
-            JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest
-            JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest
             JavaSource (test)             : file://<PROJECT>/app/src/androidTest/java
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
@@ -158,6 +155,12 @@ PROJECT                       : MainActivity
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugAndroidTest [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/debugUnitTest [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kaptKotlin/debug [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/src/androidTest/aidl [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/app/src/androidTest/assets [-]

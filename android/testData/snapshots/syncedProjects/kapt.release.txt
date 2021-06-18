@@ -115,13 +115,11 @@ PROJECT                       : MainActivity
             UseProjectSettings            : false
             Version                       : 4
         CONENT_ENTRY                  : file://<PROJECT>/app
-            JavaSource                    : file://<PROJECT>/app/build/generated/source/kaptKotlin/release
-            JavaSource (test)             : file://<PROJECT>/app/build/generated/source/kaptKotlin/releaseUnitTest
             JavaSource                    : file://<PROJECT>/app/src/main/java
             JavaResource                  : file://<PROJECT>/app/src/main/res
             JavaSource (test)             : file://<PROJECT>/app/src/test/java
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/app/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/aidl_source_output_dir/release/out [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/ap_generated_sources/release/out [-]
@@ -139,6 +137,10 @@ PROJECT                       : MainActivity
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kapt/release [-]
             Generated                     : true
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kapt/releaseUnitTest [-]
+            Generated                     : true
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/build/generated/source/kaptKotlin/release [-]
+            Generated                     : true
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/app/build/generated/source/kaptKotlin/releaseUnitTest [-]
             Generated                     : true
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/app/src/main/aidl [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/app/src/main/assets [-]
