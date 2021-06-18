@@ -975,7 +975,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestCompletionVariants("recycler_view_2.xml",
                              "tools:targetApi",
                              "tools:itemCount",
-                             "tools:listitem")
+                             "tools:listitem",
+                             "tools:viewBindingType")
   }
 
   fun testToolsAttributesForNewRecyclerView() {
@@ -983,7 +984,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     doTestCompletionVariants("recycler_view_3.xml",
                              "tools:targetApi",
                              "tools:itemCount",
-                             "tools:listitem")
+                             "tools:listitem",
+                             "tools:viewBindingType")
   }
 
   fun testCustomTagCompletion() {
@@ -2191,7 +2193,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                              "tools:listfooter",
                              "tools:listheader",
                              "tools:listitem",
-                             "tools:targetApi")
+                             "tools:targetApi",
+                             "tools:viewBindingType")
   }
 
   // Regression test for http://b/66240917

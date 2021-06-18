@@ -80,6 +80,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import kotlin.Pair;
 import org.jetbrains.android.augment.AndroidLightClassBase;
@@ -173,8 +174,17 @@ public class LightBindingClass extends AndroidLightClassBase {
       // are always non-null.
       Collection<ViewIdData> viewIds = scopedViewIds.values().stream().findFirst().get();
       computed = viewIds.stream()
-        .map(viewId -> createPsiField(viewId, true))
-        .filter(field -> field != null)
+        .map(viewId -> {
+          PsiType typeOverride = null;
+          String typeOverrideStr = viewId.getTypeOverride();
+          if (typeOverrideStr != null) {
+            typeOverrideStr = LayoutBindingTypeUtil.getFqcn(typeOverrideStr);
+            typeOverride = LayoutBindingTypeUtil.parsePsiType(typeOverrideStr, this);
+          }
+
+          return createPsiField(viewId, true, typeOverride);
+        })
+        .filter(Objects::nonNull)
         .toArray(PsiField[]::new);
     }
     else { // Two or more layouts.
@@ -202,13 +212,18 @@ public class LightBindingClass extends AndroidLightClassBase {
         for (Collection<ViewIdData> viewIds : scopedViewIds.values()) {
           for (ViewIdData viewId : viewIds) {
             String id = viewId.getId();
-            String viewName = viewId.getViewName();
+            String viewFqcn = LayoutBindingTypeUtil.getFqcn(viewId.getViewName());
+            String viewTypeOverride = viewId.getTypeOverride();
+            if (viewTypeOverride != null) {
+              viewFqcn = LayoutBindingTypeUtil.getFqcn(viewTypeOverride);
+            }
+
             String previousViewName = idTypes.get(id);
             if (previousViewName == null) {
-              idTypes.put(id, viewName);
+              idTypes.put(id, viewFqcn);
             }
             else {
-              if (!viewName.equals(previousViewName)) {
+              if (!viewFqcn.equals(previousViewName)) {
                 inconsistentlyTypedIds.add(id);
               }
             }
@@ -217,8 +232,19 @@ public class LightBindingClass extends AndroidLightClassBase {
       }
 
       computed = dedupedViewIds.stream()
-        .map(viewId -> createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts, inconsistentlyTypedIds.contains(viewId.getId())))
-        .filter(field -> field != null)
+        .map(viewId -> {
+          PsiType typeOverride = null;
+          String typeOverrideStr = viewId.getTypeOverride();
+          if (inconsistentlyTypedIds.contains(viewId.getId())) {
+            typeOverride = LayoutBindingTypeUtil.parsePsiType(CLASS_VIEW, this);
+          }
+          else if (typeOverrideStr != null) {
+            typeOverrideStr = LayoutBindingTypeUtil.getFqcn(typeOverrideStr);
+            typeOverride = LayoutBindingTypeUtil.parsePsiType(typeOverrideStr, this);
+          }
+          return createPsiField(viewId, idCounts.get(viewId.getId()) == numLayouts, typeOverride);
+        })
+        .filter(Objects::nonNull)
         .toArray(PsiField[]::new);
     }
 
@@ -595,23 +621,18 @@ public class LightBindingClass extends AndroidLightClassBase {
   }
 
   @Nullable
-  private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull) {
-    return createPsiField(viewIdData, isNonNull, false);
-  }
-
-  @Nullable
-  private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull, boolean forceTypeToView) {
+  private PsiField createPsiField(@NotNull ViewIdData viewIdData, boolean isNonNull, @Nullable PsiType typeOverride) {
     String name = DataBindingUtil.convertAndroidIdToJavaFieldName(viewIdData.getId());
 
     PsiType type;
-    if (!forceTypeToView) {
+    if (typeOverride == null) {
       type = LayoutBindingTypeUtil.resolveViewPsiType(myConfig.getTargetLayout().getData(), viewIdData, this);
+      if (type == null) {
+        return null;
+      }
     }
     else {
-      type = LayoutBindingTypeUtil.parsePsiType(CLASS_VIEW, this);
-    }
-    if (type == null) {
-      return null;
+      type = typeOverride;
     }
 
     LightFieldBuilder field = new NullabilityLightFieldBuilder(

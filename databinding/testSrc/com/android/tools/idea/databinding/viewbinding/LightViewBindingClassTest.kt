@@ -18,10 +18,10 @@ package com.android.tools.idea.databinding.viewbinding
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
-import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
+import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
@@ -275,6 +275,86 @@ class LightViewBindingClassTest {
     assertThat(nullabilityManager.isNotNull(alwaysPresentField, false)).isTrue()
     assertThat(nullabilityManager.isNullable(sometimesPresentField, false)).isTrue()
   }
+
+  @Test
+  fun fieldTypesCanBeOverridden() {
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout
+         xmlns:android="http://schemas.android.com/apk/res/android"
+         xmlns:tools="http://schemas.android.com/tools">
+          <EditText android:id="@+id/correct_override" tools:viewBindingType="TextView" />
+          <EditText android:id="@+id/correct_override3" tools:viewBindingType="TextView" /> <!-- Type consistent with tag in other layout -->
+          <EditText android:id="@+id/correct_override2" tools:viewBindingType="TextView" /> <!-- Tag only present in one layout -->
+          <EditText android:id="@+id/inconsistent_override" tools:viewBindingType="TextView" /> <!-- Different type in alt layout -->
+          <EditText android:id="@+id/inconsistent_override2" tools:viewBindingType="TextView" /> <!-- Type not set in alt layout -->
+          <EditText android:id="@+id/inconsistent_override3" tools:viewBindingType="TextView" /> <!-- Tag doesn't match in alt layout -->
+      </LinearLayout>
+    """.trimIndent())
+
+    fixture.addFileToProject(
+      "src/main/res/layout-land/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout
+         xmlns:android="http://schemas.android.com/apk/res/android"
+         xmlns:tools="http://schemas.android.com/tools">
+          <CustomText android:id="@+id/correct_override" tools:viewBindingType="TextView" />
+          <TextView android:id="@+id/correct_override3"/>
+          <CustomText android:id="@+id/inconsistent_override" tools:viewBindingType="EditText" />
+          <EditText android:id="@+id/inconsistent_override2" />
+          <Button android:id="@+id/inconsistent_override3" />
+      </LinearLayout>
+    """.trimIndent())
+
+    // Make sure logic works even without multiple configurations
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_single_config.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout
+         xmlns:android="http://schemas.android.com/apk/res/android"
+         xmlns:tools="http://schemas.android.com/tools">
+          <EditText android:id="@+id/correct_override" tools:viewBindingType="TextView" />
+      </LinearLayout>
+    """.trimIndent())
+
+    val context = fixture.addClass("public class MainActivity {}")
+
+    // Test main activity, which has multiple configurations
+    run {
+      val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+      assertThat(binding.fields).hasLength(6)
+      val correct1 = binding.fields.first { it.name == "correctOverride" }
+      val correct2 = binding.fields.first { it.name == "correctOverride2" }
+      val correct3 = binding.fields.first { it.name == "correctOverride3" }
+      val inconsistent1 = binding.fields.first { it.name == "inconsistentOverride" }
+      val inconsistent2 = binding.fields.first { it.name == "inconsistentOverride2" }
+      val inconsistent3 = binding.fields.first { it.name == "inconsistentOverride3" }
+
+      assertThat(correct1.type.canonicalText).isEqualTo("android.widget.TextView")
+      assertThat(correct2.type.canonicalText).isEqualTo("android.widget.TextView")
+      assertThat(correct3.type.canonicalText).isEqualTo("android.widget.TextView")
+      assertThat(inconsistent1.type.canonicalText).isEqualTo("android.view.View")
+      assertThat(inconsistent2.type.canonicalText).isEqualTo("android.view.View")
+      assertThat(inconsistent3.type.canonicalText).isEqualTo("android.view.View")
+    }
+
+    // Test single config activity
+    run {
+      val binding = fixture.findClass("test.db.databinding.ActivitySingleConfigBinding", context) as LightBindingClass
+      assertThat(binding.fields).hasLength(1)
+      val correct = binding.fields.first { it.name == "correctOverride" }
+
+      assertThat(correct.type.canonicalText).isEqualTo("android.widget.TextView")
+    }
+  }
+
 
   @Test
   fun methodsAreAnnotatedNonNullAndNullableCorrectly_regularLayouts() {

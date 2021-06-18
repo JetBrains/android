@@ -28,10 +28,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
-import com.intellij.util.indexing.FileBasedIndexExtension
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.ID
 import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
@@ -119,6 +117,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           IOUtil.writeUTF(out, viewId.id)
           IOUtil.writeUTF(out, viewId.viewName)
           IOUtil.writeUTF(out, viewId.layoutName ?: "")
+          IOUtil.writeUTF(out, viewId.typeOverride ?: "")
         }
       }
 
@@ -140,7 +139,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
         val viewIds = mutableListOf<ViewIdData>()
         for (i in 1..readINT(`in`)) {
           viewIds.add(ViewIdData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
-                                 IOUtil.readUTF(`in`).ifEmpty { null }))
+                                 IOUtil.readUTF(`in`).ifEmpty { null }, IOUtil.readUTF(`in`).ifEmpty { null }))
         }
         return BindingXmlData(layoutType, rootTag, viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
@@ -154,8 +153,8 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
     return object : SingleEntryIndexer<BindingXmlData>(false) {
-      override fun computeValue(inputData: FileContent): BindingXmlData? {
-        var isDataBindingLayout = false
+      override fun computeValue(inputData: FileContent): BindingXmlData {
+        var bindingLayoutType = PLAIN_LAYOUT
         var customBindingName: String? = null
         var viewBindingIgnore = false
         var rootTag: String? = null
@@ -173,6 +172,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           var viewClass: String? = null
           var viewId: String? = null
           var viewLayout: String? = null
+          var viewTypeOverride: String? = null
         }
 
         NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
@@ -181,7 +181,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
             tags.add(TagData(name))
             if (name == TAG_LAYOUT) {
-              isDataBindingLayout = true
+              bindingLayoutType = DATA_BINDING_LAYOUT
             }
 
             if (tags.size == 1) {
@@ -217,6 +217,14 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                     SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
                   }
                 }
+                else if (nsURI == SdkConstants.TOOLS_URI) {
+                  if (bindingLayoutType == PLAIN_LAYOUT
+                      && currTag.name != SdkConstants.VIEW_INCLUDE && currTag.name != SdkConstants.VIEW_MERGE) {
+                    when (key) {
+                      SdkConstants.ATTR_VIEW_BINDING_TYPE -> currTag.viewTypeOverride = value
+                    }
+                  }
+                }
                 else if (nsURI == null) {
                   if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
                     when (key) {
@@ -231,8 +239,10 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                 }
               }
             }
+
+            // If here, it means we're on the root tag
             if (tags.size == 1) {
-              if (nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
+              if (bindingLayoutType == PLAIN_LAYOUT && nsURI == SdkConstants.TOOLS_URI && key == SdkConstants.ATTR_VIEW_BINDING_IGNORE) {
                 viewBindingIgnore = value.toBoolean()
               }
             }
@@ -261,7 +271,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
                   // OR the special-case <view class="path.to.CustomView"/>
                   val viewName = if (currTag.name != SdkConstants.VIEW_TAG) currTag.name else currTag.viewClass
                   if (viewName != null) {
-                    viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout))
+                    viewIds.add(ViewIdData(currTag.viewId!!, viewName, currTag.viewLayout, currTag.viewTypeOverride))
                   }
                 }
             }
@@ -272,8 +282,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           }
         })
 
-        val layoutType = if (isDataBindingLayout) DATA_BINDING_LAYOUT else PLAIN_LAYOUT
-        return BindingXmlData(layoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds)
+        return BindingXmlData(bindingLayoutType, rootTag.orEmpty(), viewBindingIgnore, customBindingName, imports, variables, viewIds)
       }
     }
   }
@@ -284,7 +293,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 9
+  override fun getVersion() = 10
 }
 
 private const val COMMENT_START = "<!--"

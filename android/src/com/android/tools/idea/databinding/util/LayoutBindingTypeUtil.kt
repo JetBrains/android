@@ -80,28 +80,38 @@ object LayoutBindingTypeUtil {
   }
 
   private fun getViewClassName(xmlData: BindingXmlData, viewName: String, layoutName: String?, facet: AndroidFacet): String? {
-    return if (viewName.indexOf('.') == -1) {
-      when {
-        VIEW_PACKAGE_ELEMENTS.contains(viewName) -> SdkConstants.VIEW_PKG_PREFIX + viewName
-        SdkConstants.WEB_VIEW == viewName -> SdkConstants.ANDROID_WEBKIT_PKG + viewName
-        SdkConstants.VIEW_MERGE == viewName -> getViewClassNameFromMergeTag(layoutName, facet)
-        SdkConstants.VIEW_INCLUDE == viewName -> getViewClassNameFromIncludeTag(layoutName, facet)
-        SdkConstants.VIEW_STUB == viewName -> {
-          when (xmlData.layoutType) {
-            BindingLayoutType.PLAIN_LAYOUT -> SdkConstants.CLASS_VIEWSTUB
-            BindingLayoutType.DATA_BINDING_LAYOUT ->
-              DataBindingUtil.getDataBindingMode(facet).viewStubProxy.takeIf { it.isNotBlank() } ?: SdkConstants.CLASS_VIEWSTUB
-          }
+    return when {
+      SdkConstants.VIEW_MERGE == viewName -> getViewClassNameFromMergeTag(layoutName, facet)
+      SdkConstants.VIEW_INCLUDE == viewName -> getViewClassNameFromIncludeTag(layoutName, facet)
+      SdkConstants.VIEW_STUB == viewName -> {
+        when (xmlData.layoutType) {
+          BindingLayoutType.PLAIN_LAYOUT -> SdkConstants.CLASS_VIEWSTUB
+          BindingLayoutType.DATA_BINDING_LAYOUT ->
+            DataBindingUtil.getDataBindingMode(facet).viewStubProxy.takeIf { it.isNotBlank() } ?: SdkConstants.CLASS_VIEWSTUB
         }
-        // <fragment> tags are ignored by data binding / view binding compiler
-        SdkConstants.TAG_FRAGMENT == viewName -> null
-        else -> SdkConstants.WIDGET_PKG_PREFIX + viewName
       }
-    }
-    else {
-      viewName
+      // <fragment> tags are ignored by data binding / view binding compiler
+      SdkConstants.TAG_FRAGMENT == viewName -> null
+      else -> getFqcn(viewName)
     }
   }
+
+  /**
+   * Return the fully qualified path to a target class name.
+   *
+   * It the name is already a fully qualified path, it will be returned directly. Otherwise, it
+   * will be assumed to be a view class, e.g. "ImageView" returns "android.widget.ImageView"
+   */
+  @JvmStatic
+  fun getFqcn(className: String): String {
+    return when {
+      className.indexOf('.') >= 0 -> className
+      VIEW_PACKAGE_ELEMENTS.contains(className) -> SdkConstants.VIEW_PKG_PREFIX + className
+      SdkConstants.WEB_VIEW == className -> SdkConstants.ANDROID_WEBKIT_PKG + className
+      else -> SdkConstants.WIDGET_PKG_PREFIX + className
+    }
+  }
+
 
   private fun getViewClassNameFromIncludeTag(layoutName: String?, facet: AndroidFacet): String {
     val reference = getViewClassNameFromLayoutAttribute(layoutName, facet)

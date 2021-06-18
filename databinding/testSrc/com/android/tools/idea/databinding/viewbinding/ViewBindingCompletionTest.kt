@@ -82,7 +82,7 @@ class ViewBindingCompletionTest {
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout
           xmlns:tools="http://schemas.android.com/tools"
-          tools:viewBi<caret>>
+          tools:viewBindingI<caret>>
         </FrameLayout>
       """.trimIndent())
 
