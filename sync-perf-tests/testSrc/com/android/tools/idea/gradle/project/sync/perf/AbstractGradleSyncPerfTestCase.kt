@@ -20,6 +20,7 @@ import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.cleanAfterTesting
 import com.android.tools.analytics.UsageTracker.setWriterForTest
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -64,7 +65,8 @@ import java.util.logging.Logger
 @Parameterized.UseParametersRunnerFactory(NoBracketsParametersRunnerFactory::class)
 abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncInfrastructure: Boolean,
                                               private val gradleVersion: String?,
-                                              private val agpVersion: String?) {
+                                              private val agpVersion: String?,
+                                              private val useV2Models: Boolean) {
   protected val projectRule = AndroidGradleProjectRule()
   @get:Rule
   val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -76,10 +78,11 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     const val BENCHMARK_PROJECT = "Android Studio Sync Test"
 
     @JvmStatic
-    @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}")
+    @Parameterized.Parameters(name = "SVS_{0}_Gradle_{1}_AGP_{2}_ModelV2_{3}*")
     fun testParameters() = arrayOf<Array<Any?>>(
       // Keep first parameter even if it is the same to track results in perfgate
-      arrayOf(true, null, null)
+      arrayOf(true, null, null, false),
+      arrayOf(true, null, null, true)
     )
   }
 
@@ -111,6 +114,7 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
       myScheduler!!.advanceBy(0)
       myUsageTracker!!.close()
       cleanAfterTesting()
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
     }
     catch (_: Throwable) {
     }
@@ -123,6 +127,9 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   @Throws(java.lang.Exception::class)
   @Test
   open fun testInitialization() {
+    if (useV2Models) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION, gradleVersion = gradleVersion, agpVersion = agpVersion)
     val log: Logger = getLogger()
@@ -150,6 +157,9 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
   @Throws(java.lang.Exception::class)
   @Test
   open fun testSyncTimes() {
+    if (useV2Models) {
+      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(true)
+    }
     setWriterForTest(myUsageTracker!!) // Start logging data for performance dashboard
     val scenarioName = getScenarioName()
     val memoryThread = MemoryMeasurementThread(scenarioName)
@@ -158,15 +168,33 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     val measurements = ArrayList<Long>()
     val log = getLogger()
     try {
-      val initialBenchmark = Benchmark.Builder("Initial sync time")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
-      val regularBenchmark = Benchmark.Builder("Regular sync time")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
-      val scenarioBenchmark = Benchmark.Builder(scenarioName)
-        .setProject(BENCHMARK_PROJECT)
-        .build()
+      val initialBenchmark = if (useV2Models) {
+        Benchmark.Builder("Initial sync time V2")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      } else {
+        Benchmark.Builder("Initial sync time")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      }
+      val regularBenchmark = if (useV2Models) {
+        Benchmark.Builder("Regular sync time V2")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      } else {
+        Benchmark.Builder("Regular sync time")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      }
+      val scenarioBenchmark = if (useV2Models) {
+        Benchmark.Builder("$scenarioName V2")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      } else {
+        Benchmark.Builder(scenarioName)
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      }
       val metricScenario = Metric(scenarioName)
       val metricInitialTotal = Metric("Initial_Total")
       val metricInitialIDE = Metric("Initial_IDE")
@@ -330,9 +358,16 @@ abstract class AbstractGradleSyncPerfTestCase(private val useSingleVariantSyncIn
     )
 
     override fun run() {
-      val memoryBenchmark = Benchmark.Builder("Memory usage")
-        .setProject(BENCHMARK_PROJECT)
-        .build()
+      val memoryBenchmark = if (useV2Models) {
+        Benchmark.Builder("Memory usage V2")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      }
+      else {
+        Benchmark.Builder("Memory usage")
+          .setProject(BENCHMARK_PROJECT)
+          .build()
+      }
 
       var nextReading = Instant.now()
       while (!stopRunning.get()) {

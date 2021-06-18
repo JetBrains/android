@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.perf
 
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.BASE100
 
-class Base100PerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class Base100PerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?, modelV2: Boolean) :
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion, modelV2) {
   override val relativePath: String = BASE100
   override val projectName: String = "Base100"
   override val initialDrops: Int = 1
