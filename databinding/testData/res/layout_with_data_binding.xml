@@ -37,11 +37,11 @@
                  android:layout_with="wrap_content"
                  android:layout_height="wrap_content"/>
     <view android:id="@+id/view_tag"
-          android:class="android.view.ViewGroup"
+          class="android.view.ViewGroup"
           android:layout_with="wrap_content"
           android:layout_height="wrap_content"/>
     <View android:id="@+id/normal_view_tag"
-          android:class="i.am.confusing"
+          class="i.am.confusing"
           android:layout_with="wrap_content"
           android:layout_height="wrap_content"/>
     <!-- should not exist -->

@@ -153,6 +153,29 @@ class LightViewBindingClassTest {
     assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText).isEqualTo(SdkConstants.CLASS_VIEWSTUB)
   }
 
+  @Test
+  fun correctTypeGeneratedForViewTag() {
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+        <view class="TextView"
+            android:id="@+id/test_id"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+        />
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
+      .isEqualTo("android.widget.TextView")
+  }
+
+
   // ViewBinding logic breaks from DataBinding logic around root type. See also: b/139732774
   @Test
   fun correctReturnTypeGeneratedForGetRootMethod() {
