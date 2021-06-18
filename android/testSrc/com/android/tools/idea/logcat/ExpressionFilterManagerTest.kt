@@ -31,7 +31,6 @@ import org.junit.runners.JUnit4
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import javax.script.ScriptException
 
 private const val MSG = "A message"
 private const val TAG = "Tag"
@@ -167,6 +166,15 @@ class ExpressionFilterManagerTest {
       // Just make sure it doesn't throw if we reference key
       expressionFilterManager.eval("$key == null || true", messageBuilder.build())
     }
+  }
+
+  @Test
+  fun bindingKeys() {
+    assertThat(expressionFilterManager.bindingKeys).containsExactly(
+      "LOG_LEVEL_VERBOSE", "LOG_LEVEL_DEBUG", "LOG_LEVEL_INFO", "LOG_LEVEL_WARN", "LOG_LEVEL_ERROR", "LOG_LEVEL_ASSERT",
+      "MILLIS_PER_SEC", "MILLIS_PER_MIN", "MILLIS_PER_HOUR", "MILLIS_PER_DAY", "logLevel", "pid", "tag", "packageName", "message",
+      "NOW_MILLIS", "tid", "timestamp"
+    )
   }
 
   /**
