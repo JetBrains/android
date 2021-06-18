@@ -45,6 +45,7 @@ import static com.android.SdkConstants.ATTR_SHRINK_MODE;
 import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.ATTR_TARGET_API;
 import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
+import static com.android.SdkConstants.ATTR_VIEW_BINDING_TYPE;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.CLASS_DRAWER_LAYOUT;
@@ -529,6 +530,8 @@ public class AttributeProcessingUtil {
       if (descriptor instanceof LayoutViewElementDescriptor &&
           ((LayoutViewElementDescriptor)descriptor).getClazz() != null) {
         PsiClass viewClass = ((LayoutViewElementDescriptor)descriptor).getClazz();
+
+        registerToolsAttribute(ATTR_VIEW_BINDING_TYPE, callback);
 
         if (InheritanceUtil.isInheritor(viewClass, FQCN_ADAPTER_VIEW)) {
           registerToolsAttribute(ATTR_LISTITEM, callback);

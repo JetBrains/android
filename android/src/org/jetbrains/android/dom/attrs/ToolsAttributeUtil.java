@@ -39,6 +39,7 @@ import static com.android.SdkConstants.ATTR_SRC_COMPAT;
 import static com.android.SdkConstants.ATTR_TARGET_API;
 import static com.android.SdkConstants.ATTR_USE_HANDLER;
 import static com.android.SdkConstants.ATTR_VIEW_BINDING_IGNORE;
+import static com.android.SdkConstants.ATTR_VIEW_BINDING_TYPE;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
 import static com.android.SdkConstants.VALUE_SAFE;
@@ -139,6 +140,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
     // View binding attributes
     .put(ATTR_VIEW_BINDING_IGNORE, singletonList(AttributeFormat.BOOLEAN))
+    .put(ATTR_VIEW_BINDING_TYPE, singletonList(AttributeFormat.STRING))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, Converter> CONVERTERS = ImmutableMap.<String, Converter>builder()
@@ -155,6 +157,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SHRINK_MODE, new StaticEnumConverter(VALUE_STRICT, VALUE_SAFE))
     .put(ATTR_USE_HANDLER, VIEW_CONVERTER)
     .put(ATTR_PARENT_TAG, VIEW_GROUP_CONVERTER)
+    .put(ATTR_VIEW_BINDING_TYPE, VIEW_CONVERTER)
     .build();
 
   /**

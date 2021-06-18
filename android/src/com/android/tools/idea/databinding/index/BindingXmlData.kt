@@ -58,8 +58,10 @@ data class ImportData(val type: String, val alias: String?) {
  * @param id id of the view.
  * @param viewName name of the view, typically the tag name: `<TextView>`.
  * @param layoutName optional layout attribute, only applicable to `<Merge>` or `<Include>` tags.
+ * @param typeOverride optional tools attribute, gives a more specific type hint which can be
+ *   useful for layouts with multiple configurations and different types per configuration.
  */
-data class ViewIdData(val id: String, val viewName: String, val layoutName: String?)
+data class ViewIdData(val id: String, val viewName: String, val layoutName: String?, val typeOverride: String?)
 
 /**
  * Data class for storing the indexed content of layouts we want to generate bindings for,
