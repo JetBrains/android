@@ -625,7 +625,7 @@ _android_studio = rule(
         ),
         "_stamper": attr.label(
             default = Label("//tools/adt/idea/studio:stamper"),
-            cfg = "host",
+            cfg = "exec",
             executable = True,
         ),
         "_zipper": attr.label(
