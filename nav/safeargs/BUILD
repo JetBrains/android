@@ -82,6 +82,6 @@ maven_repo(
     name = "testdeps_repo",
     # keep sorted
     artifacts = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/trove4j/1.0.20181211:jar",
+        "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.trove4j.1.0.20181211",
     ],
 )

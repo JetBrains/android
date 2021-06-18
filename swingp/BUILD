@@ -32,7 +32,7 @@ java_binary(
         "Can-Retransform-Classes: true",
     ],
     deps = [
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/intellij/deps/asm-all/8.0.1:jar",
+        "//prebuilts/tools/common/m2:org.jetbrains.intellij.deps.asm-all.8.0.1",
         "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:org.apache.httpcomponents_httpclient",

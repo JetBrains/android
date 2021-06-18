@@ -21,7 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
-        "//prebuilts/tools/common/m2/repository/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9:kotlinx-coroutines-guava",
+        "//prebuilts/tools/common/m2:kotlinx-coroutines-guava",
         "//tools/adt/idea/app-inspection/inspector/api:intellij.android.app-inspection.inspector.api[module]",
         "//tools/adt/idea/app-inspection/inspector/ide:intellij.android.app-inspection.inspector.ide[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",

@@ -64,6 +64,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:junit-4.12[test]",
+        "//prebuilts/tools/common/m2:junit-4.12[test]",
     ],
 )

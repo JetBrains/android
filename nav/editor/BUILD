@@ -21,7 +21,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/nav/editor:eclipse-layout-kernel",
+        "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
@@ -76,18 +76,4 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
     ],
-)
-
-# managed by go/iml_to_build
-java_import(
-    name = "eclipse-layout-kernel",
-    # do not sort: must match IML order
-    jars = [
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.alg.layered/0.3.0:eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.core/0.3.0:eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/elk/org.eclipse.elk.graph/0.3.0:eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.common/2.12.0:eclipse-layout-kernel_files",
-        "//prebuilts/tools/common/m2/repository/org/eclipse/emf/org.eclipse.emf.ecore/2.12.0:eclipse-layout-kernel_files",
-    ],
-    visibility = ["//visibility:public"],
 )
