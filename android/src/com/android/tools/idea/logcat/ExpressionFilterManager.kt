@@ -64,7 +64,7 @@ class ExpressionFilterManager(private val scriptExt: String = "groovy", private 
   val languageName = scriptEngine?.factory?.languageName ?: ""
 
   val bindingKeys =
-    scriptEngine?.getBindings(GLOBAL_SCOPE)?.keys ?: listOf<String>() + createMessageBindings(/* logCatMessage= */ null).keys
+    scriptEngine?.let { it.getBindings(GLOBAL_SCOPE).keys + createMessageBindings(/* logCatMessage= */ null).keys } ?: listOf<String>()
 
   /**
    * Evaluate a boolean expression against values extracted from a [com.android.ddmlib.logcat.LogCatMessage]
