@@ -74,7 +74,7 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
       apiLevelCombo(growX)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
       verticalGap()
       row {
         gradleKtsCheck(growX)
