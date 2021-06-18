@@ -87,34 +87,43 @@ class ArgsClassKtDescriptorsTest {
       lookupTracker = LookupTracker.DO_NOTHING
     ) as SafeArgsSyntheticPackageProvider
 
-    val classMetadata = fragmentProvider
+    val argsClassMetadata = fragmentProvider
       .getPackageFragments(FqName("test.safeargs"))
       .flatMap { it.getMemberScope().classesInScope() }
-      .first()
+      .sortedBy { it.fqcn }
 
-    assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
-      "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
-    )
+    assertThat(argsClassMetadata.size).isEqualTo(1)
 
-    assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
-      "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args"
-    )
+    argsClassMetadata[0].let { classMetadata ->
+      assertThat(classMetadata.fqcn).isEqualTo("test.safeargs.Fragment1Args")
+      assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
+        "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
+      )
 
-    assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
-      "val argOne: kotlin.String",
-      "val argTwo: kotlin.IntArray",
-      "val argThree: test.safeargs.Fragment1"
-    )
+      assertThat(classMetadata.classifiers.map { it.toString() }).containsExactly(
+        "test.safeargs.Fragment1Args.Companion"
+      )
 
-    assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
-      // generated functions of data class
-      "component1(): kotlin.String",
-      "component2(): kotlin.IntArray",
-      "component3(): test.safeargs.Fragment1",
-      "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
-      // normal functions
-      "toBundle(): android.os.Bundle"
-    )
+      assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args"
+      )
+
+      assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
+        "val argOne: kotlin.String",
+        "val argTwo: kotlin.IntArray",
+        "val argThree: test.safeargs.Fragment1"
+      )
+
+      assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
+        // generated functions of data class
+        "component1(): kotlin.String",
+        "component2(): kotlin.IntArray",
+        "component3(): test.safeargs.Fragment1",
+        "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
+        // normal functions
+        "toBundle(): android.os.Bundle"
+      )
+    }
   }
 
   @Test
@@ -167,34 +176,43 @@ class ArgsClassKtDescriptorsTest {
       lookupTracker = LookupTracker.DO_NOTHING
     ) as SafeArgsSyntheticPackageProvider
 
-    val classMetadata = fragmentProvider
+    val argsClassMetadata = fragmentProvider
       .getPackageFragments(FqName("test.safeargs"))
       .flatMap { it.getMemberScope().classesInScope() }
-      .first()
+      .sortedBy { it.fqcn }
 
-    assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
-      "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
-    )
+    assertThat(argsClassMetadata.size).isEqualTo(1)
 
-    assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
-      "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args",
-      "fromSavedStateHandle(savedStateHandle: androidx.lifecycle.SavedStateHandle): test.safeargs.Fragment1Args",
-    )
+    argsClassMetadata[0].let { classMetadata ->
+      assertThat(classMetadata.fqcn).isEqualTo("test.safeargs.Fragment1Args")
+      assertThat(classMetadata.constructors.map { it.toString() }).containsExactly(
+        "Fragment1Args(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1)"
+      )
 
-    assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
-      "val argOne: kotlin.String",
-      "val argTwo: kotlin.IntArray",
-      "val argThree: test.safeargs.Fragment1"
-    )
+      assertThat(classMetadata.classifiers.map { it.toString() }).containsExactly(
+        "test.safeargs.Fragment1Args.Companion"
+      )
 
-    assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
-      // generated functions of data class
-      "component1(): kotlin.String",
-      "component2(): kotlin.IntArray",
-      "component3(): test.safeargs.Fragment1",
-      "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
-      // normal functions
-      "toBundle(): android.os.Bundle"
-    )
+      assertThat(classMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
+        "fromBundle(bundle: android.os.Bundle): test.safeargs.Fragment1Args",
+        "fromSavedStateHandle(savedStateHandle: androidx.lifecycle.SavedStateHandle): test.safeargs.Fragment1Args",
+      )
+
+      assertThat(classMetadata.properties.map { it.toString() }).containsExactly(
+        "val argOne: kotlin.String",
+        "val argTwo: kotlin.IntArray",
+        "val argThree: test.safeargs.Fragment1"
+      )
+
+      assertThat(classMetadata.functions.map { it.toString() }).containsExactly(
+        // generated functions of data class
+        "component1(): kotlin.String",
+        "component2(): kotlin.IntArray",
+        "component3(): test.safeargs.Fragment1",
+        "copy(argOne: kotlin.String, argTwo: kotlin.IntArray, argThree: test.safeargs.Fragment1): test.safeargs.Fragment1Args",
+        // normal functions
+        "toBundle(): android.os.Bundle"
+      )
+    }
   }
 }
