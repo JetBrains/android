@@ -35,16 +35,17 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.util.concurrent.TimeUnit
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LayoutInspectorFileEditorTest {
-  @get:Rule
   val projectRule = ProjectRule()
+  val disposableRule = DisposableRule()
 
   @get:Rule
-  val disposableRule = DisposableRule()
+  val chain = RuleChain.outerRule(projectRule).around(disposableRule)!!
 
   @Test
   fun editorCreatesCorrectSettings() {

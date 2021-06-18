@@ -46,6 +46,7 @@ class LegacyClient(
 ) : AbstractInspectorClient(process) {
 
   private val lookup: ViewNodeAndResourceLookup = model
+  private val project = model.project
 
   override val isCapturing = false
 
@@ -54,7 +55,7 @@ class LegacyClient(
   private var loggedInitialAttach = false
   private var loggedInitialRender = false
 
-  private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
+  private val metrics = LayoutInspectorMetrics(model.project, process, stats)
   private val composeWarning = ComposeWarning(model.project)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
@@ -129,7 +130,12 @@ class LegacyClient(
 
   @Slow
   override fun saveSnapshot(path: Path) {
-    saveLegacySnapshot(path, latestData, latestScreenshots, process)
+    val startTime = System.currentTimeMillis()
+    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process)
+    snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
+    // Use a separate metrics instance since we don't want the snapshot metadata to hang around
+    val saveMetrics = LayoutInspectorMetrics(project, process, snapshotMetadata = snapshotMetadata)
+    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
 
   /**

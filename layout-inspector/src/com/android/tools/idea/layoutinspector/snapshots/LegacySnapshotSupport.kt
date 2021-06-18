@@ -41,10 +41,10 @@ import javax.imageio.ImageIO
 
 class LegacySnapshotLoader : SnapshotLoader {
   override val propertiesProvider = LegacyPropertiesProvider()
-  override var metadata: Metadata? = null
+  override lateinit var metadata: SnapshotMetadata
     private set
 
-  override fun loadFile(file: VirtualFile, model: InspectorModel) {
+  override fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
     ObjectInputStream(file.inputStream).use { input ->
@@ -56,9 +56,13 @@ class LegacySnapshotLoader : SnapshotLoader {
         throw Exception(message)
       }
 
-      if (options.version == ProtocolVersion.Version3) {
-        metadata = Metadata.parseDelimitedFrom(input)
+      metadata = if (options.version == ProtocolVersion.Version3) {
+        Metadata.parseDelimitedFrom(input).convert(ProtocolVersion.Version3)
       }
+      else {
+        SnapshotMetadata(ProtocolVersion.Version1)
+      }
+
 
       val windows = mutableListOf<String>()
       while (input.available() > 0) {
@@ -94,6 +98,7 @@ class LegacySnapshotLoader : SnapshotLoader {
         model.update(window, windows, 1)
       }
     }
+    return metadata
   }
 }
 
@@ -103,19 +108,22 @@ fun saveLegacySnapshot(
   data: Map<String, ByteArray>,
   images: Map<String, ByteArray>,
   process: ProcessDescriptor
-) {
+): SnapshotMetadata {
   val baos = ByteArrayOutputStream(4096)
+  val metadata: SnapshotMetadata
   ObjectOutputStream(baos).use { output ->
     output.writeUTF(LayoutInspectorCaptureOptions(ProtocolVersion.Version3).toString())
 
-    val metadata = Metadata.newBuilder().apply {
-      this.apiLevel = process.device.apiLevel
-      this.processName = process.name
-      source = Metadata.Source.STUDIO
-      sourceVersion = ApplicationInfo.getInstance().fullVersion
-    }.build()
+    metadata = SnapshotMetadata(
+      snapshotVersion = ProtocolVersion.Version3,
+      apiLevel = process.device.apiLevel,
+      processName = process.name,
+      source = Metadata.Source.STUDIO,
+      sourceVersion = ApplicationInfo.getInstance().fullVersion,
+      liveDuringCapture = false
+    )
 
-    metadata.writeDelimitedTo(output)
+    metadata.toProto().writeDelimitedTo(output)
 
     for ((name, windowData) in data) {
       output.writeInt(windowData.size)
@@ -129,4 +137,5 @@ fun saveLegacySnapshot(
     }
   }
   path.write(baos.toByteArray())
+  return metadata
 }

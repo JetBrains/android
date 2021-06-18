@@ -21,10 +21,15 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
+import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
+import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.progress.ProgressManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +45,7 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.snapshots.Metadata
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
@@ -53,6 +59,7 @@ import layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StartFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.StopFetchCommand
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol.WindowRootsEvent
+import java.nio.file.Files
 import java.nio.file.Path
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
@@ -81,6 +88,8 @@ class ViewLayoutInspectorClient(
   private val fireError: (String) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
 ) {
+
+  private val project = model.project
 
   /**
    * Data packaged up and sent via [fireTreeEvent], needed for constructing the tree view in the
@@ -263,18 +272,29 @@ class ViewLayoutInspectorClient(
   }
 
   @Slow
-  fun saveSnapshot(path: Path) {
+  fun saveSnapshot(path: Path): SnapshotMetadata {
+    val snapshotMetadata = SnapshotMetadata(
+      snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
+      apiLevel = processDescriptor.device.apiLevel,
+      processName = processDescriptor.name,
+      liveDuringCapture = isFetchingContinuously,
+      source = Metadata.Source.STUDIO,
+      sourceVersion = ApplicationInfo.getInstance().fullVersion
+    )
+
     if (isFetchingContinuously) {
-      fetchAndSaveSnapshot(path)
+      fetchAndSaveSnapshot(path, snapshotMetadata)
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, processDescriptor, isFetchingContinuously)
+      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, snapshotMetadata)
     }
+    return snapshotMetadata
   }
 
-  private fun fetchAndSaveSnapshot(path: Path) {
+  private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
+    val start = System.currentTimeMillis()
     try {
-      val job = scope.launch { fetchAndSaveSnapshotAsync(path) } // TODO: error handling
+      val job = scope.launch { fetchAndSaveSnapshotAsync(path, snapshotMetadata) } // TODO: error handling
       // Watch for the progress indicator to be canceled and cancel the fetchAndSave job if so.
       val progress = ProgressManager.getInstance().progressIndicator
       scope.launch {
@@ -292,12 +312,15 @@ class ViewLayoutInspectorClient(
       job.asCompletableFuture().get()
     }
     catch (cancellationException: CancellationException) {
-      // ignore
-      return
+      snapshotMetadata.saveDuration = System.currentTimeMillis() - start
+      LayoutInspectorMetrics(project, processDescriptor, null, snapshotMetadata)
+        .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED)
+      // Delete the file in case we wrote out partial data
+      Files.delete(path)
     }
   }
 
-  private suspend fun fetchAndSaveSnapshotAsync(path: Path) {
+  private suspend fun fetchAndSaveSnapshotAsync(path: Path, snapshotMetadata: SnapshotMetadata) {
     messenger.sendCommand {
       captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().apply {
         // TODO: support bitmap
@@ -312,7 +335,7 @@ class ViewLayoutInspectorClient(
         }
       } ?: mapOf()
 
-      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, processDescriptor, isFetchingContinuously)
+      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata)
     } ?: throw Exception()
   }
 }

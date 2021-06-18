@@ -19,27 +19,22 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.appinspection.ide.analytics.toDeviceInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.project.Project
 
-class LayoutInspectorMetrics private constructor(
+class LayoutInspectorMetrics(
   private val project: Project,
-  private val process: ProcessDescriptor?,
-  private val stats: SessionStatistics?,
+  private val process: ProcessDescriptor? = null,
+  private val stats: SessionStatistics? = null,
+  private val snapshotMetadata: SnapshotMetadata? = null
 ) {
 
   private var loggedInitialRender = false
 
-  companion object {
-    fun create(project: Project) = LayoutInspectorMetrics(project, null, null)
-    fun create(project: Project, process: ProcessDescriptor, stats: SessionStatistics) = LayoutInspectorMetrics(project, process, stats)
-  }
-
-  fun logEvent(
-    eventType: DynamicLayoutInspectorEventType,
-  ) {
+  fun logEvent(eventType: DynamicLayoutInspectorEventType) {
     when(eventType) {
       DynamicLayoutInspectorEventType.INITIAL_RENDER,
       DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE,
@@ -53,6 +48,7 @@ class LayoutInspectorMetrics private constructor(
         if (stats != null && eventType == DynamicLayoutInspectorEventType.SESSION_DATA) {
           stats.save(sessionBuilder)
         }
+        snapshotMetadata?.toSnapshotInfo()?.let { snapshotInfo = it }
       }
       if (process != null) {
         deviceInfo = process.device.toDeviceInfo()

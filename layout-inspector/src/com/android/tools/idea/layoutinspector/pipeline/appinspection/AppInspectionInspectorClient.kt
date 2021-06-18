@@ -79,7 +79,7 @@ class AppInspectionInspectorClient(
 
   private val debugViewAttributes = DebugViewAttributes(adb, model.project, process)
 
-  private val metrics = LayoutInspectorMetrics.create(model.project, process, stats)
+  private val metrics = LayoutInspectorMetrics(model.project, process, stats)
 
   override val capabilities =
     EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
@@ -187,6 +187,11 @@ class AppInspectionInspectorClient(
 
   @Slow
   override fun saveSnapshot(path: Path) {
-    viewInspector.saveSnapshot(path)
+    val startTime = System.currentTimeMillis()
+    val metadata = viewInspector.saveSnapshot(path)
+    metadata.saveDuration = System.currentTimeMillis() - startTime
+    // Use a separate metrics instance since we don't want the snapshot metadata to hang around
+    val saveMetrics = LayoutInspectorMetrics(model.project, process, snapshotMetadata = metadata)
+    saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED)
   }
 }
