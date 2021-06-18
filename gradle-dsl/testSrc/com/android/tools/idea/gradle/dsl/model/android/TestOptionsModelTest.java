@@ -50,6 +50,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.reportDir().setValue("otherReportDir");
     testOptions.resultsDir().setValue("otherResultsDir");
     testOptions.unitTests().returnDefaultValues().setValue(false);
+    testOptions.failureRetention().enable().setValue(false);
+    testOptions.failureRetention().maxSnapshots().setValue(4);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
@@ -61,6 +63,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("reportDir", "otherReportDir", testOptions.reportDir());
     assertEquals("resultsDir", "otherResultsDir", testOptions.resultsDir());
     assertEquals("unitTests.returnDefaultValues", Boolean.FALSE, testOptions.unitTests().returnDefaultValues());
+    assertEquals("failureRetention.enable", Boolean.FALSE, testOptions.failureRetention().enable());
+    assertEquals("failureRetention.maxSnapshots", 4, testOptions.failureRetention().maxSnapshots());
   }
 
   @Test
@@ -77,6 +81,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.resultsDir().setValue("resultsDirectory");
     testOptions.execution().setValue(IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name());
     testOptions.unitTests().returnDefaultValues().setValue(true);
+    testOptions.failureRetention().enable().setValue(true);
+    testOptions.failureRetention().maxSnapshots().setValue(3);
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TEST_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
@@ -99,6 +105,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     testOptions.resultsDir().delete();
     testOptions.execution().delete();
     testOptions.unitTests().returnDefaultValues().delete();
+    testOptions.failureRetention().enable().delete();
+    testOptions.failureRetention().maxSnapshots().delete();
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, "");
@@ -120,6 +128,8 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("resultsDir", "resultsDirectory", testOptions.resultsDir());
     assertEquals("execution", IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR.name(), testOptions.execution());
     assertEquals("unitTests.returnDefaultValues", Boolean.TRUE, testOptions.unitTests().returnDefaultValues());
+    assertEquals("failureRetention.enable", Boolean.TRUE, testOptions.failureRetention().enable());
+    assertEquals("failureRetention.maxSnapshots", 3, testOptions.failureRetention().maxSnapshots());
   }
 
   private void verifyNullTestOptionsValues() {
@@ -131,5 +141,7 @@ public class TestOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("resultsDir", testOptions.resultsDir());
     assertMissingProperty("execution", testOptions.execution());
     assertMissingProperty("unitTests.returnDefaultValues", testOptions.unitTests().returnDefaultValues());
+    assertMissingProperty("failureRetention.enable", testOptions.failureRetention().enable());
+    assertMissingProperty("failureRetention.maxSnapshots", testOptions.failureRetention().maxSnapshots());
   }
 }

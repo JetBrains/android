@@ -4,5 +4,9 @@ android {
     resultsDir = "otherResultsDir"
     unitTests.isReturnDefaultValues = false
     execution = "ANDROID_TEST_ORCHESTRATOR"
+    failureRetention {
+      enable = false
+      maxSnapshots = 4
+    }
   }
 }

@@ -6,5 +6,9 @@ android {
     unitTests {
       isReturnDefaultValues = true
     }
+    failureRetention {
+      enable = true
+      maxSnapshots = 3
+    }
   }
 }
