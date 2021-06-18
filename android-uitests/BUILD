@@ -316,8 +316,8 @@ java_test(
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/support-annotations/28.0.0:jar",
-        "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
+        "//prebuilts/tools/common/m2:com.android.support.support-annotations.28.0.0",
+        "//prebuilts/tools/common/m2:com.android.support.appcompat-v7.26.1.0_aar",
     ] + glob([
         "testData/SimpleApplication/**",
     ]) + glob(["testData/LayoutTest/**"]),
@@ -1338,7 +1338,7 @@ java_test(
     name = "JavaDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
+        "//prebuilts/tools/common/m2:com.google.code.gson.gson.2.6.2",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.JavaDepTest"],
     tags = COMMON_TAGS + [
@@ -1354,7 +1354,7 @@ java_test(
     name = "AndroidDepTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-        "//prebuilts/tools/common/m2/repository/com/google/code/gson/gson/2.6.2:jar",
+        "//prebuilts/tools/common/m2:com.google.code.gson.gson.2.6.2",
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AndroidDepTest"],
     tags = COMMON_TAGS + [
