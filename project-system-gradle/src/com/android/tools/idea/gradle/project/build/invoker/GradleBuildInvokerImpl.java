@@ -544,6 +544,8 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     @NotNull private BuildEventDispatcher myBuildEventDispatcher;
     private boolean myBuildFailed;
 
+    private boolean myStartBuildEventPosted = false;
+
     public MyListener(@NotNull BuildEventDispatcher eventDispatcher,
                       @NotNull Request request,
                       @NotNull BuildViewManager buildViewManager,
@@ -567,17 +569,22 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
       presentation.setDescription("Restart");
       presentation.setIcon(AllIcons.Actions.Compile);
 
-      long eventTime = System.currentTimeMillis();
-      DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myExecutionName, workingDir, eventTime);
-      if (myRequest.getDoNotShowBuildOutputOnFailure()) {
-        buildDescriptor.setActivateToolWindowWhenFailed(false);
+      // If build is invoked in the context of a task that has already opened the build output tool window by sending a similar event
+      // sending another one replaces the mapping from the buildId to the build view breaking the build even pipeline. (See: b/190426050).
+      if (myBuildViewManager.getBuildView(id) == null) {
+        long eventTime = System.currentTimeMillis();
+        DefaultBuildDescriptor buildDescriptor = new DefaultBuildDescriptor(id, myExecutionName, workingDir, eventTime);
+        if (myRequest.getDoNotShowBuildOutputOnFailure()) {
+          buildDescriptor.setActivateToolWindowWhenFailed(false);
+        }
+        StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
+        event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
+        if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
+          event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
+        }
+        myStartBuildEventPosted = true;
+        myBuildEventDispatcher.onEvent(id, event);
       }
-      StartBuildEventImpl event = new StartBuildEventImpl(buildDescriptor, "running...");
-      event.withRestartAction(restartAction).withExecutionFilter(new AndroidReRunBuildFilter(workingDir));
-      if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-        event.withExecutionFilter(new BuildAttributionOutputLinkFilter());
-      }
-      myBuildEventDispatcher.onEvent(id, event);
       super.onStart(id, workingDir);
     }
 
@@ -627,9 +634,11 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     @Override
     public void onSuccess(@NotNull ExternalSystemTaskId id) {
       addBuildAttributionLinkToTheOutput(id);
-      FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
-                                                            new SuccessResultImpl());
-      myBuildEventDispatcher.onEvent(id, event);
+      if (myStartBuildEventPosted) {
+        FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished",
+                                                              new SuccessResultImpl());
+        myBuildEventDispatcher.onEvent(id, event);
+      }
       super.onSuccess(id);
     }
 
@@ -643,19 +652,23 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     @Override
     public void onFailure(@NotNull ExternalSystemTaskId id, @NotNull Exception e) {
       myBuildFailed = true;
-      String title = myExecutionName + " failed";
-      DataContext dataContext = BuildConsoleUtils.getDataContext(id, myBuildViewManager);
-      FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataContext);
-      myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+      if (myStartBuildEventPosted) {
+        String title = myExecutionName + " failed";
+        DataContext dataContext = BuildConsoleUtils.getDataContext(id, myBuildViewManager);
+        FailureResult failureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, myProject, dataContext);
+        myBuildEventDispatcher.onEvent(id, new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult));
+      }
       super.onFailure(id, e);
     }
 
     @Override
     public void onCancel(@NotNull ExternalSystemTaskId id) {
-      // Cause build view to show as skipped all pending tasks (b/73397414)
-      FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
-      myBuildEventDispatcher.onEvent(id, event);
-      myBuildEventDispatcher.close();
+      if (myStartBuildEventPosted) {
+        // Cause build view to show as skipped all pending tasks (b/73397414)
+        FinishBuildEventImpl event = new FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", new SkippedResultImpl());
+        myBuildEventDispatcher.onEvent(id, event);
+        myBuildEventDispatcher.close();
+      }
       super.onCancel(id);
     }
 
