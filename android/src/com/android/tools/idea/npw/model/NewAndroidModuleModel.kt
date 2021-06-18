@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.SdkConstants.DOT_KTS
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -224,8 +226,7 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
 }
 
 private fun Project.hasKtsUsage() : Boolean {
-  // TODO: b/185269439 - return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
-  return false
+  return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {
