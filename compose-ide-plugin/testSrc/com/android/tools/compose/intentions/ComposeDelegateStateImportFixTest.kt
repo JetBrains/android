@@ -38,6 +38,8 @@ class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
 
       inline operator fun <T> MutableState<T>.getValue(thisObj: Any?, property: KProperty<*>) = true
 
+      inline fun <T> remember(calculation: () -> T): T = calculation()
+
     """.trimIndent())
   }
 
@@ -118,6 +120,31 @@ class ComposeDelegateStateImportFixTest : JavaCodeInsightFixtureTestCase() {
         import androidx.compose.runtime.getValue
 
         val myVal by androidx.compose.runtime.mutableStateOf(3)
+      """.trimIndent()
+    )
+  }
+
+  fun testStateInRemember() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      //language=kotlin
+      """
+        import androidx.compose.runtime.remember
+
+        val myVal by remember { mutableStateOf(3) }
+      """.trimIndent()
+    )
+    val fix = myFixture.getAllQuickFixes().find { it.text == "Import getValue and mutableStateOf" }
+    fix!!.invoke(project, myFixture.editor, myFixture.file)
+
+    myFixture.checkResult(
+      //language=kotlin
+      """
+        import androidx.compose.runtime.getValue
+        import androidx.compose.runtime.mutableStateOf
+        import androidx.compose.runtime.remember
+
+        val myVal by remember { mutableStateOf(3) }
       """.trimIndent()
     )
   }
