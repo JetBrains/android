@@ -105,24 +105,26 @@ class PTableImpl(
   override var wrap = false
 
   init {
-    super.setShowColumns(false)
-    super.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+    setShowColumns(false)
+    setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
 
-    super.setShowGrid(false)
-    super.setShowHorizontalLines(true)
-    super.setIntercellSpacing(Dimension(0, JBUI.scale(1)))
-    super.setGridColor(JBColor(Gray._224, Gray._44))
+    setShowGrid(false)
+    setShowHorizontalLines(true)
+    intercellSpacing = Dimension(0, JBUI.scale(1))
+    setGridColor(JBColor(Gray._224, Gray._44))
 
-    super.setColumnSelectionAllowed(false)
-    super.setCellSelectionEnabled(false)
-    super.setRowSelectionAllowed(true)
+    columnSelectionAllowed = false
+    setCellSelectionEnabled(false)
+    setRowSelectionAllowed(true)
 
-    super.addMouseListener(MouseTableListener())
-    super.addKeyListener(PTableKeyListener())
+    addMouseListener(MouseTableListener())
+    addKeyListener(PTableKeyListener())
 
     // We want expansion for the property names but not of the editors. This disables expansion for both columns.
     // TODO: Provide expansion of the left column only.
-    super.setExpandableItemsEnabled(false)
+    setExpandableItemsEnabled(false)
+
+    transferHandler = PTableTransferHandler()
 
     getColumnModel().getColumn(0).resizable = false
     getColumnModel().getColumn(1).resizable = false
@@ -374,7 +376,7 @@ class PTableImpl(
     actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction {  moveToLastRow() })
 
     // Setup additional actions for the table
-    registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
+                  registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
     registerKey(KeyStrokes.SPACE) { smartEnter(toggleOnly = true) }
     registerKey(KeyStrokes.NUM_LEFT) { modifyGroup(expand = false) }
     registerKey(KeyStrokes.NUM_RIGHT) { modifyGroup(expand = true) }

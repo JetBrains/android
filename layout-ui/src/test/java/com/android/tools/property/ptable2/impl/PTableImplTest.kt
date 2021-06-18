@@ -15,6 +15,8 @@
  */
 package com.android.tools.property.ptable2.impl
 
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.property.ptable2.DefaultPTableCellRendererProvider
@@ -39,14 +41,22 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoInteractions
 import java.awt.AWTEvent
 import java.awt.Dimension
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
+import javax.swing.TransferHandler
 import javax.swing.UIManager
 import javax.swing.event.ChangeEvent
 import javax.swing.event.TableModelEvent
@@ -73,7 +83,7 @@ class PTableImplTest {
     UIManager.put("TextField.caretBlinkRate", 0)
 
     editorProvider = SimplePTableCellEditorProvider()
-    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"),
+    model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible", "true"),
                         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
                         Item("new"))
     table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
@@ -610,6 +620,57 @@ class PTableImplTest {
     fakeUI.mouse.click(210, table!!.rowHeight * 4 + 10)
     // Called from attempt to make cell editable but NOT from expander icon check
     assertThat(model!!.countOfIsCellEditable).isEqualTo(1)
+  }
+
+  @Test
+  fun testCopy() {
+    table!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table!!.transferHandler
+    val clipboard: Clipboard = mock()
+    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.COPY)
+    val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
+    verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
+    val transferable = transferableCaptor.value
+    assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("visible\ttrue")
+  }
+
+  @Test
+  fun testCut() {
+    table!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table!!.transferHandler
+    val clipboard: Clipboard = mock()
+    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.MOVE)
+
+    // Deletes are not supported in the model, do not expect anything copied to the clipboard, and the row should still exist:
+    verifyNoInteractions(clipboard)
+    assertThat(model!!.items.size).isEqualTo(6)
+
+    model!!.supportDeletes = true
+    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.MOVE)
+
+    val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
+    verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
+    val transferable = transferableCaptor.value
+    assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("visible\ttrue")
+    assertThat(model!!.items.size).isEqualTo(5)
+  }
+
+  @Test
+  fun testPaste() {
+    table!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table!!.transferHandler
+    transferHandler.importData(table!!, StringSelection("data\t123"))
+
+    // Inserts are not supported in the model, do not expect the model to be changed:
+    assertThat(model!!.items.size).isEqualTo(6)
+
+    model!!.supportInserts = true
+    transferHandler.importData(table!!, StringSelection("data\t123"))
+    assertThat(model!!.items.size).isEqualTo(7)
+    assertThat(model!!.items[6].name).isEqualTo("data")
+    assertThat(model!!.items[6].value).isEqualTo("123")
   }
 
   private fun createPanel(): JPanel {

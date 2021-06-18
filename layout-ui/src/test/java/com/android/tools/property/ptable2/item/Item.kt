@@ -65,6 +65,8 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
   override var editedItem: PTableItem? = null
   var readOnly = false
   var countOfIsCellEditable = 0
+  var supportInserts = false
+  var supportDeletes = false
 
   override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
     countOfIsCellEditable++
@@ -80,8 +82,17 @@ class PTableTestModel(vararg items: PTableItem) : PTableModel {
     listeners.forEach { it.itemsUpdated(modelChanged, null) }
   }
 
+  override fun supportsRemovableItems(): Boolean = supportDeletes
+
+  override fun supportsInsertableItems(): Boolean = supportInserts
+
   override fun addListener(listener: PTableModelUpdateListener) {
     listeners.add(listener)
+  }
+
+  override fun addItem(name: String, value: String): PTableItem {
+    val item = Item(name, value)
+    return addItem(item)
   }
 
   override fun addItem(item: PTableItem): PTableItem {

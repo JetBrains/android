@@ -31,6 +31,16 @@ interface PTableModel {
   var editedItem: PTableItem?
 
   /**
+   * Returns true if an item in the table can be removed (by the use of [removeItem]).
+   */
+  fun supportsRemovableItems(): Boolean = false
+
+  /**
+   * Returns true if an item can be added to the table (by the use of [addItem])
+   */
+  fun supportsInsertableItems(): Boolean = false
+
+  /**
    * Returns true if an item [PTableColumn.NAME] or an item [PTableColumn.VALUE] is editable.
    */
   fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean = false
@@ -48,6 +58,14 @@ interface PTableModel {
    * A model should notify all its listeners if the [items] have changed.
    */
   fun addListener(listener: PTableModelUpdateListener) {}
+
+  /**
+   * Add an item to this model.
+   *
+   * A model should resolve the ([name],[value]) pair to a [PTableItem] and call [addItem] with the item.
+   * A return value of null means the model failed to resolve the ([name],[value]) pair into a [PTableItem].
+   */
+  fun addItem(name: String, value: String): PTableItem? = null
 
   /**
    * Add an item to this model.
