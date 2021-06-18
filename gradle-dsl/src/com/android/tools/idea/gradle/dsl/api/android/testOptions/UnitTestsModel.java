@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.android.testOptions;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface UnitTestsModel {
+public interface UnitTestsModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel returnDefaultValues();
 }
