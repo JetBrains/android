@@ -146,7 +146,7 @@ class SafeArgsIconsRenderingTest {
     var icons = fixture.lookupElements
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).contains("fromBundle" to PlatformIcons.METHOD_ICON)
+    assertThat(icons).contains("fromBundle" to PlatformIcons.FUNCTION_ICON)
 
     // check static method from directions class
     fixture.moveCaret("val directionsClass1 = SecondFragmentDirections.|")
@@ -154,7 +154,7 @@ class SafeArgsIconsRenderingTest {
     icons = fixture.lookupElements
       .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
-    assertThat(icons).contains("actionSecondFragmentToFirstFragment" to PlatformIcons.METHOD_ICON)
+    assertThat(icons).contains("actionSecondFragmentToFirstFragment" to PlatformIcons.FUNCTION_ICON)
 
     // check methods from args class
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
@@ -165,8 +165,8 @@ class SafeArgsIconsRenderingTest {
     assertThat(icons).containsAllOf(
       // componentN() functions of data class are filtered out when collecting variants during completions.
       "arg1" to KotlinIcons.FIELD_VAL,
-      "copy" to PlatformIcons.METHOD_ICON,
-      "toBundle" to PlatformIcons.METHOD_ICON
+      "copy" to PlatformIcons.FUNCTION_ICON,
+      "toBundle" to PlatformIcons.FUNCTION_ICON
     )
 
     // directions class only has companion object

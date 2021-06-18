@@ -132,7 +132,13 @@ class KtDescriptorCacheModuleService(val module: Module) {
                                       ?.findXmlTagById(destination.id)
                                       ?.let {
                                         XmlSourceElement(
-                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
+                                          SafeArgsXmlTag(
+                                            it as XmlTagImpl,
+                                            PlatformIcons.CLASS_ICON,
+                                            className.asString(),
+                                            packageName.asString()
+                                          )
+                                        )
                                       }
                                     ?: sourceElement
 
@@ -169,7 +175,13 @@ class KtDescriptorCacheModuleService(val module: Module) {
                                       ?.findXmlTagById(destination.id)
                                       ?.let {
                                         XmlSourceElement(
-                                          SafeArgsXmlTag(it as XmlTagImpl, PlatformIcons.CLASS_ICON, className.asString()))
+                                          SafeArgsXmlTag(
+                                            it as XmlTagImpl,
+                                            PlatformIcons.CLASS_ICON,
+                                            className.asString(),
+                                            packageName.asString()
+                                          )
+                                        )
                                       }
                                     ?: sourceElement
 
