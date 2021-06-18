@@ -161,10 +161,9 @@ class LightDirectionsKtClass(
                                             }
                                           ?: directionsClassDescriptor.source
 
-              directionsClassDescriptor.createMethod(
+              companionObject.createMethod(
                 name = methodName,
                 returnType = navDirectionType,
-                dispatchReceiver = companionObject,
                 valueParametersProvider = valueParametersProvider,
                 sourceElement = resolvedSourceElement
               )
