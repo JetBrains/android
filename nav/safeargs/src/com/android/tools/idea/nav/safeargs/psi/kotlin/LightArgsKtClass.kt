@@ -139,10 +139,9 @@ class LightArgsKtClass(
             listOf(bundleParam)
           }
 
-          methods.add(argsClassDescriptor.createMethod(
+          methods.add(companionObject.createMethod(
             name = "fromBundle",
             returnType = argsClassDescriptor.getDefaultType(),
-            dispatchReceiver = companionObject,
             valueParametersProvider = fromBundleParametersProvider
           ))
 
@@ -157,10 +156,9 @@ class LightArgsKtClass(
               listOf(handleParam)
             }
 
-            methods.add(argsClassDescriptor.createMethod(
+            methods.add(companionObject.createMethod(
               name = "fromSavedStateHandle",
               returnType = argsClassDescriptor.getDefaultType(),
-              dispatchReceiver = companionObject,
               valueParametersProvider = fromSavedStateHandleParametersProvider
             ))
           }
@@ -191,13 +189,11 @@ class LightArgsKtClass(
       val toBundle = argsClassDescriptor.createMethod(
         name = "toBundle",
         returnType = bundleType,
-        dispatchReceiver = argsClassDescriptor
       )
 
       val copy = argsClassDescriptor.createMethod(
         name = "copy",
         returnType = argsClassDescriptor.getDefaultType(),
-        dispatchReceiver = argsClassDescriptor,
         valueParametersProvider = { argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters }
       )
 
@@ -216,7 +212,6 @@ class LightArgsKtClass(
           argsClassDescriptor.createMethod(
             name = methodName,
             returnType = returnType,
-            dispatchReceiver = argsClassDescriptor,
             isOperator = true,
             sourceElement = resolvedSourceElement
           )
