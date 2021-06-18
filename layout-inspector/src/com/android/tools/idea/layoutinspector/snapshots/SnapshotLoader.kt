@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.vfs.VirtualFile
-import layoutinspector.snapshots.Metadata
 import java.io.ObjectInputStream
 
 /**
@@ -32,7 +31,7 @@ import java.io.ObjectInputStream
 interface SnapshotLoader {
 
   val propertiesProvider: PropertiesProvider
-  val metadata: Metadata?
+  val metadata: SnapshotMetadata?
   val processDescriptor: ProcessDescriptor
     get() = object : ProcessDescriptor {
       override val device: DeviceDescriptor
@@ -53,7 +52,7 @@ interface SnapshotLoader {
       override val streamId: Long = -1
     }
 
-  fun loadFile(file: VirtualFile, model: InspectorModel)
+  fun loadFile(file: VirtualFile, model: InspectorModel): SnapshotMetadata?
 
   companion object {
     fun createSnapshotLoader(file: VirtualFile): SnapshotLoader? {

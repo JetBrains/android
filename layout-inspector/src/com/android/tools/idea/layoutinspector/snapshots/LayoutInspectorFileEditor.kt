@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -30,11 +31,13 @@ import com.android.tools.idea.layoutinspector.properties.LayoutInspectorProperti
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.npw.invokeLater
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOADED
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_LOAD_ERROR
 import com.intellij.ide.DataManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -58,24 +61,30 @@ import javax.swing.SwingConstants
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
 class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserDataHolderBase(), FileEditor {
+  private var metrics: LayoutInspectorMetrics? = null
+
   private val _file = file
   override fun getFile() = _file
 
   override fun dispose() {
-    // TODO if necessary
+    metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA)
   }
 
-  private var workbench: WorkBench<LayoutInspector>? = null
+  private var component: JComponent? = null
   private var modificationCount = -1L
 
   override fun getComponent(): JComponent {
     if (modificationCount < file.modificationCount) {
-      workbench = null
+      component = null
     }
-    workbench?.let { return it }
+    component?.let { return it }
     modificationCount = file.modificationCount
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
+    var stats: SessionStatistics? = null
+    var snapshotLoader: SnapshotLoader? = null
+    val startTime = System.currentTimeMillis()
+    var metadata: SnapshotMetadata? = null
     try {
       val viewSettings = EditorDeviceViewSettings()
 
@@ -84,14 +93,15 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       contentPanel.add(workbench, BorderLayout.CENTER)
 
       // TODO: error handling
-      val snapshotLoader = SnapshotLoader.createSnapshotLoader(file) ?: throw Exception()
+      val loader = SnapshotLoader.createSnapshotLoader(file)
+      snapshotLoader = loader
       val model = InspectorModel(project)
-      snapshotLoader.loadFile(file, model)
-
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings()
-      // TODO: indicate this is a snapshot session in the stats
-      val stats = SessionStatistics(model, treeSettings)
+
+      stats = SessionStatistics(model, treeSettings)
+
+      metadata = snapshotLoader?.loadFile(file, model) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
           get() = snapshotLoader.propertiesProvider
@@ -107,6 +117,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       workbench.init(deviceViewPanel, layoutInspector, listOf(
         LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
 
+      metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
       // Since the model was updated before the panel was created, we need to zoom to fit explicitly.
       // If startup is in progress we have to wait until after so tools windows are opened and the window is its final size.
@@ -116,13 +127,16 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
           deviceViewPanel.zoom(ZoomType.FIT)
         }
       }
+      metrics = LayoutInspectorMetrics(project, snapshotLoader.processDescriptor, stats, snapshotMetadata = metadata)
+      metrics?.logEvent(SNAPSHOT_LOADED)
     }
     catch (exception: Exception) {
       // TODO: better error panel
       Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
-      return JBLabel("Error loading snapshot", SwingConstants.CENTER)
+      LayoutInspectorMetrics(project, snapshotLoader?.processDescriptor, stats, metadata).logEvent(SNAPSHOT_LOAD_ERROR)
+      return JBLabel("Error loading snapshot", SwingConstants.CENTER).also { component = it }
     }
-    this.workbench = workbench
+    component = workbench
     return workbench
   }
 
