@@ -5,7 +5,7 @@ MODULE                        : MainActivity.app
     Type                          : APP
     MavenName                     : MainActivity:app:
     GradleVersion                 : <AGP_VERSION>
-    BuildFolder                   : <ROOT>/app/build
+    BuildFolder                   : <ROOT>/app/build [-]
     - BootClassPath               : <ANDROID_SDK>/platforms/android-30/android.jar
     JavaSourceLevel               : 1.8
     CompileTarget                 : android-30
@@ -31,7 +31,7 @@ MODULE                        : MainActivity.app
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/debug
+            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
             Dependencies
                 CompileDependencies
                     androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
@@ -121,7 +121,7 @@ MODULE                        : MainActivity.app
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
         Dependencies
             CompileDependencies
                 androidx.annotation:annotation          : null => androidx.annotation:annotation:1.0.0
