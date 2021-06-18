@@ -856,6 +856,15 @@ class AndroidLintTest : AndroidTestCase() {
                   "Remove obsolete SDK version check", "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest2.kt", "kt")
   }
 
+  fun testKotlinRemoveObsoleteSdkCheck3() {
+    // Regression test for b/191289731
+    deleteManifest()
+    addMinSdkManifest(21)
+    addRequiresApi()
+    doTestWithFix(AndroidLintObsoleteSdkIntInspection(),
+                  "Remove obsolete SDK version check", "/src/p1/p2/kotlinRemoveObsoleteSdkCheck3.kt", "kt")
+  }
+
   fun testIncludeParams() {
     doTestWithFix(AndroidLintIncludeLayoutParamInspection(),
                   "Set layout_height", "/res/layout/layout.xml", "xml")
