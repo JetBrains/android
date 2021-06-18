@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.FailureRetentionDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -38,6 +39,7 @@ public class TestOptionsDslElement extends GradleDslBlockElement {
     new PropertiesElementDescription<>("testOptions", TestOptionsDslElement.class, TestOptionsDslElement::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"failureRetention", FailureRetentionDslElement.FAILURE_RETENTION},
     {"unitTests", UnitTestsDslElement.UNIT_TESTS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
