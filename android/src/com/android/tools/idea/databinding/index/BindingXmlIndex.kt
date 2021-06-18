@@ -214,15 +214,19 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
                 if (nsURI == SdkConstants.ANDROID_URI) {
                   when (key) {
-                    // Used to determine view type of <View>.
-                    SdkConstants.ATTR_CLASS -> currTag.viewClass = value
                     SdkConstants.ATTR_ID -> currTag.viewId = ResourceUrl.parse(value)?.name
                   }
                 }
-                if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
-                  when (key) {
-                    // Used to determine view type of <Merge> and <Include>.
-                    SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                else if (nsURI == null) {
+                  if (currTag.name == SdkConstants.VIEW_INCLUDE || currTag.name == SdkConstants.VIEW_MERGE) {
+                    when (key) {
+                      SdkConstants.ATTR_LAYOUT -> currTag.viewLayout = value
+                    }
+                  }
+                  else if (currTag.name == SdkConstants.VIEW_TAG) {
+                    when (key) {
+                      SdkConstants.ATTR_CLASS -> currTag.viewClass = value
+                    }
                   }
                 }
               }
@@ -280,7 +284,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 8
+  override fun getVersion() = 9
 }
 
 private const val COMMENT_START = "<!--"

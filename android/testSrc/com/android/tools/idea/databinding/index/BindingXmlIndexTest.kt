@@ -175,7 +175,7 @@ class BindingXmlIndexTest {
         <DatePicker android:id="@+id/android:testId9"/>
         <ProgressBar android:id="@android:id/android:testId10"/>
         <NumberPicker android:id="invalid"/>
-        <view android:id="@+id/testId4" android:class="com.example.class"/>
+        <view android:id="@+id/testId4" class="com.example.class"/>
         <include android:id="@+id/testId5" layout="this_other_layout"/>
         <merge android:id="@+id/testId6" layout="this_other_layout"/>
       </layout>
@@ -197,6 +197,26 @@ class BindingXmlIndexTest {
       ViewIdData("testId5", "include", "this_other_layout"),
       ViewIdData("testId6", "merge", "this_other_layout")
     ).inOrder()
+
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun indexViewTag() {
+    val file = fixture.configureByText("layout.xml", """
+      <constraint_layout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+        <view android:id="@+id/viewButReallyEditText" class="EditText"/>
+      </constraint_layout>
+    """.trimIndent()).virtualFile
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    val data = map.values.first()
+    assertThat(data.viewIds.toList()).containsExactly(
+      ViewIdData("viewButReallyEditText", "EditText", null),
+    )
 
     verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
   }

@@ -512,7 +512,7 @@ class LightBindingClassTest {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <view
             android:id="@+id/test_id"
-            android:class="com.example.Test"/>
+            class="com.example.Test"/>
       </layout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
@@ -575,7 +575,7 @@ class LightBindingClassTest {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <merge
             android:id="@+id/test_id"
-            android:layout="@layout/other_activity"/>
+            layout="@layout/other_activity"/>
       </layout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
@@ -604,7 +604,7 @@ class LightBindingClassTest {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <include
             android:id="@+id/test_id"
-            android:layout="@layout/other_activity"/>
+            layout="@layout/other_activity"/>
       </layout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
@@ -637,7 +637,7 @@ class LightBindingClassTest {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <include
             android:id="@+id/included"
-            android:layout="@layout/simple_text"/>
+            layout="@layout/simple_text"/>
       </layout>
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
@@ -837,6 +837,28 @@ class LightBindingClassTest {
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
     assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
       .isEqualTo(LayoutBindingModuleCache.getInstance(facet).dataBindingMode.viewStubProxy)
+  }
+
+  @Test
+  fun correctTypeGeneratedForViewTag() {
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <view class="TextView"
+            android:id="@+id/test_id"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+        />
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
+    assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
+      .isEqualTo("android.widget.TextView")
   }
 
   @Test
