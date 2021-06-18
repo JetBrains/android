@@ -3,7 +3,7 @@ MODULE                        : MainActivity.app
     ModelVersion                  : 7.0.0-dev
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
-    BuildFolder                   : <ROOT>/app/build
+    BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : MainActivity
@@ -267,7 +267,7 @@ MODULE                        : MainActivity.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debug
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debug [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kapt3/classes/debug [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
@@ -419,7 +419,7 @@ MODULE                        : MainActivity.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugAndroidTest [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kapt3/classes/debugAndroidTest [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -717,7 +717,7 @@ MODULE                        : MainActivity.app
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kapt/debugUnitTest [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/kaptKotlin/debugUnitTest [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kapt3/classes/debugUnitTest [-]
                 AdditionalClassesFolders      : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
