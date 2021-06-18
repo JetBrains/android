@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.perf
 
 import com.android.tools.idea.gradle.project.sync.perf.TestProjectPaths.SYNC_AVERAGE_PERF_PROJECT
 
-class AveragePerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class AveragePerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?, modelV2: Boolean) :
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion, modelV2) {
   override val relativePath: String = SYNC_AVERAGE_PERF_PROJECT
   override val projectName: String = "Average"
 }

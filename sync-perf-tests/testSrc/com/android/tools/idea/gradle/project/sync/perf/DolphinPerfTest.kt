@@ -21,8 +21,8 @@ import com.intellij.openapi.util.io.FileUtil
 import org.junit.Before
 import java.io.File
 
-class DolphinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?):
-  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class DolphinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?, modelV2: Boolean):
+  AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion, modelV2) {
   override val relativePath: String = DOLPHIN_PROJECT_ANDROID_ROOT
   override val projectName: String = "Dolphin"
 

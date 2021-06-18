@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.perf
 
-class Base100KotlinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?) :
-AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion) {
+class Base100KotlinPerfTest(useSingleVariantSyncInfrastructure: Boolean, gradleVersion: String?, agpVersion: String?, modelV2: Boolean) :
+AbstractGradleSyncPerfTestCase(useSingleVariantSyncInfrastructure, gradleVersion, agpVersion, modelV2) {
   override val relativePath: String = TestProjectPaths.BASE100_KOTLIN
   override val projectName: String = "Base100Kotlin"
   override val initialDrops: Int = 1
