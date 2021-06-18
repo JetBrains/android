@@ -22,8 +22,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtIfExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
 
 /**
  * Removes an obsolete if-SDK_INT check. This is only handling Kotlin code since for Java
@@ -32,25 +35,37 @@ import org.jetbrains.kotlin.psi.KtIfExpression
 class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
 
   override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
-    val ifExpression = findSdkConditional(startElement) ?: return
+    val condition = findSdkConditional(startElement) ?: return
 
     if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
       return
     }
 
+    val ifExpression = PsiTreeUtil.getParentOfType(condition, KtIfExpression::class.java, true)
+    if (ifExpression != null && ifExpression.condition == condition && applyToIfExpression(ifExpression)) {
+      return
+    }
+    else if (removeThen) {
+      // Replace with true
+        condition.replace(KtPsiFactory(condition).createExpression("true"))
+    } else {
+      // Replace with false
+      condition.replace(KtPsiFactory(condition).createExpression("false"))
+    }
+  }
+
+  private fun applyToIfExpression(ifExpression: KtIfExpression): Boolean {
     val keep =
       if (removeThen)
         ifExpression.then
       else
         ifExpression.`else`
     if (keep != null) {
-      val parent = ifExpression.parent ?: return
+      val parent = ifExpression.parent ?: return false
       if (keep is KtBlockExpression) {
         var child: PsiElement? = keep.firstChild
         while (child != null) {
-          if (child is TreeElement && (child.elementType == KtTokens.RBRACE || child.elementType == KtTokens.LBRACE)) {
-          }
-          else {
+          if (child !is TreeElement || !(child.elementType == KtTokens.RBRACE || child.elementType == KtTokens.LBRACE)) {
             parent.addBefore(child, ifExpression)
           }
           child = child.nextSibling
@@ -60,17 +75,15 @@ class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
         parent.addBefore(keep, ifExpression)
       }
     }
-    else {
-    }
     ifExpression.delete()
+    return true
   }
 
-  private fun findSdkConditional(start: PsiElement): KtIfExpression? {
-    var current: PsiElement = start
+  private fun findSdkConditional(start: PsiElement): KtExpression? {
+    var current: PsiElement? = start
     while (current != null) {
-      val next = PsiTreeUtil.getParentOfType(current, KtIfExpression::class.java, false) ?: break
-      val conditional = next.condition as? PsiElement
-      if (conditional != null && isVersionCheckConditional(conditional)) {
+      val next = PsiTreeUtil.getParentOfType(current, KtBinaryExpression::class.java, false) ?: break
+      if (isVersionCheckConditional(next)) {
         return next
       }
 
@@ -94,7 +107,7 @@ class RemoveSdkCheckFix(var removeThen: Boolean) : LintIdeQuickFix {
     return "Remove obsolete SDK version check"
   }
 
-  override fun getFamilyName(): String? {
+  override fun getFamilyName(): String {
     return "Remove obsolete SDK version checks"
   }
 }
