@@ -108,10 +108,7 @@
             description="Opens the Wear OS emulator pairing assistant" />
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
-      <action id="Android.RunAndroidAvdManager"
-              class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
-              icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
-              description="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
+      <action id="Android.RunAndroidAvdManager" class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"/>
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="ResourceExplorer.open"

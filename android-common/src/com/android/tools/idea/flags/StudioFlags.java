@@ -1234,13 +1234,8 @@ public final class StudioFlags {
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
   public static final Flag<Boolean> ENABLE_NEW_DEVICE_MANAGER_PANEL = Flag.create(
     DEVICE_MANAGER, "enable.device.manager", "Enable new Device Manager panel",
-    "Enables the new Device Manager panel on the right. It will be a replacement for an AVD manager with additional functionality",
+    "Enables the new Device Manager panel. It replaces AVD Manager with additional functionality.",
     true
-  );
-  public static final Flag<Boolean> POINT_AVD_MANAGER_TO_DEVICE_MANAGER = Flag.create(
-    DEVICE_MANAGER, "point.avd.manager.to.device.manager", "Point AVD Manager to Device Manager",
-    "Replaces the AVD Manager entry points with Device Manager",
-    false
   );
   public static final Flag<Boolean> ENABLE_DEVICE_MANAGER_HALF_BAKED_FEATURES = Flag.create(
     DEVICE_MANAGER, "enable.device.manager.half.baked.features", "Enable half baked Device Manager features",

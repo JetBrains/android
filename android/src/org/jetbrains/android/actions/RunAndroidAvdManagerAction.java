@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import icons.StudioIcons;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,17 +46,40 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     switch (event.getPlace()) {
       case ActionPlaces.TOOLBAR:
         // Layout editor device menu
-        presentation.setText("Add Device Definition...");
         presentation.setIcon(null);
+        presentation.setText("Add Device Definition...");
+        presentation.setVisible(true);
         break;
       case ActionPlaces.UNKNOWN:
         // run target menu
-        presentation.setText(redirectToDeviceManager() ? "Open Device Manager" : "Open AVD Manager");
+        presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
+        presentation.setText(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? "Open Device Manager" : "Open AVD Manager");
+        presentation.setVisible(true);
+        break;
+      case ActionPlaces.WELCOME_SCREEN:
+        // welcome screen, but only on first start?
+        presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
+        presentation.setText("AVD Manager");
+        presentation.setVisible(!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get());
         break;
       default:
-        presentation.setText(redirectToDeviceManager() ? "Device Manager" : "AVD Manager");
+        if (event.getPlace().equals(ActionPlaces.getActionGroupPopupPlace(ActionPlaces.WELCOME_SCREEN))) {
+          // welcome screen, opening the popup menu
+          presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
+          presentation.setText("AVD Manager");
+          presentation.setVisible(!StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get());
+        }
+        else {
+          presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
+          presentation.setText(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ? "Device Manager" : "AVD Manager");
+          presentation.setVisible(true);
+        }
         break;
     }
+
+    presentation.setDescription(StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() ?
+                                "Opens the device manager which manages virtual and physical devices" :
+                                "Opens the Android virtual device (AVD) manager");
 
     if (isChromeOSAndIsNotHWAccelerated()) {
       presentation.setVisible(false);
@@ -71,7 +95,7 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
   }
 
   public void openAvdManager(@Nullable Project project) {
-    if (redirectToDeviceManager()) {
+    if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) {
       openDeviceManager(project);
     }
     else {
@@ -107,10 +131,6 @@ public class RunAndroidAvdManagerAction extends DumbAwareAction {
     if (deviceManager != null) {
       deviceManager.show(null);
     }
-  }
-
-  private static boolean redirectToDeviceManager() {
-    return StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get() && StudioFlags.POINT_AVD_MANAGER_TO_DEVICE_MANAGER.get();
   }
 
   @Nullable
