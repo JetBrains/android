@@ -100,7 +100,7 @@
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.RunAndroidSdkManager" anchor="after"/>
     </action>
     <action id="WelcomeScreen.RunDeviceManager"
-            text="Device Manager"
+            text="Virtual Device Manager"
             class="com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenAction"
             icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER">
       <add-to-group group-id="WelcomeScreen.QuickStart"/>
