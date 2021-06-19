@@ -41,7 +41,8 @@ import com.android.tools.property.ptable2.PTableModelUpdateListener
 class FilteredPTableModelImpl<P : PropertyItem>(
   private val model: PropertiesModel<P>,
   private val itemFilter: (P) -> Boolean,
-  private val deleteOperation: (P) -> Unit,
+  private val insertOperation: ((String, String) -> P?)?,
+  private val deleteOperation: ((P) -> Unit)?,
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
@@ -64,6 +65,10 @@ class FilteredPTableModelImpl<P : PropertyItem>(
     groupAndSort(findParticipatingItems(), items)
   }
 
+  override fun supportsInsertableItems() = insertOperation != null
+
+  override fun supportsRemovableItems() = deleteOperation != null
+
   override fun addNewItem(item: P): P {
     if (items.contains(item)) {
       return item
@@ -85,18 +90,25 @@ class FilteredPTableModelImpl<P : PropertyItem>(
     return item
   }
 
+  override fun addItem(name: String, value: String): PTableItem? {
+    val insert = insertOperation ?: return null
+    val item = insert(name, value) ?: return null
+    return addItem(item)
+  }
+
   override fun addItem(item: PTableItem): PTableItem {
     @Suppress("UNCHECKED_CAST")
     return addNewItem(item as P)
   }
 
   override fun removeItem(item: PTableItem) {
+    val delete = deleteOperation ?: return
     val newItems = ArrayList(items)
     if (!newItems.remove(item)) {
       return
     }
     @Suppress("UNCHECKED_CAST")
-    deleteOperation(item as P)
+    delete(item as P)
     updateItems(newItems, null)
   }
 

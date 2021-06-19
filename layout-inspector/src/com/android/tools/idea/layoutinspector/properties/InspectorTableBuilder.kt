@@ -40,7 +40,7 @@ class InspectorTableBuilder(
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val tableModel = create(model, filter, {}, itemComparator, valueEditable = { editorProvider.isValueEditable(it) })
+    val tableModel = create(model, filter, itemComparator = itemComparator, valueEditable = { editorProvider.isValueEditable(it) })
     if (tableModel.items.isEmpty()) {
       return
     }

@@ -41,8 +41,8 @@ class SemanticsBuilder(
   private val uiProvider = TableUIProvider.create(InspectorPropertyItem::class.java, controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    val mergedTableModel = FilteredPTableModel.create(model, { it.section == PropertySection.MERGED }, {}, valueEditable = { false })
-    val unmergedTableModel = FilteredPTableModel.create(model, { it.section == PropertySection.UNMERGED }, {}, valueEditable = { false })
+    val mergedTableModel = FilteredPTableModel.create(model, { it.section == PropertySection.MERGED }, valueEditable = { false })
+    val unmergedTableModel = FilteredPTableModel.create(model, { it.section == PropertySection.UNMERGED }, valueEditable = { false })
     if (mergedTableModel.items.isEmpty() && unmergedTableModel.items.isEmpty()) {
       return
     }
