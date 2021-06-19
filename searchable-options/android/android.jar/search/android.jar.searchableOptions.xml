@@ -419,19 +419,6 @@
     <option name="resource" path="ActionManager" hit="Open the Resource Manager" />
     <option name="the" path="ActionManager" hit="Open the Resource Manager" />
     <option name="open" path="ActionManager" hit="Open..." />
-    <option name="and" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="android" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="avd" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="device" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="emulator" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="images" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="manager" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="manages" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="opens" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="snapshots" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="the" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="virtual" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
-    <option name="which" path="ActionManager" hit="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
     <option name="assistant" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="emulator" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="opens" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
