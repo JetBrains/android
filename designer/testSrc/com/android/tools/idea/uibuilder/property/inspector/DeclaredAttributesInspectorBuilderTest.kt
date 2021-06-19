@@ -34,12 +34,15 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
+import com.android.tools.property.ptable2.PTable
 import com.android.tools.property.ptable2.PTableColumn
 import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
@@ -51,9 +54,15 @@ import com.intellij.testFramework.RunsInEdt
 import icons.StudioIcons
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
+import javax.swing.JTable
+import javax.swing.TransferHandler
 
 @RunsInEdt
 class DeclaredAttributesInspectorBuilderTest {
@@ -169,7 +178,7 @@ class DeclaredAttributesInspectorBuilderTest {
     util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
-    val listener = mock(PTableModelUpdateListener::class.java)
+    val listener: PTableModelUpdateListener = mock()
     declared.addListener(listener)
 
     util.inspector.refresh()
@@ -186,7 +195,7 @@ class DeclaredAttributesInspectorBuilderTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     val declared = util.checkTable(1).tableModel
-    val listener = mock(PTableModelUpdateListener::class.java)
+    val listener: PTableModelUpdateListener = mock()
     declared.addListener(listener)
 
     util.properties[ANDROID_URI, ATTR_TEXT_SIZE].value = "12sp"
@@ -246,6 +255,51 @@ class DeclaredAttributesInspectorBuilderTest {
 
     util.performAction(0, 0, StudioIcons.Common.ADD)
     assertThat(listener.called).isTrue()
+  }
+
+  @Test
+  fun testPasteFromClipboard() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = createBuilder(util.model)
+    builder.attachToInspector(util.inspector, util.properties)
+    val declared = util.checkTable(1).tableModel
+    val listener = RecursiveUpdateListener(declared)
+    declared.addListener(listener)
+
+    val table = PTable.create(declared).component
+    val transferHandler = table.transferHandler
+    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text")
+    transferHandler.importData(table, StringSelection("textColor\t#22FF22"))
+    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text", "textColor")
+    assertThat(listener.called).isTrue()
+  }
+
+  @Test
+  fun testCutToClipboard() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = createBuilder(util.model)
+    builder.attachToInspector(util.inspector, util.properties)
+    val declared = util.checkTable(1).tableModel
+    val listener = RecursiveUpdateListener(declared)
+    declared.addListener(listener)
+
+    val table = PTable.create(declared).component as JTable
+    val transferHandler = table.transferHandler
+    assertThat(transferHandler.getSourceActions(table)).isEqualTo(TransferHandler.COPY_OR_MOVE)
+    table.setRowSelectionInterval(1, 1)
+    val clipboard: Clipboard = mock()
+    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "layout_height", "text")
+    transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
+    assertThat(declared.items.map { it.name }).containsExactly("layout_width", "text")
+    assertThat(listener.called).isTrue()
+
+    val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
+    verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
+    val transferable = transferableCaptor.value
+    assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
+    assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("layout_height\twrap_content")
   }
 
   private fun createBuilder(model: NlPropertiesModel): DeclaredAttributesInspectorBuilder {

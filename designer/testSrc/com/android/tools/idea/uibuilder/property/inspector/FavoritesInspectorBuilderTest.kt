@@ -28,6 +28,7 @@ import com.android.SdkConstants.CONSTRAINT_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
@@ -37,6 +38,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
+import com.android.tools.property.ptable2.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
@@ -46,6 +48,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.StringSelection
+import javax.swing.JTable
+import javax.swing.TransferHandler
 
 @RunsInEdt
 class FavoritesInspectorBuilderTest {
@@ -175,6 +181,37 @@ class FavoritesInspectorBuilderTest {
     util.performAction(0, 1, StudioIcons.Common.REMOVE)
     lineModel.checkItem(0, ANDROID_URI, ATTR_VISIBILITY)
     lineModel.checkItemCount(1)
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;")
+  }
+
+  @Test
+  fun testPasteFavoriteFromClipboard() {
+    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, "tools:gravity;:visibility;", "")
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
+    util.loadProperties()
+    builder.attachToInspector(util.inspector, util.properties)
+    val lineModel = util.checkTable(1)
+    val table = PTable.create(lineModel.tableModel).component
+    val transferHandler = table.transferHandler
+    transferHandler.importData(table, StringSelection("backgroundTint\t#22FF22"))
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;:backgroundTint;")
+  }
+
+  @Test
+  fun testCutFavoriteViaClipboard() {
+    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW)
+    val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
+    util.loadProperties()
+    builder.attachToInspector(util.inspector, util.properties)
+    val lineModel = util.checkTable(1)
+    val table = PTable.create(lineModel.tableModel).component as JTable
+    val transferHandler = table.transferHandler
+    assertThat(transferHandler.getSourceActions(table)).isEqualTo(TransferHandler.COPY_OR_MOVE)
+    table.setRowSelectionInterval(0, 0)
+    val clipboard: Clipboard = mock()
+    transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;")
   }
 }

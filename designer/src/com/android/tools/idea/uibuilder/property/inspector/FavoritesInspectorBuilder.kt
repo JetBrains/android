@@ -129,9 +129,15 @@ class FavoritesInspectorBuilder(
       return
     }
     val favorites = loadFavoritePropertiesIfNeeded()
-    val favoritesTableModel = FilteredPTableModel.create(model, { favorites.contains(it.asReference) }, {}, androidSortOrder)
-    val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(),
-                                                { !favorites.contains(it.asReference)}, { newDelegate(it, favoritesTableModel) })
+    val favoritesTableModel = FilteredPTableModel.create(
+      model,
+      itemFilter = { favorites.contains(it.asReference) },
+      insertOperation = ::insertNewItem,
+      deleteOperation = { removeFromFavorites(it) },
+      itemComparator = androidSortOrder
+    )
+    val newPropertyInstance = NlNewPropertyItem(
+      model, PropertiesTable.emptyTable(), { !favorites.contains(it.asReference)}, { newDelegateWasAssigned(it, favoritesTableModel) })
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
@@ -146,15 +152,44 @@ class FavoritesInspectorBuilder(
     newPropertyInstance.name = ""
   }
 
-  private fun newDelegate(newPropertyItem: NlNewPropertyItem, tableModel: FilteredPTableModel<NlPropertyItem>) {
-    val delegate = newPropertyItem.delegate ?: return
-    val reference = delegate.asReference ?: return
-    val favorites = loadFavoritePropertiesIfNeeded()
-    val newFavorites = favorites.plus(reference)
-    saveFavoriteProperties(newFavorites)
+  /**
+   * The [newPropertyItem] was assigned a new delegate.
+   *
+   * At this point we know which attribute was assigned.
+   * Save that new attribute to the list of favorites,
+   * and clear [newPropertyItem] such that a new favorite can be specified.
+   */
+  private fun newDelegateWasAssigned(newPropertyItem: NlNewPropertyItem, tableModel: FilteredPTableModel<NlPropertyItem>) {
+    val delegate = addToFavorites(newPropertyItem) ?: return
     newPropertyItem.name = ""
     tableModel.addNewItem(delegate)
     newPropertyItem.model.firePropertyValueChangeIfNeeded()
+  }
+
+  private fun insertNewItem(name: String, value: String): NlPropertyItem? {
+    val newPropertyInstance =  NlNewPropertyItem(model, model.properties, { true })
+    newPropertyInstance.name = name
+    return addToFavorites(newPropertyInstance)
+  }
+
+  private fun addToFavorites(newPropertyItem: NlNewPropertyItem): NlPropertyItem? {
+    val delegate = newPropertyItem.delegate ?: return null
+    val reference = delegate.asReference ?: return null
+    val favorites = loadFavoritePropertiesIfNeeded()
+    val newFavorites = favorites.plus(reference)
+    saveFavoriteProperties(newFavorites)
+    return delegate
+  }
+
+  private fun removeFromFavorites(item: NlPropertyItem): Boolean {
+    val favorites = loadFavoritePropertiesIfNeeded()
+    val reference = item.asReference ?: return false
+    val newFavorites = favorites.minus(reference)
+    if (newFavorites.size == favorites.size) {
+      return false
+    }
+    saveFavoriteProperties(newFavorites)
+    return true
   }
 
   private class AddNewRowAction(
@@ -198,12 +233,8 @@ class FavoritesInspectorBuilder(
         model.removeItem(selected)
         return
       }
-      val favorites = loadFavoritePropertiesIfNeeded()
-      val reference = selected.asReference ?: return
-      val newFavorites = favorites.minus(reference)
-      if (newFavorites.size < favorites.size) {
+      if (removeFromFavorites(selected)) {
         model.removeItem(selected)
-        saveFavoriteProperties(newFavorites)
       }
     }
   }

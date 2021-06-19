@@ -61,6 +61,7 @@ class DeclaredAttributesInspectorBuilder(
   private val tableUIProvider = TableUIProvider.create(
     NlNewPropertyItem::class.java, nameControlTypeProvider, nameEditorProvider,
     NlPropertyItem::class.java, controlTypeProvider, editorProvider)
+  private val insertOp = ::insertNewItem
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
     if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
@@ -68,7 +69,7 @@ class DeclaredAttributesInspectorBuilder(
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel.create(model, { it.rawValue != null }, { it.value = null }, androidSortOrder)
+    val declaredTableModel = FilteredPTableModel.create(model, { it.rawValue != null }, insertOp, { it.value = null }, androidSortOrder)
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
@@ -79,6 +80,15 @@ class DeclaredAttributesInspectorBuilder(
     addNewRow.lineModel = tableLineModel
     deleteRowAction.titleModel = titleModel
     deleteRowAction.lineModel = tableLineModel
+  }
+
+  private fun insertNewItem(name: String, value: String): NlPropertyItem? {
+    newPropertyInstance.name = name
+    if (newPropertyInstance.delegate == null) {
+      return null
+    }
+    newPropertyInstance.value = value
+    return newPropertyInstance
   }
 
   private class AddNewRowAction(

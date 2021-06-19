@@ -69,7 +69,8 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
     fun <P : PropertyItem> create(
       model: PropertiesModel<P>,
       itemFilter: (P) -> Boolean,
-      deleteOperation: (P) -> Unit = {},
+      insertOperation: ((String, String) -> P?)? = null,
+      deleteOperation: ((P) -> Unit)? = null,
       itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
       groups: List<GroupSpec<P>> = emptyList(),
       keepNewAfterFlyAway: Boolean = true,
@@ -77,7 +78,7 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
       valueEditable: (P) -> Boolean = { true }
     ): FilteredPTableModel<P> {
       return FilteredPTableModelImpl(
-        model, itemFilter, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing, valueEditable)
+        model, itemFilter, insertOperation, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing, valueEditable)
     }
   }
 }
