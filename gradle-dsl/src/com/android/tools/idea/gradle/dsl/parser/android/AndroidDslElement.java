@@ -59,6 +59,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"signingConfigs", SigningConfigsDslElement.SIGNING_CONFIGS},
     {"sourceSets", SourceSetsDslElement.SOURCE_SETS},
     {"splits", SplitsDslElement.SPLITS},
+    {"testCoverage", TestCoverageDslElement.TEST_COVERAGE},
     {"testOptions", TestOptionsDslElement.TEST_OPTIONS},
     {"viewBinding", ViewBindingDslElement.VIEW_BINDING}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
