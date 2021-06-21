@@ -86,6 +86,9 @@ public interface AndroidModel extends GradleDslModel {
   InstallationModel installation();
 
   @NotNull
+  JacocoModel jacoco();
+
+  @NotNull
   KotlinOptionsModel kotlinOptions();
 
   @NotNull
