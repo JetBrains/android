@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.intellij.openapi.vfs.VirtualFile
+import layoutinspector.snapshots.Metadata
 import java.io.ObjectInputStream
 
 /**
@@ -29,6 +32,27 @@ import java.io.ObjectInputStream
 interface SnapshotLoader {
 
   val propertiesProvider: PropertiesProvider
+  val metadata: Metadata?
+  val processDescriptor: ProcessDescriptor
+    get() = object : ProcessDescriptor {
+      override val device: DeviceDescriptor
+        get() = object : DeviceDescriptor {
+          override val manufacturer: String get() = "" // TODO
+          override val model: String get() = "" // TODO
+          override val serial: String get() = "" // TODO
+          override val isEmulator: Boolean get() = false // TODO
+          override val apiLevel: Int get() = metadata?.apiLevel ?: 0
+          override val version: String get() = "" // TODO
+          override val codename: String get() = "" // TODO
+
+        }
+      override val abiCpuArch: String get() = "" // TODO
+      override val name: String = metadata?.processName ?: "Unknown"
+      override val isRunning: Boolean = false
+      override val pid: Int get() = -1
+      override val streamId: Long = -1
+    }
+
   fun loadFile(file: VirtualFile, model: InspectorModel)
 
   companion object {
@@ -40,19 +64,23 @@ interface SnapshotLoader {
         options.parse(input.readUTF())
       }
       return when (options.version) {
-        ProtocolVersion.Version1 -> LegacySnapshotLoader()
+        ProtocolVersion.Version1, ProtocolVersion.Version3 -> LegacySnapshotLoader()
         ProtocolVersion.Version2 -> null // Seems like version 2 was never implemented?
-        ProtocolVersion.Version3 -> AppInspectionSnapshotLoader()
+        ProtocolVersion.Version4 -> AppInspectionSnapshotLoader()
       }
     }
   }
 }
 
 enum class ProtocolVersion(val value: String) {
-  Version1("1"), // Legacy layout inspector + new inspector for API <= 28
+  Version1("1"), // Legacy layout inspector
   Version2("2"), // Legacy version that was never implemented
-  Version3("3")  // Live layout inspector for API >= 29
+  Version3("3"), // new inspector for API <= 28
+  Version4("4")  // Live layout inspector for API >= 29
 }
+
+private const val VERSION = "version"
+private const val TITLE = "title"
 
 class LayoutInspectorCaptureOptions(
   var version: ProtocolVersion = ProtocolVersion.Version1,
@@ -74,10 +102,5 @@ class LayoutInspectorCaptureOptions(
     val obj = JsonParser().parse(json).asJsonObject
     version = ProtocolVersion.valueOf("Version${obj.get(VERSION).asString}")
     title = obj.get(TITLE).asString
-  }
-
-  companion object {
-    private val VERSION = "version"
-    private val TITLE = "title"
   }
 }

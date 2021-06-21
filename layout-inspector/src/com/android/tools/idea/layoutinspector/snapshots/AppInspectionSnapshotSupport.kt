@@ -24,10 +24,14 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DisconnectedViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ex.ApplicationManagerEx
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.write
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetAllParametersResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
+import layoutinspector.snapshots.Metadata
 import layoutinspector.snapshots.Snapshot
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.io.ByteArrayOutputStream
@@ -40,6 +44,8 @@ import java.nio.file.Path
  */
 class AppInspectionSnapshotLoader : SnapshotLoader {
   override lateinit var propertiesProvider: AppInspectionPropertiesProvider
+  override lateinit var metadata: Metadata
+    private set
 
   override fun loadFile(file: VirtualFile, model: InspectorModel) {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
@@ -48,10 +54,15 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
     // TODO: error handling, metrics
     val treeLoader = AppInspectionTreeLoader(model.project, {}, SkiaParserImpl({}))
     ObjectInputStream(file.inputStream).use { input ->
-      input.readUTF() // Options, unused
-      val api = input.readInt()
-      val name = input.readUTF()
-      val snapshot = Snapshot.parseFrom(input.readAllBytes())
+      val options = LayoutInspectorCaptureOptions().apply { parse(input.readUTF()) }
+      if (options.version != ProtocolVersion.Version4) {
+        val message = "AppInspectionSnapshotSupport only supports v4, got ${options.version}."
+        Logger.getInstance(AppInspectionSnapshotLoader::class.java).error(message)
+        throw Exception(message)
+      }
+
+      metadata = Metadata.parseDelimitedFrom(input)
+      val snapshot = Snapshot.parseDelimitedFrom(input)
       val response = snapshot.viewSnapshot
       val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.id }
       val rootIds = response.windowRoots.idsList
@@ -62,24 +73,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           val composeInfo = allComposeInfo[windowInfo.layout.rootView.id]
           val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout,
                                                     composeInfo?.composables)
-          val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, object : ProcessDescriptor {
-            override val device: DeviceDescriptor
-              get() = object : DeviceDescriptor {
-                override val manufacturer: String get() = "" // TODO
-                override val model: String get() = "" // TODO
-                override val serial: String get() = "" // TODO
-                override val isEmulator: Boolean get() = false // TODO
-                override val apiLevel: Int get() = api
-                override val version: String get() = "" // TODO
-                override val codename: String get() = "" // TODO
-
-              }
-            override val abiCpuArch: String get() = "" // TODO
-            override val name: String = name
-            override val isRunning: Boolean = false
-            override val pid: Int get() = -1
-            override val streamId: Long = -1
-          }) ?: throw Exception()
+          val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
           model.update(treeData.window, rootIds, treeData.generation)
           viewPropertiesCache.setAllFrom(windowInfo.properties)
           composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }
@@ -94,7 +88,8 @@ fun saveAppInspectorSnapshot(
   data: Map<Long, ViewLayoutInspectorClient.Data>,
   properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
   composeProperties: Map<Long, GetAllParametersResponse>,
-  processDescriptor: ProcessDescriptor
+  processDescriptor: ProcessDescriptor,
+  isFetchingContinuously: Boolean
 ) {
   val response = LayoutInspectorViewProtocol.CaptureSnapshotResponse.newBuilder().apply {
     val allRootIds = data.values.firstOrNull()?.rootIds
@@ -111,15 +106,24 @@ fun saveAppInspectorSnapshot(
   val composeInfo = composeProperties.mapValues { (id, composePropertyEvent) ->
     data[id]?.composeEvent to composePropertyEvent
   }
-  saveAppInspectorSnapshot(path, response, composeInfo, processDescriptor)
+  saveAppInspectorSnapshot(path, response, composeInfo, processDescriptor, isFetchingContinuously)
 }
 
 fun saveAppInspectorSnapshot(
   path: Path,
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
   composeInfo: Map<Long, Pair<GetComposablesResponse?, GetAllParametersResponse>>,
-  processDescriptor: ProcessDescriptor
+  processDescriptor: ProcessDescriptor,
+  isFetchingContinuously: Boolean
 ) {
+  val metadata = Metadata.newBuilder().apply {
+    apiLevel = processDescriptor.device.apiLevel
+    processName = processDescriptor.name
+    containsCompose = composeInfo.isNotEmpty()
+    liveDuringCapture = isFetchingContinuously
+    source = Metadata.Source.STUDIO
+    sourceVersion = ApplicationInfo.getInstance().fullVersion
+  }.build()
   val snapshot = Snapshot.newBuilder().apply {
     viewSnapshot = data
     addAllComposeInfo(composeInfo.map { (viewId, composableAndParameters) ->
@@ -131,13 +135,11 @@ fun saveAppInspectorSnapshot(
       }.build()
     })
   }.build()
-  val serializedProto = snapshot.toByteArray()
   val output = ByteArrayOutputStream()
   ObjectOutputStream(output).use { objectOutput ->
-    objectOutput.writeUTF(LayoutInspectorCaptureOptions(ProtocolVersion.Version3, "TODO").toString())
-    objectOutput.writeInt(processDescriptor.device.apiLevel)
-    objectOutput.writeUTF(processDescriptor.name)
-    objectOutput.write(serializedProto)
+    objectOutput.writeUTF(LayoutInspectorCaptureOptions(ProtocolVersion.Version4, "TODO").toString())
+    metadata.writeDelimitedTo(objectOutput)
+    snapshot.writeDelimitedTo(objectOutput)
   }
   path.write(output.toByteArray())
 }

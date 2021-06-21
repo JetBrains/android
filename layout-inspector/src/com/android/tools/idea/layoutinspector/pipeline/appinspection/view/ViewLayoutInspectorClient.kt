@@ -268,7 +268,7 @@ class ViewLayoutInspectorClient(
       fetchAndSaveSnapshot(path)
     }
     else {
-      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, processDescriptor)
+      saveAppInspectorSnapshot(path, lastData, lastProperties, lastComposeParameters, processDescriptor, isFetchingContinuously)
     }
   }
 
@@ -312,7 +312,7 @@ class ViewLayoutInspectorClient(
         }
       } ?: mapOf()
 
-      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, processDescriptor)
+      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, processDescriptor, isFetchingContinuously)
     } ?: throw Exception()
   }
 }

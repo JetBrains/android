@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.annotations.concurrency.Slow
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -23,8 +24,11 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.write
+import layoutinspector.snapshots.Metadata
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
 import java.io.ByteArrayInputStream
@@ -37,6 +41,8 @@ import javax.imageio.ImageIO
 
 class LegacySnapshotLoader : SnapshotLoader {
   override val propertiesProvider = LegacyPropertiesProvider()
+  override var metadata: Metadata? = null
+    private set
 
   override fun loadFile(file: VirtualFile, model: InspectorModel) {
     val options = LayoutInspectorCaptureOptions()
@@ -44,6 +50,15 @@ class LegacySnapshotLoader : SnapshotLoader {
     ObjectInputStream(file.inputStream).use { input ->
       // Parse options
       options.parse(input.readUTF())
+      if (options.version != ProtocolVersion.Version1 && options.version != ProtocolVersion.Version3) {
+        val message = "LegacySnapshotLoader only supports v1 and v3, got ${options.version}."
+        Logger.getInstance(AppInspectionSnapshotLoader::class.java).error(message)
+        throw Exception(message)
+      }
+
+      if (options.version == ProtocolVersion.Version3) {
+        metadata = Metadata.parseDelimitedFrom(input)
+      }
 
       val windows = mutableListOf<String>()
       while (input.available() > 0) {
@@ -60,7 +75,10 @@ class LegacySnapshotLoader : SnapshotLoader {
         val previewBytes = ByteArray(input.readInt())
         input.readFully(previewBytes)
         val image = ImageIO.read(ByteArrayInputStream(previewBytes))
-        val windowName = input.readString()
+        val windowName = if (options.version == ProtocolVersion.Version3) {
+          input.readString()
+        } else ""
+
         windows.add(windowName)
         val window = object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
           override fun refreshImages(scale: Double) {
@@ -80,11 +98,24 @@ class LegacySnapshotLoader : SnapshotLoader {
 }
 
 @Slow
-fun saveLegacySnapshot(path: Path, data: Map<String, ByteArray>, images: Map<String, ByteArray>) {
+fun saveLegacySnapshot(
+  path: Path,
+  data: Map<String, ByteArray>,
+  images: Map<String, ByteArray>,
+  process: ProcessDescriptor
+) {
   val baos = ByteArrayOutputStream(4096)
   ObjectOutputStream(baos).use { output ->
+    output.writeUTF(LayoutInspectorCaptureOptions(ProtocolVersion.Version3).toString())
 
-    output.writeUTF(LayoutInspectorCaptureOptions().toString())
+    val metadata = Metadata.newBuilder().apply {
+      this.apiLevel = process.device.apiLevel
+      this.processName = process.name
+      source = Metadata.Source.STUDIO
+      sourceVersion = ApplicationInfo.getInstance().fullVersion
+    }.build()
+
+    metadata.writeDelimitedTo(output)
 
     for ((name, windowData) in data) {
       output.writeInt(windowData.size)

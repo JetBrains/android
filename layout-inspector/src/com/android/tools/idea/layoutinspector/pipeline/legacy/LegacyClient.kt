@@ -129,7 +129,7 @@ class LegacyClient(
 
   @Slow
   override fun saveSnapshot(path: Path) {
-    saveLegacySnapshot(path, latestData, latestScreenshots)
+    saveLegacySnapshot(path, latestData, latestScreenshots, process)
   }
 
   /**

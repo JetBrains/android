@@ -102,6 +102,8 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
 
         override val capabilities: Set<InspectorClient.Capability>
           get() = if (model.pictureType == AndroidWindow.ImageType.SKP) setOf(InspectorClient.Capability.SUPPORTS_SKP) else setOf()
+
+        override val process = snapshotLoader.processDescriptor
       }
       val layoutInspector = LayoutInspector(client, model, stats, treeSettings)
       val deviceViewPanel = DeviceViewPanel(null, layoutInspector, viewSettings, workbench)

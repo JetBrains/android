@@ -6,6 +6,23 @@ option java_multiple_files = true;
 import "compose_layout_inspection.proto";
 import "view_layout_inspection.proto";
 
+// Metadata for the snapshot. Hopefully we will be able to recover this even if loading the
+// snapshot itself fails, so we can log something useful.
+message Metadata {
+   uint32 api_level = 1;
+   string process_name = 2;
+   bool contains_compose = 3;
+   bool live_during_capture = 4;
+
+   enum Source {
+     UNKNOWN = 0;
+     STUDIO = 1;
+   }
+
+   Source source = 5;
+   string source_version = 6;
+}
+
 message Snapshot {
    layoutinspector.view.inspection.CaptureSnapshotResponse view_snapshot = 1;
 
