@@ -40,6 +40,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDsl
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement.SOURCE_SET;
 import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS;
 import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS;
+import static com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement.TEST_COVERAGE;
 import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
@@ -65,6 +66,7 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.api.android.SplitsModel;
+import com.android.tools.idea.gradle.dsl.api.android.TestCoverageModel;
 import com.android.tools.idea.gradle.dsl.api.android.TestOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.api.android.AdbOptionsModel;
@@ -98,6 +100,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.TestCoverageDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -398,6 +401,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @NotNull
   public ResolvedPropertyModel targetProjectPath() {
     return getModelForProperty(TARGET_PROJECT_PATH);
+  }
+
+  @Override
+  public @NotNull TestCoverageModel testCoverage() {
+    TestCoverageDslElement testCoverageDslElement = myDslElement.ensurePropertyElement(TEST_COVERAGE);
+    return new TestCoverageModelImpl(testCoverageDslElement);
   }
 
   @Override

@@ -134,6 +134,9 @@ public interface AndroidModel extends GradleDslModel {
   ResolvedPropertyModel targetProjectPath();
 
   @NotNull
+  TestCoverageModel testCoverage();
+
+  @NotNull
   ResolvedPropertyModel testNamespace();
 
   @NotNull
