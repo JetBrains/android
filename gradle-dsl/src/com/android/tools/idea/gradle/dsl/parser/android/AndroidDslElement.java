@@ -51,6 +51,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"dexOptions", DexOptionsDslElement.DEX_OPTIONS},
     {"externalNativeBuild", ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD},
     {"installation", InstallationDslElement.INSTALLATION},
+    {"jacoco", JacocoDslElement.JACOCO},
     {"kotlinOptions", KotlinOptionsDslElement.KOTLIN_OPTIONS},
     {"lintOptions", LintOptionsDslElement.LINT_OPTIONS},
     {"packagingOptions", PackagingOptionsDslElement.PACKAGING_OPTIONS},
