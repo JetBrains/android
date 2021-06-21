@@ -6,16 +6,8 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.getCu
 import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
 import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.ide.common.util.PathString;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.Namespacing;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.rendering.RenderService;
@@ -29,18 +21,11 @@ import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceClassRegistry;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.util.FileExtensions;
-import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
@@ -66,10 +51,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -199,7 +183,7 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
                     @NotNull ClassTransform nonProjectTransformations,
                     @NotNull ClassBinaryCache cache,
                     @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
-    super(parent, projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache, !SystemInfo.isWindows);
+    super(new LibraryResourceClassLoader(parent, renderContext.getModule()), projectTransformations, nonProjectTransformations, ModuleClassLoader::onDiskClassNameLookup, cache, !SystemInfo.isWindows);
     Disposer.register(renderContext.getModule(), this);
     myModuleReference = new WeakReference<>(renderContext.getModule());
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
@@ -212,7 +196,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     myConstantRemapperModificationCount = ProjectConstantRemapper.getInstance(renderContext.getProject()).getModificationCount();
     myDiagnostics = diagnostics;
 
-    registerResources(renderContext.getModule());
     cache.setDependencies(ContainerUtil.map(getExternalJars(), URL::getPath));
   }
 
@@ -303,25 +286,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     boolean classFound = true;
     myDiagnostics.classFindStart(name);
     try {
-      if (!myInsideJarClassLoader) {
-        if (module != null) {
-          if (isResourceClassName(name)) {
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            if (facet != null) {
-              ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
-              byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, repositoryManager);
-              if (data != null) {
-                LOG.debug("  Defining class from AAR registry");
-                return loadClass(name, data);
-              }
-            }
-            else {
-              LOG.debug("  LocalResourceRepositoryInstance not found");
-            }
-          }
-        }
-      }
-
       if (LOG.isDebugEnabled()) {
         LOG.debug(String.format("  super.findClass(%s)", anonymizeClassName(name)));
       }
@@ -477,100 +441,6 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     myClassFilesLastModified.put(name, ClassModificationTimestamp.fromVirtualFile(classFile));
 
     return super.loadClassFile(name, classFile);
-  }
-
-  private static void registerResources(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      return;
-    }
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(androidFacet);
-    ResourceIdManager idManager = ResourceIdManager.get(module);
-    ResourceClassRegistry classRegistry = ResourceClassRegistry.get(module.getProject());
-
-    // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
-    // can't treat it specially here, or we will read the wrong bytecode later.
-    if (!idManager.finalIdsUsed()) {
-      classRegistry.addLibrary(repositoryManager.getAppResources(),
-                               idManager,
-                               ReadAction.compute(() -> AndroidManifestUtils.getPackageName(androidFacet)),
-                               repositoryManager.getNamespace());
-    }
-
-    for (AndroidFacet dependency : AndroidUtils.getAllAndroidDependencies(module, false)) {
-      classRegistry.addLibrary(repositoryManager.getAppResources(),
-                               idManager,
-                               ReadAction.compute(() -> AndroidManifestUtils.getPackageName(dependency)),
-                               repositoryManager.getNamespace());
-    }
-
-    AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
-    for (ExternalAndroidLibrary library : moduleSystem.getAndroidLibraryDependencies()) {
-      if (library.getHasResources()) {
-        registerLibraryResources(library, repositoryManager, classRegistry, idManager);
-      }
-    }
-  }
-
-  private static void registerLibraryResources(@NotNull ExternalAndroidLibrary library,
-                                               @NotNull ResourceRepositoryManager repositoryManager,
-                                               @NotNull ResourceClassRegistry classRegistry,
-                                               @NotNull ResourceIdManager idManager) {
-    LocalResourceRepository appResources = repositoryManager.getAppResources();
-
-    // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
-    ResourceRepository rClassContents;
-    ResourceNamespace resourcesNamespace;
-    String packageName;
-    if (repositoryManager.getNamespacing() == Namespacing.DISABLED) {
-      packageName = getPackageName(library);
-      if (packageName == null) {
-        return;
-      }
-      rClassContents = appResources;
-      resourcesNamespace = ResourceNamespace.RES_AUTO;
-    }
-    else {
-      SingleNamespaceResourceRepository aarResources = repositoryManager.findLibraryResources(library);
-      if (aarResources == null) {
-        return;
-      }
-
-      rClassContents = aarResources;
-      resourcesNamespace = aarResources.getNamespace();
-      packageName = aarResources.getPackageName();
-    }
-
-    classRegistry.addLibrary(rClassContents, idManager, packageName, resourcesNamespace);
-  }
-
-  @Nullable
-  private static String getPackageName(@NotNull ExternalAndroidLibrary library) {
-    if (library.getPackageName() != null) {
-      return library.getPackageName();
-    }
-    PathString manifestFile = library.getManifestFile();
-    if (manifestFile != null) {
-      try {
-        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
-      }
-      catch (IOException ignore) {
-        // Workaround for https://issuetracker.google.com/127647973
-        // Until fixed, the VFS might have an outdated view of the gradle cache directory. Some manifests might appear as missing but they
-        // are actually there. In those cases, we issue a refresh call to fix the problem.
-        if (VirtualFileSystemOpener.INSTANCE.recognizes(manifestFile)) {
-          FileExtensions.toVirtualFile(manifestFile, true);
-
-          try {
-            return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifestFile);
-          }
-          catch (IOException ignore2) {
-            return null;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   /**
