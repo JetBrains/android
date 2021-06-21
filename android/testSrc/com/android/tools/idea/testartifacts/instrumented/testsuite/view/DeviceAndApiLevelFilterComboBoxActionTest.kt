@@ -137,6 +137,37 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
   }
 
   @Test
+  fun filterDeviceByApiLevelWithCodename() {
+    val comboBox = DeviceAndApiLevelFilterComboBoxAction()
+    val filter = comboBox.filter
+    val device1 = AndroidDevice("id1", "device1", "device1", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(30))
+    val device2 = AndroidDevice("id2", "device2", "device2", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(30, "S"))
+
+    // Filter by API S
+    comboBox.addDevice(device1)
+    comboBox.addDevice(device2)
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API S" }.actionPerformed(TestActionEvent())
+
+    val actionEvent = TestActionEvent()
+    comboBox.update(actionEvent)
+
+    assertThat(actionEvent.presentation.text).isEqualTo("API S")
+    assertThat(actionEvent.presentation.icon).isNull()
+    assertThat(filter(device1)).isFalse()
+    assertThat(filter(device2)).isTrue()
+
+    // Filter by API 30
+    comboBox.createActionGroup().flattenedActions().first { it.templateText == "API 30" }.actionPerformed(TestActionEvent())
+    val secondActionEvent = TestActionEvent()
+    comboBox.update(secondActionEvent)
+
+    assertThat(secondActionEvent.presentation.text).isEqualTo("API 30")
+    assertThat(secondActionEvent.presentation.icon).isNull()
+    assertThat(filter(device1)).isTrue()
+    assertThat(filter(device2)).isFalse()
+  }
+
+  @Test
   fun listenerIsInvokedUponSelection() {
     val mockListener = mock<DeviceAndApiLevelFilterComboBoxActionListener>()
     val comboBox = DeviceAndApiLevelFilterComboBoxAction().apply {
