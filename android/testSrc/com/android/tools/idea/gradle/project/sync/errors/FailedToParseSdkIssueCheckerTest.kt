@@ -50,7 +50,7 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
 
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.description).contains(
-      ("The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty\n\n" +
+      ("The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty\n\n" +
        "Current user ('${SystemProperties.getUserName()}') does not have write access to the SDK directory."))
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
@@ -69,7 +69,7 @@ class FailedToParseSdkIssueCheckerTest: AndroidGradleTestCase() {
 
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.description).contains(
-      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty")
+      "The directory 'add-ons', in the Android SDK at '${sdkPath.absolutePath}', is either missing or empty")
     assertThat(buildIssue.quickFixes).hasSize(0)
   }
 
