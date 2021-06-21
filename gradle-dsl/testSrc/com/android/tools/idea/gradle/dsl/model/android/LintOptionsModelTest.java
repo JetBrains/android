@@ -54,7 +54,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.absolutePaths().setValue(true);
     lintOptions.check().getListValue("check-id-2").setValue("check-id-3");
     lintOptions.checkAllWarnings().setValue(false);
+    lintOptions.checkDependencies().setValue(true);
+    lintOptions.checkGeneratedSources().setValue(false);
     lintOptions.checkReleaseBuilds().setValue(true);
+    lintOptions.checkTestSources().setValue(false);
     lintOptions.disable().getListValue("disable-id-2").setValue("disable-id-3");
     lintOptions.enable().getListValue("enable-id-2").setValue("enable-id-3");
     lintOptions.error().getListValue("error-id-1").setValue("error-id-3");
@@ -63,6 +66,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlOutput().setValue("other-html.output");
     lintOptions.htmlReport().setValue(false);
     lintOptions.ignore().getListValue("ignore-id-2").setValue("ignore-id-3");
+    lintOptions.ignoreTestSources().setValue(true);
     lintOptions.ignoreWarnings().setValue(false);
     lintOptions.informational().getListValue("informational-id-1").setValue("informational-id-3");
     lintOptions.lintConfig().setValue("other-lint.config");
@@ -87,7 +91,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("absolutePaths", Boolean.TRUE, lintOptions.absolutePaths());
     assertEquals("check", ImmutableList.of("check-id-1", "check-id-3"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.FALSE, lintOptions.checkAllWarnings());
+    assertEquals("checkDependencies", Boolean.TRUE, lintOptions.checkDependencies());
+    assertEquals("checkGeneratedSources", Boolean.FALSE, lintOptions.checkGeneratedSources());
     assertEquals("checkReleaseBuilds", Boolean.TRUE, lintOptions.checkReleaseBuilds());
+    assertEquals("checkTestSources", Boolean.FALSE, lintOptions.checkTestSources());
     assertEquals("disable", ImmutableList.of("disable-id-1", "disable-id-3"), lintOptions.disable());
     assertEquals("enable", ImmutableList.of("enable-id-1", "enable-id-3"), lintOptions.enable());
     assertEquals("error", ImmutableList.of("error-id-3", "error-id-2"), lintOptions.error());
@@ -96,6 +103,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlOutput", "other-html.output", lintOptions.htmlOutput());
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-3"), lintOptions.ignore());
+    assertEquals("ignoreTestSources", Boolean.TRUE, lintOptions.ignoreTestSources());
     assertEquals("ignoreWarnings", Boolean.FALSE, lintOptions.ignoreWarnings());
     assertEquals("informational", ImmutableList.of("informational-id-3", "informational-id-2"), lintOptions.informational());
     assertEquals("lintConfig", "other-lint.config", lintOptions.lintConfig());
@@ -124,7 +132,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.absolutePaths().setValue(false);
     lintOptions.check().addListValue().setValue("check-id-1");
     lintOptions.checkAllWarnings().setValue(true);
+    lintOptions.checkDependencies().setValue(false);
+    lintOptions.checkGeneratedSources().setValue(true);
     lintOptions.checkReleaseBuilds().setValue(false);
+    lintOptions.checkTestSources().setValue(true);
     lintOptions.disable().addListValue().setValue("disable-id-1");
     lintOptions.enable().addListValue().setValue("enable-id-1");
     lintOptions.error().addListValue().setValue("error-id-1");
@@ -133,6 +144,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlOutput().setValue("html.output");
     lintOptions.htmlReport().setValue(false);
     lintOptions.ignore().addListValue().setValue("ignore-id-1");
+    lintOptions.ignoreTestSources().setValue(false);
     lintOptions.ignoreWarnings().setValue(true);
     lintOptions.informational().addListValue().setValue("informational-id-1");
     lintOptions.lintConfig().setValue("lint.config");
@@ -158,7 +170,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("absolutePaths", Boolean.FALSE, lintOptions.absolutePaths());
     assertEquals("check", ImmutableList.of("check-id-1"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.TRUE, lintOptions.checkAllWarnings());
+    assertEquals("checkDependencies", Boolean.FALSE, lintOptions.checkDependencies());
+    assertEquals("checkGeneratedSources", Boolean.TRUE, lintOptions.checkGeneratedSources());
     assertEquals("checkReleaseBuilds", Boolean.FALSE, lintOptions.checkReleaseBuilds());
+    assertEquals("checkTestSources", Boolean.TRUE, lintOptions.checkTestSources());
     assertEquals("disable", ImmutableList.of("disable-id-1"), lintOptions.disable());
     assertEquals("enable", ImmutableList.of("enable-id-1"), lintOptions.enable());
     assertEquals("error", ImmutableList.of("error-id-1"), lintOptions.error());
@@ -167,6 +182,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlOutput", "html.output", lintOptions.htmlOutput());
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1"), lintOptions.ignore());
+    assertEquals("ignoreTestSources", Boolean.FALSE, lintOptions.ignoreTestSources());
     assertEquals("ignoreWarnings", Boolean.TRUE, lintOptions.ignoreWarnings());
     assertEquals("informational", ImmutableList.of("informational-id-1"), lintOptions.informational());
     assertEquals("lintConfig", "lint.config", lintOptions.lintConfig());
@@ -196,7 +212,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.absolutePaths().delete();
     lintOptions.check().delete();
     lintOptions.checkAllWarnings().delete();
+    lintOptions.checkDependencies().delete();
+    lintOptions.checkGeneratedSources().delete();
     lintOptions.checkReleaseBuilds().delete();
+    lintOptions.checkTestSources().delete();
     lintOptions.disable().delete();
     lintOptions.enable().delete();
     lintOptions.error().delete();
@@ -205,6 +224,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.htmlOutput().delete();
     lintOptions.htmlReport().delete();
     lintOptions.ignore().delete();
+    lintOptions.ignoreTestSources().delete();
     lintOptions.ignoreWarnings().delete();
     lintOptions.informational().delete();
     lintOptions.lintConfig().delete();
@@ -238,7 +258,10 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("absolutePaths", Boolean.FALSE, lintOptions.absolutePaths());
     assertEquals("check", ImmutableList.of("check-id-1", "check-id-2"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.TRUE, lintOptions.checkAllWarnings());
+    assertEquals("checkDependencies", Boolean.FALSE, lintOptions.checkDependencies());
+    assertEquals("checkGeneratedSources", Boolean.TRUE, lintOptions.checkGeneratedSources());
     assertEquals("checkReleaseBuilds", Boolean.FALSE, lintOptions.checkReleaseBuilds());
+    assertEquals("checkTestSources", Boolean.TRUE, lintOptions.checkTestSources());
     assertEquals("disable", ImmutableList.of("disable-id-1", "disable-id-2"), lintOptions.disable());
     assertEquals("enable", ImmutableList.of("enable-id-1", "enable-id-2"), lintOptions.enable());
     assertEquals("error", ImmutableList.of("error-id-1", "error-id-2"), lintOptions.error());
@@ -247,6 +270,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("htmlOutput", "html.output", lintOptions.htmlOutput());
     assertEquals("htmlReport", Boolean.FALSE, lintOptions.htmlReport());
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-2"), lintOptions.ignore());
+    assertEquals("ignoreTestSources", Boolean.FALSE, lintOptions.ignoreTestSources());
     assertEquals("ignoreWarnings", Boolean.TRUE, lintOptions.ignoreWarnings());
     assertEquals("informational", ImmutableList.of("informational-id-1", "informational-id-2"), lintOptions.informational());
     assertEquals("lintConfig", "lint.config", lintOptions.lintConfig());

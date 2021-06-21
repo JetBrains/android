@@ -4,7 +4,10 @@ android {
     absolutePaths true
     check 'check-id-1', 'check-id-3'
     checkAllWarnings false
+    checkDependencies true
+    checkGeneratedSources false
     checkReleaseBuilds true
+    checkTestSources false
     disable 'disable-id-1', 'disable-id-3'
     enable 'enable-id-1', 'enable-id-3'
     error 'error-id-3', 'error-id-2'
@@ -13,6 +16,7 @@ android {
     htmlOutput file('other-html.output')
     htmlReport false
     ignore 'ignore-id-1', 'ignore-id-3'
+    ignoreTestSources true
     ignoreWarnings false
     informational 'informational-id-3', 'informational-id-2'
     lintConfig file('other-lint.config')
