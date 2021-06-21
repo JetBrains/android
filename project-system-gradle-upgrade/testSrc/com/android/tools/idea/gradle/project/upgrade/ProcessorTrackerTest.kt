@@ -59,17 +59,17 @@ class ProcessorTrackerTest : UpgradeGradleFileModelTestCase() {
       UpgradeAssistantProcessorEvent.newBuilder()
         .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1).setFiles(2))
         .build(),
       UpgradeAssistantProcessorEvent.newBuilder()
         .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1).setFiles(2))
         .build(),
       UpgradeAssistantProcessorEvent.newBuilder()
         .setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
         .addComponentInfo(0, UpgradeAssistantComponentInfo.newBuilder().setIsEnabled(true).setKind(AGP_CLASSPATH_DEPENDENCY))
-        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(SYNC_SKIPPED))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(SYNC_SKIPPED).setUsages(1).setFiles(2))
         .build(),
     )
   }
