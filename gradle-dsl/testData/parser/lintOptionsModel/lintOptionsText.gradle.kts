@@ -4,7 +4,10 @@ android {
     isAbsolutePaths = false
     check("check-id-1", "check-id-2")
     isCheckAllWarnings = true
+    isCheckDependencies = false
+    isCheckGeneratedSources = true
     isCheckReleaseBuilds = false
+    isCheckTestSources = true
     disable("disable-id-1", "disable-id-2")
     enable("enable-id-1", "enable-id-2")
     error("error-id-1", "error-id-2")
@@ -13,6 +16,7 @@ android {
     htmlOutput = file("html.output")
     htmlReport = false
     ignore("ignore-id-1", "ignore-id-2")
+    isIgnoreTestSources = false
     isIgnoreWarnings = true
     informational("informational-id-1", "informational-id-2")
     lintConfig = file("lint.config")

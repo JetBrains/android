@@ -33,7 +33,16 @@ public interface LintOptionsModel extends GradleDslModel {
   ResolvedPropertyModel checkAllWarnings();
 
   @NotNull
+  ResolvedPropertyModel checkDependencies();
+
+  @NotNull
+  ResolvedPropertyModel checkGeneratedSources();
+
+  @NotNull
   ResolvedPropertyModel checkReleaseBuilds();
+
+  @NotNull
+  ResolvedPropertyModel checkTestSources();
 
   @NotNull
   ResolvedPropertyModel disable();
@@ -58,6 +67,9 @@ public interface LintOptionsModel extends GradleDslModel {
 
   @NotNull
   ResolvedPropertyModel ignore();
+
+  @NotNull
+  ResolvedPropertyModel ignoreTestSources();
 
   @NotNull
   ResolvedPropertyModel ignoreWarnings();

@@ -34,7 +34,10 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   // will not work.
   @NonNls public static final ModelPropertyDescription CHECK = new ModelPropertyDescription("mCheck", MUTABLE_SET);
   @NonNls public static final String CHECK_ALL_WARNINGS = "mCheckAllWarnings";
+  @NonNls public static final String CHECK_DEPENDENCIES = "mCheckDependencies";
+  @NonNls public static final String CHECK_GENERATED_SOURCES = "mCheckGeneratedSources";
   @NonNls public static final String CHECK_RELEASE_BUILDS = "mCheckReleaseBuilds";
+  @NonNls public static final String CHECK_TEST_SOURCES  ="mCheckTestSources";
   @NonNls public static final ModelPropertyDescription DISABLE = new ModelPropertyDescription("mDisable", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription ENABLE = new ModelPropertyDescription("mEnable", MUTABLE_SET);
   @NonNls public static final ModelPropertyDescription ERROR = new ModelPropertyDescription("mError", MUTABLE_SET);
@@ -43,6 +46,7 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NonNls public static final String HTML_OUTPUT = "mHtmlOutput";
   @NonNls public static final String HTML_REPORT = "mHtmlReport";
   @NonNls public static final ModelPropertyDescription IGNORE = new ModelPropertyDescription("mIgnore", MUTABLE_SET);
+  @NonNls public static final String IGNORE_TEST_SOURCES = "mIgnoreTestSources";
   @NonNls public static final String IGNORE_WARNINGS = "mIgnoreWarnings";
   @NonNls public static final ModelPropertyDescription INFORMATIONAL = new ModelPropertyDescription("mInformational", MUTABLE_SET);
   @NonNls public static final String LINT_CONFIG = "mLintConfig";
@@ -85,9 +89,24 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   }
 
   @Override
+  public @NotNull ResolvedPropertyModel checkDependencies() {
+    return getModelForProperty(CHECK_DEPENDENCIES);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel checkGeneratedSources() {
+    return getModelForProperty(CHECK_GENERATED_SOURCES);
+  }
+
+  @Override
   @NotNull
   public ResolvedPropertyModel checkReleaseBuilds() {
     return getModelForProperty(CHECK_RELEASE_BUILDS);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel checkTestSources() {
+    return getModelForProperty(CHECK_TEST_SOURCES);
   }
 
   @Override
@@ -136,6 +155,11 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NotNull
   public ResolvedPropertyModel ignore() {
     return getModelForProperty(IGNORE);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel ignoreTestSources() {
+    return getModelForProperty(IGNORE_TEST_SOURCES);
   }
 
   @Override
