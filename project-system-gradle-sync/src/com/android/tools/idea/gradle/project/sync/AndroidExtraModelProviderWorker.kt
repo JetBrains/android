@@ -106,6 +106,10 @@ internal class AndroidExtraModelProviderWorker(
       ) : AndroidProjectResult()
   }
 
+  private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
+    return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 1, 0, "alpha", 1, true)
+  }
+
   /**
    * Requests Android project models for the given [buildModels]
    *
@@ -139,15 +143,17 @@ internal class AndroidExtraModelProviderWorker(
 
           var androidProjectResult: AndroidProjectResult? = null
           // Request V2 models if flag is enabled.
-          // TODO(191002778): Do not request V2 models if AGP < 7.0.
           if (syncOptions.flags.studioFlagUseV2BuilderModels) {
+            // First request the Versions model to make sure we can fetch V2 models.
             val modelVersion = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
             if (modelVersion != null) {
-              val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
-              val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
+              if (canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
+                val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
+                val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
-              if (androidProject != null && androidDsl != null)  {
-                androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
+                if (androidProject != null && androidDsl != null)  {
+                  androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
+                }
               }
             }
           }
@@ -252,33 +258,23 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun populateProjectSyncIssues(androidModules: List<GradleModule>) {
-    if (syncOptions.flags.studioFlagUseV2BuilderModels) {
-      // TODO(191002778): Do not request V2 models if AGP < 7.0.
-      // Request V2 SyncIssues.
-      actionRunner.runActions(
-        androidModules.map { module ->
-          fun(controller: BuildController) {
-            val syncIssues = controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)
-            if (syncIssues != null) {
-              module.setSyncIssues(syncIssues.syncIssues.toV2SyncIssueData())
-            }
+    actionRunner.runActions(
+      androidModules.map { module ->
+        fun(controller: BuildController) {
+          val syncIssues = if (syncOptions.flags.studioFlagUseV2BuilderModels && (module is AndroidModule) &&
+                               canFetchV2Models(module.modelVersion)) {
+            // Request V2 sync issues.
+            controller.findModel(module.findModelRoot, V2ProjectSyncIssues::class.java)?.syncIssues?.toV2SyncIssueData()
+          } else {
+            controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)?.syncIssues?.toSyncIssueData()
+          }
+
+          if (syncIssues != null) {
+            module.setSyncIssues(syncIssues)
           }
         }
-      )
-    } else {
-      actionRunner.runActions(
-        androidModules.map { module ->
-          fun(controller: BuildController) {
-            val syncIssues = controller.findModel(module.findModelRoot, ProjectSyncIssues::class.java)
-            if (syncIssues != null) {
-              // It is FINE to assign on the worker thread since we operate at one module at a time and the same AndroidModule instance
-              // cannot accessed from multiple worker threads.
-              module.setSyncIssues(syncIssues.syncIssues.toSyncIssueData())
-            }
-          }
-        }
-      )
-    }
+      }
+    )
   }
 
   /**
@@ -545,9 +541,8 @@ internal class AndroidExtraModelProviderWorker(
       val nativeVariantAbi : NativeVariantAbiResult?
       var variantName = ""
 
-      if (syncOptions.flags.studioFlagUseV2BuilderModels) {
+      if (syncOptions.flags.studioFlagUseV2BuilderModels && canFetchV2Models(module.modelVersion)) {
         // In V2, we get the variants from AndroidModule.v2Variants.
-        // TODO(191002778): Do not request V2 models if AGP < 7.0.
         val variant = module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant } ?: return null
         variantName = variant.name
 
