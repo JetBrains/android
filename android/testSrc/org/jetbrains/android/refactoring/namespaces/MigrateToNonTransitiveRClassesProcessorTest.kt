@@ -101,6 +101,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="from_lib">From lib</string>
+          <string name="another.lib.string">From lib</string>
           <declare-styleable name="styleable_from_lib">
             <attr name="Attr_from_lib" format="string"/>
           </declare-styleable>
@@ -114,6 +115,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
       """
         <resources>
           <string name="from_app">From app</string>
+          <string name="another.app.string">From app</string>
           <declare-styleable name="styleable_from_app">
             <attr name="Attr_from_app" format="string"/>
           </declare-styleable>
@@ -131,9 +133,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
+                  R.string.another_app_string,
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -160,9 +165,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_app,
+                  R.string.another_app_string,
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
                   
@@ -194,8 +202,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -223,8 +233,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -250,6 +262,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -273,6 +286,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
                   
@@ -337,9 +351,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
+                  R.string.another_app_string,
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -367,6 +384,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -407,9 +425,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_app,
+                  R.string.another_app_string,
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -437,6 +458,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -465,9 +487,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
+                  R.string.another_app_string,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -495,6 +520,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -523,9 +549,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_app,
+                  R.string.another_app_string,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.lib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -553,6 +582,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -589,9 +619,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
+                  R.string.another_app_string,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -630,31 +663,35 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(refactoringProcessor.findUsages().toList()))
       .isEqualTo("""
-        <root> (29)
-         References to resources defined in com.example.lib (8)
-          Found usages (8)
-           Resource reference in code (8)
-            app (8)
-             com.example.app (4)
-              AppJavaClass (2)
-               foo() (2)
-                7R.string.from_lib,
-                15R.styleable.styleable_from_lib_Attr_from_lib,
-              AppKotlinClass.kt (2)
-               AppKotlinClass (2)
-                foo (2)
-                 7R.string.from_lib,
-                 15R.styleable.styleable_from_lib_Attr_from_lib,
-             com.other.folder (4)
-              AppOtherPackageJavaClass (2)
-               foo() (2)
+        <root> (33)
+         References to resources defined in com.example.lib (12)
+          Found usages (12)
+           Resource reference in code (12)
+            app (12)
+             com.example.app (6)
+              AppJavaClass (3)
+               foo() (3)
                 8R.string.from_lib,
-                15R.styleable.styleable_from_lib_Attr_from_lib,
-              AppOtherPackageKotlinClass.kt (2)
-               AppOtherPackageKotlinClass (2)
-                foo (2)
+                9R.string.another_lib_string,
+                18R.styleable.styleable_from_lib_Attr_from_lib,
+              AppKotlinClass.kt (3)
+               AppKotlinClass (3)
+                foo (3)
                  8R.string.from_lib,
-                 15R.styleable.styleable_from_lib_Attr_from_lib,
+                 9R.string.another_lib_string,
+                 18R.styleable.styleable_from_lib_Attr_from_lib,
+             com.other.folder (6)
+              AppOtherPackageJavaClass (3)
+               foo() (3)
+                8R.string.from_lib,
+                9R.string.another_lib_string,
+                17R.styleable.styleable_from_lib_Attr_from_lib,
+              AppOtherPackageKotlinClass.kt (3)
+               AppOtherPackageKotlinClass (3)
+                foo (3)
+                 8R.string.from_lib,
+                 9R.string.another_lib_string,
+                 17R.styleable.styleable_from_lib_Attr_from_lib,
          References to resources defined in com.example.sublib (20)
           Found usages (20)
            Resource reference in code (20)
@@ -662,42 +699,42 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
              com.example.app (8)
               AppJavaClass (4)
                foo() (4)
-                8R.string.from_sublib,
-                10com.example.lib.R.string.from_sublib,
-                16R.styleable.styleable_from_sublib_Attr_from_sublib,
-                18com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                10R.string.from_sublib,
+                13com.example.lib.R.string.from_sublib,
+                19R.styleable.styleable_from_sublib_Attr_from_sublib,
+                21com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
               AppKotlinClass.kt (4)
                AppKotlinClass (4)
                 foo (4)
-                 8R.string.from_sublib,
-                 10com.example.lib.R.string.from_sublib,
-                 16R.styleable.styleable_from_sublib_Attr_from_sublib,
-                 18com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                 10R.string.from_sublib,
+                 13com.example.lib.R.string.from_sublib,
+                 19R.styleable.styleable_from_sublib_Attr_from_sublib,
+                 21com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
              com.other.folder (8)
               AppOtherPackageJavaClass (4)
                foo() (4)
-                9R.string.from_sublib,
-                11com.example.lib.R.string.from_sublib,
-                16R.styleable.styleable_from_sublib_Attr_from_sublib,
-                18com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                10R.string.from_sublib,
+                13com.example.lib.R.string.from_sublib,
+                18R.styleable.styleable_from_sublib_Attr_from_sublib,
+                20com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
               AppOtherPackageKotlinClass.kt (4)
                AppOtherPackageKotlinClass (4)
                 foo (4)
-                 9R.string.from_sublib,
-                 11com.example.lib.R.string.from_sublib,
-                 16R.styleable.styleable_from_sublib_Attr_from_sublib,
-                 18com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
+                 10R.string.from_sublib,
+                 13com.example.lib.R.string.from_sublib,
+                 18R.styleable.styleable_from_sublib_Attr_from_sublib,
+                 20com.example.lib.R.styleable.styleable_from_sublib_Attr_from_sublib,
             lib (4)
              com.example.lib (4)
               LibJavaClass (2)
                foo() (2)
-                7R.string.from_sublib,
-                12R.styleable.styleable_from_sublib_Attr_from_sublib,
+                8R.string.from_sublib,
+                13R.styleable.styleable_from_sublib_Attr_from_sublib,
               LibKotlinClass.kt (2)
                LibKotlinClass (2)
                 foo (2)
-                 7R.string.from_sublib,
-                 12R.styleable.styleable_from_sublib_Attr_from_sublib,
+                 8R.string.from_sublib,
+                 13R.styleable.styleable_from_sublib_Attr_from_sublib,
          Properties flag to be added: android.nonTransitiveRClass (1)
           Non-code usages (1)
            Gradle properties file (1)
@@ -722,9 +759,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_app,
+                  R.string.another_app_string,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -754,8 +794,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -787,8 +829,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -819,6 +863,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             public void foo() {
                 int[] ids = new int[] {
                   R.string.from_lib,
+                  R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -843,9 +888,12 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
             fun foo() {
                 val ids = intArrayOf(
                   R.string.from_app,
+                  R.string.another_app_string,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.lib.R.string.from_lib,
+                  com.example.lib.R.string.another_lib_string,
                   com.example.sublib.R.string.from_sublib,
                   com.example.sublib.R.string.from_sublib,
 
@@ -895,10 +943,10 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
     assertThat(usages).hasSize(3)
 
     val findUsagesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == FIND_USAGES }
-    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(28)
+    assertThat(findUsagesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(32)
 
     val executesEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == EXECUTE }
-    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(28)
+    assertThat(executesEvent.nonTransitiveRClassMigrationEvent.usages).isEqualTo(32)
 
     val syncEvent = usages.first { it.nonTransitiveRClassMigrationEvent.kind == SYNC_SKIPPED }
     assertThat(syncEvent.nonTransitiveRClassMigrationEvent.hasUsages()).isFalse()
