@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.api.android;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface LintOptionsModel extends GradleDslModel {
   @NotNull
@@ -27,7 +26,7 @@ public interface LintOptionsModel extends GradleDslModel {
   @NotNull
   ResolvedPropertyModel absolutePaths();
 
-  @Nullable
+  @NotNull
   ResolvedPropertyModel check();
 
   @NotNull
