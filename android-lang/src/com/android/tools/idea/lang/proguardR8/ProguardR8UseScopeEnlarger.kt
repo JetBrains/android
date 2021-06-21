@@ -37,12 +37,12 @@ import org.jetbrains.kotlin.psi.KtProperty
  */
 class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
   override fun getAdditionalUseScope(element: PsiElement): SearchScope? {
-    if ((element is PsiMember || element is KtProperty) && element.containingFile != null) {
+    if ((element is PsiMember || element is KtProperty && !element.isLocal) && element.containingFile != null) {
       val project = element.project
 
       val cachedValuesManager = CachedValuesManager.getManager(project)
       val files = cachedValuesManager.getCachedValue(project) {
-        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
+        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.projectScope(project))
         CachedValueProvider.Result(proguardFiles, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
       }
       return if (files.isEmpty()) null else GlobalSearchScope.filesScope(project, files)
