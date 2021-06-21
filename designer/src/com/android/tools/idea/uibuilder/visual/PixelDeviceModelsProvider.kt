@@ -21,6 +21,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
@@ -76,7 +77,8 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
       if (size != null) {
         label = label + " (" + size.width + " x " + size.height + ")"
       }
-      models.add(NlModel.builder(facet, virtualFile, config)
+      val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
+      models.add(NlModel.builder(facet, betterFile, config)
                    .withParentDisposable(parentDisposable)
                    .withModelDisplayName(label)
                    .withComponentRegistrar(Consumer<NlComponent> { NlComponentHelper.registerComponent(it) })
