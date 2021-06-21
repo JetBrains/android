@@ -66,6 +66,25 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
     Disposer.dispose(manager)
     TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
   }
+
+  fun testPickCorrectFile() {
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val bigFile = myFixture.addFileToProject("/res/layout-sw600dp/test.xml", LAYOUT_FILE_CONTENT);
+
+    val modelsProvider = PixelDeviceModelsProvider
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+
+    assertNotEmpty(nlModels)
+    for (nlModel in nlModels) {
+      val device =  nlModel.configuration.device!!
+      if (device.displayName == "Pixel C") {
+        assertEquals(bigFile, nlModel.file)
+      }
+      else {
+        assertEquals(defaultFile, nlModel.file)
+      }
+    }
+  }
 }
 
 @Language("Xml")
