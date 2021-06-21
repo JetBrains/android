@@ -158,7 +158,7 @@ class AndroidModule internal constructor(
 data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
 
 @UsedInBuildAction
-class NativeVariantsAndroidModule private constructor(
+class  NativeVariantsAndroidModule private constructor(
   gradleProject: BasicGradleProject,
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
 ) : GradleModule(gradleProject) {
