@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOptionsModel {
   @NonNls public static final String ABORT_ON_ERROR = "mAbortOnError";
@@ -74,7 +73,7 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   }
 
   @Override
-  @Nullable
+  @NotNull
   public ResolvedPropertyModel check() {
     return getModelForProperty(CHECK);
   }
