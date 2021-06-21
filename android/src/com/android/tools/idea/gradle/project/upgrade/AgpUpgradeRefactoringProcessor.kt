@@ -243,6 +243,7 @@ class AgpUpgradeRefactoringProcessor(
 
   val targets = mutableListOf<PsiElement>()
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
+  var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
@@ -277,7 +278,7 @@ class AgpUpgradeRefactoringProcessor(
 
     foundUsages = usages.size > 0
     this.usages = usages.toTypedArray()
-    trackProcessorUsage(FIND_USAGES, usages.size)
+    trackProcessorUsage(FIND_USAGES, usages.size, projectBuildModel.context.allRequestedFiles.size)
     return this.usages
   }
 
@@ -420,7 +421,7 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
-    trackProcessorUsage(PREVIEW_REFACTORING, usages.size)
+    trackProcessorUsage(PREVIEW_REFACTORING, usages.size, projectBuildModel.context.allRequestedFiles.size)
     // this would be `super.previewRefactoring(usages) except that there's no way to override the tab window title
     if (ApplicationManager.getApplication().isUnitTestMode) {
       ensureElementsWritable(usages, createUsageViewDescriptor(usages))
@@ -498,16 +499,20 @@ class AgpUpgradeRefactoringProcessor(
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
-    trackProcessorUsage(EXECUTE, usages.size)
+    trackProcessorUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
+    executedUsages = usages
     super.execute(usages)
   }
 
   override fun performPsiSpoilingRefactoring() {
     super.performPsiSpoilingRefactoring()
+    val executedUsagesSize = executedUsages.size
+    val requestedFilesSize = projectBuildModel.context.allRequestedFiles.size
     val listener = object : GradleSyncListener {
-      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
-      override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)
-      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED)
+      override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED, executedUsagesSize, requestedFilesSize)
+      override fun syncFailed(project: Project, errorMessage: String) =
+        trackProcessorUsage(SYNC_FAILED, executedUsagesSize, requestedFilesSize)
+      override fun syncSucceeded(project: Project) = trackProcessorUsage(SYNC_SUCCEEDED, executedUsagesSize, requestedFilesSize)
     }
     // in AndroidRefactoringUtil this happens between performRefactoring() and performPsiSpoilingRefactoring().  Not
     // sure why.
@@ -734,13 +739,13 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
       projectBuildModel.reparse()
     }
     if (!isEnabled) {
-      trackComponentUsage(FIND_USAGES, 0)
+      trackComponentUsage(FIND_USAGES, 0, projectBuildModel.context.allRequestedFiles.size)
       LOG.info("\"${this.commandName}\" refactoring is disabled")
       return UsageInfo.EMPTY_ARRAY
     }
     val usages = findComponentUsages()
     val size = usages.size
-    trackComponentUsage(FIND_USAGES, size)
+    trackComponentUsage(FIND_USAGES, size, projectBuildModel.context.allRequestedFiles.size)
     LOG.info("found $size ${pluralize("usage", size)} for \"${this.commandName}\" refactoring")
     foundUsages = usages.isNotEmpty()
     return usages
@@ -749,12 +754,12 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   protected abstract fun findComponentUsages(): Array<out UsageInfo>
 
   override fun previewRefactoring(usages: Array<out UsageInfo>) {
-    trackComponentUsage(PREVIEW_REFACTORING, usages.size)
+    trackComponentUsage(PREVIEW_REFACTORING, usages.size, projectBuildModel.context.allRequestedFiles.size)
     super.previewRefactoring(usages)
   }
 
   override fun execute(usages: Array<out UsageInfo>) {
-    trackComponentUsage(EXECUTE, usages.size)
+    trackComponentUsage(EXECUTE, usages.size, projectBuildModel.context.allRequestedFiles.size)
     super.execute(usages)
   }
 
@@ -937,11 +942,18 @@ class AgpComponentUsageTypeProvider : UsageTypeProvider {
  * Currently, the difference between these messages is simply that the Processor reports on the state of all its
  * Components, while each Component reports only on itself.
  */
-internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAssistantEventKind, usages: Int? = null) {
+internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(
+  kind: UpgradeAssistantEventKind,
+  usages: Int? = null,
+  files: Int? = null,
+) {
   val processorEvent = UpgradeAssistantProcessorEvent.newBuilder()
     .setUpgradeUuid(uuid)
     .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).apply { usages?.let { setUsages(it) } }.build())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind)
+                    .apply { usages?.let { setUsages(it) } }
+                    .apply { files?.let { setFiles(it) } }
+                    .build())
   processorEvent.addComponentInfo(classpathRefactoringProcessor.getComponentInfo())
   componentRefactoringProcessors.forEach {
     processorEvent.addComponentInfo(it.getComponentInfo())
@@ -954,12 +966,16 @@ internal fun AgpUpgradeRefactoringProcessor.trackProcessorUsage(kind: UpgradeAss
   UsageTracker.log(studioEvent)
 }
 
-private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(kind: UpgradeAssistantEventKind, usages: Int) {
+private fun AgpUpgradeComponentRefactoringProcessor.trackComponentUsage(
+  kind: UpgradeAssistantEventKind,
+  usages: Int,
+  files: Int,
+) {
   val componentEvent = UpgradeAssistantComponentEvent.newBuilder()
     .setUpgradeUuid(uuid)
     .setCurrentAgpVersion(current.toString()).setNewAgpVersion(new.toString())
     .setComponentInfo(getComponentInfo().build())
-    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).build())
+    .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(kind).setUsages(usages).setFiles(files).build())
     .build()
   val studioEvent = AndroidStudioEvent.newBuilder()
     .setCategory(PROJECT_SYSTEM).setKind(UPGRADE_ASSISTANT_COMPONENT_EVENT).withProjectId(project)
