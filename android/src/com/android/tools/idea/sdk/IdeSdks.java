@@ -21,7 +21,6 @@ import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
@@ -74,6 +73,7 @@ import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.EnvironmentUtil;
@@ -380,19 +380,10 @@ public class IdeSdks {
       Sdk chosenJdk = null;
 
       ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
-      if ((myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) && (!StudioFlags.ALLOW_JDK_PER_PROJECT.get())) {
-        // Delete all JDKs in Android Studio. We want to have only one.
-        List<Sdk> jdks = projectJdkTable.getSdksOfType(JavaSdk.getInstance());
-        for (final Sdk jdk : jdks) {
-          projectJdkTable.removeJdk(jdk);
-        }
-      }
-      else {
-        for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
-          if (pathsEqual(jdk.getHomePath(), canonicalPath.getPath())) {
-            chosenJdk = jdk;
-            break;
-          }
+      for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
+        if (FileUtil.pathsEqual(jdk.getHomePath(), canonicalPath.toString())) {
+          chosenJdk = jdk;
+          break;
         }
       }
 
@@ -404,14 +395,6 @@ public class IdeSdks {
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
           }
           setJdkOfAndroidSdks(chosenJdk);
-
-          // Update open projects only if setting is global
-          if (!StudioFlags.ALLOW_JDK_PER_PROJECT.get()) {
-            Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
-            for (Project project : openProjects) {
-              applyJdkToProject(project, chosenJdk);
-            }
-          }
         }
         else {
           throw new IllegalStateException("The resolved path '" + canonicalPath.getPath() + "' was not found");
@@ -805,7 +788,7 @@ public class IdeSdks {
     if (myEnvVariableSettings.isUseJdkEnvVariable()) {
       return myEnvVariableSettings.getSdk();
     }
-    if ((myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) && (StudioFlags.ALLOW_JDK_PER_PROJECT.get())) {
+    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
       // Try to get default JDK
       Sdk jdk = ProjectJdkTable.getInstance().findJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JavaSdk.getInstance().getName());
       if (jdk != null) {

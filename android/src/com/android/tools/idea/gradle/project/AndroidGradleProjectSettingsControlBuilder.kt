@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
@@ -54,7 +53,6 @@ import org.jetbrains.plugins.gradle.util.setSelectedGradleJvmReference
 import java.awt.BorderLayout
 import java.awt.Component
 import java.io.File
-import java.util.HashSet
 import javax.swing.JList
 import javax.swing.JPanel
 
@@ -231,13 +229,9 @@ class AndroidGradleProjectSettingsControlBuilder(val myInitialSettings: GradlePr
                                        selected: Boolean,
                                        hasFocus: Boolean) {
       super.customizeCellRenderer(list, value, index, selected, hasFocus)
-      if (StudioFlags.SHOW_JDK_PATH.get()) {
-        if (value is SdkListItem.SdkItem) {
-          if (value.sdk.homePath != null) {
-            append(" ")
-            append(value.sdk.homePath!!, SimpleTextAttributes.GRAYED_ATTRIBUTES)
-          }
-        }
+      if (value is SdkListItem.SdkItem && value.sdk.homePath != null) {
+        append(" ")
+        append(value.sdk.homePath!!, SimpleTextAttributes.GRAYED_ATTRIBUTES)
       }
     }
 

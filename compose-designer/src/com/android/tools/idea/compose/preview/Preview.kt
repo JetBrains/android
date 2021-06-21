@@ -550,6 +550,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
+        LOG.debug("buildSucceeded")
         val file = psiFilePointer.element
         if (file == null) {
           LOG.debug("invalid PsiFile")
@@ -581,6 +582,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       }
 
       override fun buildStarted() {
+        LOG.debug("buildStarted")
         // Stop live literals monitoring for this preview. If the new build has live literals, they will
         // be re-enabled later automatically via the HasLiveLiterals check.
         LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(previewDeviceId)
@@ -608,6 +610,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       psiFile,
       {
         ApplicationManager.getApplication().invokeLater {
+          LOG.debug("changeListener triggered")
           // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
           // the new ones after a successful build.
           ComposePreviewAnimationManager.invalidate()
@@ -893,6 +896,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   private fun refresh(quickRefresh: Boolean = false): Job {
+    LOG.debug("Refresh triggered. quickRefresh: $quickRefresh")
     val refreshTrigger: Throwable? = if (LOG.isDebugEnabled) Throwable() else null
     return launch(uiThread) {
       val startTime = System.nanoTime()
@@ -920,7 +924,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           false
         }
 
-      LOG.debug("Refresh triggered", refreshTrigger)
+      LOG.debug("Refresh triggered (inside uiThread scope)", refreshTrigger)
 
       if (!isActive.get()) {
         LOG.debug("Refresh, the preview is not active, scheduling for later.")

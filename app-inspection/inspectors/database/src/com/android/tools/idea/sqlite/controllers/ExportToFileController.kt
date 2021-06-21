@@ -26,6 +26,7 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PAT
 import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PATH_PROPERTY
 import com.android.tools.idea.sqlite.cli.SqliteCliProviderImpl
 import com.android.tools.idea.sqlite.cli.SqliteQueries
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveSqliteResultSet
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.Delimiter
 import com.android.tools.idea.sqlite.model.ExportFormat.CSV
@@ -56,9 +57,11 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.DatabaseInspecto
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.io.copy
 import com.intellij.util.io.delete
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
+import com.intellij.util.io.move
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -123,7 +126,7 @@ class ExportToFileController(
   var lastExportJob : Job? = null
 
   @VisibleForTesting
-  var queryRowBatchSize = 1000
+  var responseSizeByteLimitHint = 8L * 1024 * 1024 // 8 MB
 
   fun setUp() {
     view.addListener(listener)
@@ -245,7 +248,24 @@ class ExportToFileController(
   private suspend fun exportDatabaseToSqliteBinary(database: SqliteDatabaseId, dstPath: Path) = withContext(taskDispatcher) {
     executeTaskOnLocalDatabaseCopy(database) { srcPath ->
       findOrCreateDir(dstPath.parent)
-      cloneDatabase(srcPath, dstPath) // TODO(161081452): replace clone with PRAGMA wal_checkpoint(TRUNCATE) to avoid temporary multiple db copies
+
+      when {
+        dstPath.isDirectory() -> throw IllegalArgumentException("Destination path ($dstPath) points to an existing directory.")
+        dstPath.exists() -> dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
+      }
+
+      runSqliteCliCommand(
+        SqliteCliArgs
+          .builder()
+          .database(srcPath)
+          .walCheckpointTruncate()
+          .build()
+      )
+
+      // FileSqliteDatabaseId means offline-mode, where we don't want to remove the source file.
+      // Otherwise, we've downloaded the file ourselves, so we're safe to move it to the destination (rather than making two copies of a
+      // potentially large file, only to delete one of them immediately after).
+      if (database is FileSqliteDatabaseId) srcPath.copy(dstPath) else srcPath.move(dstPath)
     }
   }
 
@@ -272,21 +292,6 @@ class ExportToFileController(
         }
       }
     }
-
-  private suspend fun cloneDatabase(srcPath: Path, dstPath: Path) = withContext(taskDispatcher) {
-    when {
-      dstPath.isDirectory() -> throw IllegalArgumentException("Destination path ($dstPath) points to an existing directory.")
-      dstPath.exists() -> dstPath.delete() // `sqlite3` clone command would not overwrite an existing file
-    }
-
-    runSqliteCliCommand(
-      SqliteCliArgs
-        .builder()
-        .database(srcPath)
-        .clone(dstPath)
-        .build()
-    )
-  }
 
   private suspend fun runSqliteCliCommand(args: List<SqliteCliArg>) = withContext(taskDispatcher) {
     // TODO(161081452): expose the exception message in the UI / maybe as a help link?
@@ -402,11 +407,16 @@ class ExportToFileController(
     flow {
       withDatabaseLock(srcDatabase) {
         val resultSet = databaseRepository.runQuery(srcDatabase, srcQuery).await()
+
         val totalRowCount = resultSet.totalRowCount.await()
-        (0 until totalRowCount step queryRowBatchSize).forEach { rowOffset ->
-          resultSet.getRowBatch(rowOffset, queryRowBatchSize).await().forEach {
-            emit(it)
-          }
+        var rowOffset = 0
+        while (rowOffset < totalRowCount) {
+          val batch = when (resultSet) {
+            is LiveSqliteResultSet -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE, responseSizeByteLimitHint)
+            else -> resultSet.getRowBatch(rowOffset, rowBatchSize = Integer.MAX_VALUE)
+          }.await()
+          batch.forEach { emit(it) }
+          rowOffset += batch.size
         }
       }
     }

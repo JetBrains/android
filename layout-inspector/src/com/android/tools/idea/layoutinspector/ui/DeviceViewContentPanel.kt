@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -46,7 +47,6 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Component
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -57,7 +57,6 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.net.URI
 
 private const val MARGIN = 50
 
@@ -101,6 +100,7 @@ class DeviceViewContentPanel(
     emptyText.appendLine("No process connected")
 
     emptyText.appendLine("Deploy your app or ")
+    @Suppress("DialogTitleCapitalization")
     emptyText.appendText("select a process", SimpleTextAttributes.LINK_ATTRIBUTES) {
       val button = selectProcessAction.button
       val dataContext = DataManager.getInstance().getDataContext(button)
@@ -108,11 +108,12 @@ class DeviceViewContentPanel(
       val event = AnActionEvent.createFromDataContext(ActionPlaces.TOOLWINDOW_CONTENT, selectProcessAction.templatePresentation, dataContext)
       selectProcessAction.actionPerformed(event)
     }
+    @Suppress("DialogTitleCapitalization")
     emptyText.appendText(" to begin inspection.")
 
     emptyText.appendLine("")
     emptyText.appendLine(AllIcons.General.ContextHelp, "Using the layout inspector", SimpleTextAttributes.LINK_ATTRIBUTES) {
-      Desktop.getDesktop().browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
+      BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
     }
     isOpaque = true
     inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }

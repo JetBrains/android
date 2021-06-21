@@ -45,6 +45,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
@@ -77,7 +78,6 @@ import org.mockito.Mockito.verify
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Cursor.HAND_CURSOR
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GradientPaint
@@ -86,7 +86,6 @@ import java.awt.Point
 import java.awt.Polygon
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
-import java.net.URI
 import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
@@ -486,9 +485,7 @@ class DeviceViewContentPanelTest {
     panel.setSize(200, 200)
     val fakeUi = FakeUi(panel)
     val hand = Cursor.getPredefinedCursor(HAND_CURSOR)
-    mockStatic(Desktop::class.java).use { desktop ->
-      val mockDesktop: Desktop = mock()
-      desktop.`when`<Desktop>{ Desktop.getDesktop() }.thenReturn(mockDesktop)
+    mockStatic(BrowserUtil::class.java).use { browserUtil ->
       for (x in 0..200) {
         for (y in 0..200) {
           fakeUi.mouse.moveTo(x, y)
@@ -497,7 +494,7 @@ class DeviceViewContentPanelTest {
           }
         }
       }
-      verify(mockDesktop, atLeastOnce()).browse(URI("https://developer.android.com/studio/debug/layout-inspector"))
+      browserUtil.verify(atLeastOnce()) { BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector") }
       verify(selectProcessAction, atLeastOnce()).actionPerformed(any())
     }
 

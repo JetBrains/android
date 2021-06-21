@@ -34,7 +34,6 @@ internal class IncompatibleSnapshotsDeletionConfirmationDialog(
 ) {
 
   var doNotAskAgain: Boolean = false
-    private set
 
   /**
    * Creates contents of the dialog.

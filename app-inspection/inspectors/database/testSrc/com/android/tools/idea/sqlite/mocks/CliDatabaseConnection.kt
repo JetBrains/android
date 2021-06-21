@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.sqlite.mocks
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.sqlite.cli.SqliteCliArgs
 import com.android.tools.idea.sqlite.cli.SqliteCliClient
 import com.android.tools.idea.sqlite.cli.SqliteCliResponse
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.live.LiveSqliteResultSet
 import com.android.tools.idea.sqlite.model.ResultSetSqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -38,6 +40,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asListenableFuture
 import java.nio.file.Path
 import java.util.concurrent.Executor
+import kotlin.math.min
 
 /**
  * From: [https://cs.android.com/androidx/platform/frameworks/support/+/androidx-master-dev:sqlite/sqlite-inspection/src/main/java/androidx/sqlite/inspection/SqliteInspector.java;l=135;drc=e06399865fcdca1975f6dcc667cc5f9477e67998]
@@ -130,14 +133,19 @@ class CliDatabaseConnection(private val databasePath: Path,
   }.asListenableFuture()
 
   private fun SqliteCliResponse.toSqliteResultSet(): SqliteResultSet = toRawCells().let { rawCells ->
-    object : SqliteResultSet {
+    object : LiveSqliteResultSet(mock(), mock(), -1, mock()) {
       override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
         get() = Futures.immediateFuture(let { rawCells.header.map { ResultSetSqliteColumn(it) } })
 
       override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rawCells.dataRows.size)
 
-      override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(let {
-        rawCells.dataRows.drop(rowOffset).take(rowBatchSize).map { row ->
+      override fun getRowBatch(
+        rowOffset: Int,
+        rowBatchSize: Int,
+        responseSizeByteLimitHint: Long?
+      ): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(let {
+        val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize // simulate responseSizeByteLimitHint
+        rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
           val cells = row.mapIndexed { ix, cell -> SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell)) }
           SqliteRow(cells)
         }
