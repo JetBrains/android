@@ -277,7 +277,7 @@ public class LayerDisplay {
         final Integer localPort = devicePortMap.get(device);
         if (localPort != null) {
           try {
-            device.removeForward(localPort, Configuration.DEFAULT_SERVER_PORT);
+            device.removeForward(localPort);
             devicePortMap.remove(device);
           }
           catch (TimeoutException e) {
