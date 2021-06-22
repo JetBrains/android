@@ -37,7 +37,7 @@ object ComponentDescriptorUtil {
     val y = getToolsCoordinate(tag, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
     val w = getToolsCoordinate(tag, LAYOUT_EDITOR_WIDTH)
     val h = getToolsCoordinate(tag, LAYOUT_EDITOR_HEIGHT)
-    val descriptor = ComponentDescriptor(tag.name).withBounds(x, y, w, h)
+    val descriptor = ComponentDescriptor(tag.name).withBounds(x, y, w, h).withMockView()
     tag.attributes.filter { !it.name.startsWith(XMLNS_PREFIX) }.forEach { descriptor.withAttribute(it.namespace, it.localName, it.value!!) }
     tag.subTags.forEach { descriptor.addChild(component(it), null) }
     return descriptor

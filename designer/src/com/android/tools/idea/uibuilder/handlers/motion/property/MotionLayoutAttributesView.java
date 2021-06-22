@@ -26,12 +26,14 @@ import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPane
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.AddCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.AddMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.DeleteCustomFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.DeleteMotionFieldAction;
 import com.android.tools.idea.uibuilder.handlers.motion.property.action.SubSectionControlAction;
+import com.android.tools.idea.uibuilder.property.NlNewPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorSection;
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider;
@@ -53,6 +55,7 @@ import com.android.tools.property.panel.api.TableLineModel;
 import com.android.tools.property.panel.api.TableUIProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.util.Ref;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
@@ -71,9 +74,11 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * {@link PropertiesView} for motion layout property editor.
@@ -97,13 +102,15 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
     addTab("").getBuilders().add(new MotionInspectorBuilder(model, tableUIProvider, enumSupportProvider));
   }
 
-  private static class MotionInspectorBuilder implements InspectorBuilder<NlPropertyItem> {
+  @VisibleForTesting
+  public static class MotionInspectorBuilder implements InspectorBuilder<NlPropertyItem> {
     private final MotionLayoutAttributesModel myModel;
     private final TableUIProvider myTableUIProvider;
     private final XmlElementDescriptorProvider myDescriptorProvider;
     private final NlEnumSupportProvider myEnumSupportProvider;
 
-    private MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
+    @VisibleForTesting
+    public MotionInspectorBuilder(@NotNull MotionLayoutAttributesModel model,
                                    @NotNull TableUIProvider tableUIProvider,
                                    @NotNull NlEnumSupportProvider enumSupportProvider) {
       myModel = model;
@@ -281,13 +288,26 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
         return;
       }
       SubTagAttributesModel customModel = new SubTagAttributesModel(model, MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+      Ref<TableLineModel> customLineModelRef = new Ref<>(null);
       Function1<NlPropertyItem, Boolean> filter =
         (item) -> item.getNamespace().isEmpty() &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
       Function1<NlPropertyItem, Unit> deleteOp = (item) -> null;
+      Function2<String, String, NlPropertyItem> insertOp = (name, value) -> {
+        TableLineModel lineModel = customLineModelRef.get();
+        if (lineModel == null) {
+          return null;
+        }
+        CustomAttributeType customType = findCustomTypeFromName(name, selection);
+        if (customType != null) {
+          model.addCustomProperty(name, value, customType, selection, lineModel);
+        }
+        return null;
+      };
 
       FilteredPTableModel<NlPropertyItem> tableModel = PTableModelFactory.create(
-        customModel, filter, null, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), false, true, p -> true);
+        customModel, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(),
+        Collections.emptyList(), false, true, p -> true);
       AddCustomFieldAction addFieldAction = new AddCustomFieldAction(myModel, selection);
       DeleteCustomFieldAction deleteFieldAction = new DeleteCustomFieldAction();
       List<AnAction> actions = ImmutableList.<AnAction>builder().add(addFieldAction).add(deleteFieldAction).build();
@@ -297,6 +317,22 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
       inspector.addComponent(new EmptyTablePanel(addFieldAction, lineModel), title);
       addFieldAction.setLineModel(lineModel);
       deleteFieldAction.setLineModel(lineModel);
+      customLineModelRef.set(lineModel);
+    }
+
+    @Nullable
+    private CustomAttributeType findCustomTypeFromName(@NotNull String attrName, @NotNull MotionSelection selection) {
+      NlComponent component = selection.getComponentForCustomAttributeCompletions();
+      if (component == null) {
+        return null;
+      }
+      for (CustomAttributeType type : CustomAttributeType.values()) {
+        Set<String> attributes = MotionAttributes.getCustomAttributesFor(component, type.getTagName());
+        if (attributes.contains(attrName)) {
+          return type;
+        }
+      }
+      return null;
     }
 
     private void addPropertyTable(@NotNull InspectorPanel inspector,
@@ -314,10 +350,20 @@ public class MotionLayoutAttributesView extends PropertiesView<NlPropertyItem> {
         (item) -> !item.getNamespace().isEmpty() &&
                   (item.getRawValue() != null || (showDefaultValues && item.getDefaultValue() != null));
       Function1<NlPropertyItem, Unit> deleteOp = (item) -> { item.setValue(null); return null; };
+      Function2<String, String, NlPropertyItem> insertOp = (name, value) -> {
+        NlNewPropertyItem newProperty = new NlNewPropertyItem(
+          (MotionLayoutAttributesModel)model, model.getProperties(), (item) -> item.getRawValue() == null, (delegate) -> null);
+        newProperty.setName(name);
+        if (newProperty.getDelegate() == null) {
+          return null;
+        }
+        newProperty.setValue(value);
+        return newProperty;
+      };
 
       FilteredPTableModel<NlPropertyItem> tableModel =
         PTableModelFactory.create(
-          model, filter, null, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true, p -> true);
+          model, filter, insertOp, deleteOp, PTableModelFactory.getAlphabeticalSortOrder(), Collections.emptyList(), true, true, p -> true);
       SubSectionControlAction controlAction = new SubSectionControlAction(any);
       AddMotionFieldAction addFieldAction = new AddMotionFieldAction(myModel, model.getProperties());
       DeleteMotionFieldAction deleteFieldAction = new DeleteMotionFieldAction();

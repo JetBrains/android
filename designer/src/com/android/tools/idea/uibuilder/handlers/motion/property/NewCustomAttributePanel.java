@@ -24,15 +24,10 @@ import com.android.tools.adtui.model.stdui.EditingSupport;
 import com.android.tools.adtui.model.stdui.ValueChangedListener;
 import com.android.tools.adtui.stdui.CommonTextField;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlPropertyType;
-import com.android.tools.property.panel.api.PropertiesTable;
 import com.android.tools.property.panel.api.TableLineModel;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -48,7 +43,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -186,22 +180,7 @@ public class NewCustomAttributePanel extends DialogWrapper {
     String attributeName = getAttributeName();
     String value = getInitialValue();
     CustomAttributeType type = getType();
-    Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
-      NlPropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
-        attributeName, type.getTagName(), mySelection, myPropertiesModel);
-      myLineModel.addItem(newProperty);
-
-      // Add to the property model since the model may treat this as a property update (not a new selection).
-      PropertiesTable<NlPropertyItem> customProperties = myPropertiesModel.getAllProperties().get(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
-      if (customProperties == null) {
-        Table<String, String, NlPropertyItem> customTable = HashBasedTable.create(3, 10);
-        customProperties = PropertiesTable.Companion.create(customTable);
-        myPropertiesModel.getAllProperties().put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, customProperties);
-      }
-      customProperties.put(newProperty);
-    };
-
-    myPropertiesModel.createCustomXmlTag(mySelection, attributeName, value, type, applyToModel);
+    myPropertiesModel.addCustomProperty(attributeName, value, type, mySelection, myLineModel);
 
     super.doOKAction();
   }

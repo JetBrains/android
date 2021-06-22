@@ -15,13 +15,16 @@
  */
 package com.android.tools.property.panel.impl.model.util
 
-import com.android.tools.property.ptable2.PTableModel
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.TableLineModel
 import com.android.tools.property.panel.api.TableUIProvider
+import com.android.tools.property.ptable2.PTableModel
+import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.AnAction
+import javax.swing.Icon
 import javax.swing.JComponent
 
 class FakeInspectorPanel : InspectorPanel {
@@ -77,5 +80,41 @@ class FakeInspectorPanel : InspectorPanel {
     val group = parent as? FakeInspectorLineModel ?: return
     group.children.add(child)
     child.parent = group
+  }
+
+  fun checkTitle(line: Int, title: String) {
+    Truth.assertThat(line).isLessThan(lines.size)
+    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(lines[line].title).isEqualTo(title)
+  }
+
+  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel {
+    Truth.assertThat(line).isLessThan(lines.size)
+    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TITLE)
+    Truth.assertThat(lines[line].title).isEqualTo(title)
+    Truth.assertThat(lines[line].expandable).isEqualTo(expandable)
+    return lines[line]
+  }
+
+  fun checkEditor(line: Int, namespace: String, name: String) {
+    Truth.assertThat(line).isLessThan(lines.size)
+    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.PROPERTY)
+    Truth.assertThat(lines[line].editorModel?.property?.name).isEqualTo(name)
+    Truth.assertThat(lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
+  }
+
+  fun checkTable(line: Int): FakeTableLineModel {
+    Truth.assertThat(line).isLessThan(lines.size)
+    Truth.assertThat(lines[line].type).isEqualTo(FakeLineType.TABLE)
+    return lines[line] as FakeTableLineModel
+  }
+
+  fun performAction(line: Int, action: Int, icon: Icon) {
+    Truth.assertThat(line).isLessThan(lines.size)
+    Truth.assertThat(action).isLessThan(lines[line].actions.size)
+    val anAction = lines[line].actions[action]
+    Truth.assertThat(anAction.templatePresentation.icon).isEqualTo(icon)
+
+    anAction.actionPerformed(mock())
   }
 }

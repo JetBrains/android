@@ -34,7 +34,10 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesModel;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.property.panel.api.PropertiesModel;
 import com.android.tools.property.panel.api.PropertiesTable;
+import com.android.tools.property.panel.api.TableLineModel;
 import com.google.common.base.Predicates;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -264,6 +267,31 @@ public class MotionLayoutAttributesModel extends NlPropertiesModel {
       default:
         return Predicates.alwaysFalse();
     }
+  }
+
+  public void addCustomProperty(
+    @NotNull String attributeName,
+    @NotNull String value,
+    @NotNull CustomAttributeType type,
+    @NotNull MotionSelection selection,
+    @NotNull TableLineModel lineModel
+  ) {
+    Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
+      NlPropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
+        attributeName, type.getTagName(), selection, this);
+      lineModel.addItem(newProperty);
+
+      // Add to the property model since the model may treat this as a property update (not a new selection).
+      PropertiesTable<NlPropertyItem> customProperties = getAllProperties().get(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE);
+      if (customProperties == null) {
+        Table<String, String, NlPropertyItem> customTable = HashBasedTable.create(3, 10);
+        customProperties = PropertiesTable.Companion.create(customTable);
+        getAllProperties().put(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE, customProperties);
+      }
+      customProperties.put(newProperty);
+    };
+
+    createCustomXmlTag(selection, attributeName, value, type, applyToModel);
   }
 
   /**
