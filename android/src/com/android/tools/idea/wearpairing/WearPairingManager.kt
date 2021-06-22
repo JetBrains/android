@@ -116,7 +116,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       val connectedDevices = getConnectedDevices()
       connectedDevices[phoneDeviceID]?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
-        runCatching { removeForward(5601, 5601) }
+        runCatching { removeForward(5601) }
       }
       if (restartWearGmsCore) {
         connectedDevices[wearDeviceID]?.apply {
