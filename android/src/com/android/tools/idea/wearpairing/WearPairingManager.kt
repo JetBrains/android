@@ -116,10 +116,13 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       val connectedDevices = getConnectedDevices()
       connectedDevices[phoneDeviceID]?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
-        runCatching { removeForward(5601) }
+        runCatching { removeForward(5602) }
       }
-      if (restartWearGmsCore) {
-        connectedDevices[wearDeviceID]?.apply {
+
+      connectedDevices[wearDeviceID]?.apply {
+        LOG.warn("[$name] Remove AUTO-reverse")
+        runCatching { removeReverse(5601) }
+        if (restartWearGmsCore) {
           restartGmsCore(this)
         }
       }
@@ -270,7 +273,8 @@ suspend fun IDevice.retrieveUpTime(): Double {
 }
 
 suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
-  phoneDevice.runCatching { createForward(5601, 5601) }
+  phoneDevice.runCatching { createForward(5602, 5601) }
+  wearDevice.runCatching { createReverse(5601, 5602) }
   restartGmsCore(wearDevice)
 }
 
