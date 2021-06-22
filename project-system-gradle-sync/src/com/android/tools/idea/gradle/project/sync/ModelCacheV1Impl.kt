@@ -320,8 +320,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       variant = copyNewProperty(library::getProjectVariant),
       lintJar = copyNewProperty(library::getLintJar)?.path
     )
-    val isProvided = copyNewProperty(library::isProvided, false)
-    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided)
+    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): IdeLibrary {
@@ -331,8 +330,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       variant = null,
       lintJar = null
     )
-    val isProvided = copyNewProperty(library::isProvided, false)
-    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided)
+    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl {
@@ -491,7 +489,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
 
   fun libraryFrom(projectPath: String, buildId: String?): IdeLibrary {
     val core = IdeModuleLibraryCore(projectPath, buildId)
-    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided = false)
+    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
   /** Call this method on level 1 Dependencies model.  */

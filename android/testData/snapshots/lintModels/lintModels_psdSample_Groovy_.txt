@@ -240,6 +240,7 @@ MODULE                        : project.app
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
             PackageDependencies
                 artifacts::app                : null => artifacts::app:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
                 com.android.support.test.espresso:espresso-core   : null => com.android.support.test.espresso:espresso-core:3.0.2
                 com.android.support.test.espresso:espresso-idling-resource  : null => com.android.support.test.espresso:espresso-idling-resource:3.0.2
                 com.android.support.test:monitor        : null => com.android.support.test:monitor:1.0.2

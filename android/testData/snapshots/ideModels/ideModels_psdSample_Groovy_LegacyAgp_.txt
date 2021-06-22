@@ -1191,7 +1191,6 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -1908,12 +1907,10 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -2516,12 +2513,10 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
@@ -2765,7 +2760,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :dyn_feature
                             BuildId                       : <ROOT>
                 IsSigned                      : false
@@ -2790,7 +2784,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :dyn_feature
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -3534,7 +3527,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -4072,12 +4064,10 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -4616,12 +4606,10 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -4863,7 +4851,6 @@ MODULE                        : project.nested1
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -4891,7 +4878,6 @@ MODULE                        : project.nested1
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5139,7 +5125,6 @@ MODULE                        : project.nested1.deep
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5167,7 +5152,6 @@ MODULE                        : project.nested1.deep
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5527,7 +5511,6 @@ MODULE                        : project.nested2
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
@@ -5566,7 +5549,6 @@ MODULE                        : project.nested2
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
@@ -5809,7 +5791,6 @@ MODULE                        : project.nested2.deep
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5837,7 +5818,6 @@ MODULE                        : project.nested2.deep
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -6081,7 +6061,6 @@ MODULE                        : project.nested2.trans.deep2
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -6109,7 +6088,6 @@ MODULE                        : project.nested2.trans.deep2
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>

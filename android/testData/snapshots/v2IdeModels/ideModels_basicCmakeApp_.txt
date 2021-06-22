@@ -286,7 +286,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -314,7 +313,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>

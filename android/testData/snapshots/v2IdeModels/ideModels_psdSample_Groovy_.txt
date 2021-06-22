@@ -1244,7 +1244,6 @@ MODULE                        : project.app
                             Artifact                      : <DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -1963,12 +1962,10 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2575,12 +2572,10 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2846,7 +2841,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :dyn_feature
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2872,7 +2866,6 @@ MODULE                        : project.dyn_feature
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :dyn_feature
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -3637,7 +3630,6 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 IsSigned                      : false
@@ -4173,12 +4165,10 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -4716,12 +4706,10 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -4983,7 +4971,6 @@ MODULE                        : project.nested1
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5010,7 +4997,6 @@ MODULE                        : project.nested1
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested1
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5278,7 +5264,6 @@ MODULE                        : project.nested1.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5305,7 +5290,6 @@ MODULE                        : project.nested1.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -5701,7 +5685,6 @@ MODULE                        : project.nested2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
@@ -5741,7 +5724,6 @@ MODULE                        : project.nested2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
                             BuildId                       : <ROOT>
@@ -6004,7 +5986,6 @@ MODULE                        : project.nested2.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -6031,7 +6012,6 @@ MODULE                        : project.nested2.deep
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -6295,7 +6275,6 @@ MODULE                        : project.nested2.trans.deep2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -6322,7 +6301,6 @@ MODULE                        : project.nested2.trans.deep2
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
                             BuildId                       : <ROOT>

@@ -27,12 +27,6 @@ interface IdeLibrary {
    * Only valid for Android Library
    */
   val lintJar: String?
-
-  /**
-   * Returns whether the dependency is on the compile class path but is not on the runtime class
-   * path.
-   */
-  val isProvided: Boolean
 }
 
 interface IdeArtifactLibrary: IdeLibrary {
@@ -44,6 +38,12 @@ interface IdeArtifactLibrary: IdeLibrary {
    * coordinate for external dependencies.
    */
   val artifactAddress: String
+
+  /**
+   * Returns whether the dependency is on the compile class path but is not on the runtime class
+   * path.
+   */
+  val isProvided: Boolean
 }
 
 interface IdeAndroidLibrary: IdeArtifactLibrary {

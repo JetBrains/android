@@ -818,7 +818,6 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1405,12 +1404,10 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -2001,12 +1998,10 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3345,7 +3340,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3913,7 +3907,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp

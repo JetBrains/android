@@ -1472,7 +1472,6 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2046,7 +2045,6 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>

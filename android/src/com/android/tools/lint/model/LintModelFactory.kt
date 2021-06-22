@@ -164,7 +164,7 @@ class LintModelFactory : LintModelModuleLoader {
           artifactAddress = library.getMavenArtifactAddress(),
           projectPath = projectPath,
           lintJar = library.lintJar?.let(::File),
-          provided = library.isProvided
+          provided = false
         )
     }
 
@@ -232,9 +232,7 @@ class LintModelFactory : LintModelModuleLoader {
         for (dependency in dependencies.moduleDependencies) {
             val lintModelDependency = getGraphItem(dependency.getArtifactName(), dependency.getMavenArtifactAddress()) { getLibrary(dependency) }
             compileItems.add(lintModelDependency)
-            if (!dependency.isProvided) {
-                packagedItems.add(lintModelDependency)
-            }
+            packagedItems.add(lintModelDependency)
         }
 
         val compileDependencies = DefaultLintModelDependencyGraph(compileItems, libraryResolver)

@@ -258,7 +258,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -289,12 +288,10 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -321,12 +318,10 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : true
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -595,7 +590,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -622,7 +616,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -891,7 +884,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -918,7 +910,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>

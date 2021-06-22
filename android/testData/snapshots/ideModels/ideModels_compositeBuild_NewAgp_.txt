@@ -819,22 +819,18 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -1421,26 +1417,21 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -2023,26 +2014,21 @@ MODULE                        : TestCompositeLib1.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2829,16 +2815,13 @@ MODULE                        : TestCompositeLib1.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 IsSigned                      : false
@@ -3396,22 +3379,18 @@ MODULE                        : TestCompositeLib1.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -3971,22 +3950,18 @@ MODULE                        : TestCompositeLib1.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -4811,12 +4786,10 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -5403,16 +5376,13 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -5995,16 +5965,13 @@ MODULE                        : TestCompositeLib3.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -6769,7 +6736,6 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 IsSigned                      : false
@@ -7306,12 +7272,10 @@ MODULE                        : TestCompositeLib3.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
@@ -7850,12 +7814,10 @@ MODULE                        : TestCompositeLib3.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -8682,28 +8644,23 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                 SigningConfigName             : debug
@@ -9290,32 +9247,26 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                 SigningConfigName             : debug
@@ -9898,32 +9849,26 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib1/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             LintJars                      : <ROOT>/TestCompositeLib3/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib4
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -11262,7 +11207,6 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -11823,7 +11767,6 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
