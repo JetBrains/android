@@ -46,9 +46,7 @@ import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
 import com.android.tools.property.panel.impl.support.PropertiesTableImpl
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
-import com.google.common.truth.Truth
-import com.intellij.openapi.actionSystem.AnActionEvent
-import org.mockito.Mockito
+import com.google.common.truth.Truth.assertThat
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -92,50 +90,23 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     model.setPropertiesInTest(properties)
   }
 
-  fun checkTitle(line: Int, title: String) {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
-    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
-  }
+  fun checkTitle(line: Int, title: String) = inspector.checkTitle(line, title)
 
-  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TITLE)
-    Truth.assertThat(inspector.lines[line].title).isEqualTo(title)
-    Truth.assertThat(inspector.lines[line].expandable).isEqualTo(expandable)
-    return inspector.lines[line]
-  }
+  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel = inspector.checkTitle(line, title, expandable)
 
-  fun checkEditor(line: Int, namespace: String, name: String) {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PROPERTY)
-    Truth.assertThat(inspector.lines[line].editorModel?.property?.name).isEqualTo(name)
-    Truth.assertThat(inspector.lines[line].editorModel?.property?.namespace).isEqualTo(namespace)
-  }
+  fun checkEditor(line: Int, namespace: String, name: String) = inspector.checkEditor(line, namespace, name)
 
-  fun checkTable(line: Int): FakeTableLineModel {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.TABLE)
-    return inspector.lines[line] as FakeTableLineModel
-  }
+  fun checkTable(line: Int): FakeTableLineModel = inspector.checkTable(line)
 
   fun checkEmptyTableIndicator(line: Int): InspectorLineModel {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PANEL)
+    assertThat(line).isLessThan(inspector.lines.size)
+    assertThat(inspector.lines[line].type).isEqualTo(FakeLineType.PANEL)
     val lineModel = inspector.lines[line] as FakeComponentLineModel
-    Truth.assertThat(lineModel.component).isInstanceOf(EmptyTablePanel::class.java)
+    assertThat(lineModel.component).isInstanceOf(EmptyTablePanel::class.java)
     return lineModel
   }
 
-  fun performAction(line: Int, action: Int, icon: Icon) {
-    Truth.assertThat(line).isLessThan(inspector.lines.size)
-    Truth.assertThat(action).isLessThan(inspector.lines[line].actions.size)
-    val anAction = inspector.lines[line].actions[action]
-    Truth.assertThat(anAction.templatePresentation.icon).isEqualTo(icon)
-
-    val event = Mockito.mock(AnActionEvent::class.java)
-    anAction.actionPerformed(event)
-  }
+  fun performAction(line: Int, action: Int, icon: Icon) = inspector.performAction(line, action, icon)
 }
 
 class FakeEditorProviderImpl(model: NlPropertiesModel): EditorProvider<NlPropertyItem> {
