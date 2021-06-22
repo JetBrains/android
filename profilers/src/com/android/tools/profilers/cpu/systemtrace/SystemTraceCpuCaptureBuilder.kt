@@ -21,7 +21,6 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
-import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 import java.util.function.UnaryOperator
 import kotlin.math.max
@@ -30,6 +29,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   companion object {
     val UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50)
+    val BLAST_BUFFER_QUEUE_COUNTER_REGEX = Regex("PendingBuffer - .+BLAST#\\d")
   }
 
   fun build(traceId: Long, mainProcessId: Int, initialViewRange: Range): SystemTraceCpuCapture {
@@ -42,12 +42,13 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val cpuState = buildCpuStateData(mainProcess)
     val cpuCounters = buildCpuCountersData()
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
+    val blastBufferQueueCounter = buildBlastBufferQueueCounterData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 cpuCounters, memoryCounters, frameManager, sfManager, initialViewRange)
+                                 cpuCounters, memoryCounters, blastBufferQueueCounter, frameManager, sfManager, initialViewRange)
   }
 
   /**
@@ -213,6 +214,18 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
         it.key to convertCounterToSeriesData(it.value)
       }.toMap()
     }
+  }
+
+  /**
+   * In S+, the BLAST buffer queue replaces SurfaceFlinger buffer queue and thus we need to extract the BLAST buffer queue counter from the
+   * app process.
+   */
+  private fun buildBlastBufferQueueCounterData(mainProcessModel: ProcessModel): List<SeriesData<Long>> {
+    val counter = mainProcessModel.counterByName
+                    .filterKeys { it.matches(BLAST_BUFFER_QUEUE_COUNTER_REGEX) }.values
+                    .firstOrNull { it.valuesByTimestampUs.isNotEmpty() }
+                  ?: return emptyList()
+    return convertCounterToSeriesData(counter)
   }
 
   private fun convertCounterToSeriesData(counter: CounterModel): List<SeriesData<Long>> {
