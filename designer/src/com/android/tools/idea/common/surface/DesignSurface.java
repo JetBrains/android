@@ -1768,7 +1768,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Sets the tooltip for the design surface
    */
   public void setDesignToolTip(@Nullable String text) {
-    myLayeredPane.setToolTipText(text);
+    mySceneViewPanel.setToolTipText(text);
   }
 
   @Override
