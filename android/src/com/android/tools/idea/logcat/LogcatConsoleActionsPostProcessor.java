@@ -30,11 +30,10 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.actions.ScrollToTheEndToolbarAction;
 import com.intellij.openapi.project.DumbAwareAction;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The logcat console is just another instance of a {@link ConsoleView}. As such it comes with a default
@@ -129,7 +128,7 @@ public final class LogcatConsoleActionsPostProcessor extends ConsoleActionsPostP
     AndroidLogcatPreferences preferences = AndroidLogcatPreferences.getInstance(console.getProject());
     if (StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.get()) {
       if (AndroidLogcatFormatter.isTagShown(preferences.LOGCAT_FORMAT_STRING)) {
-        resultActions.add(new SuppressSingleLogTagAction(console));
+        resultActions.add(new SuppressLogTagsMenuAction(console::refresh));
       }
     }
     return resultActions.toArray(new AnAction[0]);

@@ -19,9 +19,12 @@ package com.android.tools.idea.logcat;
 import com.android.ddmlib.Log;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.openapi.util.Key;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public final class AndroidLogcatUtils {
+  private static final String EMPTY_TAG = AndroidBundle.message("android.configure.logcat.tag.empty");
+
   private AndroidLogcatUtils() {
   }
 
@@ -41,5 +44,15 @@ public final class AndroidLogcatUtils {
         return AndroidLogcatConstants.ASSERT;
     }
     return ProcessOutputTypes.STDOUT;
+  }
+
+  @NotNull
+  public static String getTagDisplayText(@NotNull String tag) {
+    return tag.isEmpty() ? EMPTY_TAG : tag;
+  }
+
+  @NotNull
+  public static String getTagFromDisplayText(@NotNull String displayText) {
+    return displayText.equals(EMPTY_TAG) ? "" : displayText;
   }
 }

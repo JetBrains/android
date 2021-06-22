@@ -17,33 +17,50 @@ package com.android.tools.idea.logcat
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
+import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.util.AndroidBundle
 
-class SuppressSingleLogTagAction(val console: AndroidLogConsole) : DumbAwareAction(
+class SuppressLogTagsMenuAction(private val onRefresh: Runnable) : DumbAwareAction(
   AndroidBundle.message("android.configure.logcat.suppress.single.tag.text"),
   AndroidBundle.message("android.configure.logcat.suppress.single.tag.description"),
   AllIcons.RunConfigurations.ShowIgnored) {
 
-  val preferences: AndroidLogcatGlobalPreferences = AndroidLogcatGlobalPreferences.getInstance()
+  private val preferences: AndroidLogcatGlobalPreferences = AndroidLogcatGlobalPreferences.getInstance()
 
   override fun actionPerformed(e: AnActionEvent) {
-    val editor = e.getData(CommonDataKeys.EDITOR)!!
+    val editor = e.getData(EDITOR) ?: throw IllegalArgumentException("AnActionEvent Data Context is missing required Editor")
     val document = editor.document
     val selectionModel = editor.selectionModel
-    if (selectionModel.hasSelection()) {
-      processLogRegion(document, selectionModel.selectionStart, selectionModel.selectionEnd)
+    val tags = if (selectionModel.hasSelection()) {
+      extractLogTagsFromDocument(document, selectionModel.selectionStart, selectionModel.selectionEnd)
     }
     else {
       val offset = editor.caretModel.offset
-      processLogRegion(document, offset, offset)
+      extractLogTagsFromDocument(document, offset, offset)
+    }
+    if (tags.size <= 1) {
+      preferences.suppressedLogTags.addAll(tags)
+      onRefresh.run()
+    }
+    else {
+      val project = e.getData(PROJECT) ?: throw IllegalArgumentException("AnActionEvent Data Context is missing required Project")
+      val confirmDialog = SuppressLogTagsDialog.newConfirmTagsDialog(project, tags)
+      if (confirmDialog.dialogWrapper.showAndGet()) {
+        val selectedTags = confirmDialog.getSelectedTags()
+        if (selectedTags.isNotEmpty()) {
+          preferences.suppressedLogTags.addAll(selectedTags)
+          onRefresh.run()
+        }
+      }
     }
   }
 
-  private fun processLogRegion(document: Document, offsetStart: Int, offsetEnd: Int) {
+  private fun extractLogTagsFromDocument(document: Document, offsetStart: Int, offsetEnd: Int): Set<String> {
+    val tags = mutableSetOf<String>()
     if (offsetEnd <= document.textLength) {
       val start = document.getLineStartOffset(document.getLineNumber(offsetStart))
       val end = document.getLineEndOffset(document.getLineNumber(offsetEnd))
@@ -51,11 +68,11 @@ class SuppressSingleLogTagAction(val console: AndroidLogConsole) : DumbAwareActi
       for (line in lines) {
         val matcher = AndroidLogcatFormatter.TAG_PATTERN.matcher(line)
         if (matcher.find()) {
-          preferences.suppressedLogTags.add(matcher.group(AndroidLogcatFormatter.TAG_PATTERN_GROUP_NAME))
+          tags.add(matcher.group(AndroidLogcatFormatter.TAG_PATTERN_GROUP_NAME))
         }
       }
-      console.refresh()
     }
+    return tags
   }
 }
 

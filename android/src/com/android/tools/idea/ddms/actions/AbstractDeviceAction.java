@@ -47,9 +47,9 @@ public abstract class AbstractDeviceAction extends AnAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     IDevice device = myDeviceContext.getSelectedDevice();
     if (device != null) {
-      performAction(device);
+      performAction(e, device);
     }
   }
 
-  protected abstract void performAction(@NotNull IDevice device);
+  protected abstract void performAction(@NotNull AnActionEvent e, @NotNull IDevice device);
 }
