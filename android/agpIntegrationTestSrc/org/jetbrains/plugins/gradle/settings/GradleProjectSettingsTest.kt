@@ -17,7 +17,7 @@ package org.jetbrains.plugins.gradle.settings
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 
 /**
 Tests for [GradleProjectSettings].
@@ -32,6 +32,6 @@ class GradleProjectSettingsTest: AndroidGradleTestCase() {
         val settings = GradleSettings.getInstance(project)
         val projectSettings = settings.linkedProjectsSettings
         assertThat(projectSettings).isNotEmpty()
-        assertThat(projectSettings.map { it.gradleJvm }).containsExactly(USE_PROJECT_JDK)
+        assertThat(projectSettings.map { it.gradleJvm }).containsExactly(ExternalSystemJdkUtil.USE_PROJECT_JDK)
     }
 }

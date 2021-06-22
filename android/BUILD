@@ -252,9 +252,7 @@ iml_module(
             "test_filter": "com.android.tools.idea.wearpairing",
         },
         "other": {
-            "shard_count": 10,
-            # TODO(b/167611852) remove after reducing its run time.
-            "timeout": "eternal",
+            "shard_count": 3,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
@@ -1156,10 +1154,24 @@ iml_module(
     split_test_targets = {
         "UnusedResourcesGradleTest": {
             # The testKotlin test case takes 3 minutes (linux) or 5 minutes (windows).
-            # This does not shard well so it is kept as its own target.
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "org.jetbrains.android.refactoring.UnusedResourcesGradleTest",
         },
-        "other": {},
+        "AddNewModulesToAppTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.AddNewModulesToAppTest",
+        },
+        "BenchmarkModuleTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.BenchmarkModuleTest",
+        },
+        "IllegalIdentifierInspectionTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",
+        },
+        "other": {
+            "shard_count": 4,
+        },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
@@ -1198,5 +1210,12 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
     ],
 )

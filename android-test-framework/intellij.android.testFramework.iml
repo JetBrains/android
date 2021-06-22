@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.resource-repository" scope="TEST" />
   </component>
 </module>

@@ -9,7 +9,11 @@ filegroup(
 filegroup(
     name = "projects",
     srcs = glob(
-        include = ["projects/**"],
+        include = [
+            "projects/**",
+            # Used by TranslationsEditorGradleTest
+            "stringsEditor/MyApplication/**",
+        ],
     ),
     visibility = ["//visibility:public"],
 )

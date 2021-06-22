@@ -27,5 +27,6 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
+        "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
     ],
 )
