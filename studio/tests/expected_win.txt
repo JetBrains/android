@@ -2075,6 +2075,7 @@ android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifThai-Regu
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifTibetan-VF.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/NotoSerifYezidi-VF.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/Roboto-Regular.ttf
+android-studio/plugins/android/resources/layoutlib/data/fonts/RobotoStatic-Regular.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-Bold.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-BoldItalic.ttf
 android-studio/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-Italic.ttf

@@ -2543,6 +2543,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fon
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifTibetan-VF.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoSerifYezidi-VF.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/Roboto-Regular.ttf
+Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/RobotoStatic-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-Bold.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-BoldItalic.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/SourceSansPro-Italic.ttf
