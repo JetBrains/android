@@ -1912,6 +1912,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2518,6 +2519,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2761,6 +2763,7 @@ MODULE                        : project.dyn_feature
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :dyn_feature
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                 IsSigned                      : false
                 CodeShrinker                  : null
@@ -2785,6 +2788,7 @@ MODULE                        : project.dyn_feature
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :dyn_feature
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.jav

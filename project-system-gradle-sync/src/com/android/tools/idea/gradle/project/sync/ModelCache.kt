@@ -43,7 +43,12 @@ import com.google.common.collect.ImmutableSortedSet
 
 interface ModelCache {
 
-  fun variantFrom(androidProject: IdeAndroidProject, variant: Variant, modelVersion: GradleVersion?): IdeVariantImpl
+  fun variantFrom(
+    androidProject: IdeAndroidProject,
+    variant: Variant,
+    modelVersion: GradleVersion?,
+    androidModulesIds: List<ModuleId>
+  ): IdeVariantImpl
   fun variantFrom(
     androidProject: IdeAndroidProject,
     variant: com.android.builder.model.v2.ide.Variant,
@@ -105,6 +110,8 @@ interface ModelCache {
     }
   }
 }
+
+data class ModuleId(val gradlePath: String, val buildId: String)
 
 internal inline fun <K : Any, V> copyModel(key: K, mappingFunction: (K) -> V): V = mappingFunction(key)
 

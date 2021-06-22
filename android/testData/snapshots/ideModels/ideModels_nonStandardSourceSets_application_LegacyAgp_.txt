@@ -1453,6 +1453,7 @@ MODULE                        : application.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/application
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2025,5 +2026,6 @@ MODULE                        : application.app
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/application
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar

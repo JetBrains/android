@@ -1407,6 +1407,7 @@ MODULE                        : TestCompositeLib1.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             ProjectPath                   : :
@@ -2004,6 +2005,7 @@ MODULE                        : TestCompositeLib1.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
                             ProjectPath                   : :
@@ -5322,6 +5324,7 @@ MODULE                        : TestCompositeLib3.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :
@@ -5911,6 +5914,7 @@ MODULE                        : TestCompositeLib3.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :
@@ -9165,6 +9169,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :
@@ -9767,6 +9772,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>/TestCompositeLib3
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :

@@ -388,6 +388,9 @@ internal class AndroidExtraModelProviderWorker(
     syncOptions: SingleVariantSyncActionOptions
   ) {
     val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations(inputModules, syncOptions)
+    val androidModulesIds = inputModules.map {
+      ModuleId(it.gradleProject.path, it.gradleProject.projectIdentifier.buildIdentifier.rootDir.path)
+    }
 
     // When re-syncing a project without changing the selected variants it is likely that the selected variants won't in the end.
     // However, variant resolution is not perfectly parallelizable. To overcome this we try to fetch the previously selected variant
@@ -401,7 +404,13 @@ internal class AndroidExtraModelProviderWorker(
         syncOptions.moduleIdWithVariantSwitched != null -> emptyMap()
         else -> {
           actionRunner
-            .runActions(allModulesToSetUp.map { getVariantAndModuleDependenciesAction(it, syncOptions.selectedVariants) })
+            .runActions(allModulesToSetUp.map {
+              getVariantAndModuleDependenciesAction(
+                it,
+                syncOptions.selectedVariants,
+                androidModulesIds
+              )
+            })
             .filterNotNull()
             .associateBy { it.moduleConfiguration }
         }
@@ -438,7 +447,8 @@ internal class AndroidExtraModelProviderWorker(
           else {
             getVariantAndModuleDependenciesAction(
               moduleConfiguration,
-              syncOptions.selectedVariants
+              syncOptions.selectedVariants,
+              androidModulesIds
             )
           }
         }
@@ -524,7 +534,8 @@ internal class AndroidExtraModelProviderWorker(
    */
   private fun getVariantAndModuleDependenciesAction(
     moduleConfiguration: ModuleConfiguration,
-    selectedVariants: SelectedVariants
+    selectedVariants: SelectedVariants,
+    androidModulesIds: List<ModuleId>
   ): (BuildController) -> SyncVariantResult? {
     val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
     val module = androidModulesById[moduleConfiguration.id] ?: return { null }
@@ -550,7 +561,7 @@ internal class AndroidExtraModelProviderWorker(
       else {
         val variant = controller.findVariantModel(module, moduleConfiguration.variant) ?: return null
         variantName = variant.name
-        ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion)
+        ideVariant = modelCache.variantFrom(module.androidProject, variant, module.modelVersion, androidModulesIds)
       }
 
       module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variantName)
@@ -740,7 +751,14 @@ private fun createAndroidModule(
   val idePrefetchedVariants = when (androidProjectResult) {
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
       ModelCache.safeGet(androidProjectResult.androidProject::getVariants, emptyList())
-      .map { modelCache.variantFrom(ideAndroidProject, it, modelVersion) }
+      .map {
+        modelCache.variantFrom(
+          ideAndroidProject,
+          it,
+          modelVersion,
+          listOf(ModuleId(gradleProject.path, gradleProject.projectIdentifier.buildIdentifier.rootDir.path))
+        )
+      }
       .takeUnless { it.isEmpty() }
     is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project -> null
   }

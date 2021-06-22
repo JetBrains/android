@@ -295,6 +295,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -325,6 +326,7 @@ MODULE                        : project.app
                             BuildId                       : <ROOT>
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.library

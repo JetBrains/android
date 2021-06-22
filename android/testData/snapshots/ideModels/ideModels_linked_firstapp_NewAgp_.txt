@@ -1411,6 +1411,7 @@ MODULE                        : My_First_App.app
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2005,6 +2006,7 @@ MODULE                        : My_First_App.app
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
                             ProjectPath                   : :app
+                            Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : My_First_App.app.mysharedlibrary

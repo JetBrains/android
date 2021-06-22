@@ -1062,7 +1062,8 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     override fun variantFrom(
       androidProject: IdeAndroidProject,
       variant: com.android.builder.model.Variant,
-      modelVersion: GradleVersion?
+      modelVersion: GradleVersion?,
+      androidModulesIds: List<ModuleId>
     ): IdeVariantImpl = throw UnsupportedOperationException()
 
     override fun variantFrom(
