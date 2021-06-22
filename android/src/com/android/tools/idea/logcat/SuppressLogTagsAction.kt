@@ -19,25 +19,41 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.ddms.DeviceContext
 import com.android.tools.idea.ddms.actions.AbstractDeviceAction
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
+import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
+import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.util.AndroidBundle
 
-internal class SuppressLogTagsAction(val project: Project, context: DeviceContext, val logConsole: AndroidLogConsole) :
+class SuppressLogTagsAction(context: DeviceContext, private val onRefresh: Runnable) :
   AbstractDeviceAction(
     context,
     AndroidBundle.message("android.configure.logcat.suppress.tags.text"),
     AndroidBundle.message("android.configure.logcat.suppress.tags.description"),
     AllIcons.RunConfigurations.ShowIgnored) {
 
-  override fun performAction(device: IDevice) {
+  override fun performAction(e: AnActionEvent, device: IDevice) {
     val preferences = AndroidLogcatGlobalPreferences.getInstance()
-    val dialog = SuppressLogTagsActionDialog(project, logConsole, preferences.suppressedLogTags)
-    dialog.setSize(preferences.suppressedLogTagsDialogDimension.width, preferences.suppressedLogTagsDialogDimension.height)
-    if (dialog.showAndGet()) {
-      preferences.suppressedLogTags.clear()
-      preferences.suppressedLogTags.addAll(dialog.getSelectedTags())
-      logConsole.refresh()
+    val suppressedLogTags = preferences.suppressedLogTags
+    val editor = e.getData(EDITOR) ?: throw IllegalArgumentException("AnActionEvent Data Context is missing required Editor")
+
+    val tagsFromLogcat: Set<String> = StringUtil.splitByLines(editor.document.text)
+      .map { AndroidLogcatFormatter.TAG_PATTERN.matcher(it) }.filter { it.find() }.mapTo(HashSet()) {
+        it.group(AndroidLogcatFormatter.TAG_PATTERN_GROUP_NAME)
+      }
+      .subtract(suppressedLogTags)
+
+    val project = e.getData(PROJECT) ?: throw IllegalArgumentException("AnActionEvent Data Context is missing required Project")
+    val dialog = SuppressLogTagsDialog.newManageTagsDialog(project, suppressedLogTags, tagsFromLogcat)
+    dialog.dialogWrapper.setSize(preferences.suppressedLogTagsDialogDimension.width, preferences.suppressedLogTagsDialogDimension.height)
+    if (dialog.dialogWrapper.showAndGet()) {
+      val selectedTags = dialog.getSelectedTags()
+      if (selectedTags != suppressedLogTags) {
+        suppressedLogTags.clear()
+        suppressedLogTags.addAll(selectedTags)
+        onRefresh.run()
+      }
     }
-    preferences.suppressedLogTagsDialogDimension = dialog.size
+    preferences.suppressedLogTagsDialogDimension = dialog.dialogWrapper.size
   }
 }

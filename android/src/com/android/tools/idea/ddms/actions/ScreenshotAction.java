@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
 import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -44,7 +45,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
   }
 
   @Override
-  protected void performAction(@NotNull final IDevice device) {
+  protected void performAction(@NotNull AnActionEvent e, @NotNull IDevice device) {
     final Project project = myProject;
 
     new ScreenshotTask(project, device) {

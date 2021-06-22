@@ -68,7 +68,7 @@ public final class AndroidLogConsole extends LogConsoleBase {
       c.addCustomConsoleAction(registerAction(actionManager, new MyConfigureLogcatHeaderAction(view)));
 
       if (StudioFlags.LOGCAT_SUPPRESSED_TAGS_ENABLE.get()) {
-        c.addCustomConsoleAction(registerAction(actionManager, new SuppressLogTagsAction(project, context, this)));
+        c.addCustomConsoleAction(registerAction(actionManager, new SuppressLogTagsAction(context, this::refresh)));
       }
 
       // TODO: Decide if these should be part of the profiler window

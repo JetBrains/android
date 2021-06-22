@@ -101,7 +101,7 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
   }
 
   @Override
-  protected void performAction(@NotNull IDevice device) {
+  protected void performAction(@NotNull AnActionEvent e, @NotNull IDevice device) {
     final ScreenRecorderOptionsDialog dialog = new ScreenRecorderOptionsDialog(myProject);
     if (!dialog.showAndGet()) {
       return;
