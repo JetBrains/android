@@ -17,6 +17,7 @@ package com.android.tools.idea.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.Slow
+import com.android.emulator.control.AudioPacket
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.EmulatorControllerGrpc
@@ -248,6 +249,25 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       val vmRunState = VmRunState.newBuilder().setState(VmRunState.RunState.SHUTDOWN).build()
       setVmState(vmRunState)
     }
+  }
+
+  /**
+   * Pushes audio packets into the emulator microphone.
+   *
+   * Usually multiple packages need to be sent to push one audio file, including several AudioPackets
+   * that the injected audio file will be divided into. The implementation of the stream observer must
+   * handle asynchronous events correctly, especially when pushing big files. This is usually done by
+   * overwriting [ClientResponseObserver.beforeStart] and calling
+   * [io.grpc.stub.CallStreamObserver.setOnReadyHandler] from there.
+   *
+   * @param streamObserver a client stream observer to handle events
+   * @return a StreamObserver that can be used to trigger the push
+   */
+  fun injectAudio(streamObserver: ClientResponseObserver<AudioPacket, Empty>) : StreamObserver<AudioPacket>{
+    if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
+      LOG.info("injectAudio()")
+    }
+    return emulatorController.injectAudio(DelegatingClientResponseObserver(streamObserver, EmulatorControllerGrpc.getInjectAudioMethod()))
   }
 
   /**
