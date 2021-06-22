@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface PluginsModel extends GradleDslModel {
   /**
@@ -44,11 +45,26 @@ public interface PluginsModel extends GradleDslModel {
    *
    * @param plugin the name of a plugin
    * @param version the version specification for the given plugin
+   * @return the model for the given plugin
+   */
+  @NotNull
+  default PluginModel applyPlugin(@NotNull String plugin, @NotNull String version) {
+    return applyPlugin(plugin, version, null);
+  }
+
+  /**
+   * Modify the underlying object such that the given plugin is declared at the specified version and with the specified apply
+   * status, and return the model corresponding to the plugin declaration.
+   *
+   * TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
+   *
+   * @param plugin the name of a plugin
+   * @param version the version specification for the given plugin
    * @param apply whether the plugin should be declared as applied in this model
    * @return the model for the given plugin
    */
   @NotNull
-  PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply);
+  PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply);
 
   /**
    * Modify the underlying object such that the given plugin is no longer declared.

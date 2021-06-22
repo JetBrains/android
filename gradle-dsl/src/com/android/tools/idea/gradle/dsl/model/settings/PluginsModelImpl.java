@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PluginsModelImpl extends GradleDslBlockModel implements PluginsModel {
   public static final @NonNls String APPLY = "apply";
@@ -60,11 +61,13 @@ public class PluginsModelImpl extends GradleDslBlockModel implements PluginsMode
   }
 
   @Override
-  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply) {
+  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply) {
     GradleDslInfixExpression expression = new GradleDslInfixExpression(myDslElement, null);
     GradleDslLiteral idLiteral = expression.setNewLiteral(ID, plugin.trim());
     expression.setNewLiteral(VERSION, version);
-    expression.setNewLiteral(APPLY, apply);
+    if (apply != null) {
+      expression.setNewLiteral(APPLY, apply);
+    }
     myDslElement.setNewElement(expression);
     return new PluginModelImpl(expression, idLiteral);
   }

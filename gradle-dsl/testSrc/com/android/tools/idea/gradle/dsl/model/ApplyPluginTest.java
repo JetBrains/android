@@ -556,7 +556,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
 
-    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0", false);
+    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0");
     verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_PLUGIN_DSL_TO_PLUGINS_BLOCK_EXPECTED);
@@ -569,7 +569,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
 
-    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0", false);
+    buildModel.applyPlugin("com.google.firebase.crashlytics", "17.3.0", true);
     verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_PLUGIN_DSL_EXPECTED);
