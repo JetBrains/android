@@ -20,7 +20,6 @@ import com.android.tools.idea.npw.java.NewLibraryModuleModel
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.AndroidGradleTestCase.invokeGradle
 import com.android.tools.idea.testing.findModule
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
