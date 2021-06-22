@@ -224,7 +224,7 @@ enum class ComposeColorConstructor {
 
 private fun getColorInt(arguments: List<KtValueArgument>): Color? {
   val colorValue = arguments.first().getArgumentExpression()?.constantValueOrNull()?.value as? Int ?: return null
-  return Color(colorValue)
+  return Color(colorValue, true)
 }
 
 private fun getColorLong(arguments: List<KtValueArgument>): Color? {
