@@ -159,7 +159,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   }
 
   @Override
-  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, boolean apply) {
+  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply) {
     // For this method, the existence of an apply block is irrelevant, as the features of the plugins Dsl are not supported
     // with an apply operator; we must always find the plugins block.
 
@@ -176,7 +176,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     // ... version '<version>'
     expression.setNewLiteral(VERSION, version);
     // ... apply <boolean>
-    expression.setNewLiteral(APPLY, apply);
+    if (apply != null) {
+      expression.setNewLiteral(APPLY, apply);
+    }
     // link everything up
     pluginsElement.setNewElement(expression);
 
