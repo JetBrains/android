@@ -392,7 +392,6 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
   private var myLastReportedResults: AndroidTestResults? = null
   private var myLastReportedDevice: AndroidDevice? = null
 
-  private var mySortKeyColumn: Int = -1
   private var mySortOrder: SortOrder = SortOrder.UNSORTED
 
   init {
@@ -593,7 +592,7 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           if (component !is JLabel) {
             return component
           }
-          component.icon = if (column == mySortKeyColumn) {
+          component.icon = if (column == model.mySortKeyColumn) {
             when(mySortOrder) {
               SortOrder.ASCENDING -> DefaultLookup.getIcon(component, ui, "Table.ascendingSortIcon")
               SortOrder.DESCENDING -> DefaultLookup.getIcon(component, ui, "Table.descendingSortIcon")
@@ -614,14 +613,14 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
           if (clickedColumnIndex < 0) {
             return
           }
-          if (mySortKeyColumn == clickedColumnIndex) {
+          if (model.mySortKeyColumn == clickedColumnIndex) {
             mySortOrder = when(mySortOrder) {
               SortOrder.ASCENDING -> SortOrder.DESCENDING
               SortOrder.DESCENDING -> SortOrder.UNSORTED
               else -> SortOrder.ASCENDING
             }
           } else {
-            mySortKeyColumn = clickedColumnIndex
+            model.mySortKeyColumn = clickedColumnIndex
             mySortOrder = SortOrder.ASCENDING
           }
           refreshTable()
@@ -655,10 +654,10 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
     // TreeTableView doesn't support TableRowSorter so we sort items
     // directly in the model (IDEA-248054).
-    val rowComparator = if (mySortKeyColumn >= 0) {
+    val rowComparator = if (model.mySortKeyColumn >= 0 && model.mySortKeyColumn < getColumnModel().columnCount) {
       when(mySortOrder) {
-        SortOrder.ASCENDING -> getColumnInfo(mySortKeyColumn).comparator
-        SortOrder.DESCENDING -> getColumnInfo(mySortKeyColumn).comparator?.reversed()
+        SortOrder.ASCENDING -> getColumnInfo(model.mySortKeyColumn).comparator
+        SortOrder.DESCENDING -> getColumnInfo(model.mySortKeyColumn).comparator?.reversed()
         else -> null
       }
     } else {
@@ -690,6 +689,7 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   val myTestResultsRows = mutableMapOf<String, AndroidTestResultsRow>()
   val myTestClassAggregationRow = mutableMapOf<String, AggregationRow>()
   val myRootAggregationRow: AggregationRow = root as AggregationRow
+  var mySortKeyColumn = -1
 
   private val myRowInsertionOrder: MutableMap<AndroidTestResults, Int> = mutableMapOf(myRootAggregationRow to 0)
   val insertionOrderComparator: Comparator<AndroidTestResults> = compareBy {
@@ -764,6 +764,9 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
   }
 
   private fun updateFilteredColumns() {
+    // Store current sortKeyColumn in case it gets filtered out
+    val sortColumn = if (mySortKeyColumn != -1) { columns[mySortKeyColumn].name } else { null }
+
     // We always display test name and test duration columns.
     val filteredColumns = mutableListOf(
       TestNameColumn,
@@ -785,6 +788,28 @@ private class AndroidTestResultsTableModel : ListTreeTableModelOnColumns(Aggrega
     filteredColumns.addAll(filteredDeviceColumns as List<ColumnInfo<Any, Any>>)
 
     myFilteredColumns = filteredColumns.toTypedArray()
+
+    // Update sortKeyColumn index after columns are filtered
+    updateSortKeyColumnAfterFilter(sortColumn)
+  }
+
+  private fun updateSortKeyColumnAfterFilter(sortKeyColumn: String?) {
+    // Do not need to update if no column is selected for sorting
+    if (sortKeyColumn == null) {
+      return
+    }
+
+    var sortKeyColumnRemainsAfterFilter = false
+    for ((index, column) in columns.iterator().withIndex()) {
+      if (column.name == sortKeyColumn) {
+        sortKeyColumnRemainsAfterFilter = true
+        mySortKeyColumn = index
+        break
+      }
+    }
+    if (!sortKeyColumnRemainsAfterFilter) {
+      mySortKeyColumn = -1
+    }
   }
 
   override fun getColumnClass(column: Int): Class<*> {
