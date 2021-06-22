@@ -97,9 +97,10 @@ class AndroidFrameEventTrackModel(androidFrameEvents: List<TraceProcessor.Androi
  */
 sealed class AndroidFrameEvent {
   data class Data(val frameNumber: Int, val timestampUs: Long, val durationUs: Long) : AndroidFrameEvent() {
-    constructor(frameEvent: TraceProcessor.AndroidFrameEventsResult.FrameEvent) : this(frameEvent.frameNumber,
-                                                                                       frameEvent.timestampNanoseconds,
-                                                                                       frameEvent.durationNanoseconds)
+    constructor(frameEvent: TraceProcessor.AndroidFrameEventsResult.FrameEvent) : this(
+      frameEvent.frameNumber,
+      TimeUnit.NANOSECONDS.toMicros(frameEvent.timestampNanoseconds),
+      TimeUnit.NANOSECONDS.toMicros(frameEvent.durationNanoseconds))
   }
 
   object Padding : AndroidFrameEvent()
