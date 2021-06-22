@@ -799,7 +799,6 @@ MODULE                        : My_First_App.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1387,12 +1386,10 @@ MODULE                        : My_First_App.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/firstapp
                 SigningConfigName             : debug
@@ -1983,12 +1980,10 @@ MODULE                        : My_First_App.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>/firstapp
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -3308,7 +3303,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3877,7 +3871,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp

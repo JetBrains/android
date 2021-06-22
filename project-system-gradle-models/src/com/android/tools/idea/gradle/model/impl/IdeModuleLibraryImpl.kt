@@ -24,8 +24,7 @@ import java.io.Serializable
  * The implementation of IdeLibrary for modules.
  **/
 data class IdeModuleLibraryImpl(
-  val core: IdeModuleLibraryCore,
-  override val isProvided: Boolean
+  val core: IdeModuleLibraryCore
 ) : IdeModuleLibrary by core, Serializable {
   @VisibleForTesting
   constructor(
@@ -38,8 +37,7 @@ data class IdeModuleLibraryImpl(
           buildId = buildId,
           variant = variant,
           lintJar = null
-      ),
-      isProvided = false
+      )
   )
 }
 
@@ -68,7 +66,4 @@ data class IdeModuleLibraryCore(
     variant = null,
     lintJar = null
   )
-
-  override val isProvided: Nothing
-    get() = error("abstract")
 }

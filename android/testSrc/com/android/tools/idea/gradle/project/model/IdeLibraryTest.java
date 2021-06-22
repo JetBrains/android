@@ -125,13 +125,13 @@ public class IdeLibraryTest {
           identifier1.getProjectPath(),
           identifier1.getBuildId()
         );
-        IdeModuleLibrary ideLibrary1 = new IdeModuleLibraryImpl(core1, false);
+        IdeModuleLibrary ideLibrary1 = new IdeModuleLibraryImpl(core1);
 
         IdeModuleLibraryCore core2 = new IdeModuleLibraryCore(
           identifier2.getProjectPath(),
           identifier2.getBuildId()
         );
-        IdeModuleLibrary ideLibrary2 = new IdeModuleLibraryImpl(core2, false);
+        IdeModuleLibrary ideLibrary2 = new IdeModuleLibraryImpl(core2);
 
         assertThat(
                         ImmutableList.of(ideJavaLibraryA, ideJavaLibraryB).stream()

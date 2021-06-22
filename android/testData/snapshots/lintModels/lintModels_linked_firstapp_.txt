@@ -250,6 +250,7 @@ MODULE                        : My_First_App.app
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
                 artifacts::app                : null => artifacts::app:unspecified
+                artifacts::app:mysharedlibrary          : null => artifacts::app:mysharedlibrary:unspecified
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]

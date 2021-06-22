@@ -294,7 +294,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       resourceConfigurations = ImmutableList.copyOf(resourceConfigurations),
       vectorDrawables = vectorDrawables,
       dimension = "",
-      applicationId = applicationId?.plus(if (applicationIdSuffix != null ) ".${applicationIdSuffix}" else ""),
+      applicationId = applicationId?.plus(if (applicationIdSuffix != null) ".${applicationIdSuffix}" else ""),
       versionCode = versionCode,
       versionName = versionName,
       minSdkVersion = null,
@@ -419,9 +419,9 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     return IdeJavaLibraryImpl(javaLibraryCores.internCore(core), isProvided)
   }
 
-  fun libraryFrom(projectPath: String, buildId: String?, variant: String?, lintJar: File?, isProvided: Boolean): IdeLibrary {
+  fun libraryFrom(projectPath: String, buildId: String?, variant: String?, lintJar: File?): IdeLibrary {
     val core = IdeModuleLibraryCore(buildId, projectPath, variant, lintJar?.path)
-    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core), isProvided)
+    return IdeModuleLibraryImpl(moduleLibraryCores.internCore(core))
   }
 
   fun createFromDependencies(dependencies: ArtifactDependencies, libraryMap: GlobalLibraryMap): IdeDependencies {
@@ -436,16 +436,15 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       artifactAddress: String,
       variant: String?,
       lintJar: File?,
-      buildId: String?,
-      isProvided: Boolean
+      buildId: String?
     ) {
       if (!visited.contains(artifactAddress)) {
         visited.add(artifactAddress)
-        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildId, variant, lintJar, isProvided) }
+        librariesById.computeIfAbsent(artifactAddress) { libraryFrom(projectPath, buildId, variant, lintJar) }
       }
     }
 
-    fun populateProjectDependencies(libraries: List<Library>, providedLibraries: List<Library>, visited: MutableSet<String>) {
+    fun populateProjectDependencies(libraries: List<Library>, visited: MutableSet<String>) {
       for (identifier in libraries) {
         createModuleLibrary(
           visited,
@@ -453,8 +452,8 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
           identifier.artifactAddress,
           identifier.variant,
           identifier.lintJar,
-          identifier.buildId,
-          providedLibraries.contains(identifier))
+          identifier.buildId
+        )
       }
     }
 
@@ -481,7 +480,8 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     ) {
       for (dependency in dependencies) {
         val library = libraryMap.libraries[dependency.artifactAddress] ?: continue
-        if (library.type == LibraryType.ANDROID_LIBRARY && !androidLibraries.contains(library)) androidLibraries.add(library)  // Can we check by Library object here ?
+        if (library.type == LibraryType.ANDROID_LIBRARY && !androidLibraries.contains(library)) androidLibraries.add(
+          library)  // Can we check by Library object here ?
         if (library.type == LibraryType.JAVA_LIBRARY && !javaLibraries.contains(library)) javaLibraries.add(library)
         if (library.type == LibraryType.PROJECT && !projectLibraries.contains(library)) projectLibraries.add(library)
         // Get transitive dependencies as well.
@@ -496,7 +496,9 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       libraryMap: GlobalLibraryMap
     ): List<File> {
       // Get runtimeOnly libraries: this means libraries that are not available in the compile graph.
-      fun getRuntimeLibraries(runtimeDependencies: List<GraphItem>?, compileDependenciesArtifacts: List<String>?, runtimeLibraries: MutableList<File>) {
+      fun getRuntimeLibraries(runtimeDependencies: List<GraphItem>?,
+                              compileDependenciesArtifacts: List<String>?,
+                              runtimeLibraries: MutableList<File>) {
         if (runtimeDependencies == null) return
         for (dependency in runtimeDependencies) {
           // Filter out dependencies included in the compile graph.
@@ -510,7 +512,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       }
 
       val runtimeLibraries = mutableListOf<File>()
-      getRuntimeLibraries(runtimeDependencies, compileDependencies?.map{ it.artifactAddress }, runtimeLibraries)
+      getRuntimeLibraries(runtimeDependencies, compileDependencies?.map { it.artifactAddress }, runtimeLibraries)
 
       return runtimeLibraries
     }
@@ -581,7 +583,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       val providedLibraries = getProvidedLibraries(dependencies.compileDependencies, dependencies.runtimeDependencies, libraryMap)
       populateAndroidLibraries(androidLibraries, providedLibraries, visited)
       populateJavaLibraries(javaLibraries, providedLibraries, visited)
-      populateProjectDependencies(projectLibraries, providedLibraries, visited)
+      populateProjectDependencies(projectLibraries, visited)
       val runtimeLibraries = getRuntimeLibraries(dependencies.runtimeDependencies, dependencies.compileDependencies, libraryMap)
       return createIdeDependencies(visited, runtimeLibraries)
     }
@@ -621,7 +623,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     }
   }
 
-  fun convertV2ArtifactName(name: String): IdeArtifactName = when(name) {
+  fun convertV2ArtifactName(name: String): IdeArtifactName = when (name) {
     "_main_" -> IdeArtifactName.MAIN
     "_android_test_" -> IdeArtifactName.ANDROID_TEST
     "_unit_test_" -> IdeArtifactName.UNIT_TEST
@@ -728,6 +730,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     fun <T> merge(f: IdeProductFlavor.() -> T, b: IdeBuildType.() -> T, combine: (T?, T?) -> T): T {
       return combine(mergedFlavor.f(), buildType?.b())
     }
+
     fun <T> combineMaps(u: Map<String, T>?, v: Map<String, T>?): Map<String, T> = u.orEmpty() + v.orEmpty()
     fun <T> combineSets(u: Collection<T>?, v: Collection<T>?): Collection<T> = (u?.toSet().orEmpty() + v.orEmpty()).toList()
 
@@ -1106,7 +1109,7 @@ private inline fun <K, V> copy(original: () -> Collection<K>?, mapper: (K) -> V)
 private inline fun <K, V, R> copy(original: () -> Map<K, V>?, mapper: (V) -> R): Map<K, R>? =
   ModelCache.safeGet(original, mapOf())?.mapValues { (_, v) -> mapper(v) }
 
-private inline fun <K, R, V> copy(o1: () -> Collection<K>, o2: () -> Collection<R>,  mapper: (K, R) -> V): List<V> {
+private inline fun <K, R, V> copy(o1: () -> Collection<K>, o2: () -> Collection<R>, mapper: (K, R) -> V): List<V> {
   val original1 = ModelCache.safeGet(o1, listOf())
   val original2 = ModelCache.safeGet(o2, listOf())
   return original1.zip(original2).toMap().map { (k, v) -> mapper(k, v) }

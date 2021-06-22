@@ -681,7 +681,6 @@ MODULE                        : MainActivity.app
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -841,7 +840,6 @@ MODULE                        : MainActivity.app
                             Artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
                     ModuleDependencies
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -2186,7 +2184,6 @@ MODULE                        : MainActivity.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -2751,7 +2748,6 @@ MODULE                        : MainActivity.lib
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>

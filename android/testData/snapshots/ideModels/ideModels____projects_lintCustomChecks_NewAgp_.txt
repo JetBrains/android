@@ -259,7 +259,6 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -291,12 +290,10 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : true
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -323,12 +320,10 @@ MODULE                        : project.app
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            IsProvided                    : false
                             ProjectPath                   : :app
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -597,7 +592,6 @@ MODULE                        : project.library
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -625,7 +619,6 @@ MODULE                        : project.library
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -895,7 +888,6 @@ MODULE                        : project.library-remote
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -923,7 +915,6 @@ MODULE                        : project.library-remote
                     ModuleDependencies
                         ModuleDependency
                             LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            IsProvided                    : false
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>

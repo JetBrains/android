@@ -263,6 +263,8 @@ MODULE                        : TestCompositeLib1.app
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -1662,6 +1664,7 @@ MODULE                        : TestCompositeLib3.app
             PackageDependencies
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debugAndroidTest [-]
@@ -3014,6 +3017,9 @@ MODULE                        : project.app
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::                   : null => artifacts:::unspecified
                 artifacts::app                : null => artifacts::app:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
+                artifacts::lib                : null => artifacts::lib:unspecified
         - ClassOutputs                : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
         - ClassOutputs                : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
