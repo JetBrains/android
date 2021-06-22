@@ -203,7 +203,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       val targetPluginModel = settingsPluginsModel.plugins().firstOrNull { it.name().toString() == plugin }
 
       if (targetPluginModel == null) {
-        settingsPluginsModel.applyPlugin(plugin, resolvedVersion, false)
+        settingsPluginsModel.applyPlugin(plugin, resolvedVersion)
       }
       else {
         val toBeAddedVersion = GradleVersion.parse(resolvedVersion)
