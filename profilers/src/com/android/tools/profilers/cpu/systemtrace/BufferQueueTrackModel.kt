@@ -19,19 +19,23 @@ import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.profilers.cpu.LazyDataSeries
-import java.util.function.Supplier
+import kotlin.math.max
 
 /**
  * Track model for BufferQueue counter in CPU capture stage
  */
 class BufferQueueTrackModel(systemTraceData: CpuSystemTraceData, viewRange: Range) : LineChartModel() {
-  // Y-axis range is [0, 2].
+  // In pre-S, Y-axis range is [0, 2].
   // 0: no buffer in queue, app is still drawing to the buffer;
   // 1: buffer waiting to be consumed by SurfaceFlinger;
   // 2: another buffer is produced before the previous one is consumed by SurfaceFlinger, a.k.a. triple buffered.
-  val bufferQueueSeries: RangedContinuousSeries = RangedContinuousSeries("BufferQueue", viewRange, Range(0.0, 2.0), LazyDataSeries(
-    Supplier { systemTraceData.getBufferQueueCounterValues() })
-  )
+  //
+  // In S+, a new system called BLAST Buffer Queue is implemented, so the Y-axis max can be bigger than 2.
+  val maxY = systemTraceData.getBufferQueueCounterValues().maxBy { it.value }?.value ?: 0
+  val yRange = Range(0.0, max(2.0, maxY.toDouble()))
+  val bufferQueueSeries: RangedContinuousSeries = RangedContinuousSeries("BufferQueue", viewRange, yRange, LazyDataSeries {
+    systemTraceData.getBufferQueueCounterValues()
+  })
 
   init {
     add(bufferQueueSeries)
