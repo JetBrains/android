@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
+import static com.intellij.util.containers.ContainerUtil.emptyList;
 import static com.intellij.util.containers.ContainerUtil.map;
 import static org.mockito.Mockito.mock;
 
@@ -402,6 +403,6 @@ public class AndroidProjectStub implements AndroidProject {
     ModelCache modelCache = ModelCache.create(StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get());
     GradleVersion modelVersion = GradleVersion.tryParseAndroidGradlePluginVersion(androidProject.getModelVersion());
     IdeAndroidProjectImpl ideAndroidProject = modelCache.androidProjectFrom(androidProject);
-    return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion));
+    return map(androidProject.getVariants(), it -> modelCache.variantFrom(ideAndroidProject, it, modelVersion, emptyList()));
   }
 }
