@@ -180,17 +180,6 @@ iml_module(
             "shard_count": 3,
             "test_filter": "org.jetbrains.android",
         },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-            "timeout": "long",
-        },
-        "jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest": {
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
-            "timeout": "long",
-        },
-        "AndroidLintCustomCheckTest": {
-            "test_filter": "org.jetbrains.android.AndroidLintCustomCheckTest",
-        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
@@ -1016,6 +1005,14 @@ iml_module(
             # The testKotlin test case takes 3 minutes (linux) or 5 minutes (windows).
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "org.jetbrains.android.refactoring.UnusedResourcesGradleTest",
+        },
+        "MigrateToAndroidxGradleKtsTest": {
+            # These are extra-large tests, so they get run in their own target
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
+        },
+        "MigrateToAndroidxGradleGroovyTest": {
+            # These are extra-large tests, so they get run in their own target
+            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest",
         },
         "AddNewModulesToAppTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well

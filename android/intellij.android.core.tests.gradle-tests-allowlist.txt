@@ -164,7 +164,3 @@ com.android.tools.idea.testartifacts.scopes.TestArtifactsFindUsageTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactsRenameTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactsResolveTest
 com.android.tools.idea.testartifacts.scopes.TestArtifactsTestCase
-org.jetbrains.android.AndroidLintCustomCheckTest
-org.jetbrains.android.refactoring.MigrateToAndroidxGradleGroovyTest
-org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest
-org.jetbrains.android.refactoring.MigrateToAndroidxGradleTestBase
