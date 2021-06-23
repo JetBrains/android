@@ -31,8 +31,6 @@ import org.jetbrains.uast.UMethod
  * old/new composable annotation names.
  */
 internal val namespaceVariations = listOf(
-  arrayOf("androidx.ui.tooling.preview", "androidx.compose"),
-  arrayOf("androidx.ui.tooling.preview", "androidx.compose.runtime"),
   arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
   arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
 )
