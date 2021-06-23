@@ -34,6 +34,7 @@ import java.awt.image.ColorModel
 import java.util.ArrayDeque
 import java.util.Enumeration
 import java.util.function.Predicate
+import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.FontUIResource
 
@@ -57,6 +58,10 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     }
     root.preferredSize = root.size
     layout()
+    if (SwingUtilities.isEventDispatchThread()) {
+      // Allow resizing events to propagate.
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    }
   }
 
   /**

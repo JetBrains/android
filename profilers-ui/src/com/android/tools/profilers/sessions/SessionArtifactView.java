@@ -33,6 +33,7 @@ import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.PointerInfo;
@@ -129,12 +130,14 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        // When a component is first constructed, we need to check whether the mouse is already hovered. If so, draw the hover effect.
-        PointerInfo info = MouseInfo.getPointerInfo();
-        if (info != null) {
-          Point mousePosition = info.getLocation();
-          SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
-          showHoverState(SessionArtifactView.this.contains(mousePosition));
+        if (!GraphicsEnvironment.isHeadless()) {
+          // When a component is first constructed, we need to check whether the mouse is already hovered. If so, draw the hover effect.
+          PointerInfo info = MouseInfo.getPointerInfo();
+          if (info != null) {
+            Point mousePosition = info.getLocation();
+            SwingUtilities.convertPointFromScreen(mousePosition, SessionArtifactView.this);
+            showHoverState(SessionArtifactView.this.contains(mousePosition));
+          }
         }
       }
     });
