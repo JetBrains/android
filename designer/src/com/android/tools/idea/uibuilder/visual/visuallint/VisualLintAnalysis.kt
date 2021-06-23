@@ -16,17 +16,24 @@
 package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
+
+private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
+private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should not be used in layouts larger than 600dp"
 
 /**
  * Returns all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
  */
-fun analyzeAfterModelUpdate(result: RenderResult): ImmutableList<RenderErrorModel.Issue> {
-  return ImmutableList.copyOf(analyzeBounds(result))
+fun analyzeAfterModelUpdate(result: RenderResult, sceneManager: LayoutlibSceneManager): ImmutableList<RenderErrorModel.Issue> {
+  val issues = mutableListOf<RenderErrorModel.Issue>()
+  issues.addAll(analyzeBounds(result))
+  issues.addAll(analyzeBottomNavigation(result, sceneManager))
+  return ImmutableList.copyOf(issues)
 }
 
 /**
@@ -59,5 +66,28 @@ private fun findBoundIssues(root: ViewInfo, issues: MutableList<RenderErrorModel
       issues.add(RenderErrorModel.Issue.builder().setSummary("$child is not fully visible in layout").build())
     }
     findBoundIssues(child, issues)
+  }
+}
+
+/**
+ * Analyze the given [RenderResult] for issues where a BottomNavigationView is wider than 600dp.
+ */
+private fun analyzeBottomNavigation(renderResult: RenderResult, sceneManager: LayoutlibSceneManager): List<RenderErrorModel.Issue> {
+  val issues = mutableListOf<RenderErrorModel.Issue>()
+  for (root in renderResult.rootViews) {
+    findBottomNavigationIssue(root, sceneManager, issues)
+  }
+  return issues
+}
+
+private fun findBottomNavigationIssue(root: ViewInfo, sceneManager: LayoutlibSceneManager, issues: MutableList<RenderErrorModel.Issue>) {
+  if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
+    val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
+    if (widthInDp > 600) {
+      issues.add(RenderErrorModel.Issue.builder().setSummary(BOTTOM_NAVIGATION_ISSUE_MESSAGE).build())
+    }
+  }
+  for (child in root.children) {
+    findBottomNavigationIssue(child, sceneManager, issues)
   }
 }

@@ -642,7 +642,7 @@ public class VisualizationForm
             RenderResult result = layoutlibSceneManager.getRenderResult();
 
             ImmutableList<VisualLintAtfIssue> atfIssues = VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model);
-            Collection<RenderErrorModel.Issue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result);
+            Collection<RenderErrorModel.Issue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager);
             IssueProvider newProvider = new VisualLintIssueProvider(model, new RenderErrorModel(renderIssues), atfIssues);
 
             IssueProvider oldProvider = myIssueProviders.put(model, newProvider);
