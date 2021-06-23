@@ -594,6 +594,14 @@ public final class StudioFlags {
     "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
     false
   );
+
+  public static final Flag<Boolean> LOGCAT_V2_ENABLE = Flag.create(
+    RUNDEBUG,
+    "logcat.v2.enable",
+    "Enable Logcat V2",
+    "Enables version 2 of the logcat tool wondow",
+    false
+  );
   //endregion
 
   //region Gradle Project System
