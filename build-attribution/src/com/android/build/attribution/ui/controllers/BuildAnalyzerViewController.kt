@@ -249,6 +249,7 @@ class PluginVersionDeclarationFinder(val project: Project) {
 class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
 
   var runningTestConfigurationCacheBuild: Boolean = false
+  var runningFirstConfigurationCacheBuild: Boolean = false
 
   companion object {
     fun getInstance(project: Project): ConfigurationCacheTestBuildFlowRunner {
@@ -276,8 +277,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         Messages.getInformationIcon(), null
       )
       if (confirmationResult == Messages.OK) {
-        scheduleRebuildWithCCOptionAndRunOnSuccess {
-          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess { showFinalSuccessMessage() } }
+        scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild = true) {
+          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild = false) { showFinalSuccessMessage() } }
         }
       }
     }
@@ -302,10 +303,11 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(onSuccess: () -> Unit) {
+  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild: Boolean, onSuccess: () -> Unit) {
     GradleBuildInvoker.getInstance(project).let { invoker ->
       invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
         override fun execute(result: GradleInvocationResult) {
+          runningFirstConfigurationCacheBuild = false
           runningTestConfigurationCacheBuild = false
           invoker.remove(this)
           if (result.isBuildSuccessful) onSuccess()
@@ -313,6 +315,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         }
       })
       invoker.rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
+      runningFirstConfigurationCacheBuild = firstBuild
       runningTestConfigurationCacheBuild = true
     }
   }

@@ -26,4 +26,6 @@ interface BuildAttributionManager : ProgressListener {
   fun onBuildFailure(attributionFileDir: File)
 
   fun openResultsTab()
+
+  fun shouldShowBuildOutputLink(): Boolean
 }
