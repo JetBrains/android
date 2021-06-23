@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -52,6 +51,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
+private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
+
 class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserDataHolderBase(), FileEditor {
   private val _file = file
   override fun getFile() = _file
@@ -70,7 +71,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
     workbench?.let { return it }
     modificationCount = file.modificationCount
 
-    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, this)
+    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     try {
       val viewSettings = DeviceViewSettings()
 
