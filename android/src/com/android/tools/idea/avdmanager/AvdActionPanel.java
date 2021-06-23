@@ -74,12 +74,12 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
     @NotNull JComponent getComponent();
   }
 
-  public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, AvdRefreshProvider refreshProvider) {
+  public AvdActionPanel(@NotNull AvdInfo avdInfo, int numVisibleActions, boolean projectOpen, AvdRefreshProvider refreshProvider) {
     myRefreshProvider = refreshProvider;
     setOpaque(true);
     setBorder(JBUI.Borders.empty(10));
     myAvdInfo = avdInfo;
-    List<AvdUiAction> actions = getActions();
+    List<AvdUiAction> actions = getActions(projectOpen);
     setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 0));
     int visibleActionCount = 0;
     boolean errorState = false;
@@ -137,11 +137,13 @@ public class AvdActionPanel extends JPanel implements AvdUiAction.AvdInfoProvide
   }
 
   @NotNull
-  private List<AvdUiAction> getActions() {
+  private List<AvdUiAction> getActions(boolean projectOpen) {
     List<AvdUiAction> actionList = new ArrayList<>();
 
     actionList.add(new RunAvdAction(this));
-    actionList.add(new ExploreAvdAction(this));
+    if (projectOpen) {
+      actionList.add(new ExploreAvdAction(this));
+    }
     actionList.add(new EditAvdAction(this));
     actionList.add(new DuplicateAvdAction(this));
     //actionList.add(new ExportAvdAction(this)); // TODO: implement export/import

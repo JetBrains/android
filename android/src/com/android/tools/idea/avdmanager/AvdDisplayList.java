@@ -598,7 +598,7 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
     private final AvdActionPanel myComponent;
 
     ActionRenderer(int numVisibleActions, AvdInfo info) {
-      myComponent = new AvdActionPanel(info, numVisibleActions, AvdDisplayList.this);
+      myComponent = new AvdActionPanel(info, numVisibleActions, myProject != null, AvdDisplayList.this);
     }
 
     private @NotNull Component getComponent(@NotNull JTable table, int row, int column) {

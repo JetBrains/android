@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.virtualtab.columns
 
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.avdmanager.AvdActionPanel
+import com.android.tools.idea.avdmanager.AvdActionPanel.AvdRefreshProvider
 import com.intellij.util.ui.AbstractTableCellEditor
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
@@ -31,10 +32,11 @@ import javax.swing.table.TableCellRenderer
  */
 class AvdActionsColumnInfo(
   name: String,
-  private val numVisibleActions: Int = -1,
-  private val refreshProvider: AvdActionPanel.AvdRefreshProvider
+  private val projectOpen: Boolean,
+  private val refreshProvider: AvdRefreshProvider
 ) : ColumnInfo<AvdInfo, AvdInfo>(name) {
-  private val width: Int = if (numVisibleActions == -1) -1 else JBUI.scale(45) * numVisibleActions + JBUI.scale(75)
+  private val numVisibleActions = if (projectOpen) 3 else 2
+  private val width = JBUI.scale(45) * numVisibleActions + JBUI.scale(75)
 
   /**
    * This cell renders an action panel for both the editor component and the display component
@@ -52,7 +54,7 @@ class AvdActionsColumnInfo(
   fun getComponent(avdInfo: AvdInfo?): ActionRenderer {
     var renderer = ourActionPanelRendererEditor[avdInfo]
     if (renderer == null) {
-      renderer = ActionRenderer(numVisibleActions, avdInfo, refreshProvider)
+      renderer = ActionRenderer(numVisibleActions, avdInfo, projectOpen, refreshProvider)
       ourActionPanelRendererEditor[avdInfo] = renderer
     }
     return renderer
@@ -66,10 +68,11 @@ class AvdActionsColumnInfo(
 
   fun cycleFocus(info: AvdInfo?, backward: Boolean): Boolean = getComponent(info).cycleFocus(backward)
 
-  class ActionRenderer(
-    private var numVisibleActions: Int, info: AvdInfo?, refreshProvider: AvdActionPanel.AvdRefreshProvider
-  ) : AbstractTableCellEditor(), TableCellRenderer {
-    val component: AvdActionPanel = AvdActionPanel((info)!!, this.numVisibleActions, refreshProvider)
+  class ActionRenderer(private var numVisibleActions: Int,
+                       info: AvdInfo?,
+                       projectOpen: Boolean,
+                       refreshProvider: AvdRefreshProvider) : AbstractTableCellEditor(), TableCellRenderer {
+    val component: AvdActionPanel = AvdActionPanel((info)!!, this.numVisibleActions, projectOpen, refreshProvider)
 
     private fun getComponent(table: JTable, row: Int, column: Int) = component.apply {
       if (table.selectedRow == row) {
