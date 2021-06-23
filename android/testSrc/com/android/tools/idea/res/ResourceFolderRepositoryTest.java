@@ -4113,7 +4113,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     byte[] newContent = Files.readAllBytes(Paths.get(myFixture.getTestDataPath(), DRAWABLE_BLUE));
     WriteAction.run(() -> logoFile.setBinaryContent(newContent));
 
-    //int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0); //TODO NOW
     waitForCondition(10, TimeUnit.SECONDS, () -> {
       int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
       return "0000ff".equals(Integer.toHexString(blue).substring(2));
