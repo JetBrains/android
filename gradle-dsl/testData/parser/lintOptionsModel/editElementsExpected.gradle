@@ -2,6 +2,7 @@ android {
   lintOptions {
     abortOnError false
     absolutePaths true
+    baseline file('other-baseline.xml')
     check 'check-id-1', 'check-id-3'
     checkAllWarnings false
     checkDependencies true

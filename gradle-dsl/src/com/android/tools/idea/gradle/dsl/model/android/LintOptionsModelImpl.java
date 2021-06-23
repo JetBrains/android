@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOptionsModel {
   @NonNls public static final String ABORT_ON_ERROR = "mAbortOnError";
   @NonNls public static final String ABSOLUTE_PATHS = "mAbsolutePaths";
+  @NonNls public static final String BASELINE = "mBaseline";
   // A note for the unwary: the CHECK property (and similar below) can be modelled for our purposes as a mutable set, given that the
   // only entries for it in our property tables is for the varargs augmenting method.  Behind the scenes, it is implemented as a set of
   // entries in a hash table, keyed by the individual values passed to the check() Dsl function, so assignment (or augmented assignment)
@@ -74,6 +75,11 @@ public class LintOptionsModelImpl extends GradleDslBlockModel implements LintOpt
   @NotNull
   public ResolvedPropertyModel absolutePaths() {
     return getModelForProperty(ABSOLUTE_PATHS);
+  }
+
+  @Override
+  public @NotNull ResolvedPropertyModel baseline() {
+    return getFileModelForProperty(BASELINE);
   }
 
   @Override
