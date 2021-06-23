@@ -32,7 +32,7 @@ class MockMethod(
 ) : Method by MockitoKt.mock() {
   override fun name() = name
   override fun declaringType(): ReferenceType = declaringType
-  override fun allLineLocations(): List<Location> = lines.map { GeneratedLocation(debugProcess, declaringType, name, it) }
+  override fun allLineLocations(): List<Location> = lines.map { GeneratedLocation(declaringType, name, it) }
   override fun argumentTypeNames(): List<String> = argumentTypeNames
   override fun signature(): String? = signature
 }
