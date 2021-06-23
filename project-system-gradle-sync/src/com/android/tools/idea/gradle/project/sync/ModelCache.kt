@@ -66,7 +66,7 @@ interface ModelCache {
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl
   fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl
+  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl
 
   companion object {
     const val LOCAL_AARS = "__local_aars__"

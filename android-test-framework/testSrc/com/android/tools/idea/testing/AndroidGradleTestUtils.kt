@@ -730,7 +730,6 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     buildFolder = buildPath,
     resourcePrefix = null,
     buildToolsVersion = "buildToolsVersion",
-    ndkVersion = "ndkVersion",
     isBaseSplit = true,
     dynamicFeatures = dynamicFeatures,
     viewBindingOptions = viewBindingOptions,

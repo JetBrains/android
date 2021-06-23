@@ -39,6 +39,7 @@ interface INdkModel {
   val buildFiles: Collection<File>
   val buildSystems: Collection<String>
   val defaultNdkVersion: String
+  val ndkVersion: String
 }
 
 sealed class NdkModel : INdkModel
@@ -171,6 +172,9 @@ data class V1NdkModel(
   @Transient
   override val defaultNdkVersion: String = androidProject.defaultNdkVersion
 
+  @Transient
+  override val ndkVersion: String = androidProject.ndkVersion
+
   fun getNdkVariant(variantAbi: VariantAbi?): NdkVariant? = ndkVariantsByVariantAbi[variantAbi]
   fun findToolchain(toolchainName: String): IdeNativeToolchain? = toolchainsByName[toolchainName]
   fun findSettings(settingsName: String): IdeNativeSettings? = settingsByName[settingsName]
@@ -226,6 +230,9 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
 
   @Transient
   override val defaultNdkVersion: String = nativeModule.defaultNdkVersion
+
+  @Transient
+  override val ndkVersion: String = nativeModule.ndkVersion
 }
 
 private fun File.readIndexFile(): Set<File> = when {

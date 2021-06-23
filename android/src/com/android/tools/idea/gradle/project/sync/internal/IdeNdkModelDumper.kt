@@ -74,7 +74,10 @@ private fun ProjectDumper.dump(nativeAndroidProject: IdeNativeAndroidProject) {
   prop("ModelVersion") { nativeAndroidProject.modelVersion }
   prop("ApiVersion") { nativeAndroidProject.apiVersion.toString() }
   prop("Name") { nativeAndroidProject.name }
-  prop("DefaultNdkVersion") { nativeAndroidProject.defaultNdkVersion }
+  prop("DefaultNdkVersion") { nativeAndroidProject.defaultNdkVersion.takeUnless { it.isEmpty() } }
+  prop("NdkVersion") {
+    if (nativeAndroidProject.ndkVersion == nativeAndroidProject.defaultNdkVersion) "<DEFAULT_NDK_VERSION>" else nativeAndroidProject.ndkVersion
+  }
   nativeAndroidProject.buildFiles.forEach { prop("BuildFiles") { it.path.toPrintablePath() } }
   nativeAndroidProject.buildSystems.forEach { prop("BuildSystems") { it } }
   if (nativeAndroidProject.variantInfos.isNotEmpty()) {

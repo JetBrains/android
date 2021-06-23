@@ -48,7 +48,6 @@ data class IdeAndroidProjectImpl(
   override val buildFolder: File,
   override val resourcePrefix: String?,
   override val buildToolsVersion: String?,
-  override val ndkVersion: String?,
   override val isBaseSplit: Boolean,
   override val dynamicFeatures: Collection<String>,
   override val viewBindingOptions: IdeViewBindingOptions?,

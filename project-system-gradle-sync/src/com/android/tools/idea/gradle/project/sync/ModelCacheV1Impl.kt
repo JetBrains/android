@@ -920,7 +920,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl {
+  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl {
     return IdeNativeAndroidProjectImpl(
       modelVersion = project.modelVersion,
       apiVersion = project.apiVersion,
@@ -932,6 +932,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       settings = copy(project::getSettings, ::nativeSettingsFrom),
       fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
       defaultNdkVersion = copyNewProperty(project::getDefaultNdkVersion, ""),
+      ndkVersion = ndkVersion,
       buildSystems = copy(project::getBuildSystems, ::deduplicateString)
     )
   }
@@ -1128,7 +1129,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     val viewBindingOptionsCopy: IdeViewBindingOptions? = copyNewModel(project::getViewBindingOptions, ::viewBindingOptionsFrom)
     val dependenciesInfoCopy: IdeDependenciesInfo? = copyNewModel(project::getDependenciesInfo, ::dependenciesInfoFrom)
     val buildToolsVersionCopy = copyNewProperty(project::getBuildToolsVersion)
-    val ndkVersionCopy = copyNewProperty(project::getNdkVersion)
     val groupId = if (parsedModelVersion != null && parsedModelVersion.isAtLeast(3, 6, 0, "alpha", 5, false)) project.groupId else null
     val namespace = copyNewProperty(project::getNamespace)
     val testNamespace = copyNewProperty(project::getAndroidTestNamespace)
@@ -1164,7 +1164,6 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       viewBindingOptions = viewBindingOptionsCopy,
       dependenciesInfo = dependenciesInfoCopy,
       buildToolsVersion = buildToolsVersionCopy,
-      ndkVersion = ndkVersionCopy,
       resourcePrefix = project.resourcePrefix,
       groupId = groupId,
       namespace = namespace,
@@ -1199,7 +1198,10 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl = androidArtifactOutputFrom(output)
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
     override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl = nativeVariantAbiFrom(variantAbi)
-    override fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project)
+    override fun nativeAndroidProjectFrom(
+      project: NativeAndroidProject,
+      ndkVersion: String
+    ): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project, ndkVersion)
   }
 }
 

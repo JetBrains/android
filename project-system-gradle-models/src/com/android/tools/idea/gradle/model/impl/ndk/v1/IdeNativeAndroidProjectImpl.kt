@@ -24,15 +24,16 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeNativeAndroidProjectImpl(
-    override val modelVersion: String,
-    override val name: String,
-    override val buildFiles: Collection<File>,
-    override val variantInfos: Map<String, IdeNativeVariantInfo>,
-    override val artifacts: Collection<IdeNativeArtifact>,
-    override val toolChains: Collection<IdeNativeToolchain>,
-    override val settings: Collection<IdeNativeSettings>,
-    override val fileExtensions: Map<String, String>,
-    override val buildSystems: Collection<String>,
-    override val defaultNdkVersion: String,
-    override val apiVersion: Int
+  override val modelVersion: String,
+  override val name: String,
+  override val buildFiles: Collection<File>,
+  override val variantInfos: Map<String, IdeNativeVariantInfo>,
+  override val artifacts: Collection<IdeNativeArtifact>,
+  override val toolChains: Collection<IdeNativeToolchain>,
+  override val settings: Collection<IdeNativeSettings>,
+  override val fileExtensions: Map<String, String>,
+  override val buildSystems: Collection<String>,
+  override val defaultNdkVersion: String,
+  override val ndkVersion: String,
+  override val apiVersion: Int
 ) : IdeNativeAndroidProject, Serializable
