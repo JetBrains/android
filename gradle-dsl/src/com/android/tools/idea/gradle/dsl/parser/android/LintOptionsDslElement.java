@@ -52,7 +52,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"lintConfig", property, LINT_CONFIG, VAR},
     {"htmlOutput", property, HTML_OUTPUT, VAR},
     {"htmlReport", property, HTML_REPORT, VAR},
-    {"textOutput", property, TEXT_OUTPUT, VAL},
+    {"textOutput", property, TEXT_OUTPUT, VAR},
     {"textOutput", exactly(1), TEXT_OUTPUT, SET}, // special-case String method as well as File
     {"textReport", property, TEXT_REPORT, VAR},
     {"xmlOutput", property, XML_OUTPUT, VAR},

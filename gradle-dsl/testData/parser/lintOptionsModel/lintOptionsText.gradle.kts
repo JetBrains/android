@@ -23,7 +23,7 @@ android {
     isNoLines = false
     isQuiet = true
     isShowAll = false
-    textOutput(file("text.output"))
+    textOutput = file("text.output")
     textReport = true
     warning("warning-id-1", "warning-id-2")
     isWarningsAsErrors = false
