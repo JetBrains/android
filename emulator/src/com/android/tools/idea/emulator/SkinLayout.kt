@@ -28,7 +28,7 @@ import java.awt.image.BufferedImage
  * Layout of the device frame and mask for a particular display orientation.
  *
  * @param displaySize the size of the display
- * @param frameRectangle the frame boundary rectangle relative to the display
+ * @param frameRectangle the frame boundary rectangle relative to the upper left corner of the display
  * @param frameImages the images constituting the device frame
  * @param maskImages the images constituting the device display mask
  */
