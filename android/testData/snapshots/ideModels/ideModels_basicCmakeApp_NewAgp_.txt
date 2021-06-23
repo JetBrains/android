@@ -9,7 +9,7 @@ MODULE                        : project.app
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.basiccmakeapp
-    TestNamespace                 : com.example.basiccmakeapp.test
+    TestNamespace                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
