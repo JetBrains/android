@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.adb.wireless.WiFiPairingController;
@@ -139,8 +140,9 @@ public final class PhysicalDevicePanelTest {
     assertEquals(data, myPanel.getTable().getData());
   }
 
-  private static @NotNull PhysicalDeviceTable newPhysicalDeviceTable(@Nullable Project project) {
-    return new PhysicalDeviceTable(project, () -> Mockito.mock(TableCellRenderer.class), () -> Mockito.mock(TableCellRenderer.class));
+  private static @NotNull PhysicalDeviceTable newPhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel();
+    return new PhysicalDeviceTable(panel, model, () -> Mockito.mock(TableCellRenderer.class), () -> Mockito.mock(TableCellRenderer.class));
   }
 
   private @NotNull FutureCallback<@Nullable List<@NotNull PhysicalDevice>> newSetDevices(@NotNull PhysicalDevicePanel panel) {
@@ -192,5 +194,44 @@ public final class PhysicalDevicePanelTest {
     // Assert
     assertEquals("Pair using Wi-Fi", button.getText());
     Mockito.verify(controller).showDialog();
+  }
+
+  @Test
+  public void toggleDetailsPanelDetailsPanelIsNull() {
+    // Arrange
+    myPanel = new PhysicalDevicePanel(Mockito.mock(Project.class),
+                                      project -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      PhysicalDeviceTable::new,
+                                      mySupplier,
+                                      SetDevices::new);
+
+    // Act
+    myPanel.toggleDetailsPanel();
+
+    // Assert
+    assertEquals(3, myPanel.getComponentCount());
+    assertTrue(myPanel.getComponent(2) instanceof DetailsPanel);
+  }
+
+  @Test
+  public void toggleDetailsPanel() {
+    // Arrange
+    myPanel = new PhysicalDevicePanel(Mockito.mock(Project.class),
+                                      project -> myService,
+                                      () -> myComponent,
+                                      model -> myListener,
+                                      PhysicalDeviceTable::new,
+                                      mySupplier,
+                                      SetDevices::new);
+
+    myPanel.toggleDetailsPanel();
+
+    // Act
+    myPanel.toggleDetailsPanel();
+
+    // Assert
+    assertEquals(2, myPanel.getComponentCount());
   }
 }

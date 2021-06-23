@@ -34,29 +34,25 @@ import org.jetbrains.annotations.Nullable;
 final class ActionsTableCellEditor extends AbstractCellEditor implements TableCellEditor {
   private @Nullable PhysicalDevice myDevice;
 
-  private final @NotNull Project myProject;
-  private final @NotNull PhysicalDeviceTableModel myModel;
+  private final @NotNull PhysicalDevicePanel myPanel;
   private final @NotNull BiConsumer<@NotNull Project, @NotNull String> myOpenAndShowDevice;
   private final @NotNull NewEditDeviceNameDialog myNewEditDeviceNameDialog;
   private final @NotNull BiPredicate<@NotNull Device, @NotNull Project> myAskWithRemoveDeviceDialog;
   private final @NotNull ActionsComponent myComponent;
 
-  ActionsTableCellEditor(@NotNull Project project, @NotNull PhysicalDeviceTableModel model) {
-    this(project,
-         model,
+  ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel) {
+    this(panel,
          DeviceExplorerToolWindowFactory::openAndShowDevice,
          EditDeviceNameDialog::new,
          ActionsTableCellEditor::askWithRemoveDeviceDialog);
   }
 
   @VisibleForTesting
-  ActionsTableCellEditor(@NotNull Project project,
-                         @NotNull PhysicalDeviceTableModel model,
+  ActionsTableCellEditor(@NotNull PhysicalDevicePanel panel,
                          @NotNull BiConsumer<@NotNull Project, @NotNull String> openAndShowDevice,
                          @NotNull NewEditDeviceNameDialog newEditDeviceNameDialog,
                          @NotNull BiPredicate<@NotNull Device, @NotNull Project> askWithRemoveDeviceDialog) {
-    myProject = project;
-    myModel = model;
+    myPanel = panel;
     myOpenAndShowDevice = openAndShowDevice;
     myNewEditDeviceNameDialog = newEditDeviceNameDialog;
     myAskWithRemoveDeviceDialog = askWithRemoveDeviceDialog;
@@ -66,6 +62,7 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
     myComponent.getActivateDeviceFileExplorerWindowButton().addActionListener(event -> activateDeviceFileExplorerWindow());
     myComponent.getEditDeviceNameButton().addActionListener(event -> editDeviceName());
     myComponent.getRemoveButton().addActionListener(event -> remove());
+    myComponent.getViewDetailsButton().addActionListener(event -> myPanel.toggleDetailsPanel());
   }
 
   @VisibleForTesting
@@ -76,31 +73,37 @@ final class ActionsTableCellEditor extends AbstractCellEditor implements TableCe
   }
 
   private void activateDeviceFileExplorerWindow() {
+    Project project = myPanel.getProject();
+    assert project != null;
+
     assert myDevice != null;
-    myOpenAndShowDevice.accept(myProject, myDevice.getKey().toString());
+    myOpenAndShowDevice.accept(project, myDevice.getKey().toString());
   }
 
   private void editDeviceName() {
     assert myDevice != null;
-    EditDeviceNameDialog dialog = myNewEditDeviceNameDialog.apply(myProject, myDevice.getNameOverride(), myDevice.getName());
+    EditDeviceNameDialog dialog = myNewEditDeviceNameDialog.apply(myPanel.getProject(), myDevice.getNameOverride(), myDevice.getName());
 
     if (!dialog.showAndGet()) {
       return;
     }
 
-    myModel.setNameOverride(myDevice.getKey(), dialog.getNameOverride());
+    myPanel.getTable().getModel().setNameOverride(myDevice.getKey(), dialog.getNameOverride());
   }
 
   private void remove() {
     assert myDevice != null;
 
-    if (!myAskWithRemoveDeviceDialog.test(myDevice, myProject)) {
+    Project project = myPanel.getProject();
+    assert project != null;
+
+    if (!myAskWithRemoveDeviceDialog.test(myDevice, project)) {
       fireEditingCanceled();
       return;
     }
 
     fireEditingStopped();
-    myModel.remove(myDevice.getKey());
+    myPanel.getTable().getModel().remove(myDevice.getKey());
   }
 
   @VisibleForTesting

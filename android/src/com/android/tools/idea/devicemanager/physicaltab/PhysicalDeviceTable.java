@@ -18,30 +18,26 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.Actions;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.table.JBTable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class PhysicalDeviceTable extends JBTable {
-  PhysicalDeviceTable(@Nullable Project project) {
-    this(project, PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
+    this(panel, new PhysicalDeviceTableModel(), PhysicalDeviceTableCellRenderer::new, ActionsTableCellRenderer::new);
   }
 
   @VisibleForTesting
-  PhysicalDeviceTable(@Nullable Project project,
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel,
+                      @NotNull PhysicalDeviceTableModel model,
                       @NotNull Supplier<@NotNull TableCellRenderer> newDeviceTableCellRenderer,
                       @NotNull Supplier<@NotNull TableCellRenderer> newActionsTableCellRenderer) {
-    super(new PhysicalDeviceTableModel());
+    super(model);
 
-    if (project != null) {
-      setDefaultEditor(Actions.class, new ActionsTableCellEditor(project, getModel()));
-    }
-
+    setDefaultEditor(Actions.class, new ActionsTableCellEditor(panel));
     setDefaultRenderer(Device.class, newDeviceTableCellRenderer.get());
     setDefaultRenderer(Actions.class, newActionsTableCellRenderer.get());
 
