@@ -114,21 +114,11 @@ class TabletModelLayoutManager(horizontalPadding: Int,
     if (content.isEmpty()) {
       return listOf(emptyList())
     }
-
-    val gridList = mutableListOf<List<PositionableContent>>()
-    var columnList = mutableListOf<PositionableContent>()
     // Logically, every two contents are a pair of PORTRAIT and LANDSCAPE. A pair is a row in this Layout.
-    for (view in content) {
-      columnList.add(view)
-      if (columnList.size == 2) {
-        gridList.add(columnList)
-        columnList = mutableListOf()
-      }
-    }
-    if (columnList.isNotEmpty()) {
+    val rows = content.chunked(2)
+    if (rows.last().size < 2) {
       Logger.getInstance(TabletModelsProvider.javaClass).error("The tablet orientation is not paired")
-      gridList.add(columnList)
     }
-    return gridList
+    return rows
   }
 }
