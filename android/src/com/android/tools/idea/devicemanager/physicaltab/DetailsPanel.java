@@ -15,11 +15,30 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.idea.devicemanager.Device;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import java.awt.Component;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Group;
+import org.jetbrains.annotations.NotNull;
 
 final class DetailsPanel extends JBPanel<DetailsPanel> {
-  DetailsPanel() {
-    add(new JBLabel("TODO"));
+  DetailsPanel(@NotNull Device device) {
+    super(null);
+    Component headingLabel = new JBLabel(device.toString());
+
+    GroupLayout layout = new GroupLayout(this);
+
+    Group horizontalGroup = layout.createSequentialGroup()
+      .addComponent(headingLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+
+    Group verticalGroup = layout.createSequentialGroup()
+      .addComponent(headingLabel);
+
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    setLayout(layout);
   }
 }

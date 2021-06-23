@@ -208,7 +208,7 @@ public final class PhysicalDevicePanelTest {
                                       SetDevices::new);
 
     // Act
-    myPanel.toggleDetailsPanel();
+    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Assert
     assertEquals(3, myPanel.getComponentCount());
@@ -226,10 +226,10 @@ public final class PhysicalDevicePanelTest {
                                       mySupplier,
                                       SetDevices::new);
 
-    myPanel.toggleDetailsPanel();
+    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Act
-    myPanel.toggleDetailsPanel();
+    myPanel.toggleDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3);
 
     // Assert
     assertEquals(2, myPanel.getComponentCount());
