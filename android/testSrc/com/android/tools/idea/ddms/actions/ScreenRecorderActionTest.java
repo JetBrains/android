@@ -76,20 +76,6 @@ public final class ScreenRecorderActionTest {
   }
 
   @Test
-  public void updateDeviceIsWatch() {
-    IDevice device = Mockito.mock(IDevice.class);
-    Mockito.when(device.isOnline()).thenReturn(true);
-
-    Mockito.when(myContext.getSelectedDevice()).thenReturn(device);
-    Mockito.when(myFeatures.watch(device)).thenReturn(true);
-
-    new ScreenRecorderAction(myRule.getProject(), myContext, myFeatures).update(myEvent);
-
-    assertFalse(myPresentation.isEnabled());
-    assertEquals("Screen Record Is Unavailable for Wear OS", myPresentation.getText());
-  }
-
-  @Test
   public void updateDeviceDoesntHaveScreenRecord() {
     IDevice device = Mockito.mock(IDevice.class);
     Mockito.when(device.isOnline()).thenReturn(true);
