@@ -27,6 +27,9 @@ public interface LintOptionsModel extends GradleDslModel {
   ResolvedPropertyModel absolutePaths();
 
   @NotNull
+  ResolvedPropertyModel baseline();
+
+  @NotNull
   ResolvedPropertyModel check();
 
   @NotNull

@@ -47,8 +47,8 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"isShowAll", property, SHOW_ALL, VAR},
     {"isWarningsAsErrors", property, WARNINGS_AS_ERRORS, VAR},
 
-    // TODO(b/144403889): {"baselineFile", property, BASELINE, VAR},
-    // TODO(b/144403889): {"baseline", exactly(1), BASELINE, SET},
+    {"baselineFile", property, BASELINE, VAR},
+    {"baseline", exactly(1), BASELINE, SET},
     {"lintConfig", property, LINT_CONFIG, VAR},
     {"htmlOutput", property, HTML_OUTPUT, VAR},
     {"htmlReport", property, HTML_REPORT, VAR},
@@ -99,8 +99,7 @@ public class LintOptionsDslElement extends GradleDslBlockElement {
     {"warningsAsErrors", property, WARNINGS_AS_ERRORS, VAR},
     {"warningsAsErrors", exactly(1), WARNINGS_AS_ERRORS, SET},
 
-    // TODO(b/144403889): {"baselineFile", property, BASELINE, VAR},
-    // TODO(b/144403889): {"baseline", exactly(1), BASELINE, SET},
+    {"baseline", exactly(1), BASELINE, SET},
     {"lintConfig", exactly(1), LINT_CONFIG, SET},
     {"htmlOutput", exactly(1), HTML_OUTPUT, SET},
     {"htmlReport", exactly(1), HTML_REPORT, SET},

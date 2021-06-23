@@ -52,6 +52,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     LintOptionsModel lintOptions = android.lintOptions();
     lintOptions.abortOnError().setValue(false);
     lintOptions.absolutePaths().setValue(true);
+    lintOptions.baseline().setValue("other-baseline.xml");
     lintOptions.check().getListValue("check-id-2").setValue("check-id-3");
     lintOptions.checkAllWarnings().setValue(false);
     lintOptions.checkDependencies().setValue(true);
@@ -89,6 +90,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions = android.lintOptions();
     assertEquals("abortOnError", Boolean.FALSE, lintOptions.abortOnError());
     assertEquals("absolutePaths", Boolean.TRUE, lintOptions.absolutePaths());
+    assertEquals("baseline", "other-baseline.xml", lintOptions.baseline());
     assertEquals("check", ImmutableList.of("check-id-1", "check-id-3"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.FALSE, lintOptions.checkAllWarnings());
     assertEquals("checkDependencies", Boolean.TRUE, lintOptions.checkDependencies());
@@ -130,6 +132,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     LintOptionsModel lintOptions = android.lintOptions();
     lintOptions.abortOnError().setValue(true);
     lintOptions.absolutePaths().setValue(false);
+    lintOptions.baseline().setValue("baseline.xml");
     lintOptions.check().addListValue().setValue("check-id-1");
     lintOptions.checkAllWarnings().setValue(true);
     lintOptions.checkDependencies().setValue(false);
@@ -168,6 +171,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
     assertEquals("abortOnError", Boolean.TRUE, lintOptions.abortOnError());
     assertEquals("absolutePaths", Boolean.FALSE, lintOptions.absolutePaths());
+    assertEquals("baseline", "baseline.xml", lintOptions.baseline());
     assertEquals("check", ImmutableList.of("check-id-1"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.TRUE, lintOptions.checkAllWarnings());
     assertEquals("checkDependencies", Boolean.FALSE, lintOptions.checkDependencies());
@@ -210,6 +214,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     checkForValidPsiElement(lintOptions, LintOptionsModelImpl.class);
     lintOptions.abortOnError().delete();
     lintOptions.absolutePaths().delete();
+    lintOptions.baseline().delete();
     lintOptions.check().delete();
     lintOptions.checkAllWarnings().delete();
     lintOptions.checkDependencies().delete();
@@ -256,6 +261,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     LintOptionsModel lintOptions = android.lintOptions();
     assertEquals("abortOnError", Boolean.TRUE, lintOptions.abortOnError());
     assertEquals("absolutePaths", Boolean.FALSE, lintOptions.absolutePaths());
+    assertEquals("baseline", "baseline.xml", lintOptions.baseline());
     assertEquals("check", ImmutableList.of("check-id-1", "check-id-2"), lintOptions.check());
     assertEquals("checkAllWarnings", Boolean.TRUE, lintOptions.checkAllWarnings());
     assertEquals("checkDependencies", Boolean.FALSE, lintOptions.checkDependencies());
@@ -292,6 +298,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     LintOptionsModel lintOptions = android.lintOptions();
     assertMissingProperty("abortOnError", lintOptions.abortOnError());
     assertMissingProperty("absolutePaths", lintOptions.absolutePaths());
+    assertMissingProperty("baseline", lintOptions.baseline());
     assertMissingProperty("check", lintOptions.check());
     assertMissingProperty("checkAllWarnings", lintOptions.checkAllWarnings());
     assertMissingProperty("checkReleaseBuilds", lintOptions.checkReleaseBuilds());
