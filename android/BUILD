@@ -375,6 +375,7 @@ iml_module(
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module, test]",
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/adt/idea/intellij.android.compose-common[module, test]",
     ],
 )
 

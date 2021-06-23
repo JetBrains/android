@@ -33,7 +33,10 @@ private const val CONFIGURATION_ELEMENT_NAME = "compose-preview-run-configuratio
 private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
-open class ComposePreviewRunConfiguration(project: Project, factory: ConfigurationFactory) : AndroidRunConfiguration(project, factory) {
+open class ComposePreviewRunConfiguration(
+  project: Project,
+  factory: ConfigurationFactory,
+  activityName: String = "androidx.compose.ui.tooling.PreviewActivity") : AndroidRunConfiguration(project, factory) {
 
   /**
    * Represents where this Run Configuration was triggered from.
@@ -69,7 +72,7 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     // TODO(b/152183413): limit the search to the library scope. We currently use the global scope because SpecificActivityLaunch.State only
     //                    accepts either project or global scope.
     @Suppress("LeakingThis")
-    setLaunchActivity("androidx.compose.ui.tooling.preview.PreviewActivity", true)
+    setLaunchActivity(activityName, true)
   }
 
   override fun updateExtraRunStats(runStats: RunStats) {

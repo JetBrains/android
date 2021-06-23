@@ -20,6 +20,8 @@ import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.tools.compose.ComposeLibraryNamespace
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -40,6 +42,7 @@ import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.timing.Wait
 import org.fest.swing.util.PatternTextMatcher
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -416,6 +419,12 @@ class ComposePreviewTest {
   fun testDeployPreview() {
     val fixture = getSyncedProjectFixture()
 
+    val previewActivityName = fixture.project.allModules()
+      .map { it.findComposeToolingNamespace() }
+      .distinct()
+      .single()
+      .previewActivityName
+
     // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
     AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
     adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29", DeviceState.HostConnectionType.USB)
@@ -423,6 +432,7 @@ class ComposePreviewTest {
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
     commandHandler.composablePackageName = "google.simpleapplication"
     commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+    commandHandler.previewActivityName = previewActivityName
 
     composePreview.designSurface
       .allSceneViews
@@ -436,7 +446,8 @@ class ComposePreviewTest {
     val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
     // We should display the adb shell command containing androidx.compose.ui.tooling.preview.PreviewActivity, which wraps the @Composable
-    val previewActivity = Pattern.compile(".*androidx\\.compose\\.ui\\.tooling\\.preview\\.PreviewActivity.*", Pattern.DOTALL)
+    val previewActivityPattern = previewActivityName.replace(".", "\\.")
+    val previewActivity = Pattern.compile(".*${previewActivityPattern}.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 
     guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")
@@ -446,9 +457,10 @@ class ComposePreviewTest {
   private class DeployPreviewCommandHandler : DeviceCommandHandler("shell") {
     var composablePackageName: String = "com.example"
     var composableFqn: String = "com.example.MyComposable"
+    var previewActivityName: String = "Activity"
 
     override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-      val deployArgs = "am start -n \"$composablePackageName/androidx.compose.ui.tooling.preview.PreviewActivity\"" +
+      val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
       when (args) {

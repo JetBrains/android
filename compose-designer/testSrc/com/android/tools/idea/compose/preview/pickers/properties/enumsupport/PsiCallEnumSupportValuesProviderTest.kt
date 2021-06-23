@@ -66,14 +66,14 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val composeLibraryNamespace = ComposeLibraryNamespace.values().first { it.previewPackage == previewAnnotationPackage }
+  private val composeLibraryNamespace = ComposeLibraryNamespace.values().first { it.apiPreviewPackage == previewAnnotationPackage }
   private val module: Module
     get() = rule.fixture.module
 
   @Before
   fun setup() {
     ConfigurationManager.getOrCreateInstance(module)
-    rule.fixture.stubDevicesAsLibrary(composeLibraryNamespace.previewPackage)
+    rule.fixture.stubDevicesAsLibrary(composeLibraryNamespace.apiPreviewPackage)
   }
 
   @RunsInEdt
@@ -163,7 +163,7 @@ class PsiCallEnumSupportValuesProviderTest(previewAnnotationPackage: String) {
   @Test
   fun testGroupValuesProvider() {
     rule.fixture.stubComposableAnnotation() // Package does not matter, we are not testing the Composable annotation
-    rule.fixture.stubPreviewAnnotation(composeLibraryNamespace.previewPackage)
+    rule.fixture.stubPreviewAnnotation(composeLibraryNamespace.apiPreviewPackage)
     val file = rule.fixture.addFileToProjectAndInvalidate(
       "Test.kt",
       // language=kotlin
