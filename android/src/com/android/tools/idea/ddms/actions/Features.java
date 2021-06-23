@@ -19,7 +19,5 @@ import com.android.ddmlib.IDevice;
 import org.jetbrains.annotations.NotNull;
 
 interface Features {
-  boolean watch(@NotNull IDevice device);
-
   boolean screenRecord(@NotNull IDevice device);
 }

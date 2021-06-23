@@ -43,11 +43,6 @@ final class CachedFeatures implements Features {
   }
 
   @Override
-  public boolean watch(@NotNull IDevice device) {
-    return getFeatures(device).myWatch;
-  }
-
-  @Override
   public boolean screenRecord(@NotNull IDevice device) {
     if (device.isEmulator()) {
       AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
@@ -73,19 +68,17 @@ final class CachedFeatures implements Features {
   }
 
   private static final class DeviceFeatures {
-    private final boolean myWatch;
     private final boolean myScreenRecord;
 
     private DeviceFeatures() {
-      this(false, false);
+      this(false);
     }
 
     private DeviceFeatures(@NotNull IDevice device) {
-      this(device.supportsFeature(HardwareFeature.WATCH), device.supportsFeature(Feature.SCREEN_RECORD));
+      this(device.supportsFeature(Feature.SCREEN_RECORD));
     }
 
-    private DeviceFeatures(boolean watch, boolean screenRecord) {
-      myWatch = watch;
+    private DeviceFeatures(boolean screenRecord) {
       myScreenRecord = screenRecord;
     }
   }

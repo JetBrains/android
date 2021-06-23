@@ -86,12 +86,6 @@ public final class ScreenRecorderAction extends AbstractDeviceAction {
 
     IDevice device = myDeviceContext.getSelectedDevice();
 
-    if (myFeatures.watch(device)) {
-      presentation.setEnabled(false);
-      presentation.setText("Screen Record Is Unavailable for Wear OS");
-      return;
-    }
-
     presentation.setEnabled(myFeatures.screenRecord(device));
     presentation.setText(AndroidBundle.message("android.ddms.actions.screenrecord"));
   }
