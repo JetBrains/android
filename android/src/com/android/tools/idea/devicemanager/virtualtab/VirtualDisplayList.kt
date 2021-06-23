@@ -276,7 +276,6 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
   fun newColumns(): Collection<ColumnInfo<AvdInfo, *>> {
     return listOf(
       AvdDeviceColumnInfo("Device"),
-
       object : AvdDisplayList.AvdColumnInfo("API") {
         override fun valueOf(avdInfo: AvdInfo): String = avdInfo.androidVersion.apiString
 
@@ -288,10 +287,8 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
           Comparator { o1, o2 -> compare(valueOf(o1), valueOf(o2)) }
         }
       },
-
       SizeOnDiskColumn(table),
-
-      AvdActionsColumnInfo("Actions", 3, this)
+      AvdActionsColumnInfo("Actions", project != null, this)
     )
   }
 
