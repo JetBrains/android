@@ -71,6 +71,13 @@ interface IdeNativeAndroidProject {
   /** Get the default NDK version.  */
   val defaultNdkVersion: String
 
+  /**
+   * Returns the NDK version used by this module.
+   *
+   * @return the NDK version.
+   */
+  val ndkVersion: String
+
   companion object {
     const val BUILD_SYSTEM_UNKNOWN = "unknown"
     const val BUILD_SYSTEM_GRADLE = "gradle"

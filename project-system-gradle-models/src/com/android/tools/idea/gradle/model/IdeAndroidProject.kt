@@ -128,13 +128,6 @@ interface IdeAndroidProject : Serializable {
   val buildToolsVersion: String?
 
   /**
-   * Returns the NDK version used by this module.
-   *
-   * @return the NDK version.
-   */
-  val ndkVersion: String?
-
-  /**
    * Returns true if this is the base feature split.
    *
    * @return true if this is the base feature split

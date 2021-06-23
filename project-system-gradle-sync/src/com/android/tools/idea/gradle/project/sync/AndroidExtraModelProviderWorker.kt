@@ -812,7 +812,18 @@ private fun createAndroidModule(
     }
   }
 
-  val ideNativeAndroidProject = nativeAndroidProject?.let(modelCache::nativeAndroidProjectFrom)
+  val ideNativeAndroidProject = when (androidProjectResult) {
+    is AndroidExtraModelProviderWorker.AndroidProjectResult.V1Project ->
+      nativeAndroidProject?.let {
+        modelCache.nativeAndroidProjectFrom(it, ModelCache.safeGet(androidProjectResult.androidProject::getNdkVersion, ""))
+      }
+    is AndroidExtraModelProviderWorker.AndroidProjectResult.V2Project ->
+      if (nativeAndroidProject != null) {
+        error("V2 models do not compatible with NativeAndroidProject. Please check your configuration.")
+      } else {
+        null
+      }
+  }
   val ideNativeModule = nativeModule?.let(modelCache::nativeModuleFrom)
 
   val androidModule = AndroidModule(

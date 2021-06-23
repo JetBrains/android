@@ -831,7 +831,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     )
   }
 
-  fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl {
+  fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String?): IdeNativeAndroidProjectImpl {
     return IdeNativeAndroidProjectImpl(
       modelVersion = project.modelVersion,
       apiVersion = project.apiVersion,
@@ -842,7 +842,8 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       toolChains = copy(project::getToolChains, ::nativeToolchainFrom),
       settings = copy(project::getSettings, ::nativeSettingsFrom),
       fileExtensions = copy(project::getFileExtensions, ::deduplicateString),
-      defaultNdkVersion = copy(project::getDefaultNdkVersion) ?: "",
+      defaultNdkVersion = copy(project::getDefaultNdkVersion),
+      ndkVersion = ndkVersion ?: copy(project::getDefaultNdkVersion),
       buildSystems = copy(project::getBuildSystems, ::deduplicateString)
     )
   }
@@ -1048,7 +1049,6 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       viewBindingOptions = viewBindingOptionsCopy,
       dependenciesInfo = dependenciesInfoCopy,
       buildToolsVersion = buildToolsVersionCopy,
-      ndkVersion = null,
       resourcePrefix = project.resourcePrefix,
       groupId = groupId,
       namespace = project.namespace,
@@ -1091,7 +1091,8 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
     // For native models, if we don't find v2 models, we fall back to V1.
     override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl = nativeVariantAbiFrom(variantAbi)
 
-    override fun nativeAndroidProjectFrom(project: NativeAndroidProject): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project)
+    override fun nativeAndroidProjectFrom(project: NativeAndroidProject, ndkVersion: String): IdeNativeAndroidProjectImpl =
+      nativeAndroidProjectFrom(project, ndkVersion)
   }
 }
 

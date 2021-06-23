@@ -124,7 +124,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testV1NdkModel() = assertSerializable {
     V1NdkModel(
       IdeNativeAndroidProjectImpl(
-        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", 12),
+        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", "21.0.0", 12),
       listOf(IdeNativeVariantAbiImpl(listOf(), listOf(), listOf(), listOf(), mapOf(), "variantName", "abi")))
   }
 
@@ -143,7 +143,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       "debug",
       "x86",
       IdeNativeAndroidProjectImpl(
-        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", 12),
+        "3.6.0", "moduleName", listOf(), mapOf(), listOf(), listOf(), listOf(), mapOf(), listOf(), "21.0.0", "21.0.0", 12),
       listOf()
     )
   }

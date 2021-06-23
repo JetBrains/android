@@ -108,6 +108,7 @@ class V1NdkModelTest {
       emptyMap(),
       listOf("cmake"),
       "21.1.12345",
+      "21.1.12345",
       12),
     emptyList()
   )
@@ -126,6 +127,7 @@ class V1NdkModelTest {
       emptyList(),
       emptyMap(),
       listOf("cmake"),
+      "21.1.12345",
       "21.1.12345",
       12),
     listOf(

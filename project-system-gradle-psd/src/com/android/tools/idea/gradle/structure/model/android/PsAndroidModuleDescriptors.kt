@@ -60,12 +60,13 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidPro
   val ndkVersion: SimpleProperty<PsAndroidModule, String> = property(
     "NDK Version",
     preferredVariableName = { "ndkVersion" },
-    resolvedValueGetter = { ndkVersion },
+    defaultValueGetter = { it.resolvedNativeModel?.defaultNdkVersion },
+    // TODO(192053331): Allow using the nativeModel in resolvedValueGetter as the ndkVersion isn't available from IdeAndroidProject.
+    resolvedValueGetter = null,
     parsedPropertyGetter = { ndkVersion() },
     getter = { asString() },
     setter = { setValue(it) },
     parser = ::parseString,
-    defaultValueGetter = { it.resolvedNativeModel?.defaultNdkVersion },
     knownValuesGetter = ::ndkVersionValues,
     variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
   )

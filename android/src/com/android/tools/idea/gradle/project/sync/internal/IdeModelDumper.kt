@@ -87,7 +87,6 @@ private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }
   prop("ResourcePrefix") { ideAndroidModel.resourcePrefix }
   prop("buildToolsVersion") {ideAndroidModel.buildToolsVersion?.toPrintableString() }
-  prop("NdkVersion") { ideAndroidModel.ndkVersion }
   prop("IsBaseSplit") { ideAndroidModel.isBaseSplit.toString() }
   prop("GroupId") { ideAndroidModel.groupId }
   prop("Namespace") { ideAndroidModel.namespace }

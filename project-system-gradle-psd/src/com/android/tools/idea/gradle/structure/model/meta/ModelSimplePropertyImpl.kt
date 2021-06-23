@@ -47,7 +47,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   preferredVariableName: ModelT.() -> String = { "var" },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   variableScope: (ModelT.() -> PsVariablesScope)? = null,
-  resolvedValueGetter: ResolvedT.() -> PropertyT?,
+  resolvedValueGetter: (ResolvedT.() -> PropertyT?)?,
   parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel = {
     throw UnsupportedOperationException("Property '$description' cannot be automatically initialized.")
@@ -130,7 +130,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   val preferredVariableName: ModelT.() -> String,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   val variableScope: ((ModelT) -> PsVariablesScope)?,
-  private val resolvedValueGetter: ResolvedT.() -> PropertyT?,
+  private val resolvedValueGetter: (ResolvedT.() -> PropertyT?)?,
   private val parsedPropertyGetter: ParsedT.() -> ResolvedPropertyModel?,
   private val parsedPropertyInitializer: ParsedT.() -> ResolvedPropertyModel,
   private val getter: ResolvedPropertyModel.() -> PropertyT?,
@@ -171,7 +171,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
 
     override fun getResolvedValue(): ResolvedValue<PropertyT> {
       val resolvedModel = modelDescriptor.getResolved(model)
-      val resolved: PropertyT? = resolvedModel?.resolvedValueGetter()
+      val resolved: PropertyT? = resolvedValueGetter?.let { resolvedModel?.it() }
       return when (resolvedModel) {
         null -> ResolvedValue.NotResolved()
         else -> ResolvedValue.Set(resolved)

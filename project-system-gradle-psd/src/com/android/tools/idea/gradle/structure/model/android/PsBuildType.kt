@@ -132,7 +132,7 @@ open class PsBuildType(
 
     val debuggable: SimpleProperty<PsBuildType, Boolean> = property(
       "Debuggable",
-      preferredVariableName = { variableName( "$name-debuggable") },
+      preferredVariableName = { variableName("$name-debuggable") },
       // See: com.android.build.gradle.internal.dsl.BuildType#init
       defaultValueGetter = { it.name == DEBUG_BUILD_TYPE_NAME },
       resolvedValueGetter = { isDebuggable },
