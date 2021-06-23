@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
-import com.android.tools.compose.findComposeLibraryNamespace
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.compose.preview.util.ParametrizedPreviewElementTemplate
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.PreviewDisplaySettings
@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotated
 import org.jetbrains.uast.UAnnotation
@@ -145,7 +146,7 @@ private fun previewAnnotationToPreviewElement(previewAnnotation: UAnnotation,
                                                backgroundColorString)
 
   val parameters = getPreviewParameters(annotatedMethod.uastParameters)
-  val composeLibraryNamespace = previewAnnotation.findComposeLibraryNamespace()
+  val composeLibraryNamespace = previewAnnotation.sourcePsi?.module.findComposeToolingNamespace()
   val basePreviewElement = SinglePreviewElementInstance(composableMethod,
                                                         displaySettings,
                                                         previewAnnotation.toSmartPsiPointer(),

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.activity;
 
+import com.android.tools.compose.ComposeLibraryNamespaceKt;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.project.Project;
@@ -26,7 +27,8 @@ public class SpecificActivityLocatorGradleTest extends AndroidGradleTestCase {
     loadProject(TestProjectPaths.UI_TOOLING_DEPENDENCY);
 
     final String appActivity = "com.android.test.uitoolingdependency.MainActivity";
-    final String externalActivity = "androidx.compose.ui.tooling.preview.PreviewActivity";
+    final String externalActivity =
+      ComposeLibraryNamespaceKt.findComposeToolingNamespace(myAndroidFacet.getModule()).getPreviewActivityName();
 
     Project project = myAndroidFacet.getModule().getProject();
     GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);

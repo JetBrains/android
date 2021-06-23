@@ -146,7 +146,7 @@ public class TagSnapshotTest {
       return TagSnapshot.createTagSnapshot(image, null);
     });
     assertEquals(
-      "TagSnapshot{androidx.compose.ui.tooling.preview.ComposeViewAdapter, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}], children=\n" +
+      "TagSnapshot{androidx.compose.ui.tooling.ComposeViewAdapter, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}], children=\n" +
       "[]\n" +
       "}",
       button.toString());

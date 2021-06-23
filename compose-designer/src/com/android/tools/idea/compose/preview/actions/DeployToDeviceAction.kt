@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT
@@ -71,7 +72,8 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   private fun runPreviewConfiguration(project: Project, module: Module, previewElement: PreviewElement) {
     val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
-    val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory).apply {
+    val activityName = module.findComposeToolingNamespace().previewActivityName
+    val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory, activityName).apply {
       name = previewElement.displaySettings.name
       composableMethodFqn = previewElement.composableMethodFqn
       previewElement.previewProviderClassAndIndex()?.let {
