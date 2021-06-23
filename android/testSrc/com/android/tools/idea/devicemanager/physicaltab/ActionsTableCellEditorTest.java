@@ -32,6 +32,7 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.event.CellEditorListener;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +50,9 @@ public final class ActionsTableCellEditorTest {
   public final @NotNull MethodRule myRule = MockitoJUnit.rule();
 
   @Mock
+  private @NotNull PhysicalDevicePanel myPanel;
+
+  @Mock
   private @NotNull Project myProject;
 
   @Mock
@@ -61,11 +65,24 @@ public final class ActionsTableCellEditorTest {
   private @NotNull EditDeviceNameDialog myDialog;
 
   @Mock
+  private @NotNull TableCellRenderer myDeviceRenderer;
+
+  @Mock
+  private @NotNull TableCellRenderer myActionsRenderer;
+
+  @Mock
   private @NotNull CellEditorListener myListener;
 
   @Test
   public void activateDeviceFileExplorerWindow() {
     // Arrange
+    Mockito.when(myPanel.getProject()).thenReturn(myProject);
+
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
+                                                        myOpenAndShowDevice,
+                                                        EditDeviceNameDialog::new,
+                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog);
+
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
@@ -75,13 +92,6 @@ public final class ActionsTableCellEditorTest {
       .build();
 
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(device));
-
-    TableCellEditor editor = new ActionsTableCellEditor(myProject,
-                                                        model,
-                                                        myOpenAndShowDevice,
-                                                        EditDeviceNameDialog::new,
-                                                        ActionsTableCellEditor::askWithRemoveDeviceDialog);
-
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(new JBTable(model), Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getActivateDeviceFileExplorerWindowButton();
 
@@ -95,15 +105,15 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void editDeviceNameNotDialogShowAndGet() {
     // Arrange
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    Mockito.when(myPanel.getProject()).thenReturn(myProject);
     Mockito.when(myNewEditDeviceNameDialog.apply(myProject, "", "Google Pixel 3")).thenReturn(myDialog);
 
-    TableCellEditor editor = new ActionsTableCellEditor(myProject,
-                                                        model,
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerToolWindowFactory::openAndShowDevice,
                                                         myNewEditDeviceNameDialog,
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(new JBTable(model), Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getEditDeviceNameButton();
 
@@ -118,19 +128,22 @@ public final class ActionsTableCellEditorTest {
   public void editDeviceName() {
     // Arrange
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel, model, () -> myDeviceRenderer, () -> myActionsRenderer);
+
+    Mockito.when(myPanel.getProject()).thenReturn(myProject);
+    Mockito.when(myPanel.getTable()).thenReturn(table);
 
     Mockito.when(myDialog.showAndGet()).thenReturn(true);
     Mockito.when(myDialog.getNameOverride()).thenReturn("Name Override");
 
     Mockito.when(myNewEditDeviceNameDialog.apply(myProject, "", "Google Pixel 3")).thenReturn(myDialog);
 
-    TableCellEditor editor = new ActionsTableCellEditor(myProject,
-                                                        model,
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerToolWindowFactory::openAndShowDevice,
                                                         myNewEditDeviceNameDialog,
                                                         ActionsTableCellEditor::askWithRemoveDeviceDialog);
 
-    ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(new JBTable(model), Actions.INSTANCE, false, 0, 3);
+    ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getEditDeviceNameButton();
 
     // Act
@@ -151,16 +164,16 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void removeCancel() {
     // Arrange
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
+    Mockito.when(myPanel.getProject()).thenReturn(myProject);
 
-    TableCellEditor editor = new ActionsTableCellEditor(myProject,
-                                                        model,
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerToolWindowFactory::openAndShowDevice,
                                                         EditDeviceNameDialog::new,
                                                         (device, project) -> false);
 
     editor.addCellEditorListener(myListener);
 
+    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(new JBTable(model), Actions.INSTANCE, false, 0, 3);
     AbstractButton button = component.getRemoveButton();
 
@@ -177,16 +190,22 @@ public final class ActionsTableCellEditorTest {
     // Arrange
     PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Lists.newArrayList(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
-    TableCellEditor editor = new ActionsTableCellEditor(myProject,
+    PhysicalDeviceTable table = new PhysicalDeviceTable(myPanel,
                                                         model,
+                                                        PhysicalDeviceTableCellRenderer::new,
+                                                        ActionsTableCellRenderer::new);
+
+    Mockito.when(myPanel.getProject()).thenReturn(myProject);
+    Mockito.when(myPanel.getTable()).thenReturn(table);
+
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel,
                                                         DeviceExplorerToolWindowFactory::openAndShowDevice,
                                                         EditDeviceNameDialog::new,
                                                         (device, project) -> true);
 
     editor.addCellEditorListener(myListener);
 
-    ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(new JBTable(model), Actions.INSTANCE, false, 0, 3);
-    AbstractButton button = component.getRemoveButton();
+    AbstractButton button = ((ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3)).getRemoveButton();
 
     // Act
     button.doClick();
@@ -199,9 +218,8 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void getTableCellEditorComponentDeviceIsntOnline() {
     // Arrange
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3));
-    ActionsTableCellEditor editor = new ActionsTableCellEditor(myProject, model);
-    JTable table = new JBTable(model);
+    ActionsTableCellEditor editor = new ActionsTableCellEditor(myPanel);
+    JTable table = new JBTable(new PhysicalDeviceTableModel(Collections.singletonList(TestPhysicalDevices.GOOGLE_PIXEL_3)));
 
     // Act
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
@@ -219,6 +237,8 @@ public final class ActionsTableCellEditorTest {
   @Test
   public void getTableCellEditorComponent() {
     // Arrange
+    TableCellEditor editor = new ActionsTableCellEditor(myPanel);
+
     PhysicalDevice device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("86UX00F4R"))
       .setName("Google Pixel 3")
@@ -227,9 +247,7 @@ public final class ActionsTableCellEditorTest {
       .addConnectionType(ConnectionType.USB)
       .build();
 
-    PhysicalDeviceTableModel model = new PhysicalDeviceTableModel(Collections.singletonList(device));
-    TableCellEditor editor = new ActionsTableCellEditor(myProject, model);
-    JTable table = new JBTable(model);
+    JTable table = new JBTable(new PhysicalDeviceTableModel(Collections.singletonList(device)));
 
     // Act
     ActionsComponent component = (ActionsComponent)editor.getTableCellEditorComponent(table, Actions.INSTANCE, false, 0, 3);
