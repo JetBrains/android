@@ -24,7 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class RenameBlockRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
+class MigrateAaptOptionsToAndroidResourcesRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
@@ -49,9 +49,9 @@ class RenameBlockRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testAaptOptionsToAndroidResources() {
-    writeToBuildFile(TestFileName("RenameBlocks/AaptOptionsToAndroidResources"))
+    writeToBuildFile(TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResources"))
     val processor = aaptOptionsToAndroidResourcesRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
     processor.run()
-    verifyFileContents(buildFile, TestFileName("RenameBlocks/AaptOptionsToAndroidResourcesExpected"))
+    verifyFileContents(buildFile, TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResourcesExpected"))
   }
 }

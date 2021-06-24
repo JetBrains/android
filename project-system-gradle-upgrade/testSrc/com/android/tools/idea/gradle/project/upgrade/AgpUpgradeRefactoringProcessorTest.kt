@@ -178,12 +178,12 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     fun AgpUpgradeComponentRefactoringProcessor.isMigrateAaptResources() =
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES
 
-    writeToBuildFile(TestFileName("RenameBlocks/AaptOptionsToAndroidResources"))
+    writeToBuildFile(TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResources"))
     val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
     processor.classpathRefactoringProcessor.isEnabled = false
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateAaptResources() }
     processor.run()
-    verifyFileContents(buildFile, TestFileName("RenameBlocks/AaptOptionsToAndroidResourcesExpected"))
+    verifyFileContents(buildFile, TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResourcesExpected"))
   }
 
   @Test
