@@ -27,13 +27,16 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import org.jetbrains.kotlin.idea.util.module
 
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
@@ -77,17 +80,30 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
 private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
   GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
 
-internal fun requestBuild(project: Project, module: Module, requestByUser: Boolean) {
-  if (project.isDisposed || module.isDisposed) {
+internal fun requestBuild(project: Project, file: VirtualFile, requestByUser: Boolean) {
+  requestBuild(project, listOf(file), requestByUser)
+}
+
+internal fun requestBuild(project: Project, files: Collection<VirtualFile>, requestByUser: Boolean) {
+  if (project.isDisposed) {
     return
   }
 
   if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-    // For non gradle projects we just call buildProject instead of trying to invoke a single module build.
-    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+    // For non-gradle projects, redirect build to AndroidProjectSystem
+    ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
     return
   }
 
+  // TODO: Move gradle compose builds to AndroidProjectSystem
+  // For Gradle projects, build modules associated with files instead
+  files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.forEach { requestBuild(project, it, requestByUser) }
+}
+
+private fun requestBuild(project: Project, module: Module, requestByUser: Boolean) {
+  if (project.isDisposed || module.isDisposed) {
+    return
+  }
 
   val modules = mutableSetOf(module)
   ModuleUtil.collectModulesDependsOn(module, modules)
@@ -141,3 +157,9 @@ fun hasBeenBuiltSuccessfully(project: Project, lazyFileProvider: () -> PsiFile):
  */
 fun hasBeenBuiltSuccessfully(psiFilePointer: SmartPsiElementPointer<PsiFile>): Boolean =
   hasBeenBuiltSuccessfully(psiFilePointer.project) { ReadAction.compute<PsiFile, Throwable> { psiFilePointer.element } }
+
+@Suppress("UnstableApiUsage")
+private fun VirtualFile.getSourceFile(): VirtualFile = if (!this.isInLocalFileSystem && this is BackedVirtualFile) {
+  this.originFile
+}
+else this

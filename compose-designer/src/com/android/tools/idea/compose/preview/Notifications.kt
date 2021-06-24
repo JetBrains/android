@@ -55,7 +55,7 @@ private fun createBuildNotificationPanel(project: Project,
     isFocusable = false
 
     createActionLabel(buildActionLabel) {
-      requestBuild(project, module, true)
+      requestBuild(project, file, true)
     }
   }
 }
@@ -82,8 +82,7 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
           if (fileEditor.isValid) {
             FileEditorManager.getInstance(project).closeFile(file)
             FileEditorManager.getInstance(project).openFile(file, true)
-            val module = ModuleUtil.findModuleForFile(file, project) ?: return@createActionLabel
-            requestBuild(project, module, true)
+            requestBuild(project, file, true)
           }
         }
       }
