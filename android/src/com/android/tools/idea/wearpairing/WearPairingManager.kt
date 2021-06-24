@@ -185,6 +185,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     val connectedDevices = AndroidDebugBridge.getBridge()?.devices ?: return emptyMap()
     return connectedDevices
       .filter { it.isEmulator || it.arePropertiesSet() } // Ignore un-populated physical devices (still loading properties)
+      .filter { it.isOnline }
       .associateBy { it.getDeviceID() }
   }
 
