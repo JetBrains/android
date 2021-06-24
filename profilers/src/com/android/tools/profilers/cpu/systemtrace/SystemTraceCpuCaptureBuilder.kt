@@ -29,7 +29,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   companion object {
     val UTILIZATION_BUCKET_LENGTH_US = TimeUnit.MILLISECONDS.toMicros(50)
-    val BLAST_BUFFER_QUEUE_COUNTER_REGEX = Regex("PendingBuffer - .+BLAST#\\d")
+    val BLAST_BUFFER_QUEUE_COUNTER_REGEX = Regex("QueuedBuffer - .+BLAST#\\d")
   }
 
   fun build(traceId: Long, mainProcessId: Int, initialViewRange: Range): SystemTraceCpuCapture {
