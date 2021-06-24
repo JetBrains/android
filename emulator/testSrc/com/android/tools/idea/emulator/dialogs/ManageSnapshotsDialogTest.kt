@@ -31,7 +31,6 @@ import com.android.tools.idea.emulator.EmulatorViewRule
 import com.android.tools.idea.emulator.FakeEmulator
 import com.android.tools.idea.emulator.actions.findManageSnapshotDialog
 import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.testing.DebugLoggerRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.DialogWrapper
