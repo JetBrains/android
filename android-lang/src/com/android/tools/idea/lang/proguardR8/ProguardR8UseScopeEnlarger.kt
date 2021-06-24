@@ -42,7 +42,7 @@ class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
 
       val cachedValuesManager = CachedValuesManager.getManager(project)
       val files = cachedValuesManager.getCachedValue(project) {
-        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.projectScope(project))
+        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
         CachedValueProvider.Result(proguardFiles, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
       }
       return if (files.isEmpty()) null else GlobalSearchScope.filesScope(project, files)
