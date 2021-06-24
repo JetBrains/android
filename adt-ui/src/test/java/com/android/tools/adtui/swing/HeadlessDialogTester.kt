@@ -49,6 +49,7 @@ import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.Consumer
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.ReflectionUtil
+import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.NonNls
 import java.awt.AWTEvent
@@ -70,6 +71,7 @@ import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import java.util.function.Predicate
 import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JLayeredPane
@@ -84,8 +86,16 @@ import kotlin.concurrent.withLock
  * Enables showing of dialogs in a headless test environment.
  */
 fun enableHeadlessDialogs(disposable: Disposable) {
+  Disposer.register(disposable) {
+    modelessDialogs.forEach { Disposer.dispose(it.disposable) }
+  }
   getApplication().replaceService(DialogWrapperPeerFactory::class.java, HeadlessDialogWrapperPeerFactory(), disposable)
 }
+
+/**
+ * Looks for a currently shown modeless dialog.
+ */
+fun findModelessDialog(predicate: Predicate<DialogWrapper>): DialogWrapper? = modelessDialogs.find { predicate.test(it) }
 
 /**
  * Calls the [dialogCreator] function that opens a modal dialog and then the [dialogInteractor]
@@ -171,6 +181,8 @@ private val modalityChangeLock = ReentrantLock()
 private val modalityChangeCondition = modalityChangeLock.newCondition()
 @GuardedBy("modalityChangeLock")
 private val modalDialogStack = mutableListOf<DialogWrapper>()
+
+private val modelessDialogs = ContainerUtil.createConcurrentList<DialogWrapper>()
 
 private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::class.java, "dispatchEvent", AWTEvent::class.java)!!
 
@@ -262,6 +274,9 @@ private class HeadlessDialogWrapperPeer(
   override fun dispose() {
     check(EventQueue.isDispatchThread())
     nestedEventLoopLatch?.countDown()
+    if (!modal) {
+      modelessDialogs.remove(wrapper)
+    }
     visible = false
     for (runnable in disposeActions) {
       runnable.run()
@@ -381,6 +396,9 @@ private class HeadlessDialogWrapperPeer(
 
     try {
       visible = true
+      if (!isModal) {
+        modelessDialogs.add(wrapper)
+      }
       if (changeModalityState) {
         nestedEventLoop()
       }
