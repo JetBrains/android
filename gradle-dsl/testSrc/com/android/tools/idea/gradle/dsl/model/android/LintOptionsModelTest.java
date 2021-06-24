@@ -15,20 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.model.android;
 
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_ADD_ELEMENTS;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST;
-import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.LINT_OPTIONS_MODEL_TEXT;
-
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
 
 /**
@@ -37,13 +33,13 @@ import org.junit.Test;
 public class LintOptionsModelTest extends GradleFileModelTestCase {
   @Test
   public void testParseElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
+    writeToBuildFile(TestFile.TEXT);
     verifyLintOptions();
   }
 
   @Test
   public void testEditElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
+    writeToBuildFile(TestFile.TEXT);
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -83,7 +79,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.xmlReport().setValue(false);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_EDIT_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.EDIT_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -123,7 +119,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_ADD_ELEMENTS);
+    writeToBuildFile(TestFile.ADD_ELEMENTS);
     verifyNullLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -163,7 +159,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.xmlReport().setValue(true);
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_ADD_ELEMENTS_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.ADD_ELEMENTS_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -204,7 +200,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveElements() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_TEXT);
+    writeToBuildFile(TestFile.TEXT);
     verifyLintOptions();
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -327,7 +323,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOneOfElementsInTheList() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
+    writeToBuildFile(TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -355,7 +351,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     lintOptions.warning().getListValue("warning-id-1").delete();
 
     applyChangesAndReparse(buildModel);
-    verifyFileContents(myBuildFile, LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
+    verifyFileContents(myBuildFile, TestFile.REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
@@ -373,7 +369,7 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testRemoveOnlyElementsInTheList() throws Exception {
-    writeToBuildFile(LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
+    writeToBuildFile(TestFile.REMOVE_ONLY_ELEMENTS_IN_THE_LIST);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
@@ -415,5 +411,26 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertMissingProperty("ignore", lintOptions.ignore());
     assertMissingProperty("informational", lintOptions.informational());
     assertMissingProperty("warning", lintOptions.warning());
+  }
+
+  enum TestFile implements TestFileName {
+    TEXT("lintOptionsText"),
+    ADD_ELEMENTS("addElements"),
+    ADD_ELEMENTS_EXPECTED("addElementsExpected"),
+    EDIT_ELEMENTS_EXPECTED("editElementsExpected"),
+    REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST("removeOneOfElementsInTheList"),
+    REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED("removeOneOfElementsInTheListExpected"),
+    REMOVE_ONLY_ELEMENTS_IN_THE_LIST("removeOnlyElementsInTheList"),
+    ;
+    @NotNull private @SystemDependent String path;
+    TestFile(@NotNull @SystemDependent String path) {
+      this.path = path;
+    }
+
+    @NotNull
+    @Override
+    public File toFile(@NotNull @SystemDependent String basePath, @NotNull String extension) {
+      return TestFileName.super.toFile(basePath + "/lintOptionsModel/" + path, extension);
+    }
   }
 }
