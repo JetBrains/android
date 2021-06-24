@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
@@ -341,6 +342,8 @@ public class LintOptionsModelTest extends GradleFileModelTestCase {
     assertEquals("ignore", ImmutableList.of("ignore-id-1", "ignore-id-2"), lintOptions.ignore());
     assertEquals("informational", ImmutableList.of("informational-id-1", "informational-id-2"), lintOptions.informational());
     assertEquals("warning", ImmutableList.of("warning-id-1", "warning-id-2"), lintOptions.warning());
+
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("4.0.0"));
 
     lintOptions.check().getListValue("check-id-1").delete();
     lintOptions.disable().getListValue("disable-id-2").delete();

@@ -3,7 +3,7 @@ android {
     abortOnError true
     absolutePaths false
     baseline file('baseline.xml')
-    check 'check-id-1'
+    checkOnly 'check-id-1'
     checkAllWarnings true
     checkDependencies false
     checkGeneratedSources true
