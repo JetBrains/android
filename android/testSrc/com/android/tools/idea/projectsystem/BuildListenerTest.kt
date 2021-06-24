@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
@@ -55,6 +56,8 @@ private class TestProjectSystemBuildManager: ProjectSystemBuildManager {
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult = lastBuildResult
 
   override fun compileProject() {}
+
+  override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {}
 
   override fun addBuildListener(parentDisposable: Disposable, buildListener: ProjectSystemBuildManager.BuildListener) {
     listeners.add(buildListener)

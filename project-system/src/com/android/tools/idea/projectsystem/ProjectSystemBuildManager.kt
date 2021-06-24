@@ -19,6 +19,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.vfs.VirtualFile
 
 /**
  * Provides a build-system-agnostic interface for triggering, responding to, and gathering information about project builds.
@@ -28,6 +29,13 @@ interface ProjectSystemBuildManager {
    * Initiates an incremental compilation of the entire project. Blocks the caller until it finishes.
    */
   fun compileProject()
+
+  /**
+   * Initiates an incremental compilation of the given [files] and all its dependencies. [files] should be the source file the user is
+   * working on, rather than a synthetic file, however there is no guarantee that [files] will be the the source file. If [files] does not
+   * belong in the project, it should be ignored. Blocks the caller until it finishes.
+   */
+  fun compileFilesAndDependencies(files: Collection<VirtualFile>)
 
   fun getLastBuildResult(): BuildResult
 

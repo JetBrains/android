@@ -235,6 +235,10 @@ class TestProjectSystem @JvmOverloads constructor(
       error("not supported for the test implementation")
     }
 
+    override fun compileFilesAndDependencies(files: Collection<VirtualFile>) {
+      error("not supported for the test implementation")
+    }
+
     override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult {
       error("not supported for the test implementation")
     }
