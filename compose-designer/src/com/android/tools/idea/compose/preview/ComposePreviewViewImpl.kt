@@ -446,7 +446,7 @@ internal class ComposePreviewViewImpl(private val project: Project,
   private fun showNeedsToBuildErrorPanel() {
     val actionDataText = "${message("panel.needs.build.action.text")}${getBuildAndRefreshShortcut().asString()}"
     showModalErrorMessage(message("panel.needs.build"), ActionData(actionDataText) {
-      psiFilePointer.element?.module?.let { requestBuild(project, it, true) }
+      psiFilePointer.element?.virtualFile?.let { requestBuild(project, it, true) }
       repaint() // Repaint the workbench, otherwise the text and link will keep displaying if the mouse is hovering the link
     })
   }
