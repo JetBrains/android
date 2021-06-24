@@ -31,6 +31,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBui
 import static com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement.INSTALLATION;
 import static com.android.tools.idea.gradle.dsl.parser.android.JacocoDslElement.JACOCO;
 import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintDslElement.LINT;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
@@ -60,6 +61,7 @@ import com.android.tools.idea.gradle.dsl.api.android.DexOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.InstallationModel;
 import com.android.tools.idea.gradle.dsl.api.android.JacocoModel;
 import com.android.tools.idea.gradle.dsl.api.android.KotlinOptionsModel;
+import com.android.tools.idea.gradle.dsl.api.android.LintModel;
 import com.android.tools.idea.gradle.dsl.api.android.LintOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -91,6 +93,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslEl
 import com.android.tools.idea.gradle.dsl.parser.android.InstallationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.JacocoDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.LintDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement;
@@ -299,6 +302,12 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   public KotlinOptionsModel kotlinOptions() {
     KotlinOptionsDslElement kotlinOptionsDslElement = myDslElement.ensurePropertyElement(KOTLIN_OPTIONS);
     return new KotlinOptionsModelImpl(kotlinOptionsDslElement);
+  }
+
+  @Override
+  public @NotNull LintModel lint() {
+    LintDslElement lintDslElement = myDslElement.ensurePropertyElement(LINT);
+    return new LintModelImpl(lintDslElement);
   }
 
   @Override
