@@ -130,6 +130,21 @@ class CpuCaptureStageViewTest {
   }
 
   @Test
+  fun emptyTraceShowsWarningMessage() {
+    val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
+                                       resolveWorkspacePath(CpuProfilerUITestUtils.EMPTY_SIMPLEPERF_PATH).toFile(), 123L)
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+
+    // Verify the normal splitter UI is gone.
+    // Instead there should be a warning message.
+    assertThat(stageView.component.getComponent(0)).isNotInstanceOf(JBSplitter::class.java)
+    val treeWalker = TreeWalker(stageView.component)
+    val warningLabel = treeWalker.descendants().filterIsInstance<JLabel>().first()
+    assertThat(warningLabel.text).contains("This trace doesn't contain any data.")
+  }
+
+  @Test
   fun axisComponentsAreInitialized() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()

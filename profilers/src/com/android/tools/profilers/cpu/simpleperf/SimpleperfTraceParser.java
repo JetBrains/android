@@ -15,11 +15,10 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.profilers.cpu.BaseCpuCapture;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.SimpleperfReport;
+import com.android.tools.profilers.cpu.BaseCpuCapture;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
@@ -27,6 +26,7 @@ import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -103,8 +103,11 @@ public class SimpleperfTraceParser implements TraceParser {
 
   /**
    * Capture range in absolute time, measured in microseconds.
+   * <p>
+   * If empty (min > max), it means the capture doesn't contain any sampling data.
    */
-  private Range myRange;
+  @NotNull
+  private final Range myCaptureRange = new Range();
 
   /**
    * List of event types (e.g. cpu-cycles, sched:sched_switch) present in the trace.
@@ -164,7 +167,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(@NotNull File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, myRange, getCaptureTrees());
+    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF, myCaptureRange, getCaptureTrees());
   }
 
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
@@ -281,12 +284,13 @@ public class SimpleperfTraceParser implements TraceParser {
    */
   private void parseSampleData() {
     if (mySamples.isEmpty()) {
+      myCaptureRange.clear();
       return;
     }
     // Set the capture range
     long startTimestamp = mySamples.get(0).getTime();
     long endTimestamp = mySamples.get(mySamples.size() - 1).getTime();
-    myRange = new Range(TimeUnit.NANOSECONDS.toMicros(startTimestamp), TimeUnit.NANOSECONDS.toMicros(endTimestamp));
+    myCaptureRange.set(TimeUnit.NANOSECONDS.toMicros(startTimestamp), TimeUnit.NANOSECONDS.toMicros(endTimestamp));
 
     // Split the samples per thread.
     Map<Integer, List<SimpleperfReport.Sample>> threadSamples = splitSamplesPerThread();

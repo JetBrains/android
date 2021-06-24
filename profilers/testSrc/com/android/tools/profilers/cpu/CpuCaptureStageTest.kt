@@ -95,6 +95,17 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun emptyTraceIsAccepted() {
+    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                       CpuProfilerTestUtils.getTraceFile("simpleperf_empty.trace"), SESSION_ID)
+    profilers.stage = stage
+    assertThat(profilers.stage).isInstanceOf(CpuCaptureStage::class.java)
+    assertThat(stage.trackGroupModels).isEmpty()
+    assertThat(stage.analysisModels).isEmpty()
+    assertThat(services.notification).isNull()
+  }
+
+  @Test
   fun configurationNameIsSet() {
     val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                        CpuProfilerTestUtils.getTraceFile("basic.trace"), SESSION_ID)

@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 
 object CpuProfilerUITestUtils {
   const val VALID_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
+  const val EMPTY_SIMPLEPERF_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/simpleperf_empty.trace"
   const val ATRACE_TRACE_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
   const val ATRACE_PID1_PATH = "tools/adt/idea/profilers-ui/testData/cputraces/atrace_processid_1.ctrace"
 
