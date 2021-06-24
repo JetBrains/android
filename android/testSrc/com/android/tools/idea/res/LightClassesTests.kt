@@ -640,6 +640,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """
         <resources>
           <string name="appString">Hello from app</string>
+          <string name="app.String">Hello from app</string>
           <string name="anotherAppString">Hello from app</string>
           <id name="basicID"/>
         </resources>
@@ -662,10 +663,88 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """
         <resources>
           <string name="libString">Hello from app</string>
+          <string name="lib.String">Hello from app</string>
+          <string name="lib.String_Foo">Hello from app</string>
+          <string name="lib.String.Bar">Hello from app</string>
           <string name="anotherLibString">Hello from app</string>
         </resources>
         """.trimIndent()
       )
+    }
+
+    /**
+     *  Regression test for b/191952219.
+     */
+    fun testKotlinFlattenedResources() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.kt",
+        // language=kotlin
+        """
+        package p1.p2
+
+        import android.app.Activity
+        import android.os.Bundle
+
+        class MainActivity : Activity() {
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                R.string.appString
+                R.string.app_String
+                R.string.libString
+                com.example.mylib.R.string.libString
+                R.string.lib_String
+                com.example.mylib.R.string.lib_String
+                R.string.lib_String_Bar
+                com.example.mylib.R.string.<caret>lib_String_Bar
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+
+      myFixture.completeBasic()
+      val lookupStrings = myFixture.lookupElementStrings
+      assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
+    }
+
+    /**
+     *  Regression test for b/191952219. In Java, fully qualified resources did not resolve from library modules.
+     */
+    fun testJavaFlattenedResources() {
+      val activity = myFixture.addFileToProject(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+        package p1.p2;
+
+        import android.app.Activity;
+        import android.os.Bundle;
+
+        public class MainActivity extends Activity {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                int a = R.string.appString;
+                a = R.string.app_String;
+                a = R.string.libString;
+                a = com.example.mylib.R.string.libString;
+                a = R.string.lib_String;
+                a = com.example.mylib.R.string.lib_String;
+                a = R.string.lib_String_Bar;
+                a = com.example.mylib.R.string.<caret>lib_String_Bar;
+            }
+        }
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
+      myFixture.checkHighlighting()
+
+      myFixture.completeBasic()
+      val lookupStrings = myFixture.lookupElementStrings
+      assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
     }
 
     /**
@@ -986,7 +1065,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.moveCaret("mylib.R.string.|libString")
       myFixture.completeBasic()
-      assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
+      assertThat(myFixture.lookupElementStrings).containsAllOf("libString", "anotherLibString", "class")
     }
 
     fun testNonFinalResourceIds() {
