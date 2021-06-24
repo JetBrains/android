@@ -121,7 +121,7 @@ public class VisualizationForm
   /**
    * custom horizontal gap between different previews for {@link TabletModelsProvider}.
    */
-  @SwingCoordinate private static final int TABLET_HORIZONTAL_SCREEN_DELTA = 20;
+  @SwingCoordinate private static final int TABLET_HORIZONTAL_SCREEN_DELTA = 40;
 
   /**
    * vertical gap between different previews
