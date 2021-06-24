@@ -50,6 +50,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
@@ -296,6 +297,7 @@ public class VisualizationForm
 
     if (StudioFlags.NELE_VISUAL_LINT.get()) {
       DefaultActionGroup lintGroup = new DefaultActionGroup();
+      lintGroup.add(new ToggleOnlyShowLayoutWithIssuesAction(mySurface));
       lintGroup.add(new IssuePanelToggleAction(mySurface));
       ActionToolbar lintToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, lintGroup, true);
       lintToolbar.updateActionsImmediately();

@@ -139,6 +139,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
   val positionableAdapter = object : PositionableContent() {
     override val x: Int get() = sceneView.x
     override val y: Int get() = sceneView.y
+    override val isVisible: Boolean get() = sceneView.isVisible
 
     override val margin: Insets
       get() {
@@ -177,10 +178,14 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       sceneView.getContentSize(dimension).also {
         cachedContentSize.size = it
       }
-    else
+    else if (!sceneView.isVisible) {
+      dimension?.apply { setSize(0, 0) } ?: Dimension(0, 0)
+    }
+    else {
       dimension?.apply {
         size = cachedContentSize
       } ?: Dimension(cachedContentSize)
+    }
 
     /**
      * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the

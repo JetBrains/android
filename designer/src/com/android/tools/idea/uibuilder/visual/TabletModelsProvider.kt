@@ -114,11 +114,19 @@ class TabletModelLayoutManager(horizontalPadding: Int,
     if (content.isEmpty()) {
       return listOf(emptyList())
     }
+
     // Logically, every two contents are a pair of PORTRAIT and LANDSCAPE. A pair is a row in this Layout.
     val rows = content.chunked(2)
     if (rows.last().size < 2) {
       Logger.getInstance(TabletModelsProvider.javaClass).error("The tablet orientation is not paired")
     }
-    return rows
+
+    val grid = mutableListOf<List<PositionableContent>>()
+    for (row in rows) {
+      if (row.any { preview -> preview.isVisible }) {
+        grid.add(row)
+      }
+    }
+    return grid
   }
 }

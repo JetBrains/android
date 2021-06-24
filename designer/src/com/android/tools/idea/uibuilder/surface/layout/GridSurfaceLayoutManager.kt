@@ -81,17 +81,18 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
   protected open fun layoutGrid(content: Collection<PositionableContent>,
                                 availableWidth: Int,
                                 widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
-    if (content.isEmpty()) {
+    val visibleContent = content.filter { it.isVisible }
+    if (visibleContent.isEmpty()) {
       return listOf(emptyList())
     }
     val startX = horizontalPadding
     val gridList = mutableListOf<List<PositionableContent>>()
 
-    val firstView = content.first()
+    val firstView = visibleContent.first()
     var nextX = startX + firstView.widthFunc() + firstView.margin.horizontal + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
-    for (view in content.drop(1)) {
+    for (view in visibleContent.drop(1)) {
       // The full width is the view width + any horizontal margins
       val totalWidth = view.widthFunc() + view.margin.horizontal
       if (nextX + totalWidth > availableWidth) {
@@ -140,6 +141,9 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
     var maxBottomInRow = 0
     for (row in grid) {
       for (view in row) {
+        if (!view.isVisible) {
+          continue
+        }
         view.setLocation(nextX + view.margin.left, nextY)
         nextX += view.scaledContentSize.width + horizontalViewDelta + view.margin.horizontal
         maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.scaledContentSize.height)
@@ -147,5 +151,7 @@ open class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       nextX = startX
       nextY = maxBottomInRow + verticalViewDelta
     }
+
+    content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
   }
 }

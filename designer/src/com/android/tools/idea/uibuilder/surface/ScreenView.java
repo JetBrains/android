@@ -61,6 +61,9 @@ public class ScreenView extends ScreenViewBase {
      * @return true if content size is determined.
      */
     default boolean hasContentSize(@NotNull ScreenView screenView) {
+      if (!screenView.isVisible()) {
+        return false;
+      }
       RenderResult result = screenView.getSceneManager().getRenderResult();
       return result != null && !isErrorResult(result);
     }
