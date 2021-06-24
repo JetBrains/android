@@ -929,10 +929,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    *
    * @see #zoom(ZoomType, int, int)
    */
+  @UiThread
   @Override
-  public boolean zoom(@NotNull ZoomType type) {
-    // track user triggered change
-    myAnalyticsManager.trackZoom(type);
+  final public boolean zoom(@NotNull ZoomType type) {
     return zoom(type, -1, -1);
   }
 
@@ -992,6 +991,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @UiThread
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    // track user triggered change
+    getAnalyticsManager().trackZoom(type);
     SceneView view = getFocusedSceneView();
     if (type == ZoomType.IN && (x < 0 || y < 0)
         && view != null && !getSelectionModel().isEmpty()) {
@@ -1083,7 +1084,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
 
   @UiThread
-  public boolean zoomToFit() {
+  final public boolean zoomToFit() {
     return zoom(ZoomType.FIT, -1, -1);
   }
 
