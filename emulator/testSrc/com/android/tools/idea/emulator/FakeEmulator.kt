@@ -326,6 +326,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
     val image = createDipImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
+    g.paint = Color.WHITE
+    g.fillRect(0, 0, size.width, size.height) // Fill with white to avoid partial transparency due to antialiasing.
     val hints = RenderingHints(mapOf(KEY_ANTIALIASING to VALUE_ANTIALIAS_ON, KEY_RENDERING to VALUE_RENDER_QUALITY))
     g.setRenderingHints(hints)
     val n = 10
