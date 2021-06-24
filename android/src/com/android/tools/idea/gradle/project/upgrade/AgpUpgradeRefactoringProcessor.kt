@@ -275,6 +275,7 @@ class AgpUpgradeRefactoringProcessor(
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
+    MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()

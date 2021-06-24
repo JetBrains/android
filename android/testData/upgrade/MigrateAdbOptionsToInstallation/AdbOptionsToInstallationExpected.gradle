@@ -1,0 +1,6 @@
+android {
+  installation {
+    installOptions 'one', 'two'
+    timeOutInMs 100
+  }
+}
