@@ -99,12 +99,12 @@ class ComposeColorAnnotatorTest {
       package com.android.test
       import androidx.compose.ui.graphics.Color
       class A {
-        val other = Color(0xFFC20029L)
+        val other = Color(0xFFC20029)
         fun () {
-          val primary = Color(0x4A8A7BL)
-          val secondary = Color(0xFF4A8A7BL)
-          val primaryVariant = Color(color = 0xFF57AD28L)
-          val secondaryVariant = Color(color = 0x8057AD28L)
+          val primary = Color(0xA84A8A7B)
+          val secondary = Color(0xFF4A8A7B)
+          val primaryVariant = Color(color = 0xFF57AD28)
+          val secondaryVariant = Color(color = 0x8057AD28)
         }
       }
       """.trimIndent())
@@ -112,27 +112,27 @@ class ComposeColorAnnotatorTest {
     checkGutterIconInfos(
       listOf(
         Color(194, 0, 41, 255),
-        Color(74, 138, 123, 0),
+        Color(74, 138, 123, 168),
         Color(74, 138, 123, 255),
         Color(87, 173, 40, 255),
         Color(87, 173, 40, 128)
       ),
       includeClickAction = true
     )
-    setNewColor("Co|lor(0xFF4A8A7BL)", Color(0xFFAABBCC.toInt()))
-    setNewColor("Co|lor(color = 0xFF57AD28L)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(0xFF4A8A7B)", Color(0xFFAABBCC.toInt()))
+    setNewColor("Co|lor(color = 0xFF57AD28)", Color(0xFFAABBCC.toInt()))
     assertThat(myFixture.editor.document.text).isEqualTo(
       //language=kotlin
       """
       package com.android.test
       import androidx.compose.ui.graphics.Color
       class A {
-        val other = Color(0xFFC20029L)
+        val other = Color(0xFFC20029)
         fun () {
-          val primary = Color(0x4A8A7BL)
+          val primary = Color(0xA84A8A7B)
           val secondary = Color(0xFFAABBCC)
           val primaryVariant = Color(color = 0xFFAABBCC)
-          val secondaryVariant = Color(color = 0x8057AD28L)
+          val secondaryVariant = Color(color = 0x8057AD28)
         }
       }
       """.trimIndent()
