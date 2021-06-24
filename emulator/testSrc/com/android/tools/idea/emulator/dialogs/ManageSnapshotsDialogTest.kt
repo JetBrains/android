@@ -460,4 +460,3 @@ private const val SNAPSHOT_NAME_COLUMN_INDEX = 0
 private const val USE_TO_BOOT_COLUMN_INDEX = 3
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/emulator/testData/ManageSnapshotsDialogTest/golden"
-
