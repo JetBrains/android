@@ -340,8 +340,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, getTimeline().getViewRange());
-    initTrackGroupList(capture);
-    addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+    if (!capture.getRange().isEmpty()) {
+      initTrackGroupList(capture);
+      addCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange()));
+    }
     if (getStudioProfilers().getSession().getPid() == 0) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
       // correct trace type associated with the imported file.

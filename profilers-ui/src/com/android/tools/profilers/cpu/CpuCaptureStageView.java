@@ -32,6 +32,7 @@ import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
@@ -74,10 +75,12 @@ import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -198,6 +201,17 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   }
 
   private JComponent createAnalyzingComponents() {
+    if (getStage().getCapture().getRange().isEmpty()) {
+      // If the capture range is empty, it means the capture doesn't contain any data.
+      JPanel container = new JPanel(new BorderLayout());
+      JLabel label = new JLabel("This trace doesn't contain any data. Please record a new one and interact with the app to generate data.");
+      label.setFont(ProfilerFonts.H3_FONT);
+      label.setHorizontalAlignment(SwingConstants.CENTER);
+      label.setVerticalAlignment(SwingConstants.CENTER);
+      container.add(label);
+      return container;
+    }
+
     // Minimap
     CpuCaptureMinimapModel minimapModel = getStage().getMinimapModel();
     CpuCaptureMinimapView minimap = new CpuCaptureMinimapView(minimapModel);

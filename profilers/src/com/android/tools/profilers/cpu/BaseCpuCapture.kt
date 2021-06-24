@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profiler.proto.Cpu.CpuTraceType
-import com.google.common.base.Preconditions
 
 open class BaseCpuCapture(/**
                            * ID of the trace used to generate the capture.
@@ -38,20 +37,19 @@ open class BaseCpuCapture(/**
   private var clockType: ClockType
 
   init {
-    // Sometimes a capture may fail and return a file that is incomplete. This results in the parser not having any capture trees.
-    // If this happens then we don't have any thread info to determine which is the main thread
-    // so we throw an error and let the capture pipeline handle this and present a dialog to the user.
-    Preconditions.checkState(captureTrees.isNotEmpty(), "Trace file contained no CPU data.")
-
     availableThreads = captureTrees.keys
     threadIdToNode = captureTrees.mapKeys { it.key.id }
-    mainThreadId = (availableThreads.find { it.isMainThread } ?:
-                    captureTrees.maxBy { it.value.duration }!!.key)
-                   .id
-    clockType = threadIdToNode[mainThreadId]!!.clockType
+    // If the trace is empty, use [NO_THREAD_ID].
+    mainThreadId = (availableThreads.find { it.isMainThread } ?: captureTrees.maxBy { it.value.duration }?.key)?.id ?: NO_THREAD_ID
+    clockType = threadIdToNode[mainThreadId]?.clockType ?: ClockType.GLOBAL
   }
 
-
+  companion object {
+    /**
+     * A placeholder thread ID when main thread doesn't exist.
+     */
+    const val NO_THREAD_ID = -1
+  }
 
   /**
    * The CPU capture has its own [Timeline] for the purpose of exposing a variety of [Range]s.
