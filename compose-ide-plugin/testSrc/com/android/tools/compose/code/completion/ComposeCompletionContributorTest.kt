@@ -582,6 +582,58 @@ class ComposeCompletionContributorTest {
   }
 
   @Test
+  fun testInsertHandler_onClick_lastParameterIsNotLambdaOrRequired() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun RadioButton(text: String, onClick: () -> Unit, label: String = "label") {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        RadioButton${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        RadioButton(text = , onClick = { /*TODO*/ })
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  @Test
   fun testInsertHandler_disabledThroughSettings() {
     // Given:
     myFixture.addFileToProject(
