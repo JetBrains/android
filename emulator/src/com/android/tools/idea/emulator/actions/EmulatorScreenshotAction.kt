@@ -15,30 +15,42 @@
  */
 package com.android.tools.idea.emulator.actions
 
-import com.android.annotations.concurrency.Slow
+import com.android.SdkConstants
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
+import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.adtui.ImageUtils.createDipImage
 import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.ddms.screenshot.FramingOption
+import com.android.tools.idea.ddms.screenshot.ScreenshotImage
+import com.android.tools.idea.ddms.screenshot.ScreenshotPostprocessor
+import com.android.tools.idea.ddms.screenshot.ScreenshotSupplier
+import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
 import com.android.tools.idea.emulator.EmptyStreamObserver
 import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.io.IdeFileUtils
-import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.emulator.FutureStreamObserver
+import com.android.tools.idea.emulator.SkinDefinition
+import com.google.common.base.Throwables
+import com.google.common.util.concurrent.UncheckedExecutionException
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.util.SystemProperties
-import org.jetbrains.kotlin.idea.util.application.invokeLater
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LocalFileSystem
+import java.awt.AlphaComposite
+import java.awt.EventQueue
+import java.awt.Rectangle
+import java.awt.image.BufferedImage
 import java.io.IOException
-import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption.CREATE_NEW
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.nio.file.Path
+import java.util.EnumSet
+import java.util.concurrent.ExecutionException
+import javax.imageio.IIOException
+import javax.imageio.ImageIO
 
 /**
  * Takes a screenshot of the Emulator display, saves it to a file, and opens it in an editor.
@@ -48,57 +60,119 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val project: Project = event.getRequiredData(CommonDataKeys.PROJECT)
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
-    val imageFormat = ImageFormat.newBuilder()
-      .setFormat(ImageFormat.ImgFormat.PNG)
-      .build()
-    emulatorController.getScreenshot(imageFormat, ScreenshotReceiver(project))
+    emulatorController.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorController, project))
   }
 
-  private class ScreenshotReceiver(val project: Project) : EmptyStreamObserver<Image>() {
+  private class ScreenshotReceiver(val emulatorController: EmulatorController, val project: Project) : EmptyStreamObserver<Image>() {
 
     override fun onNext(response: Image) {
-      val timestamp = Date()
       executeOnPooledThread {
-        createAndOpenScreenshotFile(response.image, timestamp, project)
+        showScreenshotViewer(response, emulatorController, project)
+      }
+    }
+
+    private fun showScreenshotViewer(screenshot: Image, emulatorController: EmulatorController, project: Project) {
+      try {
+        val imageBytes = screenshot.image
+        val image = ImageIO.read(imageBytes.newInput()) ?: throw IIOException("Corrupted screenshot image")
+
+        val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+        Files.newOutputStream(backingFile).use {
+          imageBytes.writeTo(it)
+        }
+
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+        val screenshotSupplier = MyScreenshotSupplier(emulatorController)
+        val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
+
+        EventQueue.invokeLater {
+          showScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotFramer)
+        }
+      }
+      catch (e: Exception) {
+        thisLogger().error("Error while displaying screenshot viewer: ", e)
+      }
+    }
+
+    private fun showScreenshotViewer(project: Project, screenshotImage: ScreenshotImage, backingFile: Path,
+                                     screenshotSupplier: ScreenshotSupplier, screenshotPostprocessor: ScreenshotPostprocessor?) {
+      val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotPostprocessor,
+                                             listOf(avdFrame), 0, EnumSet.noneOf(Option::class.java)) {
+        override fun doOKAction() {
+          super.doOKAction()
+          screenshot?.let {
+            LocalFileSystem.getInstance().refreshAndFindFileByNioFile(it)?.let { virtualFile ->
+              virtualFile.refresh(false, false)
+              FileEditorManager.getInstance(project).openFile(virtualFile, true)
+            }
+          }
+        }
+      }
+
+      viewer.show()
+    }
+  }
+
+  private class MyScreenshotSupplier(val emulatorController: EmulatorController) : ScreenshotSupplier {
+
+    override fun captureScreenshot(): ScreenshotImage {
+      val receiver = FutureStreamObserver<Image>()
+      emulatorController.getScreenshot(pngFormat(), receiver)
+
+      try {
+        val screenshot = receiver.futureResult.get()
+        val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+      }
+      catch (e: InterruptedException) {
+        throw ProcessCanceledException()
+      }
+      catch (e: IOException) {
+        throw RuntimeException(e)
+      }
+      catch (e: ExecutionException) {
+        Throwables.throwIfUnchecked(e.cause!!)
+        throw UncheckedExecutionException(e.cause!!)
+      }
+      catch (e: UncheckedExecutionException) {
+        Throwables.throwIfUnchecked(e.cause!!)
+        throw e
       }
     }
   }
 
-  companion object {
-    @JvmStatic
-    private val TIMESTAMP_FORMAT = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+  private class MyScreenshotPostprocessor(val skinDefinition: SkinDefinition) : ScreenshotPostprocessor {
 
-    @Slow
-    @JvmStatic
-    private fun createAndOpenScreenshotFile(imageContents: ByteString, timestamp: Date, project: Project) {
-      val timestampSuffix = TIMESTAMP_FORMAT.format(timestamp)
-      val dir = IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
-
-      for (attempt in 0..100) {
-        val uniquenessSuffix = if (attempt == 0) "" else "_${attempt}"
-        val filename = "Screenshot_${timestampSuffix}${uniquenessSuffix}.png"
-        val file = dir.resolve(filename)
-        try {
-          Files.newOutputStream(file, CREATE_NEW).use {
-            imageContents.writeTo(it)
-          }
-
-          val virtualFile = VfsUtil.findFile(file, true) ?: return
-
-          invokeLater {
-            FileEditorManager.getInstance(project).openFile(virtualFile, true)
-          }
-          return
-        }
-        catch (e: FileAlreadyExistsException) {
-          continue
-        }
-        catch (e: IOException) {
-          thisLogger().error("Unable to create screenshot file $file", e)
-          return
-        }
+    override fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?): BufferedImage {
+      val image = screenshotImage.image
+      val w = image.width
+      val h = image.height
+      val skin = skinDefinition.createScaledLayout(w, h, SkinRotation.forNumber(screenshotImage.screenRotationQuadrants))
+      if (framingOption == null) {
+        val result = createDipImage(w, h, BufferedImage.TYPE_INT_ARGB)
+        val graphics = result.createGraphics()
+        graphics.drawImage(image, null, 0, 0)
+        graphics.composite = AlphaComposite.getInstance(AlphaComposite.DST_OUT)
+        val displayRectangle = Rectangle(0, 0, w, h)
+        skin.drawFrameAndMask(graphics, displayRectangle)
+        graphics.dispose()
+        return result
       }
-      thisLogger().error("Unable to create screenshot file - no suitable name") // Reaching this line is extremely unlikely.
+
+      val frameRectangle = skin.frameRectangle
+      val result = createDipImage(frameRectangle.width, frameRectangle.height, BufferedImage.TYPE_INT_ARGB)
+      val graphics = result.createGraphics()
+      val displayRectangle = Rectangle(-frameRectangle.x, -frameRectangle.y, w, h)
+      graphics.drawImage(image, null, displayRectangle.x, displayRectangle.y)
+      skin.drawFrameAndMask(graphics, displayRectangle)
+      graphics.dispose()
+      return result
     }
   }
 }
+
+private val avdFrame = object : FramingOption {
+  override val displayName = "AVD skin"
+}
+
+private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()

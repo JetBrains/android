@@ -15,33 +15,23 @@
  */
 package com.android.tools.idea.ddms.screenshot;
 
-import com.android.ddmlib.CollectingOutputReceiver;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.RawImage;
-import com.google.common.util.concurrent.SettableFuture;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ExceptionUtil;
-import java.awt.image.BufferedImage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ScreenshotTask extends Task.Modal {
-  private final IDevice myDevice;
+  private final @NotNull ScreenshotSupplier myScreenshotSupplier;
 
-  private String myError;
-  private BufferedImage myImage;
-  private boolean myIsRound;
+  private @Nullable ScreenshotImage myImage;
+  private @Nullable String myError;
 
-  public ScreenshotTask(@NotNull Project project, @NotNull IDevice device) {
+  public ScreenshotTask(@NotNull Project project, @NotNull ScreenshotSupplier screenshotSupplier) {
     super(project, AndroidBundle.message("android.ddms.actions.screenshot.title"), true);
-    myDevice = device;
+    myScreenshotSupplier = screenshotSupplier;
   }
 
   @Override
@@ -49,96 +39,28 @@ public class ScreenshotTask extends Task.Modal {
     indicator.setIndeterminate(true);
 
     indicator.setText(AndroidBundle.message("android.ddms.screenshot.task.step.obtain"));
-    RawImage rawImage;
-    boolean isRound;
-
-    ScreenshotRetrieverTask retrieverTask = new ScreenshotRetrieverTask(myDevice);
-    ApplicationManager.getApplication().executeOnPooledThread(retrieverTask);
-    Future<ScreenshotRetrieverTask.ScreenshotResult> image = retrieverTask.getScreenshotResult();
-
-    while (true) {
-      try {
-        ScreenshotRetrieverTask.ScreenshotResult result = image.get(100, TimeUnit.MILLISECONDS);
-        rawImage = result.getRawImage();
-        isRound = result.isRound();
-        break;
-      }
-      catch (InterruptedException | ExecutionException e) {
-        myError = AndroidBundle.message("android.ddms.screenshot.task.error1", ExceptionUtil.getMessage(e));
+    try {
+      myImage = myScreenshotSupplier.captureScreenshot();
+    }
+    catch (Exception e) {
+      if (indicator.isCanceled()) {
         return;
       }
-      catch (TimeoutException e) {
-        if (indicator.isCanceled()) {
-          return;
-        }
+      String message = ExceptionUtil.getMessage(e);
+      if (message == null) {
+        AndroidBundle.message("android.ddms.screenshot.task.error1", e.getClass().getName());
+      }
+      else {
+        myError = message;
       }
     }
-
-    if (rawImage.bpp != 16 && rawImage.bpp != 32) {
-      myError = AndroidBundle.message("android.ddms.screenshot.task.error.invalid.bpp", rawImage.bpp);
-      return;
-    }
-
-    indicator.setText(AndroidBundle.message("android.ddms.screenshot.task.step.load"));
-
-    myImage = rawImage.asBufferedImage();
-    myIsRound = isRound;
   }
 
-  public BufferedImage getScreenshot() {
+  public @Nullable ScreenshotImage getScreenshot() {
     return myImage;
   }
 
-  public String getError() {
+  public @Nullable String getError() {
     return myError;
-  }
-
-  public boolean isRound() {
-    return myIsRound;
-  }
-
-  private static class ScreenshotRetrieverTask implements Runnable {
-    private final IDevice myDevice;
-    private final SettableFuture<ScreenshotResult> myFuture;
-
-    public ScreenshotRetrieverTask(@NotNull IDevice device) {
-      myDevice = device;
-      myFuture = SettableFuture.create();
-    }
-
-    @Override
-    public void run() {
-      try {
-        RawImage image = myDevice.getScreenshot(10, TimeUnit.SECONDS);
-        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
-        myDevice.executeShellCommand("dumpsys display", receiver);
-        myFuture.set(new ScreenshotResult(image, receiver.getOutput().contains("FLAG_ROUND")));
-      }
-      catch (Throwable t) {
-        myFuture.setException(t);
-      }
-    }
-
-    public Future<ScreenshotResult> getScreenshotResult() {
-      return myFuture;
-    }
-
-    private static class ScreenshotResult{
-      private final RawImage myRawImage;
-      private final boolean myIsRound;
-
-      private ScreenshotResult(RawImage image, boolean isRound) {
-        myRawImage = image;
-        myIsRound = isRound;
-      }
-
-      private boolean isRound() {
-        return myIsRound;
-      }
-
-      private RawImage getRawImage() {
-        return myRawImage;
-      }
-    }
   }
 }

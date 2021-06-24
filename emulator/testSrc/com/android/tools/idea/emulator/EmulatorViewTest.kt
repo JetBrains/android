@@ -16,7 +16,6 @@
 package com.android.tools.idea.emulator
 
 import com.android.emulator.control.FoldedDisplay
-import com.android.emulator.control.ImageFormat
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -26,7 +25,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.io.IdeFileUtils
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
@@ -37,8 +35,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerComponentInstance
-import com.intellij.util.SystemProperties
-import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,14 +59,10 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.regex.Pattern
 import javax.swing.JScrollPane
-import kotlin.streams.toList
 
 /**
  * Tests for [EmulatorView] and some of the emulator toolbar actions.
@@ -399,7 +391,7 @@ class EmulatorViewTest {
   }
 
   @Test
-  fun testActions() {
+  fun testDeviceButtonActions() {
     val view = emulatorViewRule.newEmulatorView()
     val emulator = emulatorViewRule.getFakeEmulator(view)
 
@@ -420,22 +412,6 @@ class EmulatorViewTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keypress key: "AppSwitch"""")
-
-    // Check EmulatorScreenshotAction.
-    emulatorViewRule.executeAction("android.emulator.screenshot", view)
-    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
-    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/getScreenshot")
-    assertThat((call.request as ImageFormat).format).isEqualTo(ImageFormat.ImgFormat.PNG)
-    call.waitForCompletion(5, TimeUnit.SECONDS) // Use longer timeout for PNG creation.
-    waitForCondition(2, TimeUnit.SECONDS) {
-      dispatchAllInvocationEvents()
-      val dir = IdeFileUtils.getDesktopDirectory() ?: Paths.get(SystemProperties.getUserHome())
-      Files.list(dir).use { stream ->
-        stream.filter { Pattern.matches("Screenshot_.*\\.png", it.fileName.toString()) }.toList()
-      }.isNotEmpty()
-    }
-    waitForCondition(2, TimeUnit.SECONDS) { filesOpened.isNotEmpty() }
-    assertThat(Pattern.matches("Screenshot_.*\\.png", filesOpened[0].name)).isTrue()
   }
 
   private fun createScrollPane(view: EmulatorView): JScrollPane {
