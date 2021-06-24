@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.PREVIEW_ANNOTATION_FQNS
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.intellij.openapi.application.ReadAction
@@ -31,9 +32,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
+import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.uast.UAnnotation
@@ -45,7 +49,7 @@ import java.util.concurrent.Callable
  */
 fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
                         annotations: Set<String>,
-                        shortAnnotationName: String): Boolean = ReadAction.compute<Boolean, Throwable> {
+                        shortAnnotationName: String): Boolean = runReadAction {
   // This method can not call any methods that require smart mode.
   fun isFullNamePreviewAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
@@ -58,7 +62,7 @@ fun hasAnnotatedMethods(project: Project, vFile: VirtualFile,
   val hasPreviewImport = PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java)
     .any { annotations.contains(it.importedFqName?.asString()) }
 
-  return@compute if (hasPreviewImport) {
+  return@runReadAction if (hasPreviewImport) {
     PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java)
       .any {
         it.shortName?.asString() == shortAnnotationName || isFullNamePreviewAnnotation(it)
@@ -82,22 +86,41 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       return emptyList()
     }
 
-    val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
-      KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
-                                               GlobalSearchScope.fileScope(project, vFile)).asSequence()
-    }
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile)  ?: return emptyList()
+    return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
+      val kotlinAnnotations: Sequence<PsiElement> = ReadAction.compute<Sequence<PsiElement>, Throwable> {
+        KotlinAnnotationsIndex.getInstance().get(COMPOSE_PREVIEW_ANNOTATION_NAME, project,
+                                                 GlobalSearchScope.fileScope(project, vFile)).asSequence()
+      }
 
-    return kotlinAnnotations
-      .filterIsInstance<KtAnnotationEntry>()
-      .filter { it.isPreviewAnnotation() }
-      .toList()
+      val previewAnnotations = kotlinAnnotations
+        .filterIsInstance<KtAnnotationEntry>()
+        .filter { it.isPreviewAnnotation() }
+        .toList()
+
+      CachedValueProvider.Result.create(previewAnnotations, psiFile)
+    }
   }
 
-  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean =
-    hasAnnotatedMethods(project, vFile, PREVIEW_ANNOTATION_FQNS, COMPOSE_PREVIEW_ANNOTATION_NAME)
+  override fun hasPreviewMethods(project: Project, vFile: VirtualFile): Boolean {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
+    return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
+      CachedValueProvider.Result.createSingleDependency(
+        hasAnnotatedMethods(project, vFile, PREVIEW_ANNOTATION_FQNS, COMPOSE_PREVIEW_ANNOTATION_NAME),
+        psiFile
+      )
+    }
+  }
 
-  override fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean =
-    hasAnnotatedMethods(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
+  override fun hasComposableMethods(project: Project, vFile: VirtualFile): Boolean {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
+    return CachedValuesManager.getManager(project).getCachedValue(psiFile) {
+      CachedValueProvider.Result.createSingleDependency(
+        hasAnnotatedMethods(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME),
+        psiFile
+      )
+    }
+  }
 
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
