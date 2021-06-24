@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
+import com.intellij.lang.annotation.HighlightSeverity
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
 private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should not be used in layouts larger than 600dp"
@@ -65,7 +66,10 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableList<
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
-      val renderIssue = RenderErrorModel.Issue.builder().setSummary("$child is not fully visible in layout").build()
+      val renderIssue = RenderErrorModel.Issue.builder()
+        .setSummary("$child is not fully visible in layout")
+        .setSeverity(HighlightSeverity.WARNING)
+        .build()
       val component = componentFromViewInfo(child, model)
       issues.add(VisualLintRenderIssue(renderIssue, model, component))
     }
@@ -88,7 +92,10 @@ private fun findBottomNavigationIssue(root: ViewInfo, sceneManager: LayoutlibSce
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
     if (widthInDp > 600) {
-      val renderIssue = RenderErrorModel.Issue.builder().setSummary(BOTTOM_NAVIGATION_ISSUE_MESSAGE).build()
+      val renderIssue = RenderErrorModel.Issue.builder()
+        .setSummary(BOTTOM_NAVIGATION_ISSUE_MESSAGE)
+        .setSeverity(HighlightSeverity.WARNING)
+        .build()
       val model = sceneManager.model
       val component = componentFromViewInfo(root, model)
       issues.add(VisualLintRenderIssue(renderIssue, sceneManager.model, component))
