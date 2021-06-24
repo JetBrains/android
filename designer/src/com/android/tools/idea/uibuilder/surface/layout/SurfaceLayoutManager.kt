@@ -42,6 +42,8 @@ abstract class PositionableContent {
     @SwingCoordinate get() = getScaledContentSize(Dimension())
   abstract val margin: Insets
 
+  abstract val isVisible: Boolean
+
   @AndroidDpCoordinate
   abstract fun getContentSize(dimension: Dimension?): Dimension
 

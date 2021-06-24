@@ -190,7 +190,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         override fun measure(screenView: ScreenView, outDimension: Dimension) = wrappedPolicy.measure(screenView, outDimension)
 
         // In visualization view, we always use configuration to decide the size.
-        override fun hasContentSize(screenView: ScreenView) = true
+        override fun hasContentSize(screenView: ScreenView) = screenView.isVisible
       }
     }
     .disableBorder()

@@ -384,6 +384,11 @@ public final class StudioFlags {
     "Enable all the various tools related to visual linting of layouts.",
     false);
 
+  public static final Flag<Boolean> NELE_VISUAL_LINT_TOGGLE_ISSUE_LAYOUTS = Flag.create(
+    NELE, "visual.lint.toggle.issue.layouts", "Checkbox to show the the layouts with issue only.",
+    "Provide a checkbox in Layout Validation Tool to allow user only show the layouts with issue detected by visual lint.",
+    false);
+
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
     "Display a warning if user code creates new threads in the preview",

@@ -105,6 +105,7 @@ public abstract class SceneView {
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
   private boolean myAnimated = false;
+  private boolean myIsVisible = true;
   @NotNull private final ShapePolicy myShapePolicy;
 
   /**
@@ -290,6 +291,9 @@ public abstract class SceneView {
    * @param graphics
    */
   final void paint(@NotNull Graphics2D graphics) {
+    if (!myIsVisible) {
+      return;
+    }
     for (Layer layer : getLayers()) {
       if (layer.isVisible()) {
         layer.paint(graphics);
@@ -330,7 +334,7 @@ public abstract class SceneView {
    * rendering or if the rendering is failure.
    */
   public boolean hasContentSize() {
-    return true;
+    return isVisible();
   }
 
   public void dispose() {
@@ -455,5 +459,13 @@ public abstract class SceneView {
    */
   public boolean isAnimated() {
     return myAnimated;
+  }
+
+  public void setVisible(boolean visibility) {
+    myIsVisible = visibility;
+  }
+
+  public boolean isVisible() {
+    return myIsVisible;
   }
 }
