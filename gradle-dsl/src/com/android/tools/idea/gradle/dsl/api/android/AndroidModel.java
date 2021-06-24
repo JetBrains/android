@@ -92,6 +92,9 @@ public interface AndroidModel extends GradleBlockModel {
   KotlinOptionsModel kotlinOptions();
 
   @NotNull
+  LintModel lint();
+
+  @NotNull
   LintOptionsModel lintOptions();
 
   @NotNull
