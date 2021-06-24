@@ -49,7 +49,7 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface) {
     ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
     ZoomType.OUT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
     ZoomType.FIT_INTO, ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
-    else -> {} // ignore unrecognized zoom type.
+    else -> Unit // ignore unrecognized zoom type.
   }
 
   /**
