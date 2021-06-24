@@ -218,4 +218,17 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("GradlePlugins/KotlinPluginVersionInLiteralExpected"))
   }
+
+  @Test
+  fun testEnabledEffectOnMigrateAdbOptions() {
+    fun AgpUpgradeComponentRefactoringProcessor.isMigrateAdbOptions() =
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_ADB_OPTIONS_TO_INSTALLATION
+
+    writeToBuildFile(TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallation"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateAdbOptions() }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallationExpected"))
+  }
 }
