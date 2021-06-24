@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.ddms.screenshot;
 
-import static com.intellij.util.ui.ImageUtil.applyQualityRenderingHints;
+import static com.android.SdkConstants.EXT_PNG;
+import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
-import com.android.SdkConstants;
-import com.android.ddmlib.IDevice;
-import com.android.resources.ScreenOrientation;
-import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.device.DeviceArtDescriptor;
-import com.android.tools.adtui.device.DeviceArtPainter;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.pixelprobe.color.Colors;
+import com.google.common.base.Preconditions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
@@ -33,6 +29,11 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.State;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -52,25 +53,25 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.util.containers.ContainerUtil;
-import java.awt.AlphaComposite;
+import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
-import java.awt.Graphics2D;
+import java.awt.Component;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionListener;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.Deflater;
 import javax.imageio.IIOImage;
@@ -88,13 +89,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import org.intellij.images.editor.ImageEditor;
 import org.intellij.images.editor.ImageFileEditor;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Node;
 
@@ -102,35 +101,38 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_VIEWER_DIMENSIONS_KEY = "ScreenshotViewer.Dimensions";
   @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
+  private final @NotNull SimpleDateFormat myTimestampFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT);
+
   private final @NotNull Project myProject;
-  private final @Nullable IDevice myDevice;
+  private final @Nullable ScreenshotSupplier myScreenshotSupplier;
+  private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
+  private final @NotNull List<@NotNull FramingOption> myFramingOptions;
 
-  private final VirtualFile myBackingVirtualFile;
-  private final ImageFileEditor myImageFileEditor;
-  private final FileEditorProvider myProvider;
+  private final @NotNull VirtualFile myBackingFile;
+  private final @NotNull ImageFileEditor myImageFileEditor;
+  private final @NotNull FileEditorProvider myEditorProvider;
+  private final @NotNull PersistentState myPersistentStorage;
 
-  private final List<DeviceArtDescriptor> myDeviceArtDescriptors;
-  private final boolean myImageIsRound;
-
-  private JPanel myPanel;
-  private JButton myRefreshButton;
-  private JButton myRotateRightButton;
-  private JButton myRotateLeftButton;
-  private JPanel myContentPane;
-  private JCheckBox myFrameScreenshotCheckBox;
-  private JComboBox<String> myDeviceArtCombo;
-  private JButton myCopyButton;
+  private @NotNull JPanel myPanel;
+  private @NotNull JButton myRefreshButton;
+  private @NotNull JButton myRotateRightButton;
+  private @NotNull JButton myRotateLeftButton;
+  private @NotNull JPanel myContentPane;
+  private @NotNull JCheckBox myFrameScreenshotCheckBox;
+  private @NotNull JComboBox<String> myFramingOptionsCombo;
+  private @NotNull JButton myCopyButton;
 
   /**
    * Number of quadrants by which the screenshot from the device has been rotated. One of 0, 1, 2 or 3.
+   * Used only if rotation buttons are enabled.
    */
-  private int myRotationQuadrants = 0;
+  private int myRotationQuadrants;
 
   /**
-   * Reference to the screenshot obtained from the device and then rotated by {@link #myRotationQuadrants} degrees.
+   * Reference to the screenshot obtained from the device and then rotated by {@link #myRotationQuadrants}.
    * Accessed from both EDT and background threads.
    */
-  private final AtomicReference<BufferedImage> mySourceImageRef = new AtomicReference<>();
+  private final AtomicReference<ScreenshotImage> mySourceImageRef = new AtomicReference<>();
 
   /**
    * Reference to the framed screenshot displayed on screen. Accessed from both EDT and background threads.
@@ -140,79 +142,124 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   /**
    * User specified destination where the screenshot is saved.
    */
-  private @Nullable File myScreenshotFile;
+  private @Nullable Path myScreenshotFile;
 
+  /**
+   * @param project defines the context for the viewer
+   * @param screenshotImage the screenshot to display
+   * @param backingFile the temporary file containing the screenshot, which is deleted when
+   *     the viewer is closed
+   * @param screenshotSupplier an optional supplier of additional screenshots. The <i>Recapture</i>
+   *     button is hidden if not provided
+   * @param screenshotPostprocessor an optional postprocessor used for framing and clipping.
+   *     The <i>Frame screenshot</i> checkbox and the framing options are hidden if not provided
+   * @param framingOptions available choices of frames.  Ignored if {@code screenshotPostprocessor}
+   *     is null. The pull-down list of framing options is shown only when
+   *     {@code screenshotPostprocessor} is not null and there are two or more framing options.
+   * @param defaultFramingOption the index of the default framing option in
+   *     the {@code framingOptions} list
+   * @param screenshotViewerOptions determine whether the rotation buttons are available or not
+   */
   public ScreenshotViewer(@NotNull Project project,
-                          @NotNull BufferedImage image,
-                          @NotNull File backingFile,
-                          @Nullable IDevice device,
-                          @Nullable String deviceModel,
-                          boolean isRound) {
+                          @NotNull ScreenshotImage screenshotImage,
+                          @NotNull Path backingFile,
+                          @Nullable ScreenshotSupplier screenshotSupplier,
+                          @Nullable ScreenshotPostprocessor screenshotPostprocessor,
+                          @NotNull List<@NotNull FramingOption> framingOptions,
+                          int defaultFramingOption,
+                          @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);
-
-    myProject = project;
-    myDevice = device;
-    mySourceImageRef.set(image);
-    myDisplayedImageRef.set(image);
-    myImageIsRound = isRound;
-
-    myBackingVirtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(backingFile);
-    assert myBackingVirtualFile != null;
-
-    myRefreshButton.setIcon(AllIcons.Actions.Refresh);
-    myRefreshButton.setEnabled(device != null);
-
-    myProvider = getImageFileEditorProvider();
-    myImageFileEditor = (ImageFileEditor)myProvider.createEditor(myProject, myBackingVirtualFile);
-    myContentPane.setLayout(new BorderLayout());
-    myContentPane.add(myImageFileEditor.getComponent(), BorderLayout.CENTER);
-
-    ActionListener listener = actionEvent -> {
-      if (actionEvent.getSource() == myRefreshButton) {
-        doRefreshScreenshot();
-      }
-      else if (actionEvent.getSource() == myRotateRightButton) {
-        doRotateScreenshot(3);
-      }
-      else if (actionEvent.getSource() == myRotateLeftButton) {
-        doRotateScreenshot(1);
-      }
-      else if (actionEvent.getSource() == myFrameScreenshotCheckBox
-               || actionEvent.getSource() == myDeviceArtCombo) {
-        doFrameScreenshot();
-      }
-      else if (actionEvent.getSource() == myCopyButton) {
-        BufferedImage currentImage = myImageFileEditor.getImageEditor().getDocument().getValue();
-        CopyPasteManager.getInstance().setContents(new BufferedImageTransferable(currentImage));
-        String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidBundle.message("android.ddms.actions.screenshot"));
-        Notifications.Bus.notify(new Notification(groupId,
-                                                  AndroidBundle.message("android.ddms.actions.screenshot"),
-                                                  AndroidBundle.message("android.ddms.actions.screenshot.copied.to.clipboard"),
-                                                  NotificationType.INFORMATION), myProject);
-      }
-    };
-
-    myRefreshButton.addActionListener(listener);
-    myRotateRightButton.addActionListener(listener);
-    myRotateLeftButton.addActionListener(listener);
-    myFrameScreenshotCheckBox.addActionListener(listener);
-    myDeviceArtCombo.addActionListener(listener);
-    myCopyButton.addActionListener(listener);
-
-    myDeviceArtDescriptors = getDescriptorsToFrame(image);
-    String[] titles = new String[myDeviceArtDescriptors.size()];
-    for (int i = 0; i < myDeviceArtDescriptors.size(); i++) {
-      titles[i] = myDeviceArtDescriptors.get(i).getName();
-    }
-    DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(titles);
-    myDeviceArtCombo.setModel(model);
-
-    // Set the default device art descriptor selection
-    myDeviceArtCombo.setSelectedIndex(getDefaultDescriptor(myDeviceArtDescriptors, image, deviceModel));
+    Preconditions.checkArgument(screenshotPostprocessor == null ||
+                                defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
 
     setModal(false);
     setTitle(AndroidBundle.message("android.ddms.actions.screenshot.title"));
+
+    myProject = project;
+    myScreenshotSupplier = screenshotSupplier;
+    myScreenshotPostprocessor = screenshotPostprocessor;
+    mySourceImageRef.set(screenshotImage);
+    myRotationQuadrants = screenshotImage.getScreenRotationQuadrants();
+    myDisplayedImageRef.set(screenshotImage.getImage());
+
+    VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(backingFile);
+    assert virtualFile != null;
+    myBackingFile = virtualFile;
+
+    if (screenshotSupplier == null) {
+      hideComponent(myRefreshButton);
+    }
+    else {
+      myRefreshButton.setIcon(AllIcons.Actions.Refresh);
+    }
+
+    myEditorProvider = getImageFileEditorProvider();
+    myImageFileEditor = (ImageFileEditor)myEditorProvider.createEditor(myProject, myBackingFile);
+    myContentPane.setLayout(new BorderLayout());
+    myContentPane.add(myImageFileEditor.getComponent(), BorderLayout.CENTER);
+
+    myFramingOptions = framingOptions;
+    myPersistentStorage = PersistentState.getInstance(myProject);
+
+    if (screenshotPostprocessor == null) {
+      hideComponent(myFrameScreenshotCheckBox);
+      hideComponent(myFramingOptionsCombo);
+    }
+    else {
+      myFrameScreenshotCheckBox.setSelected(myPersistentStorage.frameScreenshot);
+
+      ActionListener frameListener = event -> {
+        myPersistentStorage.frameScreenshot = myFrameScreenshotCheckBox.isSelected();
+        updateImageFrame();
+      };
+      myFrameScreenshotCheckBox.addActionListener(frameListener);
+
+      String[] titles = new String[myFramingOptions.size()];
+      for (int i = 0; i < myFramingOptions.size(); i++) {
+        titles[i] = myFramingOptions.get(i).getDisplayName();
+      }
+      DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(titles);
+      myFramingOptionsCombo.setModel(model);
+      myFramingOptionsCombo.setSelectedIndex(defaultFramingOption); // Select the default framing option.
+
+      if (framingOptions.size() <= 1) {
+        hideComponent(myFramingOptionsCombo);
+      }
+      else {
+        myFramingOptionsCombo.addActionListener(frameListener);
+      }
+    }
+
+    myRefreshButton.addActionListener(event -> doRefreshScreenshot());
+
+    if (screenshotViewerOptions.contains(Option.ALLOW_IMAGE_ROTATION)) {
+      myRotateLeftButton.addActionListener(event -> updateImageRotation(1));
+      myRotateRightButton.addActionListener(event -> updateImageRotation(3));
+    }
+    else {
+      hideComponent(myRotateLeftButton);
+      hideComponent(myRotateRightButton);
+    }
+
+    myCopyButton.addActionListener(event -> {
+      BufferedImage currentImage = myImageFileEditor.getImageEditor().getDocument().getValue();
+      CopyPasteManager.getInstance().setContents(new BufferedImageTransferable(currentImage));
+      String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidBundle.message("android.ddms.actions.screenshot"));
+      Notifications.Bus.notify(new Notification(groupId,
+                                                AndroidBundle.message("android.ddms.actions.screenshot"),
+                                                AndroidBundle.message("android.ddms.actions.screenshot.copied.to.clipboard"),
+                                                NotificationType.INFORMATION), myProject);
+    });
+
+    updateEditorImage();
+
     init();
+
+    updateImageFrame();
+  }
+
+  private void hideComponent(@NotNull Component component) {
+    component.getParent().remove(component);
   }
 
   /**
@@ -223,57 +270,27 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     return myImageFileEditor.getComponent();
   }
 
-  // returns the list of descriptors capable of framing the given image
-  private static @NotNull List<DeviceArtDescriptor> getDescriptorsToFrame(@NotNull BufferedImage image) {
-    double imgAspectRatio = image.getWidth() / (double)image.getHeight();
-    ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
-
-    List<DeviceArtDescriptor> allDescriptors = DeviceArtDescriptor.getDescriptors(null);
-    return ContainerUtil.filter(allDescriptors, descriptor -> descriptor.canFrameImage(image, orientation));
-  }
-
-  private static int getDefaultDescriptor(@NotNull List<DeviceArtDescriptor> deviceArtDescriptors, @NotNull BufferedImage image,
-                                          @Nullable String deviceModel) {
-    int index = -1;
-
-    if (deviceModel != null) {
-      index = findDescriptorIndexForProduct(deviceArtDescriptors, deviceModel);
-    }
-
-    if (index < 0) {
-      // Assume that if the min resolution is > 1280, then we are on a tablet
-      String defaultDevice = Math.min(image.getWidth(), image.getHeight()) > 1280 ? "Generic Tablet" : "Generic Phone";
-      index = findDescriptorIndexForProduct(deviceArtDescriptors, defaultDevice);
-    }
-
-    // If we can't find anything (which shouldn't happen since we should get the Generic Phone/Tablet),
-    // default to the first one.
-    if (index < 0) {
-      index = 0;
-    }
-
-    return index;
-  }
-
-  private static int findDescriptorIndexForProduct(@NotNull List<DeviceArtDescriptor> descriptors, @NotNull String deviceModel) {
-    for (int i = 0; i < descriptors.size(); i++) {
-      DeviceArtDescriptor d = descriptors.get(i);
-      if (d.getName().equalsIgnoreCase(deviceModel)) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
   @Override
   protected void dispose() {
-    myProvider.disposeEditor(myImageFileEditor);
-    super.dispose();
+    myEditorProvider.disposeEditor(myImageFileEditor);
+    try {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        try {
+          myBackingFile.delete(this);
+        }
+        catch (IOException e) {
+          logger().error(e);
+        }
+      });
+    }
+    finally {
+      super.dispose();
+    }
   }
 
   private void doRefreshScreenshot() {
-    assert myDevice != null;
-    new ScreenshotTask(myProject, myDevice) {
+    assert myScreenshotSupplier != null;
+    new ScreenshotTask(myProject, myScreenshotSupplier) {
       @Override
       public void onSuccess() {
         String msg = getError();
@@ -282,32 +299,29 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
           return;
         }
 
-        BufferedImage image = getScreenshot();
-        mySourceImageRef.set(image);
+        ScreenshotImage screenshotImage = getScreenshot();
+        mySourceImageRef.set(screenshotImage);
         processScreenshot(myFrameScreenshotCheckBox.isSelected(), myRotationQuadrants);
       }
     }.queue();
   }
 
-  private void doRotateScreenshot(int numQuadrants) {
+  private void updateImageRotation(int numQuadrants) {
     assert numQuadrants >= 0;
     myRotationQuadrants = (myRotationQuadrants + numQuadrants) % 4;
     processScreenshot(myFrameScreenshotCheckBox.isSelected(), numQuadrants);
   }
 
-  private void doFrameScreenshot() {
+  private void updateImageFrame() {
     boolean shouldFrame = myFrameScreenshotCheckBox.isSelected();
-
-    myDeviceArtCombo.setEnabled(shouldFrame);
-
+    myFramingOptionsCombo.setEnabled(shouldFrame);
     processScreenshot(shouldFrame, 0);
   }
 
   private void processScreenshot(boolean addFrame, int rotateByQuadrants) {
-    DeviceArtDescriptor spec = addFrame ? myDeviceArtDescriptors.get(myDeviceArtCombo.getSelectedIndex()) : null;
-    boolean applyRoundClip = !addFrame && myImageIsRound;
+    FramingOption framingOption = addFrame ? myFramingOptions.get(myFramingOptionsCombo.getSelectedIndex()) : null;
 
-    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, spec, applyRoundClip, myBackingVirtualFile) {
+    new ImageProcessorTask(myProject, mySourceImageRef.get(), rotateByQuadrants, myScreenshotPostprocessor, framingOption, myBackingFile) {
       @Override
       public void onSuccess() {
         mySourceImageRef.set(getRotatedImage());
@@ -318,70 +332,50 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private static class ImageProcessorTask extends Task.Backgroundable {
-    private final @NotNull BufferedImage mySrcImage;
+    private final @NotNull ScreenshotImage mySrcImage;
     private final int myRotationQuadrants;
-    private final @Nullable DeviceArtDescriptor myDescriptor;
+    private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
+    private final @Nullable FramingOption myFramingOption;
     private final @Nullable VirtualFile myDestinationFile;
-    private final boolean myApplyRoundClip;
 
-    private BufferedImage myRotatedImage;
+    private ScreenshotImage myRotatedImage;
     private BufferedImage myProcessedImage;
 
-    public ImageProcessorTask(@Nullable Project project,
-                              @NotNull BufferedImage srcImage,
+    public ImageProcessorTask(@NotNull Project project,
+                              @NotNull ScreenshotImage srcImage,
                               int rotateByQuadrants,
-                              @Nullable DeviceArtDescriptor descriptor,
-                              boolean applyRoundClip,
+                              @Nullable ScreenshotPostprocessor screenshotPostprocessor,
+                              @Nullable FramingOption framingOption,
                               @Nullable VirtualFile writeToFile) {
       super(project, AndroidBundle.message("android.ddms.screenshot.image.processor.task.title"), false);
 
       mySrcImage = srcImage;
       myRotationQuadrants = rotateByQuadrants;
-      myDescriptor = descriptor;
-      myApplyRoundClip = applyRoundClip;
+      myScreenshotPostprocessor = screenshotPostprocessor;
+      myFramingOption = framingOption;
       myDestinationFile = writeToFile;
-    }
-
-    @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
-    private @NotNull BufferedImage circularClip(@NotNull BufferedImage image, int diameter) {
-      BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-      Graphics2D graphics = mask.createGraphics();
-      applyQualityRenderingHints(graphics);
-      graphics.fill(new Area(new Ellipse2D.Double(0, 0, diameter, diameter)));
-
-      BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
-      graphics = shapedImage.createGraphics();
-      applyQualityRenderingHints(graphics);
-      graphics.drawImage(image, 0, 0, null);
-      graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
-      graphics.drawImage(mask, 0, 0, null);
-      graphics.dispose();
-
-      return shapedImage;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      myRotatedImage = ImageUtils.rotateByQuadrants(mySrcImage, myRotationQuadrants);
+      myRotatedImage = mySrcImage.rotated(myRotationQuadrants);
 
-      if (myDescriptor != null) {
-        myProcessedImage = DeviceArtPainter.createFrame(myRotatedImage, myDescriptor, false, false);
+      if (myScreenshotPostprocessor == null) {
+        myProcessedImage = myRotatedImage.getImage();
       }
       else {
-        myProcessedImage = myApplyRoundClip ? circularClip(myRotatedImage, myRotatedImage.getWidth()) : myRotatedImage;
+        myProcessedImage = myScreenshotPostprocessor.addFrame(myRotatedImage, myFramingOption);
       }
-
-      myProcessedImage = ImageUtils.cropBlank(myProcessedImage, null);
 
       // Update the backing file, this is necessary for operations that read the backing file from the editor,
       // such as: Right click image -> Open in external editor
       if (myDestinationFile != null) {
-        File file = VfsUtilCore.virtualToIoFile(myDestinationFile);
+        Path file = VfsUtilCore.virtualToIoFile(myDestinationFile).toPath();
         try {
           writePng(myProcessedImage, file);
         }
         catch (IOException e) {
-          Logger.getInstance(ImageProcessorTask.class).error("Unexpected error while writing to backing file", e);
+          logger().error("Unexpected error while writing to " + file, e);
         }
       }
     }
@@ -390,7 +384,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       return myProcessedImage;
     }
 
-    protected BufferedImage getRotatedImage() {
+    protected ScreenshotImage getRotatedImage() {
       return myRotatedImage;
     }
   }
@@ -398,9 +392,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @VisibleForTesting
   void updateEditorImage() {
     BufferedImage image = myDisplayedImageRef.get();
-    ImageEditor imageEditor = myImageFileEditor.getImageEditor();
-
-    imageEditor.getDocument().setValue(image);
+    myImageFileEditor.getImageEditor().getDocument().setValue(image);
     pack();
 
     // After image has updated, set the focus to image to allow keyboard shortcut copying.
@@ -408,7 +400,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private @NotNull FileEditorProvider getImageFileEditorProvider() {
-    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, myBackingVirtualFile);
+    FileEditorProvider[] providers = FileEditorProviderManager.getInstance().getProviders(myProject, myBackingFile);
     assert providers.length > 0;
 
     // Note: In case there are multiple providers for image files, we'd prefer to get the bundled
@@ -453,16 +445,15 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   @Override
   protected void doOKAction() {
-    FileSaverDescriptor descriptor =
-        new FileSaverDescriptor(AndroidBundle.message("android.ddms.screenshot.save.title"), "", SdkConstants.EXT_PNG);
+    FileSaverDescriptor descriptor = new FileSaverDescriptor(AndroidBundle.message("android.ddms.screenshot.save.title"), "", EXT_PNG);
     FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
     VirtualFile baseDir = loadScreenshotPath();
-    VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, getDefaultFileName());
+    VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, adjustedFileName(getDefaultFileName()));
     if (fileWrapper == null) {
       return;
     }
 
-    myScreenshotFile = fileWrapper.getFile();
+    myScreenshotFile = fileWrapper.getFile().toPath();
     try {
       writePng(myDisplayedImageRef.get(), myScreenshotFile);
     }
@@ -481,17 +472,24 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     super.doOKAction();
   }
 
-  private static void writePng(@NotNull BufferedImage image, @NotNull File outFile) throws IOException {
-    ImageWriter pngWriter = getWriter(image, SdkConstants.EXT_PNG);
+  private @NotNull String adjustedFileName(@NotNull String fileName) {
+    // Add extension to filename on Mac only see: b/38447816.
+    return SystemInfo.isMac ? fileName + ".png" : fileName;
+  }
+
+  private static void writePng(@NotNull BufferedImage image, @NotNull Path outFile) throws IOException {
+    ImageWriter pngWriter = null;
+    ImageTypeSpecifier imageType = ImageTypeSpecifier.createFromRenderedImage(image);
+    Iterator<ImageWriter> iterator = ImageIO.getImageWriters(imageType, EXT_PNG);
+    if (iterator.hasNext()) {
+      pngWriter = iterator.next();
+    }
     if (pngWriter == null) {
       throw new IOException("Failed to find PNG writer");
     }
 
-    //noinspection ResultOfMethodCallIgnored
-    outFile.delete();
-
-    try (ImageOutputStream outputStream = ImageIO.createImageOutputStream(outFile)) {
-      pngWriter.setOutput(outputStream);
+    try (ImageOutputStream stream = ImageIO.createImageOutputStream(Files.newOutputStream(outFile))) {
+      pngWriter.setOutput(stream);
 
       if (image.getColorModel().getColorSpace() instanceof ICC_ColorSpace) {
         ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
@@ -502,11 +500,11 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         byte[] data = deflate(colorSpace.getProfile().getData());
 
         Node node = metadata.getAsTree("javax_imageio_png_1.0");
-        IIOMetadataNode iccp = new IIOMetadataNode("iCCP");
-        iccp.setUserObject(data);
-        iccp.setAttribute("profileName", Colors.getIccProfileDescription(colorSpace.getProfile()));
-        iccp.setAttribute("compressionMethod", "deflate");
-        node.appendChild(iccp);
+        IIOMetadataNode metadataNode = new IIOMetadataNode("iCCP");
+        metadataNode.setUserObject(data);
+        metadataNode.setAttribute("profileName", Colors.getIccProfileDescription(colorSpace.getProfile()));
+        metadataNode.setAttribute("compressionMethod", "deflate");
+        node.appendChild(metadataNode);
 
         metadata.setFromTree("javax_imageio_png_1.0", node);
 
@@ -516,6 +514,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         pngWriter.write(image);
       }
       pngWriter.dispose();
+    }
+    catch (IOException e) {
+      Files.delete(outFile);
     }
   }
 
@@ -535,32 +536,17 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     return data;
   }
 
-  private static @Nullable ImageWriter getWriter(@NotNull RenderedImage image, @NotNull String format) {
-    ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
-    Iterator<ImageWriter> iterator = ImageIO.getImageWriters(type, format);
-    if (iterator.hasNext()) {
-      return iterator.next();
-    }
-    else {
-      return null;
-    }
-  }
-
   private @NotNull String getDefaultFileName() {
-    Calendar now = Calendar.getInstance();
-    String fileName = "%s-%tF-%tH%tM%tS";
-    // Add extension to filename on Mac only see: b/38447816.
-    return String.format(SystemInfo.isMac ? fileName + ".png" : fileName, myDevice != null ? "device" : "layout", now, now, now, now);
+    Date timestamp = new Date();
+    String timestampSuffix = myTimestampFormat.format(timestamp);
+    return String.format("Screenshot_%s", timestampSuffix);
   }
 
-  public @NotNull File getScreenshot() {
-    assert myScreenshotFile != null;
+  /**
+   * Returns the saved screenshot file, or null of the screenshot was not saved.
+   */
+  public @Nullable Path getScreenshot() {
     return myScreenshotFile;
-  }
-
-  @TestOnly
-  @NotNull ImageFileEditor getImageFileEditor() {
-    return myImageFileEditor;
   }
 
   private @Nullable VirtualFile loadScreenshotPath() {
@@ -572,6 +558,10 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
 
     return ProjectUtil.guessProjectDir(myProject);
+  }
+
+  private static @NotNull Logger logger() {
+    return Logger.getInstance(ScreenshotViewer.class);
   }
 
   private static class BufferedImageTransferable implements Transferable {
@@ -597,6 +587,29 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         throw new UnsupportedFlavorException(dataFlavor);
       }
       return myImage;
+    }
+  }
+
+  public enum Option {
+    ALLOW_IMAGE_ROTATION // Enables the image rotation buttons.
+  }
+
+  @State(name = "ScreenshotViewer", storages = @Storage(NON_ROAMABLE_FILE))
+  public static class PersistentState implements PersistentStateComponent<PersistentState> {
+    public boolean frameScreenshot;
+
+    @Override
+    public @Nullable ScreenshotViewer.PersistentState getState() {
+      return this;
+    }
+
+    @Override
+    public void loadState(@NotNull ScreenshotViewer.PersistentState state) {
+      XmlSerializerUtil.copyBean(state, this);
+    }
+
+    public static PersistentState getInstance(@NotNull Project project) {
+      return ServiceManager.getService(project, PersistentState.class);
     }
   }
 }

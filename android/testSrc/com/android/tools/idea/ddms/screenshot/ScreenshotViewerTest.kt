@@ -15,60 +15,63 @@
  */
 package com.android.tools.idea.ddms.screenshot
 
+import com.android.SdkConstants
+import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.enableHeadlessDialogs
+import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.testFramework.EdtRule
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.EdtInvocationManager.dispatchAllInvocationEvents
+import org.intellij.images.ui.ImageComponent
+import org.intellij.images.ui.ImageComponentDecorator
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.util.EnumSet
 
 /**
  * Tests for [ScreenshotViewer].
  */
 @RunsInEdt
 class ScreenshotViewerTest {
-  private val projectRule = AndroidProjectRule.onDisk("ScreenshotViewerTest")
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
-
-  private var screenshotViewer: ScreenshotViewer? = null
+  val projectRule = AndroidProjectRule.onDisk("ScreenshotViewerTest").onEdt()
 
   private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
+
+  private val testFrame = object : FramingOption {
+    override val displayName = "Test frame"
+  }
 
   @Before
   fun setUp() {
     setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
-    val file = VfsUtilCore.virtualToIoFile(projectRule.fixture.tempDirFixture.createFile("screenshot1.png"))
-    val image = BufferedImage(150, 280, BufferedImage.TYPE_INT_ARGB)
-    val graphics = image.createGraphics()
-    graphics.background = Color.WHITE
-    graphics.clearRect(0, 0, image.width, image.height)
-    graphics.dispose()
-    val viewer = ScreenshotViewer(projectRule.project, image, file, null, null, true)
-    Disposer.register(testRootDisposable) { viewer.close(CLOSE_EXIT_CODE) }
-    viewer.show()
-    screenshotViewer = viewer
+  }
+
+  @After
+  fun tearDown() {
+    findModelessDialog { it is ScreenshotViewer }?.close(CLOSE_EXIT_CODE)
   }
 
   @Test
   fun testResizing() {
-    val viewer = screenshotViewer!!
-    val ui = createFakeUi(viewer)
+    val screenshotImage = DeviceScreenshotImage(createImage(100, 200), 0, false)
+    val viewer = createScreenshotViewer(screenshotImage, null)
+    val ui = FakeUi(viewer.rootPane)
 
-    val zoomModel = viewer.imageFileEditor.imageEditor.zoomModel
+    val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
     val zoomFactor = zoomModel.zoomFactor
 
     viewer.rootPane.setSize(viewer.rootPane.width + 50, viewer.rootPane.width + 100)
@@ -78,29 +81,46 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
-    val viewer = screenshotViewer!!
-    val ui = createFakeUi(viewer)
+    val screenshotImage = DeviceScreenshotImage(createImage(100, 200), 0, false)
+    val viewer = createScreenshotViewer(screenshotImage, null)
+    val ui = FakeUi(viewer.rootPane)
 
-    val zoomModel = viewer.imageFileEditor.imageEditor.zoomModel
+    val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
     val zoomFactor = zoomModel.zoomFactor
 
-    viewer.updateEditorImage();
+    viewer.updateEditorImage()
     ui.layoutAndDispatchEvents()
     assertThat(zoomModel.zoomFactor).isWithin(1.0e-6).of(zoomFactor)
   }
 
   @Test
-  fun testClipRoundScreenshot(){
-    val viewer = screenshotViewer!!
-    val ui = createFakeUi(viewer)
-    ui.layoutAndDispatchEvents()
+  fun testClipRoundScreenshot() {
+    val screenshotImage = DeviceScreenshotImage(createImage(200, 180), 0, true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
 
-    val processedImage: BufferedImage = viewer.imageFileEditor.imageEditor.document.value
+    dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
     assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.WHITE.rgb)
-    assertThat(processedImage.getRGB(5, 5)).isEqualTo(0x0)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(0)
   }
 
-  private fun createFakeUi(viewer: DialogWrapper): FakeUi {
-    return FakeUi(viewer.rootPane).apply { layoutAndDispatchEvents() }
+  private fun createImage(width: Int, height: Int): BufferedImage {
+    val image = ImageUtils.createDipImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    val graphics = image.createGraphics()
+    graphics.paint = Color.WHITE
+    graphics.fillRect(0, 0, image.width, image.height)
+    graphics.dispose()
+    return image
+  }
+
+  private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
+                                     screenshotPostprocessor: ScreenshotPostprocessor?): ScreenshotViewer {
+    val screenshotFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+    val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, null, screenshotPostprocessor,
+                                  listOf(testFrame), 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
+    viewer.show()
+    return viewer
   }
 }

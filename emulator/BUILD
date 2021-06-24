@@ -61,6 +61,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",

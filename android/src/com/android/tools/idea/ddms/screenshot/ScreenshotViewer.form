@@ -48,7 +48,7 @@
               <text value="Frame Screenshot"/>
             </properties>
           </component>
-          <component id="c6102" class="javax.swing.JComboBox" binding="myDeviceArtCombo">
+          <component id="c6102" class="javax.swing.JComboBox" binding="myFramingOptionsCombo">
             <constraints>
               <grid row="0" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
