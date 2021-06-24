@@ -38,6 +38,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisAction;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.ide.scratch.ScratchFileService;
@@ -95,6 +96,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.*;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NonNls;
@@ -120,9 +122,6 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
   public InferSupportAnnotationsAction() {
     super("Infer Support Annotations", INFER_SUPPORT_ANNOTATIONS);
-    if (!ENABLED) {
-      getTemplatePresentation().setVisible(false);
-    }
   }
 
   private static final String ADD_DEPENDENCY = "Add Support Dependency";
@@ -131,8 +130,16 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
   @Override
   public void update(@NotNull AnActionEvent event) {
     if (!ENABLED) {
+      event.getPresentation().setEnabledAndVisible(false);
       return;
     }
+
+    if (event.getProject() == null || !ProjectFacetManager.getInstance(event.getProject()).hasFacets(AndroidFacet.ID)) {
+      // don't show this action in IDEA in non-android projects
+      event.getPresentation().setEnabledAndVisible(false);
+      return;
+    }
+
     super.update(event);
     Project project = event.getProject();
     if (project == null || !GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
