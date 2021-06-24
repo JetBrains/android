@@ -180,8 +180,8 @@ class SystemTraceCpuCaptureBuilderTest {
       1 to ProcessModel(
         1, "Process",
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
-        mapOf("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
-                                                                                  sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
+        mapOf("QueuedBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
+                                                                                 sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
     val model = TestModel(processes, emptyMap(), listOf())
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
