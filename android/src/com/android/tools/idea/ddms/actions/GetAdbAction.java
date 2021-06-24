@@ -40,7 +40,7 @@ public class GetAdbAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Project project = getEventProject(e);
     File adb = project == null ? null : AndroidSdkUtils.getAdb(project);
-    getTemplatePresentation().setEnabled(adb != null && adb.exists());
+    e.getPresentation().setEnabled(adb != null && adb.exists());
   }
 
   @Override
