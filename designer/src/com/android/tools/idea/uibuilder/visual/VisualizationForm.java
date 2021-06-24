@@ -40,7 +40,6 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
@@ -55,6 +54,7 @@ import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerK
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -86,7 +86,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -642,8 +641,8 @@ public class VisualizationForm
             RenderResult result = layoutlibSceneManager.getRenderResult();
 
             ImmutableList<VisualLintAtfIssue> atfIssues = VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model);
-            Collection<RenderErrorModel.Issue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager);
-            IssueProvider newProvider = new VisualLintIssueProvider(model, new RenderErrorModel(renderIssues), atfIssues);
+            ImmutableList<VisualLintRenderIssue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager);
+            IssueProvider newProvider = new VisualLintIssueProvider(renderIssues, atfIssues);
 
             IssueProvider oldProvider = myIssueProviders.put(model, newProvider);
             if (oldProvider != null) {

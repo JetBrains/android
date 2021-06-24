@@ -17,9 +17,11 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
+import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
 
@@ -29,9 +31,9 @@ private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should
 /**
  * Returns all the [RenderErrorModel.Issue] found when analyzing the given [RenderResult] after model is updated.
  */
-fun analyzeAfterModelUpdate(result: RenderResult, sceneManager: LayoutlibSceneManager): ImmutableList<RenderErrorModel.Issue> {
-  val issues = mutableListOf<RenderErrorModel.Issue>()
-  issues.addAll(analyzeBounds(result))
+fun analyzeAfterModelUpdate(result: RenderResult, sceneManager: LayoutlibSceneManager): ImmutableList<VisualLintRenderIssue> {
+  val issues = mutableListOf<VisualLintRenderIssue>()
+  issues.addAll(analyzeBounds(result, sceneManager.model))
   issues.addAll(analyzeBottomNavigation(result, sceneManager))
   return ImmutableList.copyOf(issues)
 }
@@ -49,45 +51,55 @@ fun analyzeAfterRenderComplete(renderResult: RenderResult, model: NlModel): Immu
  * Analyze the given [RenderResult] for issues where a child view is not fully contained within
  * the bounds of its parent, and return all such issues.
  */
-private fun analyzeBounds(renderResult: RenderResult): List<RenderErrorModel.Issue> {
-  val issues = mutableListOf<RenderErrorModel.Issue>()
+private fun analyzeBounds(renderResult: RenderResult, model: NlModel): List<VisualLintRenderIssue> {
+  val issues = mutableListOf<VisualLintRenderIssue>()
   for (root in renderResult.rootViews) {
-    findBoundIssues(root, issues)
+    findBoundIssues(root, model, issues)
   }
   return issues
 }
 
-private fun findBoundIssues(root: ViewInfo, issues: MutableList<RenderErrorModel.Issue>) {
+private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableList<VisualLintRenderIssue>) {
   val rootWidth = root.right - root.left
   val rootHeight = root.bottom - root.top
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
-      issues.add(RenderErrorModel.Issue.builder().setSummary("$child is not fully visible in layout").build())
+      val renderIssue = RenderErrorModel.Issue.builder().setSummary("$child is not fully visible in layout").build()
+      val component = componentFromViewInfo(child, model)
+      issues.add(VisualLintRenderIssue(renderIssue, model, component))
     }
-    findBoundIssues(child, issues)
+    findBoundIssues(child, model, issues)
   }
 }
 
 /**
  * Analyze the given [RenderResult] for issues where a BottomNavigationView is wider than 600dp.
  */
-private fun analyzeBottomNavigation(renderResult: RenderResult, sceneManager: LayoutlibSceneManager): List<RenderErrorModel.Issue> {
-  val issues = mutableListOf<RenderErrorModel.Issue>()
+private fun analyzeBottomNavigation(renderResult: RenderResult, sceneManager: LayoutlibSceneManager): List<VisualLintRenderIssue> {
+  val issues = mutableListOf<VisualLintRenderIssue>()
   for (root in renderResult.rootViews) {
     findBottomNavigationIssue(root, sceneManager, issues)
   }
   return issues
 }
 
-private fun findBottomNavigationIssue(root: ViewInfo, sceneManager: LayoutlibSceneManager, issues: MutableList<RenderErrorModel.Issue>) {
+private fun findBottomNavigationIssue(root: ViewInfo, sceneManager: LayoutlibSceneManager, issues: MutableList<VisualLintRenderIssue>) {
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
     if (widthInDp > 600) {
-      issues.add(RenderErrorModel.Issue.builder().setSummary(BOTTOM_NAVIGATION_ISSUE_MESSAGE).build())
+      val renderIssue = RenderErrorModel.Issue.builder().setSummary(BOTTOM_NAVIGATION_ISSUE_MESSAGE).build()
+      val model = sceneManager.model
+      val component = componentFromViewInfo(root, model)
+      issues.add(VisualLintRenderIssue(renderIssue, sceneManager.model, component))
     }
   }
   for (child in root.children) {
     findBottomNavigationIssue(child, sceneManager, issues)
   }
+}
+
+private fun componentFromViewInfo(viewInfo: ViewInfo, model: NlModel): NlComponent? {
+  val tag = (viewInfo.cookie as? TagSnapshot)?.tag ?: return null
+  return model.findViewByTag(tag)
 }

@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.uibuilder.model.h
+import com.android.tools.idea.uibuilder.model.w
+import com.android.tools.idea.uibuilder.model.x
+import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.intellij.ui.scale.JBUIScale
 import icons.StudioIcons
@@ -36,6 +41,14 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
       gc.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
       gc.draw(screenShape)
       return
+    }
+    gc.stroke = BasicStroke(JBUIScale.scale(2.0f))
+    for (component in screenView.selectionModel.selection) {
+      gc.drawRect(
+        Coordinates.getSwingX(screenView, component.x),
+        Coordinates.getSwingY(screenView, component.y),
+        Coordinates.getSwingDimension(screenView, component.w),
+        Coordinates.getSwingDimension(screenView, component.h))
     }
     val sceneSize = screenView.scaledContentSize
     gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
