@@ -71,6 +71,7 @@ import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.Color;
 import java.awt.MouseInfo;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -305,7 +306,8 @@ public class AndroidAnnotatorUtil {
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
-    @Nullable private final Configuration myConfiguration;
+    // TODO(b/188937633): We should fix the root caused of memory leakage instead of using weak references.
+    @Nullable private final WeakReference<Configuration> myConfigurationRef;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
@@ -321,7 +323,7 @@ public class AndroidAnnotatorUtil {
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
-      myConfiguration = configuration;
+      myConfigurationRef = new WeakReference<>(configuration);
     }
 
     @NotNull
@@ -405,7 +407,7 @@ public class AndroidAnnotatorUtil {
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceReference,
-        myConfiguration,
+        myConfigurationRef.get(),
         pickerSources,
         null,
         MouseInfo.getPointerInfo().getLocation(),
