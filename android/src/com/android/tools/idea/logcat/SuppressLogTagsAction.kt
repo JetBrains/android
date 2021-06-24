@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.util.AndroidBundle
 
-class SuppressLogTagsAction(context: DeviceContext, private val onRefresh: Runnable) :
+internal class SuppressLogTagsAction(context: DeviceContext, private val onRefresh: Runnable) :
   AbstractDeviceAction(
     context,
     AndroidBundle.message("android.configure.logcat.suppress.tags.text"),

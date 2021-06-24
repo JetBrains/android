@@ -26,7 +26,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class SuppressLogTagsDialog private constructor(
+internal class SuppressLogTagsDialog private constructor(
   project: Project,
   title: String,
   private val description: String?,

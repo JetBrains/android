@@ -34,7 +34,7 @@ class SuppressLogTagsDialogTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  lateinit var dialog: SuppressLogTagsDialog
+  private lateinit var dialog: SuppressLogTagsDialog
 
   @Before
   fun setUp() {
