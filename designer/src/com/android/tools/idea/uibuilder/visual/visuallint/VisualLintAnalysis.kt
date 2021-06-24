@@ -66,8 +66,10 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableList<
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
+      val tagName = (child.cookie as? TagSnapshot)?.tagName ?: child.className
+      val simpleName = tagName.substringAfterLast('.')
       val renderIssue = RenderErrorModel.Issue.builder()
-        .setSummary("$child is not fully visible in layout")
+        .setSummary("$simpleName is not fully visible in layout")
         .setSeverity(HighlightSeverity.WARNING)
         .build()
       val component = componentFromViewInfo(child, model)
