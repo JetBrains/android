@@ -283,6 +283,7 @@ iml_module(
         "//tools/base/resource-repository/test/resources",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
+    test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [

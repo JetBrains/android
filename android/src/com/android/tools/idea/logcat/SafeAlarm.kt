@@ -25,7 +25,7 @@ import com.intellij.util.Alarm.ThreadToUse
  *  - Safely call [addRequest] after alarm was disposed.
  *  - Safely add a request only the alarm is empty.
  */
-class SafeAlarm(threadToUse: ThreadToUse, parentDisposable: Disposable) : Disposable {
+internal class SafeAlarm(threadToUse: ThreadToUse, parentDisposable: Disposable) : Disposable {
   private val alarm: Alarm = Alarm(threadToUse, this)
 
   init {

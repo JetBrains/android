@@ -24,7 +24,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.android.util.AndroidBundle
 
-class SuppressLogTagsMenuAction(private val onRefresh: Runnable) : DumbAwareAction(
+internal class SuppressLogTagsMenuAction(private val onRefresh: Runnable) : DumbAwareAction(
   AndroidBundle.message("android.configure.logcat.suppress.single.tag.text"),
   AndroidBundle.message("android.configure.logcat.suppress.single.tag.description"),
   AllIcons.RunConfigurations.ShowIgnored) {

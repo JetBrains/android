@@ -41,7 +41,7 @@ private const val KEY_HOUR = "MILLIS_PER_HOUR"
 private const val KEY_MIN = "MILLIS_PER_MIN"
 private const val KEY_SEC = "MILLIS_PER_SEC"
 
-class ExpressionFilterManager(private val scriptExt: String = "groovy", private val clock: Clock = Clock.systemDefaultZone()) {
+internal class ExpressionFilterManager(private val scriptExt: String = "groovy", private val clock: Clock = Clock.systemDefaultZone()) {
 
   /**
    * A [ScriptEngine] for the specified scripting language (by extension) that contains global bindings for Log Level and time constants.
