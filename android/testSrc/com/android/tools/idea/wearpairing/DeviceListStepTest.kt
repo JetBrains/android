@@ -151,9 +151,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     val cellListFakeUi = FakeUi(cellList)
 
     val topLabel = cellListFakeUi.getLabelWithText("My Phone")
-    assertThat(topLabel).isNotNull()
-
-    val topLabelIcon = topLabel!!.icon as IconLoader.CachedImageIcon
+    val topLabelIcon = topLabel.icon as IconLoader.CachedImageIcon
     assertThat(topLabelIcon.originalPath!!).contains("device-play-store.svg")
   }
 
@@ -256,15 +254,15 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     return FakeUi(modelWizard.contentPanel).apply { layoutAndDispatchEvents() }
   }
 
-  private fun FakeUi.getPhoneList(): JBList<PairingDevice> = findComponent { it.name == "phoneList" }!!
+  private fun FakeUi.getPhoneList() = getComponent<JBList<PairingDevice>> { it.name == "phoneList" }
 
-  private fun FakeUi.getWearList(): JBList<PairingDevice> = findComponent { it.name == "wearList" }!!
+  private fun FakeUi.getWearList() = getComponent<JBList<PairingDevice>> { it.name == "wearList" }
 
-  private fun FakeUi.getPhoneEmptyComponent(): JEditorPane = findComponent { it.name == "phoneListEmptyText" }!!
+  private fun FakeUi.getPhoneEmptyComponent() = getComponent<JEditorPane> { it.name == "phoneListEmptyText" }
 
-  private fun FakeUi.getWearEmptyComponent(): JEditorPane = findComponent { it.name == "wearListEmptyText" }!!
+  private fun FakeUi.getWearEmptyComponent() = getComponent<JEditorPane> { it.name == "wearListEmptyText" }
 
-  private fun FakeUi.getLabelWithText(text: String): JBLabel? = findComponent { it.text == text }
+  private fun FakeUi.getLabelWithText(text: String) = getComponent<JBLabel> { it.text == text }
 
   private class TestPopupFactory : PopupFactory() {
     var popupContents: Component? = null

@@ -171,7 +171,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return null
   }
 
-  inline fun <reified T: Component> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
+  inline fun <reified T> findComponent(crossinline predicate: (T) -> Boolean = { true }) : T? {
     return findComponent(T::class.java) { predicate(it) }
   }
 
@@ -179,7 +179,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return findComponent(type) { predicate.test(it) }
   }
 
-  inline fun <reified T: Component> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
+  inline fun <reified T> getComponent(crossinline predicate: (T) -> Boolean = { true }) : T {
     return findComponent(T::class.java) { predicate(it) } ?: throw AssertionError()
   }
 
@@ -215,7 +215,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     return result
   }
 
-  inline fun <reified T: Component> findAllComponents(crossinline predicate: (T) -> Boolean = { true }) : List<T> {
+  inline fun <reified T> findAllComponents(crossinline predicate: (T) -> Boolean = { true }) : List<T> {
     return findAllComponents(T::class.java) { predicate(it) }
   }
 
