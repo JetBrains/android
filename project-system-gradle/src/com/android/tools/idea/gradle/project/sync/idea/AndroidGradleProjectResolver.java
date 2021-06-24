@@ -198,6 +198,9 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
   private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
     Key.create("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY");
 
+  private static final Key<Boolean> IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY =
+    Key.create("IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY");
+
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
@@ -223,6 +226,8 @@ public final class AndroidGradleProjectResolver extends AbstractProjectResolverE
     // modules. This is to be able to provide additional arguments to the model builder and avoid unnecessary processing of currently the
     // inactive build variants.
     projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY, true);
+    // Similarly for KAPT.
+    projectResolverContext.putUserData(IS_ANDROID_PLUGIN_REQUESTING_KAPT_GRADLE_MODEL_KEY, true);
     super.setProjectResolverContext(projectResolverContext);
   }
 
