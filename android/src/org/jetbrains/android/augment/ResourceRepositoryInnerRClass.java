@@ -59,7 +59,8 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
   public PsiField findFieldByName(String name, boolean checkBases) {
     // bail if this is a scenario we don't fully support
     if (myResourceType == ResourceType.STYLEABLE // styleables require further modification of the name to handle sub attributes
-        || mySource.getFieldModifier() == AndroidLightField.FieldModifier.FINAL) { // app projects use final ids, which requires assigning ids to all fields
+        || mySource.getFieldModifier() == AndroidLightField.FieldModifier.FINAL // app projects use final ids, which requires assigning ids to all fields
+        || name.contains("_")) { // Resource fields with underscores are flattened resources, for which ResourceRepository.hasResources will not find the correct resource.
       return super.findFieldByName(name, checkBases);
     }
 
