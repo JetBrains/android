@@ -10,6 +10,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android:test_deps",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:gradle-distrib-6.1.1",
         "//tools/base/build-system:gradle-distrib-6.5",
