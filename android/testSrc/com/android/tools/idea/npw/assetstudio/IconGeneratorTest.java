@@ -69,7 +69,11 @@ public final class IconGeneratorTest {
                 List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
                 tasks.add(() -> {
                     latch.countDown(); // Broadcast that we are now starting to execute a task
-                    sleep(1_000); // Simulate a slow task
+                    try {
+                        sleep(1_000); // Simulate a slow task
+                    }
+                    catch (InterruptedException ignored) {
+                    }
                     return new GeneratedXmlResource("name", new PathString(""), IconCategory.REGULAR, "xmlText");
                 });
 
