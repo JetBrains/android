@@ -51,6 +51,28 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName(filename))
   }
 
+  private fun everythingEnabledNoEffectOn(filename: String) {
+    writeToBuildFile(TestFileName(filename))
+    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("1.0.0"), GradleVersion.parse(latestKnownVersion))
+    processor.classpathRefactoringProcessor.isEnabled = true
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = true }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName(filename))
+  }
+
+  // At the moment, the only processor which adds content to build files (as opposed to modifying or deleting existing content) is the
+  // Java8 processor.
+  private fun everythingButJava8EnabledNoEffectOn(filename: String) {
+    writeToBuildFile(TestFileName(filename))
+    val latestKnownVersion = ANDROID_GRADLE_PLUGIN_VERSION
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("1.0.0"), GradleVersion.parse(latestKnownVersion))
+    processor.classpathRefactoringProcessor.isEnabled = true
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it !is Java8DefaultRefactoringProcessor }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName(filename))
+  }
+
   @Test
   fun testEverythingDisabledNoEffectOnAgpClasspathDependency() {
     everythingDisabledNoEffectOn("AgpClasspathDependency/VersionInLiteral")
@@ -74,6 +96,21 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
   fun testEverythingDisabledNoEffectOnGradleVersion() {
     everythingDisabledNoEffectOn("GradleVersion/OldGradleVersion")
+  }
+
+  @Test
+  fun testEverythingEnabledNoEffectOnEmpty() {
+    everythingEnabledNoEffectOn("AgpUpgrade/Empty")
+  }
+
+  @Test
+  fun testEverythingButJava8EnabledNoEffectOnEmpty() {
+    everythingButJava8EnabledNoEffectOn("AgpUpgrade/Empty")
+  }
+
+  @Test
+  fun testEverythingButJava8EnabledNoEffectOnMinimal() {
+    everythingButJava8EnabledNoEffectOn("AgpUpgrade/Minimal")
   }
 
   @Test
