@@ -1221,5 +1221,6 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
     ],
 )
