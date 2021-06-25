@@ -740,7 +740,8 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   public void testGcDurationAttachment() {
     Common.Device device =
       Common.Device.newBuilder().setDeviceId(1).setFeatureLevel(AndroidVersion.VersionCodes.O).setState(Common.Device.State.ONLINE).build();
-    Common.Process process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE).build();
+    Common.Process process = Common.Process.newBuilder().setDeviceId(1).setPid(2).setState(Common.Process.State.ALIVE)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE).build();
 
     // Set up test data from range 0us-10us. Note that the proto timestamps are in nanoseconds.
     myTransportService.addEventToStream(
