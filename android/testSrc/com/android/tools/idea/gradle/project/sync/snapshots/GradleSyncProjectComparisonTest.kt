@@ -49,8 +49,6 @@ import com.android.tools.idea.testing.TestProjectToSnapshotPaths.TWO_JARS
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths.VARIANT_SPECIFIC_DEPENDENCIES
 import com.android.tools.idea.testing.assertAreEqualToSnapshots
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
-import com.android.tools.idea.testing.fileUnderGradleRoot
-import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.prepareGradleProject
@@ -61,7 +59,6 @@ import com.google.common.truth.Truth.assertAbout
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -70,7 +67,6 @@ import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil.toSystemDependentName
 import junit.framework.Assert.assertTrue

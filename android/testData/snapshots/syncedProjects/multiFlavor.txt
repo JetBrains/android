@@ -269,9 +269,9 @@ PROJECT                       : MultiFlavor
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: androidx.activity:activity:1.0.0@aar [=]
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-activity-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-activity-1.0.0/res [-]
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-activity-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.1.0
             LibraryLevel                  : project
             IsModuleLevel                 : false
@@ -285,9 +285,9 @@ PROJECT                       : MultiFlavor
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: androidx.appcompat:appcompat-resources:1.1.0@aar [=]
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-appcompat-resources-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-appcompat-resources-1.1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-appcompat-resources-1.1.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/res
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.1.0@aar
             LibraryLevel                  : project
             IsModuleLevel                 : false
@@ -452,9 +452,9 @@ PROJECT                       : MultiFlavor
             Scope                         : Compile
             IsExported                    : false
             Name                          : Gradle: androidx.savedstate:savedstate:1.0.0@aar [=]
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-savedstate-1.0.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-savedstate-1.0.0/res [-]
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-savedstate-1.0.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel                  : project
             IsModuleLevel                 : false
@@ -479,18 +479,18 @@ PROJECT                       : MultiFlavor
             Scope                         : Test
             IsExported                    : false
             Name                          : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/res [-]
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-junit-1.1.1/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:core:1.2.0@aar
             LibraryLevel                  : project
             IsModuleLevel                 : false
             Scope                         : Test
             IsExported                    : false
             Name                          : Gradle: androidx.test:core:1.2.0@aar [=]
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/res [-]
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/jetified-core-1.2.0/jars/classes.jar!/
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/AndroidManifest.xml
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/res [-]
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test:monitor:1.2.0@aar
             LibraryLevel                  : project
             IsModuleLevel                 : false
