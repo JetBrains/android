@@ -21,8 +21,10 @@ import java.util.concurrent.TimeUnit
 
 /**
  * An entry with all information of a Job Task.
+ *
+ * @param id a unique identifier across background entries other than work.
  */
-class JobEntry(override val id: Long) : BackgroundTaskEntry {
+class JobEntry(override val id: String) : BackgroundTaskEntry {
   enum class State {
     SCHEDULED,
     STARTED,

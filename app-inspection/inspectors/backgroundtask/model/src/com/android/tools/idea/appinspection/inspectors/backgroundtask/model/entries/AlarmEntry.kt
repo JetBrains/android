@@ -20,8 +20,10 @@ import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Event
 
 /**
  * An entry with all information of an Alarm Task.
+ *
+ * @param id a unique identifier across background entries other than work.
  */
-class AlarmEntry(override val id: Long) : BackgroundTaskEntry {
+class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   enum class State {
     SET,
     CANCELLED,

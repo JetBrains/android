@@ -21,8 +21,10 @@ import java.util.concurrent.TimeUnit
 
 /**
  * An entry with all information of a WakeLock Task.
+ *
+ * @param id a unique identifier across background entries other than work.
  */
-class WakeLockEntry(override val id: Long) : BackgroundTaskEntry {
+class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
   enum class State {
     ACQUIRED,
     RELEASED,
