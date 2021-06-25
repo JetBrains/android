@@ -25,6 +25,7 @@ import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.emulator.settings.EmulatorSettingsUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
 import com.intellij.openapi.Disposable
@@ -123,13 +124,14 @@ internal class PlaceholderPanel(project: Project): JBPanel<PlaceholderPanel>(Gri
   }
 
   private fun createContent() {
-    val linkColorString = (JBUI.CurrentTheme.Link.linkColor().rgb and 0xFFFFFF).toString(16)
+    val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
     val html = if (emulatorLaunchesInToolWindow) {
       if (emulatorVersionIsSufficient) {
+        val linkTitle = if (StudioFlags.ENABLE_NEW_DEVICE_MANAGER_PANEL.get()) "Device&nbsp;Manager" else "AVD&nbsp;Manager"
         """
         <center>
         No emulators are currently running.
-        To&nbsp;launch an&nbsp;emulator, use the&nbsp;<font color = $linkColorString><a href=''>AVD&nbsp;Manager</a></font>
+        To&nbsp;launch an&nbsp;emulator, use the&nbsp;<font color = $linkColorString><a href=''>$linkTitle</a></font>
         or run your app while targeting a&nbsp;virtual device.
         </center>
         """.trimIndent()
