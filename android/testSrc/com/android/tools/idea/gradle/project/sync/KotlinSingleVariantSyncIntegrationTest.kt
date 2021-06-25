@@ -29,6 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension
 import org.junit.Rule
@@ -47,18 +48,34 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun kotlinSingleVariantSync() {
-    ApplicationManager.getApplication().registerExtension(
-      @Suppress("UnstableApiUsage")
-      GradleProjectResolverExtension.EP_NAME,
-      KotlinSingleVariantSyncTestProjectResolverExtension(), // Note: a new instance is created by the external system.
-      projectRule.fixture.testRootDisposable
-    )
+    registerTestHelperProjectResolver()
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
     openPreparedProject("project") {
       assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kotlinSourceSets["app"].orEmpty()).containsExactly(
         "debugAndroidTest", "debug", "debugUnitTest"
       )
     }
+  }
+
+  @Test
+  fun kaptSingleVariantSync() {
+    registerTestHelperProjectResolver()
+    prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
+    openPreparedProject("project") {
+      // TODO(b/192049689): Fix when Kapt SVS enabled.
+      assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kaptSourceSets["app"].orEmpty()).containsExactly(
+        "debugAndroidTest", "debug", "debugUnitTest", "release", "releaseUnitTest"
+      )
+    }
+  }
+
+  private fun registerTestHelperProjectResolver() {
+    ApplicationManager.getApplication().registerExtension(
+      @Suppress("UnstableApiUsage")
+      GradleProjectResolverExtension.EP_NAME,
+      KotlinSingleVariantSyncTestProjectResolverExtension(), // Note: a new instance is created by the external system.
+      projectRule.fixture.testRootDisposable
+    )
   }
 
   override fun getName(): String = testName.methodName
@@ -70,12 +87,17 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
 class KotlinSingleVariantSyncTestProjectResolverExtension : AbstractProjectResolverExtension() {
   companion object {
     val kotlinSourceSets = mutableMapOf<String, MutableSet<String>>()
+    val kaptSourceSets = mutableMapOf<String, MutableSet<String>>()
   }
 
   override fun populateModuleExtraModels(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
     val kotlinGradleModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)
     if (kotlinGradleModel != null) {
       kotlinSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kotlinGradleModel.compilerArgumentsBySourceSet.keys)
+    }
+    val kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel::class.java)
+    if (kaptGradleModel != null) {
+      kaptSourceSets.getOrPut(gradleModule.name, { mutableSetOf() }).addAll(kaptGradleModel.sourceSets.map { it.sourceSetName })
     }
     super.populateModuleExtraModels(gradleModule, ideModule)
   }
