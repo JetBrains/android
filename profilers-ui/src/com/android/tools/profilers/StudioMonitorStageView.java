@@ -150,7 +150,10 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
         AppInspectionMigrationKt.addMigrationPanel(
           panel, "Network Profiler has moved.", "network activity", NETWORK_INSPECTOR,
-          () -> migrationServices.openAppInspectionToolWindow(NETWORK_INSPECTOR),
+          () -> {
+            getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackNetworkMigrationDialogSelected();
+            migrationServices.openAppInspectionToolWindow(NETWORK_INSPECTOR);
+          },
           () -> {
             migrationServices.setNetworkProfilerMigrationDialogEnabled(false);
             relayoutMonitors(monitors);

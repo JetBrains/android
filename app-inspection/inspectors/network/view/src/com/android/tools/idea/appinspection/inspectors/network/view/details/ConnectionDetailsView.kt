@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.CloseButton
 import com.android.tools.adtui.stdui.CommonTabbedPane
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
@@ -31,8 +32,12 @@ import javax.swing.JPanel
 /**
  * View to display a single network request and its detailed information.
  */
-class ConnectionDetailsView(private val inspectorView: NetworkInspectorView) : JPanel(BorderLayout()) {
+class ConnectionDetailsView(
+  private val inspectorView: NetworkInspectorView,
+  private val usageTracker: NetworkInspectorTracker
+) : JPanel(BorderLayout()) {
   private val tabsPanel: CommonTabbedPane
+
   @VisibleForTesting
   val tabs = mutableListOf<TabContent>()
 
@@ -48,6 +53,11 @@ class ConnectionDetailsView(private val inspectorView: NetworkInspectorView) : J
     tabsPanel.font = STANDARD_FONT
     populateTabs()
     tabsPanel.addChangeListener {
+      when (tabsPanel.selectedIndex) {
+        1 -> usageTracker.trackResponseTabSelected()
+        2 -> usageTracker.trackRequestTabSelected()
+        3 -> usageTracker.trackCallstackTabSelected()
+      }
       // Repaint required on tab change or else close button sometimes disappears (seen on Mac)
       repaint()
     }

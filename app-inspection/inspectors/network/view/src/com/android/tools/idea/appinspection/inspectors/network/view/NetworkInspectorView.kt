@@ -46,6 +46,7 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_STAGE_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H3_FONT
@@ -91,9 +92,12 @@ private const val CARD_INFO = "Info"
 /**
  * The main view of network inspector.
  */
-class NetworkInspectorView(val model: NetworkInspectorModel,
-                           val componentsProvider: UiComponentsProvider,
-                           private val parentPane: TooltipLayeredPane) : AspectObserver() {
+class NetworkInspectorView(
+  val model: NetworkInspectorModel,
+  val componentsProvider: UiComponentsProvider,
+  private val parentPane: TooltipLayeredPane,
+  usageTracker: NetworkInspectorTracker
+) : AspectObserver() {
 
   val component = JPanel(BorderLayout())
 
@@ -111,10 +115,12 @@ class NetworkInspectorView(val model: NetworkInspectorModel,
    * A common component for showing the current selection range.
    */
   private val selectionTimeLabel = createSelectionTimeLabel()
+
   @VisibleForTesting
   val connectionsView = ConnectionsView(model, parentPane)
+
   @VisibleForTesting
-  val connectionDetails = ConnectionDetailsView(this)
+  val connectionDetails = ConnectionDetailsView(this, usageTracker)
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 
@@ -126,7 +132,10 @@ class NetworkInspectorView(val model: NetworkInspectorModel,
     selectionChanged()
 
     model.aspect.addDependency(this)
-      .onChange(NetworkInspectorAspect.SELECTED_CONNECTION) { updateConnectionDetailsView() }
+      .onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
+        usageTracker.trackConnectionDetailsSelected()
+        updateConnectionDetailsView()
+      }
     tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
       NetworkTrafficTooltipView(view, tooltip)
     }

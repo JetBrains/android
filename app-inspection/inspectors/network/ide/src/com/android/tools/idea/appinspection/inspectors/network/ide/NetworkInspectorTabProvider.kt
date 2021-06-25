@@ -23,6 +23,7 @@ import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.SingleAppInspectorTabProvider
+import com.android.tools.idea.appinspection.inspectors.network.ide.analytics.IdeNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSourceImpl
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
@@ -63,7 +64,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClient(messenger)
       override val component = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
-                                                   AndroidDispatchers.uiThread, parentDisposable).component
+                                                   AndroidDispatchers.uiThread, parentDisposable,
+                                                   usageTracker = IdeNetworkInspectorTracker(project)).component
     }
   }
 }
