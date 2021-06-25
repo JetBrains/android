@@ -104,7 +104,7 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   /**
    * Returns a list of [AndroidFacet]s by given package name.
    */
-  fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet>
+  fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet>
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

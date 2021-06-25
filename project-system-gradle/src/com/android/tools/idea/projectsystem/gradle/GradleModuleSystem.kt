@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
-import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -257,12 +257,18 @@ class GradleModuleSystem(
   }
 
   override fun getPackageName(): String? {
-    return getPackageName(module)
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    return AndroidModuleModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
   }
 
   override fun getTestPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val variant = AndroidModuleModel.get(facet)?.selectedVariant ?: return null
+    val androidModuleModel = AndroidModuleModel.get(facet)
+    val testPackage = androidModuleModel?.androidProject?.testNamespace
+    if (testPackage != null) {
+      return testPackage
+    }
+    val variant = androidModuleModel?.selectedVariant ?: return null
     return variant.testApplicationId ?: run {
       // That's how AGP works today: in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
       // there is no applicationId and the package name from the manifest is used with the suffix.

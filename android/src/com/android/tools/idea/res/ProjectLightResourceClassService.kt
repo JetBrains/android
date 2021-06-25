@@ -289,12 +289,11 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
   private fun findAndroidFacetsWithPackageName(packageName: String): Collection<AndroidFacet> {
     val projectSystem = project.getProjectSystem()
-    val projectScope = GlobalSearchScope.projectScope(project)
-    val facetsInferredFromPackageName = projectSystem.getAndroidFacetsWithPackageName(project, packageName, projectScope)
+    val facetsInferredFromPackageName = projectSystem.getAndroidFacetsWithPackageName(project, packageName)
 
     return if (packageName.endsWith(".test")) {
       val facetsInferredFromTestPackageName = packageName.substringBeforeLast('.').let {
-        projectSystem.getAndroidFacetsWithPackageName(project, it, projectScope)
+        projectSystem.getAndroidFacetsWithPackageName(project, it)
       }
       facetsInferredFromPackageName + facetsInferredFromTestPackageName
     }

@@ -276,7 +276,7 @@ class TestProjectSystem @JvmOverloads constructor(
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = sourceProvidersFactoryStub
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     return emptyList()
   }
 }

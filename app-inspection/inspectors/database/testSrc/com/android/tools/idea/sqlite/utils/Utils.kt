@@ -53,7 +53,7 @@ internal fun initProjectSystemService(project: Project, disposable: Disposable, 
   val projectSystemService = IdeComponents(project, disposable).mockProjectService(ProjectSystemService::class.java)
   val androidProjectSystem = mock<AndroidProjectSystem>()
   `when`(
-    androidProjectSystem.getAndroidFacetsWithPackageName(project, "processName", GlobalSearchScope.projectScope(project))
+    androidProjectSystem.getAndroidFacetsWithPackageName(project, "processName")
   ).thenReturn(androidFacets)
   `when`(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
 }
