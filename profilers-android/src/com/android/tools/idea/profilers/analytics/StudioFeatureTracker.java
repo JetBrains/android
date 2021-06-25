@@ -50,6 +50,7 @@ import com.google.wireless.android.sdk.stats.AdtUiBoxSelectionMetadata;
 import com.google.wireless.android.sdk.stats.AdtUiTrackGroupMetadata;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AppInspectionEvent;
 import com.google.wireless.android.sdk.stats.CpuApiTracingMetadata;
 import com.google.wireless.android.sdk.stats.CpuCaptureMetadata;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
@@ -666,6 +667,25 @@ public final class StudioFeatureTracker implements FeatureTracker {
         .setTrackCount(trackCount)
         .build()
     ).track();
+  }
+
+  @Override
+  public void trackNetworkMigrationDialogSelected() {
+    UsageTracker.log(
+      UsageTrackerUtils.withProjectId(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+          .setAppInspectionEvent(
+            AppInspectionEvent.newBuilder()
+              .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
+              .setNetworkInspectorEvent(
+                AppInspectionEvent.NetworkInspectorEvent.newBuilder()
+                  .setType(AppInspectionEvent.NetworkInspectorEvent.Type.MIGRATION_LINK_SELECTED)
+              )
+          ),
+        myTrackingProject
+      )
+    );
   }
 
   /**

@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.CodeNavigat
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
@@ -111,7 +112,7 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component)
+    inspectorView = NetworkInspectorView(model, FakeUiComponentsProvider(), component, StubNetworkInspectorTracker())
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 200)
     fakeUi = FakeUi(component)

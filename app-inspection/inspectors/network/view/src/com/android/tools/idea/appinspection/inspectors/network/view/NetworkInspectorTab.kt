@@ -31,6 +31,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4_FONT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
@@ -79,7 +81,8 @@ class NetworkInspectorTab(
   private val dataSource: NetworkInspectorDataSource,
   private val uiDispatcher: CoroutineDispatcher,
   parentDisposable: Disposable,
-  private val timer: StopwatchTimer = FpsTimer(UPDATE_RATE)
+  private val timer: StopwatchTimer = FpsTimer(UPDATE_RATE),
+  usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker()
 ) : AspectObserver(), Disposable {
   private lateinit var inspectorServices: NetworkInspectorServices
 
@@ -119,7 +122,7 @@ class NetworkInspectorTab(
 
         inspectorServices = NetworkInspectorServices(codeNavigationProvider, deviceTime, timer)
         model = NetworkInspectorModel(inspectorServices, dataSource)
-        view = NetworkInspectorView(model, componentsProvider, component)
+        view = NetworkInspectorView(model, componentsProvider, component, usageTracker)
         stagePanel.add(view.component)
 
         actionsToolBar = JPanel(GridBagLayout())

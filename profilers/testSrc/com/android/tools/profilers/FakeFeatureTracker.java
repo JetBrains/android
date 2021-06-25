@@ -537,6 +537,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackSelectBox(long durationUs, int trackCount) { }
 
+  @Override
+  public void trackNetworkMigrationDialogSelected() { }
+
   @NotNull
   public List<Pair<AndroidProfilerEvent.Type, TraceProcessorDaemonQueryStats>> getTraceProcessorQueryMetrics() {
     return myTpdQueryMetrics;

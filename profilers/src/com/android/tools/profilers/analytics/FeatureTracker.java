@@ -466,4 +466,10 @@ public interface FeatureTracker {
    * @param trackCount number fo tracks included in the selection.
    */
   void trackSelectBox(long durationUs, int trackCount);
+
+  // TODO(b/188695273): to be removed.
+  /**
+   * Tracks when the user clicks on the network profiler migration dialog.
+   */
+  void trackNetworkMigrationDialogSelected();
 }
