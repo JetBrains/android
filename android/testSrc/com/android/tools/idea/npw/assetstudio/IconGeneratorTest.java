@@ -41,61 +41,61 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public final class IconGeneratorTest {
-    @Rule
-    public final AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+  @Rule
+  public final AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
 
-    @Test
-    public void generateIconsIsCancelledWhenDisposed() {
-        CountDownLatch latch = new CountDownLatch(1);
+  @Test
+  public void generateIconsIsCancelledWhenDisposed() {
+    CountDownLatch latch = new CountDownLatch(1);
 
-        IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
-            @NotNull
-            @Override
-            public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
-                throw new RuntimeException("Should not be called");
-            }
+    IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+      @NotNull
+      @Override
+      public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
+        throw new RuntimeException("Should not be called");
+      }
 
-            @NotNull
-            @Override
-            public IconOptions createOptions(boolean forPreview) {
-                throw new RuntimeException("Should not be called");
-            }
+      @NotNull
+      @Override
+      public IconOptions createOptions(boolean forPreview) {
+        throw new RuntimeException("Should not be called");
+      }
 
-            @NotNull
-            @Override
-            protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                              @NotNull IconOptions options,
-                                                                              @NotNull String name) {
-                List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
-                tasks.add(() -> {
-                    latch.countDown(); // Broadcast that we are now starting to execute a task
-                    try {
-                        sleep(1_000); // Simulate a slow task
-                    }
-                    catch (InterruptedException ignored) {
-                    }
-                    return new GeneratedXmlResource("name", new PathString(""), IconCategory.REGULAR, "xmlText");
-                });
+      @NotNull
+      @Override
+      protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
+                                                                        @NotNull IconOptions options,
+                                                                        @NotNull String name) {
+        List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
+        tasks.add(() -> {
+          latch.countDown(); // Broadcast that we are now starting to execute a task
+          try {
+            sleep(1_000); // Simulate a slow task
+          }
+          catch (InterruptedException ignored) {
+          }
+          return new GeneratedXmlResource("name", new PathString(""), IconCategory.REGULAR, "xmlText");
+        });
 
-                return tasks;
-            }
-        };
+        return tasks;
+      }
+    };
 
-        Disposer.register(myProjectRule.getFixture().getTestRootDisposable(), iconGenerator);
+    Disposer.register(myProjectRule.getFixture().getTestRootDisposable(), iconGenerator);
 
-        new Thread(() -> {
-            try {
-                latch.await(1, TimeUnit.SECONDS); // Wait for the task to start.
-            }
-            catch (InterruptedException ignored) {
-            }
-            assertThat(latch.getCount()).isEqualTo(0);
-            Disposer.dispose(iconGenerator);
-        }).start();
+    new Thread(() -> {
+      try {
+        latch.await(1, TimeUnit.SECONDS); // Wait for the task to start.
+      }
+      catch (InterruptedException ignored) {
+      }
+      assertThat(latch.getCount()).isEqualTo(0);
+      Disposer.dispose(iconGenerator);
+    }).start();
 
-        assertThrows(
-          CancellationException.class,
-          (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconOptions(true))
-        );
-    }
+    assertThrows(
+      CancellationException.class,
+      (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconOptions(true))
+    );
+  }
 }
