@@ -8,6 +8,8 @@ MODULE                        : project.app
     NdkVersion                    : 21.4.7075529
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.basiccmakeapp
+    TestNamespace                 : com.example.basiccmakeapp.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
