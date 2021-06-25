@@ -49,6 +49,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
 import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.util.LinkedList
@@ -181,7 +182,8 @@ internal class AndroidExtraModelProviderWorker(
             )
           }
           val kotlinGradleModel = controller.findModel(gradleProject, KotlinGradleModel::class.java)
-          return JavaModule(gradleProject, kotlinGradleModel)
+          val kaptGradleModel = controller.findModel(gradleProject, KaptGradleModel::class.java)
+          return JavaModule(gradleProject, kotlinGradleModel, kaptGradleModel)
         }
       }.toList()
     )
@@ -356,6 +358,15 @@ internal class AndroidExtraModelProviderWorker(
     // that needs to be processed.
     return if (isKotlinMppProject(root)) findModel(root, KotlinGradleModel::class.java)
     else findModel(root, KotlinGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
+      it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
+    }
+  }
+
+  private fun BuildController.findKaptGradleModelForAndroidProject(root: Model, variantName: String): KaptGradleModel? {
+    // Do not apply single-variant sync optimization to Kotlin multi-platform projects. We do not know the exact set of source sets
+    // that needs to be processed.
+    return if (isKotlinMppProject(root)) findModel(root, KaptGradleModel::class.java)
+    else findModel(root, KaptGradleModel::class.java, ModelBuilderService.Parameter::class.java) {
       it.value = androidArtifactSuffixes.joinToString(separator = ",") { artifactSuffix -> variantName.appendCapitalized(artifactSuffix) }
     }
   }
@@ -543,6 +554,7 @@ internal class AndroidExtraModelProviderWorker(
       }
 
       module.kotlinGradleModel = controller.findKotlinGradleModelForAndroidProject(module.findModelRoot, variantName)
+      module.kaptGradleModel = controller.findKaptGradleModelForAndroidProject(module.findModelRoot, variantName)
       abiToRequest = chooseAbiToRequest(module, variantName, moduleConfiguration.abi)
       nativeVariantAbi = abiToRequest?.let {
         controller.findNativeVariantAbiModel(modelCache, module, variantName, it) } ?: NativeVariantAbiResult.None

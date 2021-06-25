@@ -62,9 +62,8 @@ class KotlinSingleVariantSyncIntegrationTest : GradleIntegrationTest {
     registerTestHelperProjectResolver()
     prepareGradleProject(TestProjectPaths.KOTLIN_KAPT, "project")
     openPreparedProject("project") {
-      // TODO(b/192049689): Fix when Kapt SVS enabled.
       assertThat(KotlinSingleVariantSyncTestProjectResolverExtension.kaptSourceSets["app"].orEmpty()).containsExactly(
-        "debugAndroidTest", "debug", "debugUnitTest", "release", "releaseUnitTest"
+        "debugAndroidTest", "debug", "debugUnitTest"
       )
     }
   }
