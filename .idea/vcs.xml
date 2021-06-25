@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="VcsDirectoryMappings">
-    <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../base" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../vendor/google" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../../vendor/google3/blaze" vcs="Git" />
-  </component>
   <component name="IssueNavigationConfiguration">
-   <option name="links">
+    <option name="links">
       <list>
         <IssueNavigationLink>
           <option name="issueRegexp" value="(?i:bug|bugfix|issue|fix|fixes|fixing|fixed|google-bug-id):? ?(?:(?:https?://)?(?:b|b.android.com|issuetracker.google.com)/)?(\d+)" />
@@ -19,5 +13,18 @@
         </IssueNavigationLink>
       </list>
     </option>
+  </component>
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../analytics-library" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../base" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../data-binding" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../studio/google/appindexing" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/testing" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../studio/google/cloud/tools" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../studio/google/samples" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../swing-testing" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../vendor/google" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../vendor/google3/blaze" vcs="Git" />
   </component>
 </project>
