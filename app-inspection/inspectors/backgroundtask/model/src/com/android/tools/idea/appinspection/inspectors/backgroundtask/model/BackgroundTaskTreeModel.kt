@@ -40,15 +40,18 @@ import javax.swing.tree.DefaultTreeModel
  */
 class BackgroundTaskTreeModel(client: BackgroundTaskInspectorClient) {
   private val treeRoot = DefaultMutableTreeNode()
+  private val nodeMap = mutableMapOf<String, EntryNode<*>>()
   val treeModel = DefaultTreeModel(treeRoot)
 
-  inner class EntriesNode<T : BackgroundTaskEntry>(name: String, private val entryCreator: (id: Any) -> T) : DefaultMutableTreeNode(name) {
+  inner class EntriesNode<T : BackgroundTaskEntry>(name: String,
+                                                   private val entryCreator: (id: String) -> T) : DefaultMutableTreeNode(name) {
 
-    fun consume(id: Any, event: Any) {
+    fun consume(id: String, event: Any) {
       val targetChild = children().asSequence().firstOrNull { child ->
         (child as EntryNode<*>).entry.id == id
       } ?: EntryNode(entryCreator(id)).also {
         add(it)
+        nodeMap[it.entry.id] = it
         treeModel.nodeStructureChanged(this)
       }
 
@@ -57,6 +60,7 @@ class BackgroundTaskTreeModel(client: BackgroundTaskInspectorClient) {
         treeModel.nodeChanged(targetChild)
       }
       else {
+        nodeMap.remove(targetChild.entry.id)
         remove(targetChild)
         treeModel.nodeStructureChanged(this)
       }
@@ -67,10 +71,10 @@ class BackgroundTaskTreeModel(client: BackgroundTaskInspectorClient) {
     val entry = userObject as BackgroundTaskEntry
   }
 
-  private val worksNode = EntriesNode("Works") { id -> WorkEntry(id as String) }
-  private val jobsNode = EntriesNode("Jobs") { id -> JobEntry(id as Long) }
-  private val alarmsNode = EntriesNode("Alarms") { id -> AlarmEntry(id as Long) }
-  private val wakesNode = EntriesNode("WakeLocks") { id -> WakeLockEntry(id as Long) }
+  private val worksNode = EntriesNode("Works") { id -> WorkEntry(id) }
+  private val jobsNode = EntriesNode("Jobs") { id -> JobEntry(id) }
+  private val alarmsNode = EntriesNode("Alarms") { id -> AlarmEntry(id) }
+  private val wakesNode = EntriesNode("WakeLocks") { id -> WakeLockEntry(id) }
 
   init {
     treeRoot.add(worksNode)
@@ -84,6 +88,14 @@ class BackgroundTaskTreeModel(client: BackgroundTaskInspectorClient) {
     }
   }
 
+  fun getTreeNode(entryId: String): DefaultMutableTreeNode? {
+    return nodeMap[entryId]
+  }
+
+  fun getEntry(entryId: String): BackgroundTaskEntry? {
+    return nodeMap[entryId]?.entry
+  }
+
   private fun handleEvent(event: Any) {
     when (event) {
       is WorkManagerInspectorProtocol.Event -> {
@@ -93,17 +105,22 @@ class BackgroundTaskTreeModel(client: BackgroundTaskInspectorClient) {
         val id = event.getId()
         when (event.backgroundTaskEvent.metadataCase) {
           JOB_SCHEDULED, JOB_STARTED, JOB_STOPPED, JOB_FINISHED -> {
-            jobsNode.consume(id, event)
+            jobsNode.consume(id.toEntryId(), event)
           }
           ALARM_SET, ALARM_CANCELLED, ALARM_FIRED -> {
-            alarmsNode.consume(id, event)
+            alarmsNode.consume(id.toEntryId(), event)
           }
           WAKE_LOCK_ACQUIRED, WAKE_LOCK_RELEASED -> {
-            wakesNode.consume(id, event)
+            wakesNode.consume(id.toEntryId(), event)
           }
           else -> throw RuntimeException()
         }
       }
     }
   }
+
+  /**
+   * Converts an integer based ID to String ID that won't overlap with the UUID based IDs of work entries
+   */
+  private fun Long.toEntryId() = "L-$this"
 }

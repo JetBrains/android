@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
+package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
-/**
- * An entry with necessary information for a background task to show in the tree table.
- */
-interface BackgroundTaskEntry {
-  /**
-   * A unique id across different background tasks.
-   */
-  val id: String
-  val isValid: Boolean
-  val className: String
-  val status: String
-  val startTimeMs: Long
+import com.android.tools.idea.localization.MessageBundleReference
+import org.jetbrains.annotations.PropertyKey
 
-  /**
-   * Updates entry information with [event].
-   */
-  fun consume(event: Any)
+private const val BUNDLE_NAME = "messages.BackgroundTaskInspectorBundle"
+
+object BackgroundTaskInspectorBundle {
+  private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
 }

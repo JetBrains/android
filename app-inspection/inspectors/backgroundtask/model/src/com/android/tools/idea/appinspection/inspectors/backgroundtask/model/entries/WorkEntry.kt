@@ -21,38 +21,42 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
 
 /**
  * An entry with all information of a Work Task.
+ *
+ * @param id a universally unique identifier (UUID) of 128 bit value.
  */
 class WorkEntry(override val id: String) : BackgroundTaskEntry {
-
-  private var _className = ""
-  private var _status = WorkInfo.State.UNSPECIFIED
-  private var _startTime = -1L
   private var _isValid = true
 
   override val isValid get() = _isValid
 
-  override val className get() = _className
+  override val className get() = work.workerClassName.substringAfterLast('.')
 
-  override val status get() = _status.name
+  override val status get() = work.state.name
 
-  override val startTimeMs get() = _startTime
+  override val startTimeMs get() = work.scheduleRequestedAt
+
+  private var work = WorkInfo.newBuilder()
+
+  fun getWorkInfo() = work.build()
 
   override fun consume(event: Any) {
     when ((event as Event).oneOfCase) {
       Event.OneOfCase.WORK_ADDED -> {
-        _className = event.workAdded.work.workerClassName.substringAfterLast('.')
-        _status = event.workAdded.work.state
-        _startTime = event.workAdded.work.scheduleRequestedAt
+        work = event.workAdded.work.toBuilder()
       }
       Event.OneOfCase.WORK_UPDATED -> {
         when (event.workUpdated.oneOfCase!!) {
-          WorkUpdatedEvent.OneOfCase.STATE -> _status = event.workUpdated.state
-          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT -> _startTime = event.workUpdated.scheduleRequestedAt
+          WorkUpdatedEvent.OneOfCase.STATE -> work.state = event.workUpdated.state
+          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT -> work.scheduleRequestedAt = event.workUpdated.scheduleRequestedAt
+          WorkUpdatedEvent.OneOfCase.DATA -> work.data = event.workUpdated.data
+          WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT -> work.runAttemptCount = event.workUpdated.runAttemptCount
+          else -> throw RuntimeException()
         }
       }
       Event.OneOfCase.WORK_REMOVED -> {
         _isValid = false
       }
+      else -> throw RuntimeException()
     }
   }
 }
