@@ -60,7 +60,5 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   ) {
     controller.findModel(projectModel, GradlePluginModel::class.java)
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
-    controller.findModel(projectModel, KaptGradleModel::class.java)
-      ?.also { model -> modelConsumer.consume(model, KaptGradleModel::class.java) }
   }
 }
