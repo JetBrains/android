@@ -231,4 +231,17 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallationExpected"))
   }
+
+  @Test
+  fun testEnabledEffectOnMigrateFailureRetention() {
+    fun AgpUpgradeComponentRefactoringProcessor.isMigrateFailureRetention() =
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
+
+    writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateFailureRetention() }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
+  }
 }

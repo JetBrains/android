@@ -276,6 +276,7 @@ class AgpUpgradeRefactoringProcessor(
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
     MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(this),
+    MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS.RefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
