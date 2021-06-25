@@ -292,6 +292,7 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @Test
+  @Ignore("b/183942017")
   fun testLoadingPane() {
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
