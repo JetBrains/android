@@ -13,7 +13,7 @@ MODULE                        : TestCompositeLib1.app
         NameSpacing                   : DISABLED
     LintOptions
         IsCheckTestSources            : false
-        IsCheckDependencies           : true
+        IsCheckDependencies           : false
         IsAbortOnError                : true
         IsAbsolutePaths               : true
         IsNoLines                     : false
@@ -3982,7 +3982,7 @@ MODULE                        : TestCompositeLib3.app
         NameSpacing                   : DISABLED
     LintOptions
         IsCheckTestSources            : false
-        IsCheckDependencies           : true
+        IsCheckDependencies           : false
         IsAbortOnError                : true
         IsAbsolutePaths               : true
         IsNoLines                     : false
@@ -7843,7 +7843,7 @@ MODULE                        : project.app
         NameSpacing                   : DISABLED
     LintOptions
         IsCheckTestSources            : false
-        IsCheckDependencies           : true
+        IsCheckDependencies           : false
         IsAbortOnError                : true
         IsAbsolutePaths               : true
         IsNoLines                     : false

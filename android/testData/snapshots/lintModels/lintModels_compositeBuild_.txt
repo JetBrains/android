@@ -16,7 +16,6 @@ MODULE                        : TestCompositeLib1.app
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
-        CheckDependencies             : true
     LintModelVariant              : debug
         BuildFeatures
             ViewBinding                   : false
@@ -1429,7 +1428,6 @@ MODULE                        : TestCompositeLib3.app
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
-        CheckDependencies             : true
     LintModelVariant              : debug
         BuildFeatures
             ViewBinding                   : false
@@ -2768,7 +2766,6 @@ MODULE                        : project.app
         HtmlReport                    : true
         XmlReport                     : true
         CheckReleaseBuilds            : true
-        CheckDependencies             : true
     LintModelVariant              : debug
         BuildFeatures
             ViewBinding                   : false

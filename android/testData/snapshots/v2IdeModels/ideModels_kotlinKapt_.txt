@@ -13,7 +13,7 @@ MODULE                        : MainActivity.app
         NameSpacing                   : DISABLED
     LintOptions
         IsCheckTestSources            : false
-        IsCheckDependencies           : true
+        IsCheckDependencies           : false
         IsAbortOnError                : true
         IsAbsolutePaths               : true
         IsNoLines                     : false
