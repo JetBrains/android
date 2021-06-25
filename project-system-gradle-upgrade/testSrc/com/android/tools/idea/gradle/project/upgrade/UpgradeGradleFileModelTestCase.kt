@@ -27,6 +27,6 @@ import org.junit.runners.Parameterized
 abstract class UpgradeGradleFileModelTestCase : GradleFileModelTestCase() {
   @Before
   fun setUpTestDataPath() {
-    testDataPath = AndroidTestBase.getTestDataPath() + "/upgrade"
+    testDataPath = AndroidTestBase.getModulePath("project-system-gradle-upgrade") + "/testData/upgrade"
   }
 }

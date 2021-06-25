@@ -25,6 +25,9 @@ import com.intellij.openapi.module.ModuleManager
 import java.io.File
 
 class AgpUpgradeAssistantIntegrationTest : AndroidGradleTestCase() {
+  @Override
+  override fun getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/project-system-gradle-upgrade/testData"
+
   fun testUpgradeBasic40to41() {
     loadProject("upgrade/Projects/Basic40", null, "6.1.1", "4.0.0", "1.3.72")
 
