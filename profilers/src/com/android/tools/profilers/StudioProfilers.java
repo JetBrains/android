@@ -480,7 +480,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           // A group is a collection of events that happened to a single process.
           for (EventGroup groupProcess : processResponse.getGroupsList()) {
             boolean isProcessAlive = !groupProcess.getEvents(groupProcess.getEventsCount() - 1).getIsEnded();
-            Common.Event aliveEvent = getLastMatchingEvent(groupProcess, e -> (e.hasProcess() && e.getProcess().hasProcessStarted()));
+            // Find the alive event with the highest exposure level for the last alive process.
+            // On Q & R, a profileable app's event comes from the daemon, while a debuggable app's event comes from adb track-jdwp
+            // through TransportServiceProxy. Every debuggable app is also profileable, so it will be reported twice, and the order
+            // of the two events cannot be predicted.
+            Common.Event aliveEvent = getHighestExposureEventForLastProcess(groupProcess);
             if (aliveEvent == null) {
               // Ignore process event groups that do not have the started event.
               continue;
@@ -1021,7 +1025,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
-   * Helper method to return the last even in an EventGroup that matches the input condition.
+   * Helper method to return the last event in an EventGroup that matches the input condition.
    */
   @Nullable
   private static Common.Event getLastMatchingEvent(@NotNull EventGroup group, @NotNull Predicate<Event> predicate) {
@@ -1033,6 +1037,34 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     return matched;
+  }
+
+  /**
+   * Helper method to return the event of the highest exposure level for the last process in an EventGroup. Note process
+   * events are grouped by PIDs, so this method doesn't look beyond the next to last "is-ended" event.
+   */
+  @Nullable
+  private static Common.Event getHighestExposureEventForLastProcess(@NotNull EventGroup group) {
+    boolean hasVisitedEndedEvent = false;
+    Common.Event found = null;
+    for (int i = group.getEventsCount() - 1; i >= 0; i--) {
+      Common.Event e = group.getEvents(i);
+      if (e.getIsEnded()) {
+        if (hasVisitedEndedEvent) {
+          break;
+        }
+        hasVisitedEndedEvent = true;
+      }
+      else {
+        if (e.hasProcess() && e.getProcess().hasProcessStarted() && e.getProcess().getProcessStarted().hasProcess() &&
+            (found == null ||
+             e.getProcess().getProcessStarted().getProcess().getExposureLevelValue() >
+             found.getProcess().getProcessStarted().getProcess().getExposureLevelValue())) {
+          found = e;
+        }
+      }
+    }
+    return found;
   }
 
   /**

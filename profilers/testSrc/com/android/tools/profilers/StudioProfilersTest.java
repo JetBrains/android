@@ -211,6 +211,34 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testDebuggableProcessNotReportedAsProfileable() {
+    Assume.assumeTrue(myNewEventPipeline);
+    myIdeProfilerServices.enableProfileable(true);
+    myIdeProfilerServices.enableProfileableInQr(true);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertThat(myProfilers.getDeviceProcessMap()).hasSize(1);
+    assertThat(myProfilers.getDeviceProcessMap().get(device)).hasSize(1);
+    assertThat(myProfilers.getDeviceProcessMap().get(device).get(0).getExposureLevel()).
+      isEqualTo(Common.Process.ExposureLevel.DEBUGGABLE);
+  }
+
+  @Test
   public void testSetNullPreferredProcessDoesNotStartAutoProfiling() {
     final String PREFERRED_PROCESS = "Preferred";
     myProfilers.setPreferredProcess(null, null, p -> p.getStartTimestampNs() > 5);
