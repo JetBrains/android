@@ -144,13 +144,14 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
   }
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet> {
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> {
     // TODO(b/148300410)
+    val projectScope = GlobalSearchScope.projectScope(project)
     return ProjectFacetManager.getInstance(project)
       .getFacets(AndroidFacet.ID)
       .asSequence()
       .filter { getPackageName(it) == packageName }
-      .filter { facet -> facet.sourceProviders.mainManifestFile?.let(scope::contains) == true }
+      .filter { facet -> facet.sourceProviders.mainManifestFile?.let(projectScope::contains) == true }
       .toList()
   }
 }

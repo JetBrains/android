@@ -46,6 +46,8 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
       PsiDocumentManager.getInstance(project).commitDocument(manifest)
     }
 
+    // Changing module package name now requires a sync event to propagate to Resource Repositories and R classes.
+    requestSyncAndWait()
     assertEquals("com.example.change", resourceRepositoryManager.namespace.packageName)
   }
 

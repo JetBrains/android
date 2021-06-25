@@ -137,8 +137,7 @@ class OfflineModeManagerImpl(private val project: Project, private val fileDatab
   private fun isOfflineModeAllowed(packageName: String): Boolean {
     val androidFacetsForInspectedProcess = ProjectSystemService.getInstance(project).projectSystem.getAndroidFacetsWithPackageName(
       project,
-      packageName,
-      GlobalSearchScope.projectScope(project)
+      packageName
     )
 
     val hasApkFacet = androidFacetsForInspectedProcess.any { ApkFacetChecker.hasApkFacet(it.module) }

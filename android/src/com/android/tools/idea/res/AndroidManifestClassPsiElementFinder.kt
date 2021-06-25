@@ -71,8 +71,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     }
     val packageName = qualifiedName.dropLast(SUFFIX.length)
 
-    return project.getProjectSystem()
-      .getAndroidFacetsWithPackageName(project, packageName, GlobalSearchScope.projectScope(project)).mapNotNull { facet ->
+    return project.getProjectSystem().getAndroidFacetsWithPackageName(project, packageName).mapNotNull { facet ->
         getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
       }.toTypedArray()
   }
@@ -86,8 +85,7 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
   }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    val canFindFacets = project.getProjectSystem().getAndroidFacetsWithPackageName(project, qualifiedName,
-                                                                                   GlobalSearchScope.projectScope(project)).isNotEmpty()
+    val canFindFacets = project.getProjectSystem().getAndroidFacetsWithPackageName(project, qualifiedName).isNotEmpty()
     return if (canFindFacets) {
       AndroidLightPackage.withName(qualifiedName, project)
     }

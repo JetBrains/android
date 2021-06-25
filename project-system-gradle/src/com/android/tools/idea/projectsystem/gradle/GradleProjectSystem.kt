@@ -35,7 +35,7 @@ import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
-import com.android.tools.idea.projectsystem.sourceProviders
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -56,13 +56,11 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import java.nio.file.Path
@@ -151,12 +149,24 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
   }
 
-  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
+    val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
+    val shouldQueryIndex = androidFacets.any { AndroidModuleModel.get(it)?.androidProject?.namespace == null }
+    val facetsFromModuleSystem = androidFacets.filter { AndroidModuleModel.get(it)?.androidProject?.namespace == packageName }
+    if (!shouldQueryIndex) {
+      return facetsFromModuleSystem
+    }
+
+    val projectScope = GlobalSearchScope.projectScope(project)
     if (AndroidManifestIndex.indexEnabled()) {
       try {
-        return DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>>(Computable {
-          AndroidManifestIndex.queryByPackageName(project, packageName, scope)
-        })
+        val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
+          AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
+        }.filter {
+          // Filter out any facets that have a manifest override for package name, as that takes priority.
+          AndroidModuleModel.get(it)?.androidProject?.namespace == null
+        }
+        return facetsFromManifestIndex + facetsFromModuleSystem
       }
       catch (e: IndexNotReadyException) {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
@@ -165,13 +175,9 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         logManifestIndexQueryError(e)
       }
     }
-
-    return ProjectFacetManager.getInstance(project)
-      .getFacets(AndroidFacet.ID)
-      .asSequence()
-      .filter { getPackageName(it) == packageName }
-      .filter { facet -> facet.sourceProviders.mainManifestFile?.let(scope::contains) == true }
-      .toList()
+    // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
+    // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
+    return androidFacets.filter { it.getModuleSystem().getPackageName() == packageName }
   }
 }
 
@@ -196,7 +202,8 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
     currentUnitTestSourceProviders = @Suppress("DEPRECATION") model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndSomeFrequentlyUsedInactiveSourceProviders = @Suppress(
+      "DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
     run {
       val flavorNames = model.selectedVariant.productFlavors.toSet()
