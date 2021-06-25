@@ -244,4 +244,17 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshotsExpected"))
   }
+
+  @Test
+  fun testEnabledEffectOnMigrateJacoco() {
+    fun AgpUpgradeComponentRefactoringProcessor.isMigrateJacoco() =
+      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_JACOCO_TO_TEST_COVERAGE
+
+    writeToBuildFile(TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverage"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("8.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateJacoco() }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverageExpected"))
+  }
 }
