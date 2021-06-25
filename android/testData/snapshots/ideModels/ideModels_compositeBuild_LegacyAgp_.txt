@@ -4,7 +4,7 @@ MODULE                        : TestCompositeLib1.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
-    buildToolsVersion             : 30.0.2
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : com.test.composite1
     AaptOptions
@@ -2019,7 +2019,7 @@ MODULE                        : TestCompositeLib1.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
-    buildToolsVersion             : 30.0.2
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : com.test.composite1
     AaptOptions
@@ -7756,7 +7756,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : 30.0.2
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : project
     AaptOptions
@@ -9786,7 +9786,7 @@ MODULE                        : project.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : 30.0.2
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : com.test.composite
     AaptOptions
