@@ -28,14 +28,13 @@ import com.android.tools.idea.testing.saveAndDump
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.annotations.Contract
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import java.io.File
+
 /**
  * Snapshot tests for 'Ide Models'.
  *
