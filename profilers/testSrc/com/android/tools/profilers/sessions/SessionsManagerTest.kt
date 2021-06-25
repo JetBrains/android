@@ -131,7 +131,7 @@ class SessionsManagerTest {
   }
 
   @Test
-  fun testValidSessionMetadata() {
+  fun testValidSessionMetadataForDebuggableProcess() {
     val streamId = 1L
     val processId = 10
     val device = Common.Device.newBuilder().apply {
@@ -143,6 +143,7 @@ class SessionsManagerTest {
       pid = processId
       state = Common.Process.State.ALIVE
       abiCpuArch = "arm64"
+      exposureLevel = Common.Process.ExposureLevel.DEBUGGABLE
     }.build()
     beginSessionHelper(device, process)
 
@@ -153,6 +154,32 @@ class SessionsManagerTest {
     assertThat(sessionMetadata.type).isEqualTo(Common.SessionMetaData.SessionType.FULL)
     assertThat(sessionMetadata.processAbi).isEqualTo("arm64")
     assertThat(sessionMetadata.jvmtiEnabled).isTrue()
+  }
+
+  @Test
+  fun testValidSessionMetadataForProfileableProcess() {
+    val streamId = 1L
+    val processId = 10
+    val device = Common.Device.newBuilder().apply {
+      deviceId = streamId
+      state = Common.Device.State.ONLINE
+      featureLevel = AndroidVersion.VersionCodes.Q
+    }.build()
+    val process = Common.Process.newBuilder().apply {
+      pid = processId
+      state = Common.Process.State.ALIVE
+      abiCpuArch = "arm64"
+      exposureLevel = Common.Process.ExposureLevel.PROFILEABLE
+    }.build()
+    beginSessionHelper(device, process)
+
+    val session = myManager.selectedSession
+    val sessionMetadata = myManager.selectedSessionMetaData
+    assertThat(sessionMetadata.sessionId).isEqualTo(session.sessionId)
+    assertThat(sessionMetadata.sessionName).isEqualTo(buildSessionName(device, process))
+    assertThat(sessionMetadata.type).isEqualTo(Common.SessionMetaData.SessionType.FULL)
+    assertThat(sessionMetadata.processAbi).isEqualTo("arm64")
+    assertThat(sessionMetadata.jvmtiEnabled).isFalse()
   }
 
   @Test
