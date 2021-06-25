@@ -230,6 +230,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   public void fillStats(RunStats stats) {
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
+    stats.setRunAlwaysInstallWithPm(myLaunchOptions.getAlwaysInstallWithPm());
   }
 
   @NotNull

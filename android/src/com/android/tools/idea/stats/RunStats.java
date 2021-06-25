@@ -190,6 +190,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().setApplyCodeChangesFallbackToRun(fallback);
   }
 
+  public void setRunAlwaysInstallWithPm(boolean alwaysUsesPackageManager) {
+    myEvent.getRunEventBuilder().setRunAlwaysInstallWithPm(alwaysUsesPackageManager);
+  }
+
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {
