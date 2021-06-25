@@ -83,7 +83,7 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
             .setTitle(title)
             .setDescription(AndroidBundle.message("live.literals.tooltip.description"))
             .setBrowserLink(AndroidBundle.message("live.literals.tooltip.url.label"),
-                            URL("https://developer.android.com/jetpack/compose/tooling#live-literals"))
+                            URL("https://developer.android.com/jetpack/compose/tooling#live-edit-literals"))
             .installOn(this)
         }
         else {
