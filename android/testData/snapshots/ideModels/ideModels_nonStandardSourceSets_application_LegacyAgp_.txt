@@ -4,7 +4,7 @@ MODULE                        : application.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/application/app/build [-]
-    buildToolsVersion             : 30.0.2
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : application
     AaptOptions
