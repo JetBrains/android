@@ -163,18 +163,19 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    return getApks(device.getAbis(), device.getVersion());
-  }
-
-  @VisibleForTesting
-  @NotNull
-  public List<ApkInfo> getApks(List<String> deviceAbis, AndroidVersion deviceVersion) throws ApkProvisionException {
     AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel == null) {
       getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
     }
-    IdeVariant selectedVariant = androidModel.getSelectedVariant();
+    return getApks(device.getAbis(), device.getVersion(), androidModel, androidModel.getSelectedVariant());
+  }
+
+  @NotNull
+  private List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
+                                @NotNull AndroidVersion deviceVersion,
+                                @NotNull AndroidModuleModel androidModel,
+                                @NotNull IdeVariant variant) throws ApkProvisionException {
     try {
       List<ApkInfo> apkList = new ArrayList<>();
 
@@ -200,7 +201,7 @@ public class GradleApkProvider implements ApkProvider {
             //       a .apk file, the "collectDependentFeaturesApks" is a no-op for instant apps.
             List<ApkFileUnit> apkFileList = new ArrayList<>();
             apkFileList.add(new ApkFileUnit(androidModel.getModuleName(),
-                                            getApk(selectedVariant.getName(), selectedVariant.getMainArtifact(), deviceAbis, deviceVersion,
+                                            getApk(variant.getName(), variant.getMainArtifact(), deviceAbis, deviceVersion,
                                                    myFacet
                                             )));
             apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
@@ -224,11 +225,11 @@ public class GradleApkProvider implements ApkProvider {
         }
       }
 
-      apkList.addAll(getAdditionalApks(selectedVariant.getMainArtifact()));
+      apkList.addAll(getAdditionalApks(variant.getMainArtifact()));
 
       if (myTest) {
         if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-          apkList.addAll(0, getTargetedApks(selectedVariant, deviceAbis, deviceVersion));
+          apkList.addAll(0, getTargetedApks(variant, deviceAbis, deviceVersion));
         }
         else {
           IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
@@ -251,7 +252,7 @@ public class GradleApkProvider implements ApkProvider {
         throw apkProvisioningException;
       }
       throw new ApkProvisionException(
-        apkProvisioningException.getMessage().replace(VARIANT_DISPLAY_NAME_STUB, selectedVariant.getDisplayName()),
+        apkProvisioningException.getMessage().replace(VARIANT_DISPLAY_NAME_STUB, variant.getDisplayName()),
         apkProvisioningException);
     }
   }
