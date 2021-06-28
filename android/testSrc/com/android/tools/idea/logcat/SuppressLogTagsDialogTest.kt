@@ -21,14 +21,15 @@ import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JCheckBox
 
+/**
+ * Tests for [SuppressLogTagsDialog].
+ */
 @RunsInEdt
 class SuppressLogTagsDialogTest {
   @get:Rule
@@ -39,13 +40,6 @@ class SuppressLogTagsDialogTest {
   @Before
   fun setUp() {
     enableHeadlessDialogs(projectRule.fixture.testRootDisposable)
-  }
-
-  @After
-  fun tearDown() {
-    if (this::dialog.isInitialized) {
-      Disposer.dispose(dialog.dialogWrapper.disposable)
-    }
   }
 
   @Test
