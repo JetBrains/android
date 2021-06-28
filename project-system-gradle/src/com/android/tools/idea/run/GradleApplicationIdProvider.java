@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
@@ -59,6 +55,17 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     myOutputModelProvider = outputModelProvider;
   }
 
+  @NotNull
+  private AndroidModuleModel getAndroidModel() throws ApkProvisionException {
+    AndroidModuleModel model = AndroidModuleModel.get(myFacet);
+    if (model == null) {
+      throw new ApkProvisionException(
+        String.format("Module `%s` is not an Android module. Do you need to sync the project with Gradle files?",
+                      myFacet.getModule().getName()));
+    }
+    return model;
+  }
+
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
@@ -66,7 +73,8 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     // AGP creates instrumentation APK only. Both test code and library code will be packaged into an instrumentation APK.
     // This is called self-instrumenting test: https://source.android.com/compatibility/tests/development/instr-self-e2e
     // For this reason, this method should return test package name for Android library project.
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
+    IdeAndroidProjectType projectType = getAndroidModel().getAndroidProject().getProjectType();
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
       String testPackageName = getTestPackageName();
       if (testPackageName != null) {
         return testPackageName;
@@ -76,7 +84,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_TEST) {
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       AndroidFacet targetFacet = getTargetFacet();
       if (targetFacet != null) {
         GradleApplicationIdProvider targetApplicationProvider = new GradleApplicationIdProvider(targetFacet, myOutputModelProvider);
@@ -87,7 +95,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
       String applicationId = tryToGetInstantAppApplicationId();
       if (applicationId != null) {
         return applicationId;
@@ -97,7 +105,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE) {
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) {
       String applicationId = tryToGetDynamicFeatureApplicationId();
       if (applicationId != null) {
         return applicationId;
@@ -154,21 +162,22 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_TEST) {
+    AndroidModuleModel androidModel = getAndroidModel();
+    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       return ApkProviderUtil.computePackageName(myFacet);
     }
 
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name.
-    String testPackageName = androidModel == null ? null : androidModel.getSelectedVariant().getTestApplicationId();
+    String testPackageName = androidModel.getSelectedVariant().getTestApplicationId();
     if (testPackageName != null) {
       return testPackageName;
     }
 
-    if (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_DYNAMIC_FEATURE
-        || myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_LIBRARY) {
+    if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
+        || projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
       return ApkProviderUtil.computePackageName(myFacet) + DEFAULT_TEST_PACKAGE_SUFFIX;
     }
     else {
