@@ -18,19 +18,16 @@ package com.android.tools.idea.refactoring.rtl;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 
 public class RtlSupportDialog extends DialogWrapper {
   private JPanel myPanel;
   private JCheckBox myAndroidManifestCheckBox;
   private JCheckBox myLayoutsCheckBox;
-  private JTextArea myLabel;
   private JCheckBox myReplaceLeftRightPropertiesCheckBox;
   private JCheckBox myGenerateV17VersionsCheckBox;
 
@@ -44,13 +41,10 @@ public class RtlSupportDialog extends DialogWrapper {
     setTitle(AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.title"));
     setOKButtonText(AndroidBundle.message("android.refactoring.rtl.addsupport.dialog.ok.button.text"));
 
-    myLayoutsCheckBox.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(ItemEvent itemEvent) {
-        final boolean isSelected = myLayoutsCheckBox.isSelected();
-        myReplaceLeftRightPropertiesCheckBox.setEnabled(isSelected);
-        myGenerateV17VersionsCheckBox.setEnabled(isSelected);
-      }
+    myLayoutsCheckBox.addItemListener(itemEvent -> {
+      final boolean isSelected = myLayoutsCheckBox.isSelected();
+      myReplaceLeftRightPropertiesCheckBox.setEnabled(isSelected);
+      myGenerateV17VersionsCheckBox.setEnabled(isSelected);
     });
 
     setDefaultValues();
@@ -61,12 +55,6 @@ public class RtlSupportDialog extends DialogWrapper {
   private void setDefaultValues() {
     myAndroidManifestCheckBox.setSelected(true);
     myLayoutsCheckBox.setSelected(true);
-  }
-
-  @Override
-  @NotNull
-  protected Action[] createActions() {
-    return new Action[]{getOKAction(), getCancelAction(), getHelpAction()};
   }
 
   @Override
