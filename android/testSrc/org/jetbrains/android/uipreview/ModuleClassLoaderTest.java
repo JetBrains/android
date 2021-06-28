@@ -228,10 +228,11 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(loader.isSourceModified("com.google.example.Modified", null)).isFalse();
     assertThat(loader.isSourceModified("com.google.example.NotModified", null)).isFalse();
 
-    // Recompile and check ClassLoader is out of date.
-    assertTrue(loader.isUserCodeUpToDate());
+    // Recompile and check ClassLoader is out of date. We are not really modifying the PSI so we can not use isUserCodeUpToDate
+    // since it relies on the PSI modification to cache the information.
+    assertTrue(loader.isUserCodeUpToDateNonCached());
     javac.run(null, null, null, modifiedSrc.getPath());
-    assertFalse(loader.isUserCodeUpToDate());
+    assertFalse(loader.isUserCodeUpToDateNonCached());
 
     ModuleClassLoaderManager.get().release(loader, this);
   }

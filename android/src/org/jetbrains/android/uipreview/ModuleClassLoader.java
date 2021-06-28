@@ -34,6 +34,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -56,6 +59,7 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -466,9 +470,12 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
   }
 
   /**
-   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
+   * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
+   * the result of this call until a PSI modification happens.
    */
-  boolean isUserCodeUpToDate() {
+  @VisibleForTesting
+  final boolean isUserCodeUpToDateNonCached() {
     for (Map.Entry<String, VirtualFile> entry : myClassFiles.entrySet()) {
       VirtualFile classFile = entry.getValue();
       if (!classFile.isValid()) {
@@ -483,6 +490,18 @@ public final class ModuleClassLoader extends RenderClassLoader implements Module
     }
 
     return true;
+  }
+
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns
+   * false if there has not been any PSI changes.
+   */
+  boolean isUserCodeUpToDate() {
+    Module module = myModuleReference.get();
+    if (module == null) return true;
+    // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
+    return CachedValuesManager.getManager(module.getProject()).getCachedValue(module, () ->
+      CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(), PsiModificationTracker.MODIFICATION_COUNT));
   }
 
   public boolean isClassLoaded(@NotNull String className) {
