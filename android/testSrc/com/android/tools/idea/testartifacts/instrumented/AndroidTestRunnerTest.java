@@ -127,7 +127,8 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
     ConsolePrinter mockPrinter = mock(ConsolePrinter.class);
 
-    ApplicationIdProvider applicationIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider applicationIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
     LaunchTask task = config.getApplicationLaunchTask(

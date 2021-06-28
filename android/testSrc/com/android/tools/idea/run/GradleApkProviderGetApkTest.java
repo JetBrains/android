@@ -116,7 +116,8 @@ public class GradleApkProviderGetApkTest extends PlatformTestCase {
       }
     };
 
-    myApkProvider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
+    myApkProvider = new GradleApkProvider(myAndroidFacet, GradleApplicationIdProvider
+      .createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet), myOutputModelProvider,
                                           finder, true, false);
 
     when(myOutputModelProvider.getPostBuildModel()).thenReturn(myPostBuildModel);
