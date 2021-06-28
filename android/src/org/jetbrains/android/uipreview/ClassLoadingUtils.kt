@@ -17,11 +17,14 @@ package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.SdkUtils
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
@@ -49,15 +52,18 @@ internal fun Module?.getLibraryDependenciesJars(): List<URL> {
   if (this == null || this.isDisposed) {
     return emptyList()
   }
-  return this.getExternalLibraryJars()
-    .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
-    .mapNotNull {
-      try {
-        SdkUtils.fileToUrl(it)
+  return CachedValuesManager.getManager(project).getCachedValue(this) {
+    val libraries = getExternalLibraryJars()
+      .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
+      .mapNotNull {
+        try {
+          SdkUtils.fileToUrl(it)
+        }
+        catch (e: MalformedURLException) {
+          null
+        }
       }
-      catch (e: MalformedURLException) {
-        null
-      }
-    }
-    .toList()
+      .toList()
+    CachedValueProvider.Result.create(libraries, ProjectSyncModificationTracker.getInstance(project))
+  }
 }
