@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import android.view.View
+import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
@@ -34,8 +36,10 @@ private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should
  */
 fun analyzeAfterModelUpdate(result: RenderResult, sceneManager: LayoutlibSceneManager): ImmutableList<VisualLintRenderIssue> {
   val issues = mutableListOf<VisualLintRenderIssue>()
-  issues.addAll(analyzeBounds(result, sceneManager.model))
+  val model = sceneManager.model
+  issues.addAll(analyzeBounds(result, model))
   issues.addAll(analyzeBottomNavigation(result, sceneManager))
+  issues.addAll(analyzeOverlap(result, model))
   return ImmutableList.copyOf(issues)
 }
 
@@ -66,10 +70,8 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableList<
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
-      val tagName = (child.cookie as? TagSnapshot)?.tagName ?: child.className
-      val simpleName = tagName.substringAfterLast('.')
       val renderIssue = RenderErrorModel.Issue.builder()
-        .setSummary("$simpleName is not fully visible in layout")
+        .setSummary("${simpleName(child)} is not fully visible in layout")
         .setSeverity(HighlightSeverity.WARNING)
         .build()
       val component = componentFromViewInfo(child, model)
@@ -106,6 +108,50 @@ private fun findBottomNavigationIssue(root: ViewInfo, sceneManager: LayoutlibSce
   for (child in root.children) {
     findBottomNavigationIssue(child, sceneManager, issues)
   }
+}
+
+/**
+ * Analyze the given [RenderResult] for issues where a view is covered by another sibling view, and return all such issues.
+ * Limit to covered [TextView] as they are the most likely to be wrongly covered by another view.
+ */
+private fun analyzeOverlap(renderResult: RenderResult, model: NlModel): List<VisualLintRenderIssue> {
+  val issues = mutableListOf<VisualLintRenderIssue>()
+  for (root in renderResult.rootViews) {
+    findOverlapIssues(root, model, issues)
+  }
+  return issues
+}
+
+private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableList<VisualLintRenderIssue>) {
+  val children = root.children.filter { it.cookie != null && (it.viewObject as? View)?.visibility == View.VISIBLE }
+  for (i in children.indices) {
+    val firstView = children[i]
+    if (firstView.viewObject !is TextView) {
+      continue
+    }
+    for (j in (i + 1) until children.size) {
+      val secondView = children[j]
+      if (firstView.right <= secondView.left || firstView.left >= secondView.right) {
+        continue
+      }
+      if (firstView.bottom > secondView.top && firstView.top  < secondView.bottom) {
+        val renderIssue = RenderErrorModel.Issue.builder()
+          .setSummary("${simpleName(firstView)} is covered by ${simpleName(secondView)}")
+          .setSeverity(HighlightSeverity.WARNING)
+          .build()
+        val component = componentFromViewInfo(firstView, model)
+        issues.add(VisualLintRenderIssue(renderIssue, model, component))
+      }
+    }
+  }
+  for (child in children) {
+    findOverlapIssues(child, model, issues)
+  }
+}
+
+private fun simpleName(view: ViewInfo): String {
+  val tagName = (view.cookie as? TagSnapshot)?.tagName ?: view.className
+  return tagName.substringAfterLast('.')
 }
 
 private fun componentFromViewInfo(viewInfo: ViewInfo, model: NlModel): NlComponent? {
