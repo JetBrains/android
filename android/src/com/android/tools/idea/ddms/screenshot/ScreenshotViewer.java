@@ -106,7 +106,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final @NotNull Project myProject;
   private final @Nullable ScreenshotSupplier myScreenshotSupplier;
   private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
-  private final @NotNull List<@NotNull FramingOption> myFramingOptions;
+  private final @NotNull List<? extends @NotNull FramingOption> myFramingOptions;
 
   private final @NotNull VirtualFile myBackingFile;
   private final @NotNull ImageFileEditor myImageFileEditor;
@@ -165,7 +165,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           @NotNull Path backingFile,
                           @Nullable ScreenshotSupplier screenshotSupplier,
                           @Nullable ScreenshotPostprocessor screenshotPostprocessor,
-                          @NotNull List<@NotNull FramingOption> framingOptions,
+                          @NotNull List<? extends @NotNull FramingOption> framingOptions,
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);

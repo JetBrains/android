@@ -13,154 +13,109 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ddms.actions;
+package com.android.tools.idea.ddms.actions
 
-import com.android.SdkConstants;
-import com.android.ddmlib.IDevice;
-import com.android.io.Images;
-import com.android.resources.ScreenOrientation;
-import com.android.tools.adtui.ImageUtils;
-import com.android.tools.adtui.device.DeviceArtDescriptor;
-import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.ddms.screenshot.DeviceArtFramingOption;
-import com.android.tools.idea.ddms.screenshot.DeviceArtScreenshotPostprocessor;
-import com.android.tools.idea.ddms.screenshot.DeviceScreenshotSupplier;
-import com.android.tools.idea.ddms.screenshot.FramingOption;
-import com.android.tools.idea.ddms.screenshot.ScreenshotImage;
-import com.android.tools.idea.ddms.screenshot.ScreenshotPostprocessor;
-import com.android.tools.idea.ddms.screenshot.ScreenshotSupplier;
-import com.android.tools.idea.ddms.screenshot.ScreenshotTask;
-import com.android.tools.idea.ddms.screenshot.ScreenshotViewer;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import icons.StudioIcons;
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
-import java.util.EnumSet;
-import java.util.List;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.SdkConstants
+import com.android.ddmlib.IDevice
+import com.android.io.writeImage
+import com.android.resources.ScreenOrientation
+import com.android.tools.adtui.ImageUtils
+import com.android.tools.adtui.device.DeviceArtDescriptor
+import com.android.tools.idea.ddms.DeviceContext
+import com.android.tools.idea.ddms.screenshot.DeviceArtFramingOption
+import com.android.tools.idea.ddms.screenshot.DeviceArtScreenshotPostprocessor
+import com.android.tools.idea.ddms.screenshot.DeviceScreenshotSupplier
+import com.android.tools.idea.ddms.screenshot.FramingOption
+import com.android.tools.idea.ddms.screenshot.ScreenshotImage
+import com.android.tools.idea.ddms.screenshot.ScreenshotPostprocessor
+import com.android.tools.idea.ddms.screenshot.ScreenshotSupplier
+import com.android.tools.idea.ddms.screenshot.ScreenshotTask
+import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.LocalFileSystem
+import icons.StudioIcons
+import org.jetbrains.android.util.AndroidBundle
+import java.util.EnumSet
+import kotlin.math.min
 
 /**
  * Captures a screenshot of the device display.
  */
-public class DeviceScreenshotAction extends AbstractDeviceAction {
-  private final Project myProject;
+class DeviceScreenshotAction(private val myProject: Project,
+                             context: DeviceContext
+) : AbstractDeviceAction(context, AndroidBundle.message("android.ddms.actions.screenshot"),
+                         AndroidBundle.message("android.ddms.actions.screenshot.description"), StudioIcons.Logcat.SNAPSHOT) {
 
-  public DeviceScreenshotAction(@NotNull Project project, @NotNull DeviceContext context) {
-    super(context, AndroidBundle.message("android.ddms.actions.screenshot"),
-          AndroidBundle.message("android.ddms.actions.screenshot.description"),
-          StudioIcons.Logcat.SNAPSHOT);
-    myProject = project;
-  }
+  override fun performAction(event: AnActionEvent, device: IDevice) {
+    val project = myProject
+    object : ScreenshotTask(project, DeviceScreenshotSupplier(device)) {
 
-  @Override
-  protected void performAction(@NotNull AnActionEvent event, @NotNull IDevice device) {
-    Project project = myProject;
-
-    new ScreenshotTask(project, new DeviceScreenshotSupplier(device)) {
-      @Override
-      public void onSuccess() {
-        String msg = getError();
-        if (msg != null) {
-          Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot.title"));
-          return;
+      override fun onSuccess() {
+        error?.let { msg ->
+          Messages.showErrorDialog(project, msg, AndroidBundle.message("android.ddms.actions.screenshot.title"))
+          return
         }
 
         try {
-          Path backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath();
-          ScreenshotImage screenshotImage = getScreenshot();
-          assert screenshotImage != null;
-          BufferedImage image = screenshotImage.getImage();
-          Images.writeImage(image, SdkConstants.EXT_PNG, backingFile);
-
-          ScreenshotSupplier screenshotSupplier = new DeviceScreenshotSupplier(device);
-          ScreenshotPostprocessor screenshotPostprocessor = new DeviceArtScreenshotPostprocessor();
-          List<FramingOption> framingOptions = getFramingOptions(screenshotImage);
-          int defaultFrame = getDefaultFrame(framingOptions, screenshotImage, device.getProperty(IDevice.PROP_DEVICE_MODEL));
-
-          ScreenshotViewer viewer = new ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier,
-                                                         screenshotPostprocessor, framingOptions, defaultFrame,
-                                                         EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION)) {
-            @Override
-            protected void doOKAction() {
-              super.doOKAction();
-              Path screenshotFile = getScreenshot();
-              if (screenshotFile != null) {
-                VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(screenshotFile);
-                if (virtualFile != null) {
-                  virtualFile.refresh(false, false);
-                  FileEditorManager.getInstance(project).openFile(virtualFile, true);
+          val backingFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
+          val screenshotImage = screenshot!!
+          screenshotImage.image.writeImage(SdkConstants.EXT_PNG, backingFile)
+          val screenshotSupplier: ScreenshotSupplier = DeviceScreenshotSupplier(device)
+          val screenshotPostprocessor: ScreenshotPostprocessor = DeviceArtScreenshotPostprocessor()
+          val framingOptions = getFramingOptions(screenshotImage)
+          val defaultFrame = getDefaultFrame(framingOptions, screenshotImage, device.getProperty(IDevice.PROP_DEVICE_MODEL))
+          val viewer: ScreenshotViewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier,
+                                                                   screenshotPostprocessor, framingOptions, defaultFrame,
+                                                                   EnumSet.of(Option.ALLOW_IMAGE_ROTATION)) {
+            override fun doOKAction() {
+              super.doOKAction()
+              screenshot?.let {
+                LocalFileSystem.getInstance().refreshAndFindFileByNioFile(it)?.let { virtualFile ->
+                  virtualFile.refresh(false, false)
+                  FileEditorManager.getInstance(project).openFile(virtualFile, true)
                 }
               }
             }
-          };
-
-          viewer.show();
+          }
+          viewer.show()
         }
-        catch (Exception e) {
-          Logger.getInstance(DeviceScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
-          Messages.showErrorDialog(project,
-                                   AndroidBundle.message("android.ddms.screenshot.generic.error", e),
-                                   AndroidBundle.message("android.ddms.actions.screenshot.title"));
+        catch (e: Exception) {
+          thisLogger().warn("Error while displaying screenshot viewer: ", e)
+          Messages.showErrorDialog(project, AndroidBundle.message("android.ddms.screenshot.generic.error", e),
+                                   AndroidBundle.message("android.ddms.actions.screenshot.title"))
         }
       }
-    }.queue();
+    }.queue()
   }
 
-  /** Returns the list of available frames for the given image. */
-  private static @NotNull List<FramingOption> getFramingOptions(@NotNull ScreenshotImage screenshotImage) {
-    double imgAspectRatio = screenshotImage.getWidth() / (double)screenshotImage.getHeight();
-    ScreenOrientation orientation = imgAspectRatio >= (1 - ImageUtils.EPSILON) ? ScreenOrientation.LANDSCAPE : ScreenOrientation.PORTRAIT;
-
-    List<DeviceArtDescriptor> allDescriptors = DeviceArtDescriptor.getDescriptors(null);
-    ImmutableList.Builder<FramingOption> framingOptions = ImmutableList.builder();
-    for (DeviceArtDescriptor descriptor : allDescriptors) {
-      if (descriptor.canFrameImage(screenshotImage.getImage(), orientation)) {
-        framingOptions.add(new DeviceArtFramingOption(descriptor));
-      }
-    }
-    return framingOptions.build();
+  /** Returns the list of available frames for the given image.  */
+  private fun getFramingOptions(screenshotImage: ScreenshotImage): List<DeviceArtFramingOption> {
+    val imgAspectRatio = screenshotImage.width.toDouble() / screenshotImage.height
+    val orientation = if (imgAspectRatio >= 1 - ImageUtils.EPSILON) ScreenOrientation.LANDSCAPE else ScreenOrientation.PORTRAIT
+    val allDescriptors = DeviceArtDescriptor.getDescriptors(null)
+    return allDescriptors.filter { it.canFrameImage(screenshotImage.image, orientation) }.map { DeviceArtFramingOption(it) }
   }
 
-  private static int getDefaultFrame(@NotNull List<@NotNull FramingOption> frames, @NotNull ScreenshotImage screenshotImage,
-                                     @Nullable String deviceModel) {
-    int index = -1;
-
+  private fun getDefaultFrame(frames: List<FramingOption>, screenshotImage: ScreenshotImage, deviceModel: String?): Int {
     if (deviceModel != null) {
-      index = findFrameIndexForDeviceModel(frames, deviceModel);
+      val index = findFrameIndexForDeviceModel(frames, deviceModel)
+      if (index >= 0) {
+        return index
+      }
     }
-
-    if (index < 0) {
-      // Assume that if the min resolution is > 1280, then we are on a tablet.
-      String defaultDevice = Math.min(screenshotImage.getWidth(), screenshotImage.getHeight()) > 1280 ? "Generic Tablet" : "Generic Phone";
-      index = findFrameIndexForDeviceModel(frames, defaultDevice);
-    }
-
+    // Assume that if the min resolution is > 1280, then we are on a tablet.
+    val defaultDevice = if (min(screenshotImage.width, screenshotImage.height) > 1280) "Generic Tablet" else "Generic Phone"
     // If we can't find anything (which shouldn't happen since we should get the Generic Phone/Tablet),
     // default to the first one.
-    if (index < 0) {
-      index = 0;
-    }
-
-    return index;
+    return findFrameIndexForDeviceModel(frames, defaultDevice).coerceAtLeast(0)
   }
 
-  private static int findFrameIndexForDeviceModel(@NotNull List<FramingOption> frames, @NotNull String deviceModel) {
-    for (int i = 0; i < frames.size(); i++) {
-      FramingOption frame = frames.get(i);
-      if (frame.getDisplayName().equalsIgnoreCase(deviceModel)) {
-        return i;
-      }
-    }
-    return -1;
+  private fun findFrameIndexForDeviceModel(frames: List<FramingOption>, deviceModel: String): Int {
+    return frames.indexOfFirst { it.displayName.equals(deviceModel, ignoreCase = true) }
   }
 }
