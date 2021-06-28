@@ -49,10 +49,13 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ScreenshotAction extends AbstractDeviceAction {
+/**
+ * Captures a screenshot of the device display.
+ */
+public class DeviceScreenshotAction extends AbstractDeviceAction {
   private final Project myProject;
 
-  public ScreenshotAction(@NotNull Project project, @NotNull DeviceContext context) {
+  public DeviceScreenshotAction(@NotNull Project project, @NotNull DeviceContext context) {
     super(context, AndroidBundle.message("android.ddms.actions.screenshot"),
           AndroidBundle.message("android.ddms.actions.screenshot.description"),
           StudioIcons.Logcat.SNAPSHOT);
@@ -104,7 +107,7 @@ public class ScreenshotAction extends AbstractDeviceAction {
           viewer.show();
         }
         catch (Exception e) {
-          Logger.getInstance(ScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
+          Logger.getInstance(DeviceScreenshotAction.class).warn("Error while displaying screenshot viewer: ", e);
           Messages.showErrorDialog(project,
                                    AndroidBundle.message("android.ddms.screenshot.generic.error", e),
                                    AndroidBundle.message("android.ddms.actions.screenshot.title"));
