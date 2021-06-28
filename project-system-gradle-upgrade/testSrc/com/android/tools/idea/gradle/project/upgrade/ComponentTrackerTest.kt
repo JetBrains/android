@@ -1,0 +1,345 @@
+/*
+ * Copyright (C) 2021 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.project.upgrade
+
+import com.android.ide.common.repository.GradleVersion
+import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_COMPONENT_EVENT
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_PROCESSOR_EVENT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Java8DefaultProcessorSettings
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AGP_CLASSPATH_DEPENDENCY
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GMAVEN_REPOSITORY
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_BUILD_TYPE_USE_PROGUARD
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_IMPLEMENTATION_PROPERTIES
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.REMOVE_SOURCE_SET_JNI
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase.assertSize
+import org.junit.Test
+
+@RunsInEdt
+class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
+  @Test
+  fun testVersionInLiteralUsageTracker() {
+    writeToBuildFile(TestFileName("AgpClasspathDependency/VersionInLiteral"))
+    val processor = AgpClasspathDependencyRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(AGP_CLASSPATH_DEPENDENCY).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("4.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(AGP_CLASSPATH_DEPENDENCY).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testAGP2ProjectUsageTracker() {
+    writeToBuildFile(TestFileName("GMavenRepository/AGP2Project"))
+    val processor = GMavenRepositoryRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("2.3.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GMAVEN_REPOSITORY).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("2.3.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GMAVEN_REPOSITORY).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testNoGradleWrapperUsageTracker() {
+    val processor = GradleVersionRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("3.6.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("3.6.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GRADLE_VERSION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(0))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("3.6.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GRADLE_VERSION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(0))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testKotlinPluginVersionInLiteral() {
+    writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInLiteral"))
+    val processor = GradlePluginsRefactoringProcessor(project, GradleVersion.parse("3.4.0"), GradleVersion.parse("4.1.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.4.0").setNewAgpVersion("4.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GRADLE_VERSION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.4.0").setNewAgpVersion("4.1.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(GRADLE_VERSION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1))
+        .build(),
+    )
+  }
+
+    @Test
+  fun testSimpleApplicationNoLanguageLevelUsageTracker() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
+                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
+                                                       .setNoLanguageLevelAction(
+                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.INSERT_OLD_DEFAULT)))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2))
+        .build(),
+
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
+                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
+                                                       .setNoLanguageLevelAction(
+                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.INSERT_OLD_DEFAULT)))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2))
+        .build()
+    )
+  }
+
+  @Test
+  fun testSimpleApplicationNoLanguageLevelAcceptNewUsageTracker() {
+    writeToBuildFile(TestFileName("Java8Default/SimpleApplicationNoLanguageLevel"))
+    val processor = Java8DefaultRefactoringProcessor(project, GradleVersion.parse("4.1.2"), GradleVersion.parse("4.2.0"))
+    processor.noLanguageLevelAction = Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
+                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
+                                                       .setNoLanguageLevelAction(
+                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2))
+        .build(),
+
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.1.2").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(JAVA8_DEFAULT).setIsEnabled(true)
+                            .setJava8DefaultSettings(Java8DefaultProcessorSettings.newBuilder()
+                                                       .setNoLanguageLevelAction(
+                                                         Java8DefaultProcessorSettings.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT)))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2))
+        .build()
+    )
+  }
+
+  @Test
+  fun testSimpleApplicationUsageTracker() {
+    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(COMPILE_RUNTIME_CONFIGURATION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(6))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("3.5.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(COMPILE_RUNTIME_CONFIGURATION).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testClasspathDependenciesUsageTracker() {
+    writeToBuildFile(TestFileName("FabricCrashlytics/FabricClasspathDependencies"))
+    val processor = FabricCrashlyticsRefactoringProcessor(project, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.2.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(FABRIC_CRASHLYTICS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(5))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.0.0").setNewAgpVersion("4.2.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(FABRIC_CRASHLYTICS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(5))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testRemoveJniSingleBlockUsageTracker() {
+    writeToBuildFile(TestFileName("RemoveSourceSetJni/SingleBlock"))
+    val processor = REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_SOURCE_SET_JNI).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(1))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_SOURCE_SET_JNI).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(1))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testAaptOptionsToAndroidResourcesUsageTracker() {
+    writeToBuildFile(TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResources"))
+    val processor =
+      MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_ANDROID_RESOURCES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(6))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_ANDROID_RESOURCES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(6))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testRemoveUseProguardTwoBuildTypesUsageTracker() {
+    writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
+    val processor =
+      REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_BUILD_TYPE_USE_PROGUARD).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_BUILD_TYPE_USE_PROGUARD).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testDynamicFeature420TemplateUsageTracker() {
+    writeToBuildFile(TestFileName("RemoveImplementationProperties/DynamicFeature420Template"))
+    val processor = RemoveImplementationPropertiesRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("7.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_IMPLEMENTATION_PROPERTIES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(4))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("4.2.0").setNewAgpVersion("7.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(REMOVE_IMPLEMENTATION_PROPERTIES).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(4))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testAdbOptionsToInstallationUsageTracker() {
+    writeToBuildFile(TestFileName("MigrateAdbOptionsToInstallation/AdbOptionsToInstallation"))
+    val processor =
+      MIGRATE_ADB_OPTIONS_TO_INSTALLATION.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testFailureRetentionToEmulatorSnapshotsUsageTracker() {
+    writeToBuildFile(TestFileName("MigrateFailureRetentionToEmulatorSnapshots/FailureRetentionToEmulatorSnapshots"))
+    val processor = MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS
+      .RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(3))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(3))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testJacocoToTestCoverageUsageTracker() {
+    writeToBuildFile(TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverage"))
+    val processor =
+      MIGRATE_JACOCO_TO_TEST_COVERAGE.RefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(UNKNOWN_ASSISTANT_COMPONENT_KIND).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2))
+        .build(),
+    )
+  }
+
+  private fun checkComponentEvents(vararg expectedEvents: UpgradeAssistantComponentEvent) {
+    val events = tracker.usages
+      .filter { it.studioEvent.kind == UPGRADE_ASSISTANT_COMPONENT_EVENT || it.studioEvent.kind == UPGRADE_ASSISTANT_PROCESSOR_EVENT }
+      .sortedBy { it.timestamp }
+      .map { it.studioEvent }
+    val processorEvents = events.filter { it.kind == UPGRADE_ASSISTANT_PROCESSOR_EVENT }
+    assertSize(0, processorEvents)
+    val componentEvents = events.filter { it.kind == UPGRADE_ASSISTANT_COMPONENT_EVENT }
+    assertSize(expectedEvents.size, componentEvents)
+    assertThat(componentEvents.map { it.upgradeAssistantComponentEvent }.toList()).isEqualTo(expectedEvents.toList())
+  }
+}
