@@ -30,7 +30,8 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageName() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
     invokeAssembleTask();
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     // See testData/Projects/runConfig/activity/build.gradle
     assertEquals("from.gradle.debug", provider.getPackageName());
     // Without a specific test package name from the Gradle file, we just get a test prefix.
@@ -39,7 +40,8 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
 
   public void testGetPackageNameWithoutBuild() throws Exception {
     loadProject(RUN_CONFIG_ACTIVITY);
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     // Use package name when application id is not generated.
     assertEquals("com.example.unittest", provider.getPackageName());
     // Without a specific test package name from the Gradle file, we just get a test prefix.
@@ -49,14 +51,16 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageNameForTestOnlyModule() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
     invokeAssembleTask();
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     assertEquals("com.example.android.app", provider.getPackageName());
     assertEquals("com.example.android.app.testmodule", provider.getTestPackageName());
   }
 
   public void testGetPackageNameForTestOnlyModuleWithoutBuild() throws Exception {
     loadProject(TEST_ONLY_MODULE, "test");
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     assertEquals("com.example.android.app", provider.getPackageName());
     assertEquals("com.example.android.app", provider.getTestPackageName());
   }
@@ -64,14 +68,16 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageNameForDynamicFeatureModule() throws Exception {
     loadProject(DYNAMIC_APP, "feature1");
     invokeAssembleTask();
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     assertEquals("google.simpleapplication", provider.getPackageName());
     assertEquals("google.simpleapplication.test", provider.getTestPackageName());
   }
 
   public void testGetPackageNameForDynamicFeatureModuleWithoutBuild() throws Exception {
     loadProject(DYNAMIC_APP, "feature1");
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     assertEquals("google.simpleapplication", provider.getPackageName());
     assertEquals("com.example.feature1.test", provider.getTestPackageName());
   }
@@ -79,7 +85,8 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageNameForLibraryModule() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIPROJECT, "module2");
     invokeAssembleTask();
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     // Note that Android library module uses self-instrumenting APK meaning there is only an instrumentation APK.
     // So both getPackageName() and getTestPackageName() should return library's package name suffixed with ".test".
     // Also Note that build does not make impact on application id of library modules.
@@ -89,7 +96,8 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
 
   public void testGetPackageNameForLibraryModuleWithoutBuild() throws Exception {
     loadProject(TEST_ARTIFACTS_MULTIPROJECT, "module2");
-    ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider provider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
     // Note that Android library module uses self-instrumenting APK meaning there is only an instrumentation APK.
     // So both getPackageName() and getTestPackageName() should return library's package name suffixed with ".test".
     // Also Note that build does not make impact on application id of library modules.

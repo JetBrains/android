@@ -49,7 +49,8 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
 
-  public GradleApplicationIdProvider(@NotNull AndroidFacet facet) {
+  @Deprecated
+  private GradleApplicationIdProvider(@NotNull AndroidFacet facet) {
     this(facet, () -> null);
   }
 
@@ -199,5 +200,13 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   private static Logger getLogger() {
     return Logger.getInstance(GradleApplicationIdProvider.class);
+  }
+
+  /**
+   * DO NOT USE! Using this implementation in tests adds an implicit dependency on the Gradle project system implementation details.
+   */
+  @Deprecated
+  public static GradleApplicationIdProvider createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(@NotNull AndroidFacet facet) {
+    return new GradleApplicationIdProvider(facet);
   }
 }

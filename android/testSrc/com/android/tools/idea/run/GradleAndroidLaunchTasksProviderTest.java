@@ -83,7 +83,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -126,7 +127,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -167,7 +169,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -206,7 +209,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -245,7 +249,8 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider = new GradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider =
+      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
