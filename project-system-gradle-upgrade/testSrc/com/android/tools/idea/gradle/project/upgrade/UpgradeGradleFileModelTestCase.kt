@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.GradleFileModelTestCase
 import org.jetbrains.android.AndroidTestBase
+import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.runner.RunWith
@@ -25,8 +29,20 @@ import org.junit.runners.Parameterized
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized::class)
 abstract class UpgradeGradleFileModelTestCase : GradleFileModelTestCase() {
+  protected val tracker = TestUsageTracker(VirtualTimeScheduler())
+
   @Before
   fun setUpTestDataPath() {
     testDataPath = AndroidTestBase.getModulePath("project-system-gradle-upgrade") + "/testData/upgrade"
+  }
+
+  @Before
+  fun setUpTestUsageTracker() {
+    UsageTracker.setWriterForTest(tracker)
+  }
+
+  @After
+  fun tearDownTestUsageTracker() {
+    UsageTracker.cleanAfterTesting()
   }
 }
