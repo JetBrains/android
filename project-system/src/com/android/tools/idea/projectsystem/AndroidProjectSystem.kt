@@ -28,7 +28,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
@@ -61,6 +60,9 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   /**
    * Returns the best effort [ApplicationIdProvider] for the given project and [runConfiguration].
    *
+   * NOTE: The returned application id provider represents the current build configuration and may become invalid if it changes,
+   *       hence this reference should not be cached.
+   *
    * Some project systems may be unable to retrieve the package name if no [runConfiguration] is provided or before
    * the project has been successfully built. The returned [ApplicationIdProvider] will throw [ApkProvisionException]'s
    * or return a name derived from incomplete configuration in this case.
@@ -70,6 +72,9 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
 
   /**
    * Returns the [ApkProvider] for the given [runConfiguration].
+   *
+   * NOTE: The returned apk provider represents the current build configuration and may become invalid if it changes,
+   *       hence this reference should not be cached.
    *
    * Returns `null`, if the project system does not recognize the [runConfiguration] as a supported one.
    */
