@@ -37,12 +37,14 @@ import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 /**
  * Triggers the build of the given [modules] by calling the compile`Variant`Kotlin task
  */
 private fun requestKotlinBuild(project: Project, modules: Set<Module>, requestedByUser: Boolean) {
   fun createBuildTasks(module: Module): String? {
+    if (module.isDisposed) return null
     val gradlePath = GradleProjects.getGradleModulePath(module) ?: return null
     val currentVariant = AndroidModuleModel.get(module)?.selectedVariant?.name?.capitalize() ?: return null
     // We need to get the compileVariantKotlin task name. There is not direct way to get it from the model so, for now,
@@ -59,6 +61,7 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
       .filter { it.second.isNotEmpty() }
       .toMap()
 
+  if (project.isDisposed) return
   val moduleFinder = ProjectStructure.getInstance(project).moduleFinder
 
   createBuildTasks(modules).forEach {
@@ -74,12 +77,6 @@ private fun requestKotlinBuild(project: Project, modules: Set<Module>, requested
   }
 }
 
-/**
- * Triggers the build of the given [modules] by calling the compileSourcesDebug task
- */
-private fun requestCompileJavaBuild(project: Project, modules: Set<Module>) =
-  GradleBuildInvoker.getInstance(project).compileJava(modules.toTypedArray(), TestCompileType.NONE)
-
 internal fun requestBuild(project: Project, file: VirtualFile, requestByUser: Boolean) {
   requestBuild(project, listOf(file), requestByUser)
 }
@@ -89,33 +86,24 @@ internal fun requestBuild(project: Project, files: Collection<VirtualFile>, requ
     return
   }
 
-  if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
-    // For non-gradle projects, redirect build to AndroidProjectSystem
+  // We build using the ProjectSystem interface if the project is not Gradle OR if it is gradle, and the Kotlin only build is disabled.
+  val buildWithProjectSystem = !GradleProjectInfo.getInstance(project).isBuildWithGradle
+                               || !StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()
+  if (buildWithProjectSystem) {
     ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileFilesAndDependencies(files.map { it.getSourceFile() })
     return
   }
 
+  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
+  // a few extra tasks that are not required for the preview to refresh
+
   // TODO: Move gradle compose builds to AndroidProjectSystem
   // For Gradle projects, build modules associated with files instead
-  files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }.forEach { requestBuild(project, it, requestByUser) }
-}
-
-private fun requestBuild(project: Project, module: Module, requestByUser: Boolean) {
-  if (project.isDisposed || module.isDisposed) {
-    return
-  }
-
-  val modules = mutableSetOf(module)
-  ModuleUtil.collectModulesDependsOn(module, modules)
-
-  // When COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD is enabled, we just trigger the module:compileDebugKotlin task. This avoids executing
-  // a few extra tasks that are not required for the preview to refresh.
-  if (StudioFlags.COMPOSE_PREVIEW_ONLY_KOTLIN_BUILD.get()) {
-    requestKotlinBuild(project, modules, requestByUser)
-  }
-  else {
-    requestCompileJavaBuild(project, modules)
-  }
+  files.mapNotNull { ModuleUtil.findModuleForFile(it, project) }
+    .toSet()
+    .ifNotEmpty {
+      requestKotlinBuild(project, this, requestByUser)
+    }
 }
 
 fun hasExistingClassFile(psiFile: PsiFile?) = if (psiFile is PsiClassOwner) {

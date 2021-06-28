@@ -59,6 +59,7 @@ iml_module(
         "//tools/base/build-system:studio_repo",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
+    test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
     test_tags = [
