@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.refactoring.rtl;
 
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import javax.swing.JCheckBox;
@@ -50,6 +51,11 @@ public class RtlSupportDialog extends DialogWrapper {
     setDefaultValues();
 
     init();
+  }
+
+  @Override
+  protected String getHelpId() {
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rtl-refactor-help";
   }
 
   private void setDefaultValues() {
