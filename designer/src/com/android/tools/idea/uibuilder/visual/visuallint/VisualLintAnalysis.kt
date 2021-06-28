@@ -40,6 +40,7 @@ fun analyzeAfterModelUpdate(result: RenderResult, sceneManager: LayoutlibSceneMa
   issues.addAll(analyzeBounds(result, model))
   issues.addAll(analyzeBottomNavigation(result, sceneManager))
   issues.addAll(analyzeOverlap(result, model))
+  issues.addAll(analyzeLongText(result, model))
   return ImmutableList.copyOf(issues)
 }
 
@@ -146,6 +147,39 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableLis
   }
   for (child in children) {
     findOverlapIssues(child, model, issues)
+  }
+}
+
+/**
+ * Analyze the given [RenderResult] for issues where a line of text is longer than 120 characters,
+ * and return all such issues.
+ */
+private fun analyzeLongText(renderResult: RenderResult, model: NlModel): List<VisualLintRenderIssue> {
+  val issues = mutableListOf<VisualLintRenderIssue>()
+  for (root in renderResult.rootViews) {
+    findLongText(root, model, issues)
+  }
+  return issues
+}
+
+private fun findLongText(root: ViewInfo, model: NlModel, issues: MutableList<VisualLintRenderIssue>) {
+  if (root.viewObject is TextView) {
+    val layout = (root.viewObject as TextView).layout
+    for (i in 0 until layout.lineCount) {
+      val numChars = layout.getLineVisibleEnd(i) - layout.getLineStart(i) + 1
+      if (numChars > 120) {
+        val renderIssue = RenderErrorModel.Issue.builder()
+          .setSummary("${simpleName(root)} has lines containing more than 120 characters")
+          .setSeverity(HighlightSeverity.WARNING)
+          .build()
+        val component = componentFromViewInfo(root, model)
+        issues.add(VisualLintRenderIssue(renderIssue, model, component))
+        break
+      }
+    }
+  }
+  for (child in root.children) {
+    findLongText(child, model, issues)
   }
 }
 
