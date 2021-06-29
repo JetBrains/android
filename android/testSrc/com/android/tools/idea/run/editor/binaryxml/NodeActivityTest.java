@@ -16,18 +16,19 @@
 package com.android.tools.idea.run.editor.binaryxml;
 
 import com.android.tools.idea.run.activity.DefaultActivityLocator;
-import com.android.tools.idea.run.activity.manifest.ManifestActivityInfo;
 import com.android.tools.idea.run.activity.manifest.NodeActivity;
+import com.android.tools.manifest.parser.ManifestInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class ManifestActivityInfoParserTest {
+public class NodeActivityTest {
 
   // This test can be run alone with command:
   // bazel test //tools/adt/idea/android:intellij.android.core.tests_tests__all --test_filter=run.editor.binaryxml
@@ -35,14 +36,14 @@ public class ManifestActivityInfoParserTest {
 
   @Test
   public void binaryManifestTest() throws IOException {
-    URL url = ManifestActivityInfoParserTest.class.getClassLoader().getResource(BASE + "manifestWithActivity.bxml");
+    URL url = NodeActivityTest.class.getClassLoader().getResource(BASE + "manifestWithActivity.bxml");
     Assert.assertTrue(" ", url != null);
     try (InputStream input = url.openStream()) {
-      ManifestActivityInfo manifest = ManifestActivityInfo.parseBinaryFromStream(input);
+      ManifestInfo manifest = ManifestInfo.parseBinaryFromStream(input);
 
-      Assert.assertEquals("Application id", "com.example.activityapplication", manifest.packageName());
+      Assert.assertEquals("Application id", "com.example.activityapplication", manifest.getApplicationId());
 
-      List<NodeActivity> activities = manifest.activities();
+      List<NodeActivity> activities = manifest.activities().stream().map(NodeActivity::new).collect(Collectors.toList());
       Assert.assertEquals("Num activities", 5, activities.size());
 
       DefaultActivityLocator.ActivityWrapper activity = getActivityByQName("com.example.activityapplication.MainActivity", activities);
@@ -53,7 +54,7 @@ public class ManifestActivityInfoParserTest {
 
       // Activity alias
       activity = getActivityByQName("com.example.activityapplication.foo", activities);
-      Assert.assertNotEquals("Aliased Activity",null, activity);
+      Assert.assertNotEquals("Aliased Activity", null, activity);
 
 
       activity = getActivityByQName("com.example.activityapplication.MissingActivity", activities);
@@ -81,11 +82,11 @@ public class ManifestActivityInfoParserTest {
 
   @Nullable
   private static NodeActivity getActivityByQName(@NotNull String qname, @NotNull List<NodeActivity> activities) {
-      for(NodeActivity activity : activities) {
-        if (qname.equals(activity.getQualifiedName())) {
-          return activity;
-        }
+    for (NodeActivity activity : activities) {
+      if (qname.equals(activity.getQualifiedName())) {
+        return activity;
       }
-      return null;
+    }
+    return null;
   }
 }

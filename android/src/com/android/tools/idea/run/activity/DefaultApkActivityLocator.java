@@ -20,9 +20,9 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.activity.manifest.IntentFilter;
-import com.android.tools.idea.run.activity.manifest.ManifestActivityInfo;
 import com.android.tools.idea.run.activity.manifest.NodeActivity;
+import com.android.tools.manifest.parser.ManifestInfo;
+import com.android.tools.manifest.parser.components.IntentFilter;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.InputStream;
@@ -30,9 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javaslang.API;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  * Implementation of {@link ActivityLocator} that provides the default activity class name by reading the
  * contents of the manifest embedded in APK(s) from an {@link ApkProvider}.
  */
-public class DefaultApkActivityLocator extends ActivityLocator{
+public class DefaultApkActivityLocator extends ActivityLocator {
 
   private static final Logger LOG = Logger.getInstance(DefaultApkActivityLocator.class);
 
@@ -61,7 +61,8 @@ public class DefaultApkActivityLocator extends ActivityLocator{
     Collection<ApkInfo> apks;
     try {
       apks = myApkProvider.getApks(device);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       throw new ActivityLocatorException("Unable to list apks", e);
     }
 
@@ -87,7 +88,7 @@ public class DefaultApkActivityLocator extends ActivityLocator{
       errorMessage.append("Received projects:\n");
       for (ApkInfo apkInfo : apks) {
         errorMessage.append("  " + apkInfo.getApplicationId() + " containing :\n" + apkInfo.getFiles());
-        for(ApkFileUnit fileUnit : apkInfo.getFiles()) {
+        for (ApkFileUnit fileUnit : apkInfo.getFiles()) {
           errorMessage.append("    " + fileUnit.getApkFile());
         }
       }
@@ -96,32 +97,32 @@ public class DefaultApkActivityLocator extends ActivityLocator{
 
     List<NodeActivity> activities = new ArrayList<>();
     ApkInfo apkInfo = apks.iterator().next();
-      for(ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
-        // Only process .apk archives.
-        File file = apkFileUnit.getApkFile();
-        String ext = file.getName().toLowerCase(Locale.US);
-        if (!ext.endsWith(".apk")) {
+    for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
+      // Only process .apk archives.
+      File file = apkFileUnit.getApkFile();
+      String ext = file.getName().toLowerCase(Locale.US);
+      if (!ext.endsWith(".apk")) {
+        continue;
+      }
+
+      // Open all apks and par´AndroidManifest.xml if found.
+      try (ZipFile zipFile = new ZipFile(file)) {
+        ZipEntry manifestEntry = zipFile.getEntry(SdkConstants.FN_ANDROID_MANIFEST_XML);
+        if (manifestEntry == null) {
           continue;
         }
 
-        // Open all apks and par´AndroidManifest.xml if found.
-        try (ZipFile zipFile = new ZipFile(file)){
-          ZipEntry manifestEntry = zipFile.getEntry(SdkConstants.FN_ANDROID_MANIFEST_XML);
-          if (manifestEntry == null) {
-            continue;
-          }
-
-          // Parse manifest (assumed to be in BinaryFormat, since it is retrieved from an APK)
-          try (InputStream input = zipFile.getInputStream(manifestEntry)) {
-            ManifestActivityInfo manifest = ManifestActivityInfo.parseBinaryFromStream(input);
-            activities.addAll(manifest.activities());
-          }
-        }
-        catch (Exception e) {
-          LOG.warn("Unable to parse '" + file.getName() +"' for default activity", e);
-          continue;
+        // Parse manifest (assumed to be in BinaryFormat, since it is retrieved from an APK)
+        try (InputStream input = zipFile.getInputStream(manifestEntry)) {
+          ManifestInfo manifest = ManifestInfo.parseBinaryFromStream(input);
+          activities.addAll(manifest.activities().stream().map(NodeActivity::new).collect(Collectors.toList()));
         }
       }
+      catch (Exception e) {
+        LOG.warn("Unable to parse '" + file.getName() + "' for default activity", e);
+        continue;
+      }
+    }
 
     String defaultActivityName = DefaultActivityLocator.computeDefaultActivity(activities);
 
@@ -135,13 +136,13 @@ public class DefaultApkActivityLocator extends ActivityLocator{
   }
 
   private static void printActivities(List<NodeActivity> activities, StringBuilder message) {
-    for(NodeActivity activity  : activities) {
-      message.append("  " + activity.getQualifiedName() +":\n");
-      for(IntentFilter intent : activity.getIntentFilters()) {
+    for (NodeActivity activity : activities) {
+      message.append("  " + activity.getQualifiedName() + ":\n");
+      for (IntentFilter intent : activity.getIntentFilters()) {
         for (String action : intent.getActions()) {
           message.append("    " + action + "\n");
         }
-        for (String category: intent.getCategories()) {
+        for (String category : intent.getCategories()) {
           message.append("    " + category + "\n");
         }
       }
