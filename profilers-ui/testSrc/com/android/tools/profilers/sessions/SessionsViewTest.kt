@@ -177,6 +177,7 @@ class SessionsViewTest {
 
   @Test
   fun testProcessDropdownUpToDate() {
+    myIdeProfilerServices.enableProfileable(false) // TODO remove test when flag stable
     val device1 = Common.Device.newBuilder()
       .setDeviceId(1).setManufacturer("Manufacturer1").setModel("Model1").setState(Common.Device.State.ONLINE).build()
     val device2 = Common.Device.newBuilder()
@@ -378,7 +379,7 @@ class SessionsViewTest {
     var selectionAction = mySessionsView.processSelectionAction
     assertThat(selectionAction.childrenActions.any { c -> c.text == "Manufacturer1 Model1" }).isFalse()
     val aliveDeviceAction = selectionAction.childrenActions.first { c -> c.text == "Manufacturer2 Model2" }
-    assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(1)
+    assertThat(aliveDeviceAction.childrenActionCount).isEqualTo(3) // the process + no other debuggables + no other profileables
     val processAction1 = aliveDeviceAction.childrenActions.first { c -> c.text == "Process4 (40)" }
     assertThat(processAction1.childrenActionCount).isEqualTo(0)
   }

@@ -141,7 +141,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we support profileable processes
    */
-  private boolean myProfileableEnabled = false;
+  private boolean myProfileableEnabled = true;
 
   /**
    * Whether we support profileable processes in Q & R
