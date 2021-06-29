@@ -16,19 +16,10 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.detector.api.Issue;
-import org.jetbrains.android.inspections.lint.TypographyQuickFix;
-import org.jetbrains.annotations.NotNull;
 
 abstract class AndroidLintTypographyInspectionBase extends AndroidLintInspectionBase {
   public AndroidLintTypographyInspectionBase(String displayName, Issue issue) {
     super(displayName, issue);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
-    return new LintIdeQuickFix[]{new TypographyQuickFix(myIssue, message)};
   }
 }
