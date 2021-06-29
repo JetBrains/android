@@ -595,14 +595,14 @@ class AndroidLintTest : AndroidTestCase() {
 
   fun testTypographyDashes() {
     doTestWithFix(AndroidLintTypographyDashesInspection(),
-                  AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
+                  "Replace with –",
                   "/res/values/typography.xml", "xml")
   }
 
   fun testTypographyQuotes() { // Re-enable typography quotes, normally off
     myFixture.copyFileToProject("$globalTestDir/lint.xml", "lint.xml")
     doTestWithFix(AndroidLintTypographyQuotesInspection(),
-                  AndroidBundle.message("android.lint.fix.replace.with.suggested.characters"),
+                  "Replace with ‘aba’",
                   "/res/values/typography.xml", "xml")
   }
 

@@ -15,20 +15,11 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.TypographyDetector;
-import org.jetbrains.android.inspections.lint.TypographyQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintTypographyFractionsInspection extends AndroidLintTypographyInspectionBase {
   public AndroidLintTypographyFractionsInspection() {
     super(AndroidBundle.message("android.lint.inspections.typography.fractions"), TypographyDetector.FRACTIONS);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
-    return new LintIdeQuickFix[]{new TypographyQuickFix(myIssue, message)};
   }
 }
