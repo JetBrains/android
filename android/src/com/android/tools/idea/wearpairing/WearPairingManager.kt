@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.util.net.NetUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -57,9 +58,14 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
 
-  private var pairedDevicesAreOnline = false
-  private var pairedPhoneDevice: PairingDevice? = null
-  private var pairedWearDevice: PairingDevice? = null
+  private data class PhoneWearPair(
+    val phone: PairingDevice,
+    val wear: PairingDevice,
+    var allDevicesOnline: Boolean,
+    var hostPort: Int
+  )
+
+  private val pairedDevicesTable = hashMapOf<String, PhoneWearPair>()
 
   @Synchronized
   fun setDeviceListListener(model: WearDevicePairingModel,
@@ -84,39 +90,48 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun setPairedDevices(phone: PairingDevice, wear: PairingDevice) {
-    pairedPhoneDevice = phone.disconnectedCopy(isPaired = true)
-    pairedWearDevice = wear.disconnectedCopy(isPaired = true)
-    pairedDevicesAreOnline = true
+  fun getPairedDevices(deviceID: String): Pair<PairingDevice?, PairingDevice?> {
+    val phoneWearPair = pairedDevicesTable[deviceID]
+    return Pair(phoneWearPair?.phone, phoneWearPair?.wear)
   }
 
-  @Synchronized
-  fun getPairedDevices(): Pair<PairingDevice?, PairingDevice?> {
-    return Pair(pairedPhoneDevice, pairedWearDevice)
-  }
+  suspend fun createPairedDeviceBridge(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice, connect: Boolean = true) {
+    removePairedDevices(wear.deviceID, restartWearGmsCore = false)
 
-  suspend fun checkCloudSyncIsEnabled(phone: PairingDevice): Boolean {
-    getConnectedDevices()[phone.deviceID]?.also {
-      val localIdPattern = "Cloud Sync setting: true"
-      val output = it.runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
-      return output.isNotEmpty()
+    val hostPort = runCatching { NetUtils.findAvailableSocketPort() }.getOrDefault(5602)
+    val phoneWearPair = PhoneWearPair(
+      phone = phone.disconnectedCopy(isPaired = true),
+      wear = wear.disconnectedCopy(isPaired = true),
+      allDevicesOnline = true,
+      hostPort = hostPort
+    )
+
+    pairedDevicesTable[phone.deviceID] = phoneWearPair
+    pairedDevicesTable[wear.deviceID] = phoneWearPair
+
+    if (connect) {
+      phoneDevice.runCatching { createForward(hostPort, 5601) }
+      wearDevice.runCatching { createReverse(5601, hostPort) }
+
+      restartGmsCore(wearDevice)
     }
-    return false
   }
 
   @Synchronized
-  suspend fun removePairedDevices(restartWearGmsCore: Boolean = true) {
+  suspend fun removePairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) {
     try {
-      val phoneDeviceID = pairedPhoneDevice?.deviceID ?: return
-      val wearDeviceID = pairedWearDevice?.deviceID ?: return
+      val phoneWearPair = pairedDevicesTable[deviceID]
+      val phoneDeviceID = phoneWearPair?.phone?.deviceID ?: return
+      val wearDeviceID = phoneWearPair.wear.deviceID
 
-      pairedPhoneDevice = null
-      pairedWearDevice = null
+      pairedDevicesTable.remove(phoneDeviceID)
+      pairedDevicesTable.remove(wearDeviceID)
 
       val connectedDevices = getConnectedDevices()
       connectedDevices[phoneDeviceID]?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
-        runCatching { removeForward(5602) }
+        runCatching { removeForward(5601) } // Make sure there is no manual connection hanging around
+        runCatching { removeForward(phoneWearPair.hostPort) }
       }
 
       connectedDevices[wearDeviceID]?.apply {
@@ -132,6 +147,15 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
     }
 
     updateDevicesChannel.offer(Unit)
+  }
+
+  suspend fun checkCloudSyncIsEnabled(phone: PairingDevice): Boolean {
+    getConnectedDevices()[phone.deviceID]?.also {
+      val localIdPattern = "Cloud Sync setting: true"
+      val output = it.runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
+      return output.isNotEmpty()
+    }
+    return false
   }
 
   override fun deviceConnected(device: IDevice) {
@@ -169,8 +193,10 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       }
     }
 
-    addDisconnectedPairedDeviceIfMissing(pairedPhoneDevice, deviceTable)
-    addDisconnectedPairedDeviceIfMissing(pairedWearDevice, deviceTable)
+    pairedDevicesTable.forEach { (_, phoneWearPair) ->
+      addDisconnectedPairedDeviceIfMissing(phoneWearPair.phone, deviceTable)
+      addDisconnectedPairedDeviceIfMissing(phoneWearPair.wear, deviceTable)
+    }
 
     withContext(uiThread(ModalityState.any())) {
       // Broadcast data to listeners
@@ -180,7 +206,9 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       updateSelectedDevice(phones, model.selectedPhoneDevice)
       updateSelectedDevice(wears, model.selectedWearDevice)
 
-      updateForwardState(connectedDevices)
+      pairedDevicesTable.forEach { (_, phoneWearPair) ->
+        updateForwardState(phoneWearPair, connectedDevices)
+      }
     }
   }
 
@@ -192,38 +220,36 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
       .associateBy { it.getDeviceID() }
   }
 
-  private suspend fun updateForwardState(onlineDevices: Map<String, IDevice>) {
-    val pairedPhoneDevice = this.pairedPhoneDevice ?: return
-    val pairedWearDevice = this.pairedWearDevice ?: return
-    val onlinePhone = onlineDevices[pairedPhoneDevice.deviceID]
-    val onlineWear = onlineDevices[pairedWearDevice.deviceID]
+  private suspend fun updateForwardState(phoneWearPair: PhoneWearPair, onlineDevices: Map<String, IDevice>) {
+    val onlinePhone = onlineDevices[phoneWearPair.phone.deviceID]
+    val onlineWear = onlineDevices[phoneWearPair.wear.deviceID]
     val bothDeviceOnline = onlinePhone != null && onlineWear != null
     try {
-      if (bothDeviceOnline && !pairedDevicesAreOnline) {
+      if (bothDeviceOnline && !phoneWearPair.allDevicesOnline) {
         // Both device are online, and before one (or both) were offline. Time to bridge
-        createDeviceBridge(onlinePhone!!, onlineWear!!)
-        showReconnectMessageBalloon(pairedPhoneDevice.displayName, pairedWearDevice.displayName, wizardAction)
+        createPairedDeviceBridge(phoneWearPair.phone, onlinePhone!!, phoneWearPair.wear, onlineWear!!)
+        showReconnectMessageBalloon(phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
       }
-      else if (!bothDeviceOnline && pairedDevicesAreOnline) {
+      else if (!bothDeviceOnline && phoneWearPair.allDevicesOnline) {
         // One (or both) devices are offline, and before were online. Show "connection dropped" message
-        val offlineName = if (onlinePhone == null) pairedPhoneDevice.displayName else pairedWearDevice.displayName
-        showConnectionDroppedBalloon(offlineName, pairedPhoneDevice.displayName, pairedWearDevice.displayName, wizardAction)
+        val offlineName = if (onlinePhone == null) phoneWearPair.phone.displayName else phoneWearPair.wear.displayName
+        showConnectionDroppedBalloon(offlineName, phoneWearPair.phone.displayName, phoneWearPair.wear.displayName, wizardAction)
       }
     }
     catch (ex: Throwable) {
       LOG.warn(ex)
     }
 
-    pairedDevicesAreOnline = bothDeviceOnline
+    phoneWearPair.allDevicesOnline = bothDeviceOnline
   }
 
-  private fun isPaired(deviceID: String): Boolean = (deviceID == pairedPhoneDevice?.deviceID || deviceID == pairedWearDevice?.deviceID)
+  private fun isPaired(deviceID: String): Boolean = pairedDevicesTable.containsKey(deviceID)
 
-  private suspend fun addDisconnectedPairedDeviceIfMissing(device: PairingDevice?, deviceTable: HashMap<String, PairingDevice>) {
-    val deviceID = device?.deviceID ?: return
+  private suspend fun addDisconnectedPairedDeviceIfMissing(device: PairingDevice, deviceTable: HashMap<String, PairingDevice>) {
+    val deviceID = device.deviceID
     if (!deviceTable.contains(deviceID)) {
       if (device.isEmulator) {
-         removePairedDevices() // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
+         removePairedDevices(deviceID) // Paired AVD was deleted/renamed - Don't add to the list and stop tracking its activity
       }
       else {
         deviceTable[deviceID] = device // Paired physical device - Add to be shown as "disconnected"
@@ -270,12 +296,6 @@ suspend fun IDevice.retrieveUpTime(): Double {
     return uptimeRes.split(' ').firstOrNull()?.toDoubleOrNull() ?: 0.0
   }
   return 0.0
-}
-
-suspend fun createDeviceBridge(phoneDevice: IDevice, wearDevice: IDevice) {
-  phoneDevice.runCatching { createForward(5602, 5601) }
-  wearDevice.runCatching { createReverse(5601, 5602) }
-  restartGmsCore(wearDevice)
 }
 
 private suspend fun killGmsCore(device: IDevice) {

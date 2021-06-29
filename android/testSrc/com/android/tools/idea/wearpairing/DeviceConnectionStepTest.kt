@@ -91,10 +91,6 @@ class DeviceConnectionStepTest : LightPlatform4TestCase() {
     fakeUi.waitForHeader("Install Wear OS Companion Application")
     assertThat(launched).isTrue()
     assertThat(model.removePairingOnCancel.get()).isTrue()
-
-    val (pairedPhoneDevice, pairedWearDevice) = WearPairingManager.getPairedDevices()
-    assertThat(pairedPhoneDevice?.deviceID).isEqualTo(phoneDevice.deviceID)
-    assertThat(pairedWearDevice?.deviceID).isEqualTo(wearDevice.deviceID)
   }
 
   @Test

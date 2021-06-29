@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.ddmlib.IDevice
 import com.android.flags.junit.RestoreFlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags.WEAR_DEVICE_PAIRING_ENABLED
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -201,7 +203,8 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     phoneDevice.launch = { throw RuntimeException("Can't launch on tests") } // launch fields needs some value, so it can be copied
     wearDevice.launch = phoneDevice.launch
-    WearPairingManager.setPairedDevices(phoneDevice, wearDevice)
+    val iDevice = Mockito.mock(IDevice::class.java)
+    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(
       phoneDevice.copy(isPaired = true),

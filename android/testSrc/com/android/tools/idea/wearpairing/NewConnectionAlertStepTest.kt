@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wearpairing
 
+import com.android.ddmlib.IDevice
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.observable.BatchInvoker
@@ -23,7 +24,9 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 
@@ -76,7 +79,8 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
     val previousPairedWear = wearDevice.copy(deviceID = "id3", isPaired = true).apply {
       launch = wearDevice.launch
     }
-    WearPairingManager.setPairedDevices(phoneDevice, previousPairedWear)
+    val iDevice = Mockito.mock(IDevice::class.java)
+    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, previousPairedWear, iDevice, connect = false) }
 
     val fakeUi = createNewConnectionAlertStepUi()
     fakeUi.waitForText("Disconnecting existing devices")

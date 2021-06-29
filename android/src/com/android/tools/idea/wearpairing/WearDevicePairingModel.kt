@@ -35,8 +35,15 @@ class WearDevicePairingModel : WizardModel() {
   val removePairingOnCancel: BoolProperty = BoolValueProperty()
 
   fun getNonSelectedRunningWearEmulators(): List<PairingDevice> {
+    val selectedPhoneId = selectedPhoneDevice.valueOrNull?.deviceID ?: return emptyList()
     val selectedWearId = selectedWearDevice.valueOrNull?.deviceID
-    return wearList.get().filter { it.isOnline() && it.deviceID != selectedWearId }
+    return wearList.get()
+      .filter { it.isOnline() && it.deviceID != selectedWearId}
+      .filter {
+        // If this WearOS Emulator is not paired, or is paired with the selected phone, we can kill it.
+        val pairedPhoneId = WearPairingManager.getPairedDevices(it.deviceID).first?.deviceID
+        pairedPhoneId == null || pairedPhoneId == selectedPhoneId
+      }
   }
 
   override fun handleFinished() {
@@ -44,9 +51,10 @@ class WearDevicePairingModel : WizardModel() {
   }
 
   override fun dispose() {
-    if (removePairingOnCancel.get()) {
+    val wear = selectedWearDevice.valueOrNull
+    if (wear != null && removePairingOnCancel.get()) {
       GlobalScope.launch(ioThread) {
-        WearPairingManager.removePairedDevices()
+        WearPairingManager.removePairedDevices(wear.deviceID)
       }
     }
   }
