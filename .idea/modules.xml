@@ -44,6 +44,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-checks/android.sdktools.lint-checks.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-checks/android.sdktools.lint-checks.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/lint/libs/lint-model/android.sdktools.lint-model.iml" filepath="$PROJECT_DIR$/../../base/lint/libs/lint-model/android.sdktools.lint-model.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" filepath="$PROJECT_DIR$/../../base/build-system/manifest-merger/android.sdktools.manifest-merger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" filepath="$PROJECT_DIR$/../../base/manifest-parser/android.sdktools.manifest-parser.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" filepath="$PROJECT_DIR$/../../base/mlkit-common/android.sdktools.mlkit-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" filepath="$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" filepath="$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" />

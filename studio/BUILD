@@ -207,6 +207,7 @@ studio_plugin(
             "//tools/base/lint:studio.android.sdktools.lint-api",
             "//tools/base/lint:studio.android.sdktools.lint-checks",
             "//tools/base/lint:studio.android.sdktools.lint-model",
+            "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser",
             "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common",
             "//tools/base/ninepatch:studio.android.sdktools.ninepatch",
             "//tools/base/perflib:studio.android.sdktools.perflib",

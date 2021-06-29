@@ -140,6 +140,7 @@
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.manifest-parser" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

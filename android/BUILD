@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/utp[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
     ],
 )
 
@@ -367,6 +368,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:layoutlib[test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
+        "//tools/base/manifest-parser:studio.android.sdktools.manifest-parser[module]",
     ],
 )
 
