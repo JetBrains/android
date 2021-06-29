@@ -146,7 +146,7 @@ public class ModuleFinder {
   @NotNull
   public Path getRootProjectPath(@NotNull Module module) {
     File moduleFolder = findModuleRootFolderPath(module);
-    if (moduleFolder != null) {
+    if (moduleFolder != null && !myIncludedProjectFolderByModuleFolder.isEmpty()) {
       String canonicalPath = toCanonicalPath(moduleFolder.getPath());
       if (myIncludedProjectFolderByModuleFolder.containsKey(canonicalPath)) {
         return myIncludedProjectFolderByModuleFolder.get(canonicalPath).toPath();

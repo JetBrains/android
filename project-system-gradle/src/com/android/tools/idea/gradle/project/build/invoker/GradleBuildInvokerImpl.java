@@ -80,7 +80,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemBuildEvent;
 import com.intellij.openapi.externalSystem.model.task.event.ExternalSystemTaskExecutionEvent;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemEventDispatcher;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -256,8 +255,9 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @Override
   public ListenableFuture<AssembleInvocationResult> executeAssembleTasks(@NotNull Module[] assembledModules,
                                                                          @NotNull List<Request> request) {
+    GradleRootPathFinder pathFinder = new GradleRootPathFinder();
     Map<String, List<Module>> modulesByRootProject = Arrays.stream(assembledModules)
-      .map(it -> Pair.create(it, ExternalSystemApiUtil.getExternalRootProjectPath(it)))
+      .map(it -> Pair.create(it, toSystemIndependentName(pathFinder.getProjectRootPath(it).toFile().getPath())))
       .filter(it -> it.second != null)
       .collect(groupingBy(it -> it.second, mapping(it -> it.first, toList())));
     ListenableFuture<GradleMultiInvocationResult> resultFuture = executeTasks(
