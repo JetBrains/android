@@ -40,6 +40,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -145,7 +146,6 @@ class ComposePreviewAnimationManagerTest {
   @Test
   fun subscriptionNewClockClearsPreviousClockAnimations() {
     val inspector = createAndOpenInspector()
-    val tabbedPane = inspector.tabbedPane
     assertTrue(inspector.tabbedPane.isEmptyVisible)
 
     val clock = TestClock()
@@ -209,6 +209,29 @@ class ComposePreviewAnimationManagerTest {
   }
 
   @Test
+  fun animatedVisibilityComboBoxDisplayAllVisibilitySates() {
+    val inspector = createAndOpenInspector()
+
+    val animatedVisibilityAnimation = object : ComposeAnimation {
+      override val animationObject = Any()
+      override val type = ComposeAnimationType.ANIMATED_VISIBILITY
+      override val states = setOf("Enter", "Exit")
+    }
+
+    ComposePreviewAnimationManager.onAnimationSubscribed(TestClock(), animatedVisibilityAnimation)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    val stateComboBoxes = TreeWalker(inspector).descendantStream().filter { it is ComboBox<*> }.collect(Collectors.toList())
+    assertEquals(1, stateComboBoxes.size) // AnimatedVisibility has a single combo box
+    val animatedVisibilityComboBox = stateComboBoxes[0] as ComboBox<*>
+
+    assertEquals(2, animatedVisibilityComboBox.itemCount)
+    assertEquals("Enter", animatedVisibilityComboBox.getItemAt(0))
+    assertEquals("Exit", animatedVisibilityComboBox.getItemAt(1))
+    assertEquals("Enter", animatedVisibilityComboBox.selectedItem)
+  }
+
+  @Test
   fun animationStatesInferredForBoolean() {
     val inspector = createAndOpenInspector()
     val transitionAnimation = object : ComposeAnimation {
@@ -250,12 +273,17 @@ class ComposePreviewAnimationManagerTest {
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, transitionAnimationWithNullLabel)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    assertEquals(4, inspector.tabCount())
+    val animatedVisibilityWithNullLabel = createComposeAnimation(type = ComposeAnimationType.ANIMATED_VISIBILITY)
+    ComposePreviewAnimationManager.onAnimationSubscribed(clock, animatedVisibilityWithNullLabel)
+    UIUtil.pump() // Wait for the tab to be added on the UI thread
+
+    assertEquals(5, inspector.tabCount())
 
     assertEquals("repeatedLabel", inspector.getTabTitleAt(0))
     assertEquals("repeatedLabel (1)", inspector.getTabTitleAt(1)) // repeated titles get their index incremented
     assertEquals("Animated Value", inspector.getTabTitleAt(2)) // null labels use default title
     assertEquals("Transition Animation", inspector.getTabTitleAt(3)) // null labels use default title
+    assertEquals("Animated Visibility", inspector.getTabTitleAt(4)) // null labels use default title
   }
 
   @Test
@@ -290,6 +318,32 @@ class ComposePreviewAnimationManagerTest {
     assertTrue(ComposePreviewAnimationManager.subscribedAnimations.isEmpty())
   }
 
+  @Test
+  fun animationClockWrapsComposeClockViaReflection() {
+    val animationClock = AnimationClock(TestClock())
+    // Check that we can find a couple of methods from TestClock
+    assertNotNull(animationClock.getAnimatedPropertiesFunction)
+    assertNotNull(animationClock.updateAnimatedVisibilityStateFunction)
+    // getAnimatedVisibilityState is mangled in TestClock, but we should be able to find it.
+    assertNotNull(animationClock.getAnimatedVisibilityStateFunction)
+
+    try {
+      // We should throw an Exception if we can't find the given function in the underlying clock, and it's up to the caller to handle this.
+      animationClock.findClockFunction("unknownFunction")
+      fail("Expected to fail, as `unknownFunction` is not a function of TestClock.")
+    }
+    catch (ignored: NoSuchElementException) { }
+
+    // getAnimatedVisibilityState is a supported function, but its name is mangled. We should find it when looking for the function without
+    // the hash suffix, not when we specify it.
+    assertNotNull(animationClock.findClockFunction("getAnimatedVisibilityState"))
+    try {
+      animationClock.findClockFunction("getAnimatedVisibilityState-xga21d")
+      fail("Expected to fail, as `getAnimatedVisibilityState-xga21d` should not be found when looking for the mangled name.")
+    }
+    catch (ignored: NoSuchElementException) { }
+  }
+
   private fun createAndOpenInspector(): AnimationInspectorPanel {
     assertFalse(ComposePreviewAnimationManager.isInspectorOpen())
     ComposePreviewAnimationManager.createAnimationInspectorPanel(surface, parentDisposable) { }
@@ -320,5 +374,7 @@ class ComposePreviewAnimationManagerTest {
     fun updateAnimationStates() {}
     fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
     fun setClockTime(time: Long) {}
+    fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
+    fun `getAnimatedVisibilityState-xga21d`(animation: Any) = "Enter"
   }
 }
