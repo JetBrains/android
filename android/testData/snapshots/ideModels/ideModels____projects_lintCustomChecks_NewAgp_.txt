@@ -4,7 +4,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : 30.0.3
+    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.app
@@ -334,7 +334,7 @@ MODULE                        : project.library
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library/build [-]
-    buildToolsVersion             : 30.0.3
+    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.library
@@ -630,7 +630,7 @@ MODULE                        : project.library-remote
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/library-remote/build [-]
-    buildToolsVersion             : 30.0.3
+    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
     IsBaseSplit                   : false
     GroupId                       : com.example.google
     Namespace                     : com.example.library

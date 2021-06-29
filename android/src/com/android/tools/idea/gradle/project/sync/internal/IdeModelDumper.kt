@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
@@ -85,7 +86,7 @@ private fun ProjectDumper.dump(ideAndroidModel: IdeAndroidProject) {
   prop("CompileTarget") { ideAndroidModel.compileTarget }
   prop("BuildFolder") { ideAndroidModel.buildFolder.path.toPrintablePath() }
   prop("ResourcePrefix") { ideAndroidModel.resourcePrefix }
-  prop("buildToolsVersion") { ideAndroidModel.buildToolsVersion }
+  prop("buildToolsVersion") {ideAndroidModel.buildToolsVersion?.toPrintableString() }
   prop("NdkVersion") { ideAndroidModel.ndkVersion }
   prop("IsBaseSplit") { ideAndroidModel.isBaseSplit.toString() }
   prop("GroupId") { ideAndroidModel.groupId }
