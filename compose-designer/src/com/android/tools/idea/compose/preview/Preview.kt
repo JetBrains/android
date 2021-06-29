@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.PreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewElementInstance
 import com.android.tools.idea.compose.preview.util.containsOffset
+import com.android.tools.idea.compose.preview.util.invalidateCompositions
 import com.android.tools.idea.compose.preview.util.isComposeErrorResult
 import com.android.tools.idea.compose.preview.util.layoutlibSceneManagers
 import com.android.tools.idea.compose.preview.util.sortByDisplayAndSourcePosition
@@ -416,10 +417,28 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
       val pushId = pushIdCounter.getAndIncrement().toString(16)
       LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
-      surface.layoutlibSceneManagers.forEach {
-        it.forceReinflate()
-        it.requestRender().whenComplete { _, _ ->
+      val isInteractiveOrAnimationsMode = interactiveMode.isStartingOrReady() || animationInspection.get()
+      surface.layoutlibSceneManagers.forEach { sceneManager ->
+        if (isInteractiveOrAnimationsMode) {
+          // Force re-inflate in the next render to temporarily reduce the changes of b/192842827 happening since
+          // it interferes with animations previews and it's more likely to happen when frequent invalidations without
+          // re-inflation happen.
+          sceneManager.forceReinflate()
+          // If interactive mode is enabled, we do not need to issue new render requests, they will be automatically
+          // done.
           LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+        }
+        else {
+          // This invalidates the current compositions to ensure the render re-composes the layout
+          sceneManager.renderResult
+            .invalidateCompositions()
+            .thenCompose {
+              sceneManager.executeCallbacks()
+                .whenComplete { _, _ -> sceneManager.requestRender() }
+            }
+            .whenComplete { _, _ ->
+              LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+            }
         }
       }
     }
@@ -614,7 +633,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
           // the new ones after a successful build.
           ComposePreviewAnimationManager.invalidate()
-          refresh()
+          if (interactiveMode != ComposePreviewManager.InteractiveMode.READY) refresh()
         }
       },
       this)
@@ -699,7 +718,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (!isActive.get()) return
+    if (!isActive.get() || interactiveMode.isStartingOrReady()) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
