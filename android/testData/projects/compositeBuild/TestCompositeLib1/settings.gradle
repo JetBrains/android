@@ -1,1 +1,5 @@
 include ':app', ':lib'
+
+includeBuild '../TestCompositeLib2'
+includeBuild '../TestCompositeLib3'
+

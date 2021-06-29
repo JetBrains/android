@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.AGP_35
 import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.AGP_40
 import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.AgpVersion.CURRENT
+import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.TargetRunConfiguration.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.ApkProviderIntegrationTestCase.TargetRunConfiguration.TestTargetRunConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -34,6 +35,7 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalProjectId
 import com.intellij.openapi.util.io.FileUtil
 import org.hamcrest.Matchers.nullValue
 import org.jetbrains.annotations.Contract
@@ -65,6 +67,30 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   companion object {
     val tests =
       listOf(
+        TestDefinition(
+          name = "COMPOSITE_BUILD :app run configuration",
+          testProject = TestProjectPaths.COMPOSITE_BUILD,
+          targetRunConfiguration = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app"),
+          expectApks = """
+              ApplicationId: com.test.compositeapp
+              File: project/app/build/outputs/apk/debug/app-debug.apk
+              Files:
+                project.app -> project/app/build/outputs/apk/debug/app-debug.apk
+              RequiredInstallationOptions: []
+          """
+        ),
+        TestDefinition(
+          name = "COMPOSITE_BUILD TestCompositeLib1:app run configuration",
+          testProject = TestProjectPaths.COMPOSITE_BUILD,
+          targetRunConfiguration = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app"),
+          expectApks = """
+              ApplicationId: com.test.composite1
+              File: project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
+              Files:
+                TestCompositeLib1.app -> project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
+              RequiredInstallationOptions: []
+          """
+        ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX before build",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
@@ -365,8 +391,9 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
   var testName = TestName()
 
   sealed class TargetRunConfiguration {
-    object AppTargetRunConfiguration : TargetRunConfiguration()
-    data class TestTargetRunConfiguration(val testClassFqn: String) : TargetRunConfiguration()
+    open class NamedAppTargetRunConfiguration(val externalSystemModuleId: String?) : TargetRunConfiguration()
+    object AppTargetRunConfiguration : NamedAppTargetRunConfiguration(externalSystemModuleId = null)
+    class TestTargetRunConfiguration(val testClassFqn: String) : TargetRunConfiguration()
   }
 
   enum class AgpVersion(val forGradle: String?) {
@@ -449,12 +476,15 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
         }
         val runConfiguration = runReadAction {
           when (targetRunConfiguration) {
-            TargetRunConfiguration.AppTargetRunConfiguration ->
+            is NamedAppTargetRunConfiguration ->
               RunManager
                 .getInstance(project)
                 .allConfigurationsList
                 .filterIsInstance<AndroidRunConfiguration>()
-                .single()
+                .single {
+                  targetRunConfiguration.externalSystemModuleId == null ||
+                  it.modules.any { module -> getExternalProjectId(module) == targetRunConfiguration.externalSystemModuleId }
+                }
                 .also {
                   it.DEPLOY_APK_FROM_BUNDLE = viaBundle
                 }
