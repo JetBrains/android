@@ -610,6 +610,7 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
+                      canCloseContents="true"
                       factoryClass="com.android.tools.idea.logcat.v2.LogcatToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
                       facetIdList="android,apk"
@@ -861,6 +862,7 @@
     <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Thanks for the feedback!" displayType="BALLOON" bundle="messages.AndroidBundle" key="feedback.notifications.title"/>
+    <notificationGroup id="Logcat V2" displayType="BALLOON" isLogByDefault="true" />
 
     <webHelpProvider implementation="com.android.tools.idea.help.AndroidWebHelpProvider"/>
 
