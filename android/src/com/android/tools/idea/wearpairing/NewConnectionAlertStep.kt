@@ -47,7 +47,8 @@ class NewConnectionAlertStep(
       return true
     }
 
-    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
+    // Check if this phone is already paired
+    val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices(selectedPhone.deviceID)
     return pairedPhone != null && pairedWear != null &&
            (pairedPhone.deviceID != selectedPhone.deviceID || pairedWear.deviceID != selectedWear.deviceID)
   }
@@ -64,7 +65,7 @@ class NewConnectionAlertStep(
       )
     }
     else {
-      val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices()
+      val (pairedPhone, pairedWear) = WearPairingManager.getPairedDevices(model.selectedPhoneDevice.value.deviceID)
       val pairedPhoneName = pairedPhone?.displayName ?: ""
       val pairedWearName = pairedWear?.displayName ?: ""
       showUi(

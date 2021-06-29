@@ -151,7 +151,7 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         showFirstPhase(model.selectedPhoneDevice.value, phoneIDevice, model.selectedWearDevice.value, wearIDevice)
       }
       else {
-        showSecondPhase(phoneIDevice, wearIDevice)
+        showSecondPhase(model.selectedPhoneDevice.value, phoneIDevice, model.selectedWearDevice.value, wearIDevice)
       }
     }
   }
@@ -163,9 +163,8 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       showUiNeedsFactoryReset(model.selectedWearDevice.value.displayName)
       return
     }
-    val isNewWearPairingDevice = WearPairingManager.getPairedDevices().second?.deviceID != wearPairingDevice.deviceID
-    WearPairingManager.removePairedDevices(restartWearGmsCore = isNewWearPairingDevice)
-    WearPairingManager.setPairedDevices(phonePairingDevice, wearPairingDevice)
+    val isNewWearPairingDevice = WearPairingManager.getPairedDevices(phonePairingDevice.deviceID).second?.deviceID != wearPairingDevice.deviceID
+    WearPairingManager.removePairedDevices(phonePairingDevice.deviceID, restartWearGmsCore = isNewWearPairingDevice)
 
     if (phoneDevice.isCompanionAppInstalled()) {
       // Companion App already installed, go to the next step
@@ -194,10 +193,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     }
   }
 
-  private suspend fun showSecondPhase(phoneDevice: IDevice, wearDevice: IDevice) {
+  private suspend fun showSecondPhase(phone: PairingDevice, phoneDevice: IDevice, wear: PairingDevice, wearDevice: IDevice) {
     showUiBridgingDevices()
-    createDeviceBridge(phoneDevice, wearDevice)
-    // Note: createDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
+    WearPairingManager.createPairedDeviceBridge(phone, phoneDevice, wear, wearDevice)
+    // Note: createPairedDeviceBridge() restarts GmsCore, so it may take a bit of time until devices paired happens
     if (waitForCondition(5_000) { checkDevicesPaired(phoneIDevice, wearIDevice) }) {
       showPairingSuccess(model.selectedPhoneDevice.value.displayName, model.selectedWearDevice.value.displayName)
     }
@@ -263,9 +262,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     model.getNonSelectedRunningWearEmulators().apply {
       if (isNotEmpty()) {
         showUiLaunchingDevice(model.selectedWearDevice.valueOrNull?.displayName ?: "")
-        WearPairingManager.removePairedDevices() // Remove pairing, in case we need to kill a paired device and that would show a toast
       }
       forEach {
+        // Remove pairing, in case we need to kill a paired device and that would show a toast
+        WearPairingManager.removePairedDevices(it.deviceID)
         val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
         avdManager.findAvd(it.deviceID)?.apply {
           avdManager.stopAvd(this)
@@ -566,9 +566,10 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
         try {
           showUI(header = message("wear.assistant.factory.reset.title"), body = warningPanel)
 
+          val wearDeviceId = model.selectedWearDevice.valueOrNull?.deviceID ?: ""
           val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
-          avdManager.findAvd(model.selectedWearDevice.valueOrNull?.deviceID ?: "")?.apply {
-            WearPairingManager.removePairedDevices(restartWearGmsCore = false)
+          avdManager.findAvd(wearDeviceId)?.apply {
+            WearPairingManager.removePairedDevices(wearDeviceId, restartWearGmsCore = false)
             avdManager.stopAvd(this)
             waitForCondition(10_000) { model.selectedWearDevice.valueOrNull?.isOnline() != true }
             avdManager.wipeUserData(this)
