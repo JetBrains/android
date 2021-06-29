@@ -135,6 +135,9 @@ class ProjectDumper(
     }
   }
 
+  fun String?.toPrintableString(): String? = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "[CURRENT_BUILD_TOOLS_VERSION]"
+  else this
+
   fun String.replaceKnownPatterns(): String =
     this
       .let {
