@@ -66,7 +66,6 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.Rectangle
 import java.awt.event.ActionListener
 import java.awt.event.MouseEvent
 import java.time.Duration
@@ -269,11 +268,54 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       updateAnimationStatesExecutor.execute {
         // Use a longer timeout the first time we're updating the start and end states. Since we're running off EDT, the UI will not freeze.
         // This is necessary here because it's the first time the animation mutable states will be written, when setting the clock, and
-        // read, when getting its duration. These operations takes longer than the default 30ms timeout the first time they're executed.
+        // read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
         tab.updateAnimationStartAndEndStates(longTimeout = true)
         // Set up the combo box listeners so further changes to the selected state will trigger a call to updateAnimationStartAndEndStates.
         // Note: this is called only once per tab, in this method, when creating the tab.
         tab.setupAnimationStatesComboBoxListeners()
+        callback.invoke()
+      }
+    }
+  }
+
+  /**
+   * Updates the combo box that displays the possible states of an `AnimatedVisibility` animation, and resets the timeline. Invokes a given
+   * callback once the combo box is populated.
+   */
+  fun updateAnimatedVisibilityStates(animation: ComposeAnimation, callback: () -> Unit) {
+    animationTabs[animation]?.let { tab ->
+      tab.animatedVisibilityComboBox.model = DefaultComboBoxModel(animation.states.toTypedArray())
+
+      updateAnimationStatesExecutor.execute {
+        // Update the animated visibility combo box with the correct initial state, obtained from PreviewAnimationClock.
+        var stateName: String? = null
+        executeOnRenderThread(useLongTimeout = true) {
+          val clock = animationClock ?: return@executeOnRenderThread
+          // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore, calling `getAnimatedVisibilityState`
+          // via reflection will return a String rather than an AnimatedVisibilityState. To work around that, we select the initial combo
+          // box item by checking the display value.
+          stateName = clock.getAnimatedVisibilityStateFunction.invoke(clock.clock, animation) as? String
+        }
+        stateName?.let {
+          for (i in 0 until tab.animatedVisibilityComboBox.itemCount) {
+            val item = tab.animatedVisibilityComboBox.getItemAt(i)
+            if (item.toString() == stateName) {
+              tab.animatedVisibilityComboBox.selectedItem = item
+            }
+          }
+        }
+
+        // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since we're running off EDT, the UI will not
+        // freeze. This is necessary here because it's the first time the animation mutable states will be written, when setting the clock,
+        // and read, when getting its duration. These operations take longer than the default 30ms timeout the first time they're executed.
+        tab.updateAnimatedVisibility(longTimeout = true)
+        // Set up the combo box listener so further changes to the selected state will trigger a call to updateAnimatedVisibility.
+        // Note: this is called only once per tab, in this method, when creating the tab.
+        tab.animatedVisibilityComboBox.addActionListener {
+          logAnimationInspectorEvent(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_END_STATE)
+          tab.updateAnimatedVisibility()
+          tab.updateProperties()
+        }
         callback.invoke()
       }
     }
@@ -355,6 +397,7 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val tabName = animation.label
                   ?: when (animation.type) {
                     ComposeAnimationType.ANIMATED_VALUE -> message("animation.inspector.tab.animated.value.default.title")
+                    ComposeAnimationType.ANIMATED_VISIBILITY -> message("animation.inspector.tab.animated.visibility.default.title")
                     ComposeAnimationType.TRANSITION_ANIMATION -> message("animation.inspector.tab.transition.animation.default.title")
                     else -> message("animation.inspector.tab.default.title")
                   }
@@ -401,6 +444,8 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
     val startStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
     val endStateComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
 
+    val animatedVisibilityComboBox = ComboBox(DefaultComboBoxModel(arrayOf<Any>()))
+
     /**
      * Flag to be used when the [SwapStartEndStatesAction] is triggered, in order to prevent the listener to be executed twice.
      */
@@ -429,6 +474,12 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       if (animation.type == ComposeAnimationType.TRANSITION_ANIMATION) {
         add(createAnimationStateComboboxes(), TabularLayout.Constraint(0, 2))
       }
+      else if (animation.type == ComposeAnimationType.ANIMATED_VISIBILITY) {
+        animatedVisibilityComboBox.model = DefaultComboBoxModel(
+          arrayOf(message("animation.inspector.animated.visibility.combobox.placeholder.message"))
+        )
+        add(animatedVisibilityComboBox, TabularLayout.Constraint(0, 2))
+      }
       val splitterWrapper = JPanel(BorderLayout()).apply {
         border = MatteBorder(1, 0, 0, 0, JBColor.border()) // Top border separating the splitter and the playback toolbar
       }
@@ -450,7 +501,21 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
       if (!executeOnRenderThread(longTimeout) {
           clock.updateFromAndToStatesFunction.invoke(clock.clock, animation, startState, toState)
         }) return
+      resetTimelineAndUpdateWindowSize(longTimeout)
+    }
 
+    /**
+     * Updates the actual animation in Compose to set its start and end states based on the selected value of [animatedVisibilityComboBox].
+     */
+    fun updateAnimatedVisibility(longTimeout: Boolean = false) {
+      val clock = animationClock ?: return
+      if (!executeOnRenderThread(longTimeout) {
+          clock.updateAnimatedVisibilityStateFunction.invoke(clock.clock, animation, animatedVisibilityComboBox.selectedItem)
+        }) return
+      resetTimelineAndUpdateWindowSize(longTimeout)
+    }
+
+    private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
       // Set the timeline to 0
       timeline.setClockTime(0, longTimeout)
       updateTimelineWindowSize(longTimeout)
