@@ -599,7 +599,7 @@ public final class StudioFlags {
     RUNDEBUG,
     "logcat.v2.enable",
     "Enable Logcat V2",
-    "Enables version 2 of the logcat tool wondow",
+    "Enables version 2 of the Logcat tool window",
     false
   );
   //endregion
