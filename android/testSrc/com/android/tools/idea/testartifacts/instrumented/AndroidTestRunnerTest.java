@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -26,7 +27,6 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.GradleApplicationIdProvider;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for the Android Test Runner related things.
- *
+ * <p>
  * TODO: Delete this file and merge it into AndroidTestRunConfigurationTest.
  */
 public class AndroidTestRunnerTest extends AndroidGradleTestCase {
@@ -128,7 +128,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     ConsolePrinter mockPrinter = mock(ConsolePrinter.class);
 
     ApplicationIdProvider applicationIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+      getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(config);
     LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
     LaunchTask task = config.getApplicationLaunchTask(
