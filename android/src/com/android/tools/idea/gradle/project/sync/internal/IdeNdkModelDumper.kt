@@ -57,10 +57,8 @@ private fun ProjectDumper.dump(nativeModule: IdeNativeModule) {
   prop("Name") { nativeModule.name }
   prop("NativeBuildSystem") { nativeModule.nativeBuildSystem.toString() }
   prop("NdkVersion") {
-    if (nativeModule.ndkVersion == nativeModule.defaultNdkVersion) "{DEFAULT_NDK_VERSION}" else nativeModule.ndkVersion
+    if (nativeModule.ndkVersion == nativeModule.defaultNdkVersion) "<DEFAULT_NDK_VERSION>" else nativeModule.ndkVersion
   }
-  // This depends on the AGP version used for tests, which means the risk of having different values when ran on IDE or bazel.
-  prop("DefaultNdkVersion") { "{DEFAULT_NDK_VERSION}" }
   prop("ExternalNativeBuildFile") { nativeModule.externalNativeBuildFile.path.toPrintablePath() }
   if (nativeModule.variants.isNotEmpty()) {
     head("Variants")

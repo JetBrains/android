@@ -4,7 +4,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build
-    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     NdkVersion                    : 21.4.7075529
     IsBaseSplit                   : true
     GroupId                       : project
@@ -322,8 +322,7 @@ MODULE                        : project.app
     SelectedAbiName               : x86
     Name                          : app
     NativeBuildSystem             : CMAKE
-    NdkVersion                    : {DEFAULT_NDK_VERSION}
-    DefaultNdkVersion             : {DEFAULT_NDK_VERSION}
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
     ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
     Variants
         NativeVariant
