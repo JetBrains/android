@@ -41,6 +41,7 @@ iml_module(
         "//tools/base/build-system/previous-versions:3.5.0",
         "//tools/base/build-system/previous-versions:4.0.0",
         "//tools/base/build-system/previous-versions:4.1.0",
+        "//tools/base/build-system/previous-versions:4.2.0",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/data-binding:data_binding_runtime.zip",
         "//tools/external/gradle:gradle-distrib-2.6",

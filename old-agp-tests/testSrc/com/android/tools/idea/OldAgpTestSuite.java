@@ -38,6 +38,7 @@ public class OldAgpTestSuite extends IdeaTestSuiteBase {
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.5.0.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.0.0.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.1.0.manifest");
+    linkIntoOfflineMavenRepo("tools/base/build-system/previous-versions/4.2.0.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/studio_repo.manifest");
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     linkIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.manifest");
