@@ -1906,13 +1906,13 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :app
+                            Variant                       : basicBarDebug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            ProjectPath                   : :app
-                            Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2513,13 +2513,13 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :app
+                            Variant                       : basicBarDebug
+                            BuildId                       : <ROOT>
+                        ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            ProjectPath                   : :app
-                            Variant                       : basicBarDebug
                             BuildId                       : <ROOT>
                     RuntimeOnlyClasses            : <ROOT>/jav/build/libs/jav.jar [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -4067,12 +4067,12 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :jav
+                            BuildId                       : <ROOT>
+                        ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -4609,12 +4609,12 @@ MODULE                        : project.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :jav
+                            BuildId                       : <ROOT>
+                        ModuleDependency
                             LintJars                      : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
-                        ModuleDependency
-                            ProjectPath                   : :jav
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1

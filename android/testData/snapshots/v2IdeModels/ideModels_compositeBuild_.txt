@@ -818,6 +818,12 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
@@ -825,12 +831,6 @@ MODULE                        : TestCompositeLib1.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1414,6 +1414,12 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
@@ -1425,12 +1431,6 @@ MODULE                        : TestCompositeLib1.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2010,6 +2010,12 @@ MODULE                        : TestCompositeLib1.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
@@ -2021,12 +2027,6 @@ MODULE                        : TestCompositeLib1.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : TestCompositeLib1.lib
     ModelVersion                  : <AGP_VERSION>
@@ -2813,12 +2813,12 @@ MODULE                        : TestCompositeLib1.lib
                             ProjectPath                   : :
                             BuildId                       : <ROOT>/TestCompositeLib2
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -3373,19 +3373,19 @@ MODULE                        : TestCompositeLib1.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
-                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3942,19 +3942,19 @@ MODULE                        : TestCompositeLib1.lib
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib1
                         ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
-                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : TestCompositeLib3
 MODULE                        : TestCompositeLib3.app
@@ -4776,12 +4776,12 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5365,6 +5365,9 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5372,9 +5375,6 @@ MODULE                        : TestCompositeLib3.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5954,6 +5954,9 @@ MODULE                        : TestCompositeLib3.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
@@ -5961,9 +5964,6 @@ MODULE                        : TestCompositeLib3.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : TestCompositeLib3.lib
     ModelVersion                  : <AGP_VERSION>
@@ -7261,12 +7261,12 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -7802,12 +7802,12 @@ MODULE                        : TestCompositeLib3.lib
                             Artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : composite2
 MODULE                        : composite4
@@ -8632,6 +8632,12 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -8643,12 +8649,6 @@ MODULE                        : project.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -9232,6 +9232,12 @@ MODULE                        : project.app
                             Artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -9247,12 +9253,6 @@ MODULE                        : project.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -9832,6 +9832,12 @@ MODULE                        : project.app
                             Artifact                      : <M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar
                     ModuleDependencies
                         ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib4
+                        ModuleDependency
+                            ProjectPath                   : :
+                            BuildId                       : <ROOT>/TestCompositeLib2
+                        ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -9847,12 +9853,6 @@ MODULE                        : project.app
                             ProjectPath                   : :lib
                             Variant                       : debug
                             BuildId                       : <ROOT>/TestCompositeLib3
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib4
-                        ModuleDependency
-                            ProjectPath                   : :
-                            BuildId                       : <ROOT>/TestCompositeLib2
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.lib
     ModelVersion                  : <AGP_VERSION>
