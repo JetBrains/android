@@ -4,7 +4,7 @@ MODULE                        : My_First_App.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/firstapp/app/build [-]
-    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : My First App
     AaptOptions
@@ -1994,7 +1994,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/shared/mysharedlibrary/build [-]
-    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : My First App.app
     AaptOptions

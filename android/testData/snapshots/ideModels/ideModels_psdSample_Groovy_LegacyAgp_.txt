@@ -4,7 +4,7 @@ MODULE                        : project.app
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : true
     GroupId                       : project
     AaptOptions
@@ -2797,7 +2797,7 @@ MODULE                        : project.lib
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-30
     BuildFolder                   : <ROOT>/lib/build [-]
-    buildToolsVersion             : [CURRENT_BUILD_TOOLS_VERSION]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
     IsBaseSplit                   : false
     GroupId                       : project
     AaptOptions
