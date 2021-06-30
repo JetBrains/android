@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -39,6 +40,7 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase {
@@ -83,8 +85,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -108,7 +109,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
 
-    launchTasks.forEach(task ->  {
+    launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
       assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
       assertThat(task.getDescription()).isEqualTo("Launching a connectedAndroidTest for selected devices");
@@ -127,8 +128,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -152,7 +152,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
     ConnectDebuggerTask connectDebuggerTask = provider.getConnectDebuggerTask(mockLaunchStatus, AndroidVersion.DEFAULT);
 
-    launchTasks.forEach(task ->  {
+    launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
       assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
     });
@@ -169,8 +169,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -193,7 +192,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
-    launchTasks.forEach(task ->  {
+    launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
       assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
     });
@@ -209,8 +208,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -233,7 +231,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
-    launchTasks.forEach(task ->  {
+    launchTasks.forEach(task -> {
       Logger.getInstance(this.getClass()).info("LaunchTask: " + task);
       assertThat(task.getId()).isEqualTo("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK");
     });
@@ -249,8 +247,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-    ApplicationIdProvider appIdProvider =
-      GradleApplicationIdProvider.createNotRuntimeConfigurationSpecificGradleApplicationIdProvider(myAndroidFacet);
+    ApplicationIdProvider appIdProvider = getApplicationIdProvider(config);
 
     LaunchOptions launchOptions = LaunchOptions.builder()
       .setClearLogcatBeforeStart(false)
@@ -348,5 +345,10 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
     List<LaunchTask> launchTasks = provider.getTasks(mockDevice, mockLaunchStatus, mockConsolePrinter);
 
     assertThat(launchTasks).isEmpty();
+  }
+
+  @NotNull
+  private ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidRunConfigurationBase runConfiguration) {
+    return Objects.requireNonNull(getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(runConfiguration));
   }
 }
