@@ -56,6 +56,7 @@ class ComponentTreeBuilder {
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
+  private var toggleClickCount = 2
 
   /**
    * Register a [NodeType].
@@ -75,7 +76,16 @@ class ComponentTreeBuilder {
   /**
    * Add a double click handler on the tree node item.
    */
-  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply { doubleClick = doubleClickHandler }
+  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply {
+    doubleClick = doubleClickHandler
+  }
+
+  /**
+   * Set the toggle click count (default is 2).
+   */
+  fun withToggleClickCount(clickCount: Int) = apply {
+    toggleClickCount = clickCount
+  }
 
   /**
    * Specify specific invokeLater implementation to use.
@@ -134,6 +144,7 @@ class ComponentTreeBuilder {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
     val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions)
+    tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
     tree.showsRootHandles = !isRootVisible || showRootHandles
     if (installTreeSearch) {

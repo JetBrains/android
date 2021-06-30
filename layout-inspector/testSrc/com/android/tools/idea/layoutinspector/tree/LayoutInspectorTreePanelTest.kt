@@ -25,6 +25,7 @@ import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
@@ -219,6 +220,33 @@ class LayoutInspectorTreePanelTest {
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
     dispatcher.dispatchKeyEvent(KeyEvent(tree.component, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+
+    verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    val descriptor = file.value
+
+    assertThat(descriptor.file.name).isEqualTo("demo.xml")
+    assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+  }
+
+  @Test
+  fun testGotoDeclarationByDoubleClick() {
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    setToolContext(panel, inspector)
+
+    val fileManager = FileEditorManager.getInstance(inspectorRule.project)
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    `when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+      .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
+
+    val tree = panel.tree!!
+    tree.setUI(HeadlessTreeUI())
+    tree.setBounds(0, 0, 500, 1000)
+    val ui = FakeUi(tree)
+    UIUtil.dispatchAllInvocationEvents()
+    TreeUtil.expandAll(tree)
+    val bounds = tree.getRowBounds(1)
+    ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
 
     verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
