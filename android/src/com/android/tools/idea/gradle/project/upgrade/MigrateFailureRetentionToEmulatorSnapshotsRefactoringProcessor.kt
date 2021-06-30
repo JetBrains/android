@@ -32,7 +32,7 @@ val MIGRATE_FAILURE_RETENTION_TO_EMULATOR_SNAPSHOTS =
       """.trimIndent()
     },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.usageView.header"),
-    componentKind = UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+    componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_EMULATOR_SNAPSHOTS,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(

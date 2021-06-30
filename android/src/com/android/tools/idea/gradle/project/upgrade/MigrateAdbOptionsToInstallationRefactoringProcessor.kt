@@ -33,7 +33,7 @@ val MIGRATE_ADB_OPTIONS_TO_INSTALLATION =
     },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer(
       "project.upgrade.migrateToInstallationRefactoringProcessor.usageView.header"),
-    componentKind = UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+    componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_INSTALLATION,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(
