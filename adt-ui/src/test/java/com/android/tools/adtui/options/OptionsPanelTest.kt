@@ -16,20 +16,26 @@
 package com.android.tools.adtui.options
 
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.OptionsProperty
+import com.android.tools.adtui.model.options.OptionsProvider
 import com.android.tools.adtui.model.options.Slider
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.ui.options.OptionsPanel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.JSlider
 import javax.swing.JSpinner
 
+@RunsInEdt
 class OptionsPanelTest {
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
   fun defaultBindings() {

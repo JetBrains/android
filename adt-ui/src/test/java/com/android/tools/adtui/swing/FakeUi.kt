@@ -21,19 +21,29 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.wm.WindowManager
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
+import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.registerServiceInstance
+import com.intellij.util.ui.UIUtil
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
 import java.awt.GraphicsConfiguration
 import java.awt.GraphicsDevice
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
 import java.util.ArrayDeque
 import java.util.Enumeration
 import java.util.function.Predicate
+import javax.swing.JRootPane
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.FontUIResource
@@ -44,7 +54,7 @@ import javax.swing.plaf.FontUIResource
  * @param root the top-level component component
  * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
  */
-class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0) {
+class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0, createFakeWindow: Boolean = false) {
 
   @JvmField
   val keyboard: FakeKeyboard = FakeKeyboard()
@@ -52,9 +62,24 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   val mouse: FakeMouse = FakeMouse(this, keyboard)
 
   init {
-    if (screenScale != 1.0 && root.parent == null) {
-      // Applying graphics configuration involves re-parenting, so don't do it for a component that already has a parent.
-      applyGraphicsConfiguration(FakeGraphicsConfiguration(screenScale), root)
+    if (root.parent == null && createFakeWindow) {
+      val rootPane = root as? JRootPane ?: JRootPane().apply {
+        glassPane = IdeGlassPaneImpl(this, false)
+        isFocusCycleRoot = true
+        add(root)
+      }
+      val application = ApplicationManager.getApplication()
+      // Use an exact class comparison so that the check fails if the TestWindowManager class stops
+      // being final in future and a subclass is introduced.
+      if (application != null && WindowManager.getInstance()?.javaClass == TestWindowManager::class.java) {
+        // Replace TestWindowManager with a more lenient version.
+        application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
+      }
+      wrapInFakeWindow(rootPane)
+    }
+
+    if (screenScale != 1.0) {
+      ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
     }
     root.preferredSize = root.size
     layout()
@@ -72,7 +97,8 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * method if you update the UI after constructing the FakeUi.
    */
   fun layout() {
-    TreeWalker(root).descendantStream().forEach { obj: Component -> obj.doLayout() }
+    val layoutRoot = UIUtil.getParentOfType(JRootPane::class.java, root) ?: root
+    TreeWalker(layoutRoot).descendantStream().forEach { obj: Component -> obj.doLayout() }
   }
 
   /**
@@ -258,16 +284,6 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     updateToolbars(root)
   }
 
-  private fun applyGraphicsConfiguration(config: GraphicsConfiguration, component: Component) {
-    // Work around package-private visibility of the Component.setGraphicsConfiguration method.
-    val container: Container = object : Container() {
-      override fun getGraphicsConfiguration(): GraphicsConfiguration {
-        return config
-      }
-    }
-    container.add(component)
-  }
-
   private fun updateToolbars(component: Component) {
     if (component is ActionButton) {
       component.updateUI()
@@ -355,3 +371,29 @@ fun setPortableUiFont(scale: Float = 1.0f) {
     }
   }
 }
+
+private fun wrapInFakeWindow(rootPane: JRootPane) {
+  // A mock is used here because in a headless environment it is not possible to instantiate
+  // Window or any of its subclasses due to checks in the Window constructor.
+  val mockWindow = mock(Window::class.java)
+  `when`(mockWindow.treeLock).thenCallRealMethod()
+  `when`(mockWindow.toolkit).thenReturn(fakeToolkit)
+  `when`(mockWindow.isShowing).thenReturn(true)
+  `when`(mockWindow.isVisible).thenReturn(true)
+  `when`(mockWindow.locationOnScreen).thenReturn(Point(0, 0))
+  `when`(mockWindow.size).thenReturn(rootPane.size)
+  `when`(mockWindow.bounds).thenReturn(Rectangle(0, 0, rootPane.width, rootPane.height))
+  ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
+  ComponentAccessor.setParent(rootPane, mockWindow)
+  rootPane.addNotify()
+}
+
+private fun getTopLevelComponent(component: Component): Component {
+  var c = component
+  while (c.parent != null && c.parent !is Window) {
+    c = c.parent
+  }
+  return c
+}
+
+private val fakeToolkit = FakeUiToolkit()
