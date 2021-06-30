@@ -97,7 +97,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
   }
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder =
-    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION)
+    builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS)
 
   override fun getCommandName(): String =
     AndroidBundle.message("project.upgrade.gradlePluginsRefactoringProcessor.commandName", compatibleGradleVersion.version)

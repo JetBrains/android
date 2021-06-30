@@ -31,7 +31,7 @@ val MIGRATE_JACOCO_TO_TEST_COVERAGE =
     """.trimIndent()
     },
     processedElementsHeaderSupplier = AndroidBundle.messagePointer("project.upgrade.migrateToEmulatorSnapshotsRefactoringProcessor.usageView.header"),
-    componentKind = UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND, // FIXME(xof)
+    componentKind = UpgradeAssistantComponentKind.MIGRATE_TO_TEST_COVERAGE,
     propertiesOperationInfos = listOf(
       MovePropertiesInfo(
         sourceToDestinationPropertyModelGetters = listOf(
