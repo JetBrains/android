@@ -2,6 +2,7 @@
 package org.jetbrains.android.database;
 
 import com.intellij.database.Dbms;
+import com.intellij.database.actions.DatabaseViewActions;
 import com.intellij.database.dialects.DatabaseDialectEx;
 import com.intellij.database.model.DasDataSource;
 import com.intellij.database.psi.BasicDataSourceManager;
@@ -11,7 +12,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -78,7 +78,7 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
     return new DumbAwareAction("Android SQLite", null, AndroidIcons.Android) {
       @Override
       public void update(@NotNull AnActionEvent e) {
-        e.getPresentation().setEnabledAndVisible(e.getData(LangDataKeys.IDE_VIEW) == null);
+        e.getPresentation().setEnabledAndVisible(DatabaseViewActions.isDataSourceActionsEnabled(e));
       }
 
       @Override
