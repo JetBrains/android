@@ -140,7 +140,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SRC_COMPAT, singletonList(AttributeFormat.REFERENCE))
     // View binding attributes
     .put(ATTR_VIEW_BINDING_IGNORE, singletonList(AttributeFormat.BOOLEAN))
-    .put(ATTR_VIEW_BINDING_TYPE, singletonList(AttributeFormat.STRING))
+    .put(ATTR_VIEW_BINDING_TYPE, singletonList(AttributeFormat.REFERENCE))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, Converter> CONVERTERS = ImmutableMap.<String, Converter>builder()
