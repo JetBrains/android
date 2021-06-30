@@ -23,6 +23,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 
 class LogcatToolWindowFactory: ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    toolWindow.isAvailable = StudioFlags.LOGCAT_V2_ENABLE.get()
   }
+
+  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.LOGCAT_V2_ENABLE.get()
 }
