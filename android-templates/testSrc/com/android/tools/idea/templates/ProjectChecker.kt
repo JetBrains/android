@@ -170,8 +170,7 @@ data class ProjectChecker(
     val language = moduleState.projectTemplateDataBuilder.language
     val projectRecipe: Recipe = { data: TemplateData ->
       androidProjectRecipe(
-        data as ProjectTemplateData, "Template Test project",
-        language!!, true, false, forceNonTransitiveRClass = true
+        data as ProjectTemplateData, "Template Test project", language!!, addAndroidXSupport = true, useGradleKts = false
       )
     }
 

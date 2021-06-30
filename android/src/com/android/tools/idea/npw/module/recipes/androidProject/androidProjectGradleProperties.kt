@@ -21,7 +21,6 @@ fun androidProjectGradleProperties(
   addAndroidXSupport: Boolean,
   generateKotlin: Boolean,
   overridePathCheck: Boolean?,
-  forceNonTransitiveRClass: Boolean
 ): String {
   val androidXBlock = renderIf(addAndroidXSupport) { """
 # AndroidX package structure to make it clearer which packages are bundled with the
@@ -46,12 +45,12 @@ android.overridePathCheck=$overridePathCheck
 """
   }
 
-  val nonTransitiveRClass = renderIf(forceNonTransitiveRClass) { """
-# Don't allow usage of transitive R class (faster builds) 
+  val nonTransitiveRClass =  """
+# Enables namespacing of each library's R class so that its R class includes only the
+# resources declared in the library itself and none from the library's dependencies,
+# thereby reducing the size of the R class for that library
 android.nonTransitiveRClass=true
-android.experimental.nonTransitiveAppRClass=true
 """
-  }
 
     return  """
 # Project-wide Gradle settings.

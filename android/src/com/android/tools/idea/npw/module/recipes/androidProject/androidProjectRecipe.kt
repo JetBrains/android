@@ -35,7 +35,6 @@ fun RecipeExecutor.androidProjectRecipe(
   addAndroidXSupport: Boolean,
   useGradleKts: Boolean,
   makeIgnore: Boolean = true,
-  forceNonTransitiveRClass: Boolean = false
 ) {
   val topOut = data.rootDir
 
@@ -53,7 +52,7 @@ fun RecipeExecutor.androidProjectRecipe(
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
   save(androidProjectGradleSettings(appTitle, language == Language.Kotlin, data.kotlinVersion, useGradleKts, data.gradlePluginVersion), settingsFile)
   save(
-    androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck, forceNonTransitiveRClass),
+    androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))
   save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))
   copy(resource("wrapper"), topOut)
