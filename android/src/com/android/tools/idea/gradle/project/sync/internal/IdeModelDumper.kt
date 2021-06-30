@@ -300,7 +300,7 @@ private fun ProjectDumper.dump(ideDependencies: IdeDependencies) {
   if (ideDependencies.moduleDependencies.isNotEmpty()) {
     head("ModuleDependencies")
     nest {
-      ideDependencies.moduleDependencies.forEach {
+      ideDependencies.moduleDependencies.sortedBy { it.projectPath }.forEach {
         head("ModuleDependency")
         nest {
           dump(it)

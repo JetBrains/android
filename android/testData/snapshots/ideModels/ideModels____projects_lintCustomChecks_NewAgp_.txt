@@ -289,12 +289,12 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :library
+                            ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ProjectPath                   : :app
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 SigningConfigName             : debug
@@ -320,12 +320,12 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                            ProjectPath                   : :library
+                            ProjectPath                   : :app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            ProjectPath                   : :app
+                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                            ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
