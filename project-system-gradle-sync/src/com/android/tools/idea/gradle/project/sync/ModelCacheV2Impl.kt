@@ -750,7 +750,7 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       buildType = variant.buildType ?: "",
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
       minSdkVersion = copyModel(variant.mainArtifact.minSdkVersion) { apiVersionFrom(it) },
-      targetSdkVersion = copyModel(variant.mainArtifact.targetSdkVersion) { apiVersionFrom(it) },
+      targetSdkVersion = copyModel(variant.mainArtifact.targetSdkVersionOverride) { apiVersionFrom(it) },
       maxSdkVersion = variant.mainArtifact.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
       versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix },
