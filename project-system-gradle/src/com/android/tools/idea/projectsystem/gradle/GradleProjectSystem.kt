@@ -112,8 +112,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
     val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
+    val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
     return GradleApplicationIdProvider(
       androidFacet,
+      androidModel,
+      androidModel.selectedVariant,
       PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) }
     )
   }
