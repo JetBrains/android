@@ -92,7 +92,7 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
-  private val appInspectorRule = AppInspectionInspectorRule()
+  private val appInspectorRule = AppInspectionInspectorRule(withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(appInspectorRule.createInspectorClientProvider())  { listOf(MODERN_PROCESS.name) }
 
   @get:Rule
@@ -292,7 +292,6 @@ class DeviceViewPanelWithFullInspectorTest {
   }
 
   @Test
-  @Ignore("b/183942017")
   fun testLoadingPane() {
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,

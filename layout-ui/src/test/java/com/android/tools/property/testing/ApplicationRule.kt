@@ -67,8 +67,19 @@ open class ApplicationRule : ExternalResource() {
    */
   override fun before() {
     rootDisposable = Disposer.newDisposable("ApplicationRule::rootDisposable")
-    application = TestApplication(rootDisposable!!, testName)
-    ApplicationManager.setApplication(application!!, rootDisposable!!)
+    // If there was no previous application,
+    // ApplicationManager leaves the MockApplication in place, which can break future tests.
+    if (ApplicationManager.getApplication() == null) {
+      Disposer.register(testRootDisposable) {
+        object : ApplicationManager() {
+          init {
+            ourApplication = null
+          }
+        }
+      }
+    }
+    application = TestApplication(testRootDisposable, testName)
+    ApplicationManager.setApplication(testApplication, testRootDisposable)
     mockitoCleaner = MockitoThreadLocalsCleaner()
     mockitoCleaner!!.setup()
 

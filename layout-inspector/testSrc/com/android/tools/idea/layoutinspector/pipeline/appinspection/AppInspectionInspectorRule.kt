@@ -63,7 +63,7 @@ class AppInspectionClientProvider(private val getApiServices: () -> AppInspectio
 /**
  * App inspection-pipeline specific setup and teardown for tests.
  */
-class AppInspectionInspectorRule : TestRule {
+class AppInspectionInspectorRule(withDefaultResponse: Boolean = true) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
@@ -75,12 +75,14 @@ class AppInspectionInspectorRule : TestRule {
 
   val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
     override fun sendEvent(event: ViewProtocol.Event) {
-      inspectionService.addAppInspectionEvent(
-        AppInspection.AppInspectionEvent.newBuilder().apply {
-          inspectorId = VIEW_LAYOUT_INSPECTOR_ID
-          rawEventBuilder.content = event.toByteString()
-        }.build()
-      )
+      if (withDefaultResponse) {
+        inspectionService.addAppInspectionEvent(
+          AppInspection.AppInspectionEvent.newBuilder().apply {
+            inspectorId = VIEW_LAYOUT_INSPECTOR_ID
+            rawEventBuilder.content = event.toByteString()
+          }.build()
+        )
+      }
     }
   })
   val composeInspector = FakeComposeLayoutInspector()
