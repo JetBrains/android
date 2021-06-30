@@ -54,7 +54,6 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
 import java.io.IOException
-import java.util.ArrayList
 import java.util.Arrays
 
 /**
@@ -2415,6 +2414,52 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.moveCaret("app:constraint_referenced_ids=\"editText,|\"")
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactlyElementsIn(arrayOf("editText", "textView"))
+  }
+
+  fun testViewBindingTypeCompletion() {
+    run { // test autocompleting the tools:viewBindingType label
+      val file = myFixture.addFileToProject(
+        "res/layout/activity_view_binding_type_label.xml",
+        // language=XML
+        """
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout>
+            <EditText
+                xmlns:tools="http://schemas.android.com/tools"
+                tools:${caret} />
+          </LinearLayout>
+        """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(file.virtualFile)
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).contains("tools:viewBindingType")
+    }
+
+    run { // Test that Android views are suggested for the value of the tools:viewBindingType attribute
+      val file = myFixture.addFileToProject(
+        "res/layout/activity_view_binding_type_value.xml",
+        // language=XML
+        """
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout>
+            <EditText
+                xmlns:tools="http://schemas.android.com/tools"
+                tools:viewBindingType="Text${caret}" />
+          </LinearLayout>
+      """.trimIndent()
+      )
+
+      myFixture.configureFromExistingVirtualFile(file.virtualFile)
+      myFixture.completeBasic()
+      // Just choose a random sampling of autocompleted values, enough to show a pattern
+      assertThat(myFixture.lookupElementStrings).containsAllOf(
+        "android.widget.EditText",
+        "android.widget.TextView",
+        "android.view.TextureView")
+      // Make sure random non-view classes aren't showing up in the list
+      assertThat(myFixture.lookupElementStrings!!.all { suggestion -> suggestion.startsWith("android.") }).isTrue()
+    }
   }
 
   fun testCoordinatorLayoutBehavior_classes() {
