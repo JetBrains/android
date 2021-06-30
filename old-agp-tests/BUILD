@@ -15,6 +15,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/icu",
         "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:build-tools/29.0.2",
+        "//prebuilts/studio/sdk:build-tools/30.0.2",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
