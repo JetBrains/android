@@ -40,7 +40,7 @@ class EditSnapshotDialogTest {
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val testRootDisposable
-    get() = projectRule.fixture.testRootDisposable
+    get() = projectRule.testRootDisposable
 
   @Before
   fun setUp() {

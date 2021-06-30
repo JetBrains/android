@@ -114,7 +114,7 @@ class EmulatorToolWindowPanelTest {
     set(value) { nullableEmulator = value }
 
   private val testRootDisposable
-    get() = projectRule.fixture.testRootDisposable
+    get() = projectRule.testRootDisposable
 
   @Before
   fun setUp() {

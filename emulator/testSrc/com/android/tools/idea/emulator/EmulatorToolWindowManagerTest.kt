@@ -68,7 +68,7 @@ class EmulatorToolWindowManagerTest {
   fun setUp() {
     setPortableUiFont()
     // Necessary to properly update button states.
-    installHeadlessTestDataManager(project, projectRule.fixture.testRootDisposable)
+    installHeadlessTestDataManager(project, projectRule.testRootDisposable)
     val windowManager = TestToolWindowManager(project)
     toolWindow = windowManager.toolWindow
     project.registerServiceInstance(ToolWindowManager::class.java, windowManager)

@@ -62,7 +62,7 @@ class EmulatorViewRule : TestRule {
   }
 
   val testRootDisposable: Disposable
-    get() = projectRule.fixture.testRootDisposable
+    get() = projectRule.testRootDisposable
 
   val project: Project
     get() = projectRule.project
