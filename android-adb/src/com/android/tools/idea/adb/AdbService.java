@@ -331,6 +331,11 @@ public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListe
         options.setClientSupportEnabled(true); // IDE needs client monitoring support.
         options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
         options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
+        if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()) {
+          // Enables Open Screen mDNS implementation in ADB host.
+          // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
+          options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");
+        }
         if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isUnitTestMode()) {
           // adb accesses $HOME/.android, which isn't allowed when running in the bazel sandbox
           options.withEnv("HOME", Files.createTempDir().getAbsolutePath());
