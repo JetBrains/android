@@ -87,6 +87,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       .withHiddenRoot()
       .withAutoScroll()
       .withNodeType(nodeType)
+      .withDoubleClick(::doubleClick)
+      .withToggleClickCount(3)
       .withContextMenu(::showPopup)
       .withoutTreeSearch()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
@@ -137,6 +139,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     if (node != null) {
       layoutInspector?.let { showViewContextMenu(listOf(node.view), it.layoutInspectorModel, component, x, y) }
     }
+  }
+
+  private fun doubleClick() {
+    val model = layoutInspector?.layoutInspectorModel ?: return
+    GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
