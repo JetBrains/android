@@ -211,6 +211,13 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           targetRunConfiguration = TestTargetRunConfiguration("com.example.instantapp.ExampleInstrumentedTest"),
           expectPackageName = "google.simpleapplication",
           expectTestPackageName = "com.example.feature1.test"
+        ),
+        TestDefinition(
+          IGNORE = { if (agpVersion != AGP_35) error("instant apps are not supported by this version of AGP. ") },
+          name = "INSTANT_APP run configuration",
+          testProject = TestProjectPaths.INSTANT_APP,
+          expectPackageName = "com.example.instantapp",
+          expectTestPackageName = "com.example.instantapp.test"
         )
       )
   }
