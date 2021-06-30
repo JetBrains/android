@@ -278,8 +278,10 @@ class GradleModuleSystem(
   }
 
   override fun getNotRuntimeConfigurationSpecificApplicationIdProviderForLegacyUse(): ApplicationIdProvider {
+    val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
+    val androidModel = AndroidModuleModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
     return GradleApplicationIdProvider(
-      AndroidFacet.getInstance(module) ?: throw IllegalStateException("Cannot find AndroidFacet. Module: ${module.name}"), { null }
+      androidFacet, androidModel, androidModel.selectedVariant, { null }
     )
   }
 

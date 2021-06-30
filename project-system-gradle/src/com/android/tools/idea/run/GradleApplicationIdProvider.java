@@ -22,6 +22,7 @@ import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
+import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
@@ -43,22 +44,19 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   private static final String DEFAULT_TEST_PACKAGE_SUFFIX = ".test";
 
   @NotNull private final AndroidFacet myFacet;
+
+  @NotNull private final AndroidModuleModel myAndroidModel;
+  @NotNull private final IdeVariant myVariant;
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
 
-  public GradleApplicationIdProvider(@NotNull AndroidFacet facet, @NotNull PostBuildModelProvider outputModelProvider) {
+  public GradleApplicationIdProvider(@NotNull AndroidFacet facet,
+                                     @NotNull AndroidModuleModel androidModel,
+                                     @NotNull IdeVariant variant,
+                                     @NotNull PostBuildModelProvider outputModelProvider) {
     myFacet = facet;
+    myAndroidModel = androidModel;
+    myVariant = variant;
     myOutputModelProvider = outputModelProvider;
-  }
-
-  @NotNull
-  private AndroidModuleModel getAndroidModel() throws ApkProvisionException {
-    AndroidModuleModel model = AndroidModuleModel.get(myFacet);
-    if (model == null) {
-      throw new ApkProvisionException(
-        String.format("Module `%s` is not an Android module. Do you need to sync the project with Gradle files?",
-                      myFacet.getModule().getName()));
-    }
-    return model;
   }
 
   @Override
@@ -68,7 +66,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     // AGP creates instrumentation APK only. Both test code and library code will be packaged into an instrumentation APK.
     // This is called self-instrumenting test: https://source.android.com/compatibility/tests/development/instr-self-e2e
     // For this reason, this method should return test package name for Android library project.
-    IdeAndroidProjectType projectType = getAndroidModel().getAndroidProject().getProjectType();
+    IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
       String testPackageName = getTestPackageName();
       if (testPackageName != null) {
@@ -80,10 +78,9 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     }
 
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-      AndroidFacet targetFacet = getTargetFacet();
-      if (targetFacet != null) {
-        GradleApplicationIdProvider targetApplicationProvider = new GradleApplicationIdProvider(targetFacet, myOutputModelProvider);
-        return targetApplicationProvider.getPackageName();
+      ApplicationIdProvider targetApplicationIdProvider = getTargetApplicationIdProvider();
+      if (targetApplicationIdProvider != null) {
+        return targetApplicationIdProvider.getPackageName();
       }
       else {
         getLogger().warn("Could not get applicationId for tested module.");
@@ -129,10 +126,8 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @Nullable
   private String tryToGetInstantAppApplicationId() {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-    if (androidModel == null ||
-        !androidModel.getFeatures().isPostBuildSyncSupported() ||
-        androidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
+    if (!myAndroidModel.getFeatures().isPostBuildSyncSupported() ||
+        myAndroidModel.getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
       return null;
     }
 
@@ -147,7 +142,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     }
 
     for (InstantAppVariantBuildOutput variantBuildOutput : projectBuildOutput.getInstantAppVariantsBuildOutput()) {
-      if (variantBuildOutput.getName().equals(androidModel.getSelectedVariant().getName())) {
+      if (variantBuildOutput.getName().equals(myVariant.getName())) {
         return variantBuildOutput.getApplicationId();
       }
     }
@@ -157,8 +152,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
-    AndroidModuleModel androidModel = getAndroidModel();
-    IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
+    IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       return ApkProviderUtil.computePackageName(myFacet);
     }
@@ -166,7 +160,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
     // In the case of Gradle projects, either the merged flavor provides a test package name,
     // or we just append ".test" to the source package name.
-    String testPackageName = androidModel.getSelectedVariant().getTestApplicationId();
+    String testPackageName = myVariant.getTestApplicationId();
     if (testPackageName != null) {
       return testPackageName;
     }
@@ -181,25 +175,40 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   }
 
   @Nullable
-  private AndroidFacet getTargetFacet() {
-    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
-    if (androidModel == null) {
-      return null;
-    }
-
-    Collection<IdeTestedTargetVariant> targetVariants = androidModel.getSelectedVariant().getTestedTargetVariants();
+  private ApplicationIdProvider getTargetApplicationIdProvider() {
+    Collection<IdeTestedTargetVariant> targetVariants = myVariant.getTestedTargetVariants();
     if (targetVariants.size() != 1) {
       // There is no tested variant or more than one (what should never happen currently) and then we can't get package name.
       return null;
     }
 
-    IdeTestedTargetVariant targetVariant = targetVariants.iterator().next();
-    Module targetModule = findModuleByGradlePath(myFacet.getModule().getProject(), targetVariant.getTargetProjectPath());
+    IdeTestedTargetVariant testedTargetVariant = targetVariants.iterator().next();
+    Module targetModule = findModuleByGradlePath(myFacet.getModule().getProject(), testedTargetVariant.getTargetProjectPath());
     if (targetModule == null) {
       return null;
     }
 
-    return AndroidFacet.getInstance(targetModule);
+    AndroidFacet targetFacet = AndroidFacet.getInstance(targetModule);
+    if (targetFacet == null) {
+      return null;
+    }
+
+    AndroidModuleModel targetModel = AndroidModuleModel.get(targetFacet);
+    if (targetModel == null) {
+      return null;
+    }
+
+    IdeVariant targetVariant = targetModel
+      .getVariants()
+      .stream()
+      .filter(it -> it.getName().equals(testedTargetVariant.getTargetVariant()))
+      .findAny()
+      .orElse(null);
+    if (targetVariant == null) {
+      return null;
+    }
+
+    return new GradleApplicationIdProvider(targetFacet, targetModel, targetVariant, myOutputModelProvider);
   }
 
   private static Logger getLogger() {
