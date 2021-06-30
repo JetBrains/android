@@ -3,6 +3,7 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
 load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
+load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
 
@@ -928,6 +929,14 @@ maven_repo(
         "//tools/base/third_party/kotlin/for_ide_plugin:org.jetbrains.kotlin_kotlin-stdlib-jdk8",
     ],
     visibility = ["//visibility:public"],
+)
+
+# Validates no new gradle project tests are added to intellij.android.core.tests
+check_tests(
+    agp_test_module = ":intellij.android.core.agp-integration-tests",
+    disallow_gradle_project_tests = True,
+    gradle_project_tests_allowlist = ":intellij.android.core.tests.gradle-tests-allowlist.txt",
+    iml_module = ":intellij.android.core.tests",
 )
 
 studio_data(
