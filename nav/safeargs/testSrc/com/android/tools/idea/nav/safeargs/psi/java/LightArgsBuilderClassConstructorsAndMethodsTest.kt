@@ -49,7 +49,8 @@ class LightArgsBuilderClassConstructorsAndMethodsTest(private val typeMapping: T
       TypeMapping("string", "String"),
       TypeMapping("reference", PsiType.INT.name),
       TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
-      TypeMapping("test.safeargs.MyEnum", "MyEnum")
+      TypeMapping("test.safeargs.MyEnum", "MyEnum"),
+      TypeMapping("test.safeargs.Outer\$Inner", "Inner"),
     )
   }
 
