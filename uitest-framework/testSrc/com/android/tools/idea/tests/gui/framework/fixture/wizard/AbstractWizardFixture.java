@@ -17,14 +17,20 @@ package com.android.tools.idea.tests.gui.framework.fixture.wizard;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndKeypressButton;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.diagnostic.PerformanceWatcher;
 import com.intellij.openapi.util.text.StringUtil;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
 import java.util.function.Predicate;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JRootPane;
@@ -66,11 +72,15 @@ public abstract class AbstractWizardFixture<S> extends ComponentFixture<S, JRoot
 
   @NotNull
   public S clickNext() {
-    findAndClickButton(this, "Next");
+    GuiTests.waitUntilShowingAndEnabled(robot(), target(), Matchers.byText(JButton.class, "Next"));
+    // Occasionally the root pane will not be able to resolve the screen coordinates properly.
+    // This works around the clicking issue by using the keyboard instead.
+    findAndKeypressButton(this, "Next", KeyEvent.VK_ENTER);
     return myself();
   }
 
   protected void clickFinish(@NotNull Wait waitForDialogDisappear) {
+    // TODO: if clicking is flakey, change this to key press instead
     findAndClickButton(this, "Finish");
     try {
       waitForDialogDisappear.expecting("dialog to disappear").until(

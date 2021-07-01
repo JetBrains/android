@@ -467,6 +467,11 @@ public final class GuiTests {
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
   }
 
+  public static void findAndKeypressButton(@NotNull ContainerFixture<? extends Container> container, @NotNull String text, int... keycodes) {
+    Robot robot = container.robot();
+    new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).pressAndReleaseKeys(keycodes);
+  }
+
   public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JLabelFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
@@ -695,5 +700,20 @@ public final class GuiTests {
     // Bazel wipes all Android Studio Caches between tests and all JDK and Android SDK libraries are re-indexed (about 50K files)
     // Usually this take 20-30 secs, but depends heavily on the machine and its load
     waitForProjectIndexingToFinish(project, Wait.seconds(240));
+  }
+
+  public static void takeScreenshot(@NotNull Robot robot, @NotNull String name) {
+    try {
+      File folderName = GuiTests.getFailedTestScreenshotDirPath();
+      ensureExists(folderName);
+      ScreenshotTaker screenshotTaker = new ScreenshotTaker(robot);
+      File pngPath = new File(folderName, name + ".png");
+      LOG.info("Saving screenshot to: " + pngPath.getPath());
+      screenshotTaker.saveDesktopAsPng(pngPath.getPath());
+    }
+    catch (IOException e) {
+      LOG.error("Could not create folder");
+      fail();
+    }
   }
 }
