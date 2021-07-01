@@ -271,6 +271,7 @@ class EmulatorToolWindowPanelTest {
     waitForCondition(2, TimeUnit.SECONDS) { ui.findAllComponents<EmulatorView>().size == 3 }
     ui.layoutAndDispatchEvents()
     waitForNextFrameInAllDisplays(ui, frameNumbers)
+    ui.updateToolbars()
     assertAppearance(ui, "MultipleDisplays1")
 
     // Resize emulator display panels.
