@@ -87,8 +87,8 @@ import java.awt.RenderingHints.KEY_RENDERING
 import java.awt.RenderingHints.VALUE_ANTIALIAS_ON
 import java.awt.RenderingHints.VALUE_RENDER_QUALITY
 import java.awt.color.ColorSpace
+import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.ComponentListener
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
@@ -158,7 +158,7 @@ class EmulatorView(
   val displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean
-) : JPanel(BorderLayout()), ComponentListener, ConnectionStateListener, Zoomable, Disposable {
+) : JPanel(BorderLayout()), ConnectionStateListener, Zoomable, Disposable {
 
   private var disconnectedStateLabel: JLabel
   private var lastScreenshot: Screenshot? = null
@@ -315,7 +315,14 @@ class EmulatorView(
     focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the emulator.
 
     emulator.addConnectionStateListener(this)
-    addComponentListener(this)
+    addComponentListener(object : ComponentAdapter() {
+      override fun componentShown(event: ComponentEvent) {
+        requestScreenshotFeed()
+        if (displayId == PRIMARY_DISPLAY_ID) {
+          requestNotificationFeed()
+        }
+      }
+    })
 
     // Forward mouse & keyboard events.
     val mouseListener = MyMouseListener()
@@ -352,7 +359,6 @@ class EmulatorView(
   override fun dispose() {
     cancelNotificationFeed()
     cancelScreenshotFeed()
-    removeComponentListener(this)
     emulator.removeConnectionStateListener(this)
     stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
@@ -450,6 +456,14 @@ class EmulatorView(
     }
     else {
       currentDisplaySize.rotated(rotation)
+    }
+  }
+
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val resized = width != this.width || height != this.height
+    super.setBounds(x, y, width, height)
+    if (resized) {
+      requestScreenshotFeed()
     }
   }
 
@@ -763,23 +777,6 @@ class EmulatorView(
     notificationReceiver = null
     notificationFeed?.cancel()
     notificationFeed = null
-  }
-
-  override fun componentResized(event: ComponentEvent) {
-    requestScreenshotFeed()
-  }
-
-  override fun componentShown(event: ComponentEvent) {
-    requestScreenshotFeed()
-    if (displayId == PRIMARY_DISPLAY_ID) {
-      requestNotificationFeed()
-    }
-  }
-
-  override fun componentHidden(event: ComponentEvent) {
-  }
-
-  override fun componentMoved(event: ComponentEvent) {
   }
 
   fun showLongRunningOperationIndicator(text: String) {
