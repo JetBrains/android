@@ -16,12 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndKeypressButton;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.project.ProjectManager;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
 import javax.swing.JDialog;
 import javax.swing.JRootPane;
 import org.fest.swing.core.Robot;
@@ -60,7 +63,9 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public NewProjectWizardFixture clickFinish(@NotNull Wait projectOpen, @NotNull Wait indexing) {
-    findAndClickButton(this, "Finish");
+    // Occasionally the root pane will not be able to resolve the screen coordinates properly.
+    // This works around the clicking issue by using the keyboard instead.
+    findAndKeypressButton(this, "Finish", KeyEvent.VK_ENTER);
     projectOpen
       .expecting("project opened")
       .until(() -> GuiQuery.getNonNull(() -> ProjectManager.getInstance().getOpenProjects().length == 1));
