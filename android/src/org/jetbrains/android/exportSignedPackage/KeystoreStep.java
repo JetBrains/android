@@ -16,7 +16,6 @@ import com.intellij.credentialStore.Credentials;
 import com.intellij.ide.passwordSafe.PasswordSafe;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,14 +61,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   public static final String MODULE_PROPERTY = "ExportedModule";
   @VisibleForTesting static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
   @VisibleForTesting static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
-
-  private static class KeyStorePasswordRequestor {
-    // dummy: used as a requestor class id to access the key store password
-  }
-
-  private static class KeyPasswordRequestor {
-    // dummy: used as a requestor class id to access the key password
-  }
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
@@ -117,21 +108,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myRememberPasswordCheckBox.setSelected(settings.REMEMBER_PASSWORDS);
 
     if (settings.REMEMBER_PASSWORDS) {
-      Application application = ApplicationManager.getApplication();
-      application.executeOnPooledThread(() -> {
-        String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
-        String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
-        String keyStorePassword = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
-        String keyPassword = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
-        application.invokeLater(() -> {
-          if (keyStorePassword != null) {
-            myKeyStorePasswordField.setText(keyStorePassword);
-          }
-          if (keyPassword != null) {
-            myKeyPasswordField.setText(keyPassword);
-          }
-        }, ModalityState.any());
-      });
+      tryLoadSavedPasswords();
     }
 
     myModuleCombo.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
@@ -253,44 +230,78 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myGradlePanel.setVisible(showError);
   }
 
-  @Slow
-  private static String retrievePassword(@NotNull Class<?> primaryRequestor, @NotNull String key) {
-    String password = null;
-    PasswordSafe passwordSafe = null;
-    // Return a null password in case there are problems reading it from PasswordSafe (b/70654787)
-    try {
-      passwordSafe = PasswordSafe.getInstance();
-      password = passwordSafe.getPassword(credentialAttributesForKey(key));
-    }
-    catch (Throwable t) {
-      Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
-    }
-    if ((password == null) && (passwordSafe != null)) {
-      // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
-      // while transitioning to a version which contains the fix for b/192344567, rather than having them retype all the
-      // passwords at once.
-      // Note: this is a deprecated way of creating CredentialAttributes and will be cleaned up soon.
-      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(primaryRequestor, key));
-    }
-    if ((password == null) && (passwordSafe != null)) {
-      // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
-      // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
-      // passwords at once.
-      // Note: this is a deprecated way of creating CredentialAttributes and will be cleaned up soon.
-      password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(KeystoreStep.class, key));
-    }
+  private void tryLoadSavedPasswords() {
+    String keyStorePath = myKeyStorePathField.getText();
+    String keyAlias = myKeyAliasField.getText();
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStorePath, null);
+      String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStorePath, keyAlias);
+      try {
+        PasswordSafe passwordSafe = PasswordSafe.getInstance();
 
-    return password;
+        retrievePassword(passwordSafe, Arrays.asList(
+          credentialAttributesForKey(keyStorePasswordKey),
+          createKeystoreDeprecatedAttributesPre_2021_1_1_3(keyStorePasswordKey),
+          createDeprecatedAttributesPre_3_2(keyStorePasswordKey)
+        )).map(Credentials::getPassword).ifPresent(password -> ApplicationManager.getApplication().invokeLater(() -> {
+          myKeyStorePasswordField.setText(password.toString());
+        }, ModalityState.stateForComponent(myKeyStorePasswordField)));
+
+        retrievePassword(passwordSafe, Arrays.asList(
+          credentialAttributesForKey(keyPasswordKey),
+          createKeyDeprecatedAttributesPre_2021_1_1_3(keyPasswordKey),
+          createDeprecatedAttributesPre_3_2(keyPasswordKey)
+        )).map(Credentials::getPassword).ifPresent(password -> ApplicationManager.getApplication().invokeLater(() -> {
+            myKeyPasswordField.setText(password.toString());
+        }, ModalityState.stateForComponent(myKeyPasswordField)));
+      }
+      catch (Throwable t) {
+        Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);
+      }
+    });
   }
 
-  private static void updateSavedPassword(@NotNull String key, @Nullable String value) {
-    PasswordSafe passwordSafe = PasswordSafe.getInstance();
-    passwordSafe.set(credentialAttributesForKey(key), value == null ? null : new Credentials(key, value));
-    // Always erase the one stored with the old requestor (the one used before the fix for b/64995008 and for b/192344567).
-    // Note: this is a deprecated way of creating CredantialAttributes and will be cleaned up soon.
-    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.class, key), null);
-    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.KeyStorePasswordRequestor.class, key), null);
-    passwordSafe.set(CredentialAttributesKt.CredentialAttributes(KeystoreStep.KeyPasswordRequestor.class, key), null);
+  /**
+   * Try to load password using all provided attributes in provided order and return first one found.
+   * This is needed to be able to load passwords saved previously in a deprecated way
+   * (changes for b/192344567, b/64995008).
+   */
+  @Slow
+  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe, @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
+    return credentialAttributesToTry.stream()
+      .map(attributes -> Optional.ofNullable(passwordSafe.get(attributes)))
+      .filter(Optional::isPresent)
+      .findFirst()
+      .orElse(Optional.empty());
+  }
+
+  private static void trySavePasswords(@NotNull String keyStoreLocation, char[] keyStorePassword, @NotNull String keyAlias, char[] keyPassword, boolean rememberPasswords) {
+    String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
+    String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
+
+    // Following the logic in retrieve method, PasswordSafe usage is unlikely but might fail.
+    // Let's guard ourselfs here, otherwise it will completely block the users as they would not be able to pass
+    // this step on the signing wizard.
+    try {
+      PasswordSafe passwordSafe = PasswordSafe.getInstance();
+      if (rememberPasswords) {
+        passwordSafe.set(credentialAttributesForKey(keyStorePasswordKey), new Credentials(keyStorePasswordKey, keyStorePassword));
+        passwordSafe.set(credentialAttributesForKey(keyPasswordKey), new Credentials(keyPasswordKey, keyPassword));
+      }
+      else {
+        // Delete stored passwords if remember passwords checkbox is unchecked.
+        passwordSafe.set(credentialAttributesForKey(keyStorePasswordKey), null);
+        passwordSafe.set(credentialAttributesForKey(keyPasswordKey), null);
+      }
+      // Always erase credentials stored with the old deprecated way (used before the fixes for b/64995008 and for b/192344567).
+      passwordSafe.set(createDeprecatedAttributesPre_3_2(keyStorePasswordKey), null);
+      passwordSafe.set(createDeprecatedAttributesPre_3_2(keyPasswordKey), null);
+      passwordSafe.set(createKeystoreDeprecatedAttributesPre_2021_1_1_3(keyStorePasswordKey), null);
+      passwordSafe.set(createKeyDeprecatedAttributesPre_2021_1_1_3(keyPasswordKey), null);
+    }
+    catch (Throwable t) {
+      Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);
+    }
   }
 
   /**
@@ -301,9 +312,33 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * thus only one username/password pair can be saved per service name.
    * That's why we need to include password determining key into service name instead of passing it as user name.
    */
-  private static CredentialAttributes credentialAttributesForKey(@NotNull String key) {
+  private static @NotNull CredentialAttributes credentialAttributesForKey(@NotNull String key) {
     String serviceName = CredentialAttributesKt.generateServiceName("APK Signing Keystore Step", key);
     return new CredentialAttributes(serviceName);
+  }
+
+  /**
+   * Deprecated way to create attributes that was used before Studio 3.2.
+   * Left for migrating passwords from Studio before that version.
+   */
+  private static @NotNull CredentialAttributes createDeprecatedAttributesPre_3_2(@NotNull String key) {
+    return new CredentialAttributes(KeystoreStep.class.getName(), key);
+  }
+
+  /**
+   * Deprecated way to create attributes that was used from Studio ~3.2 to Bumblebee Canary 3 (2021.1.1.3).
+   * Left for migrating passwords from Studio before that version.
+   */
+  private static @NotNull CredentialAttributes createKeystoreDeprecatedAttributesPre_2021_1_1_3(@NotNull String key) {
+    return new CredentialAttributes("org.jetbrains.android.exportSignedPackage.KeystoreStep$KeyStorePasswordRequestor", key);
+  }
+
+  /**
+   * Deprecated way to create attributes that was used from Studio ~3.2 to Bumblebee Canary 3 (2021.1.1.3).
+   * Left for migrating passwords from Studio before that version.
+   */
+  private static @NotNull CredentialAttributes createKeyDeprecatedAttributesPre_2021_1_1_3(@NotNull String key) {
+    return new CredentialAttributes("org.jetbrains.android.exportSignedPackage.KeystoreStep$KeyPasswordRequestor", key);
   }
 
   @VisibleForTesting
@@ -402,11 +437,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       }
     }
 
-    String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
-    String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
-
-    updateSavedPassword(keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
-    updateSavedPassword(keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
+    trySavePasswords(keyStoreLocation, keyStorePassword, keyAlias, keyPassword, rememberPasswords);
 
     myWizard.setFacet(getSelectedFacet());
   }
