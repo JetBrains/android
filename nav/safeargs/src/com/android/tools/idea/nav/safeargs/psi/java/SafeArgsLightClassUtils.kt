@@ -80,7 +80,9 @@ internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue:
 }
 
 internal fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?): String {
-  var psiTypeStr = typeStr
+  // When specified as inputs to safe args, inner classes in XML should use the Java syntax (e.g. "Outer$Inner"), but IntelliJ resolves
+  // the type using dot syntax ("Outer.Inner")
+  var psiTypeStr = typeStr?.replace('$', '.')
 
   if (psiTypeStr == null) {
     psiTypeStr = guessFromDefaultValue(defaultValue)
