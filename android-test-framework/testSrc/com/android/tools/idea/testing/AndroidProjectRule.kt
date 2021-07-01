@@ -361,6 +361,7 @@ class AndroidProjectRule private constructor(
 class EdtAndroidProjectRule(val projectRule: AndroidProjectRule) : TestRule by RuleChain.outerRule(projectRule).around(EdtRule())!! {
   val project: Project get() = projectRule.project
   val fixture: CodeInsightTestFixture get() = projectRule.fixture
+  val testRootDisposable: Disposable get() = projectRule.testRootDisposable
   fun setupProjectFrom(vararg moduleBuilders: ModuleModelBuilder) = projectRule.setupProjectFrom(*moduleBuilders)
 }
 
