@@ -48,7 +48,6 @@ import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
-import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
@@ -111,8 +110,10 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
-    val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
+    if (runConfiguration !is AndroidRunConfigurationBase) return null
+    val androidFacet = runConfiguration.configurationModule?.module?.androidFacet ?: return null
     val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
+
     return GradleApplicationIdProvider(
       androidFacet,
       androidModel,
@@ -122,17 +123,15 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? {
-    val module = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module ?: return null
     if (runConfiguration !is AndroidRunConfigurationBase) return null
-    val facet = AndroidFacet.getInstance(module)!!
-
+    val androidFacet = runConfiguration.configurationModule?.module?.androidFacet ?: return null
     val isTestConfiguration = runConfiguration.isTestConfiguration
     val alwaysDeployApkFromBundle = (runConfiguration as? AndroidRunConfiguration)?.let(::shouldDeployApkFromBundle) ?: false
 
     return GradleApkProvider(
-      facet,
+      androidFacet,
       getApplicationIdProvider(runConfiguration) ?: return null,
-      { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
+      PostBuildModelProvider { runConfiguration.getUserData(GradleApkProvider.POST_BUILD_MODEL) },
       isTestConfiguration,
       alwaysDeployApkFromBundle
     )
