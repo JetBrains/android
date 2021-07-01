@@ -26,7 +26,6 @@ import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
-import junit.framework.TestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
@@ -391,7 +390,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
-    passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
+    passwordSafe.setPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey, legacyRequestor), testLegacyKeyPassword)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -405,7 +404,8 @@ class KeystoreStepTest : LightPlatformTestCase() {
     // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
     // never be populated, whereas the key password would be saved as expected.
     assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
-    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password) }
+    waitForCondition(1, TimeUnit.SECONDS) { keystoreStep.keyPasswordField.password.isNotEmpty() }
+    assertEquals(testLegacyKeyPassword, String(keystoreStep.keyPasswordField.password))
 
     // Set passwords and commit.
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword
@@ -413,7 +413,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep.commitForNext()
 
     // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor, keyPasswordKey)))
+    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey, legacyRequestor)))
   }
 
   // See b/192344567. We had to replace requestor with service name once again
@@ -454,7 +454,9 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
-    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyStorePassword.toCharArray(), keystoreStep.keyStorePasswordField.password) }
+    waitForCondition(1, TimeUnit.SECONDS) {
+      Arrays.equals(testLegacyKeyStorePassword.toCharArray(), keystoreStep.keyStorePasswordField.password)
+    }
     waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password) }
 
     // Set passwords and commit.
