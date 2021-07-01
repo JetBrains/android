@@ -23,6 +23,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Com
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 
+private const val ANDROID_VIEWS_HANDLER = "androidx.compose.ui.platform.AndroidViewsHandler"
+
 /**
  * Helper class which handles the logic of converting a [LayoutInspectorViewProtocol.LayoutEvent] into
  * its corresponding [ViewNode]s.
@@ -74,17 +76,29 @@ class ViewNodeCreator(
     composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }
     val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()
     children.forEach { child ->
-      val composeParent = composeNodeCreator?.androidViews?.get(child.drawId)
-      if (composeParent != null) {
-        composeParent.children.add(child)
-        child.parent = composeParent
-      }
-      else if (!viewsToSkip.contains(child.drawId)) {
+      if (!viewsToSkip.contains(child.drawId)) {
         node.children.add(child)
         child.parent = node
       }
     }
 
+    // Move nodes under ANDROID_VIEWS_HANDLER to their corresponding ComposeNode if the handler is present:
+    val handler = node.children.singleOrNull { it.qualifiedName == ANDROID_VIEWS_HANDLER }
+    if (handler != null) {
+      val viewsToMove = composeNodeCreator?.androidViews?.keys ?: emptyList()
+      handler.children.filter { it.drawId in viewsToMove }.forEach {
+        composeNodeCreator?.androidViews?.get(it.drawId)?.let { composeParent ->
+          composeParent.children.add(it)
+          it.parent = composeParent
+        }
+        handler.children.remove(it)
+      }
+      // Also remove the handler if all children have been moved
+      if (handler.children.isEmpty()) {
+        node.children.remove(handler)
+        handler.parent = null
+      }
+    }
     return node
   }
 }
