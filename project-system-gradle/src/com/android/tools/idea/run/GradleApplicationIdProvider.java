@@ -45,15 +45,18 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
   @NotNull private final AndroidFacet myFacet;
 
+  private final boolean myForTests;
   @NotNull private final AndroidModuleModel myAndroidModel;
   @NotNull private final IdeVariant myVariant;
   @NotNull private final PostBuildModelProvider myOutputModelProvider;
 
   public GradleApplicationIdProvider(@NotNull AndroidFacet facet,
+                                     boolean forTests,
                                      @NotNull AndroidModuleModel androidModel,
                                      @NotNull IdeVariant variant,
                                      @NotNull PostBuildModelProvider outputModelProvider) {
     myFacet = facet;
+    myForTests = forTests;
     myAndroidModel = androidModel;
     myVariant = variant;
     myOutputModelProvider = outputModelProvider;
@@ -151,7 +154,9 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   }
 
   @Override
+  @Nullable
   public String getTestPackageName() throws ApkProvisionException {
+    if (!myForTests) return null;
     IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       return ApkProviderUtil.computePackageName(myFacet);
@@ -208,7 +213,10 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    return new GradleApplicationIdProvider(targetFacet, targetModel, targetVariant, myOutputModelProvider);
+    // Note: Even though our project is a test module project we request an application id provider for the target module which is
+    //       not a test module and the return provider is supposed to be used to obtain the non-test application id only and hence
+    //       we create a `GradleApplicationIdProvider` instance in `forTests = false` mode.
+    return new GradleApplicationIdProvider(targetFacet, false, targetModel, targetVariant, myOutputModelProvider);
   }
 
   private static Logger getLogger() {

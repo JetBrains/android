@@ -281,7 +281,7 @@ class GradleModuleSystem(
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = AndroidModuleModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
     return GradleApplicationIdProvider(
-      androidFacet, androidModel, androidModel.selectedVariant, { null }
+      androidFacet, false, androidModel, androidModel.selectedVariant, { null }
     )
   }
 

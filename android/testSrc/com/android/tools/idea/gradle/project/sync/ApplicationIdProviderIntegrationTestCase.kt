@@ -75,16 +75,14 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
             AGP_40 to "from.gradle.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "com.example.unittest.test",
-            AGP_35 to "from.gradle.debug.test",
-            AGP_40 to "from.gradle.debug.test",
+            CURRENT to "(null)",
           )
         ),
         TestDefinition(
           name = "RUN_CONFIG_ACTIVITY after build",
           testProject = TestProjectPaths.RUN_CONFIG_ACTIVITY,
           expectPackageName = "from.gradle.debug",
-          expectTestPackageName = "from.gradle.debug.test"
+          expectTestPackageName = "(null)"
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX before build",
@@ -96,16 +94,14 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
             AGP_40 to "one.name.defaultConfig.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "one.name.test_app",
-            AGP_35 to "one.name.test_app",
-            AGP_40 to "one.name.test_app",
+            CURRENT to "(null)"
           )
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX after build",
           testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
           expectPackageName = "one.name.defaultConfig.debug",
-          expectTestPackageName = "one.name.test_app"
+          expectTestPackageName = "(null)"
         ),
         TestDefinition(
           name = "APPLICATION_ID_SUFFIX run configuration via bundle",
@@ -118,9 +114,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
             AGP_40 to "one.name.defaultConfig.debug",
           ),
           expectTestPackageName = mapOf(
-            CURRENT to "one.name.test_app",
-            AGP_35 to "one.name.test_app",
-            AGP_40 to "one.name.test_app",
+            CURRENT to "(null)"
           )
         ),
         TestDefinition(
@@ -175,20 +169,20 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.DYNAMIC_APP,
           executeMakeBeforeRun = false,
           expectPackageName = "google.simpleapplication",
-          expectTestPackageName = "google.simpleapplication.test"
+          expectTestPackageName = "(null)"
         ),
         TestDefinition(
           name = "DYNAMIC_APP run configuration after build",
           testProject = TestProjectPaths.DYNAMIC_APP,
           expectPackageName = "google.simpleapplication",
-          expectTestPackageName = "google.simpleapplication.test"
+          expectTestPackageName = "(null)"
         ),
         TestDefinition(
           name = "DYNAMIC_APP run configuration pre L device",
           device = 19,
           testProject = TestProjectPaths.DYNAMIC_APP,
           expectPackageName = "google.simpleapplication",
-          expectTestPackageName = "google.simpleapplication.test"
+          expectTestPackageName = "(null)"
         ),
         TestDefinition(
           name = "DYNAMIC_APP test run configuration pre L device",
@@ -217,7 +211,7 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           name = "INSTANT_APP run configuration",
           testProject = TestProjectPaths.INSTANT_APP,
           expectPackageName = "com.example.instantapp",
-          expectTestPackageName = "com.example.instantapp.test"
+          expectTestPackageName = "(null)"
         )
       )
   }
@@ -361,7 +355,8 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
   }
 
   private fun <T> Result<T>.toTestString() =
-    getOrNull()?.toString()
+    (if (this.isSuccess) getOrThrow() ?: "(null)" else null)
+      ?.toString()
     ?: exceptionOrNull()?.let {
       val message = it.message?.replace(getBaseTestPath(), "<ROOT>")
       "${it::class.java.simpleName}*> $message"
