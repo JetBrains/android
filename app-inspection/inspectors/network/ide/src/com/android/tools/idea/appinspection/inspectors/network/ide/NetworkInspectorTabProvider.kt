@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.ide
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspector.api.awaitForDisposal
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTab
 import com.android.tools.idea.appinspection.inspector.ide.FrameworkInspectorLaunchParams
@@ -33,6 +34,7 @@ import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 import javax.swing.Icon
 
 class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
@@ -49,6 +51,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     return ENABLE_NETWORK_MANAGER_INSPECTOR_TAB.get()
   }
 
+  override fun supportsOffline() = true
+
   override fun createTab(
     project: Project,
     ideServices: AppInspectionIdeServices,
@@ -63,9 +67,17 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
 
     return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClient(messenger)
-      override val component = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
-                                                   AndroidDispatchers.uiThread, parentDisposable,
-                                                   usageTracker = IdeNetworkInspectorTracker(project)).component
+      private val networkInspectorTab = NetworkInspectorTab(client, scope, componentsProvider, codeNavigationProvider, dataSource,
+                                                            AndroidDispatchers.uiThread, parentDisposable,
+                                                            usageTracker = IdeNetworkInspectorTracker(project))
+      override val component = networkInspectorTab.component
+
+      init {
+        scope.launch {
+          messenger.awaitForDisposal()
+          networkInspectorTab.stopInspection()
+        }
+      }
     }
   }
 }

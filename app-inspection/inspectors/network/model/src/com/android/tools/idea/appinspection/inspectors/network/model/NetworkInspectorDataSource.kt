@@ -149,12 +149,14 @@ class NetworkInspectorDataSourceImpl(
     scope.launch {
       try {
         processEvents(channel)
-        messenger.eventFlow.collect {
-          val event = Event.parseFrom(it)
-          channel.send(Intention.InsertData(event))
-        }
       } catch (e: CancellationException) {
         channel.close(e.cause)
+      }
+    }
+    scope.launch {
+      messenger.eventFlow.collect {
+        val event = Event.parseFrom(it)
+        channel.send(Intention.InsertData(event))
       }
     }
   }
