@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
@@ -107,7 +108,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       }
     }
 
-    return ApkProviderUtil.computePackageName(myFacet);
+    return getApplicationIdFromModelOrManifest(myFacet);
   }
 
   @Nullable
@@ -124,7 +125,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       return null;
     }
 
-    return ApkProviderUtil.computePackageName(baseAppFacet);
+    return getApplicationIdFromModelOrManifest(baseAppFacet);
   }
 
   @Nullable
@@ -159,7 +160,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     if (!myForTests) return null;
     IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-      return ApkProviderUtil.computePackageName(myFacet);
+      return getApplicationIdFromModelOrManifest(myFacet);
     }
 
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
@@ -172,7 +173,7 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
 
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
         || projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
-      return ApkProviderUtil.computePackageName(myFacet) + DEFAULT_TEST_PACKAGE_SUFFIX;
+      return getApplicationIdFromModelOrManifest(myFacet) + DEFAULT_TEST_PACKAGE_SUFFIX;
     }
     else {
       return getPackageName() + DEFAULT_TEST_PACKAGE_SUFFIX;
@@ -217,6 +218,15 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     //       not a test module and the return provider is supposed to be used to obtain the non-test application id only and hence
     //       we create a `GradleApplicationIdProvider` instance in `forTests = false` mode.
     return new GradleApplicationIdProvider(targetFacet, false, targetModel, targetVariant, myOutputModelProvider);
+  }
+
+  @NotNull
+  private String getApplicationIdFromModelOrManifest(@NotNull AndroidFacet facet) throws ApkProvisionException {
+    String pkg = AndroidModuleInfo.getInstance(facet).getPackage();
+    if (pkg == null || pkg.isEmpty()) {
+      throw new ApkProvisionException("[" + myFacet.getModule().getName() + "] Unable to obtain main package from manifest.");
+    }
+    return pkg;
   }
 
   private static Logger getLogger() {

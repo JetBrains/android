@@ -44,6 +44,10 @@ import java.io.IOException;
 public class ApkProviderUtil {
   private static final Logger LOG = Logger.getInstance(ApkProviderUtil.class);
 
+  /**
+   * DO NOT USE! Use `ApplicationIdProvider`s instead.
+   */
+  @Deprecated
   @NotNull
   public static String computePackageName(@NotNull final AndroidFacet facet) throws ApkProvisionException {
     // TODO: Separate Gradle and non-Gradle logic here.

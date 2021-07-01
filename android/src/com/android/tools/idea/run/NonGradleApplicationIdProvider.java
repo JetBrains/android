@@ -32,11 +32,13 @@ public class NonGradleApplicationIdProvider implements ApplicationIdProvider {
   @Override
   @NotNull
   public String getPackageName() throws ApkProvisionException {
+    //noinspection deprecation
     return ApkProviderUtil.computePackageName(myFacet);
   }
 
   @Override
   public String getTestPackageName() throws ApkProvisionException {
+    //noinspection deprecation
     return ApkProviderUtil.computePackageName(myFacet);
   }
 }
