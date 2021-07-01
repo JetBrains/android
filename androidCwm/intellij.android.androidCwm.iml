@@ -11,6 +11,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.cwm.host" />
+    <orderEntry type="module" module-name="intellij.rd.ide.model.generated" />
+    <orderEntry type="library" name="rd-core" level="project" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="library" name="rd-framework" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />

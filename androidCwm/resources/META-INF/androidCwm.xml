@@ -2,5 +2,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <backendProjectPaneProvider implementation="org.intellij.android.cwm.BackendAndroidPaneProvider"/>
     <toolWindowExtractorMode id="Logcat" mode="mirror"/>
+    <rdserver.converter implementationClass="org.intellij.android.cwm.DeviceAndSearchPanelConverter" key="com.android.tools.idea.logcat.DeviceAndSearchPanel"/>
   </extensions>
 </idea-plugin>
