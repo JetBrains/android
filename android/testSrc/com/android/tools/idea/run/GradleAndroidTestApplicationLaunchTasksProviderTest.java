@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
-public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase {
+public class GradleAndroidTestApplicationLaunchTasksProviderTest extends AndroidGradleTestCase {
   private ConsolePrinter mockConsolePrinter = mock(ConsolePrinter.class);
   private IDevice mockDevice = mock(IDevice.class);
   private LaunchStatus mockLaunchStatus = mock(LaunchStatus.class);
@@ -94,7 +94,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(true)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -137,7 +137,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -178,7 +178,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -217,7 +217,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -256,7 +256,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -293,7 +293,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,
@@ -330,7 +330,7 @@ public class GradleAndroidLaunchTasksProviderTest extends AndroidGradleTestCase 
       .setDebug(false)
       .build();
 
-    GradleAndroidLaunchTasksProvider provider = new GradleAndroidLaunchTasksProvider(
+    GradleAndroidTestApplicationLaunchTasksProvider provider = new GradleAndroidTestApplicationLaunchTasksProvider(
       (AndroidRunConfiguration)configSettings.getConfiguration(),
       env,
       myAndroidFacet,

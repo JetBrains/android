@@ -33,7 +33,7 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.ConsoleProvider;
-import com.android.tools.idea.run.GradleAndroidLaunchTasksProvider;
+import com.android.tools.idea.run.GradleAndroidTestApplicationLaunchTasksProvider;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
@@ -306,9 +306,9 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     GradleAndroidTestRunnerOptInDialogKt.showGradleAndroidTestRunnerOptInDialog(getProject());
 
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
-      return new GradleAndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
-                                                  TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
-                                                  new RetentionConfiguration(RETENTION_ENABLED, RETENTION_MAX_SNAPSHOTS,
+      return new GradleAndroidTestApplicationLaunchTasksProvider(this, env, facet, applicationIdProvider, launchOptions,
+                                                                 TESTING_TYPE, PACKAGE_NAME, CLASS_NAME, METHOD_NAME,
+                                                                 new RetentionConfiguration(RETENTION_ENABLED, RETENTION_MAX_SNAPSHOTS,
                                                                              RETENTION_COMPRESS_SNAPSHOTS));
     } else {
       return new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions);
