@@ -165,10 +165,11 @@ class DeviceViewPanelModel(
       // levelLists but may still paint something. Prior to initial image generation there's no way to know if they will end up painting
       // or not, but we still need to be able to zoom to fit correctly, so include those bounds here.
       model.root.flatten()
+        .minus(model.root)
         .filter { model.isVisible(it) }
         .forEach { node -> rootBounds.add(node.layoutBounds) }
       root.x = rootBounds.x
-      root.y = rootBounds.x
+      root.y = rootBounds.y
       root.width = rootBounds.width
       root.height = rootBounds.height
 
