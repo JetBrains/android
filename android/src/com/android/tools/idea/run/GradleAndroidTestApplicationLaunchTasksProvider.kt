@@ -38,16 +38,16 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * LaunchTasksProvider that provides GradleAndroidTestApplicationLaunchTasks for instrumentation tests
  */
-class GradleAndroidLaunchTasksProvider(private val myRunConfig: AndroidRunConfigurationBase,
-                                       private val myEnv: ExecutionEnvironment,
-                                       facet: AndroidFacet,
-                                       applicationIdProvider: ApplicationIdProvider,
-                                       launchOptions: LaunchOptions,
-                                       testingType: Int,
-                                       packageName: String,
-                                       className: String,
-                                       methodName: String,
-                                       private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
+class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: AndroidRunConfigurationBase,
+                                                      private val myEnv: ExecutionEnvironment,
+                                                      facet: AndroidFacet,
+                                                      applicationIdProvider: ApplicationIdProvider,
+                                                      launchOptions: LaunchOptions,
+                                                      testingType: Int,
+                                                      packageName: String,
+                                                      className: String,
+                                                      methodName: String,
+                                                      private val retentionConfiguration: RetentionConfiguration) : LaunchTasksProvider {
   private val myFacet: AndroidFacet = facet
   private val myApplicationIdProvider: ApplicationIdProvider = applicationIdProvider
   private val myLaunchOptions: LaunchOptions = launchOptions
