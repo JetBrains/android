@@ -90,6 +90,7 @@ class NetworkInspectorTab(
   lateinit var model: NetworkInspectorModel
   private lateinit var view: NetworkInspectorView
   val component: TooltipLayeredPane
+  private lateinit var goLiveButton: CommonToggleButton
 
   @VisibleForTesting
   lateinit var actionsToolBar: JPanel
@@ -188,44 +189,44 @@ class NetworkInspectorTab(
         val goLiveToolbar = JPanel(GridBagLayout())
         goLiveToolbar.add(FlatSeparator())
 
-        val goLive = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-        goLive.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-        goLive.font = H4_FONT
-        goLive.horizontalTextPosition = SwingConstants.LEFT
-        goLive.horizontalAlignment = SwingConstants.LEFT
-        goLive.border = JBEmptyBorder(3, 7, 3, 7)
+        goLiveButton = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
+        goLiveButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
+        goLiveButton.font = H4_FONT
+        goLiveButton.horizontalTextPosition = SwingConstants.LEFT
+        goLiveButton.horizontalAlignment = SwingConstants.LEFT
+        goLiveButton.border = JBEmptyBorder(3, 7, 3, 7)
         val attachAction = DefaultContextMenuItem.Builder(ATTACH_LIVE)
           .setContainerComponent(splitter)
-          .setActionRunnable { goLive.doClick(0) }
+          .setActionRunnable { goLiveButton.doClick(0) }
           .setEnableBooleanSupplier {
-            goLive.isEnabled &&
-            !goLive.isSelected
+            goLiveButton.isEnabled &&
+            !goLiveButton.isSelected
           }
           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
           .build()
         val detachAction = DefaultContextMenuItem.Builder(DETACH_LIVE)
           .setContainerComponent(splitter)
-          .setActionRunnable { goLive.doClick(0) }
+          .setActionRunnable { goLiveButton.doClick(0) }
           .setEnableBooleanSupplier {
-            goLive.isEnabled &&
-            goLive.isSelected
+            goLiveButton.isEnabled &&
+            goLiveButton.isSelected
           }
           .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build()
 
-        goLive.toolTipText = detachAction.defaultToolTipText
-        goLive.addActionListener {
+        goLiveButton.toolTipText = detachAction.defaultToolTipText
+        goLiveButton.addActionListener {
           val currentStageTimeline: Timeline = model.timeline
           assert(currentStageTimeline is StreamingTimeline)
           (currentStageTimeline as StreamingTimeline).toggleStreaming()
         }
-        goLive.addChangeListener {
-          val isSelected: Boolean = goLive.isSelected
-          goLive.icon = if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
-          goLive.toolTipText = if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
+        goLiveButton.addChangeListener {
+          val isSelected: Boolean = goLiveButton.isSelected
+          goLiveButton.icon = if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+          goLiveButton.toolTipText = if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
         }
         inspectorServices.timeline.addDependency(this@NetworkInspectorTab).onChange(
-          StreamingTimeline.Aspect.STREAMING) { goLive.isSelected = inspectorServices.timeline.isStreaming }
-        goLiveToolbar.add(goLive)
+          StreamingTimeline.Aspect.STREAMING) { goLiveButton.isSelected = inspectorServices.timeline.isStreaming }
+        goLiveToolbar.add(goLiveButton)
         actionsToolBar.add(goLiveToolbar)
 
 
@@ -233,14 +234,15 @@ class NetworkInspectorTab(
         zoomIn.isEnabled = true
         resetZoom.isEnabled = true
         zoomToSelection.isEnabled = zoomToSelectionAction.isEnabled
-        goLive.isEnabled = true
-        goLive.isSelected = true
+        goLiveButton.isEnabled = true
+        goLiveButton.isSelected = true
       }
     }
-    scope.launch {
-      client.awaitForTermination()
-      timer.stop()
-    }
+  }
+
+  fun stopInspection() {
+    model.timeline.setIsPaused(true)
+    goLiveButton.isEnabled = false
   }
 
   override fun dispose() {
