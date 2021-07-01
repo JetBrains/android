@@ -423,7 +423,7 @@ class SinglePreviewElementInstance(override val composableMethodFqn: String,
                    backgroundColor: String? = null,
                    displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
                    configuration: PreviewConfiguration = nullConfiguration,
-                   uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_COMPOSE) =
+                   uiToolingPackageName: ComposeLibraryNamespace = ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API) =
       SinglePreviewElementInstance(composableMethodFqn,
                                    PreviewDisplaySettings(
                                      displayName,
