@@ -113,9 +113,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     if (runConfiguration !is AndroidRunConfigurationBase) return null
     val androidFacet = runConfiguration.configurationModule?.module?.androidFacet ?: return null
     val androidModel = AndroidModuleModel.get(androidFacet) ?: return null
+    val isTestConfiguration = runConfiguration.isTestConfiguration
 
     return GradleApplicationIdProvider(
       androidFacet,
+      isTestConfiguration,
       androidModel,
       androidModel.selectedVariant,
       PostBuildModelProvider { (runConfiguration as? UserDataHolder)?.getUserData(GradleApkProvider.POST_BUILD_MODEL) }
