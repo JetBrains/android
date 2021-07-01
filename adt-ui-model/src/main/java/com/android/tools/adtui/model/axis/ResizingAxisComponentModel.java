@@ -21,6 +21,10 @@ import com.google.common.primitives.Doubles;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * An axis component model to be used without the {@link com.android.tools.adtui.model.updater.Updater}, i.e. this model doesn't support
+ * animation.
+ */
 public final class ResizingAxisComponentModel extends AxisComponentModel {
   @Nullable private Range myGlobalRange;
   double myGlobalRangeMin;
