@@ -20,7 +20,7 @@ import com.android.tools.idea.appinspection.ide.AppInspectionToolWindowService
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.AndroidModel
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationListener
@@ -56,7 +56,8 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
    * This dictates the names of the preferred processes. They are drawn from the android applicationIds of the modules in this [project].
    */
   private fun getPreferredProcesses(): List<String> = ModuleManager.getInstance(project).modules
-    .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+    .mapNotNull { module -> AndroidModel.get(module)?.applicationId }
+    .filter { applicationId -> applicationId != AndroidModel.UNINITIALIZED_APPLICATION_ID }
     .toList()
 
   private val ideServices = object : AppInspectionIdeServices {

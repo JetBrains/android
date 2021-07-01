@@ -28,13 +28,13 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
-import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
+import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
@@ -137,7 +137,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     acceptProcess = { it.isInspectableInLayoutInspector() },
     getPreferredProcessNames = {
       ModuleManager.getInstance(project).modules
-        .mapNotNull { AndroidModuleInfo.getInstance(it)?.`package` }
+        .mapNotNull { module -> AndroidModel.get(module)?.applicationId }
+        .filter { applicationId -> applicationId != AndroidModel.UNINITIALIZED_APPLICATION_ID }
         .toList()
     }
   )
