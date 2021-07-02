@@ -36,7 +36,6 @@ iml_module(
         "cpu:3",
         "perfgate",
     ],
-    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
