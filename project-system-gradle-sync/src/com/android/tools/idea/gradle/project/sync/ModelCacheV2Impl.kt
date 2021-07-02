@@ -128,7 +128,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
-import com.intellij.util.containers.addIfNotNull
 import java.io.File
 import java.util.HashMap
 
@@ -540,13 +539,13 @@ internal fun modelCacheV2Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       if (runtimeDependencies != null) {
         for (graphItem in compileDependencies) {
           if (!runtimeDependencies.contains(graphItem)) {
-            providedDependencies.addIfNotNull(libraryMap.libraries[graphItem.artifactAddress])
+            libraryMap.libraries[graphItem.artifactAddress]?.let { providedDependencies.add(it) }
           }
         }
       }
       else {
-        compileDependencies.forEach {
-          providedDependencies.addIfNotNull(libraryMap.libraries[it.artifactAddress])
+        compileDependencies.forEach { graphItem ->
+          libraryMap.libraries[graphItem.artifactAddress]?.let { providedDependencies.add(it) }
         }
       }
       return providedDependencies
