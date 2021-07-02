@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.project.model;
 
 import static com.android.tools.idea.gradle.project.model.AndroidModelSourceProviderUtils.convertVersion;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModelUtilKt.classFieldsToDynamicResourceValues;
-import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getGenericBuiltArtifact;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getBuildOutputListingFile;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.loadBuildOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -588,28 +589,38 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   private String getApplicationIdUsingCache(@NotNull String variantName) {
+    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(variantName);
+    GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
+    if (artifacts == null) {
+      return UNINITIALIZED_APPLICATION_ID;
+    }
+
+    return artifacts.getApplicationId();
+  }
+
+  @NotNull
+  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String variantName) {
+    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp;
     synchronized (myGenericBuiltArtifactsMap) {
-      GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(variantName);
+      artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(variantName);
       long lastSyncOrBuild = Long.MAX_VALUE; // If we don't have a module default to MAX which will always trigger a re-compute.
       if (myModule != null) {
         lastSyncOrBuild = ServiceManager.getService(myModule.getProject(), LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
-      } else {
+      }
+      else {
         Logger.getInstance(AndroidModuleModel.class).warn("No module set on model named: " + myModuleName);
       }
       if (artifactsWithTimestamp == null || lastSyncOrBuild >= artifactsWithTimestamp.getTimeStamp()) {
+        String buildOutputListingFile = getBuildOutputListingFile(this, variantName);
         // Cache is invalid
         artifactsWithTimestamp =
-          new GenericBuiltArtifactsWithTimestamp(getGenericBuiltArtifact(this, variantName), System.currentTimeMillis());
+          new GenericBuiltArtifactsWithTimestamp(
+            buildOutputListingFile != null ? loadBuildOutputListingFile(buildOutputListingFile) : null,
+            System.currentTimeMillis());
         myGenericBuiltArtifactsMap.put(variantName, artifactsWithTimestamp);
       }
-
-      GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
-      if (artifacts == null) {
-        return UNINITIALIZED_APPLICATION_ID;
-      }
-
-      return artifacts.getApplicationId();
     }
+    return artifactsWithTimestamp;
   }
 
   @Override

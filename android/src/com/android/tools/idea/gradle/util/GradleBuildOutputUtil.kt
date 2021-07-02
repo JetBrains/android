@@ -140,9 +140,7 @@ internal fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: 
   }
 }
 
-fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: String): GenericBuiltArtifacts? {
-  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName) ?: return null
-  val listingFile = variantBuildInformation.getOutputListingFile(OutputType.Apk) ?: return null
+fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
     return builtArtifacts
@@ -150,6 +148,14 @@ fun getGenericBuiltArtifact(androidModel: AndroidModuleModel, variantName: Strin
 
   LOG.warn("Failed to read Json output file from ${listingFile}. Build may have failed.")
   return null
+}
+
+fun getBuildOutputListingFile(
+  androidModel: AndroidModuleModel,
+  variantName: String
+): String? {
+  val variantBuildInformation = androidModel.androidProject.variantsBuildInformation.variantOutputInformation(variantName)
+  return variantBuildInformation?.getOutputListingFile(OutputType.Apk)
 }
 
 class LastBuildOrSyncService {
