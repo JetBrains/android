@@ -158,7 +158,9 @@ open class GradleSyncState @NonInjectable internal constructor (private val proj
   private fun syncStarted(trigger: GradleSyncStats.Trigger, fullSync: Boolean): Boolean {
     lock.withLock {
       if (state.isInProgress) {
-        LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
+        // TODO: IDEA-270939: sync can be invoked multiple times (once per linked project). It is not correct to track sync state per IDE project,
+        // it should be tracked per linked gradle project.
+        LOG.info("Sync already in progress for project '${project.name}'.", Throwable())
         return false
       }
 
