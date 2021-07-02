@@ -21,11 +21,11 @@ import com.android.tools.adtui.model.Range
 typealias HttpDataFetcherListener = (List<HttpData>) -> Unit
 
 /**
- * A class which handles querying for a list of [HttpData] requests within a specified range.
- * When the range changes, the list will automatically be updated, and this class will notify any
- * listeners.
+ * Allows for subscribing to receive all [HttpData] that fall within a selection range.
+ * When the selection is cleared, listeners will get all [HttpData] and will continue
+ * to receive new [HttpData] as they arrive.
  */
-class HttpDataFetcher(private val dataModel: HttpDataModel, private val range: Range) {
+class HttpDataFetcher(private val dataModel: HttpDataModel, private val selectionRange: Range, private val dataRange: Range) {
   private val aspectObserver = AspectObserver()
   private val listeners = mutableListOf<HttpDataFetcherListener>()
 
@@ -36,7 +36,8 @@ class HttpDataFetcher(private val dataModel: HttpDataModel, private val range: R
   private var prevDataList: List<HttpData>? = null
 
   init {
-    range.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
+    selectionRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
+    dataRange.addDependency(aspectObserver).onChange(Range.Aspect.RANGE) { handleRangeUpdated() }
     handleRangeUpdated()
   }
 
@@ -46,8 +47,8 @@ class HttpDataFetcher(private val dataModel: HttpDataModel, private val range: R
   }
 
   private fun handleRangeUpdated() {
-    val dataList = if (!range.isEmpty) dataModel.getData(range) else emptyList()
-    if (prevDataList != null && prevDataList == dataList) {
+    val dataList = if (!selectionRange.isEmpty) dataModel.getData(selectionRange) else dataModel.getData(dataRange)
+    if (prevDataList != null && dataList.size == prevDataList?.size) {
       return
     }
     prevDataList = dataList.also { fireListeners(it) }
