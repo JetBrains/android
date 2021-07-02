@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
@@ -28,6 +29,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -43,20 +45,26 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
+import org.junit.Assume.assumeFalse
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
 import javax.swing.JButton
+import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
 @RunsInEdt
-class CpuProfilerStageViewTest() {
+@RunWith(Parameterized::class)
+class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices().apply {
@@ -65,7 +73,9 @@ class CpuProfilerStageViewTest() {
 
   private val myCpuService = FakeCpuService()
 
-  private val myTransportService = FakeTransportService(myTimer)
+  private val myTransportService = if (isTestingProfileable) {
+    FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
+  } else FakeTransportService(myTimer)
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
@@ -140,6 +150,7 @@ class CpuProfilerStageViewTest() {
 
   @Test
   fun recordButtonDisabledInDeadSessions() {
+    assumeFalse(isTestingProfileable)
     // Create a valid capture and end the current session afterwards.
     myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     CpuProfilerTestUtils.captureSuccessfully(
@@ -222,6 +233,7 @@ class CpuProfilerStageViewTest() {
 
   @Test
   fun showsTooltipSeekComponentWhenMouseIsOverUsageView() {
+    assumeFalse(isTestingProfileable)
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
 
     val instructions = TreeWalker(stageView.component).descendants().filterIsInstance<InstructionsPanel>().first()
@@ -258,6 +270,7 @@ class CpuProfilerStageViewTest() {
 
   @Test
   fun tooltipIsUsageTooltipWhenMouseIsOverUsageView() {
+    assumeFalse(isTestingProfileable)
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
 
     stageView.component.setBounds(0, 0, 500, 500)
@@ -304,8 +317,22 @@ class CpuProfilerStageViewTest() {
     assertThat(splitter.secondComponent).isNotNull()
   }
 
+  @Test
+  fun `disabled event banner not shown in profileable process`() {
+    assumeTrue(isTestingProfileable)
+    val stageView = CpuProfilerStageView(myProfilersView, myStage)
+    assertThat(TreeWalker(stageView.component).descendantStream()
+                 .noneMatch { it is JLabel && it.text != null && it.text.contains("Advanced profiling is unavailable") })
+      .isTrue()
+  }
+
   private fun getUsageView(stageView: CpuProfilerStageView) = TreeWalker(stageView.component)
     .descendants()
     .filterIsInstance<CpuUsageView>()
     .first()
+
+  companion object {
+    @Parameterized.Parameters @JvmStatic
+    fun isTestingProfileable() = listOf(false, true) // whether process is profileable/debuggable, regardless of feature flag
+  }
 }

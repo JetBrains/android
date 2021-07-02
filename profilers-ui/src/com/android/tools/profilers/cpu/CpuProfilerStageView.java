@@ -170,10 +170,11 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     // Order matters as such our tooltip component should be first so it draws on top of all elements.
     details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
 
-    // We shouldn't display the events monitor while in import trace mode.
-    final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-    eventsView.registerTooltip(myTooltipComponent, getStage());
-    details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
+    if (stage.getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.FULL) {
+      final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
+      eventsView.registerTooltip(myTooltipComponent, getStage());
+      details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
+    }
 
     TabularLayout mainLayout = new TabularLayout("*");
     mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
