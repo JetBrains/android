@@ -143,6 +143,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun doubleClick() {
     val model = layoutInspector?.layoutInspectorModel ?: return
+    layoutInspector?.stats?.gotoSourceFromDoubleClick()
     GotoDeclarationAction.findNavigatable(model)?.navigate(true)
   }
 

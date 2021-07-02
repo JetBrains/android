@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
  * Accumulators for various actions of interest.
@@ -26,9 +27,10 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
   val live = LiveModeStatistics()
   val rotation = RotationStatistics()
-  val memory = MemoryStatistics(model)
-  val compose = ComposeStatistics()
-  val system = SystemViewToggleStatistics(treeSettings)
+  private val memory = MemoryStatistics(model)
+  private val compose = ComposeStatistics()
+  private val system = SystemViewToggleStatistics(treeSettings)
+  private val goto = GotoDeclarationStatistics()
 
   fun start(isCapturing: Boolean) {
     live.start(isCapturing)
@@ -36,6 +38,7 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
     memory.start()
     compose.start()
     system.start()
+    goto.start()
   }
 
   fun save(data: DynamicLayoutInspectorSession.Builder) {
@@ -44,6 +47,7 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
     memory.save(data.memoryBuilder)
     compose.save(data.composeBuilder)
     system.save(data.systemBuilder)
+    goto.save(data.gotoDeclarationBuilder)
   }
 
   fun selectionMadeFromImage(view: ViewNode?) {
@@ -62,5 +66,13 @@ class SessionStatistics(model: InspectorModel, treeSettings: TreeSettings) {
 
   fun gotoSourceFromPropertyValue(view: ViewNode?) {
     compose.gotoSourceFromPropertyValue(view)
+  }
+
+  fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {
+    goto.gotoSourceFromTreeActionMenu(event)
+  }
+
+  fun gotoSourceFromDoubleClick() {
+    goto.gotoSourceFromDoubleClick()
   }
 }

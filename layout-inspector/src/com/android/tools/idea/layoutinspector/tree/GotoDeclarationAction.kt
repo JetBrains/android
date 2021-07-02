@@ -27,6 +27,8 @@ import com.intellij.pom.Navigatable
  */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
   override fun actionPerformed(event: AnActionEvent) {
+    val inspector = LayoutInspector.get(event) ?: return
+    inspector.stats.gotoSourceFromTreeActionMenu(event)
     findNavigatable(event)?.navigate(true)
   }
 
@@ -34,9 +36,8 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     event.presentation.isEnabled = findNavigatable(event) != null
   }
 
-  private fun findNavigatable(event: AnActionEvent): Navigatable? {
-    return LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
-  }
+  private fun findNavigatable(event: AnActionEvent): Navigatable? =
+    LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
 
   fun findNavigatable(model: InspectorModel): Navigatable? {
     val resourceLookup = model.resourceLookup
