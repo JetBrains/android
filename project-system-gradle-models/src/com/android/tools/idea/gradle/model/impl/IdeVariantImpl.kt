@@ -33,7 +33,7 @@ data class IdeVariantImpl(
   override val testFixturesArtifact: IdeAndroidArtifact?,
   override val buildType: String,
   override val productFlavors: List<String>,
-  override val minSdkVersion: IdeApiVersion?,
+  override val minSdkVersion: IdeApiVersion,
   override val targetSdkVersion: IdeApiVersion?,
   override val maxSdkVersion: Int?,
   override val versionCode: Int?,

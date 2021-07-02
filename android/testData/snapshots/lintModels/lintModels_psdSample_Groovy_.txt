@@ -892,6 +892,7 @@ MODULE                        : project.dyn_feature
                 artifacts::dyn_feature        : null => artifacts::dyn_feature:unspecified
         - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/dyn_feature/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/dyn_feature/src/main/java [-]
@@ -1627,6 +1628,7 @@ MODULE                        : project.nested1
                 artifacts::nested1            : null => artifacts::nested1:unspecified
         - ClassOutputs                : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/nested1/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/nested1/src/main/java [-]
@@ -1722,6 +1724,7 @@ MODULE                        : project.nested1.deep
                 artifacts::nested1:deep       : null => artifacts::nested1:deep:unspecified
         - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         - ResourceConfigurations      : en
         - ResourceConfigurations      : fr
         SourceProviders
@@ -1819,6 +1822,7 @@ MODULE                        : project.nested2
                 artifacts::nested2            : null => artifacts::nested2:unspecified
         - ClassOutputs                : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/nested2/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/nested2/src/main/java [-]
@@ -1934,6 +1938,7 @@ MODULE                        : project.nested2.deep
                 artifacts::nested2:deep       : null => artifacts::nested2:deep:unspecified
         - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/nested2/deep/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/nested2/deep/src/main/java [-]
@@ -2030,6 +2035,7 @@ MODULE                        : project.nested2.trans.deep2
                 artifacts::nested2:trans:deep2          : null => artifacts::nested2:trans:deep2:unspecified
         - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
         - ClassOutputs                : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
+        MinSdkVersion                 : API 1
         SourceProviders
             ManifestFile                  : <ROOT>/nested2/trans/deep2/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/nested2/trans/deep2/src/main/java [-]
