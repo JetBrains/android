@@ -55,8 +55,8 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)
     if (wrapperConfiguration != null) {
 
-      val localDistribution =
-        PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME).getDistribution(wrapperConfiguration)
+      val pathAssembler = PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME, File(issueData.projectPath))
+      val localDistribution = pathAssembler.getDistribution(wrapperConfiguration)
       var zipFile = localDistribution.zipFile
       if (zipFile.exists()) {
         try {
