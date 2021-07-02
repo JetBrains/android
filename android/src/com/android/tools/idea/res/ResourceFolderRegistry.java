@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.intellij.ProjectTopics;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -130,18 +132,27 @@ public class ResourceFolderRegistry implements Disposable {
 
   private void removeStaleEntries() {
     // TODO(namespaces): listen to changes in modules' namespacing modes and dispose repositories which are no longer needed.
-    myNamespacedCache.asMap().keySet().removeIf(this::isStale);
-    myNonNamespacedCache.asMap().keySet().removeIf(this::isStale);
+    removeStaleEntries(myNamespacedCache);
+    removeStaleEntries(myNonNamespacedCache);
   }
 
-  private boolean isStale(@NotNull VirtualFile dir) {
-    AndroidFacet facet = AndroidFacet.getInstance(dir, myProject);
-    if (facet == null) {
-      return true;
+  private void removeStaleEntries(Cache<VirtualFile, ResourceFolderRepository> cache) {
+    Set<VirtualFile> resourceFolders = cache.asMap().keySet();
+    if (resourceFolders.isEmpty()) {
+      return;
+    }
+    Set<AndroidFacet> facets = Sets.newHashSetWithExpectedSize(resourceFolders.size());
+    Set<VirtualFile> newResourceFolders = Sets.newHashSetWithExpectedSize(resourceFolders.size());
+    for (VirtualFile folder : resourceFolders) {
+      AndroidFacet facet = AndroidFacet.getInstance(folder, myProject);
+      if (facet != null && facets.add(facet)) {
+        ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
+        newResourceFolders.addAll(folderManager.getFolders());
+        newResourceFolders.addAll(folderManager.getTestFolders());
+      }
     }
 
-    ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
-    return !folderManager.getFolders().contains(dir) && !folderManager.getTestFolders().contains(dir);
+    resourceFolders.retainAll(newResourceFolders);
   }
 
   @Override
