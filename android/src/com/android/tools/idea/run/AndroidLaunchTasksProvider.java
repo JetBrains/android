@@ -39,7 +39,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
-import com.android.tools.idea.run.tasks.StartLiveLiteralMonitoringTask;
+import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
 import com.android.tools.idea.run.tasks.UninstallIotLauncherAppsTask;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -184,7 +184,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages,
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
+
         break;
       case APPLY_CODE_CHANGES:
         tasks.add(new ApplyCodeChangesTask(
@@ -192,7 +194,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           packages,
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
         break;
       case DEPLOY:
         tasks.add(new DeployTask(
@@ -201,7 +204,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getPmInstallOptions(device),
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
-        tasks.add(new StartLiveLiteralMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveEditDeployMonitor.getCallback(myProject, packageName, device)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }

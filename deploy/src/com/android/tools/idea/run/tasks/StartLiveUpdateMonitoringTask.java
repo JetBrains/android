@@ -20,12 +20,12 @@ import com.android.sdklib.AndroidVersion;
 import org.jetbrains.annotations.NotNull;
 
 
-public class StartLiveLiteralMonitoringTask implements LaunchTask {
-  private static final String ID = "LIVE_LITERAL_MONITORING";
+public class StartLiveUpdateMonitoringTask implements LaunchTask {
+  private static final String ID = "LIVE_UPDATE_MONITORING";
 
   @Nullable private final Runnable myStartLiveUpdate;
 
-  public StartLiveLiteralMonitoringTask(@Nullable Runnable startLiveUpdate) {
+  public StartLiveUpdateMonitoringTask(@Nullable Runnable startLiveUpdate) {
     myStartLiveUpdate = startLiveUpdate;
   }
 

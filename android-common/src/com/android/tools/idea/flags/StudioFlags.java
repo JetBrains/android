@@ -1086,6 +1086,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy",
+    "Enable live edits deploy",
+    "If enabled, edits within Kotlin and Composable functions are instantly deployed to device",
+    false
+  );
+
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
     COMPOSE, "deploy.live.literals.updaterate",
     "Update rate of live literals edits",
