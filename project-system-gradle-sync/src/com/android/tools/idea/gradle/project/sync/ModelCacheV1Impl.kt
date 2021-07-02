@@ -816,7 +816,7 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
       testFixturesArtifact = extraAndroidArtifacts.firstOrNull { it.name == IdeArtifactName.TEST_FIXTURES },
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
-      minSdkVersion = mergedFlavor.minSdkVersion,
+      minSdkVersion = mergedFlavor.minSdkVersion ?: IdeApiVersionImpl(1, null, "1"),
       targetSdkVersion = mergedFlavor.targetSdkVersion,
       maxSdkVersion = mergedFlavor.maxSdkVersion,
       versionCode = mergedFlavor.versionCode,
