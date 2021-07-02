@@ -2308,7 +2308,7 @@ android-studio/plugins/java/lib/rt/debugger-agent-storage.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
 android-studio/plugins/java/lib/rt/jps-javac-rt-rpc.jar
 android-studio/plugins/java/lib/rt/protobuf-java-3.5.1.jar
-android-studio/plugins/java/lib/sa-jdwp-1.15.jar
+android-studio/plugins/java/lib/sa-jdwp-1.16.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar

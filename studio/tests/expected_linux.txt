@@ -483,7 +483,7 @@ android-studio/lib/bcpkix-jdk15on-1.68.jar
 android-studio/lib/bcprov-jdk15on-1.68.jar
 android-studio/lib/blockmap-1.0.2.jar
 android-studio/lib/bootstrap.jar
-android-studio/lib/build-marker-AI-211.7442.40.2111.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-211.7628.21.2111.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent-1.10.1.jar
 android-studio/lib/caffeine-2.8.8.jar
 android-studio/lib/cds/classesLogAgent.jar
@@ -2778,7 +2778,7 @@ android-studio/plugins/java/lib/rt/debugger-agent-storage.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
 android-studio/plugins/java/lib/rt/jps-javac-rt-rpc.jar
 android-studio/plugins/java/lib/rt/protobuf-java-3.5.1.jar
-android-studio/plugins/java/lib/sa-jdwp-1.15.jar
+android-studio/plugins/java/lib/sa-jdwp-1.16.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
 android-studio/plugins/junit/lib/junit5-rt.jar

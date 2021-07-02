@@ -2770,7 +2770,7 @@ Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent-storage.j
 Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/jps-javac-rt-rpc.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/protobuf-java-3.5.1.jar
-Android Studio Preview.app/Contents/plugins/java/lib/sa-jdwp-1.15.jar
+Android Studio Preview.app/Contents/plugins/java/lib/sa-jdwp-1.16.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/idea-junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
