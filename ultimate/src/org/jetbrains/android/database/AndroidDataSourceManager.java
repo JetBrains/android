@@ -91,6 +91,11 @@ public class AndroidDataSourceManager extends BasicDataSourceManager<AndroidData
     };
   }
 
+  @Override
+  public @NotNull AndroidDataSource createEmpty() {
+    return new AndroidDataSource();
+  }
+
   @NotNull
   @Override
   public AndroidDataSource copyDataSource(@NotNull String newName, @NotNull AndroidDataSource copyFrom) {
