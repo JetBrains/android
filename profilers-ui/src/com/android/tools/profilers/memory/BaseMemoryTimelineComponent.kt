@@ -39,6 +39,7 @@ import com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING
 import com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING
 import com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN
 import com.android.tools.profilers.StageView
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.event.EventMonitorView
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.Companion.getModeFromFrequency
@@ -85,14 +86,15 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
       registerListenersOn(overlayPanel)
     }
 
-    val eventsView = EventMonitorView(stageView.profilersView, stage.eventMonitor).apply { registerTooltip(tooltip, stage) }
-
     (layout as TabularLayout).setRowSizing(1, "*") // Give monitor as much space as possible
 
     // Order matters, as such we want to put the tooltip component first so we draw the tooltip line on top of all other
     // components.
     add(tooltip, TabularLayout.Constraint(0, 0, 2, 1))
-    add(eventsView.component, TabularLayout.Constraint(0, 0))
+    if (stage.studioProfilers.selectedSessionSupportLevel == SupportLevel.FULL) {
+      val eventsView = EventMonitorView(stageView.profilersView, stage.eventMonitor).apply { registerTooltip(tooltip, stage) }
+      add(eventsView.component, TabularLayout.Constraint(0, 0))
+    }
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
     makeScrollbar()?.let { add(it, TabularLayout.Constraint(3, 0)) }
