@@ -111,10 +111,12 @@ class TraceProcessorModelTest {
     val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
     schedProtoBuilder.addSchedulingEvent(1, 1, 1, 1000, 3000,
                                          TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
-    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 7000, 2000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
+    schedProtoBuilder.addSchedulingEvent(1, 1, 1, 7000, 2000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
     schedProtoBuilder.addSchedulingEvent(1, 1, 2, 11000, 2000,
-                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
-    schedProtoBuilder.addSchedulingEvent(1, 2, 2, 2000, 4000, TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING)
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
+    schedProtoBuilder.addSchedulingEvent(1, 2, 2, 2000, 4000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE)
     schedProtoBuilder.addSchedulingEvent(1, 2, 1, 10000, 1000,
                                          TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
 
@@ -126,14 +128,17 @@ class TraceProcessorModelTest {
     val process = model.getProcessById(1)!!
     val thread1 = process.threadById[1] ?: error("Thread 1 should be present")
     assertThat(thread1.schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
+      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
+      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 4, 7, 3, 3, 1, 1, 1),
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
+      SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 9, 11, 2, 2, 1, 1, 1),
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2))
       .inOrder()
     val thread2 = process.threadById[2] ?: error("Thread 2 should be present")
     assertThat(thread2.schedulingEvents).containsExactly(
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
-      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
+      SchedulingEventModel(ThreadState.RUNNABLE_CAPTURED, 6, 10, 4, 4, 1, 2, 2),
+      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
       .inOrder()
 
     val cpus = model.getCpuCores()
@@ -142,15 +147,13 @@ class TraceProcessorModelTest {
     assertThat(cpus[0].schedulingEvents).isEmpty()
 
     assertThat(cpus[1].id).isEqualTo(1)
-    assertThat(cpus[1].schedulingEvents).hasSize(3)
     assertThat(cpus[1].schedulingEvents).containsExactly(
-      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
+      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 1, 4, 3, 3, 1, 1, 1),
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 7, 9, 2, 2, 1, 1, 1),
-      SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
+      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 10, 11, 1, 1, 1, 2, 1))
       .inOrder()
 
     assertThat(cpus[2].id).isEqualTo(2)
-    assertThat(cpus[2].schedulingEvents).hasSize(2)
     assertThat(cpus[2].schedulingEvents).containsExactly(
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 2, 6, 4, 4, 1, 2, 2),
       SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 11, 13, 2, 2, 1, 1, 2))
@@ -276,14 +279,14 @@ class TraceProcessorModelTest {
 
   private fun TraceProcessor.SchedulingEventsResult.Builder.addSchedulingEvent(
     processId: Long, threadId: Long, cpu: Int, tsNs: Long, durNs: Long,
-    state: TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState) {
+    endState: TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState) {
     this.addSchedEventBuilder()
       .setProcessId(processId)
       .setThreadId(threadId)
       .setCpu(cpu)
       .setTimestampNanoseconds(tsNs)
       .setDurationNanoseconds(durNs)
-      .setState(state)
+      .setEndState(endState)
   }
 
 }
