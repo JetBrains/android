@@ -36,6 +36,7 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.BaseFeature
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -88,6 +89,7 @@ class ModuleTemplateDataBuilder(
   var themesData: ThemesData? = null
   var baseFeature: BaseFeature? = null
   var apis: ApiTemplateData? = null
+  var category: Category? = null
 
   /**
    * Adds common module roots template values like [rootDir], [srcDir], etc
@@ -234,7 +236,8 @@ class ModuleTemplateDataBuilder(
     themesData ?: ThemesData(appName = getAppNameForTheme(projectTemplateDataBuilder.applicationName!!)),
     baseFeature,
     apis!!,
-    viewBindingSupport = viewBindingSupport
+    viewBindingSupport = viewBindingSupport,
+    category!!
   )
 }
 
@@ -255,6 +258,7 @@ fun getExistingModuleTemplateDataBuilder(module: Module): ModuleTemplateDataBuil
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile
+    category = Category.Activity
     themesData = ThemesData(appName = getAppNameForTheme(project.name))
     apis = ApiTemplateData(
       buildApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString()),

@@ -69,6 +69,8 @@ private class ExistingNewModuleModelData(
 
   override val formFactor: ObjectValueProperty<FormFactor> get() =
     throw UnsupportedOperationException("We cannot reliably know formFactor of an existing module")
+  override val category: ObjectValueProperty<Category> get() =
+    throw UnsupportedOperationException("We cannot reliably know category of an existing module")
   override val isLibrary: Boolean = false
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
@@ -139,7 +141,7 @@ class RenderTemplateModel private constructor(
         moduleTemplateDataBuilder.setModuleRoots(
           paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
         )
-
+        category = newTemplate.category
         projectTemplateDataBuilder.language = language.value
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)

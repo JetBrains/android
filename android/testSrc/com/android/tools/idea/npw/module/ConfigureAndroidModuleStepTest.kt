@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -72,7 +73,13 @@ class ConfigureAndroidModuleStepTest {
     val project = projectRule.project
 
     val basePackage = "com.example"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
+      project = project,
+      moduleParent = ":",
+      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity
+    )
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -98,7 +105,13 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ":libs"
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
+      project = project,
+      moduleParent = parentName,
+      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity
+    )
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -128,7 +141,13 @@ class ConfigureAndroidModuleStepTest {
 
     val basePackage = "com.example"
     val parentName = ""
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, parentName, ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
+      project = project,
+      moduleParent = parentName,
+      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity
+    )
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, basePackage, "Test Title")
 
     Disposer.register(disposable, newModuleModel)
@@ -157,7 +176,13 @@ class ConfigureAndroidModuleStepTest {
     val disposable = projectRule.fixture.projectDisposable
     val project = projectRule.project
 
-    val newModuleModel = NewAndroidModuleModel.fromExistingProject(project, ":", ProjectSyncInvoker.DefaultProjectSyncInvoker(), FormFactor.Mobile)
+    val newModuleModel = NewAndroidModuleModel.fromExistingProject(
+      project = project,
+      moduleParent = ":",
+      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity
+    )
     val configureAndroidModuleStep = ConfigureAndroidModuleStep(newModuleModel, 25, "com.example", "Test Title")
 
     Disposer.register(disposable, newModuleModel)

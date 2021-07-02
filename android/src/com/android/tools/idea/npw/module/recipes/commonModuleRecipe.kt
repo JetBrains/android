@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -107,7 +108,8 @@ fun RecipeExecutor.generateCommonModule(
     }
     with(resOut.resolve(SdkConstants.FD_RES_VALUES)) {
       save(androidModuleStrings(appTitle!!), resolve("strings.xml"))
-      if (themesXml != null) {
+      // Common themes.xml isn't needed for Compose because theme is created in Composable.
+      if (themesXml != null && data.category != Category.Compose) {
         save(themesXml, resolve("themes.xml"))
       }
       if (colorsXml != null) {
@@ -115,7 +117,10 @@ fun RecipeExecutor.generateCommonModule(
       }
     }
     themesXmlNight?.let {
-      save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
+      // Common themes.xml isn't needed for Compose because theme is created in Composable.
+      if (data.category != Category.Compose) {
+        save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
+      }
     }
   }
 }

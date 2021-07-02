@@ -38,6 +38,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.ViewBindingSupport
@@ -64,6 +65,7 @@ abstract class ModuleModel(
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
   final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.Mobile)
+  override val category: ObjectProperty<Category> = ObjectValueProperty(Category.Activity)
   final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(
@@ -100,6 +102,7 @@ abstract class ModuleModel(
           language = this@ModuleModel.language.value
         }
         formFactor = this@ModuleModel.formFactor.get()
+        category = this@ModuleModel.category.get()
         setBuildVersion(androidSdkInfo.value, project)
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary
