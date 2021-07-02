@@ -199,24 +199,51 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
       val perThreadScheduling = mutableMapOf<Int, MutableList<SchedulingEventModel>>()
       val perCoreScheduling = mutableMapOf<Int, MutableList<SchedulingEventModel>>()
-      for (event in schedEvents.schedEventList) {
-        val startTimestampUs = convertToUs(event.timestampNanoseconds)
-        val durationTimestampUs = convertToUs(event.durationNanoseconds)
-        val endTimestampUs = startTimestampUs + durationTimestampUs
-        startCaptureTimestamp = minOf(startCaptureTimestamp, startTimestampUs)
-        endCaptureTimestamp = maxOf(endCaptureTimestamp, endTimestampUs)
-        val schedEvent = SchedulingEventModel(convertSchedulingState(event.state),
-                                              startTimestampUs,
-                                              endTimestampUs,
-                                              durationTimestampUs,
-                                              durationTimestampUs,
-                                              event.processId.toInt(),
-                                              event.threadId.toInt(),
-                                              event.cpu)
+      schedEvents.schedEventList
+        .groupBy { it.threadId }
+        .forEach { (tid, events) ->
+          events.forEachIndexed { index, event ->
+            val startTimestampUs = convertToUs(event.timestampNanoseconds)
+            val durationUs = convertToUs(event.durationNanoseconds)
+            val endTimestampUs = startTimestampUs + durationUs
+            startCaptureTimestamp = minOf(startCaptureTimestamp, startTimestampUs)
+            endCaptureTimestamp = maxOf(endCaptureTimestamp, endTimestampUs)
 
-        perThreadScheduling.getOrPut(event.threadId.toInt()) { mutableListOf() }.add(schedEvent)
-        perCoreScheduling.getOrPut(event.cpu) { mutableListOf() }.add(schedEvent)
-      }
+            // Scheduling events from the Trace Processor encode thread states differently from ftrace.
+            // TP only records the end_state of the event and implies RUNNING as the start_state always:
+            // https://perfetto.dev/docs/data-sources/cpu-scheduling#decoding-code-end_state-code-
+            //
+            // So for every event except the last one, we need to insert a RUNNING event + an end_state event.
+            val schedEvent = SchedulingEventModel(ThreadState.RUNNING_CAPTURED,
+                                                  startTimestampUs,
+                                                  endTimestampUs,
+                                                  durationUs,
+                                                  durationUs,
+                                                  event.processId.toInt(),
+                                                  event.threadId.toInt(),
+                                                  event.cpu)
+            // Add a RUNNING event and an [end_state] event to thread scheduling events.
+            perThreadScheduling.getOrPut(tid.toInt()) { mutableListOf() }.apply {
+              // The RUNNING thread state event.
+              add(schedEvent)
+              if (index < events.size - 1) {
+                val nextStartTimestampUs = convertToUs(events[index + 1].timestampNanoseconds)
+                val nextDurationTimeUs = nextStartTimestampUs - endTimestampUs
+                // The [end_state] thread state event.
+                add(SchedulingEventModel(convertSchedulingState(event.endState),
+                                         endTimestampUs,
+                                         nextStartTimestampUs,
+                                         nextDurationTimeUs,
+                                         nextDurationTimeUs,
+                                         event.processId.toInt(),
+                                         event.threadId.toInt(),
+                                         event.cpu))
+              }
+            }
+            // Add just the RUNNING event to core scheduling events.
+            perCoreScheduling.getOrPut(event.cpu) { mutableListOf() }.add(schedEvent)
+          }
+        }
 
       perThreadScheduling.forEach {
         val previousList = threadToScheduling[it.key] ?: listOf()
@@ -230,11 +257,13 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
 
     private fun convertSchedulingState(state: TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState): ThreadState {
       return when (state) {
-        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING -> ThreadState.RUNNING_CAPTURED
-        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNING_FOREGROUND -> ThreadState.RUNNING_CAPTURED
+        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE -> ThreadState.RUNNABLE_CAPTURED
+        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.RUNNABLE_PREEMPTED -> ThreadState.RUNNABLE_CAPTURED
         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.DEAD -> ThreadState.DEAD_CAPTURED
         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING -> ThreadState.SLEEPING_CAPTURED
         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING_UNINTERRUPTIBLE -> ThreadState.WAITING_CAPTURED
+        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.WAKING -> ThreadState.RUNNABLE_CAPTURED
+        TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.WAKE_KILL -> ThreadState.RUNNABLE_CAPTURED
         else -> ThreadState.UNKNOWN
       }
     }
