@@ -18,8 +18,8 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskEventManager
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.icons.AllIcons
@@ -46,7 +46,7 @@ private val BUTTON_DIMENS = Dimension(JBUI.scale(BUTTON_SIZE), JBUI.scale(BUTTON
 class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
                        private val client: BackgroundTaskInspectorClient,
                        private val ideServices: AppInspectionIdeServices,
-                       private val model: BackgroundTaskTreeModel,
+                       private val manager: BackgroundTaskEventManager,
                        private val selectionModel: EntrySelectionModel) : JPanel() {
 
   // A configuration map to add extra paddings at the bottom of certain components.
@@ -84,7 +84,7 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
 
     val work = workEntry.getWorkInfo()
 
-    val idListProvider = IdListProvider(model, work) {
+    val idListProvider = IdListProvider(manager, work) {
       selectionModel.selectedEntry = it
     }
 
@@ -105,7 +105,7 @@ class EntryDetailsView(private val tab: BackgroundTaskInspectorTab,
       buildKeyValuePair("Previous", work.prerequisitesList.toList(), idListProvider),
       // Visually separate work chain or else UUIDs run together.
       buildKeyValuePair("Next", work.dependentsList.toList(), idListProvider).apply { extraBottomPaddingMap[this] = 14 },
-      // buildKeyValuePair("Unique work chain", client.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
+      buildKeyValuePair("Unique work chain", manager.getOrderedWorkChain(work.id).map { it.id }, idListProvider)
     )))
 
     detailsPanel.add(buildCategoryPanel("Results", listOf(
