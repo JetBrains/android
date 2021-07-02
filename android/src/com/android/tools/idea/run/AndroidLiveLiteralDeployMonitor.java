@@ -21,7 +21,7 @@ import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
-import com.android.tools.deployer.tasks.LiveLiteralDeployer;
+import com.android.tools.deployer.tasks.LiveUpdateDeployer;
 import com.android.tools.idea.editors.literals.LiteralReference;
 import com.android.tools.idea.editors.literals.LiteralUsageReference;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
@@ -106,7 +106,10 @@ class AndroidLiveLiteralDeployMonitor {
   static Runnable getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
-    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
+
+    // Live Edit will eventually replace Live Literals. They conflict with each other the only way the enable
+    // one is to to disable the other.
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get() || !StudioFlags.COMPOSE_DEPLOY_LIVE_LITERALS.get()) {
       return null;
     }
 
@@ -181,8 +184,8 @@ class AndroidLiveLiteralDeployMonitor {
 
             // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
             Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-            LiveLiteralDeployer deployer = new LiveLiteralDeployer();
-            List<LiveLiteralDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
+            LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+            List<LiveUpdateDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
             for (LiteralReference change : changes) {
               for (LiteralUsageReference use : change.getUsages()) {
                 // TODO: The key should be computed by Studio.
@@ -191,7 +194,7 @@ class AndroidLiveLiteralDeployMonitor {
                 int offset = use.getRange().getStartOffset();
                 String helper = qualifyNameToHelperClassName(use.getFqName().toString());
                 String type = constTypeToJvmType(change.getConstantValue());
-                LiveLiteralDeployer.UpdateLiveLiteralParam param = new LiveLiteralDeployer.UpdateLiveLiteralParam(
+                LiveUpdateDeployer.UpdateLiveLiteralParam param = new LiveUpdateDeployer.UpdateLiveLiteralParam(
                   key, offset, helper, type, change.getConstantValue().toString());
 
                 String lookup = getLiteralTimeStampKey(adb.getSerial(), helper, offset);
@@ -210,7 +213,7 @@ class AndroidLiveLiteralDeployMonitor {
             String deviceId = adb.getSerial() + "#" + packageName;
             String pushKey = String.valueOf(params.hashCode());
             LiveLiteralsService.getInstance(project).liveLiteralPushStarted(deviceId, pushKey);
-            List<LiveLiteralDeployer.UpdateLiveLiteralError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
+            List<LiveUpdateDeployer.UpdateLiveEditError> errors = deployer.updateLiveLiteral(installer, adb, packageName, params);
             LiveLiteralsService.getInstance(project)
                 .liveLiteralPushed(deviceId, pushKey, errors.stream().map(
                   e -> new LiveLiteralsMonitorHandler.Problem(LiveLiteralsMonitorHandler.Problem.Severity.ERROR, e.msg)
