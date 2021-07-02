@@ -92,18 +92,8 @@ public class IdeaContentRootStub implements IdeaContentRoot {
   }
 
   @Override
-  public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedSourceDirectories() {
-    return ImmutableDomainObjectSet.of(Collections.emptyList());
-  }
-
-  @Override
   public DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories() {
     return ImmutableDomainObjectSet.of(myTestDirs);
-  }
-
-  @Override
-  public DomainObjectSet<? extends IdeaSourceDirectory> getGeneratedTestDirectories() {
-    return ImmutableDomainObjectSet.of(Collections.emptyList());
   }
 
   @Override

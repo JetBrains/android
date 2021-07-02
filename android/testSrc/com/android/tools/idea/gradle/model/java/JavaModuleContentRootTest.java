@@ -49,37 +49,31 @@ public class JavaModuleContentRootTest {
     File rootDirPath = new File("root");
     expect(originalContentRoot.getRootDirectory()).andStubReturn(rootDirPath);
 
-    Pair<File, IdeaSourceDirectory> mock = createSourceDirectoryMock("src");
+    Pair<File, IdeaSourceDirectory> mock = createSourceDirectoryMock("src", false);
     File sourceDirPath = mock.getFirst();
     IdeaSourceDirectory sourceDir = mock.getSecond();
-    originalContentRoot.getSourceDirectories();
-    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(sourceDir));
-
-    mock = createSourceDirectoryMock("gen-src");
+    mock = createSourceDirectoryMock("gen-src", true);
     File genSourceDirPath = mock.getFirst();
     IdeaSourceDirectory genSourceDir = mock.getSecond();
-    originalContentRoot.getGeneratedSourceDirectories();
-    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(genSourceDir));
+    originalContentRoot.getSourceDirectories();
+    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(sourceDir, genSourceDir));
 
-    mock = createSourceDirectoryMock("test");
+    mock = createSourceDirectoryMock("test", false);
     File testDirPath = mock.getFirst();
     IdeaSourceDirectory testDir = mock.getSecond();
-    originalContentRoot.getTestDirectories();
-    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(testDir));
-
-    mock = createSourceDirectoryMock("gen-test");
+    mock = createSourceDirectoryMock("gen-test", true);
     File genTestDirPath = mock.getFirst();
     IdeaSourceDirectory genTestDir = mock.getSecond();
-    originalContentRoot.getGeneratedTestDirectories();
-    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(genTestDir));
+    originalContentRoot.getTestDirectories();
+    expectLastCall().andStubReturn(DomainObjectHashSet.newSet(testDir, genTestDir));
 
-    mock = createSourceDirectoryMock("resource");
+    mock = createSourceDirectoryMock("resource", false);
     File resourceDirPath = mock.getFirst();
     IdeaSourceDirectory resourceDir = mock.getSecond();
     originalContentRoot.getResourceDirectories();
     expectLastCall().andStubReturn(DomainObjectHashSet.newSet(resourceDir));
 
-    mock = createSourceDirectoryMock("resource-test");
+    mock = createSourceDirectoryMock("resource-test", false);
     File testResourceDirPath = mock.getFirst();
     IdeaSourceDirectory testResourceDir = mock.getSecond();
     originalContentRoot.getTestResourceDirectories();
@@ -105,10 +99,11 @@ public class JavaModuleContentRootTest {
   }
 
   @NotNull
-  private static Pair<File, IdeaSourceDirectory> createSourceDirectoryMock(@NotNull String fileName) {
+  private static Pair<File, IdeaSourceDirectory> createSourceDirectoryMock(@NotNull String fileName, boolean isGenerated) {
     File path = new File(fileName);
     IdeaSourceDirectory dir = createMock(IdeaSourceDirectory.class);
     expect(dir.getDirectory()).andStubReturn(path);
+    expect(dir.isGenerated()).andStubReturn(isGenerated);
     return Pair.create(path, dir);
   }
 

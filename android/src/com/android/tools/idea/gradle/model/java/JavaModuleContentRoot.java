@@ -49,16 +49,16 @@ public class JavaModuleContentRoot implements Serializable {
   @NotNull
   public static JavaModuleContentRoot copy(@NotNull IdeaContentRoot original) {
     File rootDirPath = original.getRootDirectory();
-    Collection<File> sourceDirPaths = copy(original.getSourceDirectories());
-    Collection<File> genSourceDirPaths = copy(original.getGeneratedSourceDirectories());
-    Collection<File> testDirPaths = copy(original.getTestDirectories());
-    Collection<File> genTestDirPaths = copy(original.getGeneratedTestDirectories());
+    Collection<File> sourceDirPaths = copy(original.getSourceDirectories(), false);
+    Collection<File> genSourceDirPaths = copy(original.getSourceDirectories(), true);
+    Collection<File> testDirPaths = copy(original.getTestDirectories(), false);
+    Collection<File> genTestDirPaths = copy(original.getTestDirectories(), true);
 
     Collection<File> resourceDirPaths = Collections.emptySet();
     Collection<File> testResourceDirPaths = Collections.emptySet();
     try {
-      resourceDirPaths = copy(original.getResourceDirectories());
-      testResourceDirPaths = copy(original.getTestResourceDirectories());
+      resourceDirPaths = copy(original.getResourceDirectories(), false);
+      testResourceDirPaths = copy(original.getTestResourceDirectories(), false);
     }
     catch (UnsupportedMethodException ignore) {
     }
@@ -78,13 +78,15 @@ public class JavaModuleContentRoot implements Serializable {
   }
 
   @NotNull
-  private static Collection<File> copy(@Nullable DomainObjectSet<? extends IdeaSourceDirectory> directories) {
+  private static Collection<File> copy(@Nullable DomainObjectSet<? extends IdeaSourceDirectory> directories, boolean generated) {
     if (directories == null) {
       return Collections.emptySet();
     }
     Set<File> paths = new HashSet<File>();
     for (IdeaSourceDirectory directory : directories) {
-      paths.add(directory.getDirectory());
+      if (generated == directory.isGenerated()) {
+        paths.add(directory.getDirectory());
+      }
     }
     return paths;
   }

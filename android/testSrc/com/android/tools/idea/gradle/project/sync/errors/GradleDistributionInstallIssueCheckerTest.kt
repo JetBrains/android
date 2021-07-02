@@ -49,8 +49,8 @@ class GradleDistributionInstallIssueCheckerTest : AndroidGradleTestCase() {
 
   private fun getDistributionZipFile(): File? {
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(projectFolderPath.path) ?: return null
-    val localDistribution =
-      PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME).getDistribution(wrapperConfiguration)
+    val pathAssembler = PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME, projectFolderPath)
+    val localDistribution = pathAssembler.getDistribution(wrapperConfiguration)
     var zip = localDistribution.zipFile
     try {
       zip = zip.canonicalFile
