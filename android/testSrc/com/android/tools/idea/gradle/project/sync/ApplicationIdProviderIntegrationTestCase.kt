@@ -146,16 +146,8 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           testProject = TestProjectPaths.TEST_ONLY_MODULE,
           executeMakeBeforeRun = false,
           targetRunConfiguration = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
-          expectPackageName = mapOf(
-            CURRENT to "com.example.android.app",
-            AGP_35 to "com.example.android.app",
-            AGP_40 to "com.example.android.app"
-          ),
-          expectTestPackageName = mapOf(
-            CURRENT to "com.example.android.app",
-            AGP_35 to "com.example.android.app.testmodule",
-            AGP_40 to "com.example.android.app.testmodule"
-          )
+          expectPackageName = "com.example.android.app",
+          expectTestPackageName = "com.example.android.app.testmodule"
         ),
         TestDefinition(
           name = "TEST_ONLY_MODULE test run configuration after build",
@@ -163,6 +155,21 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           targetRunConfiguration = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
           expectPackageName = "com.example.android.app",
           expectTestPackageName = "com.example.android.app.testmodule"
+        ),
+        TestDefinition(
+          name = "TEST_ONLY_MODULE test run configuration 2 before build",
+          testProject = TestProjectPaths.TEST_ONLY_MODULE,
+          executeMakeBeforeRun = false,
+          targetRunConfiguration = TestTargetRunConfiguration("com.example.android.test2.ExampleTest"),
+          expectPackageName = "com.example.android.app",
+          expectTestPackageName = "com.example.android.test2"
+        ),
+        TestDefinition(
+          name = "TEST_ONLY_MODULE test run configuration 2 after build",
+          testProject = TestProjectPaths.TEST_ONLY_MODULE,
+          targetRunConfiguration = TestTargetRunConfiguration("com.example.android.test2.ExampleTest"),
+          expectPackageName = "com.example.android.app",
+          expectTestPackageName = "com.example.android.test2"
         ),
         TestDefinition(
           name = "DYNAMIC_APP run configuration before build",

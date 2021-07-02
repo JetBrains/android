@@ -13,4 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include ':app', ':test', ':test2'
+apply plugin: 'com.android.test'
+
+android {
+  compileSdkVersion 19
+  buildToolsVersion '19.1.0'
+
+  defaultConfig {
+    minSdkVersion 15
+    targetSdkVersion 19
+    // Do not configure testApplicationId here and instead leave it configured in the manifest.
+  }
+
+  targetProjectPath ':app'
+  targetVariant 'debug'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'junit:junit:4.12'
+  implementation 'com.android.support:appcompat-v7:+'
+  implementation 'com.android.support.test.espresso:espresso-core:+'
+}

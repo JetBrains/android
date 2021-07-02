@@ -28,9 +28,11 @@ import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import java.util.Collection;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,7 +162,14 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     if (!myForTests) return null;
     IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
-      return getApplicationIdFromModelOrManifest(myFacet);
+      String testPackageName = myVariant.getTestApplicationId();
+      if (Strings.isNullOrEmpty(testPackageName)) {
+        testPackageName = AndroidManifestUtils.getPackageName(myFacet);
+      }
+      if (Strings.isNullOrEmpty(testPackageName)) {
+        throw new ApkProvisionException("[" + myFacet.getModule().getName() + "] Unable to obtain test package.");
+      }
+      return testPackageName;
     }
 
     // This is a Gradle project, there must be an AndroidGradleModel, but to avoid NPE we gracefully handle a null androidModel.
