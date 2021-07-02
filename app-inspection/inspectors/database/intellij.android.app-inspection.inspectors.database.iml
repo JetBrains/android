@@ -19,16 +19,7 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="sqlite-inspector-proto" level="project" />
-    <orderEntry type="module-library">
-      <library name="kotlinx-coroutines-guava" type="library">
-        <properties maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.3.9" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlinx/kotlinx-coroutines-guava/1.3.9/kotlinx-coroutines-guava-1.3.9.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
