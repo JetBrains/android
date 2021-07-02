@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.serverflags
 
+import com.android.tools.idea.serverflags.protos.OSType
 import com.android.tools.idea.serverflags.protos.ServerFlag
 import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.android.tools.idea.serverflags.protos.ServerFlagList
@@ -49,7 +50,7 @@ val serverFlagTestData: ServerFlagList
         protoValue = Any.pack(ServerFlagTest.newBuilder().apply {
           content = "content"
         }.build())
-      }.build()
+      }.build(),
     )
 
     val flagData = listOf(
@@ -57,8 +58,26 @@ val serverFlagTestData: ServerFlagList
       makeServerFlagData("int", flags[1]),
       makeServerFlagData("float", flags[2]),
       makeServerFlagData("string", flags[3]),
-      makeServerFlagData("proto", flags[4])
+      makeServerFlagData("proto", flags[4]),
     )
+
+    val builder = ServerFlagList.newBuilder().apply {
+      configurationVersion = 1
+    }
+    builder.addAllServerFlags(flagData)
+    return builder.build()
+  }
+
+val serverFlagTestDataByOs: ServerFlagList
+  get() {
+    val flagData = enumValues<OSType>().map {
+      makeServerFlagData(it.toString(),
+                         ServerFlag.newBuilder().apply {
+                           percentEnabled = 100
+                           booleanValue = true
+                           addOsType(it)
+                         }.build())
+    }
 
     val builder = ServerFlagList.newBuilder().apply {
       configurationVersion = 1
