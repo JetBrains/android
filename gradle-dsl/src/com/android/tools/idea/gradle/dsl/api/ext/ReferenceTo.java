@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ReferenceTo {
   @NotNull private static final String SIGNING_CONFIGS = "signingConfigs";
-  @NotNull private String myReferenceText;  // The internal fully qualified name of the DSL reference.
+  @NotNull private String fullyQualifiedName;  // The internal fully qualified name of the DSL reference.
   @NotNull private GradlePropertyModel propertyModel;
 
   /**
@@ -39,7 +39,7 @@ public final class ReferenceTo {
    */
   public ReferenceTo(@NotNull GradlePropertyModel model) {
     if (model.getRawElement() != null) {
-      myReferenceText = model.getFullyQualifiedName();
+      fullyQualifiedName = model.getFullyQualifiedName();
       propertyModel = model;
     }
     else {
@@ -53,7 +53,7 @@ public final class ReferenceTo {
    * @param model the signingConfigModel we are trying to refer to.
    */
   public ReferenceTo(@NotNull SigningConfigModel model) {
-    myReferenceText = SIGNING_CONFIGS + "." + GradleNameElement.escape(model.name());
+    fullyQualifiedName = SIGNING_CONFIGS + "." + GradleNameElement.escape(model.name());
     propertyModel = GradlePropertyModelBuilder.createModelFromDslElement(model.getDslElement());
   }
 
@@ -88,8 +88,8 @@ public final class ReferenceTo {
    * @return the reference text.
    */
   @NotNull
-  public String getText() {
-    return myReferenceText;
+  public String getFullyQualifiedName() {
+    return fullyQualifiedName;
   }
 
   @Override
@@ -97,12 +97,12 @@ public final class ReferenceTo {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     ReferenceTo text = (ReferenceTo)o;
-    return Objects.equal(myReferenceText, text.myReferenceText);
+    return Objects.equal(fullyQualifiedName, text.fullyQualifiedName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(myReferenceText);
+    return Objects.hashCode(fullyQualifiedName);
   }
 
   @Override

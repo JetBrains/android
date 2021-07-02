@@ -3303,8 +3303,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     assertThat(refValue, instanceOf(ReferenceTo::class.java))
     val referenceTo = value as ReferenceTo
     val refReferenceTo = refValue as ReferenceTo
-    assertThat(referenceTo.text, equalTo("ext.hello"))
-    assertThat(refReferenceTo.text, equalTo("ext.hello"))
+    assertThat(referenceTo.fullyQualifiedName, equalTo("ext.hello"))
+    assertThat(refReferenceTo.fullyQualifiedName, equalTo("ext.hello"))
   }
 
   @Test
