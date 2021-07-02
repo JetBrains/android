@@ -61,6 +61,7 @@ import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -253,6 +254,10 @@ class LayoutInspectorTreePanelTest {
 
     assertThat(descriptor.file.name).isEqualTo("demo.xml")
     assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+
+    val data = DynamicLayoutInspectorSession.newBuilder()
+    inspector.stats.save(data)
+    assertThat(data.gotoDeclaration.doubleClicks).isEqualTo(1)
   }
 
   @Test
