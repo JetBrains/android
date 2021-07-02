@@ -37,8 +37,12 @@ class BackgroundTaskInspectorClient(
   val scope: CoroutineScope,
   val uiThread: CoroutineDispatcher
 ) {
-  private val _listeners = mutableListOf<(Any) -> Unit>()
-  fun addEventListener(listener: (Any) -> Unit) = _listeners.add(listener)
+  private val _listeners = mutableListOf<(EventWrapper) -> Unit>()
+
+  /**
+   * Add a listener which is fired whenever a new event is collected.
+   */
+  fun addEventListener(listener: (EventWrapper) -> Unit) = _listeners.add(listener)
 
   init {
     val trackBackgroundTaskCommand = BackgroundTaskInspectorProtocol.Command.newBuilder()
@@ -47,7 +51,7 @@ class BackgroundTaskInspectorClient(
     scope.launch {
       btiMessenger.sendRawCommand(trackBackgroundTaskCommand.toByteArray())
       btiMessenger.eventFlow.collect { eventData ->
-        _listeners.forEach { listener -> listener(BackgroundTaskInspectorProtocol.Event.parseFrom(eventData)) }
+        _listeners.forEach { listener -> listener(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, eventData)) }
       }
     }
 
@@ -58,7 +62,7 @@ class BackgroundTaskInspectorClient(
       scope.launch {
         wmiMessengerTarget.messenger.sendRawCommand(trackWorkManagerCommand.toByteArray())
         wmiMessengerTarget.messenger.eventFlow.collect { eventData ->
-          _listeners.forEach { listener -> listener(WorkManagerInspectorProtocol.Event.parseFrom(eventData)) }
+          _listeners.forEach { listener -> listener(EventWrapper(EventWrapper.Case.WORK, eventData)) }
         }
       }
     }

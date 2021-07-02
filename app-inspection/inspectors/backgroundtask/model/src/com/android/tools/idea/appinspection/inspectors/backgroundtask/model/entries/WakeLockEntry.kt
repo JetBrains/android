@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
 
-import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 import java.util.concurrent.TimeUnit
 
 /**
@@ -44,9 +44,9 @@ class WakeLockEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = _startTime
 
-  override fun consume(event: Any) {
-    val backgroundTaskEvent = (event as BackgroundTaskInspectorProtocol.Event).backgroundTaskEvent
-    val timestamp = event.timestamp
+  override fun consume(eventWrapper: EventWrapper) {
+    val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
+    val timestamp = eventWrapper.backgroundTaskEvent.timestamp
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.WAKE_LOCK_ACQUIRED -> {
         _className = "WakeLock $id"

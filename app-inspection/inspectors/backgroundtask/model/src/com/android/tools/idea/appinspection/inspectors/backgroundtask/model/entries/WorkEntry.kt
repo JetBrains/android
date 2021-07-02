@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.ent
 import androidx.work.inspection.WorkManagerInspectorProtocol.Event
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkUpdatedEvent
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 
 /**
  * An entry with all information of a Work Task.
@@ -37,10 +38,11 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
 
   private var work = WorkInfo.newBuilder()
 
-  fun getWorkInfo() = work.build()
+  fun getWorkInfo() = work.build()!!
 
-  override fun consume(event: Any) {
-    when ((event as Event).oneOfCase) {
+  override fun consume(eventWrapper: EventWrapper) {
+    val event = eventWrapper.workEvent
+    when (event.oneOfCase) {
       Event.OneOfCase.WORK_ADDED -> {
         work = event.workAdded.work.toBuilder()
       }

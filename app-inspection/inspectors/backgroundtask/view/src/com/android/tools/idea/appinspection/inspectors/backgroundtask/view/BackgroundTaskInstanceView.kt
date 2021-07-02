@@ -17,8 +17,8 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.ColumnTreeBuilder
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskEventManager
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.intellij.ui.ColoredTreeCellRenderer
@@ -37,7 +37,7 @@ class BackgroundTaskInstanceView(client: BackgroundTaskInspectorClient,
                                  selectionModel: EntrySelectionModel) : JBScrollPane() {
 
   private val tree: JTree
-  val model = BackgroundTaskTreeModel(client)
+  val model = BackgroundTaskEventManager(client)
 
   init {
     // Remove redundant borders from left, right and bottom.
@@ -58,8 +58,8 @@ class BackgroundTaskInstanceView(client: BackgroundTaskInspectorClient,
 
     tree.addTreeSelectionListener { event ->
       if (event.isAddedPath) {
-        val node = event.path.lastPathComponent as? BackgroundTaskTreeModel.EntryNode<*> ?: return@addTreeSelectionListener
-        val entry = node.entry
+        val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
+        val entry = node.userObject as? BackgroundTaskEntry ?: return@addTreeSelectionListener
         selectionModel.selectedEntry = entry
       }
       else {

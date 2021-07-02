@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries
 
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskEvent
-import backgroundtask.inspection.BackgroundTaskInspectorProtocol.Event
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 
 /**
  * An entry with all information of an Alarm Task.
@@ -44,8 +44,8 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
 
   override val startTimeMs get() = _startTime
 
-  override fun consume(event: Any) {
-    val backgroundTaskEvent = (event as Event).backgroundTaskEvent
+  override fun consume(eventWrapper: EventWrapper) {
+    val backgroundTaskEvent = eventWrapper.backgroundTaskEvent.backgroundTaskEvent
     when (backgroundTaskEvent.metadataCase) {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
         val alarmSet = backgroundTaskEvent.alarmSet
