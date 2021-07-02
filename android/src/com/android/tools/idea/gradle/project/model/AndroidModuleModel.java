@@ -589,7 +589,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   private String getApplicationIdUsingCache(@NotNull String variantName) {
-    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(variantName);
+    String buildOutputListingFile = getBuildOutputListingFile(this, variantName);
+    if (buildOutputListingFile == null) {
+      return UNINITIALIZED_APPLICATION_ID;
+    }
+
+    GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp = getGenericBuiltArtifactsUsingCache(buildOutputListingFile);
     GenericBuiltArtifacts artifacts = artifactsWithTimestamp.getGenericBuiltArtifacts();
     if (artifacts == null) {
       return UNINITIALIZED_APPLICATION_ID;
@@ -599,10 +604,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String variantName) {
+  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String buildOutputListingFile) {
     GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp;
     synchronized (myGenericBuiltArtifactsMap) {
-      artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(variantName);
+      artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(buildOutputListingFile);
       long lastSyncOrBuild = Long.MAX_VALUE; // If we don't have a module default to MAX which will always trigger a re-compute.
       if (myModule != null) {
         lastSyncOrBuild = ServiceManager.getService(myModule.getProject(), LastBuildOrSyncService.class).getLastBuildOrSyncTimeStamp();
@@ -611,13 +616,10 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
         Logger.getInstance(AndroidModuleModel.class).warn("No module set on model named: " + myModuleName);
       }
       if (artifactsWithTimestamp == null || lastSyncOrBuild >= artifactsWithTimestamp.getTimeStamp()) {
-        String buildOutputListingFile = getBuildOutputListingFile(this, variantName);
         // Cache is invalid
         artifactsWithTimestamp =
-          new GenericBuiltArtifactsWithTimestamp(
-            buildOutputListingFile != null ? loadBuildOutputListingFile(buildOutputListingFile) : null,
-            System.currentTimeMillis());
-        myGenericBuiltArtifactsMap.put(variantName, artifactsWithTimestamp);
+          new GenericBuiltArtifactsWithTimestamp(loadBuildOutputListingFile(buildOutputListingFile), System.currentTimeMillis());
+        myGenericBuiltArtifactsMap.put(buildOutputListingFile, artifactsWithTimestamp);
       }
     }
     return artifactsWithTimestamp;
