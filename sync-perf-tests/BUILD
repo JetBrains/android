@@ -110,7 +110,6 @@ iml_module(
     test_tags = [
         "cpu:3",
     ],
-    test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
