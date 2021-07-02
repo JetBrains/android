@@ -251,10 +251,10 @@ class ComposePreviewAnimationManagerTest {
 
     assertEquals(4, inspector.tabCount())
 
-    assertEquals("repeatedLabel #1", inspector.getTabTitleAt(0))
-    assertEquals("repeatedLabel #2", inspector.getTabTitleAt(1)) // repeated titles get their index incremented
-    assertEquals("Animated Value #1", inspector.getTabTitleAt(2)) // null labels use default title
-    assertEquals("Transition Animation #1", inspector.getTabTitleAt(3)) // null labels use default title
+    assertEquals("repeatedLabel", inspector.getTabTitleAt(0))
+    assertEquals("repeatedLabel (1)", inspector.getTabTitleAt(1)) // repeated titles get their index incremented
+    assertEquals("Animated Value", inspector.getTabTitleAt(2)) // null labels use default title
+    assertEquals("Transition Animation", inspector.getTabTitleAt(3)) // null labels use default title
   }
 
   @Test

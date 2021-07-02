@@ -143,8 +143,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
   private val animationTabs = HashMap<ComposeAnimation, AnimationTab>()
 
   /**
-   * [tabbedPane]'s tab titles mapped to the amount of tabs using that title. The count is used to differentiate tabs, which are named
-   * "tabTitle #1", "tabTitle #2", etc., instead of multiple "tabTitle" tabs.
+   * [tabbedPane]'s tab titles mapped to the amount of tabs using that title. The count is used to differentiate tabs when there are
+   * multiple tabs with the same name. For example, we should have "tabTitle", "tabTitle (1)", "tabTitle (2)", etc., instead of multiple
+   * "tabTitle" tabs.
    */
   private val tabNamesCount = HashMap<String, Int>()
 
@@ -321,8 +322,9 @@ class AnimationInspectorPanel(internal val surface: DesignSurface) : JPanel(Tabu
                     ComposeAnimationType.TRANSITION_ANIMATION -> message("animation.inspector.tab.transition.animation.default.title")
                     else -> message("animation.inspector.tab.default.title")
                   }
-    tabNamesCount[tabName] = tabNamesCount.getOrDefault(tabName, 0) + 1
-    val animationTab = AnimationTab(animation, "$tabName #${tabNamesCount[tabName]}")
+    val count = tabNamesCount.getOrDefault(tabName, 0)
+    tabNamesCount[tabName] = count + 1
+    val animationTab = AnimationTab(animation, "$tabName${if (count > 0) " ($count)" else ""}")
     if (animationTabs.isEmpty()) {
       // We need to make sure the timeline is added to a tab. Since there are no tabs yet, this will be the chosen one.
       animationTab.addTimeline()
