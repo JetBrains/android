@@ -38,6 +38,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -83,6 +84,7 @@ class ExistingProjectModelData(
 interface ModuleModelData : ProjectModelData {
   val template: ObjectProperty<NamedModuleTemplate>
   val formFactor: ObjectProperty<FormFactor>
+  val category: ObjectProperty<Category>
   val isLibrary: Boolean
   val moduleName: StringValueProperty
 
@@ -112,6 +114,7 @@ class NewAndroidModuleModel(
   template: NamedModuleTemplate,
   moduleParent: String,
   override val formFactor: ObjectProperty<FormFactor>,
+  override val category: ObjectProperty<Category>,
   commandName: String = "New Module",
   override val isLibrary: Boolean = false,
   wizardContext: WizardUiContext
@@ -205,12 +208,14 @@ class NewAndroidModuleModel(
       moduleParent: String,
       projectSyncInvoker: ProjectSyncInvoker,
       formFactor: FormFactor,
+      category: Category,
       isLibrary: Boolean = false
     ) : NewAndroidModuleModel = NewAndroidModuleModel(
       projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
       template = createSampleTemplate(),
       moduleParent = moduleParent,
       formFactor = ObjectValueProperty(formFactor),
+      category = ObjectValueProperty(category),
       isLibrary = isLibrary,
       wizardContext = NEW_MODULE
     )

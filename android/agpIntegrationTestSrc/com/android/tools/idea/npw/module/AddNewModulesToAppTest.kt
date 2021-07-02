@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -72,7 +73,11 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
     val project = projectRule.project
 
     val baseModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project, moduleParent = ":", projectSyncInvoker = DefaultProjectSyncInvoker(), formFactor = FormFactor.Mobile
+      project = project,
+      moduleParent = ":",
+      projectSyncInvoker = DefaultProjectSyncInvoker(),
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity
     )
     generateModuleFiles(project, baseModuleModel, "base", useGradleKts = true) // Base module is always kts for this test
 
@@ -89,7 +94,12 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
 
     val project = projectRule.project
     val libModuleModel = NewAndroidModuleModel.fromExistingProject(
-      project = project, moduleParent = ":", projectSyncInvoker = emptyProjectSyncInvoker, formFactor = FormFactor.Mobile, isLibrary = true
+      project = project,
+      moduleParent = ":",
+      projectSyncInvoker = emptyProjectSyncInvoker,
+      formFactor = FormFactor.Mobile,
+      category = Category.Activity,
+      isLibrary = true
     )
     generateModuleFiles(project, libModuleModel, "mylibrary", useGradleKts) // Base module is always kts for this test
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -45,7 +46,7 @@ fun RecipeExecutor.generateAndroidModule(
       hasApplicationBlock = !data.isLibrary,
       theme = "@style/${data.themesData.main.name}"
     ),
-    generateTests= true,
+    generateTests = true,
     themesXml = androidModuleThemes(useAndroidX, data.themesData.main.name),
     themesXmlNight = androidModuleThemesNight(useAndroidX, data.themesData.main.name),
     enableCpp = enableCpp,
@@ -54,9 +55,11 @@ fun RecipeExecutor.generateAndroidModule(
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
   requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
-  addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
+  if (data.category != Category.Compose) {
+    addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
+  }
 
-  if (data.projectTemplateData.androidXSupport) {
+  if (data.projectTemplateData.androidXSupport && data.category != Category.Compose) {
     // Though addDependency should not be called from a module recipe, adding this library because it's used for the default theme
     // (Theme.MaterialComponents.DayNight)
     addDependency("com.google.android.material:material:+")

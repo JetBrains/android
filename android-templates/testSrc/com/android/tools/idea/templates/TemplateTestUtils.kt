@@ -34,6 +34,7 @@ import com.android.tools.idea.templates.KeystoreUtils.sha1
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -248,6 +249,7 @@ internal fun getDefaultModuleState(project: Project): ModuleTemplateDataBuilder 
     setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
     isLibrary = false
     formFactor = FormFactor.Mobile // FIXME
+    category = Category.Activity
     themesData = ThemesData("App")
     apis = ApiTemplateData(
       buildApi = ApiVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString()),

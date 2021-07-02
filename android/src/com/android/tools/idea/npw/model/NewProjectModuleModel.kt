@@ -25,6 +25,7 @@ import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
@@ -42,6 +43,7 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
     createSampleTemplate(),
     ":",
     formFactor = ObjectValueProperty(FormFactor.Mobile),
+    category = ObjectValueProperty(Category.Activity),
     wizardContext = NEW_PROJECT
   ).apply {
     multiTemplateRenderer.incrementRenders()
@@ -129,6 +131,7 @@ private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroi
     namedModuleTemplate,
     ":",
     formFactor = ObjectValueProperty(FormFactor.Mobile),
+    category = ObjectValueProperty(Category.Activity),
     wizardContext = NEW_PROJECT
   )
   companionModuleModel.multiTemplateRenderer.incrementRenders()

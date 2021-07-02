@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.model.NewAndroidNativeModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -43,14 +44,15 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     override val name: String,
     override val description: String,
     override val icon: Icon,
-    val formFactor: FormFactor
+    val formFactor: FormFactor,
+    val category: Category
   ) : ModuleGalleryEntry {
     val isLibrary = false
 
     override fun toString(): String = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, isLibrary)
+      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, formFactor, category, isLibrary)
       return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
@@ -59,28 +61,32 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
     message("android.wizard.module.new.mobile"),
     message("android.wizard.module.new.mobile.description"),
     StudioIcons.Wizards.Modules.PHONE_TABLET,
-    FormFactor.Mobile
+    FormFactor.Mobile,
+    Category.Activity
   )
 
   private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.automotive"),
     message("android.wizard.module.new.automotive.description"),
     StudioIcons.Wizards.Modules.AUTOMOTIVE,
-    FormFactor.Automotive
+    FormFactor.Automotive,
+    Category.Automotive
   )
 
   private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.tv"),
     message("android.wizard.module.new.tv.description"),
     StudioIcons.Wizards.Modules.ANDROID_TV,
-    FormFactor.Tv
+    FormFactor.Tv,
+    Category.Activity
   )
 
   private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
     message("android.wizard.module.new.wear"),
     message("android.wizard.module.new.wear.description"),
     StudioIcons.Wizards.Modules.WEAR_OS,
-    FormFactor.Wear
+    FormFactor.Wear,
+    Category.Wear
   )
 
   private class AndroidLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
@@ -90,7 +96,14 @@ class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
 
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      val model = NewAndroidModuleModel.fromExistingProject(project, moduleParent, projectSyncInvoker, FormFactor.Mobile, true)
+      val model = NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = moduleParent,
+        projectSyncInvoker = projectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = true
+      )
       return ConfigureAndroidModuleStep(model, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
