@@ -147,7 +147,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
     WelcomeFrame.showNow()
   }
 
-  private fun shouldPreventWizardCancel(frame: Window) = when (ConfirmFirstRunWizardCloseDialog().open()) {
+  private fun shouldPreventWizardCancel(frame: Window) = when (ConfirmFirstRunWizardCloseDialog.show()) {
     ConfirmFirstRunWizardCloseDialog.Result.Skip -> {
       AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(mode.installerTimestamp)
       closeDialog(frame)
