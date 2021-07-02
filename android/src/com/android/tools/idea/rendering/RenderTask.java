@@ -1374,7 +1374,7 @@ public class RenderTask {
   private void disposeRenderSession(@NotNull RenderSession renderSession) {
     Optional<Method> disposeMethod = Optional.empty();
     if (myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE.getComposableAdapterName()) ||
-        myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_UI.getComposableAdapterName())) {
+        myLayoutlibCallback.hasLoadedClass(ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API.getComposableAdapterName())) {
       for (String composeViewAdapterName: COMPOSE_VIEW_ADAPTER_FQNS) {
         try {
           Class<?> composeViewAdapter = myLayoutlibCallback.findClass(composeViewAdapterName);

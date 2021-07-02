@@ -35,7 +35,7 @@ class PreviewElementsTest(private val namespace: ComposeLibraryNamespace) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_UI, ComposeLibraryNamespace.ANDROIDX_COMPOSE)
+    val namespaces = listOf(ComposeLibraryNamespace.ANDROIDX_COMPOSE, ComposeLibraryNamespace.ANDROIDX_COMPOSE_WITH_API)
   }
 
   @Test

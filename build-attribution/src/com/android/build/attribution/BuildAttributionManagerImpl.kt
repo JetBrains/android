@@ -17,13 +17,14 @@ package com.android.build.attribution
 
 import com.android.SdkConstants
 import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
-import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
+import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
@@ -88,4 +89,7 @@ class BuildAttributionManagerImpl(
 
   override fun openResultsTab() = BuildAttributionUiManager.getInstance(project)
     .openTab(BuildAttributionUiAnalytics.TabOpenEventSource.BUILD_OUTPUT_LINK)
+
+  override fun shouldShowBuildOutputLink(): Boolean = !ConfigurationCacheTestBuildFlowRunner.getInstance(project)
+    .runningFirstConfigurationCacheBuild
 }

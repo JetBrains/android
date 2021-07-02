@@ -268,7 +268,7 @@ class ComposePreviewAnimationManagerTest {
       }
 
       fun loadPreviewAnimationClock(): Class<*> {
-        return loadClassFromNonProjectDependency("androidx.compose.ui.tooling.preview.animation.PreviewAnimationClock")
+        return loadClassFromNonProjectDependency("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
       }
     }
     createAndOpenInspector()

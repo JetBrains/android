@@ -320,6 +320,6 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetsSelectedWithDialog(targets);
 
     // Assert
-    assertEquals(targets, myService.getTargetsSelectedWithDialog(Collections.emptyList()));
+    assertEquals(Collections.emptySet(), myService.getTargetsSelectedWithDialog(Collections.emptyList()));
   }
 }

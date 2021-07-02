@@ -61,6 +61,8 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
+import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
@@ -86,6 +88,20 @@ private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean
     val lastArgType = lastOrNull()?.type ?: return false
     return lastArgType.isBuiltinFunctionalType
            && COMPOSABLE_FQ_NAMES.any { lastArgType.annotations.hasAnnotation(FqName(it)) }
+  }
+
+private val ValueParameterDescriptor.isLambdaWithNoParameters: Boolean
+  get() = type.isFunctionType
+          // The only type in the list is the return type (can be Unit).
+          && argumentValueType.arguments.size == 1
+
+/**
+ * true if the last parameter is required, and a lambda type with no parameters.
+ */
+private val List<ValueParameterDescriptor>.isLastRequiredLambdaWithNoParameters: Boolean
+  get() {
+    val lastParameter = lastOrNull() ?: return false
+    return !lastParameter.hasDefaultValue() && lastParameter.isLambdaWithNoParameters
   }
 
 /**
@@ -266,8 +282,7 @@ private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) :
     val allParameters = descriptor.valueParameters
     val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
     val insertLambda = requiredParameters.hasComposableChildren
-                       // If the last parameter is a function type, also insert the lambda
-                       || (requiredParameters.lastOrNull()?.type?.isFunctionType ?: false)
+                       || allParameters.isLastRequiredLambdaWithNoParameters
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
 
     val template = templateManager.createTemplate("", "").apply {
@@ -282,7 +297,7 @@ private class ComposeInsertHandler(private val descriptor: FunctionDescriptor) :
               addTextSegment(", ")
             }
             addTextSegment(parameter.name.asString() + " = ")
-            if (parameter.type.isFunctionType) {
+            if (parameter.isLambdaWithNoParameters) {
               addVariable(ConstantNode("{ /*TODO*/ }"), true)
             }
             else {

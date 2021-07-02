@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.gradle.KotlinGradleModel
+import org.jetbrains.kotlin.kapt.idea.KaptGradleModel
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
@@ -58,11 +59,13 @@ abstract class GradleModule(val gradleProject: BasicGradleProject) {
 @UsedInBuildAction
 class JavaModule(
   gradleProject: BasicGradleProject,
-  private val kotlinGradleModel: KotlinGradleModel?
+  private val kotlinGradleModel: KotlinGradleModel?,
+  private val kaptGradleModel: KaptGradleModel?
 ) : GradleModule(gradleProject) {
   override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
       kotlinGradleModel?.deliver()
+      kaptGradleModel?.deliver()
     }
   }
 }
@@ -110,6 +113,7 @@ class AndroidModule internal constructor(
 
   var additionalClassifierArtifacts: AdditionalClassifierArtifactsModel? = null
   var kotlinGradleModel: KotlinGradleModel? = null
+  var kaptGradleModel: KaptGradleModel? = null
 
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some of the
    * libraries other variants depend on.
@@ -143,6 +147,7 @@ class AndroidModule internal constructor(
     with(ModelConsumer(consumer)) {
       ideAndroidModels.deliver()
       kotlinGradleModel?.deliver()
+      kaptGradleModel?.deliver()
       additionalClassifierArtifacts?.deliver()
     }
   }

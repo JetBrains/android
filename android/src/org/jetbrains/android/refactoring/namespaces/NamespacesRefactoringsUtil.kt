@@ -46,6 +46,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.augment.AndroidLightField
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
@@ -169,12 +170,13 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
           // Make sure the PSI structure is as expected for something like "R.string.app_name":
           if (nameRef.qualifierExpression != typeRef || typeRef.qualifierExpression != classRef) continue@referencesLoop
 
+          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
           Pair(
             nameRef as PsiElement,
             ResourceReference(
               ResourceNamespace.RES_AUTO,
               ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              nameRef.referenceName ?: continue@referencesLoop
+              resolvedResource?.resourceName ?: nameRef.referenceName ?: continue@referencesLoop
             )
           )
         }
@@ -184,12 +186,13 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
           val typeName = typeRef.getReferencedName()
           val nameRef = typeRef.getNextInQualifiedChain() as? KtNameReferenceExpression ?: continue@referencesLoop
 
+          val resolvedResource = extractResourceFieldFromNameElement(nameRef) as? ResourceLightField
           Pair(
             nameRef as PsiElement,
             ResourceReference(
               ResourceNamespace.RES_AUTO,
               ResourceType.fromClassName(typeName) ?: continue@referencesLoop,
-              nameRef.getReferencedName()
+              resolvedResource?.resourceName ?: nameRef.getReferencedName()
             )
           )
         }

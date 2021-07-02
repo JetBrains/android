@@ -36,6 +36,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter;
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionUtil;
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager;
@@ -505,8 +506,11 @@ public class GradleBuildInvoker {
 
         private void addBuildAttributionLinkToTheOutput(@NotNull ExternalSystemTaskId id) {
           if (BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject)) {
-            String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
-            onTaskOutput(id, "\n" + buildAttributionTabLinkLine, true);
+            BuildAttributionManager manager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+            if (manager != null && manager.shouldShowBuildOutputLink()) {
+              String buildAttributionTabLinkLine = BuildAttributionUtil.buildOutputLine();
+              onTaskOutput(id, "\n" + buildAttributionTabLinkLine + "\n", true);
+            }
           }
         }
 

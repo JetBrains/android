@@ -43,6 +43,9 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
   @NotNull
   private final List<Map<String, List<SeriesData<Long>>>> myCpuCounters;
 
+  @NotNull
+  private final List<SeriesData<Long>> myBlastBufferQueueCounter;
+
   private final boolean myIsMissingData;
 
   @NotNull
@@ -62,6 +65,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
                                @NotNull List<SeriesData<Long>> cpuUtilizationData,
                                @NotNull List<Map<String, List<SeriesData<Long>>>> cpuCounters,
                                @NotNull Map<String, List<SeriesData<Long>>> processMemoryCountersMap,
+                               @NotNull List<SeriesData<Long>> blastBufferQueueCounter,
                                @NotNull SystemTraceFrameManager frameManager,
                                @NotNull SystemTraceSurfaceflingerManager surfaceflingerManager,
                                @NotNull Range initialViewRangeUs) {
@@ -74,6 +78,7 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
     myCpuUtilizationSeries = cpuUtilizationData;
     myCpuCounters = cpuCounters;
     myProcessMemoryCountersMap = processMemoryCountersMap;
+    myBlastBufferQueueCounter = blastBufferQueueCounter;
     myIsMissingData = model.isCapturePossibleCorrupted();
 
     myFrameManager = frameManager;
@@ -154,10 +159,15 @@ public class SystemTraceCpuCapture extends BaseCpuCapture implements CpuSystemTr
     return mySurfaceflingerManager.getVsyncCounterValues();
   }
 
+  /**
+   * @return SurfaceFlinger buffer queue counter on pre-S and BLAST buffer queue counter on S+.
+   */
   @NotNull
   @Override
   public List<SeriesData<Long>> getBufferQueueCounterValues() {
-    return mySurfaceflingerManager.getBufferQueueValues();
+    return mySurfaceflingerManager.getBufferQueueValues().isEmpty()
+           ? myBlastBufferQueueCounter
+           : mySurfaceflingerManager.getBufferQueueValues();
   }
 
   @Override

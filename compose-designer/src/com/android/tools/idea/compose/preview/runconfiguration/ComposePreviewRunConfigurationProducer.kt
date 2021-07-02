@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.compose.ComposeLibraryNamespace
 import com.android.tools.compose.PREVIEW_PARAMETER_FQNS
+import com.android.tools.compose.findComposeToolingNamespace
 import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
@@ -27,6 +29,7 @@ import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
@@ -51,6 +54,7 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
     if (!isComposeRunConfigurationEnabled()) return false
     if (context.module?.isNonLibraryAndroidModule() != true) return false
 
+    configuration.setLaunchActivity(sourceElement.get()?.module.findComposeToolingNamespace().previewActivityName)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
       configuration.composableMethodFqn = it.composePreviewFunctionFqn()

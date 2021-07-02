@@ -98,16 +98,14 @@ internal class UpdatableDeviceHelpTooltipForList : UpdatableDeviceHelpTooltip() 
 
     return object : MouseAdapter() {
       override fun mouseEntered(event: MouseEvent) {
-        val device = getDeviceForEvent(event) ?: return
-        updateTooltip(device)
+        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
         listener.mouseEntered(event)
       }
 
       override fun mouseExited(event: MouseEvent) = listener.mouseExited(event)
 
       override fun mouseMoved(event: MouseEvent) {
-        val device = getDeviceForEvent(event) ?: return
-        updateTooltip(device)
+        getDeviceForEvent(event)?.let { updateTooltip(it) } ?: cancel()
         listener.mouseMoved(event)
       }
     }

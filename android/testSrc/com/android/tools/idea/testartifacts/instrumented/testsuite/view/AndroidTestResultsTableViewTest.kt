@@ -101,9 +101,11 @@ class AndroidTestResultsTableViewTest {
       override val packageName: String = ""
       override fun getTestCaseResult(device: AndroidDevice): AndroidTestCaseResult? = null
       override fun getTestResultSummary(): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
-      override fun getTestResultSummaryText(): String = ""
+      override fun getTestResultSummary(devices: List<AndroidDevice>): AndroidTestCaseResult = AndroidTestCaseResult.SCHEDULED
+      override fun getTestResultSummaryText(devices: List<AndroidDevice>): String = ""
       override fun getResultStats(): AndroidTestResultStats = AndroidTestResultStats()
       override fun getResultStats(device: AndroidDevice): AndroidTestResultStats = AndroidTestResultStats()
+      override fun getResultStats(devices: List<AndroidDevice>): AndroidTestResultStats = AndroidTestResultStats()
       override fun getLogcat(device: AndroidDevice): String = ""
       override fun getStartTime(device: AndroidDevice): Long? = null
       override fun getDuration(device: AndroidDevice): Duration? = null
@@ -129,22 +131,6 @@ class AndroidTestResultsTableViewTest {
   @Test
   fun initialTable() {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
-
-    // Assert columns.
-    assertThat(table.getModelForTesting().columnInfos).hasLength(3)
-    assertThat(table.getModelForTesting().columnInfos[0].name).isEqualTo("Tests")
-    assertThat(table.getModelForTesting().columnInfos[1].name).isEqualTo("Duration")
-    assertThat(table.getModelForTesting().columnInfos[2].name).isEqualTo("Status")
-
-    // Assert rows.
-    assertThat(table.getTableViewForTesting().rowCount).isEqualTo(1)  // Root aggregation row
-  }
-
-  @Test
-  fun hideStatusColumn() {
-    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger).apply {
-      showTestStatusColumn = false
-    }
 
     // Assert columns.
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
@@ -432,13 +418,40 @@ class AndroidTestResultsTableViewTest {
     val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
     val device1 = device("deviceId1", "deviceName1")
     val device2 = device("deviceId2", "deviceName2")
+    val device3 = device("deviceId3", "deviceName3")
 
     table.addDevice(device1)
     table.addDevice(device2)
+    table.addDevice(device3)
 
     val view = table.getTableViewForTesting()
     val model = table.getModelForTesting()
 
+    assertThat(view.columnCount).isEqualTo(6)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("Status")
+    assertThat(model.columns[3].name).isEqualTo("deviceName1")
+    assertThat(model.columns[4].name).isEqualTo("deviceName2")
+    assertThat(model.columns[5].name).isEqualTo("deviceName3")
+
+    // Apply column filter.
+    table.setColumnFilter { device ->
+      device.id == "deviceId2"
+    }
+
+    // Status column is not displayed because only a single device is selected.
+    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("deviceName2")
+
+    // Apply column filter.
+    table.setColumnFilter { device ->
+      device.id == "deviceId1" || device.id == "deviceId2"
+    }
+
+    // Status column is displayed because multiple devices are selected.
     assertThat(view.columnCount).isEqualTo(5)
     assertThat(model.columns[0].name).isEqualTo("Tests")
     assertThat(model.columns[1].name).isEqualTo("Duration")
@@ -447,15 +460,73 @@ class AndroidTestResultsTableViewTest {
     assertThat(model.columns[4].name).isEqualTo("deviceName2")
 
     // Apply column filter.
+    table.setColumnFilter { device -> false }
+
+    // Status column is not displayed when zero devices are selected.
+    assertThat(view.columnCount).isEqualTo(2)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+  }
+
+  @Test
+  fun setColumnFilterWithSortColumnSelected() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+    val device3 = device("deviceId3", "deviceName3")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+    table.addDevice(device3)
+
+    val view = table.getTableViewForTesting()
+    val model = table.getModelForTesting()
+    val columnModel = view.tableHeader.columnModel
+
+    assertThat(view.columnCount).isEqualTo(6)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("Status")
+    assertThat(model.columns[3].name).isEqualTo("deviceName1")
+    assertThat(model.columns[4].name).isEqualTo("deviceName2")
+    assertThat(model.columns[5].name).isEqualTo("deviceName3")
+
+    // Click on the device1 table header to sort them by device1 results in ascending order.
+    var deviceStatusColumnPositionX =
+      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + columnModel.getColumn(2).width  + 1
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+    }
+
+    // Apply column filter to filter by device2, which removes the current sort column.
     table.setColumnFilter { device ->
       device.id == "deviceId2"
     }
 
-    assertThat(view.columnCount).isEqualTo(4)
+    // Assert only device2 is displayed.
+    assertThat(view.columnCount).isEqualTo(3)
+    assertThat(model.columns[0].name).isEqualTo("Tests")
+    assertThat(model.columns[1].name).isEqualTo("Duration")
+    assertThat(model.columns[2].name).isEqualTo("deviceName2")
+
+    // Click on the device2 table header to sort them by device2 in ascending order.
+    deviceStatusColumnPositionX =
+      columnModel.getColumn(0).width + columnModel.getColumn(1).width + columnModel.getColumn(2).width + 1
+    view.tableHeader.mouseListeners.forEach {
+      it.mouseClicked(MouseEvent(view.tableHeader, 0, 0, 0, deviceStatusColumnPositionX, 0, /*clickCount=*/1, false))
+    }
+
+    // Apply column filter to show all devices.
+    table.setColumnFilter { true }
+
+    // All columns are displayed
+    assertThat(view.columnCount).isEqualTo(6)
     assertThat(model.columns[0].name).isEqualTo("Tests")
     assertThat(model.columns[1].name).isEqualTo("Duration")
     assertThat(model.columns[2].name).isEqualTo("Status")
-    assertThat(model.columns[3].name).isEqualTo("deviceName2")
+    assertThat(model.columns[3].name).isEqualTo("deviceName1")
+    assertThat(model.columns[4].name).isEqualTo("deviceName2")
+    assertThat(model.columns[5].name).isEqualTo("deviceName3")
   }
 
   @Test
@@ -808,5 +879,31 @@ class AndroidTestResultsTableViewTest {
 
     assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary()).isEqualTo(AndroidTestCaseResult.CANCELLED)
     assertThat(table.getTableViewForTesting().getItem(0).getTestCaseResult(device1)).isEqualTo(AndroidTestCaseResult.CANCELLED)
+  }
+
+  @Test
+  fun setTestResultStatsForListOfDevices() {
+    val table = AndroidTestResultsTableView(mockListener, mockJavaPsiFacade, mockTestArtifactSearchScopes, mockLogger)
+    val device1 = device("deviceId1", "deviceName1")
+    val device2 = device("deviceId2", "deviceName2")
+
+    table.addDevice(device1)
+    table.addDevice(device2)
+
+    val testCase1 = AndroidTestCase("testid1", "method1", "class1", "package1")
+
+    table.addTestCase(device1, testCase1)
+    table.addTestCase(device2, testCase1)
+    testCase1.result = AndroidTestCaseResult.PASSED
+
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1))).isEqualTo("1/1")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device2))).isEqualTo("1/1")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummaryText(listOf(device1, device2))).isEqualTo("2/2")
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device2))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getTestResultSummary(listOf(device1, device2))).isEqualTo(AndroidTestCaseResult.PASSED)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1)).passed).isEqualTo(1)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device2)).passed).isEqualTo(1)
+    assertThat(table.getTableViewForTesting().getItem(0).getResultStats(listOf(device1, device2)).passed).isEqualTo(2)
   }
 }

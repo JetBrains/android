@@ -93,7 +93,7 @@ class SceneManagerTest {
   fun testMultipleRootHierarchyProvider() {
     val model =
       model(projectRule, "layout", "layout.xml",
-            ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER))
+            ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter"))
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelWithoutRender(model)

@@ -62,7 +62,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val noApksProvider = NoApksProvider()
     val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status,
                                                          noApksProvider, consolePrinter, device) as ActivityLaunchTask
-    assertEquals("am start -n \"com.example.myapp/androidx.compose.ui.tooling.preview.PreviewActivity\" " +
+    assertEquals("am start -n \"com.example.myapp/androidx.compose.ui.tooling.PreviewActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
                  "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
                  " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
