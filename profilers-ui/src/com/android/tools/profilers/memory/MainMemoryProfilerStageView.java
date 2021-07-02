@@ -174,7 +174,9 @@ public class MainMemoryProfilerStageView extends BaseStreamingMemoryProfilerStag
       toolbar.add(getCaptureElapsedTimeLabel());
     }
     if (getStage().getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.PROFILEABLE) {
-      toolbar.add(DismissibleMessage.of(
+      // add banner to outer panel's center so it can stretch,
+      // rather than the toolbar's layout, which makes it wrap to just enough width
+      panel.add(DismissibleMessage.of(
         getStage().getStudioProfilers(),
         SHOW_PROFILEABLE_MESSAGE,
         "Heap dump capturing, Java/Kotlin allocations, and GC forcing are disabled for profileable processes",
