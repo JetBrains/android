@@ -135,12 +135,6 @@ internal class AndroidExtraModelProviderWorker(
     val modules: List<GradleModule> = actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule {
-          val androidProject = controller.findParameterizedAndroidModel(
-            gradleProject,
-            AndroidProject::class.java,
-            shouldBuildVariant = isFullSync
-          )
-
           var androidProjectResult: AndroidProjectResult? = null
           // Request V2 models if flag is enabled.
           if (syncOptions.flags.studioFlagUseV2BuilderModels) {
