@@ -67,7 +67,7 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
           val lightClasses = groups.mapNotNull { group -> bindingModuleCache.getLightBindingClasses(group).firstOrNull() }
           lightClasses.map { lightClass ->
             val packageName = lightClass.qualifiedName.substringBeforeLast('.')
-            packageFactory.getOrCreatePsiPackage(packageName)
+            packageFactory.getOrCreatePsiPackage(facet, packageName)
           }
         }
         .associateBy { psiPackage -> psiPackage.qualifiedName }

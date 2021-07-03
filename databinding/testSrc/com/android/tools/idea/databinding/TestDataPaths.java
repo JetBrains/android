@@ -31,4 +31,5 @@ public final class TestDataPaths {
   public static final String PROJECT_WITH_SAME_PACKAGE_MODULES = "projects/projectWithSamePackageModules";
   public static final String PROJECT_FOR_TRACKING = "projects/projectForTracking";
   public static final String PROJECT_FOR_VIEWBINDING = "projects/projectForViewBinding";
+  public static final String PROJECT_USING_JDK11 = "projects/projectUsingJdk11";
 }
