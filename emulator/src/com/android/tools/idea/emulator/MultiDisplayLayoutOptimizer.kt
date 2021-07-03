@@ -156,12 +156,12 @@ private class LayoutOptimizer(private val rectangleSizes: List<Dimension>) {
     return node
   }
 
-  fun calculateScale(availableSpace: Dimension, layoutNodes: Array<Node?>): Double {
+  private fun calculateScale(availableSpace: Dimension, layoutNodes: Array<Node?>): Double {
     val size = calculateSize(layoutNodes[0]!!, layoutNodes)
     return min(availableSpace.getWidth() / size.width, availableSpace.getHeight() / size.height)
   }
 
-  fun calculateSize(node: Node, layoutNodes: Array<Node?>): Dimension {
+  private fun calculateSize(node: Node, layoutNodes: Array<Node?>): Dimension {
     if (node is Node.Leaf) {
       return rectangleSizes[node.rectangleIndex]
     }
