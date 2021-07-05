@@ -18,4 +18,9 @@ public interface ApkSigningSettingsForm {
   TextFieldWithBrowseButton getKeyAliasField();
 
   JPasswordField getKeyPasswordField();
+
+  default void keyStoreSelected() {}
+  default void keyStoreCreated() {}
+  default void keyAliasSelected() {}
+  default void keyAliasCreated() {}
 }
