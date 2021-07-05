@@ -23,42 +23,41 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.google.common.collect.ImmutableCollection
-import com.google.common.collect.ImmutableList
 
 class VisualLintIssueProvider(
-  private val renderErrorModel: ImmutableList<VisualLintRenderIssue>,
-  private val atfIssues: ImmutableList<VisualLintAtfIssue>
+  private val issuesMap: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>,
 ) : IssueProvider() {
 
   override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-    renderErrorModel.forEach { issue -> issueListBuilder.add(issue) }
-    atfIssues.forEach { issue -> issueListBuilder.add(issue) }
+    issuesMap.values.forEach { it.values.forEach { issues -> issueListBuilder.addAll(issues) } }
   }
 
-  data class VisualLintIssueSource(private val model: NlModel, val component: NlComponent?) : IssueSource {
-    override val displayText: String = model.modelDisplayName.orEmpty()
+  data class VisualLintIssueSource(val components: List<NlComponent>) : IssueSource {
+    override val displayText = ""
     override val onIssueSelected: (DesignSurface) -> Unit = {
-      if (component != null) {
-        it.selectionModel.setSelection(listOf(component))
-      }
+      it.selectionModel.setSelection(components)
+
       // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
       it.repaint()
-      it.scrollToVisible(model, false)
+      it.scrollToVisible(components.first().model, false)
     }
   }
 }
 
 class VisualLintRenderIssue(myIssue: RenderErrorModel.Issue,
-                            val sourceModel: NlModel,
-                            val component: NlComponent?) : Issue(), VisualLintHighlightingIssue {
-  override val source = VisualLintIssueProvider.VisualLintIssueSource(sourceModel, component)
+                            val components: MutableList<NlComponent>) : Issue(), VisualLintHighlightingIssue {
+  override val source = VisualLintIssueProvider.VisualLintIssueSource(components)
   override val summary = myIssue.summary
   override val description = myIssue.htmlContent
   override val severity = myIssue.severity
   override val category = "Visual Lint Issue"
   override val hyperlinkListener = myIssue.hyperlinkListener
   override fun shouldHighlight(model: NlModel): Boolean {
-    return sourceModel == model
+    return components.any { it.model == model }
+  }
+
+  fun addComponent(component: NlComponent?) {
+    component?.let { components.add(it) }
   }
 }
 
