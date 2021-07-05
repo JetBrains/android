@@ -70,8 +70,8 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
     val legacyAgpVersion: String? = null
   ) {
     CURRENT("NewAgp"),
-    LEGACY("LegacyAgp", "4.1.0"),
-    LEGACY_4_2("LegacyAgp_4.2", "4.2.0");
+    LEGACY_4_1("Agp_4.1", "4.1.0"),
+    LEGACY_4_2("Agp_4.2", "4.2.0");
 
     override fun toString(): String = suffix
   }
@@ -93,7 +93,7 @@ open class IdeModelSnapshotComparisonTest : GradleIntegrationTest, SnapshotCompa
       TestProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
       TestProject(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
       TestProject(TestProjectToSnapshotPaths.KOTLIN_KAPT),
-      TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY, AgpVersion.LEGACY_4_2))
+      TestProject("../projects/lintCustomChecks", incompatibleWithAgps = setOf(AgpVersion.LEGACY_4_1, AgpVersion.LEGACY_4_2))
     )
 
     fun testProjectsFor(agpVersions: Collection<AgpVersion>) =
