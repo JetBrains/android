@@ -706,7 +706,6 @@ java_test(
 java_test(
     name = "FlavorsExecutionTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
@@ -894,7 +893,6 @@ java_test(
 java_test(
     name = "AbiSplitApksTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]),
@@ -910,7 +908,6 @@ java_test(
 java_test(
     name = "X86AbiSplitApksTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]),
@@ -990,7 +987,6 @@ config_setting(
 java_test(
     name = "DebugOnEmulatorTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]) + [
@@ -1039,7 +1035,6 @@ java_test(
 java_test(
     name = "CreateAndRunInstantAppTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + select({
         ":has_emulator": [
             "@externsdk//:system-images",
@@ -1070,7 +1065,6 @@ java_test(
 java_test(
     name = "DualDebuggerBreakpointsTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]) + select({
@@ -1104,7 +1098,6 @@ java_test(
 java_test(
     name = "RunInstrumentationTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/InstrumentationTest/**",
     ]) + select({
@@ -1135,7 +1128,6 @@ java_test(
 java_test(
     name = "EspressoRecorderTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]) + select({
@@ -1751,7 +1743,6 @@ java_test(
 java_test(
     name = "BuildAndRunCMakeProjectTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]) + select({
@@ -1781,7 +1772,6 @@ java_test(
 java_test(
     name = "JavaDebuggerTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]) + select({
@@ -1810,7 +1800,6 @@ java_test(
 java_test(
     name = "AutoDebuggerInNdkProjectTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/NdkHelloJni/**",
     ]) + select({
@@ -1842,7 +1831,6 @@ java_test(
 java_test(
     name = "DualDebuggerInNdkProjectTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/NdkHelloJni/**",
     ]) + select({
@@ -1876,7 +1864,6 @@ java_test(
 java_test(
     name = "NativeDebuggerInNdkProjectTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/NdkHelloJni/**",
     ]) + select({
@@ -1910,7 +1897,6 @@ java_test(
 java_test(
     name = "WatchpointTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/WatchpointTestAppForUI/**",
     ]) + select({
@@ -1944,7 +1930,6 @@ java_test(
 java_test(
     name = "NativeDebuggerBreakpointsTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]) + select({
@@ -1978,7 +1963,6 @@ java_test(
 java_test(
     name = "SessionRestartTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/BasicCmakeAppForUI/**",
     ]) + select({
@@ -2012,7 +1996,6 @@ java_test(
 java_test(
     name = "SmartStepIntoTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/debugger/SmartStepIntoCmakeApp/**",
     ]) + select({
@@ -2083,7 +2066,6 @@ java_test(
 java_test(
     name = "CreateAPKProjectTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/ApkDebug/**",
     ]) + select({
@@ -2115,7 +2097,6 @@ java_test(
 java_test(
     name = "InstantAppRunFromCmdLineTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/TopekaInstantApp/**",
     ]) + select({
@@ -2147,7 +2128,6 @@ java_test(
 java_test(
     name = "ImportAndRunInstantAppTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/InstantAppsService/**",
     ]) + select({
@@ -2180,7 +2160,6 @@ java_test(
 java_test(
     name = "InstrumentationTest",
     size = "enormous",
-    timeout = "long",
     data = COMMON_DATA + glob([
         "testData/KotlinInstrumentation/**",
     ]) + select({
