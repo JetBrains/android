@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText.*;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -1403,6 +1404,23 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testCompactNotationSetToRawText() throws IOException {
+    writeToBuildFile(TestFile.COMPACT_NOTATION_SET_TO_RAW_TEXT);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertSize(1, artifacts);
+
+    ArtifactDependencyModel firstModel = artifacts.get(0);
+    firstModel.version().setValue(new RawText("\"${3+1}.0.0\"", "\"${listOf(4, 0, 0).joinToString(\".\")}\""));
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.COMPACT_NOTATION_SET_TO_RAW_TEXT_EXPECTED);
+  }
+
+  @Test
   public void testCompactNotationElementUnsupportedOperations() throws IOException {
     writeToBuildFile(TestFile.COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS);
 
@@ -2174,6 +2192,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     COMPACT_NOTATION_SET_TO_REFERENCE_EXPECTED("compactNotationSetToReferenceExpected"),
     COMPACT_NOTATION_SET_TO_INTERPOLATION("compactNotationSetToInterpolation"),
     COMPACT_NOTATION_SET_TO_INTERPOLATION_EXPECTED("compactNotationSetToInterpolationExpected"),
+    COMPACT_NOTATION_SET_TO_RAW_TEXT("compactNotationSetToRawText"),
+    COMPACT_NOTATION_SET_TO_RAW_TEXT_EXPECTED("compactNotationSetToRawTextExpected"),
     COMPACT_NOTATION_ELEMENT_UNSUPPORTED_OPERATIONS("compactNotationElementUnsupportedOperations"),
     SET_I_STR_IN_COMPACT_NOTATION("setIStrInCompactNotation"),
     SET_I_STR_IN_COMPACT_NOTATION_EXPECTED("setIStrInCompactNotationExpected"),
