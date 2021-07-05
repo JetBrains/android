@@ -28,9 +28,8 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.editor.PanZoomListener;
-import com.android.tools.idea.common.error.IssueModel;
+import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssuePanelSplitter;
-import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -52,9 +51,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -176,7 +174,10 @@ public class VisualizationForm
   private AtomicBoolean myCancelPendingModelLoad = new AtomicBoolean(false);
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
-  @NotNull private final Map<NlModel, IssueProvider> myIssueProviders = new HashMap<>();
+  private final Map<VisualLintErrorType, Map<String, List<Issue>>> myIssues = new HashMap<>();
+  private final ReentrantLock myLintIssueProviderLock = new ReentrantLock();
+  @GuardedBy("myLintIssueProviderLock")
+  @Nullable private VisualLintIssueProvider myLintIssueProvider = null;
 
   public VisualizationForm(@NotNull Project project, @NotNull Disposable parentDisposable) {
     Disposer.register(parentDisposable, this);
@@ -346,11 +347,17 @@ public class VisualizationForm
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
-    for (NlModel model : models) {
-      IssueProvider provider = myIssueProviders.remove(model);
-      if (provider != null) {
-        mySurface.getIssueModel().removeIssueProvider(provider);
+    myLintIssueProviderLock.lock();
+    try {
+      if (myLintIssueProvider != null) {
+        mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
+        myLintIssueProvider = null;
       }
+    }
+    finally {
+      myLintIssueProviderLock.unlock();
+    }
+    for (NlModel model : models) {
       mySurface.removeModel(model);
       Disposer.dispose(model);
     }
@@ -624,11 +631,10 @@ public class VisualizationForm
       myCancelRenderingTaskLock.unlock();
     }
     CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
-    IssueModel issueModel = mySurface.getIssueModel();
-    for (IssueProvider provider : myIssueProviders.values()) {
-      issueModel.removeIssueProvider(provider);
+    if (myLintIssueProvider != null) {
+      mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
     }
-    myIssueProviders.clear();
+    myIssues.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
 
@@ -640,15 +646,10 @@ public class VisualizationForm
             NlModel model = layoutlibSceneManager.getModel();
             RenderResult result = layoutlibSceneManager.getRenderResult();
 
-            ImmutableList<VisualLintAtfIssue> atfIssues = VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model);
-            ImmutableList<VisualLintRenderIssue> renderIssues = VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager);
-            IssueProvider newProvider = new VisualLintIssueProvider(renderIssues, atfIssues);
-
-            IssueProvider oldProvider = myIssueProviders.put(model, newProvider);
-            if (oldProvider != null) {
-              issueModel.removeIssueProvider(oldProvider);
+            if (result != null) {
+              VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myIssues);
+              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager, myIssues);
             }
-            issueModel.addIssueProvider(newProvider);
 
             // Remove self. This will not cause ConcurrentModificationException.
             // Callback iteration creates copy of a list. (see {@link ListenerCollection.kt#foreach})
@@ -674,7 +675,18 @@ public class VisualizationForm
         }
       });
     }
-    return renderFuture;
+    return renderFuture.thenRun(() -> {
+      myLintIssueProviderLock.lock();
+      try {
+        if (!Disposer.isDisposed(this)) {
+          myLintIssueProvider = new VisualLintIssueProvider(myIssues);
+          mySurface.getIssueModel().addIssueProvider(myLintIssueProvider);
+        }
+      }
+      finally {
+        myLintIssueProviderLock.unlock();
+      }
+    });
   }
 
   private void interruptRendering() {
