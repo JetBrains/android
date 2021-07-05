@@ -28,6 +28,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_STORE_PASSWORD_KEY
+import org.jetbrains.android.exportSignedPackage.KeystoreStep.trySavePasswords
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
@@ -467,5 +468,59 @@ class KeystoreStepTest : LightPlatformTestCase() {
     // Now check that the old-style password is erased.
     assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyKeyRequestor, keyPasswordKey)))
     assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyKeystoreRequestor, keyStorePasswordKey)))
+  }
+
+  fun testPasswordsReloadOnKeyStoreChange() {
+    val testKeyStorePath1 = "/test/path/to/keystore1"
+    val testKeyStorePassword1 = "keystorePassword1"
+    val testKeyAlias1 = "testkey1"
+    val testKeyPassword1 = "keyPassword1"
+    val testKeyStorePath2 = "/test/path/to/keystore2"
+    val testKeyStorePassword2 = "keystorePassword2"
+    val testKeyAlias2 = "testkey2"
+    val testKeyPassword2 = "keyPassword2"
+
+    // Setup in-memory PasswordSafe for tests
+    val passwordSafeSettings = PasswordSafeSettings()
+    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
+    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+
+    val settings = GenerateSignedApkSettings()
+    settings.KEY_ALIAS = testKeyAlias1
+    settings.KEY_STORE_PATH = testKeyStorePath1
+    settings.REMEMBER_PASSWORDS = true
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val wizard = mock(ExportSignedPackageWizard::class.java)
+    `when`(wizard.project).thenReturn(project)
+    `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+
+    trySavePasswords(testKeyStorePath1, testKeyStorePassword1.toCharArray(), testKeyAlias1, testKeyPassword1.toCharArray(), true)
+    trySavePasswords(testKeyStorePath2, testKeyStorePassword2.toCharArray(), testKeyAlias2, testKeyPassword2.toCharArray(), true)
+
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+
+    assertEquals(testKeyStorePassword1, String(keystoreStep.keyStorePasswordField.password))
+    assertEquals(testKeyPassword1, String(keystoreStep.keyPasswordField.password))
+
+    // Change keystore.
+    keystoreStep.keyStorePathField.apply {
+      text = testKeyStorePath2
+      postActionEvent()
+    }
+
+    assertEquals(testKeyStorePassword2, String(keystoreStep.keyStorePasswordField.password))
+    assertEmpty(String(keystoreStep.keyPasswordField.password))
+
+    // Change key alias.
+    keystoreStep.keyAliasField.textField.apply {
+      text = testKeyAlias2
+      postActionEvent()
+    }
+
+    assertEquals(testKeyStorePassword2, String(keystoreStep.keyStorePasswordField.password))
+    assertEquals(testKeyPassword2, String(keystoreStep.keyPasswordField.password))
   }
 }

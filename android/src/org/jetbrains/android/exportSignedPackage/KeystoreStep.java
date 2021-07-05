@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
@@ -164,6 +165,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       myExportKeyPathLabel.setVisible(false);
       myExportKeyPathField.setVisible(false);
     }
+    // Treat TextField actions as selections and try to refresh.
+    myKeyStorePathField.addActionListener((action) -> keyStoreSelected());
+    myKeyAliasField.getTextField().addActionListener((action) -> keyAliasSelected());
   }
 
   private void updateModuleDropdown() {
@@ -230,10 +234,33 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myGradlePanel.setVisible(showError);
   }
 
+  @Override
+  public void keyStoreSelected() {
+    myKeyStorePasswordField.setText(null);
+    myKeyPasswordField.setText(null);
+    tryLoadSavedPasswords();
+  }
+
+  @Override
+  public void keyStoreCreated() {
+    // Nothing to do.
+  }
+
+  @Override
+  public void keyAliasSelected() {
+    myKeyPasswordField.setText(null);
+    tryLoadSavedPasswords();
+  }
+
+  @Override
+  public void keyAliasCreated() {
+    // Nothing to do.
+  }
+
   private void tryLoadSavedPasswords() {
     String keyStorePath = myKeyStorePathField.getText();
     String keyAlias = myKeyAliasField.getText();
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+    executeInBackground(() -> {
       String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStorePath, null);
       String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStorePath, keyAlias);
       try {
@@ -243,22 +270,38 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
           credentialAttributesForKey(keyStorePasswordKey),
           createKeystoreDeprecatedAttributesPre_2021_1_1_3(keyStorePasswordKey),
           createDeprecatedAttributesPre_3_2(keyStorePasswordKey)
-        )).map(Credentials::getPassword).ifPresent(password -> ApplicationManager.getApplication().invokeLater(() -> {
-          myKeyStorePasswordField.setText(password.toString());
+        )).map(Credentials::getPassword).ifPresent(password -> GuiUtils.invokeLaterIfNeeded(() -> {
+          if (myKeyStorePasswordField.getPassword().length == 0) {
+            myKeyStorePasswordField.setText(password.toString());
+          }
         }, ModalityState.stateForComponent(myKeyStorePasswordField)));
 
         retrievePassword(passwordSafe, Arrays.asList(
           credentialAttributesForKey(keyPasswordKey),
           createKeyDeprecatedAttributesPre_2021_1_1_3(keyPasswordKey),
           createDeprecatedAttributesPre_3_2(keyPasswordKey)
-        )).map(Credentials::getPassword).ifPresent(password -> ApplicationManager.getApplication().invokeLater(() -> {
+        )).map(Credentials::getPassword).ifPresent(password -> GuiUtils.invokeLaterIfNeeded(() -> {
+          if (myKeyPasswordField.getPassword().length == 0) {
             myKeyPasswordField.setText(password.toString());
+          }
         }, ModalityState.stateForComponent(myKeyPasswordField)));
       }
       catch (Throwable t) {
         Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);
       }
     });
+  }
+
+  /**
+   * Execute task in background unless it is a unit test. Otherwise testing passwords loading becomes very tricky.
+   */
+  private void executeInBackground(Runnable runnable) {
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      runnable.run();
+    }
+    else {
+      ApplicationManager.getApplication().executeOnPooledThread(runnable);
+    }
   }
 
   /**
@@ -275,7 +318,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       .orElse(Optional.empty());
   }
 
-  private static void trySavePasswords(@NotNull String keyStoreLocation, char[] keyStorePassword, @NotNull String keyAlias, char[] keyPassword, boolean rememberPasswords) {
+  @VisibleForTesting
+  static void trySavePasswords(@NotNull String keyStoreLocation, char[] keyStorePassword, @NotNull String keyAlias, char[] keyPassword, boolean rememberPasswords) {
     String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 

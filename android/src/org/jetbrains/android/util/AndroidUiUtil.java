@@ -90,6 +90,7 @@ public class AndroidUiUtil {
         if (file != null) {
           form.getKeyStorePathField().setText(FileUtil.toSystemDependentName(file.getPath()));
         }
+        form.keyStoreSelected();
       }
     });
 
@@ -104,6 +105,7 @@ public class AndroidUiUtil {
           form.getKeyStorePasswordField().setText(String.valueOf(dialog.getKeyStorePassword()));
           form.getKeyAliasField().setText(dialog.getKeyAlias());
           form.getKeyPasswordField().setText(String.valueOf(dialog.getKeyPassword()));
+          form.keyStoreCreated();
         }
       }
     });
@@ -129,6 +131,12 @@ public class AndroidUiUtil {
           final char[] password = dialog.getChosenKeyPassword();
           if (password != null) {
             form.getKeyPasswordField().setText(String.valueOf(password));
+          }
+          if (dialog.isNewKeyCreated()) {
+            form.keyAliasCreated();
+          }
+          else {
+            form.keyAliasSelected();
           }
         }
       }

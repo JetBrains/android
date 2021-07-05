@@ -99,6 +99,10 @@ public class ChooseKeyDialog extends DialogWrapper {
            : null;
   }
 
+  public boolean isNewKeyCreated() {
+    return myCreateNewKeyRadioButton.isSelected();
+  }
+
   private class MyNewKeyForm extends NewKeyForm {
     @Override
     protected List<String> getExistingKeyAliasList() {
