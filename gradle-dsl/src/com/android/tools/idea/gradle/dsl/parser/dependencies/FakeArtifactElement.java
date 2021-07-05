@@ -17,11 +17,15 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.ext.InterpolatedText;
+import com.android.tools.idea.gradle.dsl.api.ext.RawText;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslNameConverter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -91,7 +95,6 @@ public class FakeArtifactElement extends FakeElement {
     if (spec == null) {
       throw new IllegalArgumentException("Could not create ArtifactDependencySpec from: " + value);
     }
-    assert value instanceof String || value instanceof InterpolatedText || value instanceof ReferenceTo || value == null;
     boolean shouldQuote = false;
     String strValue = null;
     if (value instanceof ReferenceTo) {
@@ -112,6 +115,19 @@ public class FakeArtifactElement extends FakeElement {
         }
       }
       strValue = builder.toString();
+    }
+    else if (value instanceof RawText) {
+      GradleDslNameConverter nameConverter = resolved.getDslFile().getWriter();
+      if (nameConverter instanceof GroovyDslNameConverter) {
+        strValue = ((RawText)value).getGroovyText();
+      }
+      else if (nameConverter instanceof KotlinDslNameConverter) {
+        strValue = ((RawText)value).getKtsText();
+      }
+      if (strValue != null && isDoubleQuotedString(strValue)) {
+        shouldQuote = true;
+        strValue = unquoteString(strValue);
+      }
     }
     else if (value != null) {
       strValue = (String)value;
