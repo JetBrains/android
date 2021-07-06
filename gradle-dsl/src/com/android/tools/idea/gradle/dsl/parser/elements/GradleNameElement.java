@@ -306,7 +306,6 @@ public class GradleNameElement {
   }
 
   @NotNull
-  @VisibleForTesting
   public static String join (@NotNull List<String> parts) {
     String result = parts.stream().map(GradleNameElement::escape).collect(Collectors.joining("."));
     return result;
