@@ -74,26 +74,15 @@ fun getApkForRunConfiguration(module: Module, configuration: AndroidRunConfigura
 
   return if (androidModel.features.isBuildOutputFileSupported)
     artifact.buildInformation
-      .getOutputFilesFromListingFile(getOutputType(module, configuration))
-      .let {
+      .getOutputListingFile(getOutputType(module, configuration))
+      ?.let { getOutputFilesFromListingFile(it) }
+      ?.let {
         if (it.size > 1) it.first().parentFile
         else it.firstOrNull()
       }
   else artifact.outputs.firstOrNull()?.outputFile
 }
 
-fun IdeBuildTasksAndOutputInformation.getOutputFilesFromListingFile(
-  outputType: OutputType
-): List<File> {
-  val listingFile = getOutputListingFile(outputType)
-  if (listingFile != null) {
-    return getOutputFilesFromListingFile(listingFile)
-  }
-  LOG.warn("Could not find output listing file. Build may have failed.")
-  return emptyList()
-}
-
-@VisibleForTesting
 fun getOutputFilesFromListingFile(listingFile: String): List<File> {
   val builtArtifacts = loadFromFile(File(listingFile), LogWrapper(LOG))
   if (builtArtifacts != null) {
@@ -132,12 +121,17 @@ private fun Collection<IdeVariantBuildInformation>.variantOutputInformation(vari
   return firstOrNull { it.variantName == variantName }?.buildInformation
 }
 
-internal fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
+fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputType): String? {
   return when (outputType) {
     OutputType.Apk -> assembleTaskOutputListingFile
     OutputType.ApkFromBundle -> apkFromBundleTaskOutputListingFile
     else -> bundleTaskOutputListingFile
   }
+    .also {
+      if (it == null) {
+        LOG.warn(Throwable("Output listing build file is not available for output type $outputType in $this"))
+      }
+    }
 }
 
 fun loadBuildOutputListingFile(listingFile: String): GenericBuiltArtifacts? {
