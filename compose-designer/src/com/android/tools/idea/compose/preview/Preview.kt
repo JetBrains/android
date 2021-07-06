@@ -417,29 +417,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       // We generate an id for the push of the new literals so it can be tracked by the metrics stats.
       val pushId = pushIdCounter.getAndIncrement().toString(16)
       LiveLiteralsService.getInstance(project).liveLiteralPushStarted(previewDeviceId, pushId)
-      val isInteractiveOrAnimationsMode = interactiveMode.isStartingOrReady() || animationInspection.get()
       surface.layoutlibSceneManagers.forEach { sceneManager ->
-        if (isInteractiveOrAnimationsMode) {
-          // Force re-inflate in the next render to temporarily reduce the changes of b/192842827 happening since
-          // it interferes with animations previews and it's more likely to happen when frequent invalidations without
-          // re-inflation happen.
-          sceneManager.forceReinflate()
-          // If interactive mode is enabled, we do not need to issue new render requests, they will be automatically
-          // done.
-          LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
-        }
-        else {
-          // This invalidates the current compositions to ensure the render re-composes the layout
-          sceneManager.renderResult
-            .invalidateCompositions()
-            .thenCompose {
-              sceneManager.executeCallbacks()
-                .whenComplete { _, _ -> sceneManager.requestRender() }
-            }
-            .whenComplete { _, _ ->
-              LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
-            }
-        }
+        // This invalidates the current compositions to ensure the render re-composes the layout
+        sceneManager.renderResult
+          .invalidateCompositions(forceLayout = animationInspection.get())
+          .thenCompose {
+            sceneManager.executeCallbacks()
+              .whenComplete { _, _ -> sceneManager.requestRender() }
+          }
+          .whenComplete { _, _ ->
+            LiveLiteralsService.getInstance(project).liveLiteralPushed(previewDeviceId, pushId, listOf())
+          }
       }
     }
   }
@@ -623,20 +611,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                 && !hasSyntaxErrors()) requestBuildForSurface(surface, false)
                           }, this)
     }
-
-    setupChangeListener(
-      project,
-      psiFile,
-      {
-        ApplicationManager.getApplication().invokeLater {
-          LOG.debug("changeListener triggered")
-          // When changes are made to the file, the animations become obsolete, so we invalidate the Animation Inspector and only display
-          // the new ones after a successful build.
-          ComposePreviewAnimationManager.invalidate()
-          if (interactiveMode != ComposePreviewManager.InteractiveMode.READY) refresh()
-        }
-      },
-      this)
 
     // When the preview is opened we must trigger an initial refresh. We wait for the project to be smart and synched to do it.
     project.runWhenSmartAndSyncedOnEdt(this, {
