@@ -74,7 +74,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private TextFieldWithBrowseButton myTraceProfilePathField;
   private JCheckBox myPreviewDeployToCheckBox;
   private JCheckBox myInteractiveAndAnimationsComboBox;
-  private JCheckBox myPreviewPickerCheckBox;
 
   private Runnable myRestartCallback;
 
@@ -148,8 +147,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) ||
            myPreviewDeployToCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled() ||
-           myInteractiveAndAnimationsComboBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled() ||
-           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled();
+           myInteractiveAndAnimationsComboBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled();
   }
 
   private int getQualitySetting() {
@@ -185,7 +183,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setInteractiveEnabled(myInteractiveAndAnimationsComboBox.isSelected());
     ComposeExperimentalConfiguration.getInstance().setDeployToDeviceEnabled(myPreviewDeployToCheckBox.isSelected());
-    ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
   }
 
   @Override
@@ -342,7 +339,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     updateTraceComponents();
     myPreviewDeployToCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isDeployToDeviceEnabled());
     myInteractiveAndAnimationsComboBox.setSelected(ComposeExperimentalConfiguration.getInstance().isInteractiveEnabled());
-    myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
   }
 
   public enum TraceProfileItem {

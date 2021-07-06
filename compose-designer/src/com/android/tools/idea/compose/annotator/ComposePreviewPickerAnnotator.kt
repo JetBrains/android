@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
@@ -58,7 +57,6 @@ class ComposePreviewPickerAnnotator : LineMarkerProviderDescriptor() {
     if (element.tokenType != KtTokens.IDENTIFIER) return null
     if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) return null
     if (!StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get()) return null
-    if (!ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled) return null
     if (element.getModuleSystem()?.usesCompose != true) return null
     if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 

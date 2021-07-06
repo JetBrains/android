@@ -24,6 +24,7 @@ import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEven
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -605,8 +606,11 @@ public class NavDesignSurface extends DesignSurface {
     return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
+  @UiThread
   @Override
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
+    // track user triggered change
+    getAnalyticsManager().trackZoom(type);
     boolean scaled = super.zoom(type, x, y);
     boolean isFitZoom = type == ZoomType.FIT || type == ZoomType.FIT_INTO;
 

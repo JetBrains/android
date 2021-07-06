@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.ComposeExperimentalConfiguration
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.addFileToProjectAndInvalidate
 import com.android.tools.idea.compose.preview.namespaceVariations
@@ -70,7 +69,6 @@ class ComposePreviewPickerAnnotatorTest(previewAnnotationPackage: String, compos
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
     StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     registerPreviewPickerAnnotator()
 

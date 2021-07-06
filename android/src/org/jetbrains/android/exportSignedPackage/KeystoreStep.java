@@ -18,7 +18,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -33,6 +32,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -120,17 +120,18 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       Application application = ApplicationManager.getApplication();
       application.executeOnPooledThread(() -> {
         String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null);
+        String password = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyStorePasswordField.setText(password));
+        }
+      });
+
+      application.executeOnPooledThread(() -> {
         String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS);
-        String keyStorePassword = retrievePassword(KeyStorePasswordRequestor.class, keyStorePasswordKey);
-        String keyPassword = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
-        application.invokeLater(() -> {
-          if (keyStorePassword != null) {
-            myKeyStorePasswordField.setText(keyStorePassword);
-          }
-          if (keyPassword != null) {
-            myKeyPasswordField.setText(keyPassword);
-          }
-        }, ModalityState.any());
+        String password = retrievePassword(KeyPasswordRequestor.class, keyPasswordKey);
+        if (password != null) {
+          EventQueue.invokeLater(() -> myKeyPasswordField.setText(password));
+        }
       });
     }
 
