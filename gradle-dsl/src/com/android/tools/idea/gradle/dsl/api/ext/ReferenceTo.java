@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Objects;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,22 +28,35 @@ import org.jetbrains.annotations.Nullable;
  * Represents a reference to another property or variable.
  */
 public final class ReferenceTo {
-  @NotNull private static final String SIGNING_CONFIGS = "signingConfigs";
-  @NotNull private String fullyQualifiedName;  // The internal fully qualified name of the DSL reference.
-  @NotNull private GradlePropertyModel propertyModel;
+  @NotNull private final String fullyQualifiedName;  // The internal fully qualified name of the DSL reference.
+  @NotNull private final GradlePropertyModel propertyModel;
+  @NotNull private final GradleDslElement scope;
 
   /**
-   * Create a reference to a {@link GradlePropertyModel}.
+   * Create a reference to a {@link GradlePropertyModel}
    * @param model the model we want to refer to.
    * @throws IllegalArgumentException if the model isn't of a valid existing property.
    */
   public ReferenceTo(@NotNull GradlePropertyModel model) {
+    // TODO(xof): this constructor should probably not exist, or at least not be exported from the Dsl module.  (It's needed internally
+    //  but should probably not be used in any external usage of the Dsl system.
+    this(model, model);
+  }
+
+  /**
+   * Create a reference to a {@link GradlePropertyModel}.
+   * @param model the model we want to refer to.
+   * @param context the context in which we want to refer to the model.
+   * @throws IllegalArgumentException if the model isn't of a valid existing property.
+   */
+  public ReferenceTo(@NotNull GradlePropertyModel model, @NotNull GradlePropertyModel context) {
     if (model.getRawElement() != null) {
       fullyQualifiedName = model.getFullyQualifiedName();
       propertyModel = model;
+      scope = context.getRawPropertyHolder();
     }
     else {
-      throw new IllegalArgumentException("The model property isn't valid. Please check the property exist");
+      throw new IllegalArgumentException("Invalid model property: please check the property exists.");
     }
   }
 
@@ -53,8 +66,9 @@ public final class ReferenceTo {
    * @param model the signingConfigModel we are trying to refer to.
    */
   public ReferenceTo(@NotNull SigningConfigModel model) {
-    fullyQualifiedName = SIGNING_CONFIGS + "." + GradleNameElement.escape(model.name());
+    fullyQualifiedName = GradleNameElement.escape(model.name());
     propertyModel = GradlePropertyModelBuilder.createModelFromDslElement(model.getDslElement());
+    scope = model.getDslElement().getParent().getParent();
   }
 
   /**
@@ -75,7 +89,7 @@ public final class ReferenceTo {
     if (referenceModel == null) {
       return null;
     }
-    return new ReferenceTo(referenceModel);
+    return new ReferenceTo(referenceModel, propertyContext);
   }
 
   @NotNull
@@ -108,8 +122,19 @@ public final class ReferenceTo {
   @Override
   @NotNull
   public String toString() {
-    // Special treatment for signingConfigs.
-    if (propertyModel.getRawPropertyHolder() instanceof SigningConfigsDslElement) return SIGNING_CONFIGS + "." + propertyModel.getName();
-    return propertyModel.getName();
+    List<String> scopeNameParts = GradleNameElement.split(scope.getQualifiedName());
+    List<String> resultParts = GradleNameElement.split(propertyModel.getFullyQualifiedName());
+    int r = 0;
+    int s = 0;
+    if ("buildscript".equals(scopeNameParts.get(s))) s++;
+    if ("buildscript".equals(resultParts.get(r))) r++;
+    if ("ext".equals(scopeNameParts.get(s))) s++;
+    if ("ext".equals(resultParts.get(r))) r++;
+    if (r >= resultParts.size()) return GradleNameElement.join(resultParts);
+    while (r < resultParts.size() && s < scopeNameParts.size() && java.util.Objects.equals(resultParts.get(r), scopeNameParts.get(s))) {
+      r++;
+      s++;
+    }
+    return GradleNameElement.join(resultParts.subList(r, resultParts.size()));
   }
 }

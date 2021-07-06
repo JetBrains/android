@@ -50,6 +50,7 @@ import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import com.android.tools.idea.gradle.dsl.model.notifications.CircularApplication
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.google.common.collect.ImmutableMap
+import com.intellij.psi.filters.getters.looksLikeBuilder
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
@@ -3403,6 +3404,22 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     verifyFileContents(mySubModuleBuildFile, TestFile.WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED)
   }
 
+  @Test
+  fun testReferenceToMapElement() {
+    writeToBuildFile(TestFile.REFERENCE_TO_MAP_ELEMENT)
+
+    val buildModel = gradleBuildModel
+    val versionsModel = buildModel.ext().findProperty("versions")
+    val agpModel = versionsModel.getMapValue("agp")
+
+    val versionModel = buildModel.dependencies().artifacts().get(0).version()
+    val reference = ReferenceTo(agpModel, versionModel)
+    assertEquals("versions.agp", reference.toString())
+    versionModel.setValue(ReferenceTo(agpModel, versionModel))
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.REFERENCE_TO_MAP_ELEMENT_EXPECTED)
+  }
+
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {
     // Delete and reset the property
     run {
@@ -4023,6 +4040,8 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     WRITE_REFERENCE_TO_BUIDLSCRIPT_EXT_APP_EXPECTED("writeReferenceToBuildscriptExtAppExpected"),
     REFERENCE_TO_MAP_IN_MAP("referenceToMapInMap"),
     REFERENCE_TO_MAP_IN_MAP_EXPECTED("referenceToMapInMapExpected"),
+    REFERENCE_TO_MAP_ELEMENT("referenceToMapElement"),
+    REFERENCE_TO_MAP_ELEMENT_EXPECTED("referenceToMapElementExpected")
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {
