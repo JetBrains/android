@@ -65,9 +65,7 @@ object VisualizationFormProvider : VisualizationContentProvider {
       if (LangDataKeys.MODULE.`is`(dataId) || LangDataKeys.IDE_VIEW.`is`(dataId) || CommonDataKeys.VIRTUAL_FILE.`is`(dataId)) {
         val fileEditor = visualizationForm.editor
         if (fileEditor != null) {
-          val component = fileEditor.component
-          val context = DataManager.getInstance().getDataContext(component)
-          return@addDataProvider context.getData(dataId!!)
+          return@addDataProvider DataManager.getDataProvider(fileEditor.component)?.getData(dataId!!)
         }
       }
       null
