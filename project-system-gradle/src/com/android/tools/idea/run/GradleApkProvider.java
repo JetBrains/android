@@ -17,6 +17,7 @@ package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputFilesFromListingFile;
 import static com.android.tools.idea.gradle.util.GradleBuildOutputUtil.getOutputListingFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
@@ -551,13 +552,18 @@ public class GradleApkProvider implements ApkProvider {
       return null;
     }
 
-    List<File> apkFiles = androidModel.getFeatures().isBuildOutputFileSupported()
-                          ? GradleBuildOutputUtil
-                            .getOutputFilesFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
-                                                           OutputType.ApkFromBundle)
-                          : collectApkFilesFromPostBuildModel(outputModelProvider,
-                                                              GradleUtil.getGradlePath(module),
-                                                              androidModel.getSelectedVariant().getName());
+    List<File> apkFiles;
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      String outputListingFile = GradleBuildOutputUtil
+        .getOutputListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
+                              OutputType.ApkFromBundle);
+      apkFiles = outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();
+    }
+    else {
+      apkFiles = collectApkFilesFromPostBuildModel(outputModelProvider,
+                                                   getGradlePath(module),
+                                                   androidModel.getSelectedVariant().getName());
+    }
 
     if (apkFiles.isEmpty()) {
       getLogger().warn("Could not find apk files.");
@@ -633,8 +639,10 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   private static List<File> getOutputFiles(@NotNull AndroidModuleModel androidModel) {
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
-      return GradleBuildOutputUtil.getOutputFilesFromListingFile(androidModel.getSelectedVariant().getMainArtifact().getBuildInformation(),
-                                                                 OutputType.Apk);
+      String outputListingFile =
+        // Do not call getOutputListingFile to avoid unnecessary warnings in the log.
+        androidModel.getSelectedVariant().getMainArtifact().getBuildInformation().getAssembleTaskOutputListingFile();
+      return outputListingFile != null ? getOutputFilesFromListingFile(outputListingFile) : emptyList();
     }
     else {
       //noinspection deprecation

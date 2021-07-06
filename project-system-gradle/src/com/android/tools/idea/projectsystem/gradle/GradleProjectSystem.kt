@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.PostBuildModelProvider
 import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
+import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -94,7 +95,14 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .flatMap { androidModel ->
         @Suppress("DEPRECATION")
         if (androidModel.features.isBuildOutputFileSupported) {
-          androidModel.selectedVariant.mainArtifact.buildInformation.getOutputFilesFromListingFile(OutputType.Apk).asSequence()
+          androidModel
+            .selectedVariant
+            .mainArtifact
+            .buildInformation
+            .getOutputListingFile(OutputType.Apk)
+            ?.let { getOutputFilesFromListingFile(it) }
+            ?.asSequence()
+            .orEmpty()
         }
         else {
           androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.outputFile }
