@@ -185,6 +185,7 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   @Override
   public @NotNull
   RuntimeException createError(@NotNull @NonNls String message,
+                               @Nullable Throwable cause,
                                @NotNull PluginId pluginId,
                                @Nullable Map<String, String> attachments) {
     return new RuntimeException(message);
