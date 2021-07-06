@@ -63,8 +63,9 @@ else {
  * Uses the `androidx.compose.runtime.HotReloader` in the Compose runtime mechanism to force a recomposition.
  * This action will run in the render thread so this method returns immediately with a future that will complete when the
  * invalidation has completed.
+ * If [forceLayout] is true, a `View#requestLayout` will be sent to the `ComposeViewAdapter` to force a relayout of the whole view.
  */
-internal fun RenderResult?.invalidateCompositions() = RenderService.getRenderAsyncActionExecutor().runAsyncAction {
+internal fun RenderResult?.invalidateCompositions(forceLayout: Boolean) = RenderService.getRenderAsyncActionExecutor().runAsyncAction {
     val composeViewAdapter = findComposeViewAdapter() ?: return@runAsyncAction
     try {
       val hotReloader = composeViewAdapter.javaClass.classLoader.loadClass("androidx.compose.runtime.HotReloader")
@@ -80,9 +81,11 @@ internal fun RenderResult?.invalidateCompositions() = RenderService.getRenderAsy
       }
       val state = saveStateAndDisposeMethod.invoke(hotReloaderInstance, composeViewAdapter)
       loadStateAndCompose.invoke(hotReloaderInstance, state)
+      if (forceLayout) {
+        composeViewAdapter::class.java.getMethod("requestLayout").invoke(composeViewAdapter)
+      }
     }
     catch (t: Throwable) {
-      t.printStackTrace()
       Logger.getInstance(RenderResult::class.java).warn(t)
     }
   }
