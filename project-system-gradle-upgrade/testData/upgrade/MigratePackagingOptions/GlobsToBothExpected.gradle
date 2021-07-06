@@ -1,0 +1,12 @@
+android {
+  packagingOptions {
+    jniLibs {
+      excludes += ['baz.??', 'quux.[a-z][a-z]']
+      pickFirsts += ['foo.{so,jar}', 'bar.*']
+    }
+    resources {
+      excludes += ['baz.??', 'quux.[a-z][a-z]']
+      pickFirsts += ['foo.{so,jar}', 'bar.*']
+    }
+  }
+}

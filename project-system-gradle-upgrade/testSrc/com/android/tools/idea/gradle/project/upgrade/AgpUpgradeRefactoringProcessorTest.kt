@@ -294,4 +294,16 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateJacocoToTestCoverage/JacocoToTestCoverageExpected"))
   }
+
+  @Test
+  fun testEnabledEffectOnMigratePackagingOptions() {
+    writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleLiteralProperties"))
+    val processor = AgpUpgradeRefactoringProcessor(project, GradleVersion.parse("4.2.0"), GradleVersion.parse("8.0.0"))
+    processor.classpathRefactoringProcessor.isEnabled = false
+    processor.componentRefactoringProcessors.forEach {
+      it.isEnabled = it is MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor
+    }
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("MigratePackagingOptions/MultipleLiteralPropertiesExpected"))
+  }
 }

@@ -1,0 +1,12 @@
+android {
+  packagingOptions {
+    jniLibs {
+      keepDebugSymbols += ['bar.so']
+      pickFirsts += ['foo.so']
+    }
+    resources {
+      merges += ['abc']
+      excludes += ['def']
+    }
+  }
+}
