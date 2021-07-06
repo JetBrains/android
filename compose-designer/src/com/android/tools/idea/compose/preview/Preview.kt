@@ -800,7 +800,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     instance.toPreviewXml()
       // Whether to paint the debug boundaries or not
       .toolsAttribute("paintBounds", showDebugBoundaries.toString())
-      .toolsAttribute("forceCompositionInvalidation", isLiveLiteralsEnabled.toString())
       .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
       .apply {
         if (animationInspection.get()) {
