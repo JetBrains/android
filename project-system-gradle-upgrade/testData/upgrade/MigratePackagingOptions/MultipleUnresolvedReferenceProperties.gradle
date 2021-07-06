@@ -1,0 +1,19 @@
+ext {
+  abc = "a" + "bc"
+  deff = "d" + "ef"
+  fooSo = "foo" + ".so"
+  foo = "f" + "oo"
+}
+
+android {
+  packagingOptions {
+    merge abc
+    merge deff
+    pickFirst fooSo
+    pickFirst foo
+    doNotStrip barSo
+    doNotStrip bar2So
+    exclude deff
+    exclude abcSo
+  }
+}

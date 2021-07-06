@@ -1,0 +1,21 @@
+ext {
+  abc = "a" + "bc"
+  deff = "d" + "ef"
+  fooSo = "foo" + ".so"
+  foo = "f" + "oo"
+}
+
+android {
+  packagingOptions {
+    jniLibs {
+      keepDebugSymbols += [barSo, bar2So]
+      excludes += [deff,abcSo]
+      pickFirsts += [fooSo,foo]
+    }
+    resources {
+      merges += [abc, deff]
+      excludes += [deff,abcSo]
+      pickFirsts += [fooSo,foo]
+    }
+  }
+}
