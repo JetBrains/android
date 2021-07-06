@@ -156,7 +156,7 @@ public class MXProject  implements Project {
 
   @NotNull
   @Override
-  public RuntimeException createError(@NotNull String message, @NotNull PluginId pluginId, @Nullable Map<String, String> attachments) {
+  public RuntimeException createError(@NotNull String message, @Nullable Throwable cause, @NotNull PluginId pluginId, @Nullable Map<String, String> attachments) {
     return null;
   }
 
