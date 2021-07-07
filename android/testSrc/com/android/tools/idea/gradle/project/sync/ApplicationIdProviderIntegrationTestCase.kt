@@ -118,6 +118,50 @@ abstract class ApplicationIdProviderIntegrationTestCase : GradleIntegrationTest 
           )
         ),
         TestDefinition(
+          name = "APPLICATION_ID_SUFFIX test run configuration",
+          targetRunConfiguration = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
+          testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+          expectPackageName = "one.name.defaultConfig.debug",
+          expectTestPackageName = "one.name.test_app"
+        ),
+        TestDefinition(
+          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          name = "APPLICATION_ID_VARIANT_API before build",
+          testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
+          executeMakeBeforeRun = false,
+          expectPackageName = "one.name",
+          expectTestPackageName = "(null)"
+        ),
+        TestDefinition(
+          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          name = "APPLICATION_ID_VARIANT_API after build",
+          testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
+          expectPackageName = "one.dynamic.name.debug",
+          expectTestPackageName = "(null)"
+        ),
+        TestDefinition(
+          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          name = "APPLICATION_ID_VARIANT_API run configuration via bundle",
+          viaBundle = true,
+          testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
+          // TODO(b/190357145): Fix ApplicationId when fixed in AGP or decided how to handle this.
+          expectPackageName = "one.name",
+          expectTestPackageName = "(null)"
+        ),
+        TestDefinition(
+          IGNORE = { if (agpVersion != CURRENT) error("Variant API is not supported by this AGP version.") },
+          name = "APPLICATION_ID_VARIANT_API test run configuration",
+          targetRunConfiguration = TestTargetRunConfiguration("one.name.ExampleInstrumentedTest"),
+          testProject = TestProjectPaths.APPLICATION_ID_VARIANT_API,
+          expectPackageName = "one.dynamic.name.debug",
+          expectTestPackageName = "one.dynamic.name.debug.test"
+        ),
+        TestDefinition(
+          IGNORE = {
+            if (agpVersion == CURRENT) {
+              error("Skip for the current AGP to save time in favor of 'APPLICATION_ID_SUFFIX test run configuration'")
+            }
+          },
           name = "SIMPLE_APPLICATION test run configuration",
           testProject = TestProjectPaths.SIMPLE_APPLICATION,
           targetRunConfiguration = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),

@@ -604,7 +604,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  private GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String buildOutputListingFile) {
+  public GenericBuiltArtifactsWithTimestamp getGenericBuiltArtifactsUsingCache(@NotNull String buildOutputListingFile) {
     GenericBuiltArtifactsWithTimestamp artifactsWithTimestamp;
     synchronized (myGenericBuiltArtifactsMap) {
       artifactsWithTimestamp = myGenericBuiltArtifactsMap.get(buildOutputListingFile);
