@@ -20,6 +20,8 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.InstantAppVariantBuildOutput;
+import com.android.ide.common.build.GenericBuiltArtifacts;
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -27,6 +29,8 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
+import com.android.tools.idea.gradle.util.GradleBuildOutputUtil;
+import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Strings;
 import com.intellij.openapi.diagnostic.Logger;
@@ -160,6 +164,19 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
   @Nullable
   public String getTestPackageName() throws ApkProvisionException {
     if (!myForTests) return null;
+
+    IdeAndroidArtifact artifactForAndroidTest = getArtifactForAndroidTest();
+    if (artifactForAndroidTest == null) return null;
+
+    String outputListingFile = GradleBuildOutputUtil.getOutputListingFile(artifactForAndroidTest.getBuildInformation(), OutputType.Apk);
+    if (!Strings.isNullOrEmpty(outputListingFile)) {
+      GenericBuiltArtifacts builtArtifacts =
+        myAndroidModel.getGenericBuiltArtifactsUsingCache(outputListingFile).getGenericBuiltArtifacts();
+      if (builtArtifacts != null) {
+        return builtArtifacts.getApplicationId();
+      }
+    }
+
     IdeAndroidProjectType projectType = myAndroidModel.getAndroidProject().getProjectType();
     if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
       String testPackageName = myVariant.getTestApplicationId();
@@ -236,6 +253,13 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
       throw new ApkProvisionException("[" + myFacet.getModule().getName() + "] Unable to obtain main package from manifest.");
     }
     return pkg;
+  }
+
+  @Nullable
+  public IdeAndroidArtifact getArtifactForAndroidTest() {
+    return myAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_TEST ?
+           myVariant.getMainArtifact() :
+           myVariant.getAndroidTestArtifact();
   }
 
   private static Logger getLogger() {
