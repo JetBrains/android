@@ -394,22 +394,6 @@
     </issue>
 
     <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(0)` instead">
-        <location
-            file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="89"/>
-    </issue>
-
-    <issue
-        id="UseValueOf"
-        message="Use `Integer.valueOf(100)` instead">
-        <location
-            file="src/com/android/tools/idea/flags/ExperimentalSettingsConfigurable.java"
-            line="90"/>
-    </issue>
-
-    <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
@@ -462,7 +446,7 @@
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/editors/manifest/ManifestPanel.java"
-            line="1028"/>
+            line="902"/>
     </issue>
 
     <issue
