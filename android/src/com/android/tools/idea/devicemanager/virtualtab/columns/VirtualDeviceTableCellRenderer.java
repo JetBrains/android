@@ -23,8 +23,9 @@ import java.awt.Component;
 import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 
-final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
-  VirtualDeviceTableCellRenderer() {
+public final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
+
+  public VirtualDeviceTableCellRenderer() {
     super(VirtualDevice.class);
   }
 
