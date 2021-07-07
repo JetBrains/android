@@ -129,7 +129,7 @@ fun IdeBuildTasksAndOutputInformation.getOutputListingFile(outputType: OutputTyp
   }
     .also {
       if (it == null) {
-        LOG.warn(Throwable("Output listing build file is not available for output type $outputType in $this"))
+        LOG.error(Throwable("Output listing build file is not available for output type $outputType in $this"))
       }
     }
 }

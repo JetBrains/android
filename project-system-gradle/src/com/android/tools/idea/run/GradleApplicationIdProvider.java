@@ -168,12 +168,14 @@ public class GradleApplicationIdProvider implements ApplicationIdProvider {
     IdeAndroidArtifact artifactForAndroidTest = getArtifactForAndroidTest();
     if (artifactForAndroidTest == null) return null;
 
-    String outputListingFile = GradleBuildOutputUtil.getOutputListingFile(artifactForAndroidTest.getBuildInformation(), OutputType.Apk);
-    if (!Strings.isNullOrEmpty(outputListingFile)) {
-      GenericBuiltArtifacts builtArtifacts =
-        myAndroidModel.getGenericBuiltArtifactsUsingCache(outputListingFile).getGenericBuiltArtifacts();
-      if (builtArtifacts != null) {
-        return builtArtifacts.getApplicationId();
+    if (myAndroidModel.getFeatures().isBuildOutputFileSupported()) {
+      String outputListingFile = GradleBuildOutputUtil.getOutputListingFile(artifactForAndroidTest.getBuildInformation(), OutputType.Apk);
+      if (!Strings.isNullOrEmpty(outputListingFile)) {
+        GenericBuiltArtifacts builtArtifacts =
+          myAndroidModel.getGenericBuiltArtifactsUsingCache(outputListingFile).getGenericBuiltArtifacts();
+        if (builtArtifacts != null) {
+          return builtArtifacts.getApplicationId();
+        }
       }
     }
 
