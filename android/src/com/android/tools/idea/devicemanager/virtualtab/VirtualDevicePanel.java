@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import static com.android.tools.idea.avdmanager.AvdUiAction.AvdInfoProvider;
+
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.avdmanager.CreateAvdAction;
 import com.android.tools.idea.flags.StudioFlags;
@@ -25,6 +27,8 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
+import java.awt.event.ActionListener;
+import java.util.function.Function;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.Group;
@@ -39,6 +43,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private final @NotNull JButton myCreateButton;
@@ -51,12 +56,18 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
   private final @NotNull PreconfiguredDisplayList myPreconfiguredDisplayList;
 
   public VirtualDevicePanel(@Nullable Project project) {
+    this(project, CreateAvdAction::new);
+  }
+
+  @VisibleForTesting
+  VirtualDevicePanel(@Nullable Project project,
+                     @NotNull Function<@NotNull AvdInfoProvider, @NotNull ActionListener> createAvdActionProvider) {
     myAvdDisplayList = new VirtualDisplayList(project);
     myPreconfiguredDisplayList = new PreconfiguredDisplayList(project, myAvdDisplayList);
     DocumentListener searchDocumentListener = new SearchDocumentListener(myAvdDisplayList);
 
     myCreateButton = new JButton("Create device");
-    myCreateButton.addActionListener(new CreateAvdAction(myAvdDisplayList));
+    myCreateButton.addActionListener(createAvdActionProvider.apply(myAvdDisplayList));
 
     Dimension separatorSize = new JBDimension(3, 20);
     mySeparator = new JSeparator(SwingConstants.VERTICAL);
@@ -182,5 +193,10 @@ public final class VirtualDevicePanel extends JBPanel<VirtualDevicePanel> {
       }
       myAvdDisplayList.updateSearchResults(text);
     }
+  }
+
+  @VisibleForTesting
+  @NotNull JButton getCreateButton() {
+    return myCreateButton;
   }
 }

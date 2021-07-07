@@ -35,6 +35,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdActionsColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.AvdDeviceColumnInfo
 import com.android.tools.idea.devicemanager.virtualtab.columns.SizeOnDiskColumn
+import com.android.tools.idea.devicemanager.virtualtab.columns.VirtualDeviceTableCellRenderer
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets
 import com.google.common.util.concurrent.FutureCallback
@@ -76,7 +77,14 @@ import javax.swing.table.TableCellRenderer
 /**
  * A UI component which lists the existing AVDs
  */
-class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
+class VirtualDisplayList(private val project: Project?,
+                         var getAvds: () -> List<AvdInfo>,
+                         private val deviceTableCellRenderer: TableCellRenderer) : JPanel(), ListSelectionListener, AvdRefreshProvider, AvdInfoProvider {
+
+  constructor(project: Project?) : this(project,
+                                        {AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)},
+                                        VirtualDeviceTableCellRenderer())
+
   private val notificationPanel = JPanel().apply {
     layout = BoxLayout(this, 1)
   }
@@ -175,12 +183,19 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
    * Reload AVD definitions from disk and repopulate the table
    */
   override fun refreshAvds() {
+    refreshAvds(null)
+  }
+
+  @VisibleForTesting
+  fun refreshAvds(callback: (() -> Unit)?) {
     GlobalScope.launch(ioThread) {
-      avds = AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true)
+      avds = getAvds.invoke()
       withContext(uiThread) {
         updateSearchResults(null)
         refreshErrorCheck()
         table.setWidths()
+
+        callback?.invoke()
       }
     }
   }
@@ -201,6 +216,11 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
   }
 
   override fun getComponent(): JComponent = this
+
+  @VisibleForTesting
+  fun getAvds(): List<AvdInfo> {
+    return avds
+  }
 
   private val editingListener: MouseAdapter = object : MouseAdapter() {
     override fun mouseMoved(e: MouseEvent) {
@@ -275,7 +295,7 @@ class VirtualDisplayList(private val project: Project?) : JPanel(), ListSelectio
   // needs an initialized table
   fun newColumns(): Collection<ColumnInfo<AvdInfo, *>> {
     return listOf(
-      AvdDeviceColumnInfo("Device"),
+      AvdDeviceColumnInfo("Device", deviceTableCellRenderer),
       object : AvdDisplayList.AvdColumnInfo("API") {
         override fun valueOf(avdInfo: AvdInfo): String = avdInfo.androidVersion.apiString
 

@@ -54,7 +54,7 @@ private fun List<SystemImageDescription>.toPreconfiguredDevices(): List<Preconfi
   return listOf(
     // TODO(qumeric): we should try to estimate better than hardcoding
     PreconfiguredDeviceDefinition(getDevice("Pixel 4"), pixel4latestWithPlayStore, 9300),
-    PreconfiguredDeviceDefinition(getDevice("Pixel 3"), this.last(), 9300), // FIXME: a test for remote image download
+    PreconfiguredDeviceDefinition(getDevice("Pixel 3"), if (this.isEmpty()) null else this.last(), 9300), // FIXME: a test for remote image download
     PreconfiguredDeviceDefinition(getDevice("Pixel 3a"), null, 9300) // FIXME: a test for null value (e.g. no internet)
   )
 }

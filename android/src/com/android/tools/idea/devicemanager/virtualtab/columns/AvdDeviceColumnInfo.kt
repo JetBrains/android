@@ -27,9 +27,8 @@ import javax.swing.table.TableCellRenderer
  * This is the column info used for the Type and Status columns.
  */
 class AvdDeviceColumnInfo(
-  name: String, private val width: Int = 70
+  name: String, private val renderer: TableCellRenderer, private val width: Int = 70
 ) : ColumnInfo<AvdInfo, AvdInfo>(name) {
-  private val renderer = VirtualDeviceTableCellRenderer()
 
   override fun getRenderer(device: AvdInfo): TableCellRenderer = renderer
 
