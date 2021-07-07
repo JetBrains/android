@@ -26,7 +26,6 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
-import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
@@ -47,7 +46,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -190,9 +188,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     referencesExecutor.applyPlugin(plugin, revision)
 
     val buildModel = moduleGradleBuildModel ?: return
-    if (buildModel.plugins().none { it.name().forceString() == plugin }) {
-      buildModel.applyPlugin(plugin)
-    }
+    buildModel.applyPluginIfNone(plugin)
 
     if (revision != null) {
       // Check if pluginManagement.plugins block is declared
@@ -537,6 +533,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (valueType == ValueType.NONE) {
       if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
       else setValue(value)
+    }
+  }
+
+  private fun GradleBuildModel.applyPluginIfNone(plugin: String) {
+    // b/193012182 - Some plugins have different names but are identical and we don't want to apply them more than once
+    fun defaultPluginName(name: String) = when (name) {
+      "kotlin-android" -> "org.jetbrains.kotlin.android"
+      "kotlin" -> "org.jetbrains.kotlin.jvm"
+      else -> name
+    }
+
+    val defaultName = defaultPluginName(plugin)
+    if (plugins().none { defaultPluginName(it.name().forceString()) == defaultName }) {
+      applyPlugin(plugin)
     }
   }
 
