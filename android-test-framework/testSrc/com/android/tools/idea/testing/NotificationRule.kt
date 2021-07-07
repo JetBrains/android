@@ -36,9 +36,9 @@ import javax.swing.Icon
  */
 class NotificationRule private constructor(private val project: () -> Project, private val disposable: () -> Disposable) : TestRule {
 
-  constructor(rule: AndroidProjectRule) : this({ rule.project }, { rule.testRootDisposable })
+  constructor(rule: AndroidProjectRule) : this(rule::project, rule::testRootDisposable)
 
-  constructor(rule: EdtAndroidProjectRule) : this({ rule.project }, { rule.testRootDisposable })
+  constructor(rule: EdtAndroidProjectRule) : this(rule::project, rule::testRootDisposable)
 
   private val _notifications: MutableList<NotificationInfo> = mutableListOf()
   val notifications: List<NotificationInfo> = _notifications
