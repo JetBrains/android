@@ -55,10 +55,10 @@ fun window(windowId: Any,
   FakeAndroidWindow(
     InspectorViewDescriptor(rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null)
       .also(body).build(), windowId, imageType) { _, window ->
-    ViewNode.writeDrawChildren { drawChildren ->
+    ViewNode.writeAccess {
       window.root.flatten().forEach {
-        it.drawChildren().clear()
-        it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) }
+        it.drawChildren.clear()
+        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
       }
     }
   }
@@ -167,21 +167,21 @@ class InspectorViewDescriptor(private val drawId: Long,
       if (composePackageHash == 0) ViewNode(drawId, qualifiedName, layout, x, y, width, height, bounds, viewId, textValue, layoutFlags)
       else ComposeViewNode(drawId, qualifiedName, null, x, y, width, height, null, null, textValue, 0,
                            composeFilename, composePackageHash, composeOffset, composeLineNumber, composeFlags)
-    ViewNode.writeDrawChildren { drawChildren ->
+    ViewNode.writeAccess {
       children.forEach {
         when (it) {
           is InspectorViewDescriptor -> {
             val viewNode = it.build()
             result.children.add(viewNode)
-            result.drawChildren().add(DrawViewChild(viewNode))
+            result.drawChildren.add(DrawViewChild(viewNode))
           }
           is InspectorImageDescriptor -> {
-            result.drawChildren().add(DrawViewImage(it.image, result))
+            result.drawChildren.add(DrawViewImage(it.image, result))
           }
         }
       }
+      result.children.forEach { it.parent = result }
     }
-    result.children.forEach { it.parent = result }
     return result
   }
 }
@@ -221,9 +221,9 @@ class InspectorModelDescriptor(val project: Project) {
     val model = InspectorModel(project)
     val windowRoot = root?.build() ?: return model
     val newWindow = FakeAndroidWindow(windowRoot, windowRoot.drawId, root?.imageType ?: ImageType.UNKNOWN) { _, window ->
-      ViewNode.writeDrawChildren { getDrawChildren ->
+      ViewNode.writeAccess {
         window.root.flatten().forEach {
-          val drawChildren = it.getDrawChildren()
+          val drawChildren = it.drawChildren
           val children = it.children
           if (drawChildren.any { drawChild -> drawChild is DrawViewImage }) {
             // We can't support changes to the child list when there are also images, currently, since we can't know where in the order

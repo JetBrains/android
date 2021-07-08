@@ -50,7 +50,7 @@ class InspectorModelTest {
         view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
       }
     }
-    val origRoot = model.root.children[0]
+    val origRoot = model[ROOT]
     var isModified = false
     var newRootReported: ViewNode? = null
     model.modificationListeners.add { _, newWindow, structuralChange ->
@@ -67,7 +67,7 @@ class InspectorModelTest {
       }
 
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
     // property change doesn't count as "modified."
@@ -106,9 +106,9 @@ class InspectorModelTest {
         }
       }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flattenedList().associateBy { it.drawId }
     // Clear the draw view children, since this test isn't concerned with them and update won't work correctly with them in place.
-    ViewNode.writeDrawChildren { drawChildren -> origNodes.values.forEach { it.drawChildren().clear() } }
+    ViewNode.writeAccess { origNodes.values.forEach { it.drawChildren.clear() } }
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
@@ -116,9 +116,9 @@ class InspectorModelTest {
     assertSame(view1, model.selection)
     assertSame(view1, model.hoveredNode)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root.flattenedList().associateBy { it.drawId }
     assertSameElements(newNodes.keys, origNodes.keys.plus(VIEW3))
-    assertSameElements(origNodes[VIEW1]?.children!!, newNodes[VIEW3] ?: fail())
+    assertSameElements(children(origNodes[VIEW1]!!), newNodes[VIEW3] ?: fail())
     assertSingleRoot(model, FakeTreeSettings())
   }
 
@@ -141,16 +141,16 @@ class InspectorModelTest {
         view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type")
       }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
     assertNull(model.selection)
     assertNull(model.hoveredNode)
 
-    val newNodes = model.root.flatten().associateBy { it.drawId }
+    val newNodes = model.root.flattenedList().associateBy { it.drawId }
     assertSameElements(newNodes.keys.plus(VIEW3), origNodes.keys)
-    assertEquals(true, origNodes[VIEW1]?.children?.isEmpty())
+    assertEquals(true, children(origNodes[VIEW1]!!).isEmpty())
     assertSingleRoot(model, FakeTreeSettings())
   }
 
@@ -177,7 +177,7 @@ class InspectorModelTest {
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
 
-    val origNodes = model.root.flatten().associateBy { it.drawId }
+    val origNodes = model.root.flattenedList().associateBy { it.drawId }
 
     model.update(newWindow, listOf(ROOT), 0)
     assertTrue(isModified)
@@ -188,7 +188,7 @@ class InspectorModelTest {
     assertSame(origNodes[VIEW2], model[VIEW2])
 
     assertNotSame(origNodes[VIEW1], model[VIEW4])
-    assertSameElements(model[ROOT]!!.children.map { it.drawId }, VIEW4, VIEW2)
+    assertSameElements(children(model[ROOT]!!).map { it.drawId }, VIEW4, VIEW2)
     assertEquals("v4Type", model[VIEW4]?.qualifiedName)
     assertEquals("v3Type", model[VIEW3]?.qualifiedName)
     assertEquals(8, model[VIEW3]?.y)
@@ -209,7 +209,7 @@ class InspectorModelTest {
     model.hoveredNode = model[VIEW1]
     assertFalse(model.isEmpty)
     assertNotNull(model[VIEW1])
-    assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
+    assertEquals(listOf(ROOT), children(model.root).map { it.drawId })
 
     // add second window
     var window2 = window(VIEW2, VIEW2, 2, 4, 6, 8, rootViewQualifiedName = "root2Type") {
@@ -221,7 +221,7 @@ class InspectorModelTest {
     assertNotNull(model[VIEW3])
     assertSame(model[VIEW1], model.selection)
     assertSame(model[VIEW1], model.hoveredNode)
-    assertEquals(listOf(ROOT, VIEW2), model.root.children.map { it.drawId })
+    assertEquals(listOf(ROOT, VIEW2), children(model.root).map { it.drawId })
 
     // reverse order of windows
     // same content but new instances, so model.update sees a change
@@ -229,11 +229,11 @@ class InspectorModelTest {
       view(VIEW3, 8, 6, 4, 2, qualifiedName = "v3Type")
     }
     model.update(window2, listOf(VIEW2, ROOT), 1)
-    assertEquals(listOf(VIEW2, ROOT), model.root.children.map { it.drawId })
+    assertEquals(listOf(VIEW2, ROOT), children(model.root).map { it.drawId })
 
     // remove a window
     model.update(null, listOf(VIEW2), 0)
-    assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
+    assertEquals(listOf(VIEW2), children(model.root).map { it.drawId })
     assertNull(model[VIEW1])
     assertNotNull(model[VIEW3])
     assertNull(model.selection)
@@ -241,7 +241,7 @@ class InspectorModelTest {
 
     // clear
     model.update(null, listOf<Any>(), 0)
-    assertEmpty(model.root.children)
+    assertEmpty(children(model.root))
     assertTrue(model.isEmpty)
     assertSingleRoot(model, FakeTreeSettings())
   }
@@ -257,15 +257,15 @@ class InspectorModelTest {
         view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
       }
     // Clear out the drawChildren added by the test fixture so we only get the ones generated by production code
-    ViewNode.writeDrawChildren { drawChildren ->
-      model.root.flatten().forEach { node -> node.drawChildren().clear() }
+    ViewNode.writeAccess {
+      model.root.flatten().forEach { node -> node.drawChildren.clear() }
     }
     model.update(newWindow, listOf(ROOT), 0)
 
     // Verify that drawChildren are created corresponding to the tree
-    ViewNode.readDrawChildren { drawChildren ->
+    ViewNode.readAccess {
       model.root.flatten().forEach { node ->
-        assertThat(node.drawChildren().map { (it as DrawViewChild).unfilteredOwner }).containsExactlyElementsIn(node.children)
+        assertThat(node.drawChildren.map { (it as DrawViewChild).unfilteredOwner }).containsExactlyElementsIn(node.children)
       }
     }
 
@@ -281,29 +281,95 @@ class InspectorModelTest {
     // Now update the model and verify that the draw tree is still as it was before.
     model.update(newWindow2, listOf(ROOT), 0)
 
-    ViewNode.readDrawChildren { drawChildren ->
+    ViewNode.readAccess {
       model.root.flatten().forEach { node ->
-        assertThat(node.drawChildren().map { (it as DrawViewChild).unfilteredOwner }).containsExactlyElementsIn(node.children.map {
-          if (it.drawId == VIEW4) view2 else it
-        })
+        assertThat(node.drawChildren.map { (it as DrawViewChild).unfilteredOwner })
+          .containsExactlyElementsIn(node.children.map { if (it.drawId == VIEW4) view2 else it })
       }
     }
   }
 
+  @Test
+  fun testThreadSafetyInModelLookup() {
+    val model = model {
+      view(ROOT, x = 2, y = 4, width = 6, height = 8, qualifiedName = "root") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+        }
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
+      }
+    }
 
-  private fun DrawViewNode.flattenDrawChildren(drawChildren: ViewNode.() -> List<DrawViewNode>): List<DrawViewNode> =
-    listOf(this).plus(this.unfilteredOwner.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) })
+    val window1 =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+        }
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
+      }
+
+    val window2 =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type") {
+          view(VIEW3, 9, 8, 7, 6, qualifiedName = "v3Type")
+        }
+        view(VIEW2, 6, 7, 8, 9, qualifiedName = "v2Type")
+      }
+
+    var stop = false
+    var modelLoops = 0
+    var lookupLoops = 0
+
+    val modelRunnable: () -> Unit = {
+      while (!stop) {
+        model.update(window1, listOf(ROOT), 0)
+        model.update(window2, listOf(ROOT), 0)
+        modelLoops++
+      }
+    }
+
+    val lookupRunnable: () -> Unit = {
+      while (!stop) {
+        model[VIEW1]
+        lookupLoops++
+      }
+    }
+
+    var exception: Throwable? = null
+    val handler = Thread.UncaughtExceptionHandler { _, ex ->
+      exception = ex
+    }
+    val t1 = Thread(modelRunnable)
+    val t2 = Thread(lookupRunnable)
+    t1.uncaughtExceptionHandler = handler
+    t2.uncaughtExceptionHandler = handler
+    t1.start()
+    t2.start()
+    while (t1.isAlive && modelLoops < 1000 || t2.isAlive && lookupLoops < 1000) {
+      Thread.sleep(10L)
+    }
+    stop = true
+    t1.join(1000L)
+    t2.join(1000L)
+    exception?.let { throw it }
+  }
+
+  private fun children(view: ViewNode): List<ViewNode> =
+    ViewNode.readAccess { view.children }
+
+  private fun ViewNode.ReadAccess.flattenDrawChildren(node: DrawViewNode): List<DrawViewNode> =
+    listOf(node).plus(node.unfilteredOwner.drawChildren.flatMap { flattenDrawChildren(it) })
 
   private fun assertSingleRoot(model: InspectorModel, treeSettings: TreeSettings) {
-    ViewNode.readDrawChildren { drawChildren ->
-      val allDrawChildren = model.root.drawChildren().flatMap { it.flattenDrawChildren(drawChildren) }
+    ViewNode.readAccess {
+      val allDrawChildren = model.root.drawChildren.flatMap { flattenDrawChildren(it) }
       // Check that the drawView tree contains exactly the drawChildren of every element of the view tree
       assertThat(allDrawChildren).containsExactlyElementsIn(
-        model.root.flatten().flatMap { it.drawChildren().asSequence() }.toList())
+        model.root.flatten().flatMap { it.drawChildren.asSequence() }.toList())
       // Check that the unfiltered owners of the drawViews are all in the view tree
-      assertThat(model.root.flatten().toList()).containsAllIn(allDrawChildren.map { it.unfilteredOwner })
+      assertThat(model.root.flattenedList()).containsAllIn(allDrawChildren.map { it.unfilteredOwner })
       // Check that the owners of the drawViews are all in the view tree or null
-      assertThat(model.root.flatten().plus(null).toList()).containsAllIn(allDrawChildren.map { it.findFilteredOwner(treeSettings) })
+      assertThat(model.root.flattenedList().plus(null).toList()).containsAllIn(allDrawChildren.map { it.findFilteredOwner(treeSettings) })
     }
   }
 }

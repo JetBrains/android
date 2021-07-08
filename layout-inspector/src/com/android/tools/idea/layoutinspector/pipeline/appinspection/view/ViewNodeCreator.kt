@@ -48,14 +48,16 @@ class ViewNodeCreator(
 
   fun createRootViewNode(shouldInterrupt: () -> Boolean): ViewNode? {
     return try {
-      rootView.convert(shouldInterrupt)
+      ViewNode.writeAccess {
+        rootView.convert(shouldInterrupt, this)
+      }
     }
     catch (_: InterruptedException) {
       null
     }
   }
 
-  private fun LayoutInspectorViewProtocol.ViewNode.convert(shouldInterrupt: () -> Boolean): ViewNode {
+  private fun LayoutInspectorViewProtocol.ViewNode.convert(shouldInterrupt: () -> Boolean, access: ViewNode.WriteAccess): ViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
@@ -72,31 +74,33 @@ class ViewNodeCreator(
     val node = ViewNode(view.id, qualifiedName, layoutResource, rect.x, rect.y, rect.w, rect.h, renderBounds?.toShape(), resource,
                         textValue, view.layoutFlags)
 
-    val children = view.childrenList.map { it.convert(shouldInterrupt) }.toMutableList()
+    val children = view.childrenList.map { it.convert(shouldInterrupt, access) }.toMutableList()
     composeNodeCreator?.createForViewId(view.id, shouldInterrupt)?.forEach { child -> children.add(child) }
     val viewsToSkip = composeNodeCreator?.viewsToSkip?.get(view.id) ?: emptyList()
-    children.forEach { child ->
-      if (!viewsToSkip.contains(child.drawId)) {
-        node.children.add(child)
-        child.parent = node
-      }
-    }
-
-    // Move nodes under ANDROID_VIEWS_HANDLER to their corresponding ComposeNode if the handler is present:
-    val handler = node.children.singleOrNull { it.qualifiedName == ANDROID_VIEWS_HANDLER }
-    if (handler != null) {
-      val viewsToMove = composeNodeCreator?.androidViews?.keys ?: emptyList()
-      handler.children.filter { it.drawId in viewsToMove }.forEach {
-        composeNodeCreator?.androidViews?.get(it.drawId)?.let { composeParent ->
-          composeParent.children.add(it)
-          it.parent = composeParent
+    access.apply {
+      children.forEach { child ->
+        if (!viewsToSkip.contains(child.drawId)) {
+          node.children.add(child)
+          child.parent = node
         }
-        handler.children.remove(it)
       }
-      // Also remove the handler if all children have been moved
-      if (handler.children.isEmpty()) {
-        node.children.remove(handler)
-        handler.parent = null
+
+      // Move nodes under ANDROID_VIEWS_HANDLER to their corresponding ComposeNode if the handler is present:
+      val handler = node.children.singleOrNull { it.qualifiedName == ANDROID_VIEWS_HANDLER }
+      if (handler != null) {
+        val viewsToMove = composeNodeCreator?.androidViews?.keys ?: emptyList()
+        handler.children.filter { it.drawId in viewsToMove }.forEach {
+          composeNodeCreator?.androidViews?.get(it.drawId)?.let { composeParent ->
+            composeParent.children.add(it)
+            it.parent = composeParent
+          }
+          handler.children.remove(it)
+        }
+        // Also remove the handler if all children have been moved
+        if (handler.children.isEmpty()) {
+          node.children.remove(handler)
+          handler.parent = null
+        }
       }
     }
     return node

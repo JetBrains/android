@@ -150,8 +150,8 @@ class DeviceViewPanelModel(
 
     val levelLists = mutableListOf<MutableList<LevelListItem>>()
     // Each window should start completely above the previous window, hence level = levelLists.size
-    ViewNode.readDrawChildren { drawChildren ->
-      root.drawChildren().forEach { buildLevelLists(it, levelLists, levelLists.size, levelLists.size, drawChildren) }
+    ViewNode.readAccess {
+      root.drawChildren.forEach { buildLevelLists(it, levelLists, levelLists.size, levelLists.size) }
     }
     maxDepth = levelLists.size
 
@@ -164,10 +164,12 @@ class DeviceViewPanelModel(
       // If nodes are visible (not explicitly hidden via right-click) but filtered out (e.g. by filter system nodes) they won't be in
       // levelLists but may still paint something. Prior to initial image generation there's no way to know if they will end up painting
       // or not, but we still need to be able to zoom to fit correctly, so include those bounds here.
-      model.root.flatten()
-        .minus(model.root)
-        .filter { model.isVisible(it) }
-        .forEach { node -> rootBounds.add(node.layoutBounds) }
+      ViewNode.readAccess {
+        model.root.flatten()
+          .minus(model.root)
+          .filter { model.isVisible(it) }
+          .forEach { node -> rootBounds.add(node.layoutBounds) }
+      }
       root.x = rootBounds.x
       root.y = rootBounds.y
       root.width = rootBounds.width
@@ -189,11 +191,12 @@ class DeviceViewPanelModel(
     modificationListeners.forEach { it() }
   }
 
-  private fun buildLevelLists(node: DrawViewNode,
-                              levelListCollector: MutableList<MutableList<LevelListItem>>,
-                              minLevel: Int,
-                              previousLevel: Int,
-                              drawChildren: ViewNode.() -> List<DrawViewNode>) {
+  private fun ViewNode.ReadAccess.buildLevelLists(
+    node: DrawViewNode,
+    levelListCollector: MutableList<MutableList<LevelListItem>>,
+    minLevel: Int,
+    previousLevel: Int,
+  ) {
     var newLevelIndex = minLevel
     val owner = node.findFilteredOwner(treeSettings)
     if (owner == null || model.isVisible(owner)) {
@@ -233,8 +236,8 @@ class DeviceViewPanelModel(
         levelList.add(LevelListItem(node, isCollapsed))
       }
     }
-    for (drawChild in node.children(drawChildren)) {
-      buildLevelLists(drawChild, levelListCollector, 0, newLevelIndex, drawChildren)
+    for (drawChild in node.children(this)) {
+      buildLevelLists(drawChild, levelListCollector, 0, newLevelIndex)
     }
   }
 

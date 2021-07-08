@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
 import com.android.tools.idea.layoutinspector.ui.LINES
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
@@ -318,7 +319,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun addToRoot(window: AndroidWindow): TreeViewNode {
     temp.children.clear()
-    updateHierarchy(window.root, temp, temp)
+    readAccess {
+      updateHierarchy(window.root, temp, temp)
+    }
     temp.children.forEach { it.parent = root }
     val changedNode = temp.children.singleOrNull()
     val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
@@ -345,9 +348,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.hierarchyChanged(root)
   }
 
-  private fun updateHierarchy(node: ViewNode, previous: TreeViewNode, parent: TreeViewNode) {
+  private fun ViewNode.ReadAccess.updateHierarchy(node: ViewNode, previous: TreeViewNode, parent: TreeViewNode) {
     val treeSettings = layoutInspector?.treeSettings ?: return
-    val current = if (!node.isInComponentTree(treeSettings)) previous else {
+    val current = if (!node.isInComponentTree(treeSettings)) previous
+    else {
       val treeNode = node.treeNode
       parent.children.add(treeNode)
       treeNode.parent = parent

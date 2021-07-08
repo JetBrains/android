@@ -353,9 +353,11 @@ class ResourceLookupResolverTest {
     }
 
     private fun setChildren(parent: ViewNode, vararg views: ViewNode) {
-      views.forEach {
-        it.parent = parent
-        parent.children.add(it)
+      ViewNode.writeAccess {
+        views.forEach {
+          it.parent = parent
+          parent.children.add(it)
+        }
       }
     }
   }

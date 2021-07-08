@@ -20,22 +20,12 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.getTypedArgument
-import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPopupMenu
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.replaceService
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import javax.swing.JComponent
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
@@ -43,10 +33,20 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.replaceService
 import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import javax.swing.JComponent
 import javax.swing.JPopupMenu
 
 class ViewContextMenuFactoryTest {
@@ -118,7 +118,7 @@ class ViewContextMenuFactoryTest {
     val createdAction = actions?.get(0)
     assertThat(createdAction?.templateText).isEqualTo("Show All")
     createdAction?.actionPerformed(mock())
-    assertThat(model.root.flatten().all { model.isVisible(it) }).isTrue()
+    assertThat(model.root.flattenedList().all { model.isVisible(it) }).isTrue()
 
     verify(popupMenuComponent!!).show(source, 123, 456)
   }
@@ -126,34 +126,33 @@ class ViewContextMenuFactoryTest {
   @Test
   fun testOneView() {
     val model = inspectorModel!!
-    showViewContextMenu(listOf(model.root.flatten().first { it.drawId == VIEW2 }), model, source!!, 0, 0)
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
     val hideSubtree = createdGroup?.getChildren(event)?.get(0)!!
     hideSubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
+    assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW1, -1L)
 
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
     val showOnlySubtree = createdGroup?.getChildren(event)?.get(1)!!
     showOnlySubtree.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
+    assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(VIEW2, VIEW3)
 
     model.showAll()
     val showOnlyParents = createdGroup?.getChildren(event)?.get(2)!!
     showOnlyParents.actionPerformed(mock())
 
-    assertThat(model.root.flatten().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
+    assertThat(model.root.flattenedList().filter { model.isVisible(it) }.map { it.drawId }.toList()).containsExactly(ROOT, VIEW2, -1L)
   }
 
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
-                        model, source!!, 0, 0)
+    showViewContextMenu(model.root.flattenedList().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(), model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText })
       .containsExactly("Select View", "Hide Subtree", "Show Only Subtree", "Show Only Parents", "Show All", "Go To Declaration").inOrder()
 
@@ -162,11 +161,11 @@ class ViewContextMenuFactoryTest {
     assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model[VIEW3])
     views[1].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
+    assertThat(model.selection).isEqualTo(model[VIEW2])
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model[ROOT])
   }
 }
 
@@ -231,7 +230,7 @@ class ViewContextMenuFactoryLegacyTest {
   @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
-    showViewContextMenu(model.root.flatten().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
+    showViewContextMenu(model.root.flattenedList().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
     assertThat(createdGroup?.getChildren(event)?.map { it.templateText }).containsExactly("Select View").inOrder()
 
@@ -240,10 +239,10 @@ class ViewContextMenuFactoryLegacyTest {
     assertThat(views.map { it.templateText }).containsExactly("myText", "viewName", "rootId").inOrder()
 
     views[0].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW3 })
+    assertThat(model.selection).isEqualTo(model[VIEW3])
     views[1].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == VIEW2 })
+    assertThat(model.selection).isEqualTo(model[VIEW2])
     views[2].actionPerformed(mock())
-    assertThat(model.selection).isEqualTo(model.root.flatten().first { it.drawId == ROOT })
+    assertThat(model.selection).isEqualTo(model[ROOT])
   }
 }

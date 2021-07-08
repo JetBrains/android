@@ -207,7 +207,8 @@ class ResourceLookupResolver(
       return false
     }
     val isLayoutAttribute = attributeName.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
-    val qualifiedTagName = (if (isLayoutAttribute) view.parent?.qualifiedName else view.qualifiedName) ?: return false
+    val qualifiedTagName =
+      (if (isLayoutAttribute) ViewNode.readAccess { view.parent?.qualifiedName } else view.qualifiedName) ?: return false
     var psiClass: PsiClass? = JavaPsiFacade.getInstance(project).findClass(qualifiedTagName, GlobalSearchScope.allScope(project))
     while (psiClass != null) {
       val attrValue = if (isLayoutAttribute)
@@ -531,7 +532,7 @@ class ResourceLookupResolver(
    */
   private class ViewLocator(view: ViewNode) : PsiRecursiveElementVisitor() {
     private val viewId = view.viewId
-    private val parentId = view.parent?.viewId
+    private val parentId = ViewNode.readAccess { view.parent?.viewId }
     private var found: XmlTag? = null
     private var foundParent: XmlTag? = null
 

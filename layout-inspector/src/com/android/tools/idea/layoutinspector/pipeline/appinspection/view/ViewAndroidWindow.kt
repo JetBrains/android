@@ -19,8 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ScreenRound
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
-import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
@@ -28,6 +26,8 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
@@ -105,15 +105,19 @@ class ViewAndroidWindow(
     project: Project,
     scale: Double
   ) {
-    val allNodes = root.flatten().asSequence().filter { it.drawId != 0L }
-    val surfaceOriginX = root.x - event.rootOffset.x
-    val surfaceOriginY = root.y - event.rootOffset.y
-    val requestedNodeInfo = allNodes.mapNotNull {
-      val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
-      if (bounds.isEmpty) null
-      else LayoutInspectorUtils.makeRequestedNodeInfo(it.drawId, bounds.x - surfaceOriginX, bounds.y - surfaceOriginY, bounds.width,
-                                                      bounds.height)
-    }.toList()
+    val (nodeMap, requestedNodeInfo) = ViewNode.readAccess {
+      val allNodes = root.flatten().asSequence().filter { it.drawId != 0L }
+      val nodeMap = allNodes.associateBy { it.drawId }
+      val surfaceOriginX = root.x - event.rootOffset.x
+      val surfaceOriginY = root.y - event.rootOffset.y
+      val requests = allNodes.mapNotNull {
+        val bounds = it.transformedBounds.bounds.intersection(Rectangle(0, 0, Int.MAX_VALUE, Int.MAX_VALUE))
+        if (bounds.isEmpty) null
+        else LayoutInspectorUtils.makeRequestedNodeInfo(it.drawId, bounds.x - surfaceOriginX, bounds.y - surfaceOriginY, bounds.width,
+                                                        bounds.height)
+      }.toList()
+      Pair(nodeMap, requests)
+    }
     if (requestedNodeInfo.isEmpty()) {
       return
     }
@@ -124,9 +128,7 @@ class ViewAndroidWindow(
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
-      ViewNode.writeDrawChildren { drawChildren ->
-        ComponentImageLoader(allNodes.associateBy { it.drawId }, rootViewFromSkiaImage, drawChildren).loadImages(this)
-      }
+      ComponentImageLoader(nodeMap, rootViewFromSkiaImage).loadImages(this)
     }
   }
 
@@ -149,10 +151,10 @@ class ViewAndroidWindow(
     val image = bitmapType.createImage(ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE), width,
                                        height)
 
-    ViewNode.writeDrawChildren { drawChildren ->
-      root.flatten().forEach { it.drawChildren().clear() }
-      root.drawChildren().add(DrawViewImage(image, root, deviceClip))
-      root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+    ViewNode.writeAccess {
+      root.flatten().forEach { it.drawChildren.clear() }
+      root.drawChildren.add(DrawViewImage(image, root, deviceClip))
+      root.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
     }
     logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }

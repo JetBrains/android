@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.google.common.annotations.VisibleForTesting
@@ -80,7 +79,7 @@ sealed class DrawViewNode(owner: ViewNode) {
   abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean,
                            viewSettings: DeviceViewSettings, treeSettings: TreeSettings)
 
-  open fun children(drawChildren: ViewNode.() -> List<DrawViewNode>): Sequence<DrawViewNode> = sequenceOf()
+  open fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> = sequenceOf()
 }
 
 /**
@@ -218,8 +217,8 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     return Pair(x, minSlope * connectionWidth + topLeftY)
   }
 
-  override fun children(drawChildren: ViewNode.() -> List<DrawViewNode>): Sequence<DrawViewNode> =
-    unfilteredOwner.drawChildren().asSequence()
+  override fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> =
+    access.run { unfilteredOwner.drawChildren.asSequence() }
 }
 
 /**

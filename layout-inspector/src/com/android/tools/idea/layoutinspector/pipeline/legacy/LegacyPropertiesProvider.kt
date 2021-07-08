@@ -69,7 +69,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
     }
 
     fun parseProperties(view: ViewNode, data: String) {
-      val parent = view.parent
+      val parent = ViewNode.readAccess { view.parent }
       var start = 0
       var stop: Boolean
       val table = HashBasedTable.create<String, String, InspectorPropertyItem>()

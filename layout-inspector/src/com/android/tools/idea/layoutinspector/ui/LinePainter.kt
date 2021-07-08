@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.intellij.ui.JBColor
@@ -103,6 +104,7 @@ class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePai
   fun getLastOfMultipleChildren(model: TreeModel, treeSettings: TreeSettings?, node: TreeViewNode): TreeViewNode? {
     val count = node.children.size
     val last = if (count > 1) model.getChild(node, count - 1) as TreeViewNode else return null
-    return if (treeSettings?.let { last.view.parent?.findClosestUnfilteredNode(it)?.treeNode } === node) last else null
+    val parent = ViewNode.readAccess { last.view.parent }
+    return if (treeSettings?.let { parent?.findClosestUnfilteredNode(it)?.treeNode } === node) last else null
   }
 }
