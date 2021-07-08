@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
@@ -67,20 +68,25 @@ fun GradleDslFile.getPropertiesElement(
 
     if (element != null) return null
 
-    // Handle special cases based on the child element name
-    when (nestedElementName) {
-      "rootProject" -> return@fold context.rootProjectFile ?: this
-      // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
-      // such an element if needed.
-      EXT.name -> {
-        val newElement = EXT.constructor.construct(resultElement, elementName)
-        resultElement.setParsedElement(newElement)
-        return@fold newElement
-      }
-      APPLY_BLOCK_NAME -> {
-        val newApplyElement = ApplyDslElement(resultElement)
-        resultElement.setParsedElement(newApplyElement)
-        return@fold newApplyElement
+    // The first lookup, where resultElement is parentElement, can be special: though not if it is (somehow) an ExpressionList, which
+    // requires elements that are GradleDslExpressions.  Otherwise we should only resolve these to blocks if they are dereferencing
+    // projects (represented as GradleDslFiles).
+    if ((resultElement == parentElement && resultElement !is GradleDslExpressionList) || resultElement is GradleDslFile) {
+      // Handle special cases based on the child element name.
+      when (nestedElementName) {
+        "rootProject" -> return@fold context.rootProjectFile ?: this
+        // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
+        // such an element if needed.
+        EXT.name -> {
+          val newElement = EXT.constructor.construct(resultElement, elementName)
+          resultElement.setParsedElement(newElement)
+          return@fold newElement
+        }
+        APPLY_BLOCK_NAME -> {
+          val newApplyElement = ApplyDslElement(resultElement)
+          resultElement.setParsedElement(newApplyElement)
+          return@fold newApplyElement
+        }
       }
     }
 
