@@ -18,7 +18,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiService;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.devicemanager.Device;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.icons.AllIcons;
@@ -175,7 +174,7 @@ public final class PhysicalDevicePanel extends JBPanel<PhysicalDevicePanel> impl
   public void dispose() {
   }
 
-  void toggleDetailsPanel(@NotNull Device device) {
+  void toggleDetailsPanel(@NotNull PhysicalDevice device) {
     if (myDetailsPanel == null) {
       myDetailsPanel = new DetailsPanel(device);
     }

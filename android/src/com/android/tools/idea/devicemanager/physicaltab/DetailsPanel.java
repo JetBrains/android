@@ -15,43 +15,39 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
-import com.android.tools.idea.devicemanager.Device;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import java.awt.Component;
+import java.util.Arrays;
+import java.util.Iterator;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
+import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jetbrains.annotations.NotNull;
 
 final class DetailsPanel extends JBPanel<DetailsPanel> {
+  private final @NotNull PhysicalDevice myDevice;
+
   private final @NotNull GroupLayout myLayout;
-
   private final @NotNull Group myHorizontalGroup;
-  private final @NotNull Group myVerticalGroup;
+  private final @NotNull SequentialGroup myVerticalGroup;
 
-  DetailsPanel(@NotNull Device device) {
+  DetailsPanel(@NotNull PhysicalDevice device) {
     super(null);
+    myDevice = device;
 
-    String name = device.getName();
-
-    Component headingLabel = new JBLabel(name);
-
-    InfoSection section = new InfoSection("Device")
-      .putInfo("Name", name);
-
-    Component subheadingLabel = new JBLabel(section.getHeading());
-
+    Component headingLabel = new JBLabel(device.getName());
     myLayout = new GroupLayout(this);
 
     myHorizontalGroup = myLayout.createParallelGroup()
-      .addComponent(headingLabel)
-      .addComponent(subheadingLabel);
+      .addComponent(headingLabel);
 
     myVerticalGroup = myLayout.createSequentialGroup()
       .addComponent(headingLabel)
-      .addComponent(subheadingLabel);
+      .addPreferredGap(ComponentPlacement.UNRELATED);
 
-    section.forEachInfo(this::addNameAndValueLabels);
+    addSections();
 
     myLayout.setAutoCreateContainerGaps(true);
     myLayout.setAutoCreateGaps(true);
@@ -59,6 +55,35 @@ final class DetailsPanel extends JBPanel<DetailsPanel> {
     myLayout.setVerticalGroup(myVerticalGroup);
 
     setLayout(myLayout);
+  }
+
+  private void addSections() {
+    Iterator<InfoSection> sections = Arrays.asList(newQuickSummarySection(), newDeviceSection()).iterator();
+    addSection(sections.next());
+
+    while (sections.hasNext()) {
+      myVerticalGroup.addPreferredGap(ComponentPlacement.UNRELATED);
+      addSection(sections.next());
+    }
+  }
+
+  private @NotNull InfoSection newQuickSummarySection() {
+    return new InfoSection("Quick summary")
+      .putInfo("API level", myDevice.getApi());
+  }
+
+  private @NotNull InfoSection newDeviceSection() {
+    return new InfoSection("Device")
+      .putInfo("Name", myDevice.getName());
+  }
+
+  private void addSection(@NotNull InfoSection section) {
+    Component headingLabel = new JBLabel(section.getHeading());
+
+    myHorizontalGroup.addComponent(headingLabel);
+    myVerticalGroup.addComponent(headingLabel);
+
+    section.forEachInfo(this::addNameAndValueLabels);
   }
 
   private void addNameAndValueLabels(@NotNull String name, @NotNull String value) {
