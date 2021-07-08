@@ -352,26 +352,6 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 }
 
-/**
- * Sets all default fonts to Droid Sans that is included in the bundled JDK. This makes fonts the same across all platforms.
- *
- * To improve error detection it may be helpful to scale the font used up (to improve matches across platforms and detect text changes)
- * or down (to decrease the importance of text in generated images).
- */
-@JvmOverloads
-fun setPortableUiFont(scale: Float = 1.0f) {
-  val keys: Enumeration<*> = UIManager.getLookAndFeelDefaults().keys()
-  val default = ImageDiffTestUtil.getDefaultFont()
-  while (keys.hasMoreElements()) {
-    val key = keys.nextElement()
-    val value = UIManager.get(key)
-    if (value is FontUIResource) {
-      val font = default.deriveFont(value.style).deriveFont(value.size.toFloat() * scale)
-      UIManager.put(key, FontUIResource(font))
-    }
-  }
-}
-
 private fun wrapInFakeWindow(rootPane: JRootPane) {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.

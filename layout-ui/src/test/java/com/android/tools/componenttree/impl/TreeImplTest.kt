@@ -3,7 +3,7 @@ package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ComponentTreeBuilder
 import com.android.tools.componenttree.api.ContextPopupHandler
@@ -41,6 +41,9 @@ import javax.swing.plaf.basic.BasicTreeUI
 class TreeImplTest {
   @get:Rule
   val edtRule = EdtRule()
+
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -102,9 +105,6 @@ class TreeImplTest {
 
     // Make the icons have their intended size
     IconLoader.activate()
-
-    // Use a similar font for all platforms
-    setPortableUiFont()
   }
 
   @RunsInEdt

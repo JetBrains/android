@@ -26,7 +26,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -48,10 +48,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -72,21 +71,12 @@ private const val DIFF_THRESHOLD = 0.2
 @RunsInEdt
 class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
-  private var laf: LookAndFeel? = null
+
+  @get:Rule
+  val lafRuleChain = RuleChain.outerRule(IntelliJLafRule()).around(SetPortableUiFontRule())!!
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
-
-  @Before
-  fun storeLAF() {
-    laf = UIManager.getLookAndFeel()
-  }
-
-  @After
-  fun restoreLAF() {
-    setLookAndFeel(laf!!, setPortableFont = false)
-    laf = null
-  }
 
   @Test
   fun testPaintClosed() {
@@ -95,7 +85,6 @@ class ResolutionElementEditorTest {
       // The font in the links are rendered differently on similar test machines
       return
     }
-    setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 1).isVisible = false
     checkImage(editors, "Closed")
@@ -108,7 +97,6 @@ class ResolutionElementEditorTest {
       // The font in the links are rendered differently on similar test machines
       return
     }
-    setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     checkImage(editors, "Open")
   }
@@ -120,7 +108,6 @@ class ResolutionElementEditorTest {
       // The font in the links are rendered differently on similar test machines
       return
     }
-    setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -134,7 +121,6 @@ class ResolutionElementEditorTest {
       // The font in the links are rendered differently on similar test machines
       return
     }
-    setLookAndFeel(IntelliJLaf())
     val editors = createEditors()
     getEditor(editors, 0).editorModel.isExpandedTableItem = true
     expandFirstLabel(getEditor(editors, 0), true)
@@ -276,13 +262,20 @@ class ResolutionElementEditorTest {
     return ResolutionElementEditor(model, editorModel, editorComponent)
   }
 
-  private fun setLookAndFeel(laf: LookAndFeel, setPortableFont: Boolean = true) {
-    UIManager.setLookAndFeel(laf)
-    if (setPortableFont) {
-      setPortableUiFont()
-    }
-  }
-
   private fun findFirstLinkComponent(editor: ResolutionElementEditor): JComponent? =
     flatten(editor).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
+}
+
+class IntelliJLafRule : ExternalResource() {
+  private var laf: LookAndFeel? = null
+
+  override fun before() {
+    laf = UIManager.getLookAndFeel()
+    UIManager.setLookAndFeel(IntelliJLaf())
+  }
+
+  override fun after() {
+    UIManager.setLookAndFeel(laf)
+    laf = null
+  }
 }

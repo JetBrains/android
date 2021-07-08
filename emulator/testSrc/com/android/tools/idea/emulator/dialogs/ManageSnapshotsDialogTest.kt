@@ -18,9 +18,9 @@ package com.android.tools.idea.emulator.dialogs
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
-import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
@@ -74,6 +74,9 @@ class ManageSnapshotsDialogTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(timeoutRule).around(emulatorViewRule).around(EdtRule())
 
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
+
   private var nullableEmulator: FakeEmulator? = null
   private var nullableEmulatorView: EmulatorView? = null
 
@@ -90,7 +93,6 @@ class ManageSnapshotsDialogTest {
 
   @Before
   fun setUp() {
-    setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
     emulatorView = emulatorViewRule.newEmulatorView()
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
