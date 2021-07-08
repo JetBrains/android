@@ -117,7 +117,8 @@ private fun Module.addBuildType(name: String, debuggable: Boolean) {
   val benchmarkBuildType = androidBuildModel.addBuildType(name)
   val debugSignConfigBuildModel = androidBuildModel.signingConfigs().first { it.name() == "debug" } ?: return
 
-  benchmarkBuildType.signingConfig().setValue(ReferenceTo(debugSignConfigBuildModel))
+  val benchmarkSigningConfigModel = benchmarkBuildType.signingConfig()
+  benchmarkSigningConfigModel.setValue(ReferenceTo(debugSignConfigBuildModel, benchmarkSigningConfigModel))
   benchmarkBuildType.debuggable().setValue(debuggable)
   projectBuildModel.applyChanges()
 }
