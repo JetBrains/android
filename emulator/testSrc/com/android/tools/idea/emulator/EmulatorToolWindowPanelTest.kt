@@ -29,7 +29,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
@@ -107,6 +107,9 @@ class EmulatorToolWindowPanelTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
+
   private var nullableEmulator: FakeEmulator? = null
 
   private var emulator: FakeEmulator
@@ -118,7 +121,6 @@ class EmulatorToolWindowPanelTest {
 
   @Before
   fun setUp() {
-    setPortableUiFont()
     // Necessary to properly update toolbar button states.
     installHeadlessTestDataManager(projectRule.project, testRootDisposable)
   }

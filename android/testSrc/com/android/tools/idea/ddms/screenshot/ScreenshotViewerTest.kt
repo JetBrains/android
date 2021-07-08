@@ -18,9 +18,9 @@ package com.android.tools.idea.ddms.screenshot
 import com.android.SdkConstants
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.adtui.swing.findModelessDialog
-import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -47,6 +47,9 @@ class ScreenshotViewerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.onDisk("ScreenshotViewerTest").onEdt()
 
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
+
   private val testRootDisposable
     get() = projectRule.fixture.testRootDisposable
 
@@ -56,7 +59,6 @@ class ScreenshotViewerTest {
 
   @Before
   fun setUp() {
-    setPortableUiFont()
     enableHeadlessDialogs(testRootDisposable)
   }
 

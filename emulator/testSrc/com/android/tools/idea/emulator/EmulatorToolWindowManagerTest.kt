@@ -21,7 +21,7 @@ import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.adtui.swing.setPortableUiFont
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
@@ -57,6 +57,9 @@ class EmulatorToolWindowManagerTest {
   @get:Rule
   val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(emulatorRule).around(EdtRule())
 
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
+
   private val project
     get() = projectRule.project
 
@@ -66,7 +69,6 @@ class EmulatorToolWindowManagerTest {
 
   @Before
   fun setUp() {
-    setPortableUiFont()
     // Necessary to properly update button states.
     installHeadlessTestDataManager(project, projectRule.testRootDisposable)
     val windowManager = TestToolWindowManager(project)

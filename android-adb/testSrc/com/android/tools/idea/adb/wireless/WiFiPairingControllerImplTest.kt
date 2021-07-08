@@ -20,9 +20,9 @@ import com.android.ddmlib.TimeoutRemainder
 import com.android.flags.junit.RestoreFlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.SetPortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
-import com.android.tools.adtui.swing.setPortableUiFont
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
@@ -49,6 +49,9 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
   @get:Rule
   val restoreFlagRule = RestoreFlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
+
+  @get:Rule
+  val portableUiFontRule = SetPortableUiFontRule()
 
   private val edtExecutor by lazy { EdtExecutorService.getInstance() }
 
@@ -89,7 +92,6 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
 
     override fun setUp() {
       super.setUp()
-      setPortableUiFont()
       enableHeadlessDialogs(testRootDisposable)
     }
 
