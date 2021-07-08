@@ -68,6 +68,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     .setApiLevel(AndroidVersion.VersionCodes.O)
     .setFeatureLevel(AndroidVersion.VersionCodes.O)
     .setModel(FAKE_DEVICE_NAME)
+    .setCpuAbi("arm64-v8a")
     .setState(Common.Device.State.ONLINE)
     .build();
   //Setting PID to be 1 since there is a process with pid being 1 in test input atrace_processid_1

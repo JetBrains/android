@@ -38,6 +38,7 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
+import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation;
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator;
@@ -399,7 +400,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     setCaptureState(CaptureState.STARTING);
     Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
       .setAppName(process.getName())
-      .setAbiCpuArch(process.getAbiCpuArch())
+      .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setInitiationType(TraceInitiationType.INITIATED_BY_UI)
       .setTempPath(traceFilePath) // TODO b/133321803 switch back to having daemon generates and provides the path.
       .setUserOptions(config.toProto())

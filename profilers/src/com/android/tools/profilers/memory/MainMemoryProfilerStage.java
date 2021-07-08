@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.poller.TransportEventListener;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -223,7 +224,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
                               // the app.
                               .setSamplingIntervalBytes(ide.getNativeMemorySamplingRateForCurrentConfig())
                               .setSharedMemoryBufferBytes(64 * 1024 * 1024)
-                              .setAbiCpuArch(process.getAbiCpuArch())
+                              .setAbiCpuArch(TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
                               .setTempPath(traceFilePath)
                               .setAppName(process.getName()))
       .build();
