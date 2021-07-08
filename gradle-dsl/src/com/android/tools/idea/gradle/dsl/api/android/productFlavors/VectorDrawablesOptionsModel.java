@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.android.productFlavors;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface VectorDrawablesOptionsModel extends GradleDslModel {
+public interface VectorDrawablesOptionsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel generatedDensities();
 

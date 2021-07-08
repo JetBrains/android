@@ -109,7 +109,7 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
       VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
       DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
-      SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, gradleBuildModel),
+      SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),
       (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
         .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
     )

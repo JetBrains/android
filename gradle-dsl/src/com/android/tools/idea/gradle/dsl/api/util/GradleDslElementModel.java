@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.gradle.dsl.api.util;
 
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import java.util.List;
-import java.util.Map;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface GradleDslModel extends PsiElementHolder {
+/**
+ * This interface is implemented by Dsl models which provide access to an underlying Dsl element, which is essentially all of them.
+ */
+
+public interface GradleDslElementModel {
   /**
-   * @return a map containing all of the GradlePropertyModels that are in scope in this model. Note: for block
-   * elements this method should include all of the containing properties.
+   * @return the Dsl element associated with this model.
    */
-  @NotNull
-  Map<String, GradlePropertyModel> getInScopeProperties();
-
-  @NotNull
-  default Boolean isPropertyInScope(@NotNull String name) {
-    return getInScopeProperties().containsKey(name);
-  }
+  @Nullable GradleDslElement getRawElement();
 
   /**
-   * @return a list containing all of the {@link GradlePropertyModel}s that are declared within this element.
+   * @return the Dsl element holding the element associated with this model.
    */
-  @NotNull
-  List<GradlePropertyModel> getDeclaredProperties();
+  @NotNull GradleDslElement getRawPropertyHolder();
+
+  /**
+   * @return the fully-qualified name for this model.
+   */
+  @NotNull String getFullyQualifiedName();
 }

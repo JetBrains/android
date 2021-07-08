@@ -95,17 +95,6 @@ public abstract class GradleFileModelImpl implements GradleFileModel {
       .collect(Collectors.toList());
   }
 
-  @Override
-  public void delete() {
-    // It could be argued that removing the file completely (when applied) would be a more correct interpretation of calling
-    // delete() on a file.  On the other hand, that's awkward to implement at the moment, and there's another school of thought that
-    // would say that calling delete() on a file model is almost certainly wrong.  This is a tasteful compromise: remove everything in
-    // the file, but not the file itself (so that references to the file from other files, such as from apply statements, continue
-    // to resolve): this is consistent with the view of the model as a view on a collection of language-level elements, rather than
-    // the files that contain them.
-    myGradleDslFile.getContainedElements(true).forEach(PropertyUtil::removeElement);
-  }
-
   @NotNull
   public Set<GradleDslFile> getAllInvolvedFiles() {
     Set<GradleDslFile> files = new HashSet<>();

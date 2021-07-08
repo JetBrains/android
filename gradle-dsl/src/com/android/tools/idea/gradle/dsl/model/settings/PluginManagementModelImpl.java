@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.settings;
 
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
@@ -31,9 +31,9 @@ public class PluginManagementModelImpl extends GradleDslBlockModel implements Pl
   }
 
   @Override
-  public @NotNull PluginsModel plugins() {
+  public @NotNull PluginsBlockModel plugins() {
     PluginsDslElement pluginsDslElement = myDslElement.ensurePropertyElement(PluginsDslElement.PLUGINS);
-    return new PluginsModelImpl(pluginsDslElement);
+    return new PluginsBlockModelImpl(pluginsDslElement);
   }
 
   @Override

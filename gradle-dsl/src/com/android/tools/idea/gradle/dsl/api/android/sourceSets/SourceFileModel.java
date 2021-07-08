@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.android.sourceSets;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface SourceFileModel extends GradleDslModel {
+public interface SourceFileModel extends GradleBlockModel {
   @NotNull
   String name();
 

@@ -18,8 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.settings;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
@@ -33,12 +32,12 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PluginsModelImpl extends GradleDslBlockModel implements PluginsModel {
+public class PluginsBlockModelImpl extends GradleDslBlockModel implements PluginsBlockModel {
   public static final @NonNls String APPLY = "apply";
   public static final @NonNls String ID = "id";
   public static final @NonNls String VERSION = "version";
 
-  public PluginsModelImpl(@NotNull PluginsDslElement element) {
+  public PluginsBlockModelImpl(@NotNull PluginsDslElement element) {
     super(element);
   }
 

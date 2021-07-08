@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.configurations;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface ConfigurationModel extends GradleDslModel {
+public interface ConfigurationModel extends GradleBlockModel {
   @NotNull String name();
 
   void rename(String newName);

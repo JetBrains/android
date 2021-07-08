@@ -171,17 +171,6 @@ class GradleDslFileTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun testDelete() {
-    writeToBuildFile(TestFile.DELETE)
-
-    val buildModel = gradleBuildModel
-
-    buildModel.delete()
-    applyChanges(buildModel)
-    verifyFileContents(myBuildFile, "")
-  }
-
-  @Test
   fun testGetContext() {
     val projectBuildModel = projectBuildModel
     val buildModel = projectBuildModel.getModuleBuildModel(myModule) as GradleBuildModelImpl
