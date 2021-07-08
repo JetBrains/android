@@ -23,8 +23,10 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.*
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -181,6 +183,10 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   companion object {
     @Parameterized.Parameters @JvmStatic
     fun isLiveAllocationStage() = listOf(false, true)
+
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
   }
 }
 

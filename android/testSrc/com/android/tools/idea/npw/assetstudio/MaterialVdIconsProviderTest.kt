@@ -27,10 +27,12 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.util.io.write
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -50,6 +52,12 @@ private const val WAIT_TIMEOUT = 30L
 private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class MaterialVdIconsProviderTest {
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val appRule = ApplicationRule()
+  }
 
   private lateinit var disposable: Disposable
 

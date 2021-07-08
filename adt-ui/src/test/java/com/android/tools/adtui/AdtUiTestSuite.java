@@ -17,17 +17,9 @@ package com.android.tools.adtui;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.intellij.openapi.vfs.newvfs.persistent.PersistentFS;
-import com.intellij.openapi.vfs.newvfs.persistent.PersistentFSImpl;
-import com.intellij.testFramework.TestRunnerUtil;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AdtUiTestSuite.class)  // a suite mustn't contain itself
 public class AdtUiTestSuite extends IdeaTestSuiteBase {
-  static {
-    TestRunnerUtil.replaceIdeEventQueueSafely();
-    ((PersistentFSImpl)PersistentFS.getInstance()).cleanPersistedContents();
-  }
 }
-
