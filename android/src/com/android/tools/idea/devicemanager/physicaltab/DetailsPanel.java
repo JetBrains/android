@@ -24,32 +24,53 @@ import javax.swing.GroupLayout.Group;
 import org.jetbrains.annotations.NotNull;
 
 final class DetailsPanel extends JBPanel<DetailsPanel> {
+  private final @NotNull GroupLayout myLayout;
+
+  private final @NotNull Group myHorizontalGroup;
+  private final @NotNull Group myVerticalGroup;
+
   DetailsPanel(@NotNull Device device) {
     super(null);
-    Component headingLabel = new JBLabel(device.toString());
 
-    Component nameLabel = new JBLabel("Name");
-    Component nameValueLabel = new JBLabel(device.toString());
+    String name = device.getName();
 
-    GroupLayout layout = new GroupLayout(this);
+    Component headingLabel = new JBLabel(name);
 
-    Group horizontalGroup = layout.createParallelGroup()
-      .addComponent(headingLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      .addGroup(layout.createSequentialGroup()
-                  .addComponent(nameLabel)
-                  .addComponent(nameValueLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+    InfoSection section = new InfoSection("Device")
+      .putInfo("Name", name);
 
-    Group verticalGroup = layout.createSequentialGroup()
+    Component subheadingLabel = new JBLabel(section.getHeading());
+
+    myLayout = new GroupLayout(this);
+
+    myHorizontalGroup = myLayout.createParallelGroup()
       .addComponent(headingLabel)
-      .addGroup(layout.createParallelGroup()
-                  .addComponent(nameLabel)
-                  .addComponent(nameValueLabel));
+      .addComponent(subheadingLabel);
 
-    layout.setAutoCreateContainerGaps(true);
-    layout.setAutoCreateGaps(true);
-    layout.setHorizontalGroup(horizontalGroup);
-    layout.setVerticalGroup(verticalGroup);
+    myVerticalGroup = myLayout.createSequentialGroup()
+      .addComponent(headingLabel)
+      .addComponent(subheadingLabel);
 
-    setLayout(layout);
+    section.forEachInfo(this::addNameAndValueLabels);
+
+    myLayout.setAutoCreateContainerGaps(true);
+    myLayout.setAutoCreateGaps(true);
+    myLayout.setHorizontalGroup(myHorizontalGroup);
+    myLayout.setVerticalGroup(myVerticalGroup);
+
+    setLayout(myLayout);
+  }
+
+  private void addNameAndValueLabels(@NotNull String name, @NotNull String value) {
+    Component nameLabel = new JBLabel(name);
+    Component valueLabel = new JBLabel(value);
+
+    myHorizontalGroup.addGroup(myLayout.createSequentialGroup()
+                                 .addComponent(nameLabel)
+                                 .addComponent(valueLabel));
+
+    myVerticalGroup.addGroup(myLayout.createParallelGroup()
+                               .addComponent(nameLabel)
+                               .addComponent(valueLabel));
   }
 }
