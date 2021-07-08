@@ -2364,6 +2364,7 @@ Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fon
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/DroidSans.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/DroidSansMono.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoColorEmoji.ttf
+Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoColorEmojiFlags.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoNaskhArabic-Bold.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoNaskhArabic-Regular.ttf
 Android Studio Preview.app/Contents/plugins/android/resources/layoutlib/data/fonts/NotoNaskhArabicUI-Bold.ttf
