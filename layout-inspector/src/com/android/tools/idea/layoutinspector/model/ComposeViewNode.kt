@@ -77,7 +77,8 @@ class ComposeViewNode(
     get() = composeFlags.hasFlag(FLAG_SYSTEM_DEFINED) ||
             // Keep this for backwards compatibility (i.e. prior to beta05)
             systemPackageHashes.contains(composePackageHash)
-            && parent is ComposeViewNode // The top node is usually created by the user, but it has no location i.e. packageHash is -1
+            // The top node is usually created by the user, but it has no location i.e. packageHash is -1
+            && readAccess { parent } is ComposeViewNode
 
   override val hasMergedSemantics: Boolean
     get() = composeFlags.hasFlag(FLAG_HAS_MERGED_SEMANTICS)
@@ -86,7 +87,7 @@ class ComposeViewNode(
     get() = composeFlags.hasFlag(FLAG_HAS_UNMERGED_SEMANTICS)
 
   override fun isSingleCall(treeSettings: TreeSettings): Boolean =
-    treeSettings.composeAsCallstack && (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1
+    treeSettings.composeAsCallstack && readAccess { (parent as? ComposeViewNode)?.children?.size == 1 && children.size == 1 }
 
   @Suppress("NOTHING_TO_INLINE")
   inline fun Int.hasFlag(flag: Int) = flag and this == flag

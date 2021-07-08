@@ -160,11 +160,15 @@ DONE.
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
   }
 
-  private fun printTree(node: ViewNode, indent: Int = 0): String =
-    " ".repeat(indent) + "0x${node.drawId.toString(16)}\n${node.children.joinToString("") { printTree(it, indent + 1) }}"
+  private fun printTree(node: ViewNode, indent: Int = 0): String {
+    val children = ViewNode.readAccess { node.children }
+    return " ".repeat(indent) + "0x${node.drawId.toString(16)}\n${children.joinToString("") { printTree(it, indent + 1) }}"
+  }
 
   private fun findView(nodes: List<ViewNode>, drawId: Long): ViewNode =
-    nodes.find { it.drawId == drawId } ?: findView(nodes.flatMap { it.children }, drawId)
+    ViewNode.readAccess {
+      nodes.find { it.drawId == drawId } ?: findView(nodes.flatMap { it.children }, drawId)
+    }
 
   @Test
   fun testGetAllWindowIds() {
@@ -287,7 +291,7 @@ DONE.
 
     window.refreshImages(1.0)
 
-    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readAccess { window.root.drawChildren }
       .filterIsInstance<DrawViewImage>()
       .first()
       .image, 0.0)
@@ -297,7 +301,7 @@ DONE.
     val scaledImage1 = BufferedImage(image1.width / 2, image1.height / 2, BufferedImage.TYPE_INT_ARGB)
     scaledImage1.graphics.drawImage(image1, 0, 0, scaledImage1.width, scaledImage1.height, null)
 
-    ImageDiffUtil.assertImageSimilar("image1.png", scaledImage1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+    ImageDiffUtil.assertImageSimilar("image1.png", scaledImage1, ViewNode.readAccess { window.root.drawChildren }
       .filterIsInstance<DrawViewImage>()
       .first()
       .image, 0.0)
@@ -313,7 +317,7 @@ DONE.
     }
 
     window.refreshImages(1.0)
-    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+    ImageDiffUtil.assertImageSimilar("image1.png", image1, ViewNode.readAccess { window.root.drawChildren }
       .filterIsInstance<DrawViewImage>()
       .first()
       .image, 0.0)
@@ -325,7 +329,7 @@ DONE.
     model.update(updatedWindow, listOf("window1"), 1)
 
     window.refreshImages(1.0)
-    ImageDiffUtil.assertImageSimilar("image2.png", image2, ViewNode.readDrawChildren { getDrawChildren -> window.root.getDrawChildren() }
+    ImageDiffUtil.assertImageSimilar("image2.png", image2, ViewNode.readAccess { window.root.drawChildren }
       .filterIsInstance<DrawViewImage>()
       .first()
       .image, 0.0)

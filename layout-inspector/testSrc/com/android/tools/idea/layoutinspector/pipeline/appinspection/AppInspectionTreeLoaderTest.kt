@@ -22,8 +22,6 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.skia.SkiaParser
-import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
@@ -37,6 +35,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
+import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
@@ -52,8 +52,6 @@ import org.junit.Test
 import org.mockito.Mockito.`when`
 import java.awt.Image
 import java.awt.Polygon
-import java.io.ByteArrayOutputStream
-import java.util.zip.Deflater
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
 
@@ -224,59 +222,61 @@ class AppInspectionTreeLoaderTest {
 
     window!!.refreshImages(1.0)
 
-    val tree = window.root
-    assertThat(tree.drawId).isEqualTo(1)
-    assertThat(tree.x).isEqualTo(0)
-    assertThat(tree.y).isEqualTo(0)
-    assertThat(tree.width).isEqualTo(sample565.image.width)
-    assertThat(tree.height).isEqualTo(sample565.image.height)
-    assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    ViewNode.readDrawChildren { drawChildren -> assertThat((tree.drawChildren()[0] as DrawViewImage).image).isEqualTo(image1) }
-    assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
+    ViewNode.readAccess {
+      val tree = window.root
+      assertThat(tree.drawId).isEqualTo(1)
+      assertThat(tree.x).isEqualTo(0)
+      assertThat(tree.y).isEqualTo(0)
+      assertThat(tree.width).isEqualTo(sample565.image.width)
+      assertThat(tree.height).isEqualTo(sample565.image.height)
+      assertThat(tree.qualifiedName).isEqualTo("com.example.MyViewClass1")
+      assertThat((tree.drawChildren[0] as DrawViewImage).image).isEqualTo(image1)
+      assertThat(tree.children.map { it.drawId }).containsExactly(2L, 4L, 5L).inOrder()
 
-    val node2 = tree.children[0]
-    assertThat(node2.drawId).isEqualTo(2)
-    assertThat(node2.x).isEqualTo(10)
-    assertThat(node2.y).isEqualTo(10)
-    assertThat(node2.width).isEqualTo(50)
-    assertThat(node2.height).isEqualTo(100)
-    assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    ViewNode.readDrawChildren { drawChildren -> assertThat((node2.drawChildren()[0] as DrawViewImage).image).isEqualTo(image2) }
-    assertThat(node2.children.map { it.drawId }).containsExactly(3L)
+      val node2 = tree.children[0]
+      assertThat(node2.drawId).isEqualTo(2)
+      assertThat(node2.x).isEqualTo(10)
+      assertThat(node2.y).isEqualTo(10)
+      assertThat(node2.width).isEqualTo(50)
+      assertThat(node2.height).isEqualTo(100)
+      assertThat(node2.qualifiedName).isEqualTo("com.example.MyViewClass2")
+      assertThat((node2.drawChildren[0] as DrawViewImage).image).isEqualTo(image2)
+      assertThat(node2.children.map { it.drawId }).containsExactly(3L)
 
-    val node3 = node2.children[0]
-    assertThat(node3.drawId).isEqualTo(3)
-    assertThat(node3.x).isEqualTo(20)
-    assertThat(node3.y).isEqualTo(20)
-    assertThat(node3.width).isEqualTo(20)
-    assertThat(node3.height).isEqualTo(50)
-    assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
-    ViewNode.readDrawChildren { drawChildren -> assertThat((node3.drawChildren()[0] as DrawViewImage).image).isEqualTo(image3) }
-    assertThat(node3.children).isEmpty()
+      val node3 = node2.children[0]
+      assertThat(node3.drawId).isEqualTo(3)
+      assertThat(node3.x).isEqualTo(20)
+      assertThat(node3.y).isEqualTo(20)
+      assertThat(node3.width).isEqualTo(20)
+      assertThat(node3.height).isEqualTo(50)
+      assertThat(node3.qualifiedName).isEqualTo("com.example.MyViewClass1")
+      assertThat((node3.drawChildren[0] as DrawViewImage).image).isEqualTo(image3)
+      assertThat(node3.children).isEmpty()
 
-    val node4 = tree.children[1]
-    assertThat(node4.drawId).isEqualTo(4)
-    assertThat(node4.x).isEqualTo(30)
-    assertThat(node4.y).isEqualTo(120)
-    assertThat(node4.width).isEqualTo(40)
-    assertThat(node4.height).isEqualTo(50)
-    assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
-    ViewNode.readDrawChildren { drawChildren -> assertThat((node4.drawChildren()[0] as DrawViewImage).image).isEqualTo(image4) }
-    assertThat(node4.children).isEmpty()
-    assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
-    assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
+      val node4 = tree.children[1]
+      assertThat(node4.drawId).isEqualTo(4)
+      assertThat(node4.x).isEqualTo(30)
+      assertThat(node4.y).isEqualTo(120)
+      assertThat(node4.width).isEqualTo(40)
+      assertThat(node4.height).isEqualTo(50)
+      assertThat(node4.qualifiedName).isEqualTo("com.example.MyViewClass2")
+      assertThat((node4.drawChildren[0] as DrawViewImage).image).isEqualTo(image4)
+      assertThat(node4.children).isEmpty()
+      assertThat((node4.transformedBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
+      assertThat((node4.transformedBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
 
-    val node5 = tree.children[2]
-    assertThat(node5.drawId).isEqualTo(5)
-    assertThat(node5.x).isEqualTo(0)
-    assertThat(node5.y).isEqualTo(0)
-    assertThat(node5.width).isEqualTo(300)
-    assertThat(node5.height).isEqualTo(200)
-    assertThat(node5.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
-    ViewNode.readDrawChildren { drawChildren -> assertThat((node5.drawChildren()[0] as DrawViewImage).image).isEqualTo(image5) }
-    assertThat(node5.children.map { it.drawId }).containsExactly(-2L, -5L)
+      val node5 = tree.children[2]
+      assertThat(node5.drawId).isEqualTo(5)
+      assertThat(node5.x).isEqualTo(0)
+      assertThat(node5.y).isEqualTo(0)
+      assertThat(node5.width).isEqualTo(300)
+      assertThat(node5.height).isEqualTo(200)
+      assertThat(node5.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
+      assertThat((node5.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
+      assertThat(node5.children.map { it.drawId }).containsExactly(-2L, -5L)
 
-    assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
+      assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
+    }
   }
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
@@ -339,14 +339,14 @@ class AppInspectionTreeLoaderTest {
     assertThat(data.generation).isEqualTo(generation)
     window!!.refreshImages(1.0)
 
-    val resultImage = ViewNode.readDrawChildren { drawChildren -> (window.root.drawChildren()[0] as DrawViewImage).image }
+    val resultImage = ViewNode.readAccess { (window.root.drawChildren[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample565.image, resultImage, 0.01)
 
     val data2 = createFakeData(BITMAP, bitmapType = BitmapType.ARGB_8888)
     val (window2, _) = treeLoader.loadComponentTree(data2, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
     window2!!.refreshImages(1.0)
 
-    val resultImage2 = ViewNode.readDrawChildren { drawChildren -> (window2.root.drawChildren()[0] as DrawViewImage).image }
+    val resultImage2 = ViewNode.readAccess { (window2.root.drawChildren[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
   }
 }

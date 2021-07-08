@@ -17,13 +17,13 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.annotations.TestOnly
 import java.awt.Rectangle
 import java.awt.Shape
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -96,7 +96,7 @@ open class ViewNode(
    * - null
    */
   fun findClosestUnfilteredNode(treeSettings: TreeSettings): ViewNode? =
-    if (treeSettings.hideSystemNodes) parentSequence.firstOrNull { !it.isSystemNode } else this
+    if (treeSettings.hideSystemNodes) readAccess { parentSequence.firstOrNull { !it.isSystemNode } } else this
 
   /** Returns true if the node appears in the component tree. False if it currently filtered out */
   fun isInComponentTree(treeSettings: TreeSettings): Boolean =
@@ -116,10 +116,13 @@ open class ViewNode(
 
   private var tagPointer: SmartPsiElementPointer<XmlTag>? = null
 
-  val children = mutableListOf<ViewNode>()
-  var parent: ViewNode? = null
+  private val children = mutableListOf<ViewNode>()
+  private var parent: ViewNode? = null
 
-  val parentSequence: Sequence<ViewNode>
+  /**
+   * Create a sequence of parents starting with the current ViewNode
+   */
+  private val parentSequence: Sequence<ViewNode>
     get() = generateSequence(this) { it.parent }
 
   // Views and images that will be drawn.
@@ -138,25 +141,77 @@ open class ViewNode(
   val isDimBehind: Boolean
     get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
-  fun flatten(): Sequence<ViewNode> {
+  /**
+   * Create a sequence of the sub tree starting with the current ViewNode (Post-order, LRN, or order doesn't matter)
+   */
+  private fun flatten(): Sequence<ViewNode> {
     return children.asSequence().flatMap { it.flatten() }.plus(this)
   }
 
-  fun preOrderFlatten(): Sequence<ViewNode> {
-    return sequenceOf(this).plus(children.asSequence().flatMap { it.flatten() })
+  @TestOnly
+  fun flattenedList(): List<ViewNode> =
+    readAccess { flatten().toList() }
+
+  /**
+   * Create a sequence of the sub tree starting with the current ViewNode (Pre-order, LRN)
+   */
+  private fun preOrderFlatten(): Sequence<ViewNode> {
+    return sequenceOf(this).plus(children.asSequence().flatMap { it.preOrderFlatten() })
+  }
+
+  /**
+   * For reading from a [ViewNode] with a read lock. See [readAccess].
+   */
+  interface ReadAccess {
+    val ViewNode.children: List<ViewNode>
+    val ViewNode.drawChildren: List<DrawViewNode>
+    val ViewNode.parent: ViewNode?
+    val ViewNode.parentSequence: Sequence<ViewNode>
+    fun ViewNode.flatten(): Sequence<ViewNode>
+    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
+  }
+
+  /**
+   * For modifying a [ViewNode] with a write lock. See [writeAccess].
+   */
+  interface WriteAccess {
+    val ViewNode.children: MutableList<ViewNode>
+    val ViewNode.drawChildren: MutableList<DrawViewNode>
+    var ViewNode.parent: ViewNode?
+    val ViewNode.parentSequence: Sequence<ViewNode>
+    fun ViewNode.flatten(): Sequence<ViewNode>
+    fun ViewNode.preOrderFlatten(): Sequence<ViewNode>
   }
 
   companion object {
     private val lock = ReentrantReadWriteLock()
+    private val reader = object : ReadAccess {
+      override val ViewNode.children get() = children
+      override val ViewNode.drawChildren get() = drawChildren
+      override val ViewNode.parent get() = parent
+      override val ViewNode.parentSequence get() = parentSequence
+      override fun ViewNode.flatten() = flatten()
+      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
+    }
+    private val writer = object : WriteAccess {
+      override val ViewNode.children get() = children
+      override val ViewNode.drawChildren get() = drawChildren
+      override var ViewNode.parent
+        get() = parent
+        set(value) { this.parent = value }
+      override val ViewNode.parentSequence get() = parentSequence
+      override fun ViewNode.flatten() = flatten()
+      override fun ViewNode.preOrderFlatten() = preOrderFlatten()
+    }
 
-    fun <T> readDrawChildren(fn: (ViewNode.() -> List<DrawViewNode>) -> T): T =
+    fun <T> readAccess(operation: ReadAccess.() -> T): T =
       lock.read {
-        fn(ViewNode::drawChildren)
+        reader.operation()
       }
 
-    fun writeDrawChildren(fn: (ViewNode.() -> MutableList<DrawViewNode>) -> Unit) =
+    fun <T> writeAccess(operation: WriteAccess.() -> T) =
       lock.write {
-        fn(ViewNode::drawChildren)
+        writer.operation()
       }
   }
 }

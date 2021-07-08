@@ -467,12 +467,12 @@ class DeviceViewPanelTest {
       }
     }
     //clear drawChildren for window2 so we can ensure they're regenerated
-    ViewNode.writeDrawChildren { drawChildren -> window2.root.flatten().forEach { it.drawChildren().clear() } }
+    ViewNode.writeAccess { window2.root.flatten().forEach { it.drawChildren.clear() } }
 
     model.update(window2, listOf(ROOT, 100), 1)
 
     // drawChildren for the new window should be populated
-    assertThat(ViewNode.readDrawChildren { drawChildren -> window2.root.drawChildren() }).isNotEmpty()
+    assertThat(ViewNode.readAccess { window2.root.drawChildren }).isNotEmpty()
   }
 
   @Test

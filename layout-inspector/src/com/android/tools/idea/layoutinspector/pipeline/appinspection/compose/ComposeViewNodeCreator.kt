@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
@@ -75,12 +76,14 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
    */
   fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
     androidViews.clear()
-    val result = roots[id]?.map { node -> node.convert(shouldInterrupt) }
+    val result = ViewNode.writeAccess {
+      roots[id]?.map { node -> node.convert(shouldInterrupt, this) }
+    }
     nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
     return result
   }
 
-  private fun ComposableNode.convert(shouldInterrupt: () -> Boolean): ComposeViewNode {
+  private fun ComposableNode.convert(shouldInterrupt: () -> Boolean, access: ViewNode.WriteAccess): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
@@ -105,7 +108,9 @@ class ComposeViewNodeCreator(response: GetComposablesResponse) {
     )
 
     composeFlags = composeFlags or flags
-    childrenList.mapTo(node.children) { it.convert(shouldInterrupt).apply { parent = node } }
+    access.apply {
+      childrenList.mapTo(node.children) { it.convert(shouldInterrupt, access).apply { parent = node } }
+    }
     if (viewId != 0L) {
       androidViews[viewId] = node
     }

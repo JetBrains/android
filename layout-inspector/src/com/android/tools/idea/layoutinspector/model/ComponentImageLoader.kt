@@ -26,34 +26,38 @@ import java.util.LinkedList
  * `skiaRoot` are different, images will be added to other nodes such that order is preserved.
  */
 class ComponentImageLoader(
-  private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode,
-  private val drawChildren: ViewNode.() -> MutableList<DrawViewNode>
+  private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode
 ) {
   private val skiaNodes = LinkedList(skiaRoot.flatten().filter { it.image != null }.toList())
   val checkedTreeIds = mutableSetOf<Long>()
 
+  /**
+   * Load images from skia parser
+   */
   fun loadImages(window: AndroidWindow) {
     loadImages(window.root, window.deviceClip)
     window.skpLoadingComplete()
   }
 
   private fun loadImages(viewRoot: ViewNode, clip: Shape?) {
-    viewRoot.drawChildren().clear()
-    addImages(viewRoot, clip)
-    var firstImage = skiaNodes.peek()
-    viewRoot.children.forEach { child ->
-      viewRoot.drawChildren().add(DrawViewChild(child))
-      loadImages(child, clip)
-      // If the child consumed any images, check again to see whether we can add.
-      if (skiaNodes.size > 0 && skiaNodes[0] != firstImage) {
-        addImages(viewRoot, clip)
-        firstImage = skiaNodes.peek()
+    ViewNode.writeAccess {
+      viewRoot.drawChildren.clear()
+      addImages(viewRoot, clip)
+      var firstImage = skiaNodes.peek()
+      viewRoot.children.forEach { child ->
+        viewRoot.drawChildren.add(DrawViewChild(child))
+        loadImages(child, clip)
+        // If the child consumed any images, check again to see whether we can add.
+        if (skiaNodes.size > 0 && skiaNodes[0] != firstImage) {
+          addImages(viewRoot, clip)
+          firstImage = skiaNodes.peek()
+        }
       }
+      checkedTreeIds.add(viewRoot.drawId)
     }
-    checkedTreeIds.add(viewRoot.drawId)
   }
 
-  private fun addImages(viewRoot: ViewNode, clip: Shape?) {
+  private fun ViewNode.WriteAccess.addImages(viewRoot: ViewNode, clip: Shape?) {
     while (skiaNodes.isNotEmpty() &&
            // The next image is drawn by this node, or some previous node but postponed until now.
            (skiaNodes.peek().id in checkedTreeIds.plus(viewRoot.drawId) ||
@@ -65,7 +69,7 @@ class ComponentImageLoader(
             (skiaNodes.any { it.id == viewRoot.drawId } && viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))) {
       val skiaNode = skiaNodes.poll()
       val correspondingNode = nodeMap[skiaNode.id]
-      viewRoot.drawChildren().add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip))
+      viewRoot.drawChildren.add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip))
     }
   }
 }

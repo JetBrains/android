@@ -640,9 +640,11 @@ class LayoutInspectorTreePanelTest {
     val current = node.view
     assertThat(current.drawId).isEqualTo(expected.drawId)
     assertThat(current.qualifiedName).isEqualTo(expected.qualifiedName)
-    assertThat(node.children.size).isEqualTo(expected.children.size)
-    for (index in node.children.indices) {
-      assertTreeStructure(node.children[index], expected.children[index])
+    ViewNode.readAccess {
+      assertThat(node.children.size).isEqualTo(expected.children.size)
+      for (index in node.children.indices) {
+        assertTreeStructure(node.children[index], expected.children[index])
+      }
     }
   }
 }

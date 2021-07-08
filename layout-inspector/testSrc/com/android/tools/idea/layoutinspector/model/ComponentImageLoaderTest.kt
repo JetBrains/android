@@ -54,9 +54,9 @@ class ComponentImageLoaderTest {
     }
     val root = window.root
     // The model builder adds the draw children automatically, which we don't want to be populated yet in this case.
-    ViewNode.writeDrawChildren { drawChildren ->
-      root.flatten().forEach { it.drawChildren().clear() }
-      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(window)
+    ViewNode.writeAccess {
+      root.flatten().forEach { it.drawChildren.clear() }
+      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot).loadImages(window)
     }
 
     val expected = view(1L) {
@@ -114,14 +114,16 @@ class ComponentImageLoaderTest {
       }
     val root = window.root
 
-    ViewNode.writeDrawChildren { drawChildren ->
-      root.flatten().forEach { it.drawChildren().clear() }
-      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot, drawChildren).loadImages(window)
+    ViewNode.writeAccess {
+      root.flatten().forEach { it.drawChildren.clear() }
+      ComponentImageLoader(root.flatten().associateBy { it.drawId }, skiaRoot).loadImages(window)
     }
 
-    ViewNode.readDrawChildren { drawChildren ->
+    ViewNode.readAccess {
       // We don't really care that the images are in certain places in the tree, we just care that they're in the right order.
-      assertThat(root.preOrderFlatten().toList().flatMap(drawChildren).filterIsInstance<DrawViewImage>().map { it.image })
+      assertThat(root.preOrderFlatten().toList()
+                   .flatMap { it.drawChildren }
+                   .filterIsInstance<DrawViewImage>().map { it.image })
         .containsExactlyElementsIn(listOf(image3, image6, image1, image4, image2, image5))
         .inOrder()
     }

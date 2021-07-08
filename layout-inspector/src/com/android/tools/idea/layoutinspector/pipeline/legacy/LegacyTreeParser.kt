@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
@@ -24,8 +23,8 @@ import java.io.InputStreamReader
 import java.util.Stack
 import java.util.function.BiConsumer
 import java.util.function.BinaryOperator
-import java.util.function.Supplier
 import java.util.function.Function
+import java.util.function.Supplier
 import java.util.stream.Collector
 
 object LegacyTreeParser {
@@ -78,8 +77,10 @@ object LegacyTreeParser {
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
     val view = ViewNode(hashId, name, null, 0, 0, 0, 0, null, null, "", 0)
-    view.parent = parent
-    parent?.children?.add(view)
+    ViewNode.writeAccess {
+      view.parent = parent
+      parent?.children?.add(view)
+    }
     propertyLoader.parseProperties(view, properties)
     return Pair(view, "$name@$hash")
   }

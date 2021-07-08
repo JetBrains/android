@@ -86,12 +86,12 @@ class LegacySnapshotLoader : SnapshotLoader {
         windows.add(windowName)
         val window = object : AndroidWindow(node, windowName, ImageType.BITMAP_AS_REQUESTED) {
           override fun refreshImages(scale: Double) {
-            ViewNode.writeDrawChildren { drawChildren ->
-              root.flatten().forEach { it.drawChildren().clear() }
+            ViewNode.writeAccess {
+              root.flatten().forEach { it.drawChildren.clear() }
               if (image != null) {
-                root.drawChildren().add(DrawViewImage(image, root))
+                root.drawChildren.add(DrawViewImage(image, root))
               }
-              root.flatten().forEach { it.children.mapTo(it.drawChildren()) { child -> DrawViewChild(child) } }
+              root.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
             }
           }
         }
