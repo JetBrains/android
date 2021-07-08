@@ -52,6 +52,7 @@ import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.ToggleOnlyShowLayoutWithIssuesAction;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalysisKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.util.SyncUtil;
@@ -176,6 +177,7 @@ public class VisualizationForm
 
   @NotNull private final EmptyProgressIndicator myProgressIndicator = new EmptyProgressIndicator();
   private final Map<VisualLintErrorType, Map<String, List<Issue>>> myIssues = new HashMap<>();
+  private final VisualLintBaseConfigIssues myBaseConfigIssues = new VisualLintBaseConfigIssues();
   private final ReentrantLock myLintIssueProviderLock = new ReentrantLock();
   @GuardedBy("myLintIssueProviderLock")
   @Nullable private VisualLintIssueProvider myLintIssueProvider = null;
@@ -637,6 +639,7 @@ public class VisualizationForm
       mySurface.getIssueModel().removeIssueProvider(myLintIssueProvider);
     }
     myIssues.clear();
+    myBaseConfigIssues.clear();
     // This render the added components.
     for (SceneManager manager : mySurface.getSceneManagers()) {
 
@@ -650,7 +653,7 @@ public class VisualizationForm
 
             if (result != null) {
               VisualLintAnalysisKt.analyzeAfterRenderComplete(result, model, myIssues);
-              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager, myIssues);
+              VisualLintAnalysisKt.analyzeAfterModelUpdate(result, layoutlibSceneManager, myIssues, myBaseConfigIssues);
             }
 
             // Remove self. This will not cause ConcurrentModificationException.
