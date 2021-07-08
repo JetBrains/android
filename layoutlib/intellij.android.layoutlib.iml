@@ -10,9 +10,9 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library">
       <library name="layoutlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib:27.2.0.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-layoutlib-jdk11:27.2.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib/27.2.0.0/layoutlib-27.2.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-layoutlib-jdk11/27.2.0.1/jb-layoutlib-jdk11-27.2.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
