@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A base class for caching data associated with [ViewNode] that is additionally nested within a
@@ -43,7 +44,7 @@ abstract class ViewNodeCache<D>(
 
   // Specifically, this is a Map<RootId, Map<ViewId, Data>>()
   // Occasionally, roots are discarded, so we can drop whole branches of cached data in that case.
-  private val cache = mutableMapOf<Long, MutableMap<Long, D>>()
+  private val cache: MutableMap<Long, ConcurrentHashMap<Long, D>> = ConcurrentHashMap()
 
   /**
    * Remove all nested data for views that are children to [rootId].
@@ -95,7 +96,7 @@ abstract class ViewNodeCache<D>(
   protected abstract suspend fun fetchDataFor(root: ViewNode, node: ViewNode): D?
 
   protected fun setDataFor(rootId: Long, viewId: Long, data: D) {
-    val innerMap = cache.computeIfAbsent(rootId) { mutableMapOf() }
+    val innerMap = cache.computeIfAbsent(rootId) { ConcurrentHashMap() }
     innerMap[viewId] = data
   }
 }
