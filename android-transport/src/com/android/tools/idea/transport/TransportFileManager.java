@@ -392,4 +392,18 @@ public final class TransportFileManager implements TransportFileCopier {
     }
     return bestAbis;
   }
+
+  /**
+   * A wrapper to convert long ABI name to a short one, e.g., from "arm64-v8a" to "arm64".
+   *
+   * It's designed for modules that cannot directly depend on com.android.sdklib.devices.Abi.
+   */
+  @NotNull
+  public static String getShortAbiName(@NotNull String longAbi) {
+    Abi abi = Abi.getEnum(longAbi);
+    if (abi == null) {
+      return "invalid_abi";
+    }
+    return abi.getCpuArch();
+  }
 }
