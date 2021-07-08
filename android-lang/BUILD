@@ -30,6 +30,7 @@ iml_module(
     name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
     tags = [
+        "manual",  # b/193111860 disabled due to frequent test failures
         "no_test_windows",  # b/135665870
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
