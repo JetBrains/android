@@ -92,12 +92,6 @@ public interface FlavorTypeModel extends GradleBlockModel {
 
   void removeAllResValues();
 
-  /**
-   * You most likely want to set this property as a reference to a signing config,
-   * to do this please use {@link ReferenceTo#ReferenceTo(SigningConfigModel)}.
-   *
-   * You can obtain a list of signing configs from {@link AndroidModel#signingConfigs()}
-   */
   @NotNull
   SigningConfigPropertyModel signingConfig();
 
