@@ -75,12 +75,6 @@ public class IdeaTestSuiteBase {
   private static void setupKotlinPlugin() {
     // Run Kotlin in-process for easier control over its JVM args.
     System.setProperty("kotlin.compiler.execution.strategy", "in-process");
-    // As a side-effect, the following line initializes an initial application. Some tests create
-    // their own temporary mock application and then dispose it. However, the ApplicationManager API
-    // doesn't fallback to an older application if one was never set, which leaves other tests that
-    // call ApplicationManager.getApplication() unexpectedly accessing a disposed application - leading
-    // to exceptions if the tests happen to be called in a bad order.
-    TestApplicationManager.getInstance();
   }
 
   public static Path createTmpDir(String p) {

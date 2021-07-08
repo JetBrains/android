@@ -46,7 +46,6 @@ import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.application.ApplicationInfo;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PermanentInstallationID;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.extensions.ExtensionPoint;
@@ -56,6 +55,7 @@ import com.intellij.openapi.updateSettings.impl.UpdateChecker;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.BuildNumber;
 import com.intellij.openapi.util.Pair;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ExtensionTestUtil;
 import java.net.URL;
@@ -69,6 +69,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -84,6 +85,9 @@ public class SdkComponentSourceTest {
   private int myChannelId;
   private MockFileOp myFileOp;
 
+  @ClassRule
+  public static final ApplicationRule myApplicationRule = new ApplicationRule();
+
   @Rule
   public DisposableRule myDisposableRule = new DisposableRule();
 
@@ -97,8 +101,6 @@ public class SdkComponentSourceTest {
     instance.registerService(ApplicationInfo.class, appInfo);
     instance.getExtensionArea().registerExtensionPoint(ExternalComponentSource.EP_NAME, ExternalComponentSource.class.getName(),
                                                        ExtensionPoint.Kind.INTERFACE, myDisposableRule.getDisposable());
-
-    ApplicationManager.setApplication(instance, myDisposableRule.getDisposable());
 
     try (MockedStatic<PermanentInstallationID> theMock = Mockito.mockStatic(PermanentInstallationID.class)) {
       theMock.when(PermanentInstallationID::get).thenReturn("foo");

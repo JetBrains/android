@@ -43,14 +43,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 public class SourcesTableModelTest {
   private SourcesTableModel myModel;
 
-  @Rule
-  public ApplicationRule myApplicationRule = new ApplicationRule();
+  @ClassRule
+  public static final ApplicationRule myApplicationRule = new ApplicationRule();
 
   @Before
   public void setUp() throws Exception {
