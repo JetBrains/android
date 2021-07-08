@@ -19,10 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.DexModel;
 import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.JniLibsModel;
 import com.android.tools.idea.gradle.dsl.api.android.packagingOptions.ResourcesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface PackagingOptionsModel extends GradleDslModel {
+public interface PackagingOptionsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel doNotStrip();
 

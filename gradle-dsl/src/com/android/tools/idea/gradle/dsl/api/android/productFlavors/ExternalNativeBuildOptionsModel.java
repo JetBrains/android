@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.dsl.api.android.productFlavors;
 
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.CMakeOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.NdkBuildOptionsModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface ExternalNativeBuildOptionsModel extends GradleDslModel {
+public interface ExternalNativeBuildOptionsModel extends GradleBlockModel {
   @NotNull
   CMakeOptionsModel cmake();
 

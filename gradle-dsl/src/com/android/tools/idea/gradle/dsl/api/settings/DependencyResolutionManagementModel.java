@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.settings;
 
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DependencyResolutionManagementModel extends GradleDslModel {
+public interface DependencyResolutionManagementModel extends GradleBlockModel {
   @NotNull
   RepositoriesModel repositories();
 }

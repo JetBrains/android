@@ -37,7 +37,6 @@ public class SigningConfigModelImpl extends GradleDslBlockModel implements Signi
 
   public SigningConfigModelImpl(@NotNull SigningConfigDslElement dslElement) {
     super(dslElement);
-    myDslElement = dslElement;
   }
 
   @Override

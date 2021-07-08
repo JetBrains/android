@@ -19,12 +19,12 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.SigningConfigPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface FlavorTypeModel extends GradleDslModel {
+public interface FlavorTypeModel extends GradleBlockModel {
   @NotNull
   String name();
 

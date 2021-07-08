@@ -19,10 +19,10 @@ import com.android.tools.idea.gradle.dsl.api.android.testOptions.EmulatorSnapsho
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.FailureRetentionModel;
 import com.android.tools.idea.gradle.dsl.api.android.testOptions.UnitTestsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface TestOptionsModel extends GradleDslModel {
+public interface TestOptionsModel extends GradleBlockModel {
   @NotNull
   EmulatorSnapshotsModel emulatorSnapshots();
 

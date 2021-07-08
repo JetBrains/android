@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface BaseSplitOptionsModel extends GradleDslModel {
+public interface BaseSplitOptionsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel enable();
 

@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dsl.api.repositories;
 
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-public interface RepositoriesModel extends GradleDslModel {
+public interface RepositoriesModel extends GradleBlockModel {
   @NotNull
   List<RepositoryModel> repositories();
 

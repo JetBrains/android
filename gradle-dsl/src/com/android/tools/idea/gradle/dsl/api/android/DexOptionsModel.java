@@ -1,10 +1,10 @@
 package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DexOptionsModel extends GradleDslModel {
+public interface DexOptionsModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel additionalParameters();
 

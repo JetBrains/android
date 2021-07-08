@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
-public interface BuildScriptModel extends GradleDslModel {
+public interface BuildScriptModel extends GradleBlockModel {
   @NotNull
   DependenciesModel dependencies();
 

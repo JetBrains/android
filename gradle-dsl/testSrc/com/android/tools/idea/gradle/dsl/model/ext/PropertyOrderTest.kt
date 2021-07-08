@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.DERIVED
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelImpl
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -47,7 +47,7 @@ import org.junit.Test
 import java.io.File
 
 class PropertyOrderTest : GradleFileModelTestCase() {
-  private fun GradleDslModel.dslElement(): GradlePropertiesDslElement {
+  private fun GradleBlockModel.dslElement(): GradlePropertiesDslElement {
     assert(this is GradleDslBlockModel)
     val field = GradleDslBlockModel::class.java.getDeclaredField("myDslElement")
     field.isAccessible = true

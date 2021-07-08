@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -39,18 +40,9 @@ import java.util.Map;
  *   <li>{@link #toMap()}<li/>
  * <ul/>
  */
-public interface GradlePropertyModel extends DeletablePsiElementHolder {
+public interface GradlePropertyModel extends DeletablePsiElementHolder, GradleDslElementModel {
   @NotNull
   String DOUBLE_QUOTES = "\"";
-
-  /**
-   * @return the model property holder. For {@link ResolvedPropertyModel} this means the unresolved model property holder.
-   */
-  @NotNull
-  GradleDslElement getRawPropertyHolder();
-
-  @Nullable
-  GradleDslElement getRawElement();
 
   /**
    * Converts a string to one that can be used to set interpolated strings using {@link #setValue(Object)}
@@ -163,12 +155,6 @@ public interface GradlePropertyModel extends DeletablePsiElementHolder {
    */
   @NotNull
   String getName();
-
-  /**
-   * Returns the name of the property including any enclosing blocks, e.g "ext.deps.prop1".
-   */
-  @NotNull
-  String getFullyQualifiedName();
 
   /**
    * Returns the Gradle file where this gradle property lives.

@@ -17,11 +17,11 @@ package com.android.tools.idea.gradle.dsl.api.android;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import org.jetbrains.annotations.NotNull;
 
-public interface SigningConfigModel extends GradleDslModel {
+public interface SigningConfigModel extends GradleBlockModel {
   @NotNull
   String name();
 
