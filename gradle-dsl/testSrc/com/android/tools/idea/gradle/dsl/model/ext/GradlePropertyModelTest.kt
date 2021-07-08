@@ -963,6 +963,19 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testInvalidBlockName() {
+    writeToBuildFile(TestFile.INVALID_BLOCK_NAME)
+
+    val propertyModel = when {
+      isGroovy -> gradleBuildModel.ext().findProperty("prop")
+      else -> gradleBuildModel.declaredProperties.find { it.name == "prop" }!!
+    }
+
+    assertEquals(LIST, propertyModel.valueType)
+    assertSize(1, propertyModel.getValue(LIST_TYPE))
+  }
+
+  @Test
   fun testListDependency() {
     writeToBuildFile(TestFile.LIST_DEPENDENCY)
 
@@ -3862,6 +3875,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     NESTED_LIST_PROPERTY_INJECTION("nestedListPropertyInjection"),
     NESTED_MAP_VARIABLE_INJECTION("nestedMapVariableInjection"),
     INVALID_INJECTION("invalidInjection"),
+    INVALID_BLOCK_NAME("invalidBlockName"),
     LIST_DEPENDENCY("listDependency"),
     MAP_DEPENDENCY("mapDependency"),
     OUT_OF_SCOPE_MAP_AND_LIST_DEPENDENCIES("outOfScopeMapAndListDependencies"),
