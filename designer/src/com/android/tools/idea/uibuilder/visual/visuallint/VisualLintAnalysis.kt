@@ -41,7 +41,7 @@ private val LONG_TEXT_ISSUE_CONTENT = HtmlBuilder()
   .add("Consider reducing the width of this component or using a multi-columns layout.")
 
 enum class VisualLintErrorType {
-  BOUNDS, BOTTOM_NAV, OVERLAP, LONG_TEXT, ATF
+  BOUNDS, BOTTOM_NAV, OVERLAP, LONG_TEXT, ATF, LOCALE_TEXT
 }
 
 /**
@@ -49,13 +49,15 @@ enum class VisualLintErrorType {
  */
 fun analyzeAfterModelUpdate(result: RenderResult,
                             sceneManager: LayoutlibSceneManager,
-                            issues: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>) {
+                            issues: MutableMap<VisualLintErrorType, MutableMap<String, MutableList<Issue>>>,
+                            baseConfigIssues: VisualLintBaseConfigIssues) {
   // TODO: Remove explicit use of mutable collections as argument for this method
   val model = sceneManager.model
   analyzeBounds(result, model, issues.getOrPut(VisualLintErrorType.BOUNDS) { mutableMapOf() })
   analyzeBottomNavigation(result, sceneManager, issues.getOrPut(VisualLintErrorType.BOTTOM_NAV) { mutableMapOf() })
   analyzeOverlap(result, model, issues.getOrPut(VisualLintErrorType.OVERLAP) { mutableMapOf() })
   analyzeLongText(result, model, issues.getOrPut(VisualLintErrorType.LONG_TEXT) { mutableMapOf() })
+  analyzeLocaleText(result, baseConfigIssues, model, issues.getOrPut(VisualLintErrorType.LOCALE_TEXT) { mutableMapOf() })
 }
 
 /**
@@ -181,12 +183,11 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: MutableMap<Stri
   }
 }
 
-
-private fun createIssue(view: ViewInfo,
-                        model: NlModel,
-                        message: String,
-                        htmlContent: HtmlBuilder,
-                        issues: MutableMap<String, MutableList<Issue>>) {
+fun createIssue(view: ViewInfo,
+                model: NlModel,
+                message: String,
+                htmlContent: HtmlBuilder,
+                issues: MutableMap<String, MutableList<Issue>>) {
   val idString = (view.cookie as? TagSnapshot)?.getAttribute("id")
   val component = componentFromViewInfo(view, model)
   if (idString == null) {
