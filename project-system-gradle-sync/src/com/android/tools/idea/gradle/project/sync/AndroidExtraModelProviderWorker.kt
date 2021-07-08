@@ -35,7 +35,6 @@ import com.android.builder.model.v2.models.ProjectSyncIssues as V2ProjectSyncIss
 import com.android.builder.model.v2.ide.Variant as V2Variant
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
-import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.IdeSyncIssue
@@ -64,7 +63,10 @@ internal class AndroidExtraModelProviderWorker(
   private val buildFolderPaths = ModelConverter.populateModuleBuildDirs(
     controller)
   private val actionRunner = createActionRunner(controller, syncOptions.flags)
-  private val modelCache = ModelCache.create(buildFolderPaths, syncOptions)
+  private var canFetchV2Models: Boolean? = null
+  private val modelCache: ModelCache by lazy {
+    ModelCache.create(canFetchV2Models ?: error("Unable to determine which modelCache should be used"), buildFolderPaths)
+  }
 
   fun populateBuildModels() {
     try {
@@ -79,7 +81,7 @@ internal class AndroidExtraModelProviderWorker(
               actionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
             )
-            fetchNativeVariantsAndroidModels(syncOptions, buildFolderPaths)
+            fetchNativeVariantsAndroidModels(syncOptions)
           }
           // Note: No more cases.
         }
@@ -135,19 +137,37 @@ internal class AndroidExtraModelProviderWorker(
     val modules: List<GradleModule> = actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule {
+          // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
+          val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
+          val nativeAndroidProject: NativeAndroidProject? =
+            if (nativeModule == null)
+              controller.findParameterizedAndroidModel(
+                gradleProject,
+                NativeAndroidProject::class.java,
+                shouldBuildVariant = isFullSync
+              )
+            else null
+
           var androidProjectResult: AndroidProjectResult? = null
           // Request V2 models if flag is enabled.
           if (syncOptions.flags.studioFlagUseV2BuilderModels) {
             // First request the Versions model to make sure we can fetch V2 models.
             val modelVersion = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
-            if (modelVersion != null) {
-              if (canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
-                val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
-                val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
 
-                if (androidProject != null && androidDsl != null)  {
-                  androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
-                }
+            if (modelVersion != null && canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(modelVersion.agp))) {
+              val androidProject = controller.findNonParameterizedV2Model(gradleProject, V2AndroidProject::class.java)
+              val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
+
+              if (androidProject != null && androidDsl != null)  {
+                if (canFetchV2Models == null) canFetchV2Models = true
+                androidProjectResult = AndroidProjectResult.V2Project(androidProject, modelVersion, androidDsl)
+                return createAndroidModule(
+                  gradleProject,
+                  androidProjectResult,
+                  nativeAndroidProject,
+                  nativeModule,
+                  modelCache
+                )
               }
             }
           }
@@ -158,29 +178,19 @@ internal class AndroidExtraModelProviderWorker(
               AndroidProject::class.java,
               shouldBuildVariant = isFullSync
             )
-            if (androidProject != null) androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
+            if (androidProject != null) {
+              if (canFetchV2Models == null) canFetchV2Models = false
+              androidProjectResult =  AndroidProjectResult.V1Project(androidProject)
+              return createAndroidModule(
+                gradleProject,
+                androidProjectResult,
+                nativeAndroidProject,
+                nativeModule,
+                modelCache
+              )
+            }
           }
 
-          if (androidProjectResult != null) {
-            // TODO(solodkyy): Perhaps request the version interface depending on AGP version.
-            val nativeModule = controller.getNativeModuleFromGradle(gradleProject, syncAllVariantsAndAbis = isFullSync)
-            val nativeAndroidProject: NativeAndroidProject? =
-              if (nativeModule == null)
-                controller.findParameterizedAndroidModel(
-                  gradleProject,
-                  NativeAndroidProject::class.java,
-                  shouldBuildVariant = isFullSync
-                )
-              else null
-
-            return createAndroidModule(
-              gradleProject,
-              androidProjectResult,
-              nativeAndroidProject,
-              nativeModule,
-              modelCache
-            )
-          }
           val kotlinGradleModel = controller.findModel(gradleProject, KotlinGradleModel::class.java)
           val kaptGradleModel = controller.findModel(gradleProject, KaptGradleModel::class.java)
           return JavaModule(gradleProject, kotlinGradleModel, kaptGradleModel)
@@ -209,10 +219,9 @@ internal class AndroidExtraModelProviderWorker(
   }
 
   private fun fetchNativeVariantsAndroidModels(
-    syncOptions: NativeVariantsSyncActionOptions,
-    buildFolderPaths: BuildFolderPaths
+    syncOptions: NativeVariantsSyncActionOptions
   ): List<GradleModule> {
-    val modelCache = ModelCache.create(buildFolderPaths, syncOptions)
+    val modelCache = ModelCache.create(false)
     return actionRunner.runActions(
       buildModels.projects.map { gradleProject ->
         fun(controller: BuildController): GradleModule? {
@@ -535,7 +544,7 @@ internal class AndroidExtraModelProviderWorker(
       val nativeVariantAbi : NativeVariantAbiResult?
       var variantName = ""
 
-      if (syncOptions.flags.studioFlagUseV2BuilderModels && canFetchV2Models(module.modelVersion)) {
+      if (syncOptions.flags.studioFlagUseV2BuilderModels && canFetchV2Models == true) {
         // In V2, we get the variants from AndroidModule.v2Variants.
         val variant = module.v2Variants?.firstOrNull { it.name == moduleConfiguration.variant } ?: return null
         variantName = variant.name
