@@ -29,6 +29,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_PLUGINS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.GRADLE_VERSION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.JAVA8_DEFAULT
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_PACKAGING_OPTIONS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_ANDROID_RESOURCES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_EMULATOR_SNAPSHOTS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_TO_INSTALLATION
@@ -330,6 +331,25 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_TO_TEST_COVERAGE).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(2).setFiles(2))
+        .build(),
+    )
+  }
+
+  @Test
+  fun testMultipleLiteralPropertiesUsageTracker() {
+    writeToBuildFile(TestFileName("MigratePackagingOptions/MultipleLiteralProperties"))
+    val processor = MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(
+      project, GradleVersion.parse("7.0.0"), GradleVersion.parse("8.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_PACKAGING_OPTIONS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(8).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("7.0.0").setNewAgpVersion("8.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(MIGRATE_PACKAGING_OPTIONS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(8).setFiles(2))
         .build(),
     )
   }

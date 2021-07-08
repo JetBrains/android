@@ -83,7 +83,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
   override fun completeComponentInfo(builder: UpgradeAssistantComponentInfo.Builder): UpgradeAssistantComponentInfo.Builder
     // TODO(xof)
-    = builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.UNKNOWN_ASSISTANT_COMPONENT_KIND)
+    = builder.setKind(UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.MIGRATE_PACKAGING_OPTIONS)
 
   override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
     return object : UsageViewDescriptorAdapter() {
