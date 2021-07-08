@@ -14461,63 +14461,63 @@
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-device-provider-gradle",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-device-provider-local",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-driver-instrumentation",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-test-plugin",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-test-plugin-host-device-info",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "android-test-plugin-host-retention",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "core",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "core-proto",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "com.google.testing.platform",
       "artifactId": "launcher",
-      "version": "0.0.8-alpha05",
+      "version": "0.0.8-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
