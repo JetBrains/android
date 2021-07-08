@@ -72,24 +72,17 @@ interface ModelCache {
     const val LOCAL_AARS = "__local_aars__"
 
     @JvmStatic
-    fun create(buildFolderPaths: BuildFolderPaths): ModelCache  {
+    fun create(useV2BuilderModels: Boolean, buildFolderPaths: BuildFolderPaths): ModelCache  {
+      if (useV2BuilderModels) {
+        return modelCacheV2Impl()
+      }
       return modelCacheV1Impl(buildFolderPaths)
-    }
-
-    @JvmStatic
-    fun create(buildFolderPaths: BuildFolderPaths, syncOptions: SyncActionOptions): ModelCache  {
-      return if (syncOptions.flags.studioFlagUseV2BuilderModels) {
-        modelCacheV2Impl(buildFolderPaths)
-      }
-      else {
-        modelCacheV1Impl(buildFolderPaths)
-      }
     }
 
     @JvmStatic
     fun create(useV2BuilderModels: Boolean): ModelCache {
       return if (useV2BuilderModels) {
-        modelCacheV2Impl(BuildFolderPaths())
+        modelCacheV2Impl()
       }
       else {
         modelCacheV1Impl(BuildFolderPaths())
