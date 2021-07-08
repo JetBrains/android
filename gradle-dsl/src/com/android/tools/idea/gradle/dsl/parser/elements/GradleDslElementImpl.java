@@ -638,14 +638,9 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
              : properties.getPropertyElementBefore(childElement, modelName, includeSelf);
     }
 
-    // Sanity check
-    if (indexMatcher.groupCount() != 2) {
-      return null;
-    }
-
     // We have some index present, find the element we need to index. The first match, the property, is always the whole match.
     String elementName = indexMatcher.group(0);
-    if (elementName == null) {
+    if (elementName == null || elementName.equals("")) {
       return null;
     }
     ModelPropertyDescription property = converter.modelDescriptionForParent(elementName, properties);
@@ -659,12 +654,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     // Construct a list of all of the index parts
     Deque<String> indexParts = new ArrayDeque<>();
     while (indexMatcher.find()) {
-      // Sanity check
-      if (indexMatcher.groupCount() != 2) {
-        return null;
-      }
-      // second and subsequent matches of INDEX_PATTERN have .group(0) being "[...]", and .group(1) the text inside the brackets.
-      indexParts.add(indexMatcher.group(1));
+      // second and subsequent matches of INDEX_PATTERN should have .group(0) being "[...]", and .group(1) the text inside the brackets.
+      // If not then we might be dealing with invalid syntax and should not resolve to an element.
+      String match = indexMatcher.group(1);
+      if (match == null) return null;
+      indexParts.add(match);
     }
 
     // Go through each index and search for the element.
