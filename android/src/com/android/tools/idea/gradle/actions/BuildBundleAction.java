@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -54,13 +51,7 @@ public class BuildBundleAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         GoToBundleLocationTask task = new GoToBundleLocationTask(project, appModules, ACTION_TEXT);
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        whenFinished(
-          gradleBuildInvoker.bundle(modulesToBuild),
-          directExecutor(),
-          result -> {
-            task.execute(result);
-            return null;
-          });
+        task.executeWhenBuildFinished(gradleBuildInvoker.bundle(modulesToBuild));
       }
       else {
         DynamicAppUtils.promptUserForGradleUpdate(project);

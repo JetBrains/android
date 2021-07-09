@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -55,13 +52,7 @@ public class BuildApkAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         GoToApkLocationTask task = new GoToApkLocationTask(project, appModules, ACTION_TEXT);
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        whenFinished(
-          gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL),
-          directExecutor(),
-          result -> {
-            task.execute(result);
-            return null;
-          });
+        task.executeWhenBuildFinished(gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL));
       }
     }
   }
