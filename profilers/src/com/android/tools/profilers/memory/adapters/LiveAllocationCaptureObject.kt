@@ -316,7 +316,7 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
     instanceMap[tag] ?:
     classDb.getEntry(classTag.toLong()).let { entry ->
       val callstack = if (stackId != 0) callstackMap[stackId]!! else null
-      val thread = if (threadId != 0) threadIdMap[threadId]!! else null
+      val thread = if (threadId != 0) threadIdMap[threadId]!! else ThreadId.INVALID_THREAD_ID
       LiveAllocationInstanceObject(this@LiveAllocationCaptureObject, entry, thread, callstack, size, heapId).also { instanceMap.put(tag, it) }
     }
 
