@@ -72,7 +72,7 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
     modules.add(getModule());
     IdeComponents ideComponents = new IdeComponents(getProject());
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
-    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(modulesToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
       boolean isShowFilePathActionSupported() {

@@ -27,7 +27,6 @@ import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.tools.idea.gradle.actions.BuildsToPathsMapper;
-import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
@@ -61,8 +60,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
   public Map<String, File> getBuildsToPaths(@NotNull AssembleInvocationResult assembleResult,
                                             @NotNull List<String> buildVariants,
                                             @NotNull Collection<Module> modules,
-                                            boolean isAppBundle,
-                                            @Nullable String signedApkOrBundlePath) {
+                                            boolean isAppBundle) {
     boolean isSigned = !buildVariants.isEmpty();
     if (isSigned) {
       assert modules.size() == 1;
@@ -92,8 +90,8 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
       }
 
       for (String buildVariant : buildVariants) {
-        collectBuildsToPaths(androidModel, postBuildModel, module, buildVariant, buildsToPathsCollector, isAppBundle, isSigned,
-                             signedApkOrBundlePath);
+        collectBuildsToPaths(androidModel, postBuildModel, module, buildVariant, buildsToPathsCollector, isAppBundle, isSigned
+        );
       }
     }
 
@@ -106,8 +104,7 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
                                            @NotNull String buildVariant,
                                            @NotNull Map<String, File> buildsToPathsCollector,
                                            boolean isAppBundle,
-                                           boolean isSigned,
-                                           @Nullable String signedApkOrBundlePath) {
+                                           boolean isSigned) {
     File outputFolderOrFile = null;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       // get from build output listing file.
@@ -144,19 +141,6 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
       }
       else if (androidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP) {
         outputFolderOrFile = tryToGetOutputPostBuildInstantApp(module, postBuildModel, buildVariant);
-      }
-    }
-
-    // When post-build model is not supported,
-    // if it's apk build, pre-build model is still in use to handle old versions of plugin,
-    // if it's signed apk/bundle build, path is from user input of 'Generate Signed bundle or APK'.
-    if (outputFolderOrFile == null) {
-      if (isSigned) {
-        assert signedApkOrBundlePath != null;
-        outputFolderOrFile = new File(signedApkOrBundlePath);
-      }
-      else if (!isAppBundle) {
-        outputFolderOrFile = tryToGetOutputPreBuild(androidModel);
       }
     }
 
@@ -224,19 +208,5 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
     }
 
     return null;
-  }
-
-  @Nullable
-  private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
-    @SuppressWarnings("deprecation")
-    List<IdeAndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
-    if (outputs.isEmpty()) {
-      return null;
-    }
-    File outputFolderOrApk = outputs.iterator().next().getOutputFile();
-    if (outputs.size() > 1) {
-      return outputFolderOrApk.getParentFile();
-    }
-    return outputFolderOrApk;
   }
 }

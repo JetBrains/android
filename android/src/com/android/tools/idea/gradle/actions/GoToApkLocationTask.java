@@ -53,7 +53,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class GoToApkLocationTask {
   public static final String ANALYZE = "analyze:";
@@ -62,22 +61,19 @@ public class GoToApkLocationTask {
   @NotNull private final Collection<Module> myModules;
   @NotNull private final String myNotificationTitle;
   @NotNull private final List<String> myBuildVariants;
-  @Nullable private final String mySignedApkPath;
 
   public GoToApkLocationTask(@NotNull Project project, @NotNull Collection<Module> modules, @NotNull String notificationTitle) {
-    this(project, modules, notificationTitle, Collections.emptyList(), null);
+    this(project, modules, notificationTitle, Collections.emptyList());
   }
 
   public GoToApkLocationTask(@NotNull Project project,
                              @NotNull Collection<Module> modules,
                              @NotNull String notificationTitle,
-                             @NotNull List<String> buildVariants,
-                             @Nullable String signedApkPath) {
+                             @NotNull List<String> buildVariants) {
     myProject = project;
     myModules = modules;
     myNotificationTitle = notificationTitle;
     myBuildVariants = buildVariants;
-    mySignedApkPath = signedApkPath;
   }
 
   public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture) {
@@ -88,7 +84,7 @@ public class GoToApkLocationTask {
         BuildsToPathsMapper buildsToPathsMapper =
           BuildsToPathsMapper.getInstance(myProject);
         Map<String, File> apkBuildsToPaths =
-          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, false, mySignedApkPath);
+          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, false);
         showNotification(result, apkBuildsToPaths);
         return null;
       });

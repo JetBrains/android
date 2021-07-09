@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.actions;
 import static com.intellij.notification.NotificationType.INFORMATION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -74,8 +73,8 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
     buildsToPaths.put(buildVariant2, myBundleFilePath2);
     IdeComponents ideComponents = new IdeComponents(getProject());
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
-    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), anyString())).thenReturn(buildsToPaths);
-    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null, "") {
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(buildsToPaths);
+    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
