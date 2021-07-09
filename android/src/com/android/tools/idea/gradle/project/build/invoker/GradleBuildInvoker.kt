@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.util.concurrent.ListenableFuture
@@ -25,6 +26,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import java.io.File
+import java.util.concurrent.Executor
 
 interface GradleBuildInvoker {
   fun cleanProject()
@@ -159,4 +161,8 @@ interface GradleBuildInvoker {
 
   @Deprecated("This property does not return anything useful as its state can change at any moment. It should not be used.")
   val internalIsBuildRunning: Boolean
+}
+
+fun <T : GradleBuildResult> ListenableFuture<T>.whenFinished(executor: Executor, handler: (T) -> Unit) {
+  addCallback(executor, { handler(it!!) }, { throw it!! })
 }

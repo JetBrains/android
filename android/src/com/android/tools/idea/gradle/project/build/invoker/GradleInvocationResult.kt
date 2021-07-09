@@ -20,6 +20,11 @@ import org.gradle.tooling.BuildCancelledException
 import org.jetbrains.annotations.TestOnly
 import java.io.File
 
+interface GradleBuildResult {
+  val isBuildSuccessful: Boolean
+  val isBuildCancelled: Boolean
+}
+
 class GradleInvocationResult @JvmOverloads constructor(
   val rootProjectPath: File,
   val tasks: List<String>,
@@ -31,21 +36,21 @@ class GradleInvocationResult @JvmOverloads constructor(
   @get:TestOnly val buildError: Throwable?,
 
   val model: Any? = null
-) {
+) : GradleBuildResult {
 
-  val isBuildCancelled: Boolean get() = buildError != null && GradleUtil.hasCause(buildError, BuildCancelledException::class.java)
-  val isBuildSuccessful: Boolean get() = buildError == null
+  override val isBuildCancelled: Boolean get() = buildError != null && GradleUtil.hasCause(buildError, BuildCancelledException::class.java)
+  override val isBuildSuccessful: Boolean get() = buildError == null
 }
 
 class GradleMultiInvocationResult(
   val invocations: List<GradleInvocationResult>
-) {
-  val isBuildSuccessful: Boolean get() = invocations.all { it.isBuildSuccessful }
-  val isBuildCancelled: Boolean get() = invocations.all { it.isBuildCancelled }
+) : GradleBuildResult {
+  override val isBuildSuccessful: Boolean get() = invocations.all { it.isBuildSuccessful }
+  override val isBuildCancelled: Boolean get() = invocations.all { it.isBuildCancelled }
 
-  val models: List<Any> get() =  invocations.mapNotNull { it.model }
+  val models: List<Any> get() = invocations.mapNotNull { it.model }
 }
 
 class AssembleInvocationResult(
   val invocationResult: GradleMultiInvocationResult
-)
+) : GradleBuildResult by invocationResult

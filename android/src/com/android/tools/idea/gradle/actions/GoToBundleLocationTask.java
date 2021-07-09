@@ -19,7 +19,6 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -54,7 +53,7 @@ import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInvocationTask {
+public class GoToBundleLocationTask {
   public static final String ANALYZE_URL_PREFIX = "analyze:";
   public static final String LOCATE_URL_PREFIX = "module:";
   public static final String LOCATE_KEY_URL_PREFIX = "key:";
@@ -85,18 +84,11 @@ public class GoToBundleLocationTask implements GradleBuildInvoker.AfterGradleInv
     mySignedBundlePath = signedBundlePath;
   }
 
-  @Override
   public void execute(@NotNull GradleInvocationResult result) {
-    try {
-      BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
-      Map<String, File> bundleBuildsToPath =
-        buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
-      showNotification(result, bundleBuildsToPath);
-    }
-    finally {
-      // See https://code.google.com/p/android/issues/detail?id=195369
-      GradleBuildInvoker.getInstance(myProject).remove(this);
-    }
+    BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
+    Map<String, File> bundleBuildsToPath =
+      buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
+    showNotification(result, bundleBuildsToPath);
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,
