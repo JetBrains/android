@@ -16,6 +16,8 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
+import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
@@ -34,6 +36,7 @@ import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -66,6 +69,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.GuiUtils;
+import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
@@ -248,6 +252,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         List<Module> modules = ImmutableList.of(myFacet.getModule());
         SigningWizardEvent.SigningTargetType targetType;
         boolean isKeyExported = false;
+        Consumer<GradleInvocationResult> onBuildCompleted;
         if (myTargetType.equals(BUNDLE)) {
           targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_BUNDLE;
           File exportedKeyFile = null;
@@ -273,23 +278,37 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
               return;
             }
           }
-          gradleBuildInvoker.add(new GoToBundleLocationTask(myProject,
-                                                            modules,
-                                                            "Generate Signed Bundle",
-                                                            myBuildVariants, exportedKeyFile, myApkPath));
+          onBuildCompleted = new GoToBundleLocationTask(myProject,
+                                                        modules,
+                                                        "Generate Signed Bundle",
+                                                        myBuildVariants,
+                                                        exportedKeyFile,
+                                                        myApkPath)::execute;
         }
         else {
           targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
-          gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
+          onBuildCompleted = new GoToApkLocationTask(myProject,
+                                                     modules,
+                                                     "Generate Signed APK",
+                                                     myBuildVariants,
+                                                     myApkPath)::execute;
         }
         final File file = new File(rootProjectPath);
-        gradleBuildInvoker.executeAssembleTasks(
-          modules.toArray(new Module[0]),
-          ImmutableList.of(
-            GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
-              .setCommandLineArguments(projectProperties)
-              .build())
-        );
+        whenFinished(
+          gradleBuildInvoker.executeAssembleTasks(
+            modules.toArray(new Module[0]),
+            ImmutableList.of(
+              GradleBuildInvoker.Request.builder(gradleBuildInvoker.getProject(), file, gradleTasks)
+                .setCommandLineArguments(projectProperties)
+                .build())
+          ),
+          directExecutor(),
+          invocationResult -> {
+            for (GradleInvocationResult invocation : invocationResult.getInvocationResult().getInvocations()) {
+              onBuildCompleted.consume(invocation);
+            }
+            return null;
+          });
         trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
