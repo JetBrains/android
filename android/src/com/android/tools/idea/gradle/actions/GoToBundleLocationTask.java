@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
@@ -25,6 +27,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.notification.EventLog;
 import com.intellij.notification.Notification;
@@ -85,13 +88,20 @@ public class GoToBundleLocationTask {
     mySignedBundlePath = signedBundlePath;
   }
 
-  public void execute(@NotNull AssembleInvocationResult result) {
-    BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
-    for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
-      Map<String, File> bundleBuildsToPath =
-        buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
-      showNotification(invocation, bundleBuildsToPath);
-    }
+  public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture) {
+    whenFinished(
+      resultFuture,
+      directExecutor(),
+      result -> {
+        BuildsToPathsMapper buildsToPathsMapper =
+          BuildsToPathsMapper.getInstance(myProject);
+        for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
+          Map<String, File> bundleBuildsToPath =
+            buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
+          showNotification(invocation, bundleBuildsToPath);
+        }
+        return null;
+      });
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,

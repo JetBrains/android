@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocation
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
@@ -75,18 +76,18 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
   public void testExecuteWithCancelledBuild() {
     String message = "Build cancelled.";
     AssembleInvocationResult result = createBuildResult(new BuildCancelledException(message));
-    myTask.execute(result);
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(result));
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION);
   }
 
   public void testExecuteWithFailedBuild() {
     String message = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
-    myTask.execute(createBuildResult(new Throwable("Unknown error with gradle build")));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(new Throwable("Unknown error with gradle build"))));
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, NotificationType.ERROR);
   }
 
   public void testExecuteWithSuccessfulBuild() {
-    myTask.execute(createBuildResult(null /* build successful - no errors */));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)));
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
@@ -95,7 +96,7 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
     isShowFilePathActionSupported = false;
-    myTask.execute(createBuildResult(null /* build successful - no errors */));
+    myTask.executeWhenBuildFinished(Futures.immediateFuture(createBuildResult(null /* build successful - no errors */)));
     String message = getExpectedModuleNotificationMessageNoShowFilePathAction();
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION, new GoToBundleLocationTask.OpenEventLogHyperlink());
   }
