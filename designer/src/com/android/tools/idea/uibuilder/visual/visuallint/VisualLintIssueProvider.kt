@@ -32,28 +32,29 @@ class VisualLintIssueProvider(
     issuesMap.values.forEach { it.values.forEach { issues -> issueListBuilder.addAll(issues) } }
   }
 
-  data class VisualLintIssueSource(val components: List<NlComponent>) : IssueSource {
+  data class VisualLintIssueSource(val model: NlModel, val components: List<NlComponent>) : IssueSource {
     override val displayText = ""
     override val onIssueSelected: (DesignSurface) -> Unit = {
       it.selectionModel.setSelection(components)
 
       // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
       it.repaint()
-      it.scrollToVisible(components.first().model, false)
+      it.scrollToVisible(model, false)
     }
   }
 }
 
 class VisualLintRenderIssue(myIssue: RenderErrorModel.Issue,
+                            val sourceModel: NlModel,
                             val components: MutableList<NlComponent>) : Issue(), VisualLintHighlightingIssue {
-  override val source = VisualLintIssueProvider.VisualLintIssueSource(components)
+  override val source = VisualLintIssueProvider.VisualLintIssueSource(sourceModel, components)
   override val summary = myIssue.summary
   override val description = myIssue.htmlContent
   override val severity = myIssue.severity
   override val category = "Visual Lint Issue"
   override val hyperlinkListener = myIssue.hyperlinkListener
   override fun shouldHighlight(model: NlModel): Boolean {
-    return components.any { it.model == model }
+    return sourceModel == model || components.any { it.model == model }
   }
 
   fun addComponent(component: NlComponent?) {

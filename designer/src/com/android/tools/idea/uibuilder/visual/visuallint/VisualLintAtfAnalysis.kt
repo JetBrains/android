@@ -140,7 +140,7 @@ class VisualLintAtfIssue(
   private val sourceModel: NlModel) :
   NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel), VisualLintHighlightingIssue {
 
-  private val visualLintIssueSource = VisualLintIssueProvider.VisualLintIssueSource(listOf(component))
+  private val visualLintIssueSource = VisualLintIssueProvider.VisualLintIssueSource(sourceModel, listOf(component))
   override val source: IssueSource
     get() = visualLintIssueSource
 

@@ -174,7 +174,7 @@ private fun createIssue(view: ViewInfo, model: NlModel, message: String, issues:
     val issue = VisualLintRenderIssue(RenderErrorModel.Issue.builder()
                                         .setSummary(message)
                                         .setSeverity(HighlightSeverity.WARNING)
-                                        .build(), mutableListOf())
+                                        .build(), model, mutableListOf())
     issue.addComponent(component)
     issues.getOrPut("") { mutableListOf() }.add(issue)
   }
@@ -183,7 +183,7 @@ private fun createIssue(view: ViewInfo, model: NlModel, message: String, issues:
       mutableListOf(VisualLintRenderIssue(RenderErrorModel.Issue.builder()
                                             .setSummary(message)
                                             .setSeverity(HighlightSeverity.WARNING)
-                                            .build(), mutableListOf()))
+                                            .build(), model, mutableListOf()))
     }.first() as VisualLintRenderIssue).addComponent(component)
   }
 }
