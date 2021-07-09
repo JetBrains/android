@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateLoginActivityTest {
 
+  private static final String LOGIN_ACTIVITY = "app/src/main/java/dev/tools/ui/login/LoginActivity.java";
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /***
@@ -70,15 +71,18 @@ public class CreateLoginActivityTest {
            .clickFinishAndWaitForSyncToFinish();
 
     // Verification.
-    EditorFixture editorFixture = guiTest.ideFrame().getEditor();
-    String content = editorFixture.getCurrentFileContents();
+    EditorFixture myEditor = guiTest.ideFrame().getEditor();
+    myEditor.open(LOGIN_ACTIVITY);
+    String content = myEditor.getCurrentFileContents();
 
-    String username = "findViewById(R.id.username)";
-    String password = "findViewById(R.id.password)";
-    String loginSuccess = "updateUiWithUser(loginResult.getSuccess())";
+    String username = "binding.username";
+    String password = "binding.password";
+    String login = "binding.login";
+    String progressbar = "binding.loading";
 
     assertThat(content.contains(username)).isTrue();
     assertThat(content.contains(password)).isTrue();
-    assertThat(content.contains(loginSuccess)).isTrue();
+    assertThat(content.contains(login)).isTrue();
+    assertThat(content.contains(progressbar)).isTrue();
   }
 }
