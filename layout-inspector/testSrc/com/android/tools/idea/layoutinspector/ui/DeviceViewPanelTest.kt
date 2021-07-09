@@ -73,7 +73,6 @@ import junit.framework.TestCase
 import layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -104,7 +103,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -120,7 +119,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
     InspectorClientSettings.isCapturingModeOn = false
 
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -139,7 +138,7 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -160,7 +159,7 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -180,7 +179,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.stats.live
     stats.toggledToLive()
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -205,7 +204,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.stats.live
     stats.toggledToRefresh()
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -235,7 +234,7 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     latch = CountDownLatch(2)
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -268,7 +267,7 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
     latch = CountDownLatch(1)
 
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -293,7 +292,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLoadingPane() {
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings,
                                 inspectorRule.projectRule.fixture.testRootDisposable)
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -368,7 +367,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnect() {
-    val viewSettings = DeviceViewSettings(scalePercent = 100)
+    val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
@@ -411,7 +410,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnectWithFiltering() {
-    val viewSettings = DeviceViewSettings(scalePercent = 100)
+    val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
@@ -441,7 +440,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testDrawNewWindow() {
-    val viewSettings = DeviceViewSettings()
+    val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
@@ -478,7 +477,7 @@ class DeviceViewPanelTest {
 
   @Test
   fun testNewWindowDoesntResetZoom() {
-    val viewSettings = DeviceViewSettings()
+    val viewSettings = EditorDeviceViewSettings()
     val model = InspectorModel(projectRule.project)
     val processes = ProcessesModel(TestProcessNotifier()) { listOf() }
     val launcher = InspectorClientLauncher(adbRule.bridge, processes, listOf(), disposableRule.disposable, MoreExecutors.directExecutor())
@@ -539,7 +538,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
     val toolbar = getToolbar(panel)
 
@@ -580,7 +579,7 @@ class DeviceViewPanelTest {
     val treeSettings = FakeTreeSettings()
     val inspector = LayoutInspector(launcher, model, SessionStatistics(model, treeSettings), treeSettings, MoreExecutors.directExecutor())
     treeSettings.hideSystemNodes = false
-    val settings = DeviceViewSettings(scalePercent = 100)
+    val settings = EditorDeviceViewSettings()
     val panel = DeviceViewPanel(processes, inspector, settings, disposableRule.disposable)
 
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
@@ -637,7 +636,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 
@@ -651,7 +650,7 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     assertThat(inspectorRule.inspectorClient.isConnected).isTrue()
 
-    val settings = DeviceViewSettings()
+    val settings = EditorDeviceViewSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(inspectorRule.processes, inspectorRule.inspector, settings, inspectorRule.projectRule.fixture.testRootDisposable))
 

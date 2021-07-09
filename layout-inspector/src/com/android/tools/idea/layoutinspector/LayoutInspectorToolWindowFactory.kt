@@ -29,11 +29,11 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.tree.TreeSettingsImpl
+import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.ui.enableLiveLayoutInspector
 import com.google.common.annotations.VisibleForTesting
@@ -84,7 +84,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
-    val viewSettings = DeviceViewSettings()
+    val viewSettings = InspectorDeviceViewSettings()
 
     val edtExecutor = EdtExecutorService.getInstance()
 
@@ -114,7 +114,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
         }
 
         lateinit var launcher: InspectorClientLauncher
-        val treeSettings = TreeSettingsImpl { launcher.activeClient }
+        val treeSettings = InspectorTreeSettings { launcher.activeClient }
         val stats = SessionStatistics(model, treeSettings)
         launcher = InspectorClientLauncher.createDefaultLauncher(adb, processes, model, stats, workbench)
         val layoutInspector = LayoutInspector(launcher, model, stats, treeSettings)

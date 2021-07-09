@@ -53,7 +53,7 @@ interface TreeSettings {
 /**
  * [TreeSettings] with persistence.
  */
-class TreeSettingsImpl(private val activeClient: () -> InspectorClient) : TreeSettings {
+class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : TreeSettings {
   override var hideSystemNodes: Boolean
     get() = hasCapability(Capability.SUPPORTS_SYSTEM_NODES) &&
             get(KEY_HIDE_SYSTEM_NODES, DEFAULT_HIDE_SYSTEM_NODES)
@@ -84,4 +84,15 @@ class TreeSettingsImpl(private val activeClient: () -> InspectorClient) : TreeSe
 
   private fun set(key: String, value: Boolean, defaultValue: Boolean) =
     PropertiesComponent.getInstance().setValue(key, value, defaultValue)
+}
+
+/**
+ * [TreeSettings] for [com.intellij.openapi.fileEditor.FileEditor]s, where persistence is handled by the
+ * [com.intellij.openapi.fileEditor.FileEditorState] mechanism.
+ */
+class EditorTreeSettings() : TreeSettings {
+  override var hideSystemNodes: Boolean = DEFAULT_HIDE_SYSTEM_NODES
+  override var composeAsCallstack: Boolean = DEFAULT_COMPOSE_AS_CALLSTACK
+  override var highlightSemantics: Boolean = DEFAULT_HIGHLIGHT_SEMANTICS
+  override var supportLines: Boolean = DEFAULT_SUPPORT_LINES
 }

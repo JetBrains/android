@@ -15,22 +15,40 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.testing.FakeAdbRule
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
+import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
+import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
+import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
+import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.ide.DataManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
 private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
 class LayoutInspectorToolWindowFactoryTest {
+
   private class FakeToolWindowManager(project: Project, private val toolWindow: ToolWindow) : ToolWindowHeadlessManagerImpl(project) {
     var notificationText = ""
 
@@ -147,5 +165,32 @@ class LayoutInspectorToolWindowFactoryTest {
     // And newer devices as well:
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(model.processes.size).isEqualTo(2)
+  }
+}
+
+class LayoutInspectorToolWindowFactorySettingsTest {
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val adbRule = FakeAdbRule()
+
+  @Test
+  fun toolWindowFactoryCreatesCorrectSettings() {
+    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), disposableRule.disposable)
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)
+    LayoutInspectorToolWindowFactory().createToolWindowContent(projectRule.project, toolWindow)
+    val component = toolWindow.contentManager.selectedContent?.component!!
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+    }
+    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(component).firstIsInstance<WorkBench<*>>())?.getData(
+      LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+    assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
+    val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
+    assertThat(contentPanel.viewSettings).isInstanceOf(InspectorDeviceViewSettings::class.java)
   }
 }

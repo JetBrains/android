@@ -28,10 +28,11 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.EditorDeviceViewSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.npw.invokeLater
 import com.intellij.ide.DataManager
@@ -76,7 +77,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     try {
-      val viewSettings = DeviceViewSettings()
+      val viewSettings = EditorDeviceViewSettings()
 
       val contentPanel = JPanel(BorderLayout())
       contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
@@ -88,12 +89,7 @@ class LayoutInspectorFileEditor(val project: Project, file: VirtualFile) : UserD
       snapshotLoader.loadFile(file, model)
 
       // TODO: persisted tree setting scoped to file
-      val treeSettings = object : TreeSettings {
-        override var hideSystemNodes = false
-        override var composeAsCallstack = false
-        override var highlightSemantics = false
-        override var supportLines = true
-      }
+      val treeSettings = EditorTreeSettings()
       // TODO: indicate this is a snapshot session in the stats
       val stats = SessionStatistics(model, treeSettings)
       val client = object : InspectorClient by DisconnectedClient {

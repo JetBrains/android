@@ -25,33 +25,65 @@ private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
 private const val SHOW_LAYOUT_BOUNDS_KEY = "live.layout.inspector.draw.layout"
 private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
 
-class DeviceViewSettings(scalePercent: Int = 100) {
-  val modificationListeners = mutableListOf<() -> Unit>()
+interface DeviceViewSettings {
+  val modificationListeners: MutableList<() -> Unit>
 
   /** Scale of the view in percentage: 100 = 100% */
-  var scalePercent: Int by Delegates.observable(scalePercent) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  var scalePercent: Int
 
   /** Scale of the view as a fraction: 1 = 100% */
   val scaleFraction: Double
     get() = scalePercent / 100.0
 
   var drawBorders: Boolean
+
+  var drawUntransformedBounds: Boolean
+
+  var drawLabel: Boolean
+}
+
+class EditorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
+  override val modificationListeners = mutableListOf<() -> Unit>()
+  override var scalePercent: Int by Delegates.observable(scalePercent) { _, _, _ ->
+    modificationListeners.forEach { it() }
+  }
+
+  override var drawBorders: Boolean by Delegates.observable(true) { _, _, _ ->
+    modificationListeners.forEach { it() }
+  }
+
+  override var drawUntransformedBounds: Boolean by Delegates.observable(false) { _, _, _ ->
+    modificationListeners.forEach { it() }
+  }
+
+  override var drawLabel by Delegates.observable(true) { _, _, _ ->
+    modificationListeners.forEach { it() }
+  }
+}
+
+class InspectorDeviceViewSettings(scalePercent: Int = 100): DeviceViewSettings {
+  override val modificationListeners = mutableListOf<() -> Unit>()
+
+  /** Scale of the view in percentage: 100 = 100% */
+  override var scalePercent: Int by Delegates.observable(scalePercent) {
+    _, _, _ -> modificationListeners.forEach { it() }
+  }
+
+  override var drawBorders: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_BORDERS_KEY, value, true)
       modificationListeners.forEach { it() }
     }
 
-  var drawUntransformedBounds: Boolean
+  override var drawUntransformedBounds: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(SHOW_LAYOUT_BOUNDS_KEY, false)
     set(value) {
       PropertiesComponent.getInstance().setValue(SHOW_LAYOUT_BOUNDS_KEY, value, false)
       modificationListeners.forEach { it() }
     }
 
-  var drawLabel: Boolean
+  override var drawLabel: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
     set(value) {
       PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
