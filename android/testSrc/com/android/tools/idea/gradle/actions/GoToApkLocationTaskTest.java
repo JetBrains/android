@@ -22,9 +22,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotificationListener;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.ImmutableList;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
@@ -80,7 +83,7 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
 
   public void testExecuteWithCancelledBuild() {
     String message = "Build cancelled.";
-    GradleInvocationResult result = createBuildResult(new BuildCancelledException(message));
+    AssembleInvocationResult result = createBuildResult(new BuildCancelledException(message));
     myTask.execute(result);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION);
   }
@@ -156,7 +159,11 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
   }
 
   @NotNull
-  private GradleInvocationResult createBuildResult(@Nullable Throwable buildError) {
-    return new GradleInvocationResult(new File(getProject().getBasePath()), Collections.emptyList(), buildError);
+  private AssembleInvocationResult createBuildResult(@Nullable Throwable buildError) {
+    return new AssembleInvocationResult(
+      new GradleMultiInvocationResult(
+        ImmutableList.of(
+          new GradleInvocationResult(new File(getProject().getBasePath()), Collections.emptyList(), buildError)
+        )));
   }
 }

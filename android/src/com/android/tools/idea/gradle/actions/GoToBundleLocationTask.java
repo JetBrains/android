@@ -19,6 +19,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -84,11 +85,13 @@ public class GoToBundleLocationTask {
     mySignedBundlePath = signedBundlePath;
   }
 
-  public void execute(@NotNull GradleInvocationResult result) {
+  public void execute(@NotNull AssembleInvocationResult result) {
     BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
-    Map<String, File> bundleBuildsToPath =
-      buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
-    showNotification(result, bundleBuildsToPath);
+    for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
+      Map<String, File> bundleBuildsToPath =
+        buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
+      showNotification(invocation, bundleBuildsToPath);
+    }
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,
