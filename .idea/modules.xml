@@ -169,6 +169,7 @@
       <module fileurl="file://$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.iml" filepath="$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/layoutlib-loader/intellij.android.layoutlib-loader.iml" filepath="$PROJECT_DIR$/layoutlib-loader/intellij.android.layoutlib-loader.iml" />
       <module fileurl="file://$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.tests.iml" filepath="$PROJECT_DIR$/layoutlib/intellij.android.layoutlib.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/logcat/intellij.android.logcat.iml" filepath="$PROJECT_DIR$/logcat/intellij.android.logcat.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" />
