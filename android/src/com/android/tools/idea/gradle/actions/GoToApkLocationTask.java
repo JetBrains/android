@@ -22,7 +22,7 @@ import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -87,16 +87,14 @@ public class GoToApkLocationTask {
       result -> {
         BuildsToPathsMapper buildsToPathsMapper =
           BuildsToPathsMapper.getInstance(myProject);
-        for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
-          Map<String, File> apkBuildsToPaths =
-            buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, false, mySignedApkPath);
-          showNotification(invocation, apkBuildsToPaths);
-        }
+        Map<String, File> apkBuildsToPaths =
+          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, false, mySignedApkPath);
+        showNotification(result, apkBuildsToPaths);
         return null;
       });
   }
 
-  private void showNotification(@NotNull GradleInvocationResult result,
+  private void showNotification(@NotNull GradleBuildResult result,
                                 @NotNull Map<String, File> apkBuildsToPaths) {
     AndroidNotification notification = AndroidNotification.getInstance(myProject);
     boolean isSigned = !myBuildVariants.isEmpty();

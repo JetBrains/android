@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBuildTasksAndOutputInformation;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
@@ -42,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
   @Override
   @NotNull
-  public Map<String, File> getBuildsToPaths(@Nullable Object model,
+  public Map<String, File> getBuildsToPaths(@NotNull AssembleInvocationResult assembleResult,
                                             @NotNull List<String> buildVariants,
                                             @NotNull Collection<Module> modules,
                                             boolean isAppBundle,
@@ -68,8 +70,15 @@ public class BuildsToPathsMapperImpl extends BuildsToPathsMapper {
 
     PostBuildModel postBuildModel = null;
     TreeMap<String, File> buildsToPathsCollector = new TreeMap<>();
-    if (model instanceof OutputBuildAction.PostBuildProjectModels) {
-      postBuildModel = new PostBuildModel((OutputBuildAction.PostBuildProjectModels)model);
+
+    List<OutputBuildAction.PostBuildProjectModels> postBuildProjectModels =
+      assembleResult.getInvocationResult()
+        .getModels().stream()
+        .filter(it -> it instanceof OutputBuildAction.PostBuildProjectModels)
+        .map(it -> (OutputBuildAction.PostBuildProjectModels)it)
+        .collect(Collectors.toList());
+    if (!postBuildProjectModels.isEmpty()) {
+      postBuildModel = new PostBuildModel(postBuildProjectModels.toArray(new OutputBuildAction.PostBuildProjectModels[0]));
     }
 
     for (Module module : modules) {
