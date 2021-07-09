@@ -35,8 +35,8 @@ import com.android.tools.idea.gradle.actions.GoToApkLocationTask;
 import com.android.tools.idea.gradle.actions.GoToBundleLocationTask;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -252,7 +252,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         List<Module> modules = ImmutableList.of(myFacet.getModule());
         SigningWizardEvent.SigningTargetType targetType;
         boolean isKeyExported = false;
-        Consumer<GradleInvocationResult> onBuildCompleted;
+        Consumer<AssembleInvocationResult> onBuildCompleted;
         if (myTargetType.equals(BUNDLE)) {
           targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_BUNDLE;
           File exportedKeyFile = null;
@@ -304,9 +304,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
           ),
           directExecutor(),
           invocationResult -> {
-            for (GradleInvocationResult invocation : invocationResult.getInvocationResult().getInvocations()) {
-              onBuildCompleted.consume(invocation);
-            }
+            onBuildCompleted.consume(invocationResult);
             return null;
           });
         trackWizardGradleSigning(myProject, targetType, modules.size(), myBuildVariants.size(), isKeyExported);

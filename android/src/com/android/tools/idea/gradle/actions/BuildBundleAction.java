@@ -21,7 +21,6 @@ import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
@@ -59,9 +58,7 @@ public class BuildBundleAction extends DumbAwareAction {
           gradleBuildInvoker.bundle(modulesToBuild),
           directExecutor(),
           result -> {
-            for (GradleInvocationResult invocationResult : result.getInvocationResult().getInvocations()) {
-              task.execute(invocationResult);
-            }
+            task.execute(result);
             return null;
           });
       }

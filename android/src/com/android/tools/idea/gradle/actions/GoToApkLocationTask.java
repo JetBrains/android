@@ -19,6 +19,7 @@ import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
@@ -76,11 +77,13 @@ public class GoToApkLocationTask {
     mySignedApkPath = signedApkPath;
   }
 
-  public void execute(@NotNull GradleInvocationResult result) {
+  public void execute(@NotNull AssembleInvocationResult result) {
     BuildsToPathsMapper buildsToPathsMapper = BuildsToPathsMapper.getInstance(myProject);
-    Map<String, File> apkBuildsToPaths =
-      buildsToPathsMapper.getBuildsToPaths(result.getModel(), myBuildVariants, myModules, false, mySignedApkPath);
-    showNotification(result, apkBuildsToPaths);
+    for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
+      Map<String, File> apkBuildsToPaths =
+        buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, false, mySignedApkPath);
+      showNotification(invocation, apkBuildsToPaths);
+    }
   }
 
   private void showNotification(@NotNull GradleInvocationResult result,
