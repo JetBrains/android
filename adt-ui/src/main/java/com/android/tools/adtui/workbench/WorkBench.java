@@ -25,6 +25,7 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -146,6 +147,19 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     addToolsToModel(minimizedWindows);
     myWorkBenchManager.register(this);
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
+  }
+
+  /**
+   * Get the content components in this WorkBench. Note that this currently doesn't include the splitters, sidebars, or loading pane--
+   * they can be added as and when they are needed.
+   */
+  @Override
+  public Component[] getComponents() {
+    if (mySplitter.getInnerComponent() == null) {
+      // The inner component will be null before init() is called
+      return new Component[] { mySplitter.getFirstComponent(), mySplitter.getLastComponent() };
+    }
+    return new Component[] { mySplitter.getFirstComponent(), mySplitter.getInnerComponent(), mySplitter.getLastComponent() };
   }
 
   public void setLoadingText(@NotNull String loadingText) {

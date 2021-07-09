@@ -16,33 +16,59 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
 class DeviceViewSettingsTest {
 
+  val projectRule = ProjectRule()
+
   @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), DeviceViewSettingsRule())
+  val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule())
 
   @Test
-  fun testSettingsPersisted() {
-    val settings1 = DeviceViewSettings()
+  fun testInspectorSettingsPersisted() {
+    val settings1 = InspectorDeviceViewSettings()
+
     settings1.drawBorders = true
     settings1.drawLabel = false
 
     assertThat(settings1.drawBorders).isTrue()
     assertThat(settings1.drawLabel).isFalse()
 
-    val settings2 = DeviceViewSettings()
+    val settings2 = InspectorDeviceViewSettings()
     assertThat(settings2.drawBorders).isTrue()
     assertThat(settings2.drawLabel).isFalse()
 
     settings2.drawBorders = false
     settings2.drawLabel = true
 
+    // settings1 gets the new values
     assertThat(settings1.drawBorders).isFalse()
     assertThat(settings1.drawLabel).isTrue()
+  }
+
+  @Test
+  fun testEditorSettingsNotPersisted() {
+    val settings1 = EditorDeviceViewSettings()
+    settings1.drawBorders = false
+    settings1.drawLabel = false
+
+    assertThat(settings1.drawBorders).isFalse()
+    assertThat(settings1.drawLabel).isFalse()
+
+    val settings2 = EditorDeviceViewSettings()
+    // settings2 has the default values
+    assertThat(settings2.drawBorders).isTrue()
+    assertThat(settings2.drawLabel).isTrue()
+
+    settings2.drawBorders = false
+    settings2.drawLabel = false
+
+    // settings1 keeps its original values
+    assertThat(settings1.drawBorders).isFalse()
+    assertThat(settings1.drawLabel).isFalse()
   }
 }

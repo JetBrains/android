@@ -31,7 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
 
-class TreeSettingsTest {
+class InspectorTreeSettingsTest {
 
   @get:Rule
   val appRule = ApplicationRule()
@@ -48,7 +48,7 @@ class TreeSettingsTest {
   @Before
   fun before() {
     appRule.testApplication.registerService(PropertiesComponent::class.java, PropertiesComponentMock())
-    settings = TreeSettingsImpl { client }
+    settings = InspectorTreeSettings { client }
     inspector = LayoutInspector(mock(), mock(), mock(), settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.`when`(client).capabilities
     doAnswer { isConnected }.`when`(client).isConnected
@@ -119,5 +119,28 @@ class TreeSettingsTest {
       assertThat(flag()).named("Connected with $controllingCapability (opposite): $key").isEqualTo(!defaultValue)
       properties.unsetValue(key)
     }
+  }
+}
+
+class EditorTreeSettingsTest {
+  @get:Rule
+  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_SHOW_SEMANTICS, true)
+
+  @Test
+  fun testSettings() {
+    val settings1 = EditorTreeSettings()
+    assertThat(settings1.composeAsCallstack).isEqualTo(DEFAULT_COMPOSE_AS_CALLSTACK)
+    assertThat(settings1.hideSystemNodes).isEqualTo(DEFAULT_HIDE_SYSTEM_NODES)
+    assertThat(settings1.highlightSemantics).isEqualTo(DEFAULT_HIGHLIGHT_SEMANTICS)
+    assertThat(settings1.supportLines).isEqualTo(DEFAULT_SUPPORT_LINES)
+
+    settings1.hideSystemNodes = !DEFAULT_HIDE_SYSTEM_NODES
+    settings1.supportLines = !DEFAULT_SUPPORT_LINES
+    assertThat(settings1.supportLines).isEqualTo(!DEFAULT_SUPPORT_LINES)
+    assertThat(settings1.hideSystemNodes).isEqualTo(!DEFAULT_HIDE_SYSTEM_NODES)
+
+    val settings2 = EditorTreeSettings()
+    assertThat(settings2.hideSystemNodes).isEqualTo(DEFAULT_HIDE_SYSTEM_NODES)
+    assertThat(settings2.supportLines).isEqualTo(DEFAULT_SUPPORT_LINES)
   }
 }
