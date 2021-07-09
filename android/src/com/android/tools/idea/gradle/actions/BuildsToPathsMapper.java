@@ -44,6 +44,5 @@ public abstract class BuildsToPathsMapper {
   public abstract Map<String, File> getBuildsToPaths(@NotNull AssembleInvocationResult assembleResult,
                                                      @NotNull List<String> buildVariants,
                                                      @NotNull Collection<Module> modules,
-                                                     boolean isAppBundle,
-                                                     @Nullable String signedApkOrBundlePath);
+                                                     boolean isAppBundle);
 }

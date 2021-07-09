@@ -281,16 +281,16 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
                                                           modules,
                                                           "Generate Signed Bundle",
                                                           myBuildVariants,
-                                                          exportedKeyFile,
-                                                          myApkPath)::executeWhenBuildFinished;
+                                                          exportedKeyFile
+          )::executeWhenBuildFinished;
         }
         else {
           targetType = SigningWizardEvent.SigningTargetType.TARGET_TYPE_APK;
           buildResultHandler = new GoToApkLocationTask(myProject,
                                                        modules,
                                                        "Generate Signed APK",
-                                                       myBuildVariants,
-                                                       myApkPath)::executeWhenBuildFinished;
+                                                       myBuildVariants
+          )::executeWhenBuildFinished;
         }
         final File file = new File(rootProjectPath);
         buildResultHandler.consume(

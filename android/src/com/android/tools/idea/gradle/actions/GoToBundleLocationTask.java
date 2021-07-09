@@ -66,26 +66,23 @@ public class GoToBundleLocationTask {
   @NotNull private final Collection<Module> myModules;
   @Nullable private final File myExportedKeyFile;
   @NotNull private final List<String> myBuildVariants;
-  @Nullable private final String mySignedBundlePath;
 
   public GoToBundleLocationTask(@NotNull Project project,
                                 @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle) {
-    this(project, modules, notificationTitle, Collections.emptyList(), null, null);
+    this(project, modules, notificationTitle, Collections.emptyList(), null);
   }
 
   public GoToBundleLocationTask(@NotNull Project project,
                                 @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle,
                                 @NotNull List<String> buildVariants,
-                                @Nullable File exportedKeyFile,
-                                @Nullable String signedBundlePath) {
+                                @Nullable File exportedKeyFile) {
     myProject = project;
     myNotificationTitle = notificationTitle;
     myModules = modules;
     myExportedKeyFile = exportedKeyFile;
     myBuildVariants = buildVariants;
-    mySignedBundlePath = signedBundlePath;
   }
 
   public void executeWhenBuildFinished(@NotNull ListenableFuture<AssembleInvocationResult> resultFuture) {
@@ -96,7 +93,7 @@ public class GoToBundleLocationTask {
         BuildsToPathsMapper buildsToPathsMapper =
           BuildsToPathsMapper.getInstance(myProject);
         Map<String, File> bundleBuildsToPath =
-          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, true, mySignedBundlePath);
+          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, true);
         showNotification(result, bundleBuildsToPath);
         return null;
       });

@@ -83,8 +83,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
       ImmutableList.of(),
       setOf(myModule),
-      false,
-      null)
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
     TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
   }
@@ -100,8 +100,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createPostBuildModel(Lists.newArrayList(output1, output2), buildVariant).toTestAssembleResult(),
       ImmutableList.of(),
       setOf(myModule),
-      false,
-      null)
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
     TestCase.assertEquals(output1.parentFile, buildsAndBundlePaths[myModule.name])
   }
@@ -113,8 +113,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createPostBuildModel(setOf(output), buildVariant).toTestAssembleResult(),
       ImmutableList.of(buildVariant),
       setOf(myModule),
-      false,
-      "")
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
     TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
   }
@@ -129,8 +129,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
                            buildVariant).toTestAssembleResult(),
       ImmutableList.of(buildVariant),
       setOf(myModule),
-      false,
-      "")
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
     TestCase.assertEquals(output1.parentFile,
                           buildsAndBundlePaths[buildVariant])
@@ -145,8 +145,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
       emptyList(),
       setOf(myModule),
-      false,
-      null)
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
     TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
   }
@@ -158,8 +158,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createInstantAppPostBuildModel(output, buildVariant).toTestAssembleResult(),
       ImmutableList.of(buildVariant),
       setOf(myModule),
-      false,
-      "")
+      false
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
     TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
   }
@@ -171,8 +171,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createAppBundleBuildModel(output, AndroidModuleModel.get(myModule)!!.selectedVariant.name).toTestAssembleResult(),
       emptyList(),
       setOf(myModule),
-      true,
-      null)
+      true
+    )
 
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, myModule.name)
     TestCase.assertEquals(output, buildsAndBundlePaths[myModule.name])
@@ -185,8 +185,8 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
       createAppBundleBuildModel(output, buildVariant).toTestAssembleResult(),
       ImmutableList.of(buildVariant),
       setOf(myModule),
-      true,
-      "")
+      true
+    )
     UsefulTestCase.assertSameElements(buildsAndBundlePaths.keys, buildVariant)
     TestCase.assertEquals(output, buildsAndBundlePaths[buildVariant])
   }

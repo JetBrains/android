@@ -63,7 +63,7 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
     modulesToPaths = Collections.singletonMap(getModule().getName(), myBundleFilePath);
     IdeComponents ideComponents = new IdeComponents(getProject());
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
-    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
+    when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(modulesToPaths);
     myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
       boolean isShowFilePathActionSupported() {
