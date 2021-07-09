@@ -64,6 +64,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.ProjectManager;
@@ -271,7 +272,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     Sdk jdk = null;
     String jdkLocation = myState.get(KEY_JDK_LOCATION);
     if (jdkLocation != null) {
-      jdk = IdeSdks.getInstance().setJdkPath(Paths.get(jdkLocation));
+      jdk = WriteAction.computeAndWait(() -> IdeSdks.getInstance().setJdkPath(Paths.get(jdkLocation)));
     }
     SetPreference setPreference = new SetPreference(myMode.getInstallerTimestamp(),
                                                     ModalityState.stateForComponent(myWizard.getContentPane()),
