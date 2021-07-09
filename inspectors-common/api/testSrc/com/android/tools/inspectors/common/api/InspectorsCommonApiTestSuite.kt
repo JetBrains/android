@@ -17,16 +17,9 @@ package com.android.tools.inspectors.common.api
 
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
-import com.intellij.openapi.vfs.newvfs.persistent.PersistentFS
-import com.intellij.openapi.vfs.newvfs.persistent.PersistentFSImpl
-import com.intellij.testFramework.TestRunnerUtil
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(InspectorsCommonApiTestSuite::class) // a suite mustn't contain itself
 class InspectorsCommonApiTestSuite : IdeaTestSuiteBase() {
-  init {
-    TestRunnerUtil.replaceIdeEventQueueSafely()
-    (PersistentFS.getInstance() as PersistentFSImpl).cleanPersistedContents()
-  }
 }
