@@ -45,14 +45,6 @@
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
         <location
-            file="src/com/android/tools/profilers/memory/adapters/HeapDumpInstanceObject.java"
-            line="66"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
-        <location
             file="src/com/android/tools/profilers/memory/adapters/JniReferenceInstanceObject.java"
             line="292"/>
     </issue>
