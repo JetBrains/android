@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import static com.android.ddmlib.FileListingService.LS_LD_PATTERN;
+import static com.android.ddmlib.FileListingService.LS_L_PATTERN;
+
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.adb.AdbShellCommandResult;
+import com.android.tools.idea.adb.AdbShellCommandsUtil;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -34,9 +36,8 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static com.android.ddmlib.FileListingService.LS_LD_PATTERN;
-import static com.android.ddmlib.FileListingService.LS_L_PATTERN;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdbFileListing {
   @NotNull public static final Logger LOGGER = Logger.getInstance(AdbFileListing.class);

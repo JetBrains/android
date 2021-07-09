@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
+import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
+
+import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
-import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"SameParameterValue"})
 public class MockDeviceFileEntry implements DeviceFileEntry {

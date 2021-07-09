@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer.adbimpl;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.testing.DebugLoggerRule;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.awt.EventQueue;
