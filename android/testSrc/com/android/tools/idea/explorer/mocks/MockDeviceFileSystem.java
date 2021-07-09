@@ -16,9 +16,9 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.ddmlib.FileListingService;
+import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceState;

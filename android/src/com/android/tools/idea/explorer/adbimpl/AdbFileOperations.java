@@ -15,18 +15,24 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.adb.AdbShellCommandException;
+import com.android.tools.idea.adb.AdbShellCommandResult;
+import com.android.tools.idea.adb.AdbShellCommandsUtil;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AdbFileOperations {
   @NotNull private final IDevice myDevice;

@@ -25,9 +25,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
-import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
