@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -40,9 +41,9 @@ public abstract class BuildsToPathsMapper {
   }
 
   @NotNull
-  public abstract Map<String, File> getBuildsToPaths(@Nullable Object model,
-                                     @NotNull List<String> buildVariants,
-                                     @NotNull Collection<Module> modules,
-                                     boolean isAppBundle,
-                                     @Nullable String signedApkOrBundlePath);
+  public abstract Map<String, File> getBuildsToPaths(@NotNull AssembleInvocationResult assembleResult,
+                                                     @NotNull List<String> buildVariants,
+                                                     @NotNull Collection<Module> modules,
+                                                     boolean isAppBundle,
+                                                     @Nullable String signedApkOrBundlePath);
 }

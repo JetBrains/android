@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.run;
 import com.android.builder.model.AppBundleProjectBuildOutput;
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
+import java.util.Arrays;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,9 +28,9 @@ import org.jetbrains.annotations.Nullable;
  * This model is built from the result of {@link OutputBuildAction} and should be used instead of the inner classes of the action.
  */
 public class PostBuildModel {
-  @NotNull private final OutputBuildAction.PostBuildProjectModels myPostBuildProjectModels;
+  @NotNull private final OutputBuildAction.PostBuildProjectModels[] myPostBuildProjectModels;
 
-  public PostBuildModel(@NotNull OutputBuildAction.PostBuildProjectModels outputs) {
+  public PostBuildModel(@NotNull OutputBuildAction.PostBuildProjectModels... outputs) {
     myPostBuildProjectModels = outputs;
   }
 
@@ -38,8 +40,14 @@ public class PostBuildModel {
       return null;
     }
 
-    OutputBuildAction.PostBuildModuleModels postBuildModuleModels = myPostBuildProjectModels.getModels(gradlePath);
-    return postBuildModuleModels == null ? null : postBuildModuleModels.findModel(modelType);
+    return
+      Arrays.stream(myPostBuildProjectModels)
+        .map(it -> it.getModels(gradlePath))
+        .filter(Objects::nonNull)
+        .map(it -> it.findModel(modelType))
+        .filter(Objects::nonNull)
+        .findFirst()
+      .orElse(null);
   }
 
   @Nullable

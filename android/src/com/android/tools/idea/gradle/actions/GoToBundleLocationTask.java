@@ -22,7 +22,7 @@ import static com.intellij.notification.NotificationType.INFORMATION;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -95,16 +95,14 @@ public class GoToBundleLocationTask {
       result -> {
         BuildsToPathsMapper buildsToPathsMapper =
           BuildsToPathsMapper.getInstance(myProject);
-        for (GradleInvocationResult invocation : result.getInvocationResult().getInvocations()) {
-          Map<String, File> bundleBuildsToPath =
-            buildsToPathsMapper.getBuildsToPaths(invocation.getModel(), myBuildVariants, myModules, true, mySignedBundlePath);
-          showNotification(invocation, bundleBuildsToPath);
-        }
+        Map<String, File> bundleBuildsToPath =
+          buildsToPathsMapper.getBuildsToPaths(result, myBuildVariants, myModules, true, mySignedBundlePath);
+        showNotification(result, bundleBuildsToPath);
         return null;
       });
   }
 
-  private void showNotification(@NotNull GradleInvocationResult result,
+  private void showNotification(@NotNull GradleBuildResult result,
                                 @NotNull Map<String, File> buildsAndBundlePaths) {
     AndroidNotification notification = AndroidNotification.getInstance(myProject);
     if (result.isBuildSuccessful()) {
