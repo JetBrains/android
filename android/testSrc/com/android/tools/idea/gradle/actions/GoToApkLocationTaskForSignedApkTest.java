@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
@@ -147,6 +148,7 @@ public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
       new GradleMultiInvocationResult(
         ImmutableList.of(
           new GradleInvocationResult(new File(getProject().getBasePath()), Collections.emptyList(), buildError)
-        )));
+        )),
+      BuildMode.ASSEMBLE);
   }
 }

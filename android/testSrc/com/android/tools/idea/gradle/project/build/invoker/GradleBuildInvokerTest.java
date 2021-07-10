@@ -222,7 +222,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     verifyInteractionWithMocks(COMPILE_JAVA);
   }
 
-  public void testAssemble() {
+  public void testAssemble() throws Exception {
     setupTestProjectFromAndroidModel(myProject,
                                      getTempDir().createDir().toFile(),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
@@ -230,7 +230,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
     GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
-    buildInvoker.assemble(
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         gradleModule(myProject, ":app"),
         gradleModule(myProject, ":lib")
@@ -240,11 +240,12 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
     assertThat(request.getCommandLineArguments()).isEmpty();
+    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
 
-  public void testAssembleWithCommandLineArgs() {
+  public void testAssembleWithCommandLineArgs() throws Exception {
     setupTestProjectFromAndroidModel(myProject,
                                      getTempDir().createDir().toFile(),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
@@ -252,7 +253,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
 
     GradleBuildInvoker buildInvoker = createBuildInvokerForConfiguredProject();
-    buildInvoker.assemble(
+    ListenableFuture<AssembleInvocationResult> assembleResult = buildInvoker.assemble(
       ImmutableList.of(
         gradleModule(myProject, ":app"),
         gradleModule(myProject, ":lib")
@@ -261,6 +262,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
+    assertThat(assembleResult.get().getBuildMode()).isEqualTo(ASSEMBLE);
 
     verifyInteractionWithMocks(ASSEMBLE);
   }

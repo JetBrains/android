@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocation
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildModuleModels
 import com.android.tools.idea.gradle.run.OutputBuildAction.PostBuildProjectModels
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -318,5 +319,6 @@ private fun PostBuildProjectModels.toTestAssembleResult() =
           model = this
         )
       )
-    )
+    ),
+    BuildMode.ASSEMBLE
   )

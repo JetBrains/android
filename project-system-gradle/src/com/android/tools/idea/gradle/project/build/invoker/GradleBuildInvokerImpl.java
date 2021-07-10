@@ -35,6 +35,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
+import static one.util.streamex.MoreCollectors.onlyOne;
 
 import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter;
@@ -99,6 +100,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -248,6 +250,12 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @Override
   public ListenableFuture<AssembleInvocationResult> executeAssembleTasks(@NotNull Module[] assembledModules,
                                                                          @NotNull List<Request> request) {
+    BuildMode buildMode = request.stream()
+      .map(Request::getMode)
+      .filter(Objects::nonNull)
+      .distinct()
+      .collect(onlyOne())
+      .orElseThrow(() -> new IllegalArgumentException("Each request requires the same not null build mode to be set"));
     GradleRootPathFinder pathFinder = new GradleRootPathFinder();
     Map<String, List<Module>> modulesByRootProject = Arrays.stream(assembledModules)
       .map(it -> Pair.create(it, toSystemIndependentName(pathFinder.getProjectRootPath(it).toFile().getPath())))
@@ -260,7 +268,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
             .create(modulesByRootProject.get(toSystemIndependentName(it.getRootProjectPath().getPath())))))
         .collect(toList())
     );
-    return Futures.transform(resultFuture, AssembleInvocationResult::new, directExecutor());
+    return Futures.transform(resultFuture, it -> new AssembleInvocationResult(it, buildMode), directExecutor());
   }
 
   @NotNull

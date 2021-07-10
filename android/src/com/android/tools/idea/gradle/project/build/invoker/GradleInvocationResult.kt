@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleUtil
 import org.gradle.tooling.BuildCancelledException
 import org.jetbrains.annotations.TestOnly
@@ -52,5 +53,6 @@ class GradleMultiInvocationResult(
 }
 
 class AssembleInvocationResult(
-  val invocationResult: GradleMultiInvocationResult
+  val invocationResult: GradleMultiInvocationResult,
+  val buildMode: BuildMode
 ) : GradleBuildResult by invocationResult
