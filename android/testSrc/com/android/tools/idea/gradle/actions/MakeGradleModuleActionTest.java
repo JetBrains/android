@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
@@ -66,7 +67,8 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
               ImmutableList.of(
                 new GradleInvocationResult(new File("/root"), emptyList(), null)
               )
-            ))));
+            ),
+            BuildMode.ASSEMBLE)));
 
     when(myActionEvent.getDataContext()).thenReturn(myDataContext);
 

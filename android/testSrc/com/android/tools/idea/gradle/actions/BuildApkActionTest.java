@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
@@ -65,7 +66,8 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
               ImmutableList.of(
                 new GradleInvocationResult(new File("/root"), emptyList(), null)
               )
-            ))));
+            ),
+            BuildMode.ASSEMBLE)));
     myAction = new BuildApkAction();
   }
 

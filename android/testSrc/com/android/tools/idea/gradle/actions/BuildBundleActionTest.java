@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
@@ -103,7 +104,8 @@ public class BuildBundleActionTest extends PlatformTestCase {
               ImmutableList.of(
                 new GradleInvocationResult(new File("/root"), emptyList(), null)
               )
-            ))));
+            ),
+            BuildMode.BUNDLE)));
     myAction.actionPerformed(event);
 
     verify(myBuildInvoker).bundle(eq(appModules));
