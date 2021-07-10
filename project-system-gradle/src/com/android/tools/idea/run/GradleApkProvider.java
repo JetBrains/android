@@ -518,10 +518,8 @@ public class GradleApkProvider implements ApkProvider {
       return result.build();
     }
 
-    File outputFile = getFirstItem(getOutputFiles(androidModuleModel));
-    String outputFileName = outputFile == null ? "Unknown output" : outputFile.getName();
     final String message =
-      AndroidBundle.message("run.error.apk.not.signed", outputFileName, androidModuleModel.getSelectedVariant().getDisplayName());
+      AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
 
     Runnable quickFix = () -> {
       Module module = myFacet.getModule();

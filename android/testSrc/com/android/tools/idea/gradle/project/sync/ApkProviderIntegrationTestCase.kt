@@ -361,11 +361,11 @@ abstract class ApkProviderIntegrationTestCase : GradleIntegrationTest {
           testProject = TestProjectPaths.SIMPLE_APPLICATION,
           variant = ":app" to "release",
           expectValidate = mapOf(
-            CURRENT to "The apk for your currently selected variant (app-release-unsigned.apk) is not signed." +
-              " Please specify a signing configuration for this variant (release).",
-            AGP_40 to "The apk for your currently selected variant (Unknown output) is not signed. " +
+            CURRENT to "The apk for your currently selected variant cannot be signed. " +
               "Please specify a signing configuration for this variant (release).",
-            AGP_35 to "The apk for your currently selected variant (app-release.apk) is not signed. " +
+            AGP_40 to "The apk for your currently selected variant cannot be signed. " +
+              "Please specify a signing configuration for this variant (release).",
+            AGP_35 to "The apk for your currently selected variant cannot be signed. " +
               "Please specify a signing configuration for this variant (release)."
           ),
           expectApks = mapOf(
