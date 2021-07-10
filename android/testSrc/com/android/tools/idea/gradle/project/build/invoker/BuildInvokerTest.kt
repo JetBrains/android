@@ -79,8 +79,6 @@ class BuildInvokerTest : AndroidGradleTestCase() {
 
     // Subscribe to GradleBuildState notifications.
     GradleBuildState.subscribe(project, object : GradleBuildListener {
-      override fun buildExecutorCreated(request: GradleBuildInvoker.Request) = Unit
-
       override fun buildStarted(context: BuildContext) {
         gradleBuildStateBuildStartedNotificationReceived = true
       }

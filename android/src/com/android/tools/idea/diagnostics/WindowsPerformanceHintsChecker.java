@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -93,9 +92,6 @@ public class WindowsPerformanceHintsChecker {
 
           // perform check again and possibly show notification after a successful build
           GradleBuildState.subscribe(project, new GradleBuildListener() {
-            @Override
-            public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) { }
-
             @Override
             public void buildStarted(@NotNull BuildContext context) { }
 

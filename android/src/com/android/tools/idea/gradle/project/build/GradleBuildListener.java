@@ -15,22 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GradleBuildListener {
-  void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request);
-
   void buildStarted(@NotNull BuildContext context);
 
   void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context);
 
   abstract class Adapter implements GradleBuildListener {
-    @Override
-    public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
-    }
-
     @Override
     public void buildStarted(@NotNull BuildContext context) {
     }

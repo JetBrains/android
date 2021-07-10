@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import org.gradle.tooling.BuildAction;
@@ -29,8 +28,6 @@ public class GradleTasksExecutorFactory {
                                     @NotNull BuildStopper buildStopper,
                                     @NotNull ExternalSystemTaskNotificationListener listener,
                                     @NotNull SettableFuture<GradleInvocationResult> resultFuture) {
-    GradleTasksExecutor executor = new GradleTasksExecutorImpl(request, buildAction, buildStopper, listener, resultFuture);
-    GradleBuildState.getInstance(request.getProject()).buildExecutorCreated(request);
-    return executor;
+    return new GradleTasksExecutorImpl(request, buildAction, buildStopper, listener, resultFuture);
   }
 }
