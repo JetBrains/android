@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.GuardedBy;
 import com.android.tools.idea.gradle.project.build.BuildContext;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +30,6 @@ public class GradleProjectEventListener implements GradleBuildListener {
   private long myBuildFinished;
 
   private final Object myLock = new Object();
-
-  @Override
-  public void buildExecutorCreated(@NotNull GradleBuildInvoker.Request request) {
-  }
 
   @Override
   public void buildStarted(@NotNull BuildContext context) {
