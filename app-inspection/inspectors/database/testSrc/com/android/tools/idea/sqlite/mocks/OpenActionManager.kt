@@ -43,7 +43,7 @@ open class OpenActionManager(private val wrapped: ActionManager) : ActionManager
   override fun isGroup(actionId: String): Boolean  = wrapped.isGroup(actionId)
   override fun createButtonToolbar(actionPlace: String, messageActionGroup: ActionGroup): JComponent = wrapped.createButtonToolbar(actionPlace, messageActionGroup)
   override fun getActionOrStub(id: String): AnAction?  = wrapped.getActionOrStub(id)
-  override fun addTimerListener(delay: Int, listener: TimerListener)  = wrapped.addTimerListener(delay, listener)
+  override fun addTimerListener(listener: TimerListener)  = wrapped.addTimerListener(listener)
   override fun removeTimerListener(listener: TimerListener)  = wrapped.removeTimerListener(listener)
   override fun tryToExecute(action: AnAction, inputEvent: InputEvent?, contextComponent: Component?, place: String?, now: Boolean): ActionCallback = wrapped.tryToExecute(action, inputEvent, contextComponent, place, now)
   override fun addAnActionListener(listener: AnActionListener?)  = wrapped.addAnActionListener(listener)
