@@ -51,7 +51,6 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.build.BuildConsoleUtils;
 import com.intellij.build.BuildEventDispatcher;
 import com.intellij.build.BuildViewManager;
@@ -84,17 +83,11 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.StatusBarEx;
-import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
@@ -124,7 +117,7 @@ import org.jetbrains.annotations.TestOnly;
 public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @NotNull private final Project myProject;
   @NotNull private final FileDocumentManager myDocumentManager;
-  @NotNull private final GradleTasksExecutorFactory myTaskExecutorFactory;
+  @NotNull private final GradleTasksExecutor myTaskExecutor;
 
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
   @NotNull private final List<String> myOneTimeGradleOptions = new ArrayList<>();
@@ -135,18 +128,18 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   @NonInjectable
   @VisibleForTesting
   public GradleBuildInvokerImpl(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
-    this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
+    this(project, documentManager, new GradleTasksExecutorImpl(), new NativeDebugSessionFinder(project));
   }
 
   @NonInjectable
   @VisibleForTesting
   protected GradleBuildInvokerImpl(@NotNull Project project,
                                    @NotNull FileDocumentManager documentManager,
-                                   @NotNull GradleTasksExecutorFactory tasksExecutorFactory,
+                                   @NotNull GradleTasksExecutor tasksExecutor,
                                    @NotNull NativeDebugSessionFinder nativeDebugSessionFinder) {
     myProject = project;
     myDocumentManager = documentManager;
-    myTaskExecutorFactory = tasksExecutorFactory;
+    myTaskExecutor = tasksExecutor;
     myNativeDebugSessionFinder = nativeDebugSessionFinder;
   }
 
@@ -248,7 +241,7 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
 
   @Override
   public boolean getInternalIsBuildRunning() {
-    return isBuildInProgress(getProject());
+    return myTaskExecutor.internalIsBuildRunning(getProject());
   }
 
   @NotNull
@@ -269,25 +262,6 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
     );
     return Futures.transform(resultFuture, AssembleInvocationResult::new, directExecutor());
   }
-
-  private static boolean isBuildInProgress(@NotNull Project project) {
-    IdeFrame frame = ((WindowManagerEx)WindowManager.getInstance()).findFrameFor(project);
-    StatusBarEx statusBar = frame == null ? null : (StatusBarEx)frame.getStatusBar();
-    if (statusBar == null) {
-      return false;
-    }
-    for (Pair<TaskInfo, ProgressIndicator> backgroundProcess : statusBar.getBackgroundProcesses()) {
-      TaskInfo task = backgroundProcess.getFirst();
-      if (task instanceof GradleTasksExecutor) {
-        ProgressIndicator second = backgroundProcess.getSecond();
-        if (second.isRunning()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
 
   @NotNull
   private static String createGenerateSourcesOnlyProperty() {
@@ -475,11 +449,9 @@ public class GradleBuildInvokerImpl implements GradleBuildInvoker {
   private ListenableFuture<GradleInvocationResult> internalExecuteTasks(@NotNull Request request,
                                                                         @Nullable BuildAction<?> buildAction,
                                                                         @NotNull ExternalSystemTaskNotificationListener buildTaskListener) {
-    SettableFuture<GradleInvocationResult> resultFuture = SettableFuture.create();
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, buildAction, myBuildStopper, buildTaskListener, resultFuture);
-
     ApplicationManager.getApplication().invokeAndWait(myDocumentManager::saveAllDocuments);
-    executor.queue();
+
+    ListenableFuture<GradleInvocationResult> resultFuture = myTaskExecutor.execute(request, buildAction, myBuildStopper, buildTaskListener);
 
     if (request.isWaitForCompletion() && !ApplicationManager.getApplication().isDispatchThread()) {
       //noinspection CatchMayIgnoreException

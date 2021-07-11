@@ -31,7 +31,7 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
 
-class BuildOutputParsersIntegrationTest: PlatformTestCase() {
+class BuildOutputParsersIntegrationTest : PlatformTestCase() {
   private lateinit var myTaskId: ExternalSystemTaskId
 
   private lateinit var myBuildInvoker: GradleBuildInvokerImpl
@@ -41,8 +41,9 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
 
   @Mock
   private lateinit var myFileDocumentManager: FileDocumentManager
-  @Mock
-  private lateinit var myTasksExecutor: GradleTasksExecutor
+
+  private val myTasksExecutor = FakeGradleTaskExecutor()
+
   @Mock
   private lateinit var myDebugSessionFinder: NativeDebugSessionFinder
 
@@ -57,7 +58,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
 
     myBuildInvoker = GradleBuildInvokerImpl(myProject,
                                             myFileDocumentManager,
-                                            GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor),
+                                            myTasksExecutor,
                                             myDebugSessionFinder)
     myRequest = GradleBuildInvoker.Request.builder(myProject, File(myProject.basePath)).setTaskId(myTaskId).build()
   }
