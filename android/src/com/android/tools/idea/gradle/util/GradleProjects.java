@@ -41,8 +41,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
  * Utility methods for {@link Project}s.
  */
 public final class GradleProjects {
-  private static final Key<Boolean> SYNC_REQUESTED_DURING_BUILD = Key.create("project.sync.requested.during.build");
-
   private GradleProjects() {
   }
 
@@ -118,14 +116,6 @@ public final class GradleProjects {
     VirtualFile target = findGradleTarget(importSource);
     return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
                               target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
-  }
-
-  public static void setSyncRequestedDuringBuild(@NotNull Project project, @Nullable Boolean value) {
-    project.putUserData(SYNC_REQUESTED_DURING_BUILD, value);
-  }
-
-  public static boolean isSyncRequestedDuringBuild(@NotNull Project project) {
-    return SYNC_REQUESTED_DURING_BUILD.get(project, false);
   }
 
   public static boolean isIdeaAndroidModule(@NotNull Module module) {
