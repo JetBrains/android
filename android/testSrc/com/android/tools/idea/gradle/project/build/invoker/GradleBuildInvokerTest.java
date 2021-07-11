@@ -23,7 +23,6 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,9 +39,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
@@ -57,20 +54,17 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-import org.gradle.tooling.BuildAction;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
 public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
+  private final FakeGradleTaskExecutor myGradleTaskExecutor = new FakeGradleTaskExecutor();
   @Mock private FileDocumentManager myFileDocumentManager;
-  @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
 
-  private GradleTasksExecutorFactoryStub myTasksExecutorFactory;
   private Module[] myModules;
   private BuildSettings myBuildSettings;
   private GradleTaskFinder myTaskFinder;
@@ -82,24 +76,22 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   }
 
   private GradleBuildInvoker createBuildInvoker() {
-    myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
     IdeComponents ideComponents = new IdeComponents(myProject);
     myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
     myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
 
   private GradleBuildInvoker createBuildInvokerForConfiguredProject() {
-    myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
     IdeComponents ideComponents = new IdeComponents(myProject);
     myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
-    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
+    return new GradleBuildInvokerImpl(myProject, myFileDocumentManager, myGradleTaskExecutor, myDebugSessionFinder);
   }
 
   @Override
@@ -120,7 +112,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     GradleBuildInvoker buildInvoker = createBuildInvoker();
     // Invoke method to test.
     buildInvoker.cleanProject();
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     // Verify task list includes clean.
     assertThat(request.getGradleTasks()).containsExactly("clean");
     assertThat(request.getCommandLineArguments()).isEmpty();
@@ -173,13 +165,13 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
     verify(nativeDebugSession, never()).stop(); // expect that the session was never stopped.
 
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertNull(request); // Build was canceled, no request created.
 
     // If build was canceled, none of these methods should have been invoked.
     verify(myBuildSettings, never()).setBuildMode(any());
     verify(myFileDocumentManager, never()).saveAllDocuments();
-    verify(myTasksExecutor, never()).queue();
+    assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(0);
   }
 
   @NotNull
@@ -205,7 +197,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       TestCompileType.ALL
     );
 
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(
       ":lib:ideSetupTask1",
       ":lib:ideSetupTask2",
@@ -245,7 +237,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ).toArray(new Module[0]),
       TestCompileType.ALL);
 
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
     assertThat(request.getCommandLineArguments()).isEmpty();
 
@@ -267,7 +259,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
       ).toArray(new Module[0]),
       TestCompileType.ALL);
 
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
+    GradleBuildInvoker.Request request = myGradleTaskExecutor.getLastRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(ImmutableList.of(":lib:assembleDebug", ":app:assembleDebug"));
 
     verifyInteractionWithMocks(ASSEMBLE);
@@ -311,7 +303,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   private void verifyInteractionWithMocks(@NotNull BuildMode buildMode) {
     verify(myBuildSettings).setBuildMode(buildMode);
     verify(myFileDocumentManager).saveAllDocuments();
-    verify(myTasksExecutor).queue();
+    assertThat(myGradleTaskExecutor.getInvoked()).isEqualTo(1);
   }
 
   @NotNull
@@ -319,33 +311,5 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
     ListMultimap<Path, String> tasks = ArrayListMultimap.create();
     tasks.putAll(Paths.get("project_path"), taskNames);
     return tasks;
-  }
-
-  static class GradleTasksExecutorFactoryStub extends GradleTasksExecutorFactory {
-    @NotNull private final GradleTasksExecutor myTasksExecutor;
-    private GradleBuildInvoker.Request myRequest;
-
-    GradleTasksExecutorFactoryStub(@NotNull GradleTasksExecutor tasksExecutor) {
-      myTasksExecutor = tasksExecutor;
-    }
-
-    @Override
-    @NotNull
-    public GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
-                                      @Nullable BuildAction<?> buildAction,
-                                      @NotNull BuildStopper buildStopper,
-                                      @NotNull ExternalSystemTaskNotificationListener listener,
-                                      @NotNull SettableFuture<GradleInvocationResult> resultFuture) {
-      myRequest = request;
-      doAnswer(invocation -> {
-        resultFuture.set(null);
-        return null;
-      }).when(myTasksExecutor).queue();
-      return myTasksExecutor;
-    }
-
-    GradleBuildInvoker.Request getRequest() {
-      return myRequest;
-    }
   }
 }
