@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.setSyncRequestedDuringBuild;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 import static com.intellij.notification.NotificationType.ERROR;
@@ -40,15 +39,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.TaskInfo;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.wm.IdeFrame;
-import com.intellij.openapi.wm.WindowManager;
-import com.intellij.openapi.wm.ex.StatusBarEx;
-import com.intellij.openapi.wm.ex.WindowManagerEx;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -102,7 +94,6 @@ public class GradleSyncInvoker {
     }
     //noinspection deprecation
     if (GradleBuildInvoker.getInstance(project).getInternalIsBuildRunning()) {
-      setSyncRequestedDuringBuild(project, true);
       return;
     }
 
