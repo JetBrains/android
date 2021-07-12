@@ -23,6 +23,7 @@ import com.android.tools.deployer.InstallOptions
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
 import com.android.tools.idea.run.ApkInfo
+import com.android.utils.ILogger
 import com.intellij.mock.MockApplication
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.openapi.Disposable
@@ -51,6 +52,7 @@ class DeployTaskTest {
   private val application: MockApplication = MockApplication(rootDisposable)
 
   @Mock private lateinit var project: Project
+  @Mock private lateinit var logger: ILogger
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
   @Mock private lateinit var notificationGroupManager: NotificationGroupManager
@@ -63,7 +65,7 @@ class DeployTaskTest {
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
     `when`(deployer.install(any(), any(), any(), any())).thenReturn(
-      Deployer.Result(false, false, false, App("id", emptyList(), device))
+      Deployer.Result(false, false, false, App("id", emptyList(), device, logger))
     )
     `when`(canceller.cancelled()).thenReturn(false)
   }
