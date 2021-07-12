@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose
+package com.android.tools.compose.debug
 
-import com.android.tools.compose.debug.ComposeDebuggerSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.configurationStore.deserialize
 import com.intellij.configurationStore.serialize
