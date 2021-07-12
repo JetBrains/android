@@ -49,15 +49,15 @@ class ComposePositionManagerTest {
     val file = projectRule.fixture.addFileToProject("src/a/test.kt", source)
 
     val debugProcess = mockDebugProcess(project) {
-      type("a.A") {
-        method("f", 4, 5, 6, 7, 8)
-        method("g", 10)
+      classType("a.A") {
+        method("f", lines = listOf(4, 5, 6, 7, 8))
+        method("g", lines = listOf(10))
       }
 
-      type("a.ComposableSingletons\$TestKt")
+      classType("a.ComposableSingletons\$TestKt")
 
-      type("a.ComposableSingletons\$TestKt\$lambda-1") {
-        method("invoke", 5, 6, 7)
+      classType("a.ComposableSingletons\$TestKt\$lambda-1") {
+        method("invoke", lines = listOf(5, 6, 7))
       }
     }
     val composePositionManager =
@@ -91,15 +91,15 @@ class ComposePositionManagerTest {
     val file = projectRule.fixture.addFileToProject("src/a/test2.kt", source)
 
     val debugProcess = mockDebugProcess(project) {
-      type("a.FileClass") {
-        method("f", 4, 5, 6, 7, 8)
-        method("g", 10)
+      classType("a.FileClass") {
+        method("f", lines = listOf(4, 5, 6, 7, 8))
+        method("g", lines = listOf(10))
       }
 
-      type("a.ComposableSingletons\$Test2Kt")
+      classType("a.ComposableSingletons\$Test2Kt")
 
-      type("a.ComposableSingletons\$Test2Kt\$lambda-1") {
-        method("invoke", 5, 6, 7)
+      classType("a.ComposableSingletons\$Test2Kt\$lambda-1") {
+        method("invoke", lines = listOf(5, 6, 7))
       }
     }
     val composePositionManager =

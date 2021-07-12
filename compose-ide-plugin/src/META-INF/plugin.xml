@@ -105,6 +105,25 @@
     <debugger.positionManagerFactory implementation="com.android.tools.compose.debug.ComposePositionManagerFactory"/>
     <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
+    <debugger.compoundRendererProvider id="SnapshotMutableStateImplRenderer"
+                                       implementation="com.android.tools.compose.debug.render.SnapshotMutableStateImplRendererProvider"
+                                       order="first"/>
+
+    <debugger.compoundRendererProvider id="DerivedSnapshotStateRenderer"
+                                       implementation="com.android.tools.compose.debug.render.DerivedSnapshotStateRendererProvider"
+                                       order="first"/>
+
+    <debugger.compoundRendererProvider id="ComposeStateObjectListRenderer"
+                                       implementation="com.android.tools.compose.debug.render.ComposeStateObjectListRendererProvider"
+                                       order="first"/>
+
+    <debugger.compoundRendererProvider id="ComposeStateObjectMapRenderer"
+                                       implementation="com.android.tools.compose.debug.render.ComposeStateObjectMapRendererProvider"
+                                       order="first"/>
+
+    <debugger.compoundRendererProvider id="KotlinMapEntryRenderer"
+                                       implementation="com.android.tools.compose.debug.render.KotlinMapEntryRenderer"
+                                       order="first"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
