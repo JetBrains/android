@@ -20,6 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
 import com.android.tools.idea.run.ApkInfo
 import com.intellij.mock.MockApplication
@@ -61,7 +62,9 @@ class DeployTaskTest {
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
-    `when`(deployer.install(any(), any(), any(), any())).thenReturn(Deployer.Result())
+    `when`(deployer.install(any(), any(), any(), any())).thenReturn(
+      Deployer.Result(false, false, false, App("id", emptyList(), device))
+    )
     `when`(canceller.cancelled()).thenReturn(false)
   }
 
