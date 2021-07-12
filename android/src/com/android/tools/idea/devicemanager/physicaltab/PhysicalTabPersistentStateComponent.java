@@ -109,6 +109,9 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     @OptionTag(tag = "api", nameAttribute = "")
     private @Nullable String api;
 
+    @OptionTag(tag = "resolution", nameAttribute = "")
+    private @Nullable ResolutionState resolution;
+
     @SuppressWarnings("unused")
     private PhysicalDeviceState() {
       nameOverride = "";
@@ -121,6 +124,12 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       nameOverride = "";
       target = device.getTarget();
       api = device.getApi();
+
+      Resolution resolution = device.getResolution();
+
+      if (resolution != null) {
+        this.resolution = new ResolutionState(resolution);
+      }
     }
 
     private @Nullable PhysicalDevice asPhysicalDevice() {
@@ -136,14 +145,19 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
         return null;
       }
 
-      return new PhysicalDevice.Builder()
+      PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
         .setKey(key)
         .setLastOnlineTime(lastOnlineTime)
         .setName(name)
         .setNameOverride(nameOverride)
         .setTarget(target)
-        .setApi(api)
-        .build();
+        .setApi(api);
+
+      if (resolution != null) {
+        builder.setResolution(resolution.asResolution());
+      }
+
+      return builder.build();
     }
 
     @Override
@@ -155,6 +169,7 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
       hashCode = 31 * hashCode + nameOverride.hashCode();
       hashCode = 31 * hashCode + Objects.hashCode(target);
       hashCode = 31 * hashCode + Objects.hashCode(api);
+      hashCode = 31 * hashCode + Objects.hashCode(resolution);
 
       return hashCode;
     }
@@ -172,7 +187,8 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
              Objects.equals(name, device.name) &&
              nameOverride.equals(device.nameOverride) &&
              Objects.equals(target, device.target) &&
-             Objects.equals(api, device.api);
+             Objects.equals(api, device.api) &&
+             Objects.equals(resolution, device.resolution);
     }
   }
 
@@ -246,5 +262,42 @@ final class PhysicalTabPersistentStateComponent implements PersistentStateCompon
     }
 
     abstract @NotNull Key newKey(@NotNull String value);
+  }
+
+  @Tag("Resolution")
+  private static final class ResolutionState {
+    @OptionTag(tag = "width", nameAttribute = "")
+    private int width;
+
+    @OptionTag(tag = "height", nameAttribute = "")
+    private int height;
+
+    @SuppressWarnings("unused")
+    private ResolutionState() {
+    }
+
+    private ResolutionState(@NotNull Resolution resolution) {
+      width = resolution.getWidth();
+      height = resolution.getHeight();
+    }
+
+    private @NotNull Resolution asResolution() {
+      return new Resolution(width, height);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * width + height;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+      if (!(object instanceof ResolutionState)) {
+        return false;
+      }
+
+      ResolutionState resolution = (ResolutionState)object;
+      return width == resolution.width && height == resolution.height;
+    }
   }
 }

@@ -109,6 +109,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
         .setTarget(device.getTarget())
         .setApi(device.getApi())
         .addAllConnectionTypes(device.getConnectionTypes())
+        .setResolution(device.getResolution())
         .build();
 
       myDevices.set(i, newDevice);
@@ -177,6 +178,7 @@ final class PhysicalDeviceTableModel extends AbstractTableModel {
       .setApi(serialNumberDevice.getApi())
       .addAllConnectionTypes(domainNameDevice.getConnectionTypes())
       .addAllConnectionTypes(serialNumberDevice.getConnectionTypes())
+      .setResolution(serialNumberDevice.getResolution())
       .build();
   }
 
