@@ -27,7 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
  * The file name of the library when resolving against the blaze build system.
  */
 val ArtifactCoordinate.blazeFileName: String
-  get() = "${artifactId}.${type}"
+  get() = "library.${type}"
 
 /**
  * Converts an [ArtifactCoordinate] to a [GradleCoordinate].

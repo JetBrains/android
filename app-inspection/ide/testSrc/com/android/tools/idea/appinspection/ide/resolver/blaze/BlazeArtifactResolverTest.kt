@@ -19,26 +19,63 @@ import com.android.tools.idea.appinspection.ide.resolver.TestArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
-import kotlinx.coroutines.CompletableDeferred
+import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.google.common.truth.Truth.assertThat
+import com.intellij.util.io.createFile
 import kotlinx.coroutines.runBlocking
+import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
 
 class BlazeArtifactResolverTest {
+  @get:Rule
+  val temporaryDirectoryRule = TemporaryDirectoryRule()
+
   @Test
-  fun resolveHttpFailsAndThenResolvesAgainstGoogle3() = runBlocking {
-    val httpResolver = TestArtifactResolver { null }
-    val artifactResolvedDeferred = CompletableDeferred<Unit>()
-    val blazeArtifactResolver = object : ArtifactResolver {
+  fun resolveInspectorJarOverLibraryAarAndHttp() = runBlocking {
+    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val artifactDir = temporaryDirectoryRule.newPath("test")
+    // blaze artifact resolver should always take inspector.jar over other options.
+    artifactDir.resolve("inspector.jar").createFile()
+    artifactDir.resolve("library.aar").createFile()
+    val moduleSystemResolver = object : ArtifactResolver {
       override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-        artifactResolvedDeferred.complete(Unit)
-        return TEST_JAR_PATH
+        return artifactDir
       }
     }
-    val resolver = BlazeArtifactResolver(httpResolver, blazeArtifactResolver)
-    resolver.resolveArtifact(
-      ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR),
-    )
-    artifactResolvedDeferred.await()
+    val httpResolver = TestArtifactResolver { null }
+    val resolver = BlazeArtifactResolver(httpResolver, moduleSystemResolver)
+    val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
+    assertThat(inspectorJar!!.fileName.toString()).isEqualTo("inspector.jar")
+  }
+
+  @Test
+  fun resolveInspectorLibraryAar() = runBlocking {
+    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val artifactDir = temporaryDirectoryRule.newPath("test")
+    // when inspector.jar is not present, resolver should take the library.aar
+    artifactDir.resolve("library.aar").createFile()
+    val moduleSystemResolver = object : ArtifactResolver {
+      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+        return artifactDir
+      }
+    }
+    val httpResolver = TestArtifactResolver { null }
+    val resolver = BlazeArtifactResolver(httpResolver, moduleSystemResolver)
+    val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
+    assertThat(inspectorJar!!.fileName.toString()).isEqualTo("library.aar")
+  }
+
+  @Test
+  fun fallbackToHttp() = runBlocking {
+    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+    val httpResolver = TestArtifactResolver { TEST_JAR_PATH }
+    val moduleSystemArtifactResolver = object : ArtifactResolver {
+      override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+        return temporaryDirectoryRule.newPath("test")
+      }
+    }
+    val resolver = BlazeArtifactResolver(httpResolver, moduleSystemArtifactResolver)
+    assertThat(resolver.resolveArtifact(artifactCoordinate)).isEqualTo(TEST_JAR_PATH)
   }
 }
