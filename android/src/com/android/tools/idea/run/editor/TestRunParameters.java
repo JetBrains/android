@@ -304,6 +304,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
       ? AndroidTestRunConfiguration.getDefaultInstrumentationRunner(androidFacet)
       : configuration.INSTRUMENTATION_RUNNER_CLASS);
     myInstrumentationArgs.set(configuration.getExtraInstrumentationOptions(androidFacet));
+    myUserModifiedInstrumentationExtraParams = configuration.EXTRA_OPTIONS;
     myIncludeGradleExtraParams = configuration.INCLUDE_GRADLE_EXTRA_OPTIONS;
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       myEnableRetention.setValue(configuration.RETENTION_ENABLED);
