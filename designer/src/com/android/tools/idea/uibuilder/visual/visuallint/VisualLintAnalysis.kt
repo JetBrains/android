@@ -26,10 +26,19 @@ import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
 private const val BOTTOM_NAVIGATION_ISSUE_MESSAGE = "BottomNavigationView should not be used in layouts larger than 600dp"
+private val BOTTOM_NAVIGATION_ISSUE_CONTENT = HtmlBuilder()
+  .add("Material Design recommends that bottom navigation should only be used for displays less than 600dp in width.")
+  .newline()
+  .add("Consider using a navigation rail or navigation drawer instead for larger screens.")
+private val LONG_TEXT_ISSUE_CONTENT = HtmlBuilder()
+  .add("Material Design recommends that lines of text should not be longer than 120 characters.")
+  .newline()
+  .add("Consider reducing the width of this component or using a multi-columns layout.")
 
 enum class VisualLintErrorType {
   BOUNDS, BOTTOM_NAV, OVERLAP, LONG_TEXT, ATF
@@ -75,7 +84,10 @@ private fun findBoundIssues(root: ViewInfo, model: NlModel, issues: MutableMap<S
   for (child in root.children) {
     // Bounds of children are defined relative to their parent
     if (child.top < 0 || child.bottom > rootHeight || child.left < 0 || child.right > rootWidth) {
-      createIssue(child, model, "${simpleName(child)} is not fully visible in layout", issues)
+      val content = HtmlBuilder().add("${simpleName(child)} is not entirely contained within the bounds of its parent.")
+        .newline()
+        .add("This may result in this component being partially hidden from view.")
+      createIssue(child, model, "${simpleName(child)} is not fully visible in layout", content, issues)
     }
     findBoundIssues(child, model, issues)
   }
@@ -98,7 +110,7 @@ private fun findBottomNavigationIssue(root: ViewInfo,
   if (root.className == BOTTOM_NAVIGATION_CLASS_NAME) {
     val widthInDp = Coordinates.pxToDp(sceneManager, root.right - root.left)
     if (widthInDp > 600) {
-      createIssue(root, sceneManager.model, BOTTOM_NAVIGATION_ISSUE_MESSAGE, issues)
+      createIssue(root, sceneManager.model, BOTTOM_NAVIGATION_ISSUE_MESSAGE, BOTTOM_NAVIGATION_ISSUE_CONTENT, issues)
     }
   }
   for (child in root.children) {
@@ -129,7 +141,10 @@ private fun findOverlapIssues(root: ViewInfo, model: NlModel, issues: MutableMap
         continue
       }
       if (firstView.bottom > secondView.top && firstView.top < secondView.bottom) {
-        createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}", issues)
+        val content = HtmlBuilder().add("The content of ${simpleName(firstView)} is partially hidden.")
+          .newline()
+          .add("This may pose a problem for the readability of the text it contains.")
+        createIssue(firstView, model, "${simpleName(firstView)} is covered by ${simpleName(secondView)}", content, issues)
       }
     }
   }
@@ -156,7 +171,7 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: MutableMap<Stri
     for (i in 0 until layout.lineCount) {
       val numChars = layout.getLineVisibleEnd(i) - layout.getLineStart(i) + 1
       if (numChars > 120) {
-        createIssue(root, model, "${simpleName(root)} has lines containing more than 120 characters", issues)
+        createIssue(root, model, "${simpleName(root)} has lines containing more than 120 characters", LONG_TEXT_ISSUE_CONTENT, issues)
         break
       }
     }
@@ -167,12 +182,17 @@ private fun findLongText(root: ViewInfo, model: NlModel, issues: MutableMap<Stri
 }
 
 
-private fun createIssue(view: ViewInfo, model: NlModel, message: String, issues: MutableMap<String, MutableList<Issue>>) {
+private fun createIssue(view: ViewInfo,
+                        model: NlModel,
+                        message: String,
+                        htmlContent: HtmlBuilder,
+                        issues: MutableMap<String, MutableList<Issue>>) {
   val idString = (view.cookie as? TagSnapshot)?.getAttribute("id")
   val component = componentFromViewInfo(view, model)
   if (idString == null) {
     val issue = VisualLintRenderIssue(RenderErrorModel.Issue.builder()
                                         .setSummary(message)
+                                        .setHtmlContent(htmlContent)
                                         .setSeverity(HighlightSeverity.WARNING)
                                         .build(), model, mutableListOf())
     issue.addComponent(component)
@@ -182,6 +202,7 @@ private fun createIssue(view: ViewInfo, model: NlModel, message: String, issues:
     (issues.getOrPut(idString) {
       mutableListOf(VisualLintRenderIssue(RenderErrorModel.Issue.builder()
                                             .setSummary(message)
+                                            .setHtmlContent(htmlContent)
                                             .setSeverity(HighlightSeverity.WARNING)
                                             .build(), model, mutableListOf()))
     }.first() as VisualLintRenderIssue).addComponent(component)
