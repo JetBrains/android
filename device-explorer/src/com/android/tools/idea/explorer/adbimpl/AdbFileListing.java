@@ -25,6 +25,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.android.tools.idea.adb.AdbShellCommandsUtil;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
@@ -47,6 +48,8 @@ public class AdbFileListing {
   @NotNull private AdbDeviceCapabilities myDeviceCapabilities;
   @NotNull private final FutureCallbackExecutor myExecutor;
   @NotNull private final AdbFileListingEntry myRoot;
+  @NotNull private final AdbShellCommandsUtil myShellCommandsUtil =
+    new AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get());
 
   public AdbFileListing(@NotNull IDevice device, @NotNull AdbDeviceCapabilities deviceCapabilities, @NotNull Executor taskExecutor) {
     myDevice = device;
@@ -72,7 +75,7 @@ public class AdbFileListing {
       // Run "ls -al" command and process matching output lines
       String command = getCommand(runAs, "ls -al ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
 
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       boolean escaping = myDeviceCapabilities.hasEscapingLs();
 
       List<AdbFileListingEntry> entries = commandResult.getOutput()
@@ -111,7 +114,7 @@ public class AdbFileListing {
       // directory, we'll see the normal directory listing.  Otherwise, we'll see an
       // error of some sort.
       String command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.getFullPath()).build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
 
       // Look for at least one line matching the expected output
       int lineCount = 0;

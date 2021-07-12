@@ -9,6 +9,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",

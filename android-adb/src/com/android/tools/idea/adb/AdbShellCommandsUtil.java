@@ -15,33 +15,49 @@
  */
 package com.android.tools.idea.adb;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.MultiLineReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.adblib.ddmlibcompatibility.AdbLibMigrationUtils;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
 public class AdbShellCommandsUtil {
   @NotNull private static final Logger LOGGER = Logger.getInstance(AdbShellCommandsUtil.class);
   @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
   @NotNull private static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
+  @NotNull private static final AdbShellCommandsUtil sInstance = new AdbShellCommandsUtil(false);
 
-  public static AdbShellCommandResult executeCommand(@NotNull IDevice device, @NotNull String command)
+  private final boolean myUseAdbLib;
+
+  public static AdbShellCommandsUtil getInstance() {
+    return sInstance;
+  }
+
+  public AdbShellCommandsUtil(boolean useAdbLib) {
+    myUseAdbLib = useAdbLib;
+  }
+
+  public AdbShellCommandResult executeCommand(@NotNull IDevice device, @NotNull String command)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     return executeCommandImpl(device, command, true);
   }
 
-  public static AdbShellCommandResult executeCommandNoErrorCheck(@NotNull IDevice device, @NotNull String command)
+  public AdbShellCommandResult executeCommandNoErrorCheck(@NotNull IDevice device, @NotNull String command)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     return executeCommandImpl(device, command, false);
   }
 
-  public static void executeRawCommand(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
+  public void executeRawCommand(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     long startTime = System.nanoTime();
 
@@ -53,7 +69,7 @@ public class AdbShellCommandsUtil {
     }
   }
 
-  private static AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
+  private AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
 
     List<String> commandOutput = new ArrayList<>();
@@ -100,11 +116,16 @@ public class AdbShellCommandsUtil {
     return new AdbShellCommandResult(command, commandOutput, isError);
   }
 
-  private static void executeCommandImpl(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
+  private void executeCommandImpl(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     long startTime = System.nanoTime();
-    device.executeShellCommand(command, receiver);
+    if (myUseAdbLib) {
+      AdbLibMigrationUtils.executeShellCommand(device, command, receiver);
+    }
+    else {
+      device.executeShellCommand(command, receiver);
+    }
     long endTime = System.nanoTime();
     LOGGER.info(String.format(Locale.US, "Command took %,d ms to execute: %s", (endTime - startTime) / 1_000_000, command));
- }
+  }
 }

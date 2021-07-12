@@ -24,6 +24,7 @@ import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.android.tools.idea.adb.AdbShellCommandsUtil;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.IOException;
@@ -39,6 +40,8 @@ public class AdbFileOperations {
   @NotNull private final IDevice myDevice;
   @NotNull private final FutureCallbackExecutor myExecutor;
   @NotNull private final AdbDeviceCapabilities myDeviceCapabilities;
+  @NotNull private final AdbShellCommandsUtil myShellCommandsUtil =
+    new AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get());
 
   public AdbFileOperations(@NotNull IDevice device, @NotNull AdbDeviceCapabilities deviceCapabilities, @NotNull Executor taskExecutor) {
     myDevice = device;
@@ -70,7 +73,7 @@ public class AdbFileOperations {
       else {
         command = getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build();
       }
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       if (!commandResult.isError()) {
         throw AdbShellCommandException.create("File \"%s\" already exists on device", remotePath);
       }
@@ -97,7 +100,7 @@ public class AdbFileOperations {
       // "mkdir" fails if the file/directory already exists
       String remotePath = AdbPathUtil.resolve(parentPath, directoryName);
       String command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       // All done
@@ -108,7 +111,7 @@ public class AdbFileOperations {
   public ListenableFuture<List<String>> listPackages() {
     return myExecutor.executeAsync(() -> {
       String command = getCommand(null, "pm list packages").build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       return commandResult.getOutput().stream()
@@ -130,7 +133,7 @@ public class AdbFileOperations {
   public ListenableFuture<List<PackageInfo>> listPackageInfo() {
     return myExecutor.executeAsync(() -> {
       String command = getCommand(null, "pm list packages -f").build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       return commandResult.getOutput().stream()
@@ -198,7 +201,7 @@ public class AdbFileOperations {
   public ListenableFuture<Unit> deleteFileRunAs(@NotNull String path, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       String command = getRmCommand(runAs, path, false);
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       // All done
@@ -215,7 +218,7 @@ public class AdbFileOperations {
   public ListenableFuture<Unit> deleteRecursiveRunAs(@NotNull String path, @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       String command = getRmCommand(runAs, path, true);
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
 
       // All done
@@ -238,7 +241,7 @@ public class AdbFileOperations {
       else {
         command = getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build();
       }
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
       return Unit.INSTANCE;
     });
@@ -277,7 +280,7 @@ public class AdbFileOperations {
       else {
         command = new AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build();
       }
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       commandResult.throwIfError();
       return Unit.INSTANCE;
     });
@@ -294,7 +297,7 @@ public class AdbFileOperations {
     else {
       command = getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build();
     }
-    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
     commandResult.throwIfError();
   }
 

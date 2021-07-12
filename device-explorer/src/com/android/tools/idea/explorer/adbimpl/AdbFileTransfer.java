@@ -20,9 +20,11 @@ import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DI
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
+import com.android.tools.idea.adblib.ddmlibcompatibility.AdbLibMigrationUtils;
 import com.android.tools.idea.concurrency.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.fs.ThrottledProgress;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AdbFileTransfer {
-  @NotNull private static Logger LOGGER = Logger.getInstance(AdbFileTransfer.class);
+  @NotNull private static final Logger LOGGER = Logger.getInstance(AdbFileTransfer.class);
 
   @NotNull private final IDevice myDevice;
   @NotNull private final AdbFileOperations myFileOperations;
@@ -128,24 +130,37 @@ public class AdbFileTransfer {
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
 
-    ListenableFuture<SyncService> futureSyncService = getSyncService();
-
-    ListenableFuture<Unit> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
-      assert syncService != null;
-      try {
+    ListenableFuture<Unit> futurePull;
+    if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+      futurePull = myTaskExecutor.executeAsync(() -> {
         long startTime = System.nanoTime();
-        syncService.pullFile(remotePath,
-                             localPath.toString(),
-                             new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
+        AdbLibMigrationUtils.pullFile(myDevice,
+                                      remotePath,
+                                      localPath.toString(),
+                                      new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
         long endTime = System.nanoTime();
         LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
                                   remotePath, localPath));
         return Unit.INSTANCE;
-      }
-      finally {
-        syncService.close();
-      }
-    });
+      });
+    }
+    else {
+      ListenableFuture<SyncService> futureSyncService = getSyncService();
+
+      futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
+        assert syncService != null;
+        try (SyncService ignored = syncService) {
+          long startTime = System.nanoTime();
+          syncService.pullFile(remotePath,
+                               localPath.toString(),
+                               new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
+          long endTime = System.nanoTime();
+          LOGGER.info(String.format(Locale.US, "Pull file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
+                                    remotePath, localPath));
+          return Unit.INSTANCE;
+        }
+      });
+    }
 
     return myTaskExecutor.catchingAsync(futurePull, SyncException.class, syncError -> {
       assert syncError != null;
@@ -162,27 +177,43 @@ public class AdbFileTransfer {
   private ListenableFuture<Unit> uploadFileWorker(@NotNull Path localPath,
                                                   @NotNull String remotePath,
                                                   @NotNull FileTransferProgress progress) {
-
-    ListenableFuture<SyncService> futureSyncService = getSyncService();
-
-    ListenableFuture<Unit> futurePush = myTaskExecutor.transform(futureSyncService, syncService -> {
-      assert syncService != null;
-      try {
+    ListenableFuture<Unit> futurePush;
+    if (StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get()) {
+      futurePush = myTaskExecutor.executeAsync(() -> {
         long fileLength = localPath.toFile().length();
         long startTime = System.nanoTime();
-        syncService.pushFile(localPath.toString(),
-                             remotePath,
-                             new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
+        AdbLibMigrationUtils.pushFile(myDevice,
+                                      localPath.toString(),
+                                      remotePath,
+                                      new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
         long endTime = System.nanoTime();
         LOGGER.info(String
-                      .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000, localPath,
+                      .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
+                              localPath,
                               remotePath));
         return Unit.INSTANCE;
-      }
-      finally {
-        syncService.close();
-      }
-    });
+      });
+    }
+    else {
+      ListenableFuture<SyncService> futureSyncService = getSyncService();
+
+      futurePush = myTaskExecutor.transform(futureSyncService, syncService -> {
+        assert syncService != null;
+        try (SyncService ignored = syncService) {
+          long fileLength = localPath.toFile().length();
+          long startTime = System.nanoTime();
+          syncService.pushFile(localPath.toString(),
+                               remotePath,
+                               new SingleFileProgressMonitor(myProgressExecutor, progress, fileLength));
+          long endTime = System.nanoTime();
+          LOGGER.info(String
+                        .format(Locale.US, "Push file took %,d ms to execute: \"%s\" -> \"%s\"", (endTime - startTime) / 1_000_000,
+                                localPath,
+                                remotePath));
+          return Unit.INSTANCE;
+        }
+      });
+    }
 
     return myTaskExecutor.catchingAsync(futurePush, SyncException.class, syncError -> {
       assert syncError != null;

@@ -613,6 +613,13 @@ public final class StudioFlags {
     "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.device.explorer",
+    "Use adblib in Device Explorer",
+    "Use adblib instead of ddmlib for Device Explorer",
+    false);
+
   public static final Flag<Boolean> DEFAULT_ACTIVITY_LOCATOR_FROM_APKS = Flag.create(
     RUNDEBUG,
     "default.activity.locator.sourceoftruth",

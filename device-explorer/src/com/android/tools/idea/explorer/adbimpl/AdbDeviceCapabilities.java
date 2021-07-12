@@ -26,6 +26,7 @@ import com.android.ddmlib.TimeoutException;
 import com.android.tools.idea.adb.AdbShellCommandException;
 import com.android.tools.idea.adb.AdbShellCommandResult;
 import com.android.tools.idea.adb.AdbShellCommandsUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,6 +50,9 @@ public class AdbDeviceCapabilities {
   @NotNull private static final String ESCAPING_LS_NOT_ESCAPED_PATH = AdbPathUtil.resolve(DEVICE_TEMP_DIRECTORY, "oyX2HCKL acuauQGJ");
 
   @NotNull private final IDevice myDevice;
+  @NotNull private final AdbShellCommandsUtil myShellCommandsUtil =
+    new AdbShellCommandsUtil(StudioFlags.ADBLIB_MIGRATION_DEVICE_EXPLORER.get());
+
   @Nullable private Boolean mySupportsTestCommand;
   @Nullable private Boolean mySupportsRmForceFlag;
   @Nullable private Boolean mySupportsTouchCommand;
@@ -167,7 +171,7 @@ public class AdbDeviceCapabilities {
 
       // Try the "test" command on it (it should succeed if the command is supported)
       String command = new AdbShellCommandBuilder().withText("test -e ").withEscapedPath(tempFile.getRemotePath()).build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       try {
         commandResult.throwIfError();
         return true;
@@ -191,7 +195,7 @@ public class AdbDeviceCapabilities {
 
       // Try to delete it with "rm -f" (it should work if th command is supported)
       String command = new AdbShellCommandBuilder().withText("rm -f ").withEscapedPath(tempFile.getRemotePath()).build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       try {
         commandResult.throwIfError();
         // If no error, "rm -f" is supported and test file has been deleted, so no need to delete it again.
@@ -215,7 +219,7 @@ public class AdbDeviceCapabilities {
 
       // Try the create the file with the "touch" command
       String command = new AdbShellCommandBuilder().withText("touch ").withEscapedPath(tempFile.getRemotePath()).build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       try {
         commandResult.throwIfError();
 
@@ -238,7 +242,7 @@ public class AdbDeviceCapabilities {
 
     // Try a "su" command ("id") that should always succeed, unless "su" is not supported
     String command = new AdbShellCommandBuilder().withSuRootPrefix().withText("id").build();
-    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
     try {
       commandResult.throwIfError();
       return true;
@@ -274,7 +278,7 @@ public class AdbDeviceCapabilities {
         .withText(" ")
         .withEscapedPath(dstFile.getRemotePath())
         .build();
-      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
       try {
         commandResult.throwIfError();
 
@@ -320,7 +324,7 @@ public class AdbDeviceCapabilities {
       .withText("touch " + ESCAPING_LS_ESCAPED_PATH)
       .build();
 
-    AdbShellCommandResult result = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    AdbShellCommandResult result = myShellCommandsUtil.executeCommand(myDevice, command);
     result.throwIfError();
 
     if (!result.getOutput().isEmpty()) {
@@ -335,7 +339,7 @@ public class AdbDeviceCapabilities {
       .withText("ls " + ESCAPING_LS_ESCAPED_PATH)
       .build();
 
-    AdbShellCommandResult result = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    AdbShellCommandResult result = myShellCommandsUtil.executeCommand(myDevice, command);
     result.throwIfError();
 
     String output = result.getOutput().get(0);
@@ -356,7 +360,7 @@ public class AdbDeviceCapabilities {
 
     // Copy source file to destination file
     String command = new AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(DEVICE_TEMP_DIRECTORY).build();
-    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
     try {
       commandResult.throwIfError();
       if (commandResult.getOutput().isEmpty()) {
@@ -414,7 +418,7 @@ public class AdbDeviceCapabilities {
 
       try {
         String command = new AdbShellCommandBuilder().withText("rm ").withEscapedPath(myRemotePath).build();
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+        AdbShellCommandResult commandResult = myShellCommandsUtil.executeCommand(myDevice, command);
         try {
           commandResult.throwIfError();
         }
