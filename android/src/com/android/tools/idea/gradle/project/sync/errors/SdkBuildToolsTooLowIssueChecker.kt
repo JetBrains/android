@@ -59,14 +59,14 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
     if (message.isEmpty()) return null
+    val composer = getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath) ?: return null
 
     // Log metrics.
     invokeLater {
       updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
     }
 
-    return getBuildIssueDescriptionAndQuickFixes(message, issueData.projectPath)?.composeBuildIssue()
-
+    return composer.composeBuildIssue()
   }
 
   @Slow
