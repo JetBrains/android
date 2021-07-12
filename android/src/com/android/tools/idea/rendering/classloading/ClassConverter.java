@@ -53,12 +53,11 @@ public class ClassConverter {
    * @param classLocator {@link PseudoClassLocator} to use when the class writing process needs to load additional types.
    */
   @NotNull
-  static byte[] rewriteClass(@NotNull byte[] classData,
-                             @NotNull ClassTransform transformations,
-                             int flags,
-                             @NotNull PseudoClassLocator classLocator) {
+  public static byte[] rewriteClass(@NotNull byte[] classData,
+                                    @NotNull ClassTransform transformations,
+                                    int flags,
+                                    @NotNull PseudoClassLocator classLocator) {
     ClassReader reader = new ClassReader(classData);
-    String className = reader.getClassName();
     final ClassWriter classWriter = new ClassWriterWithPseudoClassLocator(flags, classLocator);
     ClassVisitor classVisitor = transformations.invoke(classWriter);
     reader.accept(classVisitor, ClassReader.EXPAND_FRAMES);
