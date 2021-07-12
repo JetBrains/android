@@ -17,37 +17,78 @@ package com.android.tools.compose.debug.utils
 
 import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
+import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.engine.requests.RequestManagerImpl
-import com.intellij.debugger.jdi.GeneratedLocation
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import com.sun.jdi.Location
+import com.sun.jdi.ClassType
+import com.sun.jdi.InterfaceType
 import com.sun.jdi.Method
+import com.sun.jdi.ObjectReference
 import com.sun.jdi.ReferenceType
-import com.sun.jdi.VirtualMachine
+import com.sun.jdi.Value
 import com.sun.jdi.request.ClassPrepareRequest
+import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
 
 interface MockDebugProcessScope {
-  fun type(signature: String, block: MockReferenceTypeScope.() -> Unit = {})
+  val virtualMachineProxy: VirtualMachineProxyImpl
+  fun classType(
+    signature: String,
+    superClass: ClassType? = null,
+    interfaces: List<InterfaceType> = emptyList(),
+    block: MockReferenceTypeScope.() -> Unit = {}
+  ): ReferenceType
 }
 
 interface MockReferenceTypeScope {
-  fun method(name: String, vararg lines: Int)
+  fun method(
+    name: String,
+    signature: String? = null,
+    argumentTypeNames: List<String> = emptyList(),
+    lines: List<Int> = emptyList(),
+    block: MockValueScope.() -> Unit = {}
+  )
+}
+
+interface MockValueScope {
+  fun value(value: Value)
 }
 
 fun mockDebugProcess(project: Project, block: MockDebugProcessScope.() -> Unit): MockDebugProcessImpl {
   val debugProcess = MockDebugProcessImpl(project)
   object : MockDebugProcessScope {
-    override fun type(signature: String, block: MockReferenceTypeScope.() -> Unit) {
-      val methodToLines = mutableMapOf<String, List<Int>>()
+    override val virtualMachineProxy: VirtualMachineProxyImpl
+      get() = debugProcess.virtualMachineProxy
+
+    override fun classType(
+      signature: String,
+      superClass: ClassType?,
+      interfaces: List<InterfaceType>,
+      block: MockReferenceTypeScope.() -> Unit
+    ): ClassType {
+      val classType = debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
       object : MockReferenceTypeScope {
-        override fun method(name: String, vararg lines: Int) {
-          methodToLines[name] = lines.toList()
+        override fun method(
+          name: String,
+          signature: String?,
+          argumentTypeNames: List<String>,
+          lines: List<Int>,
+          block: MockValueScope.() -> Unit
+        ) {
+          val method = MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
+          classType.addMethod(method)
+
+          object : MockValueScope {
+            override fun value(value: Value) {
+              classType.setValue(value, method)
+            }
+          }.block()
         }
       }.block()
-      debugProcess.addReferenceType(signature, methodToLines)
+
+      return classType
     }
   }.block()
   return debugProcess
@@ -68,54 +109,39 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
   override fun getVirtualMachineProxy(): VirtualMachineProxyImpl = mockVirtualMachineProxy
   override fun getSearchScope(): GlobalSearchScope = GlobalSearchScope.allScope(project)
   override fun getRequestsManager(): RequestManagerImpl = mockRequestManager
+  override fun isAttached() = true
+  override fun invokeMethod(
+    evaluationContext: EvaluationContext,
+    objRef: ObjectReference,
+    method: Method,
+    args: List<Value>
+  ): Value {
+    val referenceType: ReferenceType = referencesByName[objRef.type().name()]
+                                       ?: error("Reference type \"${objRef.type()}\" is not available when asked.")
 
-  fun addReferenceType(name: String, methodToLines: Map<String, List<Int>>) {
-    referencesByName[name] = MockReferenceType(this, name, methodToLines)
-  }
-}
-
-private class MockReferenceType(
-  private val debugProcess: DebugProcessImpl,
-  private val name: String,
-  private val methodToLines: Map<String, List<Int>>
-) : ReferenceType by MockitoKt.mock() {
-  private val methods = methodToLines.keys.map { name ->
-    val referenceType = this
-    object : Method by MockitoKt.mock() {
-      override fun name() = name
-      override fun declaringType(): ReferenceType = referenceType
-      override fun allLineLocations(): List<Location> =
-        referenceType.allLineLocations().filter { it.method() == this }
+    return when (referenceType) {
+      is ClassType -> referenceType.invokeMethod(objRef.owningThread(), method, args, 0)
+      else -> throw NotSupportedException("$referenceType is not supported yet.")
     }
   }
 
-  override fun name() = name
-  override fun signature(): String = "L$name;"
-  override fun isPrepared(): Boolean = true
-  override fun nestedTypes(): List<ReferenceType> = debugProcess.virtualMachineProxy.allClasses().filter {
-    it.name().startsWith("${name()}\$")
+  override fun invokeInstanceMethod(
+    evaluationContext: EvaluationContext,
+    objRef: ObjectReference,
+    method: Method,
+    args: MutableList<out Value>,
+    invocationOptions: Int
+  ): Value {
+    return invokeMethod(evaluationContext, objRef, method, args)
   }
 
-  override fun allLineLocations(): List<Location> = methodToLines.flatMap { (name, lines) ->
-    lines.map { line -> GeneratedLocation(debugProcess, this, name, line) }
+  fun addClassType(
+    name: String,
+    superClass: ClassType?,
+    interfaces: List<InterfaceType>
+  ): ClassType {
+    return MockClassType(this, name, superClass, interfaces).apply {
+      referencesByName[name] = this
+    }
   }
-
-  override fun allMethods(): List<Method> = methods
-  override fun methodsByName(name: String): List<Method> = methods.filter { it.name() == name }
-}
-
-private class MockVirtualMachine(
-  private val referencesByName: Map<String, ReferenceType>
-) : VirtualMachine by MockitoKt.mock() {
-  override fun name(): String = "MockDalvik"
-  override fun allClasses(): List<ReferenceType> = referencesByName.values.toList()
-  override fun classesByName(s: String): List<ReferenceType> = listOfNotNull(referencesByName[s])
-}
-
-private class MockVirtualMachineProxy(
-  debugProcessImpl: DebugProcessImpl,
-  referencesByName: Map<String, ReferenceType>
-) : VirtualMachineProxyImpl(debugProcessImpl, MockVirtualMachine(referencesByName)) {
-  override fun allClasses(): List<ReferenceType> = virtualMachine.allClasses()
-  override fun classesByName(s: String): List<ReferenceType> = virtualMachine.classesByName(s)
 }

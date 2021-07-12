@@ -60,5 +60,6 @@ iml_module(
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
