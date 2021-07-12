@@ -15,6 +15,15 @@
  */
 package com.android.testutils.junit4;
 
+import com.android.testutils.TestGroup;
+import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import org.junit.runner.Runner;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
@@ -31,15 +40,46 @@ import org.junit.runners.model.RunnerBuilder;
  * individual tests how {@link AGP_VERSION} and {@link GRADLE_VERSION} are used at test time.
  */
 public final class OldAgpSuite extends Suite {
-    /** The Android Gradle Plugin version being used for all tests in this suite. */
-    public static final String AGP_VERSION = System.getProperty("agp.version");
-    /** The Gradle version being used for all tests in this suite. */
-    public static final String GRADLE_VERSION = System.getProperty("gradle.version");
+  /** The Android Gradle Plugin version being used for all tests in this suite. */
+  public static final String AGP_VERSION = System.getProperty("agp.version");
+  /** The Gradle version being used for all tests in this suite. */
+  public static final String GRADLE_VERSION = System.getProperty("gradle.version");
 
-    public OldAgpSuite(RunnerBuilder builder, Class<?>[] classes) throws InitializationError {
-        super(builder, classes);
-        // TODO: Load, filter, and execute tests using @OldAgpTest
+  private static final String TEST_JAR_PATH = System.getProperty("test_jar_path");
+
+  public OldAgpSuite(Class<?> klass, RunnerBuilder builder) throws InitializationError, IOException, ClassNotFoundException {
+    super(klass, filteredAgpTests(klass, builder));
+  }
+
+  private static List<Runner> filteredAgpTests(Class<?> klass, RunnerBuilder builder)
+    throws IOException, ClassNotFoundException, InitializationError {
+    OldAgpFilter filter = new OldAgpFilter(GRADLE_VERSION, AGP_VERSION);
+    List<Class<?>> testClasses = TestGroup.builder()
+      .includeJUnit3()
+      .build()
+      .scanTestClasses(TEST_JAR_PATH);
+
+    return filterRunners(filter, builder.runners(klass, testClasses));
+  }
+
+  static List<Runner> filterRunners(OldAgpFilter filter, Collection<Runner> runners) throws InitializationError {
+    List<Runner> runnersAfterFiltering = new ArrayList<>();
+    for (Runner runner : runners) {
+      try {
+        filter.apply(runner);
+        runnersAfterFiltering.add(runner);
+      }
+      catch (NoTestsRemainException e) {
+        // runner is excluded
+      }
     }
-
+    if (runnersAfterFiltering.isEmpty()) {
+      throw new InitializationError(
+        String.format("There were %d tests, but they were all removed because none"
+                      + " of them met the specified gradle and AGP versions.", runners.size())
+      );
+    }
+    return runnersAfterFiltering;
+  }
 
 }
