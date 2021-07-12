@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.ide.resolver.blaze
 
 import com.android.tools.idea.appinspection.api.blazeFileName
+import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
@@ -23,6 +24,8 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.io.FileService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
+import com.intellij.util.io.exists
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -56,7 +59,10 @@ class BlazeArtifactResolver @VisibleForTesting constructor(
   ) : this(HttpArtifactResolver(fileService), ModuleSystemArtifactResolver(project))
 
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path? {
-    return httpArtifactResolver.resolveArtifact(artifactCoordinate)
-           ?: moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)?.resolve(artifactCoordinate.blazeFileName)
+    return moduleSystemArtifactResolver.resolveArtifact(artifactCoordinate)?.let { artifactDir ->
+      artifactDir.resolve(INSPECTOR_JAR).takeIf { it.exists() } ?:
+      artifactDir.resolve(artifactCoordinate.blazeFileName).takeIf { it.exists() } ?:
+      httpArtifactResolver.resolveArtifact(artifactCoordinate)
+    }
   }
 }

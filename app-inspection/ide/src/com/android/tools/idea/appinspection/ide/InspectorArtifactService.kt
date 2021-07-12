@@ -76,15 +76,16 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
     // Ignore the cache when searching snapshots, as we can't assume that a library with the same version is actually the same one.
     // A developer could have built a new snapshot since last time we checked.
     return jarPaths.getInspectorArchive(artifactCoordinate).takeUnless { StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() } ?: run {
-      val library = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate) ?: return null
-      return try {
-        val targetDir = unzipDir.resolve(artifactCoordinate.getTmpDirName())
-        targetDir.createDirectories()
-        val unzipped = extraInspectorJarFromLibrary(targetDir, library)
-        jarPaths.populateInspectorArchive(artifactCoordinate, unzipped)
+      val artifactZip = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate) ?: return null
+      try {
+        val inspectorJar = if (artifactZip.fileName.toString() == INSPECTOR_JAR) artifactZip else {
+          val targetDir = unzipDir.resolve(artifactCoordinate.getTmpDirName())
+          targetDir.createDirectories()
+          extraInspectorJarFromLibrary(targetDir, artifactZip)
+        }
+        jarPaths.populateInspectorArchive(artifactCoordinate, inspectorJar)
         jarPaths.getInspectorArchive(artifactCoordinate)
-      }
-      catch (e: IOException) {
+      } catch (e: IOException) {
         null
       }
     }
@@ -99,7 +100,7 @@ class InspectorArtifactServiceImpl @NonInjectable @VisibleForTesting constructor
    */
   @WorkerThread
   private fun extraInspectorJarFromLibrary(targetDir: Path, libraryPath: Path): Path {
-    ZipUtil.extract(libraryPath.toFile(), targetDir.toFile()) { _, name -> name == INSPECTOR_JAR }
+    ZipUtil.extract(libraryPath, targetDir) { _, name -> name == INSPECTOR_JAR }
     return targetDir.resolve(INSPECTOR_JAR)
   }
 }
