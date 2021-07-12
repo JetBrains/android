@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateLoginActivityTest {
 
-  private static final String LOGIN_ACTIVITY = "app/src/main/java/dev/tools/ui/login/LoginActivity.java";
+  private static final String LOGIN_ACTIVITY = "app/src/main/java/dev/tools/ui/login/LoginActivity.kt";
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
   /***
