@@ -30,6 +30,13 @@ internal fun loadClassBytes(c: Class<*>): ByteArray {
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
 }
 
+internal fun textifyClass(c: ByteArray): String {
+  val stringWriter = StringWriter()
+  ClassReader(c).accept(TraceClassVisitor(PrintWriter(stringWriter)), 0)
+
+  return stringWriter.toString()
+}
+
 
 /**
  * Sets up a new [TestClassLoader].
