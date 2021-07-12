@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose
+package com.android.tools.compose.debug
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.compose.debug.ComposePositionManager
-import com.android.tools.compose.debug.ComposePositionManagerFactory
+import com.android.tools.compose.debug.utils.mockDebugProcess
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.debugger.SourcePosition
 import com.intellij.openapi.project.Project
