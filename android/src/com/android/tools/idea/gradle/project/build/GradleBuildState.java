@@ -99,14 +99,15 @@ public class GradleBuildState {
   }
 
   @Nullable
-  public BuildContext getCurrentContext() {
+  @TestOnly
+  BuildContext getRunningBuildContext() {
     synchronized (myLock) {
       return myCurrentContext;
     }
   }
 
   @Nullable
-  public BuildSummary getSummary() {
+  public BuildSummary getLastFinishedBuildSummary() {
     synchronized (myLock) {
       return mySummary;
     }

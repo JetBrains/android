@@ -84,7 +84,7 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
 
 fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
   val gradleState = GradleBuildState.getInstance(project)
-  val prevBuildStatus = gradleState.summary?.status
+  val prevBuildStatus = gradleState.lastFinishedBuildSummary?.status
   return when {
     gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
     prevBuildStatus == null || prevBuildStatus.isBuildSuccessful ->

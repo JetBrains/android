@@ -70,7 +70,7 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   }
 
   override fun getLastBuildResult(): ProjectSystemBuildManager.BuildResult =
-    GradleBuildState.getInstance(project).summary?.let {
+    GradleBuildState.getInstance(project).lastFinishedBuildSummary?.let {
       ProjectSystemBuildManager.BuildResult(
         it.context?.buildMode.toProjectSystemBuildMode(),
         it.status.toProjectSystemBuildStatus(),

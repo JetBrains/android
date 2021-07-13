@@ -48,7 +48,6 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionU
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.AndroidSupportVersionUtilKt;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
@@ -551,7 +550,7 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
 
     @NotNull
     private static String formatBuildStatusFromState(@NotNull GradleBuildState state) {
-      BuildSummary summary = state.getSummary();
+      BuildSummary summary = state.getLastFinishedBuildSummary();
       if (summary != null) {
         switch (summary.getStatus()) {
           case SUCCESS:
