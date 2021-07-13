@@ -27,7 +27,7 @@ open class ConstructorAndSuperclassReplacingTransform(
   delegate: ClassVisitor,
   private val fromFqcn: String,
   private val toFqcn: String) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
-  override val uniqueId: String = ThreadControllingTransform::class.qualifiedName!!
+  override val uniqueId: String = this::class.qualifiedName!!
 
   override fun visitMethod(access: Int,
                            name: String?,

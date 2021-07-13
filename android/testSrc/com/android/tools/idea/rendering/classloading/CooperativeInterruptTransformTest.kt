@@ -87,7 +87,7 @@ class CooperativeInterruptTransformTest {
     val testClassLoader = setupTestClassLoaderWithTransformation(mapOf("Test" to LoopTestClass::class.java), beforeTransformTrace, afterTransformTrace) {
       visitor -> CooperativeInterruptTransform(visitor, 100)
     }
-    val loopTestInstance = testClassLoader.load("Test").newInstance() as LoopTestInterface
+    val loopTestInstance = testClassLoader.loadClass("Test").newInstance() as LoopTestInterface
     // The alivenessCheck will be automatically set to true by the thread in every loop iteration.
     // This way, we can check the thread is working and not just blocked in an invalid bytecode sequence.
     val alivenessCheck = AtomicBoolean(false)
@@ -140,7 +140,7 @@ class CooperativeInterruptTransformTest {
       Test.methodCall
       Test.setCounter
     """.trimIndent(), instrumentedChecks.sorted().joinToString("\n"))
-    val loopTestInstance = testClassLoader.load("Test").newInstance() as LoopTestInterface
+    val loopTestInstance = testClassLoader.loadClass("Test").newInstance() as LoopTestInterface
     val manualStopSwitch = AtomicBoolean(false)
     val alivenessCheck = AtomicBoolean(false)
     val threadLock = ReentrantLock()

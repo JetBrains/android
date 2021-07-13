@@ -62,13 +62,13 @@ class ModuleClassLoaderHatcheryTest {
     assertEquals(0, requests)
     // Cannot be created, no information
     assertNull(hatchery.requestClassLoader(
-      null, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider))
+      null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     // Was requested => will be used
     assertTrue(hatchery.incubateIfNeeded(donor, cloner))
     assertEquals(2, requests)
 
     assertNotNull(hatchery.requestClassLoader(
-      null, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider))
+      null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     assertEquals(3, requests)
 
     ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
@@ -91,19 +91,19 @@ class ModuleClassLoaderHatcheryTest {
 
     // Nothing at the beginning, provide donor, check that request is successful
     assertNull(hatchery.requestClassLoader(
-      null, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider))
+      null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     assertTrue(hatchery.incubateIfNeeded(donor, cloner))
     assertNotNull(hatchery.requestClassLoader(
-      null, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider))
+      null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     // Request a different one, and provide a different donor, check that request is successful
     assertNull(hatchery.requestClassLoader(
-      null, donor2.projectClassesTransformationProvider, donor2.nonProjectClassesTransformationProvider))
+      null, donor2.projectClassesTransform, donor2.nonProjectClassesTransform))
     assertTrue(hatchery.incubateIfNeeded(donor2, cloner))
     assertNotNull(hatchery.requestClassLoader(
-      null, donor2.projectClassesTransformationProvider, donor2.nonProjectClassesTransformationProvider))
+      null, donor2.projectClassesTransform, donor2.nonProjectClassesTransform))
     // Check that due to capacity of 1, the first one is not longer provided
     assertNull(hatchery.requestClassLoader(
-      null, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider))
+      null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
 
     ModuleClassLoaderManager.get().release(donor2, this@ModuleClassLoaderHatcheryTest)
     ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)

@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
+import com.android.tools.idea.rendering.classloading.loaders.StaticLoader;
 import com.intellij.openapi.module.Module;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import junit.framework.TestCase;
 import org.jetbrains.android.uipreview.ModuleProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class loader that stores a number of .class files loaded in memory and loads the classes.
  */
-class TestClassLoader extends RenderClassLoader implements ModuleProvider {
-  private final Map<String, byte[]> myDefinedClasses;
+class TestClassLoader extends DelegatingClassLoader implements ModuleProvider {
   private Module myModule;
 
   /**
@@ -40,8 +36,7 @@ class TestClassLoader extends RenderClassLoader implements ModuleProvider {
    * @param definedClasses a map with the class name to define and the .class file contents.
    */
   TestClassLoader(@Nullable ClassLoader parent, @NotNull Map<String, byte[]> definedClasses) {
-    super(parent);
-    myDefinedClasses = definedClasses;
+    super(parent, new StaticLoader(definedClasses));
   }
 
   /**
@@ -50,21 +45,6 @@ class TestClassLoader extends RenderClassLoader implements ModuleProvider {
    */
   TestClassLoader(@NotNull Map<String, byte[]> definedClasses) {
     this(null, definedClasses);
-  }
-
-  @Override
-  protected List<URL> getExternalJars() {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  protected Class<?> load(String name) {
-    byte[] data = myDefinedClasses.get(name);
-    assertNotNull(name + " is not defined in the TestClassLoader", data);
-    Class<?> clz = loadClass(name, data);
-    TestCase.assertNotNull(clz);
-    return clz;
   }
 
   public void setModule(@NotNull Module module) {

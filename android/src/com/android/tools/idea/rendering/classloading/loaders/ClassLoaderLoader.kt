@@ -24,8 +24,9 @@ import com.google.common.io.ByteStreams
  * allows for other [DelegatingClassLoader.Loader]s to do additional transformations, caching or anything needed
  * before the actual definition of the class happens.
  */
-class ClassLoaderLoader(private val classLoader: ClassLoader,
-                        private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> }) : DelegatingClassLoader.Loader {
+class ClassLoaderLoader @JvmOverloads constructor(private val classLoader: ClassLoader,
+                                                  private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> })
+  : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
     val diskName = fqcn.replace('.', '/') + SdkConstants.DOT_CLASS
     val classUrl = classLoader.getResource(diskName) ?: return null

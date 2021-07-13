@@ -19,18 +19,21 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
-import com.android.tools.idea.rendering.classloading.RenderClassLoader
+import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
+import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,9 +43,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 import java.io.IOException
-import java.net.URL
 import java.util.stream.Collectors
 
 class ComposePreviewAnimationManagerTest {
@@ -260,16 +261,20 @@ class ComposePreviewAnimationManagerTest {
   @Test
   @Throws(IOException::class, ClassNotFoundException::class)
   fun classLoaderRedirectsSubscriptionToAnimationManager() {
-    class PreviewAnimationClockClassLoader : RenderClassLoader(this.javaClass.classLoader, toClassTransform({ PreviewAnimationClockMethodTransform(it) })) {
-      override fun getExternalJars(): List<URL> {
-        val basePath = resolveWorkspacePath("tools/adt/idea/compose-designer/testData/classloader").toString()
-        val jarSource = File(basePath, "composeanimation.jar")
-        return ImmutableList.of(jarSource.toURI().toURL())
-      }
-
-      fun loadPreviewAnimationClock(): Class<*> {
-        return loadClassFromNonProjectDependency("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
-      }
+    class PreviewAnimationClockClassLoader : DelegatingClassLoader(this.javaClass.classLoader,
+                                                                   AsmTransformingLoader(
+                                                                     toClassTransform({ PreviewAnimationClockMethodTransform(it) }),
+                                                                     ClassLoaderLoader(
+                                                                       createUrlClassLoader(listOf(
+                                                                         resolveWorkspacePath(
+                                                                           "tools/adt/idea/compose-designer/testData/classloader").resolve(
+                                                                           "composeanimation.jar")
+                                                                       ))
+                                                                     ),
+                                                                     NopClassLocator
+                                                                   )) {
+      fun loadPreviewAnimationClock(): Class<*> =
+        loadClass("androidx.compose.ui.tooling.animation.PreviewAnimationClock")
     }
     createAndOpenInspector()
 

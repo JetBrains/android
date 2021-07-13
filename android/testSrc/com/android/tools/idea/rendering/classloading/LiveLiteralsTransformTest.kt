@@ -187,7 +187,7 @@ class LiveLiteralsTransformTest {
       testClassLoader, usageReference("Test.kt", 3), 3.0f, 90f)
     ProjectConstantRemapper.getInstance(project).addConstant(
       testClassLoader, usageReference("Test.kt", 5), 0, 999)
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
+    val newTestClassInstance = testClassLoader.loadClass("Test").newInstance() as LiveLiteralsInterface
 
     assertTrue(hasLiveLiterals)
 
@@ -229,7 +229,7 @@ class LiveLiteralsTransformTest {
 
     val testClassLoader = setupTestClassLoader(mapOf("Test" to LiveLiteralsTestClass::class.java))
     ProjectConstantRemapper.getInstance(project).addConstant(testClassLoader, usageReference("Test", 0), "A1", "Remapped A1")
-    val newTestClassInstance = testClassLoader.load("Test").newInstance() as LiveLiteralsInterface
+    val newTestClassInstance = testClassLoader.loadClass("Test").newInstance() as LiveLiteralsInterface
 
     println(time {
       repeat(iterations) {

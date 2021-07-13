@@ -135,10 +135,10 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   @Synchronized
   fun incubateIfNeeded(donor: ModuleClassLoader, cloner: (ModuleClassLoader) -> ModuleClassLoader?): Boolean {
     if (storage.find { it.isCompatible(
-        donor.parent, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider) } != null) {
+        donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
       return false
     }
-    val request = Request(donor.parent, donor.projectClassesTransformationProvider, donor.nonProjectClassesTransformationProvider)
+    val request = Request(donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform)
     if (requests.contains(request)) {
       requests.remove(request)
       if (storage.size == capacity) {

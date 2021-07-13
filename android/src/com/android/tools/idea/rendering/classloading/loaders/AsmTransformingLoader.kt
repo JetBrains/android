@@ -29,7 +29,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
  *
  * [onRewrite] will be called after a class has been successfully transformed.
  */
-class AsmTransformingLoader(
+class AsmTransformingLoader @JvmOverloads constructor(
   private val transform: ClassTransform,
   private val delegate: DelegatingClassLoader.Loader,
   private val pseudoClassLocator: PseudoClassLocator,

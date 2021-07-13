@@ -70,8 +70,15 @@ class ProjectSystemClassLoader(private val findClassVirtualFileImpl: (String) ->
     virtualFileModificationCache.clear()
   }
 
-  override fun loadClass(fqcn: String): ByteArray? = findClassVirtualFile(fqcn)?.contentsToByteArray()
+  override fun loadClass(fqcn: String): ByteArray? = try {
+    findClassVirtualFile(fqcn)?.contentsToByteArray()
+  } catch (_: Throwable) {
+    null
+  }
 
+  /**
+   * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
+   */
   @TestOnly
   fun injectClassFile(fqcn: String, virtualFile: VirtualFile) {
     virtualFileCache[fqcn] = virtualFile

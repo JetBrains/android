@@ -18,7 +18,6 @@ package org.jetbrains.android.uipreview
 import com.android.SdkConstants
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
-import com.android.utils.SdkUtils
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -28,8 +27,7 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
-import java.net.MalformedURLException
-import java.net.URL
+import java.nio.file.Path
 
 /**
  * Returns a stream of JAR files of the referenced libraries for the [Module] of this class loader.
@@ -46,23 +44,16 @@ private fun Module.getExternalLibraryJars(): Sequence<File> {
 }
 
 /**
- * Returns the list of external JAR files referenced by the class loader.
+ * Returns the list of [Path]s to external JAR files referenced by the class loader.
  */
-internal fun Module?.getLibraryDependenciesJars(): List<URL> {
+internal fun Module?.getLibraryDependenciesJars(): List<Path> {
   if (this == null || this.isDisposed) {
     return emptyList()
   }
   return CachedValuesManager.getManager(project).getCachedValue(this) {
     val libraries = getExternalLibraryJars()
       .filter { file: File -> SdkConstants.EXT_JAR == Files.getFileExtension(file.name) && file.exists() }
-      .mapNotNull {
-        try {
-          SdkUtils.fileToUrl(it)
-        }
-        catch (e: MalformedURLException) {
-          null
-        }
-      }
+      .mapNotNull { it.toPath() }
       .toList()
     CachedValueProvider.Result.create(libraries, ProjectSyncModificationTracker.getInstance(project))
   }
