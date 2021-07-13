@@ -241,7 +241,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private ActionToolbar createToolbar() {
     DefaultActionGroup actionGroup = new DefaultActionGroup();
     actionGroup.add(new MinimizeAction());
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
+    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("AndroidDesignerIssuePanel", actionGroup, true);
     ActionToolbarUtil.makeToolbarNavigable(toolbar);
     toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
     return toolbar;
