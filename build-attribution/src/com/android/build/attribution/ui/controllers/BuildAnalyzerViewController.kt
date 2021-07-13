@@ -31,7 +31,6 @@ import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -41,6 +40,9 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
 import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -178,7 +180,7 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow()
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(model.reportUiData.buildRequest)
     analytics.rerunBuildWithConfCacheClicked()
   }
 
@@ -257,13 +259,13 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  fun startTestBuildsFlow() {
-    runFirstConfigurationCacheTestBuildWithConfirmation()
+  fun startTestBuildsFlow(originalBuildRequest: GradleBuildInvoker.Request) {
+    runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest)
   }
 
   private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
 
-  private fun runFirstConfigurationCacheTestBuildWithConfirmation() {
+  private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest: GradleBuildInvoker.Request) {
     invokeLater(ModalityState.NON_MODAL) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
@@ -277,8 +279,8 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
         Messages.getInformationIcon(), null
       )
       if (confirmationResult == Messages.OK) {
-        scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild = true) {
-          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild = false) { showFinalSuccessMessage() } }
+        scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = true) {
+          invokeLater { scheduleRebuildWithCCOptionAndRunOnSuccess(originalBuildRequest, firstBuild = false) { showFinalSuccessMessage() } }
         }
       }
     }
@@ -303,21 +305,30 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
     }
   }
 
-  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(firstBuild: Boolean, onSuccess: () -> Unit) {
-    GradleBuildInvoker.getInstance(project).let { invoker ->
-      invoker.add(object : GradleBuildInvoker.AfterGradleInvocationTask {
-        override fun execute(result: GradleInvocationResult) {
-          runningFirstConfigurationCacheBuild = false
-          runningTestConfigurationCacheBuild = false
-          invoker.remove(this)
-          if (result.isBuildSuccessful) onSuccess()
-          else showFailureMessage(result)
-        }
-      })
-      invoker.rebuildWithTempOptions(Projects.getBaseDirPath(project), listOf("--configuration-cache"))
-      runningFirstConfigurationCacheBuild = firstBuild
-      runningTestConfigurationCacheBuild = true
-    }
+  private fun scheduleRebuildWithCCOptionAndRunOnSuccess(
+    originalBuildRequest: GradleBuildInvoker.Request,
+    firstBuild: Boolean,
+    onSuccess: () -> Unit
+  ) {
+    val request = originalBuildRequest.copy(commandLineArguments = originalBuildRequest.commandLineArguments.plus("--configuration-cache"))
+
+    val future = GradleBuildInvoker.getInstance(project).executeTasks(request)
+    Futures.addCallback(future, object : FutureCallback<GradleInvocationResult> {
+      override fun onSuccess(result: GradleInvocationResult?) {
+        runningFirstConfigurationCacheBuild = false
+        runningTestConfigurationCacheBuild = false
+        if (result!!.isBuildSuccessful) onSuccess()
+        else showFailureMessage(result)
+      }
+
+      override fun onFailure(t: Throwable) {
+        runningFirstConfigurationCacheBuild = false
+        runningTestConfigurationCacheBuild = false
+        throw t
+      }
+    }, MoreExecutors.directExecutor())
+    runningFirstConfigurationCacheBuild = firstBuild
+    runningTestConfigurationCacheBuild = true
   }
 
   private fun showFailureMessage(result: GradleInvocationResult) {
