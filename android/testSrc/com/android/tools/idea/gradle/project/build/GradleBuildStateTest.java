@@ -62,7 +62,7 @@ public class GradleBuildStateTest extends LightPlatformTestCase {
 
   public void testBuildStarted() {
     myBuildState.buildStarted(myContext);
-    assertSame(myContext, myBuildState.getCurrentContext());
+    assertSame(myContext, myBuildState.getRunningBuildContext());
     assertTrue(myBuildState.isBuildInProgress());
     verify(myListener).buildStarted(myContext);
   }
@@ -71,7 +71,7 @@ public class GradleBuildStateTest extends LightPlatformTestCase {
     myBuildState.buildStarted(myContext);
 
     myBuildState.buildFinished(SUCCESS);
-    assertNull(myBuildState.getCurrentContext());
+    assertNull(myBuildState.getRunningBuildContext());
     assertFalse(myBuildState.isBuildInProgress());
     verify(myListener).buildFinished(SUCCESS, myContext);
   }

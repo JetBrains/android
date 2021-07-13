@@ -55,7 +55,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
 
     GradleBuildState buildState = GradleBuildState.getInstance(project);
     assertFalse(buildState.isBuildInProgress());
-    assertNull(buildState.getCurrentContext());
+    assertNull(buildState.getRunningBuildContext());
 
     BuildContext context1 = contexts[0];
     assertNotNull(context1);
@@ -66,7 +66,7 @@ public class GradleBuildStateIntegrationTest extends AndroidGradleTestCase {
 
     assertSame(context1, contexts[1]); // initial context and final context should be the same,
 
-    BuildSummary summary = buildState.getSummary();
+    BuildSummary summary = buildState.getLastFinishedBuildSummary();
     assertNotNull(summary);
     assertSame(context1, summary.getContext());
     assertSame(SUCCESS, summary.getStatus());
