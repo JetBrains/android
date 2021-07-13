@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.ColumnTreeBuilder
-import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskEventManager
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
+import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskTreeModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EntrySelectionModel
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.tree.TreeModelAdapter
+import javax.swing.JComponent
 import javax.swing.JTree
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
@@ -33,19 +33,13 @@ import javax.swing.tree.TreeSelectionModel
 /**
  * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
  */
-class BackgroundTaskInstanceView(client: BackgroundTaskInspectorClient,
-                                 selectionModel: EntrySelectionModel) : JBScrollPane() {
-
-  private val tree: JTree
-  val model = BackgroundTaskEventManager(client)
+class BackgroundTaskTreeTableView(client: BackgroundTaskInspectorClient,
+                                  selectionModel: EntrySelectionModel) {
+  val component: JComponent
 
   init {
-    // Remove redundant borders from left, right and bottom.
-    border = AdtUiUtils.DEFAULT_TOP_BORDER
-    setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER)
-
-    val treeModel = model.treeModel
-    tree = JTree(treeModel)
+    val treeModel = BackgroundTaskTreeModel(client)
+    val tree = JTree(treeModel)
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
@@ -74,7 +68,7 @@ class BackgroundTaskInstanceView(client: BackgroundTaskInspectorClient,
         }
       }
       else {
-        val node = model.getTreeNode(entry.id) ?: return@registerWorkSelectionListener
+        val node = treeModel.getTreeNode(entry.id) ?: return@registerWorkSelectionListener
         tree.selectionModel.selectionPath = TreePath(node.path)
       }
     }
@@ -131,6 +125,6 @@ class BackgroundTaskInstanceView(client: BackgroundTaskInspectorClient,
 
     }))
 
-    setViewportView(builder.build())
+    component = builder.build()
   }
 }
