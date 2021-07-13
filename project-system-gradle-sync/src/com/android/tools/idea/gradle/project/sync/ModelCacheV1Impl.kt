@@ -829,8 +829,10 @@ internal fun modelCacheV1Impl(buildFolderPaths: BuildFolderPaths): ModelCache {
         androidArtifactFrom(
           it,
           modelVersion,
-          variantName = null,
-          androidModuleId = null,
+          // For main artifacts, we shouldn't use the variant's name in module dependencies, but Test projects are an exception because
+          // we only have one main artifact that is a test artifact, so we need to handle this as a special case.
+          variantName = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) variant.name else null,
+          androidModuleId = if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) androidModuleId else  null,
           androidProject.agpFlags.mlModelBindingEnabled,
           androidProject.projectType
         )
