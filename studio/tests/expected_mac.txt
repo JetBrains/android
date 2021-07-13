@@ -44,6 +44,8 @@ Android Studio Preview.app/Contents/bin/restarter
 Android Studio Preview.app/Contents/bin/studio.svg
 Android Studio Preview.app/Contents/bin/studio.vmoptions
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/jaotc
+Android Studio Preview.app/Contents/jre/Contents/Home/bin/jar
+Android Studio Preview.app/Contents/jre/Contents/Home/bin/jarsigner
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/java
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/javac
 Android Studio Preview.app/Contents/jre/Contents/Home/bin/javadoc
@@ -225,6 +227,9 @@ Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.comp
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.internal.vm.compiler/LICENSE
+Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
+Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/ASSEMBLY_EXCEPTION
+Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.jartool/LICENSE
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
 Android Studio Preview.app/Contents/jre/Contents/Home/legal/jdk.javadoc/LICENSE

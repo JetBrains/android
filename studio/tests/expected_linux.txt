@@ -46,6 +46,8 @@ android-studio/bin/studio64.vmoptions
 android-studio/build.txt
 android-studio/icons.db
 android-studio/jre/bin/jaotc
+android-studio/jre/bin/jar
+android-studio/jre/bin/jarsigner
 android-studio/jre/bin/java
 android-studio/jre/bin/javac
 android-studio/jre/bin/javadoc
@@ -226,6 +228,9 @@ android-studio/jre/legal/jdk.internal.vm.compiler.management/LICENSE
 android-studio/jre/legal/jdk.internal.vm.compiler/ADDITIONAL_LICENSE_INFO
 android-studio/jre/legal/jdk.internal.vm.compiler/ASSEMBLY_EXCEPTION
 android-studio/jre/legal/jdk.internal.vm.compiler/LICENSE
+android-studio/jre/legal/jdk.jartool/ADDITIONAL_LICENSE_INFO
+android-studio/jre/legal/jdk.jartool/ASSEMBLY_EXCEPTION
+android-studio/jre/legal/jdk.jartool/LICENSE
 android-studio/jre/legal/jdk.javadoc/ADDITIONAL_LICENSE_INFO
 android-studio/jre/legal/jdk.javadoc/ASSEMBLY_EXCEPTION
 android-studio/jre/legal/jdk.javadoc/LICENSE
