@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-
 import static com.android.tools.idea.gradle.project.build.BuildStatus.SUCCESS;
-import static com.android.tools.idea.gradle.util.BuildMode.ASSEMBLE;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.util.BuildMode;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.LightPlatformTestCase;
+import java.io.File;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleBuildState}.
  */
-public class GradleBuildStateTest extends PlatformTestCase {
+public class GradleBuildStateTest extends LightPlatformTestCase {
   @Mock private GradleBuildListener myListener;
 
   private BuildContext myContext;
@@ -41,7 +41,10 @@ public class GradleBuildStateTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    myContext = new BuildContext(project, Arrays.asList("task1", "task2"), ASSEMBLE);
+    GradleBuildInvoker.Request request = GradleBuildInvoker.Request.builder(project, new File(project.getBasePath()), "assembleDebug")
+      .setMode(BuildMode.ASSEMBLE)
+      .build();
+    myContext = new BuildContext(request);
     GradleBuildState.subscribe(getProject(), myListener);
 
     myBuildState = GradleBuildState.getInstance(project);
