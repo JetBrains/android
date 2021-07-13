@@ -283,7 +283,7 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -318,7 +318,7 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.test
     ModelVersion                  : <AGP_VERSION>
@@ -1068,7 +1068,7 @@ MODULE                        : project.test
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1829,7 +1829,7 @@ MODULE                        : project.test2
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
