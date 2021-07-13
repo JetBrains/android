@@ -18,24 +18,15 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.util.DeviceUtils;
-import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
-import com.android.tools.idea.util.Targets;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,46 +53,18 @@ final class BuilderService {
   }
 
   @NotNull ListenableFuture<@NotNull PhysicalDevice> build(@NotNull IDevice device) {
-    ListenableFuture<String> modelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
-    ListenableFuture<String> manufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
-
-    Executor executor = EdtExecutorService.getInstance();
-
-    // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(modelFuture, manufacturerFuture).call(() -> build(device, modelFuture, manufacturerFuture), executor);
-  }
-
-  private @NotNull PhysicalDevice build(@NotNull IDevice device,
-                                        @NotNull Future<@NotNull String> modelFuture,
-                                        @NotNull Future<@NotNull String> manufacturerFuture) {
-    String keyValue = device.getSerialNumber();
-
-    boolean domainName = DeviceUtils.isMdnsAutoConnectTls(keyValue);
-    boolean online = device.isOnline();
-
-    Key key = domainName ? new DomainName(keyValue) : new SerialNumber(keyValue);
     Instant time;
 
-    if (online) {
+    String value = device.getSerialNumber();
+    Key key = DeviceUtils.isMdnsAutoConnectTls(value) ? new DomainName(value) : new SerialNumber(value);
+
+    if (device.isOnline()) {
       time = myKeyToOnlineTimeMap.computeIfAbsent(key, k -> myClock.instant());
     }
     else {
       time = myKeyToOnlineTimeMap.remove(key);
     }
 
-    AndroidVersion version = device.getVersion();
-
-    PhysicalDevice.Builder builder = new PhysicalDevice.Builder()
-      .setKey(key)
-      .setLastOnlineTime(time)
-      .setName(DeviceNameProperties.getName(FutureUtils.getDoneOrNull(modelFuture), FutureUtils.getDoneOrNull(manufacturerFuture)))
-      .setTarget(Targets.toString(version))
-      .setApi(version.getApiString());
-
-    if (online) {
-      builder.addConnectionType(domainName ? ConnectionType.WI_FI : ConnectionType.USB);
-    }
-
-    return builder.build();
+    return new AsyncPhysicalDeviceBuilder(device, key, time).buildAsync();
   }
 }

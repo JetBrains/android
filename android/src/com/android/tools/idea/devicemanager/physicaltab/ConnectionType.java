@@ -16,37 +16,13 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class SerialNumber extends Key {
-  private final @NotNull String myValue;
-
-  public SerialNumber(@NotNull String value) {
-    myValue = value;
-  }
+public enum ConnectionType {
+  USB,
+  WI_FI;
 
   @Override
-  @NotNull ConnectionType getConnectionType() {
-    return ConnectionType.USB;
-  }
-
-  @Override
-  @NotNull SerialNumber getSerialNumber() {
-    return this;
-  }
-
-  @Override
-  public int hashCode() {
-    return myValue.hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    return object instanceof SerialNumber && myValue.equals(((SerialNumber)object).myValue);
-  }
-
-  @Override
-  public @NotNull String toString() {
-    return myValue;
+  public final @NotNull String toString() {
+    return this.equals(USB) ? super.toString() : "Wi-Fi";
   }
 }

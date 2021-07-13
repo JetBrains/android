@@ -18,5 +18,7 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import org.jetbrains.annotations.NotNull;
 
 abstract class Key {
+  abstract @NotNull ConnectionType getConnectionType();
+
   abstract @NotNull SerialNumber getSerialNumber();
 }

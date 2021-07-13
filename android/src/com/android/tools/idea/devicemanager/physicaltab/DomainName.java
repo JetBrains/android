@@ -30,6 +30,11 @@ final class DomainName extends Key {
   }
 
   @Override
+  @NotNull ConnectionType getConnectionType() {
+    return ConnectionType.WI_FI;
+  }
+
+  @Override
   @NotNull SerialNumber getSerialNumber() {
     Matcher matcher = PATTERN.matcher(myValue);
 

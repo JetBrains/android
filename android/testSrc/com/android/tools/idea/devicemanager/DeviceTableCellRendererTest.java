@@ -18,8 +18,8 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.android.tools.idea.devicemanager.physicaltab.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.android.tools.idea.devicemanager.physicaltab.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.intellij.ui.table.JBTable;

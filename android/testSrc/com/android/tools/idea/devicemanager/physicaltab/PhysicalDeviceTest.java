@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
