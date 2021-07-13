@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.UpdateInBackground
 import com.intellij.openapi.module.Module
 import icons.AndroidIcons
 import icons.StudioIcons
@@ -66,7 +67,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   private val minSdkApi: Int,
   private val minBuildSdkApi: Int = minSdkApi,
   private val templateConstraints: Collection<TemplateConstraint> = setOf()
-) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null) {
+) : AnAction(templateName, AndroidBundle.message("android.wizard.action.new.component", templateName), null), UpdateInBackground {
 
   @Deprecated("Please use the main constructor")
   constructor(
