@@ -20,12 +20,14 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.axis.AxisComponentModel
 import com.android.tools.adtui.model.legend.LegendComponentModel
+import com.android.tools.adtui.model.updater.Updater
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.inspectors.common.api.stacktrace.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.CodeNavigator
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
@@ -44,7 +46,16 @@ class NetworkInspectorModelTest {
         override fun handleNavigate(location: CodeLocation) = Unit
       }
     }
-    val services = NetworkInspectorServices(codeNavigationProvider, 0, timer, MoreExecutors.directExecutor())
+    val services = object : NetworkInspectorServices {
+      override val navigationProvider = codeNavigationProvider
+      override val updater = Updater(timer)
+      override val client: NetworkInspectorClient
+        get() = throw NotImplementedError()
+      override val scope: CoroutineScope
+        get() = throw NotImplementedError()
+      override val uiDispatcher: CoroutineDispatcher
+        get() = throw NotImplementedError()
+    }
     model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(speedEventList = listOf(
       Event.newBuilder().apply {
         timestamp = 0

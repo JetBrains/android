@@ -39,6 +39,7 @@ import com.android.tools.adtui.model.SeriesData
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.ViewBinder
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.StreamingScrollbar
@@ -127,7 +128,7 @@ class NetworkInspectorView(
   init {
     // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
     tooltipPanel.background = TOOLTIP_BACKGROUND
-    model.services.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
+    model.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
     model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) { selectionChanged() }
     selectionChanged()
 
@@ -254,7 +255,6 @@ class NetworkInspectorView(
   }
 
   private fun buildMonitorUi(): JPanel {
-    val services = model.services
     val timeline = model.timeline
     val selection = RangeSelectionComponent(model.rangeSelectionModel)
     selection.setCursorSetter(AdtUiUtils::setTooltipCursor)
@@ -270,7 +270,9 @@ class NetworkInspectorView(
     // that attempts to read the same range instance.
     val sb = StreamingScrollbar(timeline, panel)
     panel.add(sb, TabularLayout.Constraint(3, 0))
-    val timeAxis = buildTimeAxis(services.viewAxis)
+    val viewAxis = ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
+      .setGlobalRange(timeline.dataRange).build()
+    val timeAxis = buildTimeAxis(viewAxis)
     panel.add(timeAxis, TabularLayout.Constraint(2, 0))
     val monitorPanel = JBPanel<Nothing>(TabularLayout("*", "*"))
     monitorPanel.isOpaque = false

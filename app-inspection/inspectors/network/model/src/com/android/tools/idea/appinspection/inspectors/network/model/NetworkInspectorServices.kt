@@ -15,40 +15,28 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model
 
-import com.android.tools.adtui.model.AspectModel
-import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.StopwatchTimer
-import com.android.tools.adtui.model.StreamingTimeline
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.updater.Updater
-import com.intellij.util.concurrency.AppExecutorUtil
-import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 
+interface NetworkInspectorServices {
+  val navigationProvider: CodeNavigationProvider
+  val client: NetworkInspectorClient
+  val scope: CoroutineScope
+  val updater: Updater
+  val uiDispatcher: CoroutineDispatcher
+}
 
 /**
  * Contains the suite of services on which the network inspector relies. Ex: Timeline and updater.
- *
- * It also contains a [backgroundExecutor] that is used by the LineChartModel to perform computation on.
- * Tests can choose to swap it out with a direct executor to make life easier.
  */
-class NetworkInspectorServices(
-  val navigationProvider: CodeNavigationProvider,
-  startTimeStampNs: Long,
+class NetworkInspectorServicesImpl(
+  override val navigationProvider: CodeNavigationProvider,
+  override val client: NetworkInspectorClient,
+  override val scope: CoroutineScope,
   timer: StopwatchTimer,
-  val backgroundExecutor: Executor = AppExecutorUtil.getAppExecutorService()
-) : AspectModel<NetworkInspectorAspect>() {
-  val updater: Updater = Updater(timer)
-  val timeline = StreamingTimeline(updater)
-  val viewAxis = ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
-    .setGlobalRange(timeline.dataRange).build()
-
-  init {
-    timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
-      if (!timeline.selectionRange.isEmpty) {
-        timeline.isStreaming = false
-      }
-    }
-    timeline.reset(startTimeStampNs, startTimeStampNs)
-  }
+  override val uiDispatcher: CoroutineDispatcher
+) : NetworkInspectorServices {
+  override val updater = Updater(timer)
 }
