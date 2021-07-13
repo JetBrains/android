@@ -1170,6 +1170,13 @@ public final class StudioFlags {
     "If enabled, a background classes preloading will happen to speed-up preview ClassLoader warm-up",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_STATE_OBJECT_CUSTOM_RENDERER = Flag.create(
+    COMPOSE, "custom.renderer.for.compose.state.objects",
+    "Enable custom renderers for compose state objects",
+    "If enabled, a given compose 'StateObject' type object will be rendered by the corresponding custom renderer",
+    false
+  );
   //endregion
 
   //region Manifests
