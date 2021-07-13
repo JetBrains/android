@@ -278,9 +278,8 @@ class GradleTasksExecutorImpl implements GradleTasksExecutor {
         taskListener.onStart(id, gradleRootProjectPath);
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true);
 
-        BuildMode buildMode = myRequest.getMode();
         GradleBuildState buildState = GradleBuildState.getInstance(myProject);
-        buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
+        buildState.buildStarted(new BuildContext(myRequest));
 
         BuildAttributionManager buildAttributionManager = null;
         boolean enableBuildAttribution = BuildAttributionUtil.isBuildAttributionEnabledForProject(myProject);

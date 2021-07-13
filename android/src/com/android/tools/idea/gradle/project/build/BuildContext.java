@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -24,28 +25,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BuildContext {
-  @NotNull private final Project myProject;
-  @NotNull private final List<String> myGradleTasks;
-  @Nullable private final BuildMode myBuildMode;
+  @NotNull private final GradleBuildInvoker.Request myRequest;
 
-  public BuildContext(@NotNull Project project, @NotNull List<String> gradleTasks, @Nullable BuildMode buildMode) {
-    myProject = project;
-    myGradleTasks = new ArrayList<>(gradleTasks);
-    myBuildMode = buildMode;
+  public BuildContext(@NotNull GradleBuildInvoker.Request request) {
+    myRequest = request;
   }
 
   @NotNull
   public Project getProject() {
-    return myProject;
+    return myRequest.getProject();
   }
 
   @NotNull
   public List<String> getGradleTasks() {
-    return myGradleTasks;
+    return myRequest.getGradleTasks();
   }
 
   @Nullable
   public BuildMode getBuildMode() {
-    return myBuildMode;
+    return myRequest.getMode();
   }
 }

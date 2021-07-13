@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManager
 import com.android.tools.idea.testing.IdeComponents
@@ -89,8 +90,11 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
   }
 
   fun testGetLastBuildResult_sameAsBuildResult() {
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
+      .setMode(BuildMode.ASSEMBLE)
+      .build()
     ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(project, listOf("assembleDebug"), BuildMode.ASSEMBLE))
+      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
       GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -104,8 +108,11 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val listener = TestBuildResultListener()
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
+      .setMode(BuildMode.ASSEMBLE)
+      .build()
     ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(project, listOf("assembleDebug"), BuildMode.ASSEMBLE))
+      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
       GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -121,8 +128,11 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val listener = TestBuildResultListener()
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
+      .setMode(BuildMode.ASSEMBLE)
+      .build()
     ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(project, listOf("assembleDebug"), BuildMode.ASSEMBLE))
+      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
       GradleBuildState.getInstance(project).buildFinished(BuildStatus.FAILED)
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -138,8 +148,11 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val listener = TestBuildResultListener()
     buildManager.addBuildListener(testRootDisposable, listener)
     listener.assertNoCalls()
+    val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("clean"))
+      .setMode(BuildMode.CLEAN)
+      .build()
     ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(project, listOf("clean"), BuildMode.CLEAN))
+      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
       GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
     }
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
