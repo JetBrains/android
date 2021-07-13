@@ -818,7 +818,7 @@ MODULE                        : My_First_App.app
                         ModuleDependency
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1404,11 +1404,11 @@ MODULE                        : My_First_App.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1998,11 +1998,11 @@ MODULE                        : My_First_App.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : My_First_App.app.mysharedlibrary
     ModelVersion                  : <AGP_VERSION>
@@ -3338,7 +3338,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         ModuleDependency
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -3905,5 +3905,5 @@ MODULE                        : My_First_App.app.mysharedlibrary
                         ModuleDependency
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
-                            BuildId                       : <ROOT>/firstapp
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar

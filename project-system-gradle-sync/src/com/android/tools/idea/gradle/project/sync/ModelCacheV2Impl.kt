@@ -39,6 +39,7 @@ import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.JavaCompileOptions
 import com.android.builder.model.v2.ide.Library
+import com.android.builder.model.v2.ide.LibraryInfo
 import com.android.builder.model.v2.ide.LibraryType
 import com.android.builder.model.v2.ide.LintOptions
 import com.android.builder.model.v2.ide.ProjectType
@@ -443,8 +444,9 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    * @return Instance of [IdeLibrary] based on dependency type.
    */
   fun androidLibraryFrom(androidLibrary: Library, providedLibraries: Set<LibraryIdentity>): IdeLibrary {
+    val libraryInfo = androidLibrary.libraryInfo ?: error("libraryInfo missing for ${androidLibrary.key}")
     val core = IdeAndroidLibraryCore.create(
-      artifactAddress = androidLibrary.artifactAddress,
+      artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar",
       folder = androidLibrary.resFolder?.parentFile ?: File(""), // TODO: verify this always true
 
       manifest = androidLibrary.manifest?.path ?: "",
@@ -464,7 +466,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       symbolFile = getV2SymbolFilePath(androidLibrary),
       deduplicate = { strings.getOrPut(this) { this } }
     )
-    val isProvided = providedLibraries.contains(androidLibrary.toIdentity())
+    val isProvided = providedLibraries.contains(libraryInfo.toIdentity())
     return androidLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeAndroidLibraryImpl)
   }
 
@@ -473,11 +475,12 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
    * @return Instance of [Library] based on dependency type.
    */
   fun javaLibraryFrom(javaLibrary: Library, providedLibraries: Set<LibraryIdentity>): IdeLibrary {
+    val libraryInfo = javaLibrary.libraryInfo ?: error("libraryInfo missing for ${javaLibrary.key}")
     val core = IdeJavaLibraryCore(
-      artifactAddress = javaLibrary.artifactAddress,
+      artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@jar",
       artifact = javaLibrary.artifact!!
     )
-    val isProvided = providedLibraries.contains(javaLibrary.toIdentity())
+    val isProvided = providedLibraries.contains(libraryInfo.toIdentity())
     return javaLibraryCores.createOrGetNamedLibrary(core, isProvided, ::IdeJavaLibraryImpl)
   }
 
@@ -510,11 +513,11 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       for (identifier in libraries) {
         createModuleLibrary(
           visited,
-          identifier.projectPath!!, // this should always be non-null as this is a module library
-          identifier.artifactAddress,
-          identifier.variant,
+          identifier.projectInfo!!.projectPath, // this should always be non-null as this is a module library
+          identifier.key,
+          identifier.projectInfo!!.attributes["com.android.build.gradle.internal.attributes.VariantAttr"],
           identifier.lintJar,
-          identifier.buildId
+          identifier.projectInfo!!.buildId
         )
       }
     }
@@ -541,7 +544,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       projectLibraries: MutableList<Library>
     ) {
       for (dependency in dependencies) {
-        val library = libraryMap.libraries[dependency.artifactAddress] ?: continue
+        val library = libraryMap.libraries[dependency.key] ?: continue
         if (library.type == LibraryType.ANDROID_LIBRARY && !androidLibraries.contains(library)) androidLibraries.add(
           library)  // Can we check by Library object here ?
         if (library.type == LibraryType.JAVA_LIBRARY && !javaLibraries.contains(library)) javaLibraries.add(library)
@@ -559,8 +562,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       while (queue.isNotEmpty()) {
         val item = queue.removeFirst()
         queue.addAll(item.dependencies)
-        if (seen.add(item.artifactAddress)) {
-          val library = libraryMap.libraries[item.artifactAddress]
+        if (seen.add(item.key)) {
+          val library = libraryMap.libraries[item.key]
           if (library != null) {
             yield(library)
           }
@@ -572,15 +575,14 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       runtimeDependencies: List<GraphItem>?,
       compileDependencies: List<GraphItem>
     ): List<File> {
-
       val compileLibraries = compileDependencies.toFlatLibraryList()
       val runtimeLibraries = runtimeDependencies.orEmpty().toFlatLibraryList()
 
-      val compileLibraryIdentities = compileLibraries.mapNotNull { it.toIdentity() }.toSet()
+      val compileLibraryIdentities = compileLibraries.mapNotNull { it.libraryInfo?.toIdentity() }.toSet()
 
       return runtimeLibraries
         .filter {
-          val id = it.toIdentity() ?: return@filter false
+          val id = it.libraryInfo?.toIdentity() ?: return@filter false
           id !in compileLibraryIdentities
         }
         .flatMap { it.getJarFilesForRuntimeClasspath() }
@@ -593,7 +595,7 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       visited: MutableSet<String>
     ) {
       for (androidLibrary in androidLibraries) {
-        val address = androidLibrary.artifactAddress
+        val address = androidLibrary.key
         if (!visited.contains(address)) {
           visited.add(address)
           librariesById.computeIfAbsent(address) { androidLibraryFrom(androidLibrary, providedLibraries) }
@@ -605,8 +607,8 @@ internal fun modelCacheV2Impl(buildRootDirectory: File?): ModelCache {
       compileDependencies: List<GraphItem>,
       runtimeDependencies: List<GraphItem>?
     ): Set<LibraryIdentity> =
-      compileDependencies.toFlatLibraryList().mapNotNull { it.toIdentity() }.toSet() -
-      runtimeDependencies.orEmpty().toFlatLibraryList().mapNotNull { it.toIdentity() }.toSet()
+      compileDependencies.toFlatLibraryList().mapNotNull { it.libraryInfo?.toIdentity() }.toSet() -
+      runtimeDependencies.orEmpty().toFlatLibraryList().mapNotNull { it.libraryInfo?.toIdentity() }.toSet()
 
     fun createIdeDependencies(
       artifactAddresses: Collection<String>,
@@ -1202,16 +1204,12 @@ private fun MutableSet<String>.generateLibraryName(core: IdeArtifactLibrary, pro
 
 
 private data class LibraryIdentity(
-  // NOTE: This is going to change and include more details when v2 models support them.
-  val artifactAddress: String
+  val group: String,
+  val name: String,
+  val version: String,
+  val attributesExceptUsage: Map<String, String>,
+  val capabilities: List<String>,
 )
-
-private fun Library.toIdentity() =
-  when (type) {
-    LibraryType.ANDROID_LIBRARY,
-    LibraryType.JAVA_LIBRARY -> LibraryIdentity(artifactAddress)
-    else -> null
-  }
 
 private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
   when (type) {
@@ -1219,3 +1217,13 @@ private fun Library.getJarFilesForRuntimeClasspath(): List<File> =
     LibraryType.JAVA_LIBRARY -> listOfNotNull(artifact)
     else -> emptyList()
   }
+
+private fun LibraryInfo.toIdentity() =
+  LibraryIdentity(
+    name,
+    group,
+    version,
+    attributes.filterKeys { it != "org.gradle.usage" },
+    capabilities
+  )
+

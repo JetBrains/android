@@ -1472,7 +1472,7 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2089,11 +2089,15 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
+                        ModuleDependency
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : : [-]
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.lib
@@ -2563,7 +2567,11 @@ MODULE                        : project.lib
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
+                        ModuleDependency
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : : [-]
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -2647,7 +2655,11 @@ MODULE                        : project.lib
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
+                        ModuleDependency
+                            ProjectPath                   : :lib
+                            Variant                       : debug
+                            BuildId                       : : [-]
                     RuntimeOnlyClasses            : <M2>/com/google/code/gson/gson/2.2.4/gson-2.2.4.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
             TestFixturesArtifact
@@ -2725,7 +2737,7 @@ MODULE                        : project.lib
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation

@@ -661,7 +661,7 @@ MODULE                        : project.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : ./app/libs/lib1-1.0.aar
-                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <ROOT>/app/libs/lib1-1.0.aar
@@ -1244,7 +1244,7 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -1298,7 +1298,7 @@ MODULE                        : project.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : ./app/libs/lib1-1.0.aar
-                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/lint.jar [-]
                             IsProvided                    : true
                             Artifact                      : <ROOT>/app/libs/lib1-1.0.aar
@@ -1962,11 +1962,11 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : basicBarDebug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -2016,7 +2016,7 @@ MODULE                        : project.app
                 Level2Dependencies
                     AndroidLibraries
                         AndroidLibrary                : ./app/libs/lib1-1.0.aar
-                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@jar
+                            ArtifactAddress               : __local_aars__:<ROOT>/app/libs/lib1-1.0.aar:unspecified@aar
                             LintJars                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lib1-1.0/jars/lint.jar [-]
                             IsProvided                    : false
                             Artifact                      : <ROOT>/app/libs/lib1-1.0.aar
@@ -2572,11 +2572,11 @@ MODULE                        : project.app
                         ModuleDependency
                             ProjectPath                   : :app
                             Variant                       : basicBarDebug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.dyn_feature
     ModelVersion                  : <AGP_VERSION>
@@ -2838,7 +2838,7 @@ MODULE                        : project.dyn_feature
                         ModuleDependency
                             ProjectPath                   : :dyn_feature
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -2863,7 +2863,7 @@ MODULE                        : project.dyn_feature
                         ModuleDependency
                             ProjectPath                   : :dyn_feature
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.jav
 MODULE                        : project.lib
@@ -3624,7 +3624,7 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :jav
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -4159,11 +4159,11 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :jav
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4700,11 +4700,11 @@ MODULE                        : project.lib
                     ModuleDependencies
                         ModuleDependency
                             ProjectPath                   : :jav
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                         ModuleDependency
                             ProjectPath                   : :lib
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1
     ModelVersion                  : <AGP_VERSION>
@@ -4963,7 +4963,7 @@ MODULE                        : project.nested1
                         ModuleDependency
                             ProjectPath                   : :nested1
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -4989,7 +4989,7 @@ MODULE                        : project.nested1
                         ModuleDependency
                             ProjectPath                   : :nested1
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested1.deep
     ModelVersion                  : <AGP_VERSION>
@@ -5253,7 +5253,7 @@ MODULE                        : project.nested1.deep
                         ModuleDependency
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5279,7 +5279,7 @@ MODULE                        : project.nested1.deep
                         ModuleDependency
                             ProjectPath                   : :nested1:deep
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2
     ModelVersion                  : <AGP_VERSION>
@@ -5671,7 +5671,7 @@ MODULE                        : project.nested2
                         ModuleDependency
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5710,7 +5710,7 @@ MODULE                        : project.nested2
                         ModuleDependency
                             ProjectPath                   : :nested2
                             Variant                       : basicDebug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.deep
     ModelVersion                  : <AGP_VERSION>
@@ -5969,7 +5969,7 @@ MODULE                        : project.nested2.deep
                         ModuleDependency
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -5995,7 +5995,7 @@ MODULE                        : project.nested2.deep
                         ModuleDependency
                             ProjectPath                   : :nested2:deep
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
 MODULE                        : project.nested2.trans
 MODULE                        : project.nested2.trans.deep2
@@ -6255,7 +6255,7 @@ MODULE                        : project.nested2.trans.deep2
                         ModuleDependency
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 SigningConfigName             : debug
                 IsSigned                      : true
                 CodeShrinker                  : null
@@ -6281,5 +6281,5 @@ MODULE                        : project.nested2.trans.deep2
                         ModuleDependency
                             ProjectPath                   : :nested2:trans:deep2
                             Variant                       : debug
-                            BuildId                       : <ROOT>
+                            BuildId                       : : [-]
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
