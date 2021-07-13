@@ -223,7 +223,6 @@ MODULE                        : My_First_App.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.firstapp
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -798,7 +797,6 @@ MODULE                        : My_First_App.app
                             Artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1389,7 +1387,6 @@ MODULE                        : My_First_App.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/library_manifest/debug/AndroidManifest.xml/jars/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -1984,7 +1981,6 @@ MODULE                        : My_First_App.app
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
                         ModuleDependency
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -2199,7 +2195,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.mysharedlibrary
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -3304,7 +3299,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp
@@ -3872,7 +3866,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                             Artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :app:mysharedlibrary
                             Variant                       : debug
                             BuildId                       : <ROOT>/firstapp

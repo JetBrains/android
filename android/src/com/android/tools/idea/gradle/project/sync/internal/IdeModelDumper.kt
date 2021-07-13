@@ -140,7 +140,8 @@ private fun ProjectDumper.dump(ideVariant: IdeVariant) {
       prop("BuildType") { ideVariant.buildType }
       prop("DisplayName") { ideVariant.displayName }
       prop("InstantAppCompatible") { ideVariant.instantAppCompatible.toString() }
-      prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
+      // TODO(193515353): Add minSdkVersion once it is made notNull.
+      //prop("MinSdkVersion") { ideVariant.minSdkVersion?.toString() }
       prop("TargetSdkVersion") { ideVariant.targetSdkVersion?.toString() }
       prop("MaxSdkVersion") { ideVariant.maxSdkVersion?.toString() }
       prop("TestApplicationId") { ideVariant.testApplicationId }
@@ -219,7 +220,8 @@ private fun ProjectDumper.dump(ideLibrary: IdeLibrary) {
         .replaceKnownPatterns()
     }
   }
-  prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
+  // TODO(191006100): LintJars are not available yet from V2 models.
+  if (ideLibrary !is IdeModuleLibrary) prop("LintJars") { ideLibrary.lintJar?.toPrintablePath() }
   when (ideLibrary) {
     is IdeAndroidLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }
     is IdeJavaLibrary -> prop("IsProvided") { ideLibrary.isProvided.toString() }

@@ -240,7 +240,6 @@ MODULE                        : project.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.app
             MainArtifact
@@ -258,7 +257,6 @@ MODULE                        : project.app
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -293,7 +291,6 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -324,7 +321,6 @@ MODULE                        : project.app
                             Variant                       : debug
                             BuildId                       : <ROOT>
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -556,7 +552,6 @@ MODULE                        : project.library
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
@@ -593,7 +588,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -620,7 +614,6 @@ MODULE                        : project.library
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -852,7 +845,6 @@ MODULE                        : project.library-remote
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.library
             MainArtifact
@@ -889,7 +881,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>
@@ -916,7 +907,6 @@ MODULE                        : project.library-remote
                 Level2Dependencies
                     ModuleDependencies
                         ModuleDependency
-                            LintJars                      : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
                             ProjectPath                   : :library-remote
                             Variant                       : debug
                             BuildId                       : <ROOT>

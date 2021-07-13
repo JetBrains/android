@@ -243,7 +243,6 @@ MODULE                        : My_First_App.app
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.firstapp
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2236,7 +2235,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             BuildType                     : debug
             DisplayName                   : debug
             InstantAppCompatible          : false
-            MinSdkVersion                 : IdeApiVersionImpl(apiLevel=16, codename=null, apiString=16)
             TargetSdkVersion              : IdeApiVersionImpl(apiLevel=30, codename=null, apiString=30)
             DeprecatedPreMergedApplicationId        : com.example.mysharedlibrary
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
