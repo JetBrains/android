@@ -38,7 +38,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.util.text.nullize
-import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
@@ -97,7 +98,9 @@ private fun createDeviceEnumProvider(module: Module, devicesClassName: String): 
     }
 
     // Fetch devices from Device Manager
-    val studioDevices = AndroidPlatform.getInstance(module)?.sdkData?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)
+    val studioDevices = AndroidFacet.getInstance(module)?.let { facet ->
+      AndroidSdkData.getSdkData(facet)?.deviceManager?.getDevices(DeviceManager.ALL_DEVICES)
+    }
     val studioDevicesValues = studioDevices?.filter { device ->
       val deviceId = "id:${device.id}"
       val deviceName = "name:${device.id}"
