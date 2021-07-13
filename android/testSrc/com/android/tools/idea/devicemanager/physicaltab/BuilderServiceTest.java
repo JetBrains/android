@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice.ConnectionType;
 import com.google.common.util.concurrent.Futures;
 import java.time.Clock;
 import java.time.Instant;
