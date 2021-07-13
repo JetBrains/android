@@ -51,13 +51,9 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
-import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.RunContentDescriptor;
-import com.intellij.execution.ui.RunContentManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -365,22 +361,9 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Nullable
   @Override
   public Icon getExecutorIcon(@NotNull RunConfiguration configuration, @NotNull Executor executor) {
-    // Customize the executor icon for the DeviceAndSnapshotComboBoxAction such that it's tied to the device in addition to the
-    // RunConfiguration.
+    // Customize the executor icon for the DeviceAndSnapshotComboBoxAction: show "restart" icon instead of "run" icon if the app is already
+    // running (even if it is started not from the IDE)
     Project project = configuration.getProject();
-    final ExecutionManagerImpl executionManager = ExecutionManagerImpl.getInstance(project);
-
-    // This code is lifted out of ExecutionRegistryImpl:getInformativeIcon to maintain the same functionality.
-    // I *believe* this code is attempting to find all running content (as in, Run/Debug tool window's tabs' contents)
-    // that are still running and have not been detached from the Executor or the ContentManager.
-    List<RunContentDescriptor> runningDescriptors =
-      executionManager.getRunningDescriptors(s -> s != null && s.getConfiguration() == configuration);
-    runningDescriptors = runningDescriptors.stream().filter(descriptor -> {
-      RunContentDescriptor contentDescriptor =
-        RunContentManager.getInstance(project).findContentDescriptor(executor, descriptor.getProcessHandler());
-      return contentDescriptor != null && executionManager.getExecutors(contentDescriptor).contains(executor);
-    }).collect(Collectors.toList());
-
     ExecutionTarget executionTarget = ExecutionTargetManager.getInstance(project).getActiveTarget();
     ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
     String applicationId = null;
@@ -394,20 +377,18 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
       applicationId != null &&
       ((AndroidExecutionTarget)executionTarget).isApplicationRunning(applicationId);
 
-    if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId()) && !runningDescriptors.isEmpty() && isRunning) {
-      // Use the system's restart icon for the default run executor.
-      return AllIcons.Actions.Restart;
-    }
-
-    // Defer to the executor for the icon, since this RunConfiguration class doesn't provide its own icon.
-    Icon executorIcon = executor instanceof ExecutorIconProvider ?
-                        ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor) :
-                        executor.getIcon();
-    if (runningDescriptors.isEmpty() || !isRunning) {
-      return executorIcon;
-    }
-    else {
-      return ExecutionUtil.getLiveIndicator(executorIcon);
+    if (DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
+      if (isRunning) {
+        // Use the system's restart icon for the default run executor.
+        return AllIcons.Actions.Restart;
+      } else {
+        // this is default "run" icon without "live" indicator.
+        return executor instanceof ExecutorIconProvider ?
+               ((ExecutorIconProvider)executor).getExecutorIcon(getProject(), executor) :
+               executor.getIcon();
+      }
+    } else {
+      return null; // use platform default icon
     }
   }
 
