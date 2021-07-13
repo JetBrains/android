@@ -19,24 +19,26 @@ import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
+import com.android.tools.adtui.model.StreamingTimeline
+import com.intellij.util.concurrency.AppExecutorUtil
 
 class NetworkSpeedLineChartModel(
-  services: NetworkInspectorServices,
+  timeline: StreamingTimeline,
   private val dataSource: NetworkInspectorDataSource
-) : LineChartModel(services.backgroundExecutor) {
+) : LineChartModel(AppExecutorUtil.getAppExecutorService()) {
   val trafficRange = Range(0.0, 4.0)
 
   val rxSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_RECEIVED.getLabel(false),
-                                        services.timeline.viewRange,
+                                        timeline.viewRange,
                                         trafficRange,
                                         createSeries(NetworkTrafficLabel.BYTES_RECEIVED),
-                                        services.timeline.dataRange)
+                                        timeline.dataRange)
 
   val txSeries = RangedContinuousSeries(NetworkTrafficLabel.BYTES_SENT.getLabel(false),
-                                        services.timeline.viewRange,
+                                        timeline.viewRange,
                                         trafficRange,
                                         createSeries(NetworkTrafficLabel.BYTES_SENT),
-                                        services.timeline.dataRange)
+                                        timeline.dataRange)
 
   init {
     add(rxSeries)

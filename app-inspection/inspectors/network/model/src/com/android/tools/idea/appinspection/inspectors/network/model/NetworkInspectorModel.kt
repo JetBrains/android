@@ -16,7 +16,9 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.AspectModel
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangeSelectionModel
+import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
@@ -33,10 +35,11 @@ private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(
  * The model class for [NetworkInspectorView].
  */
 class NetworkInspectorModel(
-  val services: NetworkInspectorServices,
+  services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
-  val connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource)
-) {
+  val connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
+  startTimeStampNs: Long = 0
+) : AspectModel<NetworkInspectorAspect>() {
 
   val name = "NETWORK"
 
@@ -45,14 +48,14 @@ class NetworkInspectorModel(
     private set
 
   val aspect = AspectModel<NetworkInspectorAspect>()
-  val networkUsage = NetworkSpeedLineChartModel(services, dataSource)
-  val legends = LegendsModel(networkUsage, services.timeline.dataRange, false)
-  val tooltipLegends = LegendsModel(networkUsage, services.timeline.tooltipRange, true)
+  val timeline = StreamingTimeline(services.updater)
+  val networkUsage = NetworkSpeedLineChartModel(timeline, dataSource)
+  val legends = LegendsModel(networkUsage, timeline.dataRange, false)
+  val tooltipLegends = LegendsModel(networkUsage, timeline.tooltipRange, true)
   val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
-  val rangeSelectionModel = RangeSelectionModel(services.timeline.selectionRange, services.timeline.viewRange)
-  val httpDataFetcher = HttpDataFetcher(connectionsModel, services.timeline.selectionRange, services.timeline.dataRange)
-  val timeline = services.timeline
+  val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
+  val httpDataFetcher = HttpDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
 
   var tooltip: TooltipModel? = null
     set(value) {
@@ -61,10 +64,17 @@ class NetworkInspectorModel(
       }
       field?.dispose()
       field = value
-      services.changed(NetworkInspectorAspect.TOOLTIP)
+      changed(NetworkInspectorAspect.TOOLTIP)
     }
 
   init {
+    timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
+      if (!timeline.selectionRange.isEmpty) {
+        timeline.isStreaming = false
+      }
+    }
+    timeline.reset(startTimeStampNs, startTimeStampNs)
+
     services.updater.register(networkUsage)
     services.updater.register(trafficAxis)
   }

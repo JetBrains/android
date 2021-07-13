@@ -31,6 +31,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServices
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorServicesImpl
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
@@ -121,8 +122,8 @@ class NetworkInspectorTab(
         parentPanel.add(toolbar, BorderLayout.NORTH)
         parentPanel.add(stagePanel, BorderLayout.CENTER)
 
-        inspectorServices = NetworkInspectorServices(codeNavigationProvider, deviceTime, timer)
-        model = NetworkInspectorModel(inspectorServices, dataSource)
+        inspectorServices = NetworkInspectorServicesImpl(codeNavigationProvider, client, scope, timer, uiDispatcher)
+        model = NetworkInspectorModel(inspectorServices, dataSource, startTimeStampNs =  deviceTime)
         view = NetworkInspectorView(model, componentsProvider, component, usageTracker)
         stagePanel.add(view.component)
 
@@ -224,8 +225,8 @@ class NetworkInspectorTab(
           goLiveButton.icon = if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE else StudioIcons.Profiler.Toolbar.GOTO_LIVE
           goLiveButton.toolTipText = if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
         }
-        inspectorServices.timeline.addDependency(this@NetworkInspectorTab).onChange(
-          StreamingTimeline.Aspect.STREAMING) { goLiveButton.isSelected = inspectorServices.timeline.isStreaming }
+        model.timeline.addDependency(this@NetworkInspectorTab)
+          .onChange(StreamingTimeline.Aspect.STREAMING) { goLiveButton.isSelected = model.timeline.isStreaming }
         goLiveToolbar.add(goLiveButton)
         actionsToolBar.add(goLiveToolbar)
 
