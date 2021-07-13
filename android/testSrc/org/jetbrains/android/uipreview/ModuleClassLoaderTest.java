@@ -166,7 +166,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     });
   }
 
-  public void testIsSourceModified() throws IOException {
+  public void testIsSourceModified() throws IOException, ClassNotFoundException {
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(getProject().getBasePath()),
@@ -198,10 +198,10 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     assertThat(notModifiedClass).isNotNull();
 
     ModuleClassLoader loader = ModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
-    loader.loadClassFile("com.google.example.R", rClass);
-    loader.loadClassFile("com.google.example.R$string", rStringClass);
-    loader.loadClassFile("com.google.example.Modified", modifiedClass);
-    loader.loadClassFile("com.google.example.NotModified", notModifiedClass);
+    loader.injectProjectClassFile("com.google.example.R", rClass);
+    loader.injectProjectClassFile("com.google.example.R$string", rStringClass);
+    loader.injectProjectClassFile("com.google.example.Modified", modifiedClass);
+    loader.injectProjectClassFile("com.google.example.NotModified", notModifiedClass);
 
     // Wait a bit to make sure timestamp is different.
     // At least one whole second because Apple's HFS only has whole second resolution.

@@ -23,10 +23,10 @@ import java.util.Enumeration
 /**
  * Class loader that prevents the loading of any resources.
  *
- * This is meant to workaround b/151089727 and avoid the [RenderClassLoader] accessing resources from
+ * This is meant to workaround b/151089727 and avoid the `ModuleClassLoader` accessing resources from
  * the plugin class loader.
  */
-class FirewalledResourcesClassLoader(parent: ClassLoader): ClassLoader(parent) {
+class FirewalledResourcesClassLoader(parent: ClassLoader?): ClassLoader(parent) {
   override fun findResource(name: String): URL? = null
   override fun findResources(name: String): Enumeration<URL> = Collections.emptyEnumeration()
   override fun findResource(moduleName: String, name: String): URL? = null

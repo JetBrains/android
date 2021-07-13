@@ -23,6 +23,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
 import com.android.utils.reflection.qualifiedName
+import com.google.common.base.Charsets
+import com.google.common.hash.Hashing
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -135,6 +137,21 @@ class Preloader(
 private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
 val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
 
+private fun calculateTransformationsUniqueId(projectClassesTransformationProvider: ClassTransform,
+                                             nonProjectClassesTransformationProvider: ClassTransform): String? {
+  return Hashing.goodFastHash(64).newHasher()
+    .putString(projectClassesTransformationProvider.id, Charsets.UTF_8)
+    .putString(nonProjectClassesTransformationProvider.id, Charsets.UTF_8)
+    .hash()
+    .toString()
+}
+
+fun ModuleClassLoader.areTransformationsUpToDate(projectClassesTransformationProvider: ClassTransform,
+                               nonProjectClassesTransformationProvider: ClassTransform): Boolean {
+  return (calculateTransformationsUniqueId(this.projectClassesTransform, this.nonProjectClassesTransform)
+    == calculateTransformationsUniqueId(projectClassesTransformationProvider, nonProjectClassesTransformationProvider))
+}
+
 /**
  * Checks if the [ModuleClassLoader] has the same transformations and parent [ClassLoader] making it compatible but not necessarily
  * up-to-date because it does not check the state of user project files. Compatibility means that the [ModuleClassLoader] can be used if it
@@ -145,7 +162,7 @@ fun ModuleClassLoader.isCompatible(
   parent: ClassLoader?,
   projectTransformations: ClassTransform,
   nonProjectTransformations: ClassTransform) = when {
-  parent != null && this.parent != parent -> {
+  !this.isCompatibleParentClassLoader(parent) -> {
     ModuleClassLoaderManager.LOG.debug("Parent has changed, discarding ModuleClassLoader")
     false
   }
@@ -200,7 +217,7 @@ class ModuleClassLoaderManager {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     }
     val combinedNonProjectTransformations: ClassTransform by lazy {
-      combine(PROJECT_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
+      combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     }
 
     var oldClassLoader: ModuleClassLoader? = null
@@ -259,17 +276,7 @@ class ModuleClassLoaderManager {
   }
 
   @VisibleForTesting
-  fun createCopy(mcl: ModuleClassLoader): ModuleClassLoader? {
-    mcl.moduleContext?.let {
-      return ModuleClassLoader(
-        mcl.parent,
-        it,
-        mcl.projectClassesTransformationProvider,
-        mcl.nonProjectClassesTransformationProvider,
-        createDiagnostics())
-    }
-    return null
-  }
+  fun createCopy(mcl: ModuleClassLoader): ModuleClassLoader? = mcl.copy(createDiagnostics())
 
   private fun createDiagnostics() = if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
 

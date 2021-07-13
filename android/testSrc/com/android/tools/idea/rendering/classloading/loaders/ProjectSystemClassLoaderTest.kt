@@ -23,11 +23,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import java.io.FileNotFoundException
 
 /**
  * [FakeVirtualFile] that supports [VirtualFile.contentsToByteArray].
  */
-private class TestVirtualFile(parent: VirtualFile, name: String): FakeVirtualFile(parent, name) {
+private open class TestVirtualFile(parent: VirtualFile, name: String): FakeVirtualFile(parent, name) {
   private val contents = ByteArray(0)
   override fun contentsToByteArray(): ByteArray = contents
 }
@@ -52,5 +53,25 @@ class ProjectSystemClassLoaderTest {
     assertNull(loader.loadClass("not.found.class"))
     assertEquals(virtualFile1.contentsToByteArray(), loader.loadClass("a.class1"))
     assertEquals(virtualFile2.contentsToByteArray(), loader.loadClass("a.class2"))
+  }
+
+  @Test
+  fun `test files removed`() {
+    val rootDir = projectRule.fixture.tempDirFixture.findOrCreateDir("test")
+    var removed = false
+    val virtualFile = object: TestVirtualFile(rootDir, "file1") {
+      override fun isValid(): Boolean = !removed
+
+      override fun contentsToByteArray(): ByteArray =
+        if (removed) throw FileNotFoundException("") else super.contentsToByteArray()
+    }
+    val loader = ProjectSystemClassLoader {
+      if (it == "a.class1") virtualFile else null
+    }
+
+    assertEquals(virtualFile.contentsToByteArray(), loader.loadClass("a.class1"))
+    // Simulate file removal
+    removed = true
+    assertNull(loader.loadClass("a.class1"))
   }
 }
