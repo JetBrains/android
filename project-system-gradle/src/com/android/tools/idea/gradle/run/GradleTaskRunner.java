@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.run;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -74,12 +75,13 @@ public interface GradleTaskRunner {
       ListenableFuture<AssembleInvocationResult> future = gradleBuildInvoker.executeAssembleTasks(assembledModules, requests);
 
       try {
-        future.get().getInvocationResult().getModels().stream()
+        GradleMultiInvocationResult invocationResult = future.get().getInvocationResult();
+        invocationResult.getModels().stream()
           // Composite builds are not properly supported with AGPs 3.x and we ignore a possibility of receiving multiple models here.
           // `PostBuildModel`s were not designed to handle this.
           .findFirst()
           .ifPresent(model::set);
-        return true;
+        return invocationResult.isBuildSuccessful();
       }
       catch (InterruptedException e) {
         throw new ProcessCanceledException();
