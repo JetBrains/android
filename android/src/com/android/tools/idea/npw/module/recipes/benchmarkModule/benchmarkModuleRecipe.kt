@@ -62,7 +62,7 @@ fun RecipeExecutor.generateBenchmarkModule(
   applyPlugin("androidx.benchmark", projectData.gradlePluginVersion)
   addDependency("androidx.test:runner:+", "androidTestImplementation")
   addDependency("androidx.test.ext:junit:+", "androidTestImplementation")
-  addDependency("junit:junit:4.+", "androidTestImplementation")
+  addDependency("junit:junit:4.+", "androidTestImplementation", minRev = "4.13.2")
   addDependency("androidx.benchmark:benchmark-junit4:+", "androidTestImplementation")
 
   save(androidManifestXml(packageName), moduleOut.resolve("src/main/AndroidManifest.xml"))
