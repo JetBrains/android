@@ -29,6 +29,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -85,6 +86,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.containers.ContainerUtil;
@@ -288,7 +290,11 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     createSceneView();
-    updateTrackingConfiguration();
+
+    // Slow operations are prohibited on EDT. See SlowOperations.assertSlowOperationsAreAllowed javadoc.
+    // We suppress this warning in IDEA for now. This must be fixed in Android Studio.
+    if (IdeInfo.getInstance().isAndroidStudio()) updateTrackingConfiguration();
+    else SlowOperations.allowSlowOperations(this::updateTrackingConfiguration);
 
     getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
 

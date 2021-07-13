@@ -19,6 +19,7 @@ import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -41,6 +42,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import com.intellij.util.SlowOperations;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -94,7 +96,12 @@ public class DependencyManager implements Disposable {
       myModule = module;
     }
 
-    checkForRelevantDependencyChanges();
+    // Slow operations are prohibited on EDT. See SlowOperations.assertSlowOperationsAreAllowed javadoc.
+    // We suppress this warning in IDEA for now. This must be fixed in Android Studio.
+    // `setPalette` javadoc suggests that it is an error to invoke this method from EDT
+    if (IdeInfo.getInstance().isAndroidStudio()) checkForRelevantDependencyChanges();
+    else SlowOperations.allowSlowOperations(this::checkForRelevantDependencyChanges);
+
     registerDependencyUpdates();
     ApplicationManager.getApplication().invokeLater(() -> myListeners.forEach(listener -> listener.onDependenciesChanged()));
   }
